@@ -120,6 +120,7 @@
     <Reference Include="System.Web.Abstractions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -294,6 +295,7 @@
     <Compile Include="PermissionQuery.cs" />
     <Compile Include="PortalSettings.cs" />
     <Compile Include="Preview\WatermarkServicesTemplateReplacer.cs" />
+    <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="ServiceExtensions.cs" />
     <Compile Include="ServiceTools.cs" />
