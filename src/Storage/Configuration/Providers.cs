@@ -24,6 +24,17 @@ using SenseNet.Tools.Diagnostics;
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration
 {
+    // ReSharper disable InconsistentNaming
+    public interface IBackwardCompatibleHttpContext
+    {
+        Uri Request_UrlReferrer { get; }
+    }
+
+    internal class EmptyBackwardCompatibleHttpContext : IBackwardCompatibleHttpContext
+    {
+        public Uri Request_UrlReferrer => null;
+    }
+
     public class Providers : SnConfig
     {
         private const string SectionName = "sensenet/providers";
@@ -354,6 +365,9 @@ namespace SenseNet.Configuration
         #endregion
 
         internal NodeTypeManager NodeTypeManeger { get; set; }
+
+        public IBackwardCompatibleHttpContext BackwardCompatibleHttpContext { get; set; } =
+            new EmptyBackwardCompatibleHttpContext();
 
         //===================================================================================== General provider API
 

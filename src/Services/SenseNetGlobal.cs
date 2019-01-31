@@ -26,6 +26,11 @@ namespace SenseNet.Services
     [AttributeUsage(AttributeTargets.Class)]
     public class InternalSenseNetHttpApplicationAttribute : Attribute { }
 
+    internal class RealBackwardCompatibleHttpContext : IBackwardCompatibleHttpContext
+    {
+        public Uri Request_UrlReferrer => HttpContext.Current?.Request?.UrlReferrer;
+    }
+
     public class SenseNetGlobal
     {
         /*====================================================================================================================== Static part */
@@ -146,8 +151,10 @@ namespace SenseNet.Services
             {
                 var repositoryBuilder = new RepositoryBuilder
                 {
-                    IsWebContext = true
+                    IsWebContext = true,
                 };
+
+                Providers.Instance.BackwardCompatibleHttpContext = new RealBackwardCompatibleHttpContext();
 
                 BuildRepository(repositoryBuilder);
 
