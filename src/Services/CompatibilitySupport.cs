@@ -6,6 +6,7 @@ namespace SenseNet.Services
 {
     internal class CompatibilitySupport : ICompatibilitySupport
     {
+        public Uri Request_Url => HttpContext.Current?.Request.Url;
         public Uri Request_UrlReferrer => HttpContext.Current?.Request.UrlReferrer;
     }
 }
