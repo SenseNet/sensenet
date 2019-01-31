@@ -191,6 +191,7 @@
     <Compile Include="Empty.cs" />
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
+    <Compile Include="ICompatibilitySupport.cs" />
     <Compile Include="IFolder.cs" />
     <Compile Include="IMaintenanceTask.cs" />
     <Compile Include="InvalidContentException.cs" />

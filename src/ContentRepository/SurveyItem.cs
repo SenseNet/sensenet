@@ -239,7 +239,7 @@ namespace SenseNet.ContentRepository
 
         private string GetUrl()
         {
-            var url = Providers.Instance.BackwardCompatibleHttpContext.Request_UrlReferrer?.AbsoluteUri;
+            var url = Providers.Instance.CompatibilitySupport.Request_UrlReferrer?.AbsoluteUri;
             if(url != null)
                 return url.Substring(0, url.IndexOf("?")) + "/" + this.Name;
 
