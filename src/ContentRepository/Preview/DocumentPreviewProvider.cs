@@ -462,7 +462,7 @@ namespace SenseNet.Preview
 
         protected static void AssertResultIsStillRequired()
         {
-            if (HttpContext.Current != null && !HttpContext.Current.Response.IsClientConnected)
+            if (!HttpContext.Current?.Response?.IsClientConnected ?? true)
             {
                 //TODO: create a new exception class for this
                 throw new Exception("Client is disconnected");
