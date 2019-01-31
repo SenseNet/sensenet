@@ -8,5 +8,6 @@ namespace SenseNet.Services
     {
         public Uri Request_Url => HttpContext.Current?.Request.Url;
         public Uri Request_UrlReferrer => HttpContext.Current?.Request.UrlReferrer;
+        public bool Response_IsClientConnected => HttpContext.Current?.Response?.IsClientConnected ?? true;
     }
 }
