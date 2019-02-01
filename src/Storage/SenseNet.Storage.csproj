@@ -145,6 +145,7 @@
     <Compile Include="Caching\Dependency\PortletDependency.cs" />
     <Compile Include="Caching\ISnCache.cs" />
     <Compile Include="CannotDeleteReferredContentException.cs" />
+    <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="ComponentInfo.cs" />
     <Compile Include="Configuration\Cache.cs" />
     <Compile Include="Configuration\ContentNaming.cs" />

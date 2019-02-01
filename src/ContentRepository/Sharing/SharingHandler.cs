@@ -545,7 +545,7 @@ namespace SenseNet.ContentRepository.Sharing
             if (!sharingData.Token.Contains("@"))
                 return;
 
-            var siteUrl = Providers.Instance.CompatibilitySupport.Request_Url
+            var siteUrl = CompatibilitySupport.Request_Url
                           .GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ??
                           "http://example.com";
 

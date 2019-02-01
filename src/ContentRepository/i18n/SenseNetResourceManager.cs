@@ -266,7 +266,7 @@ namespace SenseNet.ContentRepository.i18n
                 if (!Repository.Started())
                     return false;
 
-                return Providers.Instance.CompatibilitySupport.IsResourceEditorAllowed && User.Current.IsInGroup(Group.Administrators);
+                return CompatibilitySupport.IsResourceEditorAllowed && User.Current.IsInGroup(Group.Administrators);
             }
         }
 

@@ -103,7 +103,7 @@ namespace SenseNet.ApplicationModel
             if (context == null)
                 return null;
 
-            var backUrl = Providers.Instance.CompatibilitySupport.Request_RawUrl;
+            var backUrl = CompatibilitySupport.Request_RawUrl;
 
             return GetAction(name, context, backUrl, parameters);
         }
@@ -129,7 +129,7 @@ namespace SenseNet.ApplicationModel
         public static string GetActionUrl(string nodePath, string actionName)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
+            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             return GetActionUrl(nodePath, actionName, backUrl);
         }
@@ -166,7 +166,7 @@ namespace SenseNet.ApplicationModel
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
+            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             return GetActions(context, scenario, scenarioParameters, backUrl);
         }
@@ -218,7 +218,7 @@ namespace SenseNet.ApplicationModel
         internal static IEnumerable<ActionBase> GetActionsForContentNavigator(Content context)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
+            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             var apps = ApplicationStorage.Instance.GetApplications(null, context, GetDevice());
             var actionList = new ActionList(apps, context, backUrl);
@@ -303,6 +303,6 @@ namespace SenseNet.ApplicationModel
             return dict;
         }
 
-        private static string GetDevice() => (string)Providers.Instance.CompatibilitySupport.GetHttpContextItem(ApplicationStorage.DEVICEPARAMNAME);
+        private static string GetDevice() => (string)CompatibilitySupport.GetHttpContextItem(ApplicationStorage.DEVICEPARAMNAME);
     }
 }

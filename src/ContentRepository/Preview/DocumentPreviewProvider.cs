@@ -190,7 +190,7 @@ namespace SenseNet.Preview
 
         protected static bool GetDisplayWatermarkQueryParameter()
         {
-            var watermarkVal = Providers.Instance.CompatibilitySupport.GetRequestItem("watermark");
+            var watermarkVal = CompatibilitySupport.GetRequestItem("watermark");
             if (string.IsNullOrEmpty(watermarkVal))
                 return false;
 
@@ -203,7 +203,7 @@ namespace SenseNet.Preview
 
         protected static int? GetRotationQueryParameter()
         {
-            var paramVal = Providers.Instance.CompatibilitySupport.GetRequestItem("rotation");
+            var paramVal = CompatibilitySupport.GetRequestItem("rotation");
             if (string.IsNullOrEmpty(paramVal))
                 return null;
 
@@ -456,7 +456,7 @@ namespace SenseNet.Preview
 
         protected static void AssertResultIsStillRequired()
         {
-            if (!Providers.Instance.CompatibilitySupport.Response_IsClientConnected)
+            if (!CompatibilitySupport.Response_IsClientConnected)
             {
                 //TODO: create a new exception class for this
                 throw new Exception("Client is disconnected");
@@ -1386,7 +1386,7 @@ namespace SenseNet.Preview
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
             var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
                 relatedContent.Path,
-                Providers.Instance.CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
+                CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
 
             // serialize data for preview generator task (json format)
             var serializer = new JsonSerializer();

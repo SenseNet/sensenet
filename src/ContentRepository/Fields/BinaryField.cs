@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Fields
 
                 // webdav request: we don't have a binary file 
                 // next to the content as an attachment, so ignore the value
-                var trans = Providers.Instance.CompatibilitySupport.GetRequestHeader("Translate");
+                var trans = CompatibilitySupport.GetRequestHeader("Translate");
                 var webdav = (!string.IsNullOrEmpty(trans) && trans.ToLower().CompareTo("f") == 0);
 
 
