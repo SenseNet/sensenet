@@ -164,6 +164,8 @@
     <Compile Include="Configuration\UrlList\UrlElement.cs" />
     <Compile Include="Configuration\UrlList\UrlElementCollection.cs" />
     <Compile Include="Configuration\UrlList\UrlListSection.cs" />
+    <Compile Include="i18n\SenseNetResourceProvider.cs" />
+    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="Metadata\IMetadataProvider.cs" />
     <Compile Include="Metadata\ClientMetadataProvider.cs" />
     <Compile Include="ApplicationModel\HasPermissionAction.cs" />
