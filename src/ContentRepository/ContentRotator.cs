@@ -38,8 +38,14 @@ namespace SenseNet.ContentRepository
 
         // ===================================================================================== Properties
 
-        [Obsolete]
-        public DateTime CurrentDate => DateTime.UtcNow;
+        public DateTime CurrentDate
+        {
+            get
+            {
+                var dateString = CompatibilitySupport.GetRequestItem("CurrentDate");
+                return string.IsNullOrEmpty(dateString) ? DateTime.UtcNow : DateTime.Parse(dateString);
+            }
+        }
 
         [RepositoryProperty("SelectionMode", RepositoryDataType.String)]
 		public string SelectionMode
@@ -82,7 +88,7 @@ namespace SenseNet.ContentRepository
 			return true;
         }
 
-        public IEnumerable<Node> GetValidItems(IEnumerable<Node> items, DateTime? currentDate = null)
+        public IEnumerable<Node> GetValidItems(IEnumerable<Node> items)
         {
             foreach (Node node in items)
             {
@@ -97,9 +103,7 @@ namespace SenseNet.ContentRepository
                 if (!GetNodeDateProperty(node, "ValidTill", out var validTill))
                     continue;
 
-                if (!currentDate.HasValue)
-                    currentDate = DateTime.UtcNow;
-
+                var currentDate = CurrentDate;
                 if (validFrom < currentDate && validTill > currentDate)
                     yield return node;
             }
