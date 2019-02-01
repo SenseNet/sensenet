@@ -297,6 +297,7 @@
     <Compile Include="PermissionQuery.cs" />
     <Compile Include="PortalSettings.cs" />
     <Compile Include="Preview\WatermarkServicesTemplateReplacer.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="ServiceExtensions.cs" />

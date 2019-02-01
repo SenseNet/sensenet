@@ -183,6 +183,8 @@
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Security\IOAuthProvider.cs" />
+    <Compile Include="Security\OAuthProviderTools.cs" />
     <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
     <Compile Include="Sharing\InvalidContentSharingQueryException.cs" />
     <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
@@ -270,7 +272,6 @@
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="Security\IOAuthIdentity.cs" />
-    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />

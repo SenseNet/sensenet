@@ -335,10 +335,9 @@ namespace SenseNet.ContentRepository
         {
             var providerTypeNames = new List<string>();
 
-            foreach (var providerType in TypeResolver.GetTypesByBaseType(typeof(OAuthProvider)).Where(t => !t.IsAbstract))
+            foreach (var providerType in TypeResolver.GetTypesByInterface(typeof(IOAuthProvider)).Where(t => !t.IsAbstract))
             {
-                var provider = TypeResolver.CreateInstance(providerType.FullName) as OAuthProvider;
-                if (provider == null)
+                if (!(TypeResolver.CreateInstance(providerType.FullName) is IOAuthProvider provider))
                     continue;
 
                 if (string.IsNullOrEmpty(provider.ProviderName))
@@ -352,7 +351,7 @@ namespace SenseNet.ContentRepository
                     continue;
                 }
 
-                Providers.Instance.SetProvider(provider.GetProviderRegistrationName(), provider);
+                Providers.Instance.SetProvider(OAuthProviderTools.GetProviderRegistrationName(provider.ProviderName), provider);
                 providerTypeNames.Add($"{providerType.FullName} ({provider.ProviderName})");
             }
 
