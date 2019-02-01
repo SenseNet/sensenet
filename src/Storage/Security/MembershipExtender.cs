@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         private static readonly string[] InternalMembershipExtenderTypeNames =
         {
-            "SenseNet.ContentRepository.Sharing.SharingMembershipExtender"
+            "SenseNet.Services.Sharing.SharingMembershipExtender"
         };
 
         private static readonly Lazy<MembershipExtenderBase[]> InternalExtenders = new Lazy<MembershipExtenderBase[]>(

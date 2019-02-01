@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.IO;
+using System.Web;
 using IO = System.IO;
 using SenseNet.ContentRepository.Storage;
-
 using SenseNet.ContentRepository.Schema;
-using System.Web;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -105,12 +105,9 @@ namespace SenseNet.ContentRepository.Fields
 
                 // webdav request: we don't have a binary file 
                 // next to the content as an attachment, so ignore the value
-                bool webdav = false;
-                if (HttpContext.Current != null)
-                {
-                    string trans = HttpContext.Current.Request.Headers["Translate"];
-                    webdav = (!string.IsNullOrEmpty(trans) && trans.ToLower().CompareTo("f") == 0);
-                }
+                var trans = CompatibilitySupport.GetRequestHeader("Translate");
+                var webdav = (!string.IsNullOrEmpty(trans) && trans.ToLower().CompareTo("f") == 0);
+
 
                 if (!webdav)
                 {

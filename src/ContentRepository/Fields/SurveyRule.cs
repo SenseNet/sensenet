@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Xml;
 
 namespace SenseNet.ContentRepository.Fields
@@ -63,7 +62,7 @@ namespace SenseNet.ContentRepository.Fields
 
         public static string GetExtraValueText()
         {
-            return HttpContext.GetGlobalResourceObject("Survey", "ExtraValueText") as string;
+            return SR.GetString("Survey", "ExtraValueText");
         }
     }
 }

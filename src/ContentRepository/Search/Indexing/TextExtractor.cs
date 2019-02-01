@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Web;
 using System.Xml;
 using iTextSharp.text.pdf;
 using SenseNet.ContentRepository.Storage;

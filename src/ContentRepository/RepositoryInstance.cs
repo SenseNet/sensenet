@@ -8,8 +8,6 @@ using System.Configuration;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
-using System.Web;
-using System.Web.Compilation;
 using SenseNet.Communication.Messaging;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
@@ -134,7 +132,7 @@ namespace SenseNet.ContentRepository
             if (_settings.IndexPath != null)
                 SearchManager.SetIndexDirectoryPath(_settings.IndexPath);
 
-            LoadAssemblies();
+            LoadAssemblies(_settings.IsWebContext);
 
             InitializeDataProviderExtensions();
 
@@ -205,28 +203,22 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private void LoadAssemblies()
+        private void LoadAssemblies(bool isWebContext)
         {
             string[] asmNames;
             _startupInfo.AssembliesBeforeStart = GetLoadedAsmNames().ToArray();
             var localBin = AppDomain.CurrentDomain.BaseDirectory;
             var pluginsPath = _settings.PluginsPath ?? localBin;
 
-            if (HttpContext.Current != null)
-            {
-                ConsoleWrite("Getting referenced assemblies ... ");
-                BuildManager.GetReferencedAssemblies();
-                ConsoleWriteLine("Ok.");
-            }
-            else
+            if (!isWebContext)
             {
                 ConsoleWriteLine("Loading Assemblies from ", localBin, ":");
                 asmNames = TypeResolver.LoadAssembliesFrom(localBin);
                 foreach (string name in asmNames)
                     ConsoleWriteLine("  ", name);
             }
-            _startupInfo.ReferencedAssemblies = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).ToArray();
 
+            _startupInfo.ReferencedAssemblies = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).ToArray();
 
             ConsoleWriteLine("Loading Assemblies from ", pluginsPath, ":");
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
@@ -335,10 +327,9 @@ namespace SenseNet.ContentRepository
         {
             var providerTypeNames = new List<string>();
 
-            foreach (var providerType in TypeResolver.GetTypesByBaseType(typeof(OAuthProvider)).Where(t => !t.IsAbstract))
+            foreach (var providerType in TypeResolver.GetTypesByInterface(typeof(IOAuthProvider)).Where(t => !t.IsAbstract))
             {
-                var provider = TypeResolver.CreateInstance(providerType.FullName) as OAuthProvider;
-                if (provider == null)
+                if (!(TypeResolver.CreateInstance(providerType.FullName) is IOAuthProvider provider))
                     continue;
 
                 if (string.IsNullOrEmpty(provider.ProviderName))
@@ -352,7 +343,7 @@ namespace SenseNet.ContentRepository
                     continue;
                 }
 
-                Providers.Instance.SetProvider(provider.GetProviderRegistrationName(), provider);
+                Providers.Instance.SetProvider(OAuthProviderTools.GetProviderRegistrationName(provider.ProviderName), provider);
                 providerTypeNames.Add($"{providerType.FullName} ({provider.ProviderName})");
             }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
-using System.Web;
 using System.IO;
 
 namespace SenseNet.ContentRepository
@@ -23,7 +22,7 @@ namespace SenseNet.ContentRepository
             provider.Mode = CMode;
 
 
-            byte[] inputbytes = HttpServerUtility.UrlTokenDecode(input);
+            byte[] inputbytes = UrlTokenDecode(input);
 
             var ms = new MemoryStream();
             var cs = new CryptoStream(ms, provider.CreateDecryptor(key, IV), CryptoStreamMode.Write);
@@ -56,8 +55,54 @@ namespace SenseNet.ContentRepository
 
             byte[] bytes = ms.ToArray();
 
-            string base64 = HttpServerUtility.UrlTokenEncode(bytes); // Convert.ToBase64String(bytes);
+            string base64 = UrlTokenEncode(bytes);
             return base64;
         }
+
+        internal static byte[] UrlTokenDecode(string text)
+        {
+            var length = text.Length - 1;
+            var paddingCharCount = text[length] - '0';
+            var buffer = new char[length + paddingCharCount];
+
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                if (i >= length)
+                    buffer[i] = '=';
+                else
+                    switch (text[i])
+                    {
+                        case '-': buffer[i] = '+'; break;
+                        case '_': buffer[i] = '/'; break;
+                        default: buffer[i] = text[i]; break;
+                    }
+            }
+
+            return Convert.FromBase64CharArray(buffer, 0, buffer.Length);
+        }
+
+        internal static string UrlTokenEncode(byte[] bytes)
+        {
+            var b64 = Convert.ToBase64String(bytes);
+            var p = b64.Length - 1;
+            while (b64[p] == '=')
+                p--;
+
+            var buffer = new char[p + 2];
+            buffer[p + 1] = (char) ('0' + b64.Length - 1 - p);
+
+            for (var i = 0; i < buffer.Length - 1; i++)
+            {
+                switch (b64[i])
+                {
+                    case '+': buffer[i] = '-'; break;
+                    case '/': buffer[i] = '_'; break;
+                    default: buffer[i] = b64[i]; break;
+                }
+            }
+
+            return new string(buffer);
+        }
+
     }
 }

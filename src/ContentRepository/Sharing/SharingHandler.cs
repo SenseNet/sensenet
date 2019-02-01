@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using System.Web;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
@@ -34,7 +32,7 @@ namespace SenseNet.ContentRepository.Sharing
         public static string SharingGroupsBySharedContent => "+TypeIs:SharingGroup +SharedContent:@0";
     }
 
-    internal static class Constants
+    public static class Constants
     {
         public const string SharingTokenKey = "SnSharingToken";
         public const string SharingGroupTypeName = "SharingGroup";
@@ -547,7 +545,7 @@ namespace SenseNet.ContentRepository.Sharing
             if (!sharingData.Token.Contains("@"))
                 return;
 
-            var siteUrl = HttpContext.Current?.Request.Url
+            var siteUrl = CompatibilitySupport.Request_Url
                           .GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ??
                           "http://example.com";
 
@@ -800,15 +798,7 @@ namespace SenseNet.ContentRepository.Sharing
 
             return target.Sharing.Items.FirstOrDefault(sd => sd.Id == sharingId);
         }
-        internal static Content GetSharingGroupByUrlParameter(NameValueCollection parameters)
-        {
-            var sharingGuid = parameters?[Constants.SharingUrlParameterName];
-
-            return string.IsNullOrEmpty(sharingGuid)
-                ? null
-                : GetSharingGroupBySharingId(sharingGuid);
-        }
-        internal static Content GetSharingGroupBySharingId(string sharingGuid)
+        public static Content GetSharingGroupBySharingId(string sharingGuid)
         {
             if (!string.IsNullOrEmpty(sharingGuid))
             {

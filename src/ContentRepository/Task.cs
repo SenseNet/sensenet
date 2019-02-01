@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -43,14 +42,14 @@ namespace SenseNet.ContentRepository
                 {
                     var dueDate = this.GetProperty<DateTime>("DueDate").Date;
 
-                    if (dueDate < DateTime.Today) return HttpContext.GetGlobalResourceObject("Portal", "DaysOverdue") as string;
+                    if (dueDate < DateTime.Today) return SR.GetString("Portal", "DaysOverdue");
                 }
                 catch (Exception ex)
                 {
                     SnLog.WriteException(ex);
                 }
 
-                return HttpContext.GetGlobalResourceObject("Portal", "DaysLeft") as string;
+                return SR.GetString("Portal", "DaysLeft");
             }
         }
 

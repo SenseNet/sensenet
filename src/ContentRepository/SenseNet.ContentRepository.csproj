@@ -133,7 +133,6 @@
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -184,6 +183,8 @@
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Security\IOAuthProvider.cs" />
+    <Compile Include="Security\OAuthProviderTools.cs" />
     <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
     <Compile Include="Sharing\InvalidContentSharingQueryException.cs" />
     <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
@@ -193,7 +194,6 @@
     <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
     <Compile Include="Sharing\SharingLevel.cs" />
-    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="Sharing\SharingMode.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
     <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
@@ -272,7 +272,6 @@
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="Security\IOAuthIdentity.cs" />
-    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
@@ -470,13 +469,10 @@
     <Compile Include="Security\DesktopAccessProvider.cs" />
     <Compile Include="Schema\FieldManager.cs" />
     <Compile Include="i18n\SenseNetResourceManager.cs" />
-    <Compile Include="i18n\SenseNetResourceProvider.cs" />
-    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="ContentList.cs" />
     <Compile Include="PortalRoot.cs" />
     <Compile Include="ReferenceNotFoundException.cs" />
     <Compile Include="Security\PortalPrincipal.cs" />
-    <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="i18n\Resource.cs" />
     <Compile Include="Schema\ContentHandlerAttribute.cs" />
     <Compile Include="Schema\ContentRegistrationException.cs" />
@@ -492,7 +488,6 @@
     <Compile Include="ContentRotator.cs" />
     <Compile Include="SR.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="IFile.cs" />
     <Compile Include="OrganizationalUnit.cs" />

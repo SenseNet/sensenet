@@ -3,7 +3,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System;
-using System.Web;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -229,19 +228,6 @@ namespace SenseNet.ApplicationModel
         {
             get { return this.GetOverriddenProperty<string>(CACHECONTROL); }
             set { this[CACHECONTROL] = value; }
-        }
-
-        public HttpCacheability? CacheControlEnumValue
-        {
-            get
-            {
-                var strprop = this.CacheControl;
-                if (string.IsNullOrEmpty(strprop) || strprop == "Nondefined")
-                    return null;
-
-                return (HttpCacheability)Enum.Parse(typeof(HttpCacheability), strprop, true);
-            }
-            set { this.CacheControl = value.HasValue ? value.ToString() : "Nondefined"; }
         }
 
         public const string MAXAGE = "MaxAge";

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -191,10 +190,7 @@ namespace SenseNet.Preview
 
         protected static bool GetDisplayWatermarkQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return false;
-
-            var watermarkVal = HttpContext.Current.Request["watermark"];
+            var watermarkVal = CompatibilitySupport.GetRequestItem("watermark");
             if (string.IsNullOrEmpty(watermarkVal))
                 return false;
 
@@ -207,12 +203,10 @@ namespace SenseNet.Preview
 
         protected static int? GetRotationQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return null;
-
-            var paramVal = HttpContext.Current.Request["rotation"];
+            var paramVal = CompatibilitySupport.GetRequestItem("rotation");
             if (string.IsNullOrEmpty(paramVal))
                 return null;
+
 
             int rotation = 0;
             if (!int.TryParse(paramVal, out rotation))
@@ -462,7 +456,7 @@ namespace SenseNet.Preview
 
         protected static void AssertResultIsStillRequired()
         {
-            if (HttpContext.Current != null && !HttpContext.Current.Response.IsClientConnected)
+            if (!CompatibilitySupport.Response_IsClientConnected)
             {
                 //TODO: create a new exception class for this
                 throw new Exception("Client is disconnected");
@@ -1391,8 +1385,8 @@ namespace SenseNet.Preview
             var maxPreviewCount = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, MAXPREVIEWCOUNT, relatedContent.Path, 10);
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
             var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
-                relatedContent.Path, 
-                HttpContext.Current != null ? HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) : string.Empty);
+                relatedContent.Path,
+                CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
 
             // serialize data for preview generator task (json format)
             var serializer = new JsonSerializer();

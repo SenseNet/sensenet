@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Web;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Security.ADSync;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
@@ -65,8 +67,7 @@ namespace SenseNet.Portal.Virtualization
                 fileName = IsDefaultProperty(node, propertyName) ? new BinaryFileName(node.Name) : binaryData.FileName;
 
                 // feature: AD sync
-                var adSettings = node as ADSettings;
-                if (adSettings != null && !adSettings.IncludePasswords())
+                if (node is ADSettings adSettings && RemoveAdPasswords(adSettings))
                 {
                     // return a stream that contains generic GUID values instead of the encoded passwords
                     return adSettings.RemovePasswords(binaryData.GetStream());
@@ -128,6 +129,29 @@ namespace SenseNet.Portal.Virtualization
             return node is SenseNet.ContentRepository.File &&
                    (string.IsNullOrEmpty(propertyName) ||
                     string.Compare(propertyName, DEFAULTBINARY_NAME, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        protected static bool RemoveAdPasswords(ADSettings adSettings)
+        {
+            if (adSettings == null)
+                return false;
+
+            // Save permission is needed for this setting to be able to see even the encrypted values
+            if (!adSettings.Security.HasPermission(PermissionType.Save))
+                return true;
+
+            // in case of export or other special scenario, include the stored values
+            if (HttpContext.Current == null)
+                return false;
+
+            var includePassStr = HttpContext.Current.Request["includepasswords"];
+            if (string.IsNullOrEmpty(includePassStr))
+                return true;
+
+            if (bool.TryParse(includePassStr, out var includePass))
+                return !includePass;
+
+            return true;
         }
     }
 }

@@ -120,6 +120,7 @@
     <Reference Include="System.Web.Abstractions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -153,6 +154,7 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElementCollection.cs" />
@@ -162,6 +164,8 @@
     <Compile Include="Configuration\UrlList\UrlElement.cs" />
     <Compile Include="Configuration\UrlList\UrlElementCollection.cs" />
     <Compile Include="Configuration\UrlList\UrlListSection.cs" />
+    <Compile Include="i18n\SenseNetResourceProvider.cs" />
+    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="Metadata\IMetadataProvider.cs" />
     <Compile Include="Metadata\ClientMetadataProvider.cs" />
     <Compile Include="ApplicationModel\HasPermissionAction.cs" />
@@ -292,6 +296,12 @@
     <Compile Include="OData\Typescript\TypescriptTypeCollectorVisitor.cs" />
     <Compile Include="PermissionQuery.cs" />
     <Compile Include="PortalSettings.cs" />
+    <Compile Include="Preview\WatermarkServicesTemplateReplacer.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
+    <Compile Include="Security\SenseNetMembershipProvider.cs" />
+    <Compile Include="Security\UserAccessProvider.cs" />
+    <Compile Include="ServiceExtensions.cs" />
+    <Compile Include="ServiceTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryBuilder.cs" />
     <Compile Include="Resources\ResourceEditorApi.cs" />
@@ -301,6 +311,7 @@
     <Compile Include="Routing\ProxyingRouteHandler.cs" />
     <Compile Include="RssApplication.cs" />
     <Compile Include="SenseNetGlobal.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="SimpleModule.cs" />
     <Compile Include="Site.cs" />
     <Compile Include="SkinManagerBase.cs" />
