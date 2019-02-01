@@ -303,10 +303,6 @@ namespace SenseNet.ApplicationModel
             return dict;
         }
 
-        private static string GetDevice()
-        {
-            return HttpContext.Current != null ? (string)HttpContext.Current.Items[ApplicationStorage.DEVICEPARAMNAME] : null;
-        }
-
+        private static string GetDevice() => (string)Providers.Instance.CompatibilitySupport.GetHttpContextItem(ApplicationStorage.DEVICEPARAMNAME);
     }
 }

@@ -14,5 +14,7 @@ namespace SenseNet.Services
         public bool Response_IsClientConnected => HttpContext.Current?.Response?.IsClientConnected ?? true;
 
         public bool IsResourceEditorAllowed => HttpContext.Current.Request.Cookies.AllKeys.Contains("AllowResourceEditorCookie");
+
+        public object GetHttpContextItem(string name) => HttpContext.Current?.Items[name];
     }
 }

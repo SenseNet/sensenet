@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable once CheckNamespace
@@ -13,6 +15,8 @@ namespace SenseNet.ContentRepository
         bool Response_IsClientConnected { get; }
 
         bool IsResourceEditorAllowed { get; }
+
+        object GetHttpContextItem(string name);
     }
 
     internal class EmptyCompatibilitySupport : ICompatibilitySupport
@@ -20,7 +24,14 @@ namespace SenseNet.ContentRepository
         public Uri Request_Url => null;
         public Uri Request_UrlReferrer => null;
         public string Request_RawUrl => null;
+
         public bool Response_IsClientConnected => true;
+
         public bool IsResourceEditorAllowed => false;
+
+        public object GetHttpContextItem(string name)
+        {
+            return null;
+        }
     }
 }
