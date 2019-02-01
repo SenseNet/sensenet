@@ -17,6 +17,7 @@ namespace SenseNet.ContentRepository
         bool IsResourceEditorAllowed { get; }
 
         object GetHttpContextItem(string name);
+        string GetRequestHeader(string name);
     }
 
     internal class EmptyCompatibilitySupport : ICompatibilitySupport
@@ -29,9 +30,7 @@ namespace SenseNet.ContentRepository
 
         public bool IsResourceEditorAllowed => false;
 
-        public object GetHttpContextItem(string name)
-        {
-            return null;
-        }
+        public object GetHttpContextItem(string name) => null;
+        public string GetRequestHeader(string name) => null;
     }
 }
