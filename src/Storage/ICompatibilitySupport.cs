@@ -18,6 +18,7 @@ namespace SenseNet.ContentRepository
 
         object GetHttpContextItem(string name);
         string GetRequestHeader(string name);
+        string GetRequestItem(string name);
     }
 
     internal class EmptyCompatibilitySupport : ICompatibilitySupport
@@ -32,5 +33,6 @@ namespace SenseNet.ContentRepository
 
         public object GetHttpContextItem(string name) => null;
         public string GetRequestHeader(string name) => null;
+        public string GetRequestItem(string name) => null;
     }
 }

@@ -17,5 +17,6 @@ namespace SenseNet.Services
 
         public object GetHttpContextItem(string name) => HttpContext.Current?.Items[name];
         public string GetRequestHeader(string name) => HttpContext.Current?.Request.Headers[name];
+        public string GetRequestItem(string name) => HttpContext.Current?.Request[name];
     }
 }

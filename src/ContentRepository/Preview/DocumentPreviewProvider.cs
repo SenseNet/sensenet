@@ -191,10 +191,7 @@ namespace SenseNet.Preview
 
         protected static bool GetDisplayWatermarkQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return false;
-
-            var watermarkVal = HttpContext.Current.Request["watermark"];
+            var watermarkVal = Providers.Instance.CompatibilitySupport.GetRequestItem("watermark");
             if (string.IsNullOrEmpty(watermarkVal))
                 return false;
 
@@ -207,12 +204,10 @@ namespace SenseNet.Preview
 
         protected static int? GetRotationQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return null;
-
-            var paramVal = HttpContext.Current.Request["rotation"];
+            var paramVal = Providers.Instance.CompatibilitySupport.GetRequestItem("rotation");
             if (string.IsNullOrEmpty(paramVal))
                 return null;
+
 
             int rotation = 0;
             if (!int.TryParse(paramVal, out rotation))
