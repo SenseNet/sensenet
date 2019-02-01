@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.IO;
+using System.Net;
 using IO = System.IO;
 using SenseNet.ContentRepository.Storage;
-
 using SenseNet.ContentRepository.Schema;
-using System.Web;
 using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Fields
@@ -179,8 +178,8 @@ namespace SenseNet.ContentRepository.Fields
             // Although this is a url that should not be constructed in this layer,
             // there are several features that need it.
             return checksum > 0
-                ? $"/binaryhandler.ashx?nodeid={contentId}&propertyname={HttpUtility.UrlEncode(propertyName)}&checksum={HttpUtility.UrlEncode(checksum.ToString())}"
-                : $"/binaryhandler.ashx?nodeid={contentId}&propertyname={HttpUtility.UrlEncode(propertyName)}";
+                ? $"/binaryhandler.ashx?nodeid={contentId}&propertyname={WebUtility.UrlEncode(propertyName)}&checksum={WebUtility.UrlEncode(checksum.ToString())}"
+                : $"/binaryhandler.ashx?nodeid={contentId}&propertyname={WebUtility.UrlEncode(propertyName)}";
         }
     }
 }

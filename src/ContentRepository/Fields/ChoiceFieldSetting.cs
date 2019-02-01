@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Xml;
 using System.Xml.XPath;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
+using System.Net;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -523,7 +523,7 @@ namespace SenseNet.ContentRepository.Fields
                 else
                 {
                     // decode the xml string in order to handle &, < and > characters correctly
-                    var text = HttpUtility.HtmlDecode(optionElement.InnerXml);
+                    var text = WebUtility.HtmlDecode(optionElement.InnerXml);
                     var key = optionElement.GetAttribute("value", "");
 
                     if (text.Length == 0 && key.Length == 0)

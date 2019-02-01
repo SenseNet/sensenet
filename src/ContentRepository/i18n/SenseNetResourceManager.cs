@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Web;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Collections.Generic;
+using System.Net;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
@@ -251,7 +251,7 @@ namespace SenseNet.ContentRepository.i18n
         {
             // If you change this markup, please change the regular expression for the IsEditorMarkup method too.
             var linkstart = "<a href='javascript:' onclick=\"SN.ResourceEditor.editResource('" + className + "','" + name + "');\">";
-            var text = "<span class='sn-redit-resource'>" + HttpUtility.HtmlEncode(s) + "</span>";
+            var text = "<span class='sn-redit-resource'>" + WebUtility.HtmlEncode(s) + "</span>";
             return linkstart + text + "</a>";
         }
 
