@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Web;
 using SenseNet.ContentRepository;
 
@@ -11,5 +12,7 @@ namespace SenseNet.Services
         public string Request_RawUrl => HttpContext.Current?.Request.RawUrl;
 
         public bool Response_IsClientConnected => HttpContext.Current?.Response?.IsClientConnected ?? true;
+
+        public bool IsResourceEditorAllowed => HttpContext.Current.Request.Cookies.AllKeys.Contains("AllowResourceEditorCookie");
     }
 }

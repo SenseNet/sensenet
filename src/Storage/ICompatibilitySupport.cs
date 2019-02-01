@@ -11,6 +11,8 @@ namespace SenseNet.ContentRepository
         string Request_RawUrl { get; }
 
         bool Response_IsClientConnected { get; }
+
+        bool IsResourceEditorAllowed { get; }
     }
 
     internal class EmptyCompatibilitySupport : ICompatibilitySupport
@@ -19,5 +21,6 @@ namespace SenseNet.ContentRepository
         public Uri Request_UrlReferrer => null;
         public string Request_RawUrl => null;
         public bool Response_IsClientConnected => true;
+        public bool IsResourceEditorAllowed => false;
     }
 }

@@ -79,6 +79,8 @@ namespace SenseNet.ContentRepository.i18n
         public const string ResourceStartKey = "<%$";
         public const string ResourceEndKey = "%>";
         public static readonly char ResourceKeyPrefix = '$';
+
+        [Obsolete("Use \"AllowResourceEditorCookie\" string literal instead.")]
         public static readonly string ResourceEditorCookieName = "AllowResourceEditorCookie";
 
         private static object _syncRoot = new Object();
@@ -264,10 +266,7 @@ namespace SenseNet.ContentRepository.i18n
                 if (!Repository.Started())
                     return false;
 
-                if (HttpContext.Current == null || User.Current == null)
-                    return false;
-
-                return HttpContext.Current.Request.Cookies.AllKeys.Contains(ResourceEditorCookieName) && User.Current.IsInGroup(Group.Administrators);
+                return Providers.Instance.CompatibilitySupport.IsResourceEditorAllowed && User.Current.IsInGroup(Group.Administrators);
             }
         }
 
