@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -102,7 +103,7 @@ namespace SenseNet.ApplicationModel
             if (context == null)
                 return null;
 
-            var backUrl = HttpContext.Current != null ? HttpContext.Current.Request.RawUrl : null;
+            var backUrl = Providers.Instance.CompatibilitySupport.Request_RawUrl;
 
             return GetAction(name, context, backUrl, parameters);
         }
@@ -127,7 +128,8 @@ namespace SenseNet.ApplicationModel
 
         public static string GetActionUrl(string nodePath, string actionName)
         {
-            var backUrl = HttpContext.Current != null ? HttpUtility.UrlEncode(HttpContext.Current.Request.RawUrl) : null;
+            // UrlEncode's parameter can be null
+            var backUrl = HttpUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
 
             return GetActionUrl(nodePath, actionName, backUrl);
         }
@@ -163,7 +165,8 @@ namespace SenseNet.ApplicationModel
 
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters)
         {
-            var backUrl = HttpContext.Current != null ? HttpUtility.UrlEncode(HttpContext.Current.Request.RawUrl) : null;
+            // UrlEncode's parameter can be null
+            var backUrl = HttpUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
 
             return GetActions(context, scenario, scenarioParameters, backUrl);
         }
@@ -214,7 +217,9 @@ namespace SenseNet.ApplicationModel
         
         internal static IEnumerable<ActionBase> GetActionsForContentNavigator(Content context)
         {
-            var backUrl = HttpContext.Current != null ? HttpUtility.UrlEncode(HttpContext.Current.Request.RawUrl) : null;
+            // UrlEncode's parameter can be null
+            var backUrl = HttpUtility.UrlEncode(Providers.Instance.CompatibilitySupport.Request_RawUrl);
+
             var apps = ApplicationStorage.Instance.GetApplications(null, context, GetDevice());
             var actionList = new ActionList(apps, context, backUrl);
             return actionList;

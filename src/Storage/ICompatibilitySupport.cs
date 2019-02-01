@@ -8,6 +8,7 @@ namespace SenseNet.ContentRepository
     {
         Uri Request_Url { get; }
         Uri Request_UrlReferrer { get; }
+        string Request_RawUrl { get; }
 
         bool Response_IsClientConnected { get; }
     }
@@ -16,6 +17,7 @@ namespace SenseNet.ContentRepository
     {
         public Uri Request_Url => null;
         public Uri Request_UrlReferrer => null;
+        public string Request_RawUrl => null;
         public bool Response_IsClientConnected => true;
     }
 }
