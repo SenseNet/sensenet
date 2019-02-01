@@ -14,10 +14,18 @@ namespace SenseNet.ContentRepository
         public ExpenseClaim(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected ExpenseClaim(NodeToken nt) : base(nt) { }
 
-        [Obsolete("Use GetApprover(budgetLimit, CEO) instead.", true)]
+        private Node GetAssociatedWorkflow()
+        {
+            var contentTypeName = CompatibilitySupport.GetRequestItem("ContentTypeName");
+
+            return !string.IsNullOrEmpty(contentTypeName) ? Node.LoadNode(contentTypeName) : null;
+        }
+
         public User GetApprover()
         {
-            return null;
+            var workflow = this.GetAssociatedWorkflow();
+
+            return this.GetApprover(workflow.GetProperty<int>("BudgetLimit"), workflow.GetReference<User>("CEO"));
         }
 
         public User GetApprover(int budgetLimit, User CEO)
