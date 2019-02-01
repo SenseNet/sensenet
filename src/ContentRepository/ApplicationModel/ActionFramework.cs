@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Web;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -129,7 +129,7 @@ namespace SenseNet.ApplicationModel
         public static string GetActionUrl(string nodePath, string actionName)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
+            var backUrl = HttpUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             return GetActionUrl(nodePath, actionName, backUrl);
         }
@@ -166,7 +166,7 @@ namespace SenseNet.ApplicationModel
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
+            var backUrl = HttpUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             return GetActions(context, scenario, scenarioParameters, backUrl);
         }
@@ -218,7 +218,7 @@ namespace SenseNet.ApplicationModel
         internal static IEnumerable<ActionBase> GetActionsForContentNavigator(Content context)
         {
             // UrlEncode's parameter can be null
-            var backUrl = WebUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
+            var backUrl = HttpUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
             var apps = ApplicationStorage.Instance.GetApplications(null, context, GetDevice());
             var actionList = new ActionList(apps, context, backUrl);

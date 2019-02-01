@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Tests
                     }
                     else if (providerName == typeof(Underscore5FContentNamingProvider).Name)
                     {
-                        Assert.AreEqual("!_2a_5f_7E_40_23_24_25a_5E_26()b_7B_7D_2B_22_27_7C_3A_3C_3E_3Fc_2F._2C", name);
+                        Assert.AreEqual("!_2a_5f_7e_40_23_24_25a_5e_26()b_7b_7d_2b_22_27_7c_3a_3c_3e_3fc_2f._2c", name);
                     }
                     else
                     {

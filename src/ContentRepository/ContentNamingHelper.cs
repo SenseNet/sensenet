@@ -10,7 +10,7 @@ using System.Xml.XPath;
 using System.IO;
 using SenseNet.ContentRepository.Storage;
 using System.Configuration;
-using System.Net;
+using System.Web;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Configuration;
 
@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository
                 if (_placeholderSymbolEscaped == null)
                 {
                     var placeholder = PlaceholderSymbol.ToString();
-                    var escaped = WebUtility.UrlEncode(placeholder).Replace('%', PlaceholderSymbol);
+                    var escaped = HttpUtility.UrlEncode(placeholder).Replace('%', PlaceholderSymbol);
 
                     // If UrlEncode did not encode the placeholder symbol and we know
                     // the code of that character, than use that.
@@ -310,7 +310,7 @@ namespace SenseNet.ContentRepository
             // enforce valid chars pattern
             validName = Regex.Replace(validName, ContentNaming.InvalidNameCharsPattern, delegate(Match match)
             {
-                return WebUtility.UrlEncode(match.ToString()).Replace('%', PlaceholderSymbol);
+                return HttpUtility.UrlEncode(match.ToString()).Replace('%', PlaceholderSymbol);
             });
 
             // encode additional invalid characters that are not handled by UrlEncode

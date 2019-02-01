@@ -3,8 +3,8 @@ using System.Runtime.Serialization;
 using SenseNet.ContentRepository;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
+using System.Web;
 using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.ApplicationModel
@@ -200,7 +200,7 @@ namespace SenseNet.ApplicationModel
                 // action text can be an html fragment only if we are in resource editor mode
                 _text = SenseNetResourceManager.IsResourceEditorAllowed && SenseNetResourceManager.IsEditorMarkup(value)
                             ? value
-                            : WebUtility.HtmlEncode(value);
+                            : HttpUtility.HtmlEncode(value);
             }
         }
 
