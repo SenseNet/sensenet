@@ -11,9 +11,9 @@ namespace SenseNet.Services
         public Uri Request_UrlReferrer => HttpContext.Current?.Request.UrlReferrer;
         public string Request_RawUrl => HttpContext.Current?.Request.RawUrl;
 
-        public bool Response_IsClientConnected => HttpContext.Current?.Response?.IsClientConnected ?? true;
+        public bool Response_IsClientConnected => HttpContext.Current?.Response.IsClientConnected ?? true;
 
-        public bool IsResourceEditorAllowed => HttpContext.Current.Request.Cookies.AllKeys.Contains("AllowResourceEditorCookie");
+        public bool IsResourceEditorAllowed => HttpContext.Current?.Request.Cookies.AllKeys.Contains("AllowResourceEditorCookie") ?? false;
 
         public object GetHttpContextItem(string name) => HttpContext.Current?.Items[name];
         public string GetRequestHeader(string name) => HttpContext.Current?.Request.Headers[name];
