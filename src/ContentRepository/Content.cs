@@ -16,7 +16,6 @@ using SenseNet.Diagnostics;
 using System.ComponentModel;
 using System.Globalization;
 using SenseNet.ContentRepository.Fields;
-using System.Web;
 using System.Xml.XPath;
 using System.Web.Configuration;
 using SenseNet.ApplicationModel;

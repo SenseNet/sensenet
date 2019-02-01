@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Web;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools;

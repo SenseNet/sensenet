@@ -4,7 +4,6 @@ using System.Text;
 using  SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
-using System.Web;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;

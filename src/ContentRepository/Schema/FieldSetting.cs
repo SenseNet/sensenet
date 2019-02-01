@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using System.IO;
 using System.Runtime.Serialization;
-using System.Web;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search;

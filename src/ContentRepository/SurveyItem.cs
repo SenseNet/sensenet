@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security;
 using System.Text;
-using System.Web;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
