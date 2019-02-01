@@ -493,8 +493,6 @@
     <Compile Include="Security\DesktopAccessProvider.cs" />
     <Compile Include="Schema\FieldManager.cs" />
     <Compile Include="i18n\SenseNetResourceManager.cs" />
-    <Compile Include="i18n\SenseNetResourceProvider.cs" />
-    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="ContentList.cs" />
     <Compile Include="PortalRoot.cs" />
     <Compile Include="ReferenceNotFoundException.cs" />
