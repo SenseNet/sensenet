@@ -980,8 +980,7 @@ namespace SenseNet.Preview
 
                         var font = new System.Drawing.Font(fontName, size, fs);
                         var position = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_POSITION, image.Path, WatermarkPosition.BottomLeftToUpperRight);
-                        var color = System.Drawing.Color.FromArgb(Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_OPACITY, image.Path, 50),
-                                   (System.Drawing.Color)(new System.Drawing.ColorConverter().ConvertFromString(Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, image.Path, "Black"))));
+                        var color = GetWatermarkColor(image.Path);
 
                         var wmInfo = new WatermarkDrawingInfo(img, g)
                         {
@@ -1021,6 +1020,25 @@ namespace SenseNet.Preview
             ms.Seek(0, IO.SeekOrigin.Begin);
 
             return ms;
+        }
+
+        private static System.Drawing.Color GetWatermarkColor(string contentPath = null)
+        {
+            var alpha = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_OPACITY, contentPath, 50);
+            var colorName = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, contentPath, "Black");
+
+            var color = System.Drawing.Color.Black;
+
+            try
+            {
+                color = System.Drawing.ColorTranslator.FromHtml(colorName);
+            }
+            catch (Exception e)
+            {
+                SnLog.WriteWarning($"Document preview provider: watermark color {colorName} for {contentPath} could not be converted to a color object. {e.Message}");
+            }
+
+            return System.Drawing.Color.FromArgb(alpha, color);
         }
 
         private static void NormalizeRectangle(ref System.Drawing.Rectangle shapeRectangle)

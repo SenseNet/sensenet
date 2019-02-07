@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Fields
 
 			try
 			{
-				return Color.FromKnownColor((KnownColor)Enum.Parse(typeof(KnownColor), colorString, true));
+			    return ColorTranslator.FromHtml(colorString);
 			}
             catch (Exception e) // logged
             {
