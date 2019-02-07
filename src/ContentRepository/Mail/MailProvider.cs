@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.ContentRepository.Storage;
+using System.Net.Mail;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
+// ReSharper disable InconsistentNaming
 
 namespace SenseNet.ContentRepository.Mail
 {
@@ -17,17 +19,20 @@ namespace SenseNet.ContentRepository.Mail
     {
         // ================================================================================ Static instance
 
-        private static readonly object _mailProviderLock = new object();
-        private static MailProvider _instance;
+        private static readonly object MailProviderLock = new object();
+
         public static MailProvider Instance
         {
             get
             {
-                if (_instance == null)
+                var instance = Providers.Instance.GetProvider<MailProvider>();
+                if (instance == null)
                 {
-                    lock (_mailProviderLock)
+                    lock (MailProviderLock)
                     {
-                        if (_instance == null)
+                        instance = Providers.Instance.GetProvider<MailProvider>();
+
+                        if (instance == null)
                         {
                             try
                             {
@@ -44,7 +49,7 @@ namespace SenseNet.ContentRepository.Mail
                                     }
                                     else
                                     {
-                                        _instance = (MailProvider)TypeResolver.CreateInstance(mailProviderTypes.First().FullName); 
+                                        instance = (MailProvider)TypeResolver.CreateInstance(mailProviderTypes.First().FullName); 
                                     }
                                 }
                             }
@@ -54,33 +59,52 @@ namespace SenseNet.ContentRepository.Mail
                             }
                             
                             // fallback to the default
-                            if (_instance == null)
-                                _instance = (MailProvider)TypeResolver.CreateInstance(typeof(DefaultMailProvider).FullName);
+                            if (instance == null)
+                                instance = (MailProvider)TypeResolver.CreateInstance(typeof(DefaultMailProvider).FullName);
 
-                            SnLog.WriteInformation("MailProvider created: " + _instance.GetType().FullName);
+                            Providers.Instance.SetProvider(typeof(MailProvider), instance);
+
+                            SnLog.WriteInformation("MailProvider created: " + instance.GetType().FullName);
                         }
                     }
                 }
 
-                return _instance;
+                return instance;
             }
         }
 
         // ================================================================================ Instance API
 
-        public abstract MailServerCredentials GetPOP3Credentials(string contentListPath);
+        public virtual bool IsExchangeModeEnabled { get; } = false;
+
+        public virtual MailServerCredentials GetPOP3Credentials(string contentListPath)
+        {
+            return new MailServerCredentials();
+        }
+
+        public virtual MailMessage[] GetMailMessages(string contentListPath)
+        {
+            return new MailMessage[0];
+        }
+
+        public virtual void OnListEmailChanged(ContentList list) {}
     }
 
+    /// <summary>
+    /// Default mail provider implementation.
+    /// </summary>
     public class DefaultMailProvider : MailProvider
     {
-        public override MailServerCredentials GetPOP3Credentials(string contentListPath)
+    }
+
+    public static class MailProviderExtensions
+    {
+        public static IRepositoryBuilder UseMailProvider(this IRepositoryBuilder repositoryBuilder, MailProvider mailProvider)
         {
-            var contentList = Node.LoadNode(contentListPath);
+            Providers.Instance.SetProvider(typeof(MailProvider), mailProvider);
+            SnLog.WriteInformation($"MailProvider created: {mailProvider?.GetType().FullName}");
 
-            var pop3Settings = Settings.GetValue<POP3Settings>(MailHelper.MAILPROCESSOR_SETTINGS, MailHelper.SETTINGS_POP3, contentListPath) ?? new POP3Settings();
-            var username = contentList["ListEmail"] as string;
-
-            return new MailServerCredentials { Username = username, Password = pop3Settings.Password };
+            return repositoryBuilder;
         }
     }
 }
