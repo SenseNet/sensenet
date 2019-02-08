@@ -462,7 +462,6 @@
     <Compile Include="ICustomSingleNode.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="CryptoApi.cs" />
-    <Compile Include="JscriptEvaluator.cs" />
     <Compile Include="Schema\RepositorySchema.cs" />
     <Compile Include="Schema\FieldValidationResult.cs" />
     <Compile Include="SmartFolder.cs" />
