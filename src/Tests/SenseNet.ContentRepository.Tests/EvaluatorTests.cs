@@ -46,13 +46,13 @@ namespace SenseNet.ContentRepository.Tests
 
             var original = Providers.Instance.GetProvider<IEvaluator>(Evaluator.GetFullTagName("testTag"));
             var repo = new RepositoryBuilder();
-            repo.UseEvaluator(new CustomTestEvaluator());
+            repo.UseScriptEvaluator(new CustomTestEvaluator());
 
             // the custom evaluator should be in control
             Assert.AreEqual("custom", Evaluator.Evaluate(script));
 
             // back to the original
-            repo.UseEvaluator(original);
+            repo.UseScriptEvaluator(original);
             
             Assert.AreEqual("success", Evaluator.Evaluate(script));
         }

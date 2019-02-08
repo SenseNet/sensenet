@@ -20,23 +20,31 @@ namespace SenseNet.ContentRepository.Storage.Scripting
         {
             foreach (var type in TypeResolver.GetTypesByInterface(typeof(IEvaluator)))
             {
-                if (!(type.GetCustomAttributes(typeof(ScriptTagNameAttribute), false).FirstOrDefault() is ScriptTagNameAttribute tagAttribute))
+                try
                 {
-                    SnLog.WriteWarning($"Evaluator does not have a ScriptTagNameAttribute: {type.FullName} " + 
-                                       $"(Assembly: {type.Assembly})");
-                    continue;
+                    if (!(type.GetCustomAttributes(typeof(ScriptTagNameAttribute), false).FirstOrDefault() is ScriptTagNameAttribute tagAttribute))
+                    {
+                        SnLog.WriteWarning($"Evaluator does not have a ScriptTagNameAttribute: {type.FullName} " +
+                                           $"(Assembly: {type.Assembly})");
+                        continue;
+                    }
+
+                    var fullTagName = GetFullTagName(tagAttribute.TagName);
+
+                    // check if we already have an evaluator for this tag
+                    if (Providers.Instance.GetProvider<IEvaluator>(fullTagName) != null)
+                        continue;
+
+                    var engine = (IEvaluator)Activator.CreateInstance(type);
+
+                    Providers.Instance.SetProvider(fullTagName, engine);
+
+                    SnLog.WriteInformation("Evaluator loaded: " + tagAttribute.TagName + ": " + engine);
                 }
-
-                var fullTagName = GetFullTagName(tagAttribute.TagName);
-                var engine = (IEvaluator)Activator.CreateInstance(type);
-
-                // check if we already have an evaluator for this tag
-                if (Providers.Instance.GetProvider<IEvaluator>(fullTagName) != null)
-                    continue;
-
-                Providers.Instance.SetProvider(fullTagName, engine);
-
-                SnLog.WriteInformation("Evaluator loaded: " + tagAttribute.TagName + ": " + engine);
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex, $"Error loading script evaluator class. {type.AssemblyQualifiedName}");
+                }
             }
         }
 
@@ -107,7 +115,7 @@ namespace SenseNet.ContentRepository.Storage.Scripting
 
     public static class EvaluatorExtensions
     {
-        public static IRepositoryBuilder UseEvaluator(this IRepositoryBuilder repositoryBuilder, IEvaluator evaluator)
+        public static IRepositoryBuilder UseScriptEvaluator(this IRepositoryBuilder repositoryBuilder, IEvaluator evaluator)
         {
             if (evaluator == null)
                 return repositoryBuilder;
