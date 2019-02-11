@@ -61,10 +61,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -208,11 +204,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="EntityReference.cs" />
-    <Compile Include="Exchange\ExchangeSubscriptionService.cs" />
-    <Compile Include="Exchange\Interfaces.cs" />
-    <Compile Include="Exchange\PushNotificationClient.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Fields\UrlListField.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Handlers\BinaryHandler.cs" />
