@@ -74,6 +74,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Readme.md" />
     <None Include="SenseNet.TextExtractors.Pdf.nuspec" />
   </ItemGroup>
   <ItemGroup>

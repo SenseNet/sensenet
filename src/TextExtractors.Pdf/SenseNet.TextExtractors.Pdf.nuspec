@@ -19,6 +19,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="bin\Release\itextsharp.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.TextExtractors.Pdf.*" target="lib\net461" />
   </files>
 </package>
