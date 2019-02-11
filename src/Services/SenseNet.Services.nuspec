@@ -29,7 +29,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\itextsharp.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.ContentRepository.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.Services.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.Storage.*" target="lib\net461" />
