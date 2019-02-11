@@ -5,20 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.ApplicationModel
 {
     public class ActionParameter
     {
-        [System.Web.Script.Serialization.ScriptIgnore]
-        public static ActionParameter RawUnparsed { get { return new ActionParameter(null, null); } }
-        [System.Web.Script.Serialization.ScriptIgnore]
+        [JsonIgnore]
+        public static ActionParameter RawUnparsed => new ActionParameter(null, null);
+        [JsonIgnore]
         public static readonly ActionParameter[] EmptyParameters = new ActionParameter[0];
-        [System.Web.Script.Serialization.ScriptIgnore]
+        [JsonIgnore]
         public static readonly object[] EmptyValues = new object[0];
         public string Name { get; private set; }
-        [System.Web.Script.Serialization.ScriptIgnore]
+        [JsonIgnore]
         public Type Type { get; private set; }
         public bool Required { get; private set; }
         public ActionParameter(string name, Type type) : this(name, type, false) { }
