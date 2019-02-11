@@ -5,10 +5,8 @@ namespace SenseNet.ContentRepository.Security
     /// <summary>
     /// Base class for implementing OAuth authentication provided by a 3rd party service.
     /// </summary>
-    public abstract class OAuthProvider
+    public abstract class OAuthProvider : IOAuthProvider
     {
-        private const string ProviderNamePrefix = "oauth-";
-
         /// <summary>
         /// Name of the field that should be defined on the User content type for holding
         /// the unique user identifier provided by the 3rd party OAuth service.
@@ -38,20 +36,5 @@ namespace SenseNet.ContentRepository.Security
         /// <param name="tokenData">Token data object that was previously created by the VerifyToken method.</param>
         /// <returns>User identity information.</returns>
         public abstract IOAuthIdentity GetUserData(object tokenData);
-
-        //============================================================================ Helper methods
-
-        internal string GetProviderRegistrationName()
-        {
-            return GetProviderRegistrationName(ProviderName);
-        }
-        /// <summary>
-        /// Central method for generating a feature-specific provider name 
-        /// (e.g. 'oauth-google') for identifying provider instances.
-        /// </summary>
-        public static string GetProviderRegistrationName(string providerName)
-        {
-            return ProviderNamePrefix + providerName;
-        }
     }
 }

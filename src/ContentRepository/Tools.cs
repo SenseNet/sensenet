@@ -1,10 +1,8 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using SenseNet.ContentRepository.Storage;
-using System.Web;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Versioning;
@@ -13,7 +11,6 @@ using System.Linq;
 using SenseNet.Diagnostics;
 using System.Security.Cryptography;
 using SenseNet.ApplicationModel;
-using System.Web.Hosting;
 using SenseNet.ContentRepository.Storage.Security;
 using Newtonsoft.Json;
 using SenseNet.Security;
@@ -74,14 +71,14 @@ namespace SenseNet.ContentRepository
             string extraText = string.Empty;
             switch (node.Version.Status)
             {
-                case VersionStatus.Pending: extraText = HttpContext.GetGlobalResourceObject("Portal", "Approving") as string; break;
-                case VersionStatus.Draft: extraText = HttpContext.GetGlobalResourceObject("Portal", "Draft") as string; break;
+                case VersionStatus.Pending: extraText = SR.GetString("Portal", "Approving"); break;
+                case VersionStatus.Draft: extraText = SR.GetString("Portal", "Draft"); break;
                 case VersionStatus.Locked:
                     var lockedByName = node.Lock.LockedBy == null ? "" : node.Lock.LockedBy.Name;
-                    extraText = string.Concat(HttpContext.GetGlobalResourceObject("Portal", "CheckedOutBy") as string, " ", lockedByName);
+                    extraText = string.Concat(SR.GetString("Portal", "CheckedOutBy"), " ", lockedByName);
                     break;
-                case VersionStatus.Approved: extraText = HttpContext.GetGlobalResourceObject("Portal", "Public") as string; break;
-                case VersionStatus.Rejected: extraText = HttpContext.GetGlobalResourceObject("Portal", "Reject") as string; break;
+                case VersionStatus.Approved: extraText = SR.GetString("Portal", "Public"); break;
+                case VersionStatus.Rejected: extraText = SR.GetString("Portal", "Reject"); break;
             }
 
             var content = node as GenericContent;
@@ -223,20 +220,10 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException(name);
         }
 
+        [Obsolete("Use ServiceTools.GetClientIpAddress instead.")]
         public static string GetClientIpAddress()
         {
-            if (HttpContext.Current == null)
-                return string.Empty;
-
-            var clientIpAddress = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (!string.IsNullOrEmpty(clientIpAddress))
-                return clientIpAddress;
-
-            clientIpAddress = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-            if (!string.IsNullOrEmpty(clientIpAddress))
-                return clientIpAddress;
-
-            return HttpContext.Current.Request.UserHostAddress ?? string.Empty;
+            return string.Empty;
         }
 
         // Structure building ==================================================================
@@ -422,22 +409,18 @@ namespace SenseNet.ContentRepository
             return "Ok";
         }
 
-        /// <summary>
-        /// Goes through the files in a directory (optionally also files in subdirectories) both in the file system and the repository.
-        /// Returns true if the given path was a directory, false if it wasn't.
-        /// </summary>
+        [Obsolete("Use ServiceTools.RecurseFilesInVirtualPath instead.", true)]
         public static bool RecurseFilesInVirtualPath(string path, bool includesubdirs, Action<string> action, bool skipRepo = false)
         {
             if (path == null)
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             if (action == null)
-                throw new ArgumentNullException("action");
-            if (path.StartsWith("http://") || path.StartsWith("https://") || path.ContainsIllegalCharacters())
+                throw new ArgumentNullException(nameof(action));
+            if (path.StartsWith("http://") || path.StartsWith("https://"))
                 return false;
 
             var nodeHead = NodeHead.Get(path);
             var isFolder = nodeHead != null && nodeHead.GetNodeType().IsInstaceOfOrDerivedFrom("Folder");
-            var fsPath = HostingEnvironment.MapPath(path);
 
             // Take care of folders in the repository
             if (isFolder && !skipRepo)
@@ -452,45 +435,9 @@ namespace SenseNet.ContentRepository
                     action(c.Path);
             }
 
-            // Take care of folders in the file system
-            if (!string.IsNullOrEmpty(fsPath) && Directory.Exists(fsPath))
-            {
-                // Add files
-                foreach (var virtualPath in Directory.GetFiles(fsPath).Select(GetVirtualPath))
-                {
-                    action(virtualPath);
-                }
-
-                // Recurse subdirectories
-                if (includesubdirs)
-                {
-                    foreach (var virtualPath in Directory.GetDirectories(fsPath).Select(GetVirtualPath))
-                    {
-                        RecurseFilesInVirtualPath(virtualPath, includesubdirs, action, true);
-                    }
-                }
-
-                isFolder = true;
-            }
-
             return isFolder;
         }
-
-        private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars().Concat(new[] { '?', '&', '#' }).ToArray();
-        /// <summary>
-        /// Checks whether the path contains characters that are considered illegal in a file system path. 
-        /// Used before mapping a virtual path to a server file system path.
-        /// </summary>
-        private static bool ContainsIllegalCharacters(this string path)
-        {
-            return path.IndexOfAny(InvalidPathChars) >= 0;
-        }
-
-        private static string GetVirtualPath(string physicalPath)
-        {
-            return physicalPath.Replace(HostingEnvironment.ApplicationPhysicalPath, HostingEnvironment.ApplicationVirtualPath).Replace(@"\", "/");
-        }
-
+        
         // ======================================================================================
 
         [ODataAction]

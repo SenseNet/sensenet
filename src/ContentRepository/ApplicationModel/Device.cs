@@ -6,7 +6,6 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
-using System.Web;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ApplicationModel

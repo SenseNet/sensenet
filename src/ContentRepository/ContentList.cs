@@ -472,24 +472,16 @@ namespace SenseNet.ContentRepository
             AssertEmail();
 
             var newEmail = this["ListEmail"] as string;
-            var listEmailChanged = (IsNew && !string.IsNullOrEmpty(newEmail)) || (!IsNew && IsPropertyChanged("ListEmail"));
+            var listEmailChanged = IsNew && !string.IsNullOrEmpty(newEmail) || 
+                                   !IsNew && IsPropertyChanged("ListEmail");
+
             if (listEmailChanged)
                 SetAllowedChildTypesForEmails();
 
             base.Save(settings);
 
             if (listEmailChanged)
-            {
-                using (new SystemAccount())
-                {
-                    // remove current mail processor workflow
-                    RemoveWorkflow();
-
-                    // start new workflow + subscription if email is given
-                    if (!string.IsNullOrEmpty(newEmail))
-                        StartSubscription();
-                }
-            }
+                MailProvider.Instance.OnListEmailChanged(this);
         }
 
         public override void ForceDelete()
@@ -1000,129 +992,7 @@ namespace SenseNet.ContentRepository
 
             this.AllowChildTypes(additionalTypes);
         }
-
-        private void RemoveWorkflow()
-        {
-            // check if any workflow is running currently
-            var targetPath = RepositoryPath.Combine(this.Path, "Workflows/MailProcess");
-            IEnumerable<Node> runningWorkflows;
-
-            if (SearchManager.ContentQueryIsAllowed)
-            {
-                runningWorkflows = Content.All.DisableAutofilters().Where(
-                    c => c.TypeIs("MailProcessorWorkflow") &&
-                    (string)c["WorkflowStatus"] == "$1" &&
-                    c.InFolder(targetPath)).AsEnumerable().Select(c => c.ContentHandler);
-            }
-            else
-            {
-                runningWorkflows =
-                    NodeQuery.QueryNodesByTypeAndPathAndProperty(ActiveSchema.NodeTypes["MailProcessorWorkflow"], false,
-                                                                 targetPath, false,
-                                                                 new List<QueryPropertyData>
-                                                                     {
-                                                                         new QueryPropertyData
-                                                                             {
-                                                                                 PropertyName = "WorkflowStatus",
-                                                                                 QueryOperator = Operator.Equal,
-                                                                                 Value = "1"
-                                                                             }
-                                                                     }).Nodes;
-            }
-
-            foreach (var wfnode in runningWorkflows)
-            {
-                wfnode.ForceDelete();
-            }
-        }
-
-        private void StartSubscription()
-        {
-            var subscribe = Settings.GetValue<MailProcessingMode>(
-                    MailHelper.MAILPROCESSOR_SETTINGS,
-                    MailHelper.SETTINGS_MODE,
-                    this.Path) == MailProcessingMode.ExchangePush;
-
-            if (subscribe)
-            {
-                // subscribe to email after saving content. this is done separately from saving the content, 
-                // since subscriptionid must be persisted on the content and we use cyclic retrials for that
-                ExchangeHelper.Subscribe(this);
-            }
-
-            var parent = GetMailProcessorWorkflowContainer(this);
-            if (parent == null)
-                return;
-
-            // get the workflow to start
-            var incomingEmailWorkflow = this.GetReference<Node>("IncomingEmailWorkflow");
-            if (incomingEmailWorkflow == null)
-                return;
-
-            // set this list as the related content
-            var workflowC = Content.CreateNew(incomingEmailWorkflow.Name, parent, incomingEmailWorkflow.Name);
-            workflowC["RelatedContent"] = this;
-
-            try
-            {
-                workflowC.Save();
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex, categories: ExchangeHelper.ExchangeLogCategory);
-            }
-
-            // reflection: because we do not have access to the workflow engine here
-            var t = TypeResolver.GetType("SenseNet.Workflow.InstanceManager", false);
-            if (t == null)
-                return;
-
-            var m = t.GetMethod("Start", BindingFlags.Static | BindingFlags.Public);
-            m.Invoke(null, new object[] { workflowC.ContentHandler });
-        }
-
-        private static Node GetMailProcessorWorkflowContainer(Node contextNode)
-        {
-            var parent = Node.LoadNode(RepositoryPath.Combine(contextNode.Path, "Workflows/MailProcess"));
-
-            if (parent == null)
-            {
-                var workflows = Node.LoadNode(RepositoryPath.Combine(contextNode.Path, "Workflows"));
-                if (workflows == null)
-                {
-                    using (new SystemAccount())
-                    {
-                        workflows = new SystemFolder(contextNode) { Name = "Workflows" };
-
-                        try
-                        {
-                            workflows.Save();
-                        }
-                        catch (Exception ex)
-                        {
-                            SnLog.WriteException(ex, categories: ExchangeHelper.ExchangeLogCategory);
-                            return null;
-                        }
-                    }
-                }
-                using (new SystemAccount())
-                {
-                    parent = new Folder(workflows) { Name = "MailProcess" };
-
-                    try
-                    {
-                        parent.Save();
-                    }
-                    catch (Exception ex)
-                    {
-                        SnLog.WriteException(ex, categories: ExchangeHelper.ExchangeLogCategory);
-                        return null;
-                    }
-                }
-            }
-            return parent;
-        }
-
+        
         // ================================================================================= ISupportsVirtualChildren members
 
         public Content GetChild(string name)

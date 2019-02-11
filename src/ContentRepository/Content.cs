@@ -16,7 +16,6 @@ using SenseNet.Diagnostics;
 using System.ComponentModel;
 using System.Globalization;
 using SenseNet.ContentRepository.Fields;
-using System.Web;
 using System.Xml.XPath;
 using System.Web.Configuration;
 using SenseNet.ApplicationModel;
@@ -59,10 +58,7 @@ namespace SenseNet.ContentRepository
 
         public virtual string GetHash()
         {
-            var site = HttpContext.Current != null && HttpContext.Current.Request != null
-                ? HttpContext.Current.Request.Url.Host
-                : UNKNOWN_SITE;
-
+            var site = CompatibilitySupport.Request_Url?.Host ?? UNKNOWN_SITE;
 
             var keyText = string.Join("#",
                 Fields,

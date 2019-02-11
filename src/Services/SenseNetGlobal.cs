@@ -146,8 +146,10 @@ namespace SenseNet.Services
             {
                 var repositoryBuilder = new RepositoryBuilder
                 {
-                    IsWebContext = true
+                    IsWebContext = true,
                 };
+
+                Providers.Instance.CompatibilitySupport = new CompatibilitySupport();
 
                 BuildRepository(repositoryBuilder);
 

@@ -355,6 +355,9 @@ namespace SenseNet.Configuration
 
         internal NodeTypeManager NodeTypeManeger { get; set; }
 
+        public ICompatibilitySupport CompatibilitySupport { get; set; } =
+            new EmptyCompatibilitySupport();
+
         //===================================================================================== General provider API
 
         private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();

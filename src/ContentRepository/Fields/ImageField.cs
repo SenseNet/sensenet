@@ -4,6 +4,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
+using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -26,7 +27,7 @@ namespace SenseNet.ContentRepository.Fields
         /* ============================================================================== ImageFieldData */
         public class ImageFieldData
         {
-            [System.Xml.Serialization.XmlIgnore, System.Web.Script.Serialization.ScriptIgnore]
+            [System.Xml.Serialization.XmlIgnore, JsonIgnore]
             public Field Field { get; set; }
             public Image ImgRef { get; set; }
             public BinaryData ImgData { get; set; }

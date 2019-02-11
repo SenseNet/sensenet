@@ -7,7 +7,6 @@ using System.Linq;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -191,10 +190,7 @@ namespace SenseNet.Preview
 
         protected static bool GetDisplayWatermarkQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return false;
-
-            var watermarkVal = HttpContext.Current.Request["watermark"];
+            var watermarkVal = CompatibilitySupport.GetRequestItem("watermark");
             if (string.IsNullOrEmpty(watermarkVal))
                 return false;
 
@@ -207,12 +203,10 @@ namespace SenseNet.Preview
 
         protected static int? GetRotationQueryParameter()
         {
-            if (HttpContext.Current == null)
-                return null;
-
-            var paramVal = HttpContext.Current.Request["rotation"];
+            var paramVal = CompatibilitySupport.GetRequestItem("rotation");
             if (string.IsNullOrEmpty(paramVal))
                 return null;
+
 
             int rotation = 0;
             if (!int.TryParse(paramVal, out rotation))
@@ -462,7 +456,7 @@ namespace SenseNet.Preview
 
         protected static void AssertResultIsStillRequired()
         {
-            if (HttpContext.Current != null && !HttpContext.Current.Response.IsClientConnected)
+            if (!CompatibilitySupport.Response_IsClientConnected)
             {
                 //TODO: create a new exception class for this
                 throw new Exception("Client is disconnected");
@@ -986,8 +980,7 @@ namespace SenseNet.Preview
 
                         var font = new System.Drawing.Font(fontName, size, fs);
                         var position = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_POSITION, image.Path, WatermarkPosition.BottomLeftToUpperRight);
-                        var color = System.Drawing.Color.FromArgb(Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_OPACITY, image.Path, 50),
-                                   (System.Drawing.Color)(new System.Drawing.ColorConverter().ConvertFromString(Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, image.Path, "Black"))));
+                        var color = GetWatermarkColor(image.Path);
 
                         var wmInfo = new WatermarkDrawingInfo(img, g)
                         {
@@ -1027,6 +1020,25 @@ namespace SenseNet.Preview
             ms.Seek(0, IO.SeekOrigin.Begin);
 
             return ms;
+        }
+
+        private static System.Drawing.Color GetWatermarkColor(string contentPath = null)
+        {
+            var alpha = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_OPACITY, contentPath, 50);
+            var colorName = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, WATERMARK_COLOR, contentPath, "Black");
+
+            var color = System.Drawing.Color.Black;
+
+            try
+            {
+                color = System.Drawing.ColorTranslator.FromHtml(colorName);
+            }
+            catch (Exception e)
+            {
+                SnLog.WriteWarning($"Document preview provider: watermark color {colorName} for {contentPath} could not be converted to a color object. {e.Message}");
+            }
+
+            return System.Drawing.Color.FromArgb(alpha, color);
         }
 
         private static void NormalizeRectangle(ref System.Drawing.Rectangle shapeRectangle)
@@ -1391,8 +1403,8 @@ namespace SenseNet.Preview
             var maxPreviewCount = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, MAXPREVIEWCOUNT, relatedContent.Path, 10);
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
             var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
-                relatedContent.Path, 
-                HttpContext.Current != null ? HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) : string.Empty);
+                relatedContent.Path,
+                CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
 
             // serialize data for preview generator task (json format)
             var serializer = new JsonSerializer();

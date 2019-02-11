@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Web;
-using Microsoft.JScript;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Versioning;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
@@ -19,22 +16,15 @@ namespace SenseNet.ContentRepository
 
         private Node GetAssociatedWorkflow()
         {
-            if (HttpContext.Current != null && HttpContext.Current.Request.QueryString.AllKeys.Contains("ContentTypeName"))
-            {
-                var contentTypeName = HttpContext.Current.Request["ContentTypeName"];
+            var contentTypeName = CompatibilitySupport.GetRequestItem("ContentTypeName");
 
-                return string.IsNullOrEmpty(contentTypeName)
-                           ? null
-                           : Node.LoadNode(contentTypeName);
-            }
-
-            return null;
+            return !string.IsNullOrEmpty(contentTypeName) ? Node.LoadNode(contentTypeName) : null;
         }
 
         public User GetApprover()
         {
             var workflow = this.GetAssociatedWorkflow();
-            
+
             return this.GetApprover(workflow.GetProperty<int>("BudgetLimit"), workflow.GetReference<User>("CEO"));
         }
 

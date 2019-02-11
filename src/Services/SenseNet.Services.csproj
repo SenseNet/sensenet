@@ -61,10 +61,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -120,6 +116,7 @@
     <Reference Include="System.Web.Abstractions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -153,6 +150,7 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElementCollection.cs" />
@@ -162,6 +160,8 @@
     <Compile Include="Configuration\UrlList\UrlElement.cs" />
     <Compile Include="Configuration\UrlList\UrlElementCollection.cs" />
     <Compile Include="Configuration\UrlList\UrlListSection.cs" />
+    <Compile Include="i18n\SenseNetResourceProvider.cs" />
+    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="Metadata\IMetadataProvider.cs" />
     <Compile Include="Metadata\ClientMetadataProvider.cs" />
     <Compile Include="ApplicationModel\HasPermissionAction.cs" />
@@ -204,11 +204,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="EntityReference.cs" />
-    <Compile Include="Exchange\ExchangeSubscriptionService.cs" />
-    <Compile Include="Exchange\Interfaces.cs" />
-    <Compile Include="Exchange\PushNotificationClient.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Fields\UrlListField.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Handlers\BinaryHandler.cs" />
@@ -292,6 +287,12 @@
     <Compile Include="OData\Typescript\TypescriptTypeCollectorVisitor.cs" />
     <Compile Include="PermissionQuery.cs" />
     <Compile Include="PortalSettings.cs" />
+    <Compile Include="Preview\WatermarkServicesTemplateReplacer.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
+    <Compile Include="Security\SenseNetMembershipProvider.cs" />
+    <Compile Include="Security\UserAccessProvider.cs" />
+    <Compile Include="ServiceExtensions.cs" />
+    <Compile Include="ServiceTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryBuilder.cs" />
     <Compile Include="Resources\ResourceEditorApi.cs" />
@@ -302,6 +303,7 @@
     <Compile Include="Routing\WopiRouteHandler.cs" />
     <Compile Include="RssApplication.cs" />
     <Compile Include="SenseNetGlobal.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="SimpleModule.cs" />
     <Compile Include="Site.cs" />
     <Compile Include="SkinManagerBase.cs" />

@@ -2,10 +2,12 @@
 using System.Collections.Specialized;
 using System.Linq;
 using System.Web;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.ContentRepository.Sharing
+namespace SenseNet.Services.Sharing
 {
     /// <summary>
     /// A built-in membership extender for handlin sharing requests. When a request contains
@@ -64,7 +66,7 @@ namespace SenseNet.ContentRepository.Sharing
         internal static MembershipExtension GetSharingExtension(NameValueCollection parameters, string contextValue = null)
         {
             // check the url first
-            var sharingGroup = SharingHandler.GetSharingGroupByUrlParameter(parameters)?.ContentHandler as Group;
+            var sharingGroup = GetSharingGroupByUrlParameter(parameters)?.ContentHandler as Group;
 
             // check the context param next
             if (sharingGroup == null && contextValue != null)
@@ -94,6 +96,15 @@ namespace SenseNet.ContentRepository.Sharing
             }
 
             return EmptyExtension;
+        }
+
+        private static Content GetSharingGroupByUrlParameter(NameValueCollection parameters)
+        {
+            var sharingGuid = parameters?[Constants.SharingUrlParameterName];
+
+            return string.IsNullOrEmpty(sharingGuid)
+                ? null
+                : SharingHandler.GetSharingGroupBySharingId(sharingGuid);
         }
     }
 }

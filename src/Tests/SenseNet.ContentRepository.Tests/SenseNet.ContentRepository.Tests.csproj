@@ -98,6 +98,8 @@
     <Compile Include="ContentHandlers\EnumTestNode.cs" />
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
+    <Compile Include="CryptoApiTests.cs" />
+    <Compile Include="EvaluatorTests.cs" />
     <Compile Include="FieldSettingTests.cs" />
     <Compile Include="FileTests.cs" />
     <Compile Include="GenericContentTests.cs" />

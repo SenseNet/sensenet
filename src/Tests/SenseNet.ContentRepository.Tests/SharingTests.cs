@@ -22,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
+using SenseNet.Services.Sharing;
 using SenseNet.Tests;
 using Formatting = Newtonsoft.Json.Formatting;
 using Retrier = SenseNet.Tools.Retrier;

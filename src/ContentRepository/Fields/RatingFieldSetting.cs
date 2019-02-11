@@ -4,7 +4,6 @@ using System.Text;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
-using System.Web;
 
 namespace SenseNet.ContentRepository.Fields
 {

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Web;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Fields;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
@@ -11,8 +9,6 @@ namespace SenseNet.ContentRepository
     [ContentHandler]
     public class CalendarEvent : GenericContent
     {
-        private bool _successfulFormCreation = false;
-
         private const string REGISTRATIONFORM = "RegistrationForm";
         [RepositoryProperty(REGISTRATIONFORM, RepositoryDataType.Reference)]
         public virtual Node RegistrationForm
@@ -63,7 +59,6 @@ namespace SenseNet.ContentRepository
 
         public override void Save(SavingMode mode)
         {
-            _successfulFormCreation = false;
             // Creating registration form if necessary.
             if (GetReferenceCount(REGISTRATIONFORM) == 0 && Convert.ToBoolean(this["RequiresRegistration"]))
             {
@@ -97,8 +92,6 @@ namespace SenseNet.ContentRepository
                         regForm.Save();
 
                         AddReference(REGISTRATIONFORM, LoadNode(regForm.Id));
-
-                        _successfulFormCreation = true;
                     }
                 }
             }
@@ -118,18 +111,6 @@ namespace SenseNet.ContentRepository
             }
 
             base.Save(mode);
-        }
-
-        protected override void OnCreated(object sender, Storage.Events.NodeEventArgs e)
-        {
-            base.OnCreated(sender, e);
-            if (_successfulFormCreation)
-            {
-                string page = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority);
-                var backUrl = HttpContext.Current.Request.Params["back"];
-                var link = string.Concat(page, RegistrationForm.Path, "?action=ManageFields", "&back=", backUrl);
-                HttpContext.Current.Response.Redirect(link);
-            }
         }
 
         private static int GetNumberOfParticipants(Node item)
@@ -155,6 +136,5 @@ namespace SenseNet.ContentRepository
             }
             return 0;
         }
-
     }
 }

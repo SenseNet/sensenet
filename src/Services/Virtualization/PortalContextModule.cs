@@ -14,6 +14,7 @@ using SenseNet.ApplicationModel;
 //using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository;
+using SenseNet.Services;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -457,7 +458,7 @@ namespace SenseNet.Portal.Virtualization
                 return;
 
             var maxAge = app.NumericMaxAge;
-            var cacheControl = app.CacheControlEnumValue;
+            var cacheControl = app.GetCacheControlEnumValue();
 
             if (cacheControl.HasValue && maxAge.HasValue)
             {
