@@ -62,22 +62,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="itextsharp, Version=4.1.6.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\itextsharp.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.JScript" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenPop, Version=2.0.6.1120, Culture=neutral, PublicKeyToken=6bdb97f144b7efc8, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenPop.NET.2.0.6.1120\lib\net40\OpenPop.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
@@ -133,7 +121,6 @@
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -184,6 +171,8 @@
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Security\IOAuthProvider.cs" />
+    <Compile Include="Security\OAuthProviderTools.cs" />
     <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
     <Compile Include="Sharing\InvalidContentSharingQueryException.cs" />
     <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
@@ -193,7 +182,6 @@
     <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
     <Compile Include="Sharing\SharingLevel.cs" />
-    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="Sharing\SharingMode.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
     <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
@@ -272,7 +260,6 @@
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="Security\IOAuthIdentity.cs" />
-    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
@@ -322,7 +309,6 @@
     <Compile Include="Fields\DateTimeFieldSetting.cs" />
     <Compile Include="Fields\PermissionChoiceField.cs" />
     <Compile Include="GroupMembershipObserver.cs" />
-    <Compile Include="Mail\ExchangeHelper.cs" />
     <Compile Include="Json\JsonDynamicFieldHelper.cs" />
     <Compile Include="Linq\ChildrenContentSet.cs" />
     <Compile Include="Linq\ContentSet.cs" />
@@ -463,20 +449,16 @@
     <Compile Include="ICustomSingleNode.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="CryptoApi.cs" />
-    <Compile Include="JscriptEvaluator.cs" />
     <Compile Include="Schema\RepositorySchema.cs" />
     <Compile Include="Schema\FieldValidationResult.cs" />
     <Compile Include="SmartFolder.cs" />
     <Compile Include="Security\DesktopAccessProvider.cs" />
     <Compile Include="Schema\FieldManager.cs" />
     <Compile Include="i18n\SenseNetResourceManager.cs" />
-    <Compile Include="i18n\SenseNetResourceProvider.cs" />
-    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
     <Compile Include="ContentList.cs" />
     <Compile Include="PortalRoot.cs" />
     <Compile Include="ReferenceNotFoundException.cs" />
     <Compile Include="Security\PortalPrincipal.cs" />
-    <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="i18n\Resource.cs" />
     <Compile Include="Schema\ContentHandlerAttribute.cs" />
     <Compile Include="Schema\ContentRegistrationException.cs" />
@@ -492,7 +474,6 @@
     <Compile Include="ContentRotator.cs" />
     <Compile Include="SR.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="IFile.cs" />
     <Compile Include="OrganizationalUnit.cs" />

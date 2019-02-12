@@ -4,13 +4,13 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security;
 using System.Text;
-using System.Web;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Net;
+using SenseNet.Configuration;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
@@ -238,13 +238,9 @@ namespace SenseNet.ContentRepository
 
         private string GetUrl()
         {
-            var ctx = HttpContext.Current;
-            var req = ctx == null ? null : ctx.Request;
-            if (req != null)
-            {
-                var url = req.UrlReferrer.AbsoluteUri;
+            var url = CompatibilitySupport.Request_UrlReferrer?.AbsoluteUri;
+            if(url != null)
                 return url.Substring(0, url.IndexOf("?")) + "/" + this.Name;
-            }
 
             var site = Node.GetAncestorOfNodeType(this, "Site");
             if (site == null)

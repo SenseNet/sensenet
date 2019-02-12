@@ -103,7 +103,7 @@ namespace SenseNet.Services.Virtualization
         /// different location - e.g. for testing purposes.
         /// </summary>
         internal Func<string, OAuthProvider> GetProvider { get; set; } = providerName => Providers.Instance.GetProvider<OAuthProvider>(
-            OAuthProvider.GetProviderRegistrationName(providerName));
+            OAuthProviderTools.GetProviderRegistrationName(providerName));
         /// <summary>
         /// Derived classes may override this property for testing purposes.
         /// </summary>

@@ -5,7 +5,6 @@ using System.Xml;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
-using System.Web;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;

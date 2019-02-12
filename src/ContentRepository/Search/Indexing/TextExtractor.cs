@@ -5,9 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Web;
 using System.Xml;
-using iTextSharp.text.pdf;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -298,12 +296,19 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return GetOpenXmlText(stream, context);
         }
     }
-    internal sealed class PdfTextExtractor : TextExtractor
+    public class PdfTextExtractor : TextExtractor
     {
         private static bool _iFilterErrorLogged;
 
         public override string Extract(Stream stream, TextExtractorContext context)
         {
+            return ExtractiFilter(stream, out _);
+        }
+
+        protected string ExtractiFilter(Stream stream, out bool success)
+        {
+            success = true;
+
             try
             {
                 // extract text using IFilter
@@ -313,9 +318,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 SnLog.WriteWarning("Pdf text extract failed with out of memory exception. " + ex,
                     EventId.Indexing,
-                    properties: new Dictionary<string, object> {{"Stream size", stream.Length}});
-
-                return string.Empty;
+                    properties: new Dictionary<string, object> { { "Stream size", stream.Length } });
             }
             catch (Exception ex)
             {
@@ -327,76 +330,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            // fallback to the other mechanism in case the pdf IFilter is missing
-            var text = new StringBuilder();
+            success = false;
 
-            try
-            {
-                var pdfReader = new PdfReader(stream);
-                for (var page = 1; page <= pdfReader.NumberOfPages; page++)
-                {
-                    // extract text using the old version (4.1.6) of iTextSharp
-                    var pageText = ExtractTextFromPdfBytes(pdfReader.GetPageContent(page));
-                    if (string.IsNullOrEmpty(pageText))
-                        continue;
-
-                    text.Append(pageText);
-                }
-            }
-            catch (OutOfMemoryException ex)
-            {
-                SnLog.WriteWarning("Pdf text extract failed with out of memory exception. " + ex,
-                    EventId.Indexing,
-                    properties: new Dictionary<string, object> {{"Stream size", stream.Length}});
-            }
-
-            return text.ToString();
-        }
-
-        /// <summary>
-        /// Old algorithm designed to work with iTextSharp 4.1.6. Use iTextSharp version >= 5 if possible (license changes were made).
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        internal static string ExtractTextFromPdfBytes(byte[] input)
-        {
-            if (input == null || input.Length == 0)
-                return "";
-
-            var result = new StringBuilder();
-            var tokeniser = new PRTokeniser(input);
-
-            try
-            {
-                while (tokeniser.NextToken())
-                {
-                    var tknType = tokeniser.TokenType;
-                    var tknValue = tokeniser.StringValue.Replace('\0', ' ');
-
-                    if (tknType == PRTokeniser.TK_STRING)
-                    {
-                        result.Append(tknValue);
-                    }
-                    else
-                    {
-                        switch (tknValue)
-                        {
-                            case "-600":
-                                result.Append(" ");
-                                break;
-                            case "TJ":
-                                result.Append(" ");
-                                break;
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                tokeniser.Close();
-            }
-
-            return result.ToString();
+            return string.Empty;
         }
     }
     internal sealed class XmlTextExtractor : TextExtractor

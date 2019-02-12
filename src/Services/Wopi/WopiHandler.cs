@@ -198,6 +198,8 @@ namespace SenseNet.Services.Wopi
         }
 
         private static readonly char[] DisabledUserIdChars = "<>\"#{}^[]`\\/".ToCharArray();
+        public static readonly string AccessTokenFeatureName = "Wopi";
+
         private string GetUserId(IUser user)
         {
             return DisabledUserIdChars.Aggregate(user.Name, (current, c) => current.Replace(c, '_'));
@@ -233,14 +235,25 @@ namespace SenseNet.Services.Wopi
                 }
                 allowBits = allowBits & ~denyBits;
 
+                //UNDONE: Uncomment this instruction to allow document editing
+                //return new UserPermissions
+                //{
+                //    Write = (allowBits & PermissionType.Save.Mask) > 0,
+                //    RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
+                //                         0 != (allowBits & (PermissionType.Preview.Mask +
+                //                                            PermissionType.PreviewWithoutWatermark.Mask +
+                //                                            PermissionType.PreviewWithoutRedaction.Mask)),
+                //    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
+                //};
+                //UNDONE: Delete this instruction to allow document editing
                 return new UserPermissions
                 {
-                    Write = (allowBits & PermissionType.Save.Mask) > 0,
+                    Write = false,
                     RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
                                          0 != (allowBits & (PermissionType.Preview.Mask +
                                                             PermissionType.PreviewWithoutWatermark.Mask +
                                                             PermissionType.PreviewWithoutRedaction.Mask)),
-                    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
+                    Create = false,
                 };
             }
         }

@@ -21,3 +21,7 @@ Copy-Item $scriptsSourcePath\Install_04_Data_Phase2.sql $srcPath\nuget\snadmin\i
 Compress-Archive -Path "$srcPath\nuget\snadmin\install-services\*" -Force -CompressionLevel Optimal -DestinationPath $installPackagePath
 
 nuget pack $srcPath\Services\SenseNet.Services.Install.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
+
+# assemble legacy packages
+nuget pack $srcPath\Scripting.JScript\SenseNet.Scripting.JScript.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
+nuget pack $srcPath\TextExtractors.Pdf\SenseNet.TextExtractors.Pdf.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot

@@ -1575,7 +1575,7 @@ namespace SenseNet.Portal.Virtualization
             }
             else
             {
-                _contextNodeHead = NodeHead.Get(initInfo.ContextNodePath);
+                _contextNodeHead = NodeHead.Get(_contextNodePath);
                 _appNodePath = initInfo.RequestedNodeHead.Path;
             }
 
@@ -1599,6 +1599,23 @@ namespace SenseNet.Portal.Virtualization
                 this.WopiRequest = WopiRequest.Parse(
                     this.RequestedUri.GetComponents(UriComponents.Path, UriFormat.Unescaped),
                     this);
+                if (WopiRequest is FilesRequest fileReq)
+                {
+                    using (new SystemAccount())
+                    {
+                        var head = NodeHead.Get(int.Parse(fileReq.FileId));
+                        if (head != null)
+                        {
+                            // WARNINRG: DO NOT SET THE _contextNodeHead
+                            //_contextNodeHead = head;
+                            _repositoryPath = head.Path;
+                            _contextNodePath = head.Path;
+                            _siteRelativePath = _repositoryPath;
+                            _nodeType = head.GetNodeType();
+                            _nodeId = head.Id;
+                        }
+                    }
+                }
             }
 
             if (IsOdataRequest)

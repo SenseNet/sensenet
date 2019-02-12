@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Security.Cryptography;
@@ -186,24 +185,9 @@ namespace SenseNet.ContentRepository.Security.ADSync
             return RepositoryTools.GetStreamFromString(settings.ToString());
         }
 
+        [Obsolete]
         public bool IncludePasswords()
         {
-            // Save permission is needed for this setting to be able to se even the encrypted values
-            if (!this.Security.HasPermission(PermissionType.Save))
-                return false;
-
-            // in case of export or other special scenario, include the encrypted values
-            if (HttpContext.Current == null)
-                return true;
-
-            var includePassStr = HttpContext.Current.Request["includepasswords"];
-            if (!string.IsNullOrEmpty(includePassStr))
-            {
-                bool includePass;
-                if (bool.TryParse(includePassStr, out includePass))
-                    return includePass;
-            }
-
             return false;
         }
     }

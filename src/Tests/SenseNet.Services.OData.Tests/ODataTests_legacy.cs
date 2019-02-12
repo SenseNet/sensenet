@@ -18,7 +18,6 @@ using System.Linq;
 using System.Web;
 using System.Xml;
 using SenseNet.Configuration;
-using SenseNet.Portal.Exchange;
 using SenseNet.Security;
 
 // ReSharper disable InconsistentNaming

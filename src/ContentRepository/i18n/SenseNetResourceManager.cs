@@ -2,18 +2,15 @@
 using System.Linq;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Compilation;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Collections.Generic;
+using System.Web;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search.Querying;
-using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.i18n
 {
@@ -82,6 +79,8 @@ namespace SenseNet.ContentRepository.i18n
         public const string ResourceStartKey = "<%$";
         public const string ResourceEndKey = "%>";
         public static readonly char ResourceKeyPrefix = '$';
+
+        [Obsolete("Use \"AllowResourceEditorCookie\" string literal instead.")]
         public static readonly string ResourceEditorCookieName = "AllowResourceEditorCookie";
 
         private static object _syncRoot = new Object();
@@ -267,10 +266,7 @@ namespace SenseNet.ContentRepository.i18n
                 if (!Repository.Started())
                     return false;
 
-                if (HttpContext.Current == null || User.Current == null)
-                    return false;
-
-                return HttpContext.Current.Request.Cookies.AllKeys.Contains(ResourceEditorCookieName) && User.Current.IsInGroup(Group.Administrators);
+                return CompatibilitySupport.IsResourceEditorAllowed && User.Current.IsInGroup(Group.Administrators);
             }
         }
 
@@ -376,40 +372,6 @@ namespace SenseNet.ContentRepository.i18n
                 return s;
 
             return GetEditorMarkup(className, name, s as string);
-        }
-
-        public string GetStringByExpression(string expression)
-        {
-            return IsExpression(expression) ? GetStringByExpressionInternal(expression) : null;
-        }
-        private static bool IsExpression(string expression)
-        {
-            return expression.StartsWith(ResourceStartKey) && expression.EndsWith(ResourceEndKey);
-        }
-        private string GetStringByExpressionInternal(string expression)
-        {
-            if (String.IsNullOrEmpty(expression))
-                throw new ArgumentNullException("expression");
-
-            expression = expression.Replace(" ", "");
-            expression = expression.Replace(ResourceStartKey, "");
-            expression = expression.Replace(ResourceEndKey, "");
-
-            if (expression.Contains("Resources:"))
-                expression = expression.Remove(expression.IndexOf("Resources:"), 10);
-
-            var expressionFields = ResourceExpressionBuilder.ParseExpression(expression);
-            if (expressionFields == null)
-            {
-                var context = HttpContext.Current;
-                var msg = String.Format("{0} is not a valid string resource format.", expression);
-                if (context == null)
-                    throw new ApplicationException(msg);
-                return String.Format(msg);
-            }
-
-
-            return GetString(expressionFields.ClassKey, expressionFields.ResourceKey);
         }
 
         private object GetObjectInternal(CultureInfo cultureInfo, string className, string name, bool allowFallbackToParentCulture = true)

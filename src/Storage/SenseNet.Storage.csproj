@@ -145,6 +145,7 @@
     <Compile Include="Caching\Dependency\PortletDependency.cs" />
     <Compile Include="Caching\ISnCache.cs" />
     <Compile Include="CannotDeleteReferredContentException.cs" />
+    <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="ComponentInfo.cs" />
     <Compile Include="Configuration\Cache.cs" />
     <Compile Include="Configuration\ContentNaming.cs" />
@@ -191,6 +192,7 @@
     <Compile Include="Empty.cs" />
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
+    <Compile Include="ICompatibilitySupport.cs" />
     <Compile Include="IFolder.cs" />
     <Compile Include="IMaintenanceTask.cs" />
     <Compile Include="InvalidContentException.cs" />

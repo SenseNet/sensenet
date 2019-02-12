@@ -42,6 +42,8 @@ namespace SenseNet.Services.Wopi
     }
     public abstract class WopiRequest
     {
+        public string AccessTokenValue { get; internal set; }
+
         internal WopiRequestType RequestType { get; }
 
         protected internal WopiRequest(WopiRequestType requestType)
@@ -53,6 +55,8 @@ namespace SenseNet.Services.Wopi
 
         private static readonly string GET = "GET";
         private static readonly string POST = "POST";
+
+        public static readonly string AccessTokenParamName = "access_token";
 
         private static class WopiHeader
         {
@@ -87,16 +91,22 @@ namespace SenseNet.Services.Wopi
             var httpMethod = webRequest.HttpMethod;
             var xWopiOverride = headers[WopiHeader.Override];
             var requestStream = webRequest.InputStream;
+            var accessToken = webRequest.QueryString[AccessTokenParamName];
 
+            WopiRequest request;
             try
             {
-                return Parse(segments, httpMethod, xWopiOverride, headers, requestStream);
+                request = Parse(segments, httpMethod, xWopiOverride, headers, requestStream);
             }
             catch (Exception e)
             {
-                return new BadRequest(e);
+                request = new BadRequest(e);
             }
+
+            request.AccessTokenValue = accessToken;
+            return request;
         }
+
         private static WopiRequest Parse(string[] segments, string httpMethod, string xWopiOverride, NameValueCollection headers, Stream requestStream)
         {
             string[] rest;

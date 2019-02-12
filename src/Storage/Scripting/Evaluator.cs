@@ -1,83 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection;
 using System.Text.RegularExpressions;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Scripting
 {
-    public class Evaluator
+    public static class Evaluator
     {
-        #region Singleton
-        private static readonly object _lock = new object();
-        private static Evaluator _current;
-        private static Evaluator Current
+        static Evaluator()
         {
-            get
-            {
-                if (_current == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_current == null)
-                        {
-                            var current = new Evaluator();
-                            current.Load();
-                            _current = current;
-                            SnLog.WriteInformation("Evaluator created: " + _current);
-                        }
-                    }
-                }
-                return _current;
-            }
+            // preload all available evaluators
+            Load();
         }
-        private Evaluator()
-        {
-        }
-        internal static void Reset()
-        {
-            // Need to call:
-            //   Node.Delete (need to remove in-memory entries of whole deleted subtree)
-            //   Node.ForceDelete (need to remove in-memory entries of whole deleted subtree)
-            //   Modify permissions on a Node (add, remove, copy, break etc.)
-            _current = null;
-        }
-        #endregion
 
-        private Dictionary<string, IEvaluator> engines;
-
-        private void Load()
+        private static void Load()
         {
-            engines = new Dictionary<string, IEvaluator>();
             foreach (var type in TypeResolver.GetTypesByInterface(typeof(IEvaluator)))
             {
-                var attrs = (ScriptTagNameAttribute[])type.GetCustomAttributes(typeof(ScriptTagNameAttribute), false);
-                if (attrs.Length == 0)
-                    throw new ApplicationException(String.Concat(
-                        "Evaluator has not ScriptTagNameAttribute: ", type.FullName, " (Assembly: ", type.Assembly.ToString(), ")"));
-                var engine = (IEvaluator)Activator.CreateInstance(type);
-                engines.Add(attrs[0].TagName, engine);
+                try
+                {
+                    if (!(type.GetCustomAttributes(typeof(ScriptTagNameAttribute), false).FirstOrDefault() is ScriptTagNameAttribute tagAttribute))
+                    {
+                        SnLog.WriteWarning($"Evaluator does not have a ScriptTagNameAttribute: {type.FullName} " +
+                                           $"(Assembly: {type.Assembly})");
+                        continue;
+                    }
 
-                SnLog.WriteInformation("Add Evaluator: " + attrs[0].TagName + ": " + engine);
+                    var fullTagName = GetFullTagName(tagAttribute.TagName);
+
+                    // check if we already have an evaluator for this tag
+                    if (Providers.Instance.GetProvider<IEvaluator>(fullTagName) != null)
+                        continue;
+
+                    var engine = (IEvaluator)Activator.CreateInstance(type);
+
+                    Providers.Instance.SetProvider(fullTagName, engine);
+
+                    SnLog.WriteInformation("Evaluator loaded: " + tagAttribute.TagName + ": " + engine);
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex, $"Error loading script evaluator class. {type.AssemblyQualifiedName}");
+                }
             }
         }
 
+        /// <summary>
+        /// Evaluates a script using the evaluator appointed by the provided tag in the script.
+        /// For example: [Script:jScript]DateTime.UtcNow;[/Script]
+        /// </summary>
+        /// <returns>Evaluated value or the original script if the provider was not found.</returns>
         public static string Evaluate(string sourceCode)
         {
             if (sourceCode == null)
                 throw new ArgumentNullException(nameof(sourceCode));
-            return Current.EvaluateInternal(sourceCode);
+
+            var regex = new Regex(@"\[Script:[\w]*\](.+?)\[\/Script\]");
+            return regex.Replace(sourceCode, ReplaceTags);
         }
 
-        private string EvaluateInternal(string sourceCode)
-        {
-            Regex regex = new Regex(@"\[Script:[\w]*\](.+?)\[\/Script\]");
-            return regex.Replace(sourceCode, new MatchEvaluator(ReplaceTags));
-        }
-        private string ReplaceTags(Match match)
+        private static string ReplaceTags(Match match)
         {
             // "[Script:tagName]...[/Script]"
             var src = match.Value;
@@ -86,11 +71,11 @@ namespace SenseNet.ContentRepository.Storage.Scripting
             var end = src.IndexOf("]", StringComparison.Ordinal);
 
             var tagName = src.Substring(start, end - start);
-            var startTag = String.Concat("[Script:", tagName, "]");
+            var startTag = string.Concat("[Script:", tagName, "]");
             src = src.Replace(startTag, "").Replace("[/Script]", "");
-
-            IEvaluator evaluator;
-            if (!engines.TryGetValue(tagName, out evaluator))
+            
+            var evaluator = Providers.Instance.GetProvider<IEvaluator>(GetFullTagName(tagName));
+            if (evaluator == null)
                 return src;
 
             string result;
@@ -112,7 +97,34 @@ namespace SenseNet.ContentRepository.Storage.Scripting
                 }
                 return msgBuilder.ToString();
             }
+
             return result;
+        }
+        internal static string GetFullTagName(string tagName)
+        {
+            return $"evaluator-{tagName}";
+        }
+        internal static string GetFullTagName(Type evaluatorType)
+        {
+            if (evaluatorType?.GetCustomAttributes(typeof(ScriptTagNameAttribute), false).FirstOrDefault() is ScriptTagNameAttribute tagAttribute)
+                return GetFullTagName(tagAttribute.TagName);
+
+            return string.Empty;
+        }
+    }
+
+    public static class EvaluatorExtensions
+    {
+        public static IRepositoryBuilder UseScriptEvaluator(this IRepositoryBuilder repositoryBuilder, IEvaluator evaluator)
+        {
+            if (evaluator == null)
+                return repositoryBuilder;
+
+            var fullTagName = Evaluator.GetFullTagName(evaluator.GetType());
+            if (!string.IsNullOrEmpty(fullTagName))
+                Providers.Instance.SetProvider(fullTagName, evaluator);
+
+            return repositoryBuilder;
         }
     }
 }
