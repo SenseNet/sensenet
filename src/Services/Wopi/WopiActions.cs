@@ -24,11 +24,11 @@ namespace SenseNet.Services.Wopi
             if (!(content.ContentHandler is File))
                 throw new SnNotSupportedException("Office Online is not supported for this type of content.");
 
-            var wopiServerUrl = Settings.GetValue("OfficeOnline", "WopiServerUrl", content.Path, string.Empty);
-            if (string.IsNullOrEmpty(wopiServerUrl))
+            var officeOnlineUrl = Settings.GetValue("OfficeOnline", "OfficeOnlineUrl", content.Path, string.Empty);
+            if (string.IsNullOrEmpty(officeOnlineUrl))
                 throw new SnNotSupportedException("Office Online Server setting not found.");
 
-            var wd = WopiDiscovery.GetInstance(wopiServerUrl);
+            var wd = WopiDiscovery.GetInstance(officeOnlineUrl);
             if (wd == null || !wd.Zones.Any())
                 throw new SnNotSupportedException("Office Online Server not found.");
 
@@ -103,9 +103,9 @@ namespace SenseNet.Services.Wopi
         private static readonly ConcurrentDictionary<string, Lazy<WopiDiscovery>> Instances =
             new ConcurrentDictionary<string, Lazy<WopiDiscovery>>();
 
-        internal static WopiDiscovery GetInstance(string wopiServerUrl)
+        internal static WopiDiscovery GetInstance(string officeOnlineUrl)
         {
-            return Instances.GetOrAdd(wopiServerUrl.TrimEnd('/'), oosUrl => new Lazy<WopiDiscovery>(() =>
+            return Instances.GetOrAdd(officeOnlineUrl.TrimEnd('/'), oosUrl => new Lazy<WopiDiscovery>(() =>
             {
                 var discoveryXml = new XmlDocument();
 
