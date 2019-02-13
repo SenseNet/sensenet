@@ -548,6 +548,5 @@ namespace SenseNet.ContentRepository.Storage.Data
         // ====================================================== Audit log
 
         public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
-
     }
 }
