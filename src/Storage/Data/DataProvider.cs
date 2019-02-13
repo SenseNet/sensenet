@@ -545,15 +545,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract void ReleaseTreeLock(int[] lockIds);
         protected internal abstract Dictionary<int, string> LoadAllTreeLocks();
 
-        // ====================================================== Tree lock
-
-        public abstract void DeleteAllSharedLocks();
-        public abstract void CreateSharedLock(int contentId, string @lock);
-        public abstract string RefreshSharedLock(int contentId, string @lock);
-        public abstract string ModifySharedLock(int contentId, string @lock, string newLock);
-        public abstract string GetSharedLock(int contentId);
-        public abstract string DeleteSharedLock(int contentId, string @lock);
-
         // ====================================================== Audit log
 
         public abstract void WriteAuditEvent(AuditEventInfo auditEvent);

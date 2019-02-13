@@ -4259,8 +4259,9 @@ namespace SenseNet.ContentRepository.Storage
             if (userId != -1 && (Lock.LockedBy != null && Lock.LockedBy.Id != userId) && Lock.Locked)
                 throw new LockedNodeException(Lock);
 
-            if(null != SharedLock.GetLock(this.Id))
-                throw new LockedNodeException(Lock, "There is a shared lock on this Node.");
+            //UNDONE: uncomment when SharedLock storage is implemented
+            //if (null != SharedLock.GetLock(this.Id))
+            //    throw new LockedNodeException(Lock, "There is a shared lock on this Node.");
         }
         private static bool NameExists(IEnumerable<Node> nodeList, string name)
         {

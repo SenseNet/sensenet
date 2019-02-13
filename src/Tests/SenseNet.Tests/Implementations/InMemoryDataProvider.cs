@@ -388,90 +388,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         #endregion
-
-        #region // ====================================================== Shared lock
-
-        private static readonly TimeSpan SharedLockTimeout = TimeSpan.FromMinutes(30d);
-
-        public override void DeleteAllSharedLocks()
-        {
-            _db.SharedLocks.Clear();
-        }
-
-        public override void CreateSharedLock(int contentId, string @lock)
-        {
-            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            var row = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
-            if (row != null && row.CreationDate < timeLimit)
-            {
-                _db.SharedLocks.Remove(row);
-                row = null;
-            }
-
-            if (row == null)
-            {
-                var newSharedLockId = _db.SharedLocks.Count == 0 ? 1 : _db.SharedLocks.Max(t => t.SharedLockId) + 1;
-                _db.SharedLocks.Add(new SharedLockRow
-                {
-                    SharedLockId = newSharedLockId,
-                    ContentId = contentId,
-                    Lock = @lock,
-                    CreationDate = DateTime.UtcNow
-                });
-                return;
-            }
-
-            if (row.Lock != @lock)
-                throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
-
-            row.CreationDate = DateTime.UtcNow;
-        }
-
-        public override string RefreshSharedLock(int contentId, string @lock)
-        {
-            var row = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
-            if (row == null)
-                throw new SharedLockNotFoundException("Content is unlocked");
-            row.CreationDate = DateTime.UtcNow;
-            return row.Lock;
-        }
-
-        public override string ModifySharedLock(int contentId, string @lock, string newLock)
-        {
-            var existingItem = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
-            if (existingItem != null)
-            {
-                existingItem.Lock = newLock;
-                return null;
-            }
-            var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
-            if (existingLock == null)
-                throw new SharedLockNotFoundException("Content is unlocked");
-            return existingLock;
-        }
-
-        public override string GetSharedLock(int contentId)
-        {
-            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            return _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock;
-        }
-
-        public override string DeleteSharedLock(int contentId, string @lock)
-        {
-            var existingItem = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
-            if (existingItem != null)
-            {
-                _db.SharedLocks.Remove(existingItem);
-                return null;
-            }
-            var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
-            if (existingLock == null)
-                throw new SharedLockNotFoundException("Content is unlocked");
-            return existingLock;
-        }
-
-        #endregion
-
+        
         #region NOT IMPLEMENTED
 
         protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
@@ -1685,7 +1602,6 @@ namespace SenseNet.Tests.Implementations
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
             public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
-            public List<SharedLockRow> SharedLocks { get; set; } = new List<SharedLockRow>();
             public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
 
             public Database Clone()
@@ -2920,24 +2836,7 @@ namespace SenseNet.Tests.Implementations
                 };
             }
         }
-        public class SharedLockRow
-        {
-            public int SharedLockId;
-            public int ContentId;
-            public string Lock;
-            public DateTime CreationDate;
-
-            public SharedLockRow Clone()
-            {
-                return new SharedLockRow
-                {
-                    SharedLockId = SharedLockId,
-                    ContentId = ContentId,
-                    Lock = Lock,
-                    CreationDate = CreationDate
-                };
-            }
-        }
+        
         public class LogEntriesRow
         {
             public int LogId;

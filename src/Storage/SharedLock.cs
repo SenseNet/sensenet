@@ -10,9 +10,11 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class SharedLock
     {
+        private static ISharedLockDataProviderExtension Storage => DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+
         public static void RemoveAllLocks()
         {
-            DataProvider.Current.DeleteAllSharedLocks();
+            Storage.DeleteAllSharedLocks();
         }
 
         public static void Lock(int contentId, string @lock)
@@ -23,23 +25,23 @@ namespace SenseNet.ContentRepository.Storage
             if(node.Locked)
                 throw new LockedNodeException(node.Lock);
 
-            DataProvider.Current.CreateSharedLock(contentId, @lock);
+            Storage.CreateSharedLock(contentId, @lock);
         }
         public static string RefreshLock(int contentId, string @lock)
         {
-            return DataProvider.Current.RefreshSharedLock(contentId, @lock);
+            return Storage.RefreshSharedLock(contentId, @lock);
         }
         public static string ModifyLock(int contentId, string @lock, string newLock)
         {
-            return DataProvider.Current.ModifySharedLock(contentId, @lock, newLock);
+            return Storage.ModifySharedLock(contentId, @lock, newLock);
         }
         public static string GetLock(int contentId)
         {
-            return DataProvider.Current.GetSharedLock(contentId);
+            return Storage.GetSharedLock(contentId);
         }
         public static string Unlock(int contentId, string @lock)
         {
-            return DataProvider.Current.DeleteSharedLock(contentId, @lock);
+            return Storage.DeleteSharedLock(contentId, @lock);
         }
     }
 }

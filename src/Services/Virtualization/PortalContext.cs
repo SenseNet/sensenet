@@ -1603,7 +1603,13 @@ namespace SenseNet.Portal.Virtualization
                 {
                     using (new SystemAccount())
                     {
-                        var head = NodeHead.Get(int.Parse(fileReq.FileId));
+                        NodeHead head = null;
+
+                        if (int.TryParse(fileReq.FileId, out var fileId))
+                        {
+                            head = NodeHead.Get(fileId);
+                        }
+
                         if (head != null)
                         {
                             // WARNINRG: DO NOT SET THE _contextNodeHead

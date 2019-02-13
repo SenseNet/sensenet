@@ -754,19 +754,21 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, expectedLock);
-                var dataProvider = (InMemoryDataProvider) DataProvider.Current;
-                var sharedLockRow = dataProvider.DB.SharedLocks.First(x => x.ContentId == file.Id);
-                sharedLockRow.CreationDate = DateTime.UtcNow.AddMinutes(-10.0d);
 
+                SharedLock.Lock(file.Id, expectedLock);
+
+                SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
+                
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
                     new[] { "X-WOPI-Override", "REFRESH_LOCK"},
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
+                var refreshedDate = GetSharedLockCreationDate(file.Id);
+
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                Assert.IsTrue((DateTime.UtcNow - sharedLockRow.CreationDate).TotalSeconds < 1);
+                Assert.IsTrue((DateTime.UtcNow - refreshedDate).TotalSeconds < 1);
             });
         }
         [TestMethod]
@@ -1098,13 +1100,19 @@ namespace SenseNet.Services.Tests
                 Assert.IsFalse(response.LicenseCheckForEditIsEnabled);
                 Assert.AreEqual("Admin", response.UserFriendlyName);
                 Assert.IsNull(response.UserInfo);
-                Assert.IsFalse(response.ReadOnly);
+
+                //UNDONE: Uncomment when document editing is allowed.
+                //Assert.IsFalse(response.ReadOnly);
+
                 Assert.IsFalse(response.RestrictedWebViewOnly);
                 Assert.IsTrue(response.UserCanAttend);
                 Assert.IsTrue(response.UserCanNotWriteRelative);
                 Assert.IsTrue(response.UserCanPresent);
                 Assert.IsFalse(response.UserCanRename);
-                Assert.IsTrue(response.UserCanWrite);
+
+                //UNDONE: Uncomment when document editing is allowed.
+                //Assert.IsTrue(response.UserCanWrite);
+
                 Assert.IsNull(response.CloseUrl);
                 Assert.IsNull(response.DownloadUrl);
                 Assert.IsNull(response.FileSharingUrl);
@@ -1417,6 +1425,8 @@ namespace SenseNet.Services.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
+            builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider());
+
             Indexing.IsOuterSearchEngineEnabled = true;
 
             _repository = Repository.Start(builder);
@@ -1478,6 +1488,23 @@ namespace SenseNet.Services.Tests
             if (!headers.TryGetValue(headerName, out var actualValue))
                 Assert.Fail("Header was not found: " + headerName);
             Assert.AreEqual(expectedValue, actualValue);
+        }
+
+        private void SetSharedLockCreationDate(int nodeId, DateTime value)
+        {
+            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
+                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+
+            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
+            sharedLockRow.CreationDate = value;
+        }
+        private DateTime GetSharedLockCreationDate(int nodeId)
+        {
+            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
+                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+
+            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
+            return sharedLockRow.CreationDate;
         }
     }
 }
