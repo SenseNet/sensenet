@@ -109,7 +109,7 @@ namespace SenseNet.Services.Wopi
             {
                 var discoveryXml = new XmlDocument();
 
-                Retrier.Retry(3, 500, typeof(Exception), () =>
+                Retrier.Retry(3, 500, () =>
                 {
                     using (var client = new HttpClient())
                     {
@@ -119,12 +119,13 @@ namespace SenseNet.Services.Wopi
                             discoveryXml.Load(discoveryStream);
                         }
                     }
-                });
+                }, (i, ex) => ex == null || i > 3);
 
                 if (discoveryXml.DocumentElement == null)
-                {
                     SnLog.WriteWarning($"Could not connect to Office Online Server {oosUrl} for available actions.");
-                }
+                else
+                    SnLog.WriteInformation($"Connected to Office Online Server {oosUrl} for available actions.");
+                
 
                 return FromXmlDocument(discoveryXml);
             })).Value;
