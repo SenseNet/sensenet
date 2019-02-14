@@ -1,8 +1,8 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>sensenet Services</Description>
-  <ReleaseDate>2019-02-01</ReleaseDate>
-  <Version>7.5.1.3</Version>
+  <ReleaseDate>2019-02-14</ReleaseDate>
+  <Version>7.5.1.4</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>

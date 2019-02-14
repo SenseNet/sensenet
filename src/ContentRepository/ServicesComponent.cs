@@ -10,6 +10,6 @@ namespace SenseNet.ContentRepository
         // This value has to change if there were database, content
         // or configuration changes since the last release that
         // should be enforced using an upgrade patch.
-        public override Version SupportedVersion => new Version(7, 5, 1);
+        public override Version SupportedVersion => new Version(7, 5, 1, 4);
     }
 }
