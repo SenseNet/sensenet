@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -44,6 +45,16 @@ namespace SenseNet.ContentRepository.Storage.Security
             };
             Storage.SaveAccessToken(token);
             return token;
+        }
+
+        public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
+        {
+            //UNDONE: finalize algorithm and boundaries
+            var existingToken = Storage.LoadAccessTokens(userId, contentId, feature).OrderBy(at => at.ExpirationDate).LastOrDefault();
+            if (existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(10))
+                return existingToken;
+
+            return CreateToken(userId, timeout, contentId, feature);
         }
 
         /// <summary>

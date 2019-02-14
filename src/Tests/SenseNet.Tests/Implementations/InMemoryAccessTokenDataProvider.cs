@@ -89,6 +89,18 @@ namespace SenseNet.Tests.Implementations
                 .Select(CreateAccessTokenFromRow)
                 .ToArray();
         }
+        public AccessToken[] LoadAccessTokens(int userId, int contentId, string feature)
+        {
+            var contentIdValue = contentId == 0 ? (int?)null : contentId;
+
+            return AccessTokens
+                .Where(x => x.UserId == userId && 
+                        x.ExpirationDate > DateTime.UtcNow &&
+                        x.ContentId == contentIdValue &&
+                        x.Feature == feature)
+                .Select(CreateAccessTokenFromRow)
+                .ToArray();
+        }
 
         public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
         {
@@ -131,6 +143,6 @@ namespace SenseNet.Tests.Implementations
                 CreationDate = row.CreationDate,
                 ExpirationDate = row.ExpirationDate
             };
-        }
+        }        
     }
 }

@@ -119,6 +119,11 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
 
+            public AccessToken[] LoadAccessTokens(int userId, int contentId, string feature)
+            {
+                throw new NotImplementedException();
+            }
+
             public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
             {
                 throw new NotImplementedException();
@@ -137,7 +142,7 @@ namespace SenseNet.ContentRepository.Tests
             public void DeleteAccessTokensByContent(int contentId)
             {
                 throw new NotImplementedException();
-            }
+            }            
         }
         #endregion
 

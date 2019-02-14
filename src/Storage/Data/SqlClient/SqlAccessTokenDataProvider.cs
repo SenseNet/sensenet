@@ -121,6 +121,24 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 return tokens.ToArray();
             }
         }
+        public AccessToken[] LoadAccessTokens(int userId, int contentId, string feature)
+        {
+            using (var proc = MainProvider.CreateDataProcedure("SELECT * FROM [dbo].[AccessTokens] " +
+                "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE() AND " +
+                (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
+                (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL"))
+                .AddParameter("@UserId", userId))
+            {
+                proc.CommandType = CommandType.Text;
+
+                var tokens = new List<AccessToken>();
+                using (var reader = proc.ExecuteReader())
+                    while (reader.Read())
+                        tokens.Add(GetAccessTokenFromReader(reader));
+
+                return tokens.ToArray();
+            }
+        }
 
         public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
         {
