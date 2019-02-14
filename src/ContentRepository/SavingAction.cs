@@ -412,6 +412,12 @@ namespace SenseNet.ContentRepository
                     gc.AssertAllowedChildType(Node);
             }
 
+            // Assert SharedLock
+            //UNDONE: uncomment when SharedLock storage is implemented
+            //if (null != SharedLock.GetLock(this.Node.Id))
+            //    throw new InvalidContentActionException(InvalidContentActionReason.CheckedOutToSomeoneElse,
+            //        this.Node.Path);
+
             ContentNamingProvider.ValidateName(this.Node.Name);
 
             var autoNamingAllowed = false;

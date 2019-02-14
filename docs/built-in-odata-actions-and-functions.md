@@ -978,3 +978,21 @@ $.ajax({
      }
 });
 ```
+
+## Office Online
+These actions are related to the Office Online (document viewing and editing in the browser) feature.
+
+### Get WOPI data
+Gets values necessary for building a hosting page for Office Online Server.
+
+
+```js
+$.ajax({
+     url: "/Odata.svc/workspaces/myworkspace/Document_Library('mydoc.docx')/GetWopiData?action=view",
+     dataType: "json",
+     type: 'GET',
+     success: function () {
+               //....
+     }
+});
+```

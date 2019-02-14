@@ -388,8 +388,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         #endregion
-
-
+        
         #region NOT IMPLEMENTED
 
         protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
@@ -2837,6 +2836,7 @@ namespace SenseNet.Tests.Implementations
                 };
             }
         }
+        
         public class LogEntriesRow
         {
             public int LogId;

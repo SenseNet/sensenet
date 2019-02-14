@@ -321,6 +321,9 @@ namespace SenseNet.ContentRepository
 
             if (DataProvider.GetExtension<IAccessTokenDataProviderExtension>() == null)
                 DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider());
+
+            if (DataProvider.GetExtension<ISharedLockDataProviderExtension>() == null)
+                DataProvider.Instance.SetExtension(typeof(ISharedLockDataProviderExtension), new SqlSharedLockDataProvider());
         }
 
         private static void InitializeOAuthProviders()

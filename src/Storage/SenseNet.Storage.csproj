@@ -169,6 +169,7 @@
     <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
     <Compile Include="Data\IPackagingDataProvider.cs" />
+    <Compile Include="Data\ISharedLockDataProviderExtension.cs" />
     <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
@@ -179,6 +180,7 @@
     <Compile Include="Data\SqlClient\SqlQueryEngine.cs" />
     <Compile Include="Data\SqlClient\SqlQueryExecutor.cs" />
     <Compile Include="Data\SqlClient\SqlQueryFieldInfo.cs" />
+    <Compile Include="Data\SqlClient\SqlSharedLockDataProvider.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
@@ -300,6 +302,8 @@
     <Compile Include="Security\SystemAccount.cs" />
     <Compile Include="Security\SnAclEditor.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="SharedLock.cs" />
+    <Compile Include="SharedLockNotFoundException.cs" />
     <Compile Include="StorageContext.cs" />
     <Compile Include="TransactionParticipant.cs" />
     <Compile Include="TreeLock.cs" />

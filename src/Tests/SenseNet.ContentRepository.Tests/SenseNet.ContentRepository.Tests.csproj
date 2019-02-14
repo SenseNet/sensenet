@@ -108,6 +108,7 @@
     <Compile Include="LoggerTests.cs" />
     <Compile Include="MaintenanceTests.cs" />
     <Compile Include="NodeTests.cs" />
+    <Compile Include="SharedLockTests.cs" />
     <Compile Include="SharingTests.cs" />
     <Compile Include="SharingVisitorTests.cs" />
     <Compile Include="UserTests.cs" />

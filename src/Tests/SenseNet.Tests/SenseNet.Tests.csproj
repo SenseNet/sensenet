@@ -101,6 +101,7 @@
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
+    <Compile Include="Implementations\InMemorySharedLockDataProvider.cs" />
     <Compile Include="Implementations\InMemoryTestingDataProvider.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
