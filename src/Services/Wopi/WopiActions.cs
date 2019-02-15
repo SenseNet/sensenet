@@ -18,6 +18,8 @@ namespace SenseNet.Services.Wopi
 {
     public static class WopiActions
     {
+        private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
+
         [ODataFunction]
         public static object GetWopiData(Content content, string action)
         {
@@ -39,7 +41,7 @@ namespace SenseNet.Services.Wopi
                 throw new SnNotSupportedException($"Office Online action '{action}' is not supported on this content.");
 
             // load an existing token or create a new one
-            var token = AccessTokenVault.GetOrAddToken(User.Current.Id, TimeSpan.FromHours(3), content.Id,
+            var token = AccessTokenVault.GetOrAddToken(User.Current.Id, DefaultTokenTimeout, content.Id,
                 WopiHandler.AccessTokenFeatureName);
 
             var expiration = Math.Truncate((token.ExpirationDate - new DateTime(1970, 1, 1).ToUniversalTime()).TotalMilliseconds);

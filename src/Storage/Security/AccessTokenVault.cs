@@ -12,6 +12,8 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class AccessTokenVault
     {
+        private const int MinimumTokenExpirationMinutes = 5;
+
         private static IAccessTokenDataProviderExtension Storage => DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
 
         /// <summary>
@@ -56,8 +58,8 @@ namespace SenseNet.ContentRepository.Storage.Security
                                      at.Feature == feature &&
                                      at.ExpirationDate <= maxExpiration);
 
-            // if the found token expires in less then 5 minutes, we issue a new one
-            return existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(5)
+            // if the found token expires in less then a minimum expiration, we issue a new one
+            return existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(MinimumTokenExpirationMinutes)
                 ? existingToken
                 : CreateToken(userId, timeout, contentId, feature);
         }
