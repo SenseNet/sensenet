@@ -158,7 +158,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
         {
-            //UNDONE: call this from Node.Delete
             Storage.DeleteAccessTokensByContent(contentId);
         }
 

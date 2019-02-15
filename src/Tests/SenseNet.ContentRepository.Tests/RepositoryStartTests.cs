@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository.Tests
             public void DeleteAccessTokensByContent(int contentId)
             {
                 throw new NotImplementedException();
-            }            
+            }
         }
         #endregion
 

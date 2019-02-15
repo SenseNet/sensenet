@@ -131,6 +131,6 @@ namespace SenseNet.Tests.Implementations
                 CreationDate = row.CreationDate,
                 ExpirationDate = row.ExpirationDate
             };
-        }        
+        }
     }
 }

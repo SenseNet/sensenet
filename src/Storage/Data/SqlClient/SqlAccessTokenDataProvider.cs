@@ -121,7 +121,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 return tokens.ToArray();
             }
         }
-        
+
         public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
         {
             using (var proc = MainProvider.CreateDataProcedure("UPDATE [AccessTokens] " +
