@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -11,6 +12,8 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class AccessTokenVault
     {
+        private const int MinimumTokenExpirationMinutes = 5;
+
         private static IAccessTokenDataProviderExtension Storage => DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
 
         /// <summary>
@@ -46,6 +49,21 @@ namespace SenseNet.ContentRepository.Storage.Security
             return token;
         }
 
+        public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
+        {
+            var maxExpiration = DateTime.UtcNow.Add(timeout);
+            var existingToken = Storage.LoadAccessTokens(userId)
+                .OrderBy(at => at.ExpirationDate)
+                .LastOrDefault(at => at.ContentId == contentId &&
+                                     at.Feature == feature &&
+                                     at.ExpirationDate <= maxExpiration);
+
+            // if the found token expires in less then a minimum expiration, we issue a new one
+            return existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(MinimumTokenExpirationMinutes)
+                ? existingToken
+                : CreateToken(userId, timeout, contentId, feature);
+        }
+
         /// <summary>
         /// Designed for test purposes.
         /// Returns the AccessToken by the given Id.
@@ -74,7 +92,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         /// <returns>An AccessToken array.</returns>
-        public static AccessToken[] GetTokens(int userId)
+        public static AccessToken[] GetAllTokens(int userId)
         {
             return Storage.LoadAccessTokens(userId);
         }
