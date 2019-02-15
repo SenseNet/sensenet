@@ -49,12 +49,17 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
-            //UNDONE: finalize algorithm and boundaries
-            var existingToken = Storage.LoadAccessTokens(userId, contentId, feature).OrderBy(at => at.ExpirationDate).LastOrDefault();
-            if (existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(10))
-                return existingToken;
+            var maxExpiration = DateTime.UtcNow.Add(timeout);
+            var existingToken = Storage.LoadAccessTokens(userId)
+                .OrderBy(at => at.ExpirationDate)
+                .LastOrDefault(at => at.ContentId == contentId &&
+                                     at.Feature == feature &&
+                                     at.ExpirationDate <= maxExpiration);
 
-            return CreateToken(userId, timeout, contentId, feature);
+            // if the found token expires in less then 5 minutes, we issue a new one
+            return existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(5)
+                ? existingToken
+                : CreateToken(userId, timeout, contentId, feature);
         }
 
         /// <summary>
@@ -85,7 +90,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         /// <returns>An AccessToken array.</returns>
-        public static AccessToken[] GetTokens(int userId)
+        public static AccessToken[] GetAllTokens(int userId)
         {
             return Storage.LoadAccessTokens(userId);
         }
@@ -153,6 +158,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
         {
+            //UNDONE: call this from Node.Delete
             Storage.DeleteAccessTokensByContent(contentId);
         }
 

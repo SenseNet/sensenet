@@ -215,7 +215,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION-1
-            var tokens = AccessTokenVault.GetTokens(userId);
+            var tokens = AccessTokenVault.GetAllTokens(userId);
 
             // ASSERT-1
             Assert.AreEqual(
@@ -224,13 +224,62 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION-2
             Thread.Sleep(1100);
-            tokens = AccessTokenVault.GetTokens(userId);
+            tokens = AccessTokenVault.GetAllTokens(userId);
 
             // ASSERT-2
             // The last 4 tokens are expired
             Assert.AreEqual(
                 string.Join(",", savedTokens.Take(4).OrderBy(x => x.Id).Select(x => x.Id.ToString())),
                 string.Join(",", tokens.OrderBy(x => x.Id).Select(x => x.Id.ToString())));
+        }
+
+        [TestMethod]
+        public void AccessToken_GetOrAdd_WithFeature()
+        {
+            AccessToken_GetOrAdd(42, 142, "testfeature");
+        }
+        [TestMethod]
+        public void AccessToken_GetOrAdd_WithContent()
+        {
+            AccessToken_GetOrAdd(42, 142);
+        }
+        [TestMethod]
+        public void AccessToken_GetOrAdd_WithUser()
+        {
+            AccessToken_GetOrAdd(42);
+        }
+        private void AccessToken_GetOrAdd(int userId, int contentId = 0, string feature = null)
+        {
+            var timeout1 = TimeSpan.FromMinutes(3);
+            var timeout2 = TimeSpan.FromMinutes(10);
+            var timeout3 = TimeSpan.FromMinutes(20);
+
+            // create three different tokens
+            var savedToken1 = AccessTokenVault.CreateToken(userId, timeout1, contentId, feature);
+            var savedToken2 = AccessTokenVault.CreateToken(userId, timeout2, contentId, feature);
+            var savedToken3 = AccessTokenVault.CreateToken(userId, timeout3, contentId, feature);
+
+            // ACTION: get a token with the same parameters
+            var token = AccessTokenVault.GetOrAddToken(userId, timeout3, contentId, feature);
+
+            // ASSERT: we should get the last one
+            AssertTokensAreEqual(savedToken3, token);
+
+            // ACTION: get a token with shorter expiration time
+            token = AccessTokenVault.GetOrAddToken(userId, timeout2, contentId, feature);
+
+            // ASSERT: we should get the previous one
+            AssertTokensAreEqual(savedToken2, token);
+
+            // ACTION: get a token with an even shorter expiration time
+            token = AccessTokenVault.GetOrAddToken(userId, TimeSpan.FromMinutes(7), contentId, feature);
+
+            // ASSERT: we should get a totally new one, because the first 
+            // token (savedToken1) expires too soon. 
+            Assert.AreNotEqual(savedToken1.Value, token.Value);
+            Assert.AreNotEqual(savedToken2.Value, token.Value);
+            Assert.AreNotEqual(savedToken3.Value, token.Value);
+            Assert.IsTrue(token.ExpirationDate < savedToken2.ExpirationDate);
         }
 
         [TestMethod]

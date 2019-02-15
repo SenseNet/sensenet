@@ -37,12 +37,10 @@ namespace SenseNet.Services.Wopi
             var wopiAction = wopiApp?.Actions.GetAction(action, content.Name);
             if (wopiAction == null)
                 throw new SnNotSupportedException($"Office Online action '{action}' is not supported on this content.");
-            
-            //UNDONE: load or create new tokens here?
-            var token = AccessTokenVault.GetTokens(User.Current.Id).FirstOrDefault(t =>
-                            t.Feature == WopiHandler.AccessTokenFeatureName && t.ContentId == content.Id &&
-                            t.ExpirationDate > DateTime.UtcNow.AddMinutes(1)) ??
-                        AccessTokenVault.CreateToken(User.Current.Id, TimeSpan.FromHours(3), content.Id, WopiHandler.AccessTokenFeatureName);
+
+            // load an existing token or create a new one
+            var token = AccessTokenVault.GetOrAddToken(User.Current.Id, TimeSpan.FromHours(3), content.Id,
+                WopiHandler.AccessTokenFeatureName);
 
             var expiration = Math.Truncate((token.ExpirationDate - new DateTime(1970, 1, 1).ToUniversalTime()).TotalMilliseconds);
 
