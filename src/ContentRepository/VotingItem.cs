@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Web.UI;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
