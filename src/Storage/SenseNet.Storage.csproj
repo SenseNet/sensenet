@@ -14,7 +14,6 @@
     <PackageTags>sensenet csp repository storage</PackageTags>
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <AssemblyVersion>7.5.1.4</AssemblyVersion>
     <Product>sensenet Storage</Product>
     <Description>Storage layer for the sensenet platform.</Description>
   </PropertyGroup>
