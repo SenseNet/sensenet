@@ -1,20 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Xml;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
 using System.Linq;
-using System.IO;
-using SenseNet.Diagnostics;
-using System.ComponentModel;
-using System.Globalization;
-using SenseNet.ContentRepository.Fields;
-using System.Xml.XPath;
-using System.Web.Configuration;
-using SenseNet.ApplicationModel;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository

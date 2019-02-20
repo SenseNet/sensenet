@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Activities.Statements;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.ContentRepository.Schema.Metadata
 {

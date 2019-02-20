@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Web.UI.WebControls;
-using System.Xml.XPath;
-
-using  SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Versioning;
 
 namespace SenseNet.ContentRepository.Fields

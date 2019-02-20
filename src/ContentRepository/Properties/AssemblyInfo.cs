@@ -13,19 +13,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
 
-#if DEBUG
-[assembly: AssemblyTitle("SenseNet.ContentRepository (Debug)")]
-#else
-[assembly: AssemblyTitle("SenseNet.ContentRepository (Release)")]
-#endif
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Sense/Net Inc.")]
-[assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
-[assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
-[assembly: AssemblyCulture("")]
-
-[assembly: AssemblyVersion("7.5.1.4")]
-[assembly: AssemblyFileVersion("7.5.1.4")]
-[assembly: AssemblyInformationalVersion("7.5.1.4")]

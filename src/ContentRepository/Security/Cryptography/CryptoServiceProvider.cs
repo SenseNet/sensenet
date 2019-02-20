@@ -1,13 +1,10 @@
-﻿using SenseNet.ContentRepository.Storage;
-using SenseNet.Diagnostics;
+﻿using SenseNet.Diagnostics;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Web.Configuration;
 using SenseNet.ApplicationModel;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Security.Cryptography

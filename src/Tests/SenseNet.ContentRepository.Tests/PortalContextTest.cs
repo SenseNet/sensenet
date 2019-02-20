@@ -16,6 +16,10 @@ namespace SenseNet.ContentRepository.Tests
     {
         private void CreateTestSite()
         {
+            // need to reset the pinned site list
+            var action = new PortalContext.ReloadSiteListDistributedAction();
+            action.Execute();
+
             var sites = new GenericContent(Repository.Root, "Sites") { Name = "Sites" };
             sites.Save();
 
