@@ -15,7 +15,7 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms pdf textextractor</tags>
     <dependencies>
-      <dependency id="SenseNet.Services" version="7.5.1.4" />
+      <dependency id="SenseNet.Services" version="7.6" />
     </dependencies>
   </metadata>
   <files>
