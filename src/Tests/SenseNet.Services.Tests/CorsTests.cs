@@ -25,10 +25,15 @@ namespace SenseNet.Services.Tests
 
             // wildcard (subdomain)
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc", new[] { "*.abc" }));
+            Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("def", new[] { "*.abc" }));
+            Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc.com", new[] { "*.abc.com" }));
             Assert.AreEqual("abc", HttpHeaderTools.GetAllowedDomain("abc", new[] { "*.abc", "abc" }));
             Assert.AreEqual("abc", HttpHeaderTools.GetAllowedDomain("abc", new[] { "abc", "*.abc" }));
             Assert.AreEqual("*.abc", HttpHeaderTools.GetAllowedDomain("sub1.abc", new[] { "*.abc" }));
             Assert.AreEqual("*.abc", HttpHeaderTools.GetAllowedDomain("sub1.abc", new[] { "abcd", "sub1abc", "sub1abccom", "*.abc" }));
+
+            // invalid config
+            Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc", new[] { "*abc" }));
         }
     }
 }
