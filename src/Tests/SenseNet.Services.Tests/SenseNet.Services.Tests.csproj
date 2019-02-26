@@ -111,6 +111,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CorsTests.cs" />
     <Compile Include="HttpHelper.cs" />
     <Compile Include="OAuthAuthenticationTests.cs" />
     <Compile Include="ServicesTestUser.cs" />

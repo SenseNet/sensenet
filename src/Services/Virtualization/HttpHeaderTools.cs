@@ -326,8 +326,7 @@ namespace SenseNet.Portal.Virtualization
                         PortalContext.Current.ContextNodePath, new string[0]);
 
                     // try to find the domain in the whitelist (or the '*')
-                    var externalDomain = corsDomains.FirstOrDefault( d => d == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL ||
-                        string.Compare(d, originDomain, StringComparison.InvariantCultureIgnoreCase) == 0);
+                    var externalDomain = GetAllowedDomain(originDomain, corsDomains);
 
                     if (!string.IsNullOrEmpty(externalDomain))
                     {
@@ -346,6 +345,15 @@ namespace SenseNet.Portal.Virtualization
             SetAccessControlHeaders();
 
             return !error;
+        }
+
+        internal static string GetAllowedDomain(string originDomain, IEnumerable<string> allowedDomains)
+        {
+            return allowedDomains.FirstOrDefault(d =>
+                d == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL ||
+                string.Compare(d, originDomain, StringComparison.InvariantCultureIgnoreCase) == 0 ||
+                d.StartsWith("*.", StringComparison.Ordinal) && originDomain.EndsWith(d.Substring(1), 
+                    StringComparison.InvariantCultureIgnoreCase));
         }
 
         /// <summary>
