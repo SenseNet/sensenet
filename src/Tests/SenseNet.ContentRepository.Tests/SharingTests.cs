@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -167,8 +168,18 @@ namespace SenseNet.ContentRepository.Tests
                 content.Save();
                 var id1 = content.Id;
 
+                Debug.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery START (DBG)");
+                Trace.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery START (TRC)");
+
                 // TESTS
-                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
+                Retrier.Retry(3, 1000, typeof(Exception),
+                    () =>
+                    {
+                        Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
+                        Debug.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery OK (DBG)");
+                        Trace.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery OK (TRC)");
+                    });
+
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:I0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:C1"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:M0"));

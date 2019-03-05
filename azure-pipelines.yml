@@ -10,6 +10,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  system.debug: 'true'
 
 steps:
 - task: NuGetToolInstaller@0

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -110,6 +111,13 @@ namespace SenseNet.Tests.Implementations
                 }
 
                 var fieldValues = GetValues(field);
+
+                if (fieldName == "Sharing" && (fieldValues?.Any() ?? false))
+                {
+                    var msg = "TMPINVEST: sharing index field value: " + string.Join(",", fieldValues);
+                    Debug.WriteLine(msg + " (DBG)");
+                    Trace.WriteLine(msg + " (TRC)");
+                }
 
                 foreach (var fieldValue in fieldValues)
                 {
