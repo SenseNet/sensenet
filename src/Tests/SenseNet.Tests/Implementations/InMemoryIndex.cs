@@ -36,7 +36,7 @@ namespace SenseNet.Tests.Implementations
         /* ========================================================================== Data */
 
         // FieldName => FieldValue => VersionId
-        internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; private set; } = new Dictionary<string, Dictionary<string, List<int>>>();
+        public Dictionary<string, Dictionary<string, List<int>>> IndexData { get; private set; } = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
         internal List<Tuple<int, List<IndexField>>> StoredData { get; private set; } = new List<Tuple<int, List<IndexField>>>();
@@ -115,8 +115,7 @@ namespace SenseNet.Tests.Implementations
                 if (fieldName == "Sharing" && (fieldValues?.Any() ?? false))
                 {
                     var msg = "TMPINVEST: sharing index field value: " + string.Join(",", fieldValues);
-                    Debug.WriteLine(msg + " (DBG)");
-                    Trace.WriteLine(msg + " (TRC)");
+                    Trace.WriteLine(msg);
                 }
 
                 foreach (var fieldValue in fieldValues)

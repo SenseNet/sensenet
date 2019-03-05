@@ -25,6 +25,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Services.Sharing;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 using Formatting = Newtonsoft.Json.Formatting;
 using Retrier = SenseNet.Tools.Retrier;
 
@@ -167,18 +168,44 @@ namespace SenseNet.ContentRepository.Tests
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
                 content.Save();
                 var id1 = content.Id;
+                
+                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START (expected id: {id1})");
 
-                Debug.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery START (DBG)");
-                Trace.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery START (TRC)");
+                var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
+
+                if (indexData.TryGetValue("Sharing", out var sv) && sv != null)
+                {
+                    var idList = new List<int>();
+                    foreach (var ids in sv.Values)
+                    {
+                        idList.AddRange(ids);
+                    }
+
+                    Trace.WriteLine($"TMPINVEST: CheckByRawQuery: current ids: {string.Join(",", idList.Distinct())}");
+                }
 
                 // TESTS
-                Retrier.Retry(3, 1000, typeof(Exception),
-                    () =>
+                try
+                {
+                    Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
+                }
+                catch (Exception)
+                {
+                    if (indexData.TryGetValue("Sharing", out var sharingValues))
                     {
-                        Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
-                        Debug.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery OK (DBG)");
-                        Trace.WriteLine("TMPINVEST: Sharing_Indexing_CheckByRawQuery OK (TRC)");
-                    });
+                        foreach (var sharingValue in sharingValues)
+                        {
+                            Trace.WriteLine(
+                                $"TMPINVEST: CheckByRawQuery: {sharingValue.Key?.Substring(0, Math.Min(100, sharingValue.Key.Length))} ----- {string.Join(",", sharingValue.Value)}");
+                        }
+                    }
+                    else
+                    {
+                        Trace.WriteLine("TMPINVEST: CheckByRawQuery: NO sharing index values found.");
+                    }
+
+                    throw;
+                }
 
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:I0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:C1"));
