@@ -61,6 +61,7 @@ namespace SenseNet.Packaging.Steps.Internal
                             var msg = $"Error during undo changes of {gc.Path} (v: {gc.Version}): {ex.Message}";
                             SnLog.WriteException(ex, msg);
                             Logger.LogException(ex, msg);
+                            System.Diagnostics.Trace.WriteLine(msg);
                         }
                     });
             }

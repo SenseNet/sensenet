@@ -95,6 +95,7 @@ namespace SenseNet.Tests.Implementations
                 WriteTo(IndexDocumentPath, document);
 
             var versionId = document.GetIntegerValue(IndexFieldName.VersionId);
+            var nodeId = document.GetIntegerValue(IndexFieldName.NodeId);
 
             var storedFields = document.Where(f => f.Store == IndexStoringMode.Yes).ToList();
             if (storedFields.Count > 0)
@@ -112,9 +113,9 @@ namespace SenseNet.Tests.Implementations
 
                 var fieldValues = GetValues(field);
 
-                if (fieldName == "Sharing" && (fieldValues?.Any() ?? false))
+                if (fieldName == "Sharing")
                 {
-                    var msg = "TMPINVEST: sharing index field value: " + string.Join(",", fieldValues);
+                    var msg = $"TMPINVEST: vid: {versionId}, nid: {nodeId}, Sharing index field value: " + string.Join(",", fieldValues);
                     Trace.WriteLine(msg);
                 }
 
