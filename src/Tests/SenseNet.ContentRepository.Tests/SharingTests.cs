@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class SharingTests : TestBase
     {
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Indexing_Tokenizer()
         {
             var data = new SharingData
@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("L1", tokenizer.Level);
             Assert.AreEqual("M0", tokenizer.Mode);
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Indexing_Combinator()
         {
             var data = new SharingData
@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository.Tests
             var actual = cmbinations.OrderBy(x => x);
             AssertSequenceEqual(expected, actual);
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Indexing_IndexFields()
         {
             // ARRANGE
@@ -235,7 +235,7 @@ namespace SenseNet.ContentRepository.Tests
 
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_VisitorExtensions()
         {
             Test(() =>
@@ -243,7 +243,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(SnQueryVisitor.VisitorExtensionTypes.Contains(typeof(SharingVisitor)));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_Tokenize()
         {
             Test(() =>
@@ -284,7 +284,7 @@ namespace SenseNet.ContentRepository.Tests
                 //Assert.AreEqual("+Sharing:M2,L1", rewritten.ToString());
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_RewriteOne()
         {
             Test(() =>
@@ -307,7 +307,7 @@ namespace SenseNet.ContentRepository.Tests
                 RewritingTest("+SharingLevel:Edit", "+Sharing:L1");
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_RewriteOnlyOneLevelMust()
         {
             Test(() =>
@@ -357,7 +357,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Serialization()
         {
             var sd1 = new SharingData
@@ -419,7 +419,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSharingDataAreEqual(sharingItems[i], items[i]);
             }
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Export()
         {
             JArray GetSharingItemsFromFieldXml(Content content)
@@ -487,7 +487,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Import()
         {
             Test(() =>
@@ -600,7 +600,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Import_UpdateReferences()
         {
             Test(() =>
@@ -672,7 +672,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_Searchability()
         {
             var levels = Enum.GetValues(typeof(SharingLevel)).Cast<SharingLevel>().ToArray();
@@ -732,7 +732,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id2}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharedWith:{sd[2].Identity}"));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_Linq()
         {
             Test(() =>
@@ -766,7 +766,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected, actual);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_AddSharing()
         {
             Test(() =>
@@ -787,7 +787,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharedWith:abc2@example.com"));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_AddSharing_SpecialTokens()
         {
             Test(() =>
@@ -808,7 +808,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(user1.Id, sd2.Identity);
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_RemoveSharing()
         {
             Test(() =>
@@ -829,7 +829,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(string.Empty, GetQueryResult($"+InTree:{root.Path} +SharedWith:abc1@example.com"));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_GetSharing()
         {
             Test(() =>
@@ -854,7 +854,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Create_User()
         {
             // we need the sharing observer for this feature
@@ -903,7 +903,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(aceList.SingleOrDefault(ace => ace.IdentityId == user3.Id), "The user did not get the necessary permission.");
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Change_Email()
         {
             // we need the sharing observer for this feature
@@ -985,7 +985,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Delete_User()
         {
             // we need the sharing observer for this feature
@@ -1039,7 +1039,7 @@ namespace SenseNet.ContentRepository.Tests
                 });
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Delete_Group()
         {
             // we need the sharing observer for this feature
@@ -1103,7 +1103,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_CreateGroup()
         {
             Test(() =>
@@ -1172,7 +1172,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_RemoveSharing()
         {
             Test(() =>
@@ -1197,7 +1197,7 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSharingGroup(groups[0].ContentHandler, gc, false);
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_DeleteContent()
         {
             // we need the sharing observer for this feature
@@ -1227,7 +1227,7 @@ namespace SenseNet.ContentRepository.Tests
                 });
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_DeleteTree()
         {
             // we need the sharing observer for this feature
@@ -1253,7 +1253,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_MembershipExtender()
         {
             Test(() =>
@@ -1284,7 +1284,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Public_MembershipExtender_Deleted()
         {
             Test(() =>
@@ -1342,7 +1342,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_OpenBitmasks()
         {
             var levels = Enum.GetValues(typeof(SharingLevel)).Cast<SharingLevel>().ToArray();
@@ -1351,7 +1351,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0x1Ful, bitmasks[SharingLevel.Open]);
             Assert.AreEqual(0x7Ful, bitmasks[SharingLevel.Edit]);
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_AddSharing()
         {
             Test(true, () =>
@@ -1395,7 +1395,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(0ul, entry.DenyBits);
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_MoreSharing()
         {
             Test(true, () =>
@@ -1424,7 +1424,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(0ul, entry.DenyBits);
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_DeleteSharing()
         {
             Test(true, () =>
@@ -1506,7 +1506,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_Explicit()
         {
             Test(() => {
@@ -1543,7 +1543,7 @@ namespace SenseNet.ContentRepository.Tests
                 }, sharingEntries);
             });
         }
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Permissions_Effective()
         {
             Test(() =>
@@ -1583,7 +1583,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_OData_SafeIdentities()
         {
             Test(() =>
@@ -1641,7 +1641,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_OData_ResponseFormat()
         {
             JObject ConvertResult(object response)
