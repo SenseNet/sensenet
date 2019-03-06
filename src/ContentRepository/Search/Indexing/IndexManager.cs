@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
@@ -203,8 +204,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
-            if(document != null)
+            if (document != null)
+            {
                 SetDocumentFlags(document, versioning);
+
+                if (string.Compare(document.GetStringValue(IndexFieldName.Name)?.ToLowerInvariant(),
+                        "Document-1-Sharing-CheckByRawQuery", StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    Trace.WriteLine($"TMPINVEST: AddDocument called with sharing test doc. Has Sharing field: {document.HasField("Sharing")}");
+                }
+            }
 
             IndexingEngine.WriteIndex(delTerms, updates, new[] {document});
 
