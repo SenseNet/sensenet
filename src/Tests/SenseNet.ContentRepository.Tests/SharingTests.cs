@@ -163,16 +163,31 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var root = CreateTestRoot();
 
+                var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
+
+                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
+
+                if (indexData.TryGetValue("Path", out var pathField))
+                {
+                    Trace.WriteLine($"TMPINVEST: Index: Path field count: {pathField.Count}. TestRoot count: {pathField.Keys.Count(k => k?.Contains(root.Name.ToLowerInvariant()) ?? false)}");
+                }
+
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 var gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
                 content.Save();
                 var id1 = content.Id;
+
+                if (indexData.TryGetValue("Id", out var idField))
+                {
+                    Trace.WriteLine($"TMPINVEST: Index: Id field count: {idField.Count}. TestContent count: {idField.Keys.Count(k => k?.Contains(id1.ToString()) ?? false)}");
+                }
+
+                var indxFieldCount = indexData.Values.Count(indx => indx.Values.Any(vids => vids.Contains(gc.VersionId)));
+
+                Trace.WriteLine($"TMPINVEST: VersionId {gc.VersionId} count in index: {indxFieldCount}");
+                Trace.WriteLine($"TMPINVEST: Expected id: {id1}");
                 
-                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START (expected id: {id1})");
-
-                var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
-
                 if (indexData.TryGetValue("Sharing", out var sv) && sv != null)
                 {
                     var idList = new List<int>();
