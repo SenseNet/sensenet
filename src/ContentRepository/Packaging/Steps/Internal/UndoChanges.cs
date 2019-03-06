@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using Retrier = SenseNet.Tools.Retrier;
 
 namespace SenseNet.Packaging.Steps.Internal
 {
@@ -53,7 +55,11 @@ namespace SenseNet.Packaging.Steps.Internal
 
                         try
                         {
-                            gc.UndoCheckOut();
+                            Retrier.Retry(3, 1000, typeof(Exception), () =>
+                            {
+                                var tgc = Node.Load<GenericContent>(gc.Id);
+                                tgc.UndoCheckOut();
+                            });
                         }
                         catch (Exception ex)
                         {
@@ -61,7 +67,7 @@ namespace SenseNet.Packaging.Steps.Internal
                             var msg = $"Error during undo changes of {gc.Path} (v: {gc.Version}): {ex.Message}";
                             SnLog.WriteException(ex, msg);
                             Logger.LogException(ex, msg);
-                            System.Diagnostics.Trace.WriteLine(msg);
+                            System.Diagnostics.Trace.WriteLine(msg + " " + ex.StackTrace);
                         }
                     });
             }

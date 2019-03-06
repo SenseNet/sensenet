@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -130,6 +131,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.CommitPopulateNode. Version: {0}, VersionId: {1}, Path: {2}", state.Node.Version, state.Node.VersionId, state.Node.Path))
             {
+                if (string.Compare(state.Node?.Name, "Document-1-Sharing-CheckByRawQuery",
+                        StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    Trace.WriteLine($"TMPINVEST: CommitPopulateNode called with sharing test doc.");
+                }
+
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
                     DeleteTree(state.OriginalPath, state.Node.Id);

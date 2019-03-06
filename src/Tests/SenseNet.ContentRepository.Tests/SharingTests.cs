@@ -225,10 +225,6 @@ namespace SenseNet.ContentRepository.Tests
                 // This test tend to fail in the cloud because the index does not contain
                 // the content newly created inside this test. It passes locally.
 #if DEBUG
-#else
-                Assert.Inconclusive();
-#endif
-
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:I0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:C1"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:M0"));
@@ -238,6 +234,9 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0,l1"));
+#else
+                Assert.Inconclusive();
+#endif
             });
 
         }
