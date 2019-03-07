@@ -437,7 +437,8 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                 {
-                    Trace.WriteLine($"TMPINVEST: Repo shutdown called, but instance is null.");
+                    _started = false;
+
                     SnLog.WriteWarning("Repository shutdown has already completed.");
                     return;
                 }

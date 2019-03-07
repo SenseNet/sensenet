@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
-            if (document != null)
+            if(document != null)
                 SetDocumentFlags(document, versioning);
 
             IndexingEngine.WriteIndex(delTerms, updates, new[] {document});

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -164,48 +163,16 @@ namespace SenseNet.ContentRepository.Tests
             if (RepositoryInstance.Started())
                 RepositoryInstance.Shutdown();
 
-            Test(false,
-                builder =>
-                {
-                    //builder.UseTracer(new SnDebugViewTracer())
-                    //    .StartIndexingEngine();
-                },
-                () =>
+            Test(() =>
             {
-                Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
-
-                var state = DistributedIndexingActivityQueue.GetCurrentState();
-                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-
-                //IndexManager.DeleteAllIndexingActivities();
-                //DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
-                //state = DistributedIndexingActivityQueue.GetCurrentState();
-                //Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-                //Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
                 var root = CreateTestRoot();
-
-                var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1-Sharing-CheckByRawQuery");
                 var gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
                 content.Save();
                 var id1 = content.Id;
-
-                state = DistributedIndexingActivityQueue.GetCurrentState();
-                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-                
-                if (indexData.TryGetValue("Sharing", out var sv) && sv != null)
-                {
-                    var idList = new List<int>();
-                    foreach (var ids in sv.Values)
-                    {
-                        idList.AddRange(ids);
-                    }
-
-                    Trace.WriteLine($"TMPINVEST: CheckByRawQuery: current ids: {string.Join(",", idList.Distinct())}");
-                }
 
                 // TESTS
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));

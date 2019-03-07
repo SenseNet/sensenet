@@ -35,7 +35,7 @@ namespace SenseNet.Tests.Implementations
         /* ========================================================================== Data */
 
         // FieldName => FieldValue => VersionId
-        public Dictionary<string, Dictionary<string, List<int>>> IndexData { get; private set; } = new Dictionary<string, Dictionary<string, List<int>>>();
+        internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; private set; } = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
         internal List<Tuple<int, List<IndexField>>> StoredData { get; private set; } = new List<Tuple<int, List<IndexField>>>();
