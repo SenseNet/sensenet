@@ -296,7 +296,7 @@ namespace SenseNet.Services.Wopi
 
             targetFile.Binary.FileName = targetName;
             targetFile.Binary.SetStream(wopiReq.RequestStream);
-            targetFile.Save(); //UNDONE: shared lock?
+            targetFile.Save(); //UNDONE:!!! shared lock?
 
             var url = "__notimplemented__"; //UNDONE:! Generate correct URL
             return new PutRelativeFileResponse
@@ -513,7 +513,7 @@ namespace SenseNet.Services.Wopi
             }
 
             file.Binary.SetStream(wopiReq.RequestStream);
-            file.SaveWithSharedLock(existingLock);
+            file.Save(); //UNDONE:!!! shared lock?
             //UNDONE:! Set X-WOPI-ItemVersion header if needed.
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }

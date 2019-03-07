@@ -104,8 +104,6 @@ namespace SenseNet.ContentRepository.Storage
 
         public bool MultistepSaving { get; set; }
 
-        public string ExpectedSharedLock { get; set; }
-
         public NodeSaveSettings()
         {
             NeedToSaveData = true;
