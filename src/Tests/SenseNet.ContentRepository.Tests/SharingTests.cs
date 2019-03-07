@@ -160,6 +160,9 @@ namespace SenseNet.ContentRepository.Tests
 
             var sharingItems = new List<SharingData> { sd1 };
 
+            if (RepositoryInstance.Started())
+                RepositoryInstance.Shutdown();
+
             Test(false,
                 builder =>
                 {
