@@ -202,6 +202,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /* AddDocumentActivity, RebuildActivity */
         internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
+            var isnull = document == null ? "IS" : "IS NOT";
+
+            Trace.WriteLine($"TMPINVEST: AddDocument. document {isnull} null.");
+
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
             if (document != null)

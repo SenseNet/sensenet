@@ -131,27 +131,41 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.CommitPopulateNode. Version: {0}, VersionId: {1}, Path: {2}", state.Node.Version, state.Node.VersionId, state.Node.Path))
             {
-                if (string.Compare(state.Node?.Name, "Document-1-Sharing-CheckByRawQuery",
-                        StringComparison.InvariantCultureIgnoreCase) == 0)
+                var sharingTestDoc = string.Compare(state.Node?.Name, "Document-1-Sharing-CheckByRawQuery",
+                                         StringComparison.InvariantCultureIgnoreCase) == 0;
+
+                if (sharingTestDoc)
                 {
                     Trace.WriteLine($"TMPINVEST: CommitPopulateNode called with sharing test doc.");
                 }
 
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
+                    if (sharingTestDoc)
+                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode changed path, delete/addtree.");
+
                     DeleteTree(state.OriginalPath, state.Node.Id);
                     AddTree(state.NewPath, state.Node.Id);
                 }
                 else if (state.IsNewNode)
                 {
+                    if (sharingTestDoc)
+                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode NEW node.");
+
                     CreateBrandNewNode(state.Node, versioningInfo, indexDocument);
                 }
                 else if (state.Settings.IsNewVersion())
                 {
+                    if (sharingTestDoc)
+                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode NEW version.");
+
                     AddNewVersion(state.Node, versioningInfo, indexDocument);
                 }
                 else
                 {
+                    if (sharingTestDoc)
+                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode update.");
+
                     UpdateVersion(state, versioningInfo, indexDocument);
                 }
 
@@ -332,6 +346,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
+            Trace.WriteLine($"TMPINVEST: CreateActivity type: {type}, path: {path}");
+
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
@@ -373,6 +389,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static void ExecuteActivity(IndexingActivityBase activity)
         {
+            Trace.WriteLine($"TMPINVEST: ExecuteActivity type: {activity.GetType().Name}");
+
             IndexManager.RegisterActivity(activity);
             IndexManager.ExecuteActivity(activity);
         }
