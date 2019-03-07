@@ -97,8 +97,6 @@ namespace SenseNet.Tests
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            Trace.WriteLine($"TMPINVEST: ExecuteTest called.");
-
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));

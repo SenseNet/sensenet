@@ -50,8 +50,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
         public static void Start(TextWriter consoleOut)
         {
-            Trace.WriteLine($"TMPINVEST: IndexingEngine START");
-
             IndexingEngine.Start(consoleOut);
 
             CommitManager = IndexingEngine.IndexIsCentralized
@@ -103,8 +101,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static void RegisterActivity(IndexingActivityBase activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
-
-            Trace.WriteLine($"TMPINVEST: RegisterActivity type: {activity.GetType().Name}");
         }
 
         /// <summary>
@@ -207,21 +203,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /* AddDocumentActivity, RebuildActivity */
         internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
-            var isnull = document == null ? "IS" : "IS NOT";
-
-            Trace.WriteLine($"TMPINVEST: AddDocument. document {isnull} null.");
-
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
             if (document != null)
             {
                 SetDocumentFlags(document, versioning);
-
-                if (string.Compare(document.GetStringValue(IndexFieldName.Name)?.ToLowerInvariant(),
-                        "Document-1-Sharing-CheckByRawQuery", StringComparison.InvariantCultureIgnoreCase) == 0)
-                {
-                    Trace.WriteLine($"TMPINVEST: AddDocument called with sharing test doc. Has Sharing field: {document.HasField("Sharing")}");
-                }
             }
 
             IndexingEngine.WriteIndex(delTerms, updates, new[] {document});

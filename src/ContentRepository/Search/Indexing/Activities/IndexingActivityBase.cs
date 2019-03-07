@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using SenseNet.ContentRepository.Storage.Data;
@@ -105,12 +104,9 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         internal override void ExecuteIndexingActivity()
         {
-            Trace.WriteLine($"TMPINVEST: ExecuteActivity {this.Id}");
-
             // if not running or paused, skip execution except executing unprocessed activities
             if (!IsExecutable())
             {
-                Trace.WriteLine($"TMPINVEST: ExecuteActivity {this.Id} SKIP. Unprocessed: {this.IsUnprocessedActivity}");
                 SnTrace.Index.Write($"LM: {this} skipped. ActivityId:{Id}, ExecutingUnprocessedActivities:{IsUnprocessedActivity}");
                 return;
             }

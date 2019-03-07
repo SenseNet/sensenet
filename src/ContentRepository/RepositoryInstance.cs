@@ -170,8 +170,6 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public void StartIndexingEngine()
         {
-            Trace.WriteLine($"TMPINVEST: Starting IndexingEngine.");
-
             if (IndexingEngineIsRunning)
             {
                 Trace.WriteLine($"TMPINVEST: IndexingEngine has already started, SKIP.");
@@ -246,8 +244,6 @@ namespace SenseNet.ContentRepository
         }
         private void StartManagers()
         {
-            Trace.WriteLine($"TMPINVEST: StartManagers called.");
-
             object dummy;
             IClusterChannel channel = null;
 
@@ -282,7 +278,6 @@ namespace SenseNet.ContentRepository
 
                 SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
 
-                Trace.WriteLine($"TMPINVEST: StartIndexingEngine? {_settings.StartIndexingEngine}");
                 if (_settings.StartIndexingEngine)
                     StartIndexingEngine();
                 else
@@ -431,14 +426,10 @@ namespace SenseNet.ContentRepository
 
         internal static void Shutdown()
         {
-            Trace.WriteLine($"TMPINVEST: Repo shutdown called.");
-
             if (_instance == null)
             {
-                Trace.WriteLine($"TMPINVEST: Repo shutdown called, but already completed.");
                 if (_started)
                 {
-                    Trace.WriteLine($"TMPINVEST: Repo started flag is switched OFF now.");
                     _started = false;
                 }
 
@@ -492,8 +483,6 @@ namespace SenseNet.ContentRepository
                 SnLog.WriteInformation(msg);
 
                 _instance = null;
-
-                Trace.WriteLine($"TMPINVEST: Repo shutdown finished.");
 
                 _started = false;
             }

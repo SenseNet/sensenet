@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
@@ -8,8 +7,6 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     {
         protected override bool ProtectedExecute()
         {
-            Trace.WriteLine($"TMPINVEST: AddDocumentActivity");
-
             return IndexManager.AddDocument(Document, Versioning);
         }
     }
