@@ -298,6 +298,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             public static void EnqueueActivity(IndexingActivityBase activity)
             {
+
                 SnTrace.IndexQueue.Write("IAQ: A{0} arrived{1}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
 
                 IndexingActivityHistory.Arrive(activity);

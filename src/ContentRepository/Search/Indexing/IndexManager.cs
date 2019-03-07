@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
@@ -205,9 +204,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
             if (document != null)
-            {
                 SetDocumentFlags(document, versioning);
-            }
 
             IndexingEngine.WriteIndex(delTerms, updates, new[] {document});
 

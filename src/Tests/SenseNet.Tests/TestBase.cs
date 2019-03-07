@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -110,8 +109,6 @@ namespace SenseNet.Tests
 
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
-
-            Trace.WriteLine($"TMPINVEST: ExecuteTesT: calling respo start. Indexing engine setting: {builder?.StartIndexingEngine}");
 
             using (Repository.Start(builder))
             {
