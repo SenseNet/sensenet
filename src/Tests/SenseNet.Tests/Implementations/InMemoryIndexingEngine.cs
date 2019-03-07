@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
@@ -15,11 +17,13 @@ namespace SenseNet.Tests.Implementations
 
         public void Start(TextWriter consoleOut)
         {
+            Trace.WriteLine($"TMPINVEST: Starting inmemory indexing engine.");
             Running = true;
         }
 
         public void ShutDown()
         {
+            Trace.WriteLine($"TMPINVEST: Shutting down indexing engine.");
             Running = false;
         }
 

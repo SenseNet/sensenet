@@ -171,6 +171,9 @@ namespace SenseNet.ContentRepository.Tests
                 Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
                 Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
+                if (!IndexManager.Running)
+                    IndexManager.Start(Console.Out);
+
                 var state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
 

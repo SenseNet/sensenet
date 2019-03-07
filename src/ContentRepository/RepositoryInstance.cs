@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
 using System.Configuration;
+using System.Diagnostics;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
@@ -165,8 +166,11 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public void StartIndexingEngine()
         {
+            Trace.WriteLine($"TMPINVEST: Starting IndexingEngine.");
+
             if (IndexingEngineIsRunning)
             {
+                Trace.WriteLine($"TMPINVEST: IndexingEngine has already started, SKIP.");
                 ConsoleWrite("IndexingEngine has already started.");
                 return;
             }
