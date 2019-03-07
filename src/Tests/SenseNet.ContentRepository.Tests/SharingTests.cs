@@ -164,14 +164,19 @@ namespace SenseNet.ContentRepository.Tests
                 builder => { builder.UseTracer(new SnDebugViewTracer()); },
                 () =>
             {
-                
+                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
+
+                var state = DistributedIndexingActivityQueue.GetCurrentState();
+                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
+
+                IndexManager.DeleteAllIndexingActivities();
+                DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
+
                 SnTrace.Index.Enabled = true;
                 SnTrace.IndexQueue.Enabled = true;
                 SnTrace.Database.Enabled = true;
 
-                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
-
-                var state = DistributedIndexingActivityQueue.GetCurrentState();
+                state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
 
                 var root = CreateTestRoot();
