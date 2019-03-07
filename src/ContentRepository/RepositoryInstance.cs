@@ -5,7 +5,6 @@ using System.Text;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
 using System.Configuration;
-using System.Diagnostics;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
@@ -89,8 +88,6 @@ namespace SenseNet.ContentRepository
         private static bool _started;
         internal static RepositoryInstance Start(RepositoryStartSettings settings)
         {
-            Trace.WriteLine($"TMPINVEST: RepoStart: repo instance started: {_started}.");
-
             if (!_started)
             {
                 lock (_startStopSync)
@@ -117,8 +114,6 @@ namespace SenseNet.ContentRepository
         }
         internal void DoStart()
         {
-            Trace.WriteLine($"TMPINVEST: Starting Repository...");
-
             ConsoleWriteLine();
             ConsoleWriteLine("Starting Repository...");
             ConsoleWriteLine();

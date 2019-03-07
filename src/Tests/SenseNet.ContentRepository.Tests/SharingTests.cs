@@ -17,7 +17,6 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
 using SenseNet.Portal.OData;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -25,7 +24,6 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Services.Sharing;
 using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
 using Formatting = Newtonsoft.Json.Formatting;
 using Retrier = SenseNet.Tools.Retrier;
 
@@ -165,10 +163,9 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-
                 var root = CreateTestRoot();
 
-                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1-Sharing-CheckByRawQuery");
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 var gc = (GenericContent)content.ContentHandler;
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
                 content.Save();
