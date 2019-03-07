@@ -110,7 +110,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             // if not running or paused, skip execution except executing unprocessed activities
             if (!IsExecutable())
             {
-                Trace.WriteLine($"TMPINVEST: ExecuteActivity {this.Id} SKIP");
+                Trace.WriteLine($"TMPINVEST: ExecuteActivity {this.Id} SKIP. Unprocessed: {this.IsUnprocessedActivity}");
                 SnTrace.Index.Write($"LM: {this} skipped. ActivityId:{Id}, ExecutingUnprocessedActivities:{IsUnprocessedActivity}");
                 return;
             }

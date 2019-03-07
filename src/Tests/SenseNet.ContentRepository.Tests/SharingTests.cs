@@ -161,10 +161,15 @@ namespace SenseNet.ContentRepository.Tests
             var sharingItems = new List<SharingData> { sd1 };
 
             Test(false,
-                builder => { builder.UseTracer(new SnDebugViewTracer()); },
+                builder =>
+                {
+                    builder.UseTracer(new SnDebugViewTracer())
+                        .StartIndexingEngine(true);
+                },
                 () =>
             {
                 Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
+                Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
                 var state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
@@ -178,6 +183,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
+                Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
                 var root = CreateTestRoot();
 
