@@ -157,10 +157,6 @@ namespace SenseNet.ContentRepository.Tests
 
             var sharingItems = new List<SharingData> { sd1 };
 
-            // workaround for having a half-started repository
-            if (RepositoryInstance.Started())
-                RepositoryInstance.Shutdown();
-
             Test(() =>
             {
                 var root = CreateTestRoot();
@@ -183,6 +179,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0,l1"));
             });
+
         }
 
         [TestMethod]
