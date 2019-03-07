@@ -164,15 +164,15 @@ namespace SenseNet.ContentRepository.Tests
                 builder =>
                 {
                     builder.UseTracer(new SnDebugViewTracer())
-                        .StartIndexingEngine(true);
+                        .StartIndexingEngine();
                 },
                 () =>
             {
                 Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
                 Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
-                if (!IndexManager.Running)
-                    IndexManager.Start(Console.Out);
+                //if (!IndexManager.Running)
+                //    IndexManager.Start(Console.Out);
 
                 var state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");

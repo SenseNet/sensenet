@@ -276,6 +276,7 @@ namespace SenseNet.ContentRepository
 
                 SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
 
+                Trace.WriteLine($"TMPINVEST: StartIndexingEngine? {_settings.StartIndexingEngine}");
                 if (_settings.StartIndexingEngine)
                     StartIndexingEngine();
                 else

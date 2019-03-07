@@ -50,6 +50,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
         public static void Start(TextWriter consoleOut)
         {
+            Trace.WriteLine($"TMPINVEST: IndexingEngine START");
+
             IndexingEngine.Start(consoleOut);
 
             CommitManager = IndexingEngine.IndexIsCentralized
