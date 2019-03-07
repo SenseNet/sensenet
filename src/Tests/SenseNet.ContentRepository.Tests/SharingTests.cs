@@ -169,11 +169,14 @@ namespace SenseNet.ContentRepository.Tests
                 SnTrace.IndexQueue.Enabled = true;
                 SnTrace.Database.Enabled = true;
 
+                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
+
+                var state = DistributedIndexingActivityQueue.GetCurrentState();
+                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
+
                 var root = CreateTestRoot();
 
                 var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
-
-                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
 
                 if (indexData.TryGetValue("Path", out var pathField))
                 {
@@ -185,6 +188,9 @@ namespace SenseNet.ContentRepository.Tests
                 gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
                 content.Save();
                 var id1 = content.Id;
+
+                state = DistributedIndexingActivityQueue.GetCurrentState();
+                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
 
                 if (indexData.TryGetValue("Id", out var idField))
                 {

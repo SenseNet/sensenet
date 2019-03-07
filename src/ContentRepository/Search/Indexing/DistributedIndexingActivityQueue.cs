@@ -298,7 +298,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             public static void EnqueueActivity(IndexingActivityBase activity)
             {
-
+                Trace.WriteLine($"TMPINVEST: EnqueueActivity {activity.Id} Type: {activity.ActivityType}");
                 SnTrace.IndexQueue.Write("IAQ: A{0} arrived{1}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
 
                 IndexingActivityHistory.Arrive(activity);
@@ -312,6 +312,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         {
                             sameActivity.Attach(activity);
 
+                            Trace.WriteLine($"TMPINVEST: EnqueueActivity: attach to another");
                             SnTrace.IndexQueue.Write("IAQ: A{0} attached to another one in the queue", activity.Id);
 
                             return;
@@ -368,6 +369,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         return null;
                     var activity = ArrivalQueue.Dequeue();
 
+                    Trace.WriteLine($"TMPINVEST: Activity dequeued: {activity.Id}");
                     SnTrace.IndexQueue.Write("IAQ: A{0} dequeued.", activity.Id);
 
                     return activity;
@@ -437,6 +439,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             private static void ProcessActivities()
             {
+                Trace.WriteLine($"TMPINVEST: ProcessActivities");
+
                 while (true)
                 {
                     var newerActivity = Serializer.DequeueActivity();
@@ -492,6 +496,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             internal static void Finish(IndexingActivityBase activity)
             {
+                Trace.WriteLine($"TMPINVEST: Finish Activity {activity.Id}");
+
                 lock (WaitingSetLock)
                 {
                     // activity is done in the ActivityQueue
@@ -1027,6 +1033,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             lock (Lock)
             {
+                Trace.WriteLine($"TMPINVEST: Arrived activity: {activity.Id}");
+
                 // avoiding duplication
                 foreach (var item in History)
                     if (item != null && item.Id == activity.Id)
