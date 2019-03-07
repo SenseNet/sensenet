@@ -219,57 +219,47 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void SharedLock_Save()
+        public void SharedLock_Save_Matching()
         {
-            //var node = CreaeTestContent();
-            //var nodeId = node.Id;
-            //var lockValue = "LCK_" + Guid.NewGuid();
-            //SharedLock.Lock(nodeId, lockValue);
+            var node = CreaeTestContent();
+            var nodeId = node.Id;
+            var index = node.Index;
+            var lockValue = "LCK_" + Guid.NewGuid();
+            SharedLock.Lock(nodeId, lockValue);
 
-            //node.Index++;
-            //node.Save(lockValue);
+            node.Index++;
+            node.SaveWithSharedLock(lockValue);
 
-            //var reloadedNode = Node.LoadNode(nodeId);
-            //Assert.AreEqual(node.Index + 1, reloadedNode.Index);
-
-            Assert.Inconclusive();
+            var reloadedNode = Node.LoadNode(nodeId);
+            Assert.AreEqual(index + 1, reloadedNode.Index);
         }
         [TestMethod]
-        [ExpectedException(typeof(SharedLockNotFoundException))]
+        [ExpectedException(typeof(LockedNodeException))]
         public void SharedLock_Save_MissingLock()
         {
-            //var node = CreaeTestContent();
-            //var nodeId = node.Id;
-            //var lockValue = "LCK_" + Guid.NewGuid();
-            //SharedLock.Lock(nodeId, lockValue);
+            var node = CreaeTestContent();
+            var lockValue = "LCK_" + Guid.NewGuid();
 
-            //node.Index++;
-            //node.Save(lockValue);
-
-            Assert.Inconclusive();
+            node.Index++;
+            node.SaveWithSharedLock(lockValue);
         }
         [TestMethod]
-        //[ExpectedException(typeof(DifferentSharedLockException))]
+        [ExpectedException(typeof(LockedNodeException))]
         public void SharedLock_Save_DifferentLock()
         {
-            //var node = CreaeTestContent();
-            //var nodeId = node.Id;
-            //var lockValue = "LCK_" + Guid.NewGuid();
-            //SharedLock.Lock(nodeId, lockValue);
+            var node = CreaeTestContent();
+            var nodeId = node.Id;
+            var lockValue1 = "LCK_" + Guid.NewGuid();
+            var lockValue2 = "LCK_" + Guid.NewGuid();
+            SharedLock.Lock(nodeId, lockValue1);
 
-            //node.Index++;
-            //node.Save(lockValue);
-
-            Assert.Inconclusive();
+            node.Index++;
+            node.SaveWithSharedLock(lockValue2);
         }
-
         [TestMethod]
-        [ExpectedException(typeof(InvalidContentActionException))]
-        public void SharedLock_Save_WithoutSharedLock()
+        [ExpectedException(typeof(LockedNodeException))]
+        public void SharedLock_Save_Locked()
         {
-            //UNDONE: remove this line when SharedLock assert is implemented in the repo
-            Assert.Inconclusive();
-
             var node = CreaeTestContent();
             var nodeId = node.Id;
             var lockValue = "LCK_" + Guid.NewGuid();
@@ -278,19 +268,19 @@ namespace SenseNet.ContentRepository.Tests
             node.Index++;
             node.Save();
         }
+
         [TestMethod]
-        [ExpectedException(typeof(InvalidContentActionException))]
         public void SharedLock_Checkout()
         {
-            //UNDONE: remove this line when SharedLock assert is implemented in the repo
-            Assert.Inconclusive();
-
             var node = CreaeTestContent();
             var nodeId = node.Id;
             var lockValue = "LCK_" + Guid.NewGuid();
             SharedLock.Lock(nodeId, lockValue);
 
             node.CheckOut();
+
+            Assert.IsTrue(node.Locked);
+            Assert.AreEqual(lockValue, SharedLock.GetLock(nodeId));
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]

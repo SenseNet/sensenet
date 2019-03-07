@@ -1731,6 +1731,25 @@ namespace SenseNet.ContentRepository
                 op.Successful = true;
             }
         }
+
+        /// <summary>
+        /// Persist this Content's changes using the given shared lock value.
+        /// In derived classes to modify or extend the general persistence mechanism of a content, please
+        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
+        /// </summary>
+        /// <param name="lockValue">The shared lock value</param>
+        public virtual void SaveWithSharedLock(string lockValue)
+        {
+            using (var op = SnTrace.ContentOperation.StartOperation("GC.SaveWithSharedLock: LockValue:{0}, VId:{1}, Path:{2}", lockValue, this.VersionId, this.Path))
+            {
+                var action = SavingAction.Create(this);
+                action.SaveSameVersion();
+                action.ExpectedSharedLock = lockValue;
+                action.Execute();
+                op.Successful = true;
+            }
+        }
+
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// </summary>

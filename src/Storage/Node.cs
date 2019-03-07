@@ -2524,6 +2524,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (!settings.TakingLockOver)
                 AssertLock();
+            AssertSharedLock(settings);
 
             var isElevatedMode = AccessProvider.Current.GetCurrentUser().Id == -1;
             var currentUser = AccessProvider.Current.GetOriginalUser();
@@ -4258,10 +4259,30 @@ namespace SenseNet.ContentRepository.Storage
             var userId = AccessProvider.Current.GetCurrentUser().Id;
             if (userId != -1 && (Lock.LockedBy != null && Lock.LockedBy.Id != userId) && Lock.Locked)
                 throw new LockedNodeException(Lock);
+        }
+        private void AssertSharedLock(NodeSaveSettings settings)
+        {
+            // Checkout request is always allowed.
+            if (settings.LockerUserId != null && settings.LockerUserId != 0)
+                return;
 
-            //UNDONE: uncomment when SharedLock storage is implemented
-            //if (null != SharedLock.GetLock(this.Id))
-            //    throw new LockedNodeException(Lock, "There is a shared lock on this Node.");
+            // Checked out file is always allowed for the lock owner (ownership has already checked before)
+            if (this.Locked)
+                return;
+
+            var expectedSharedLock = settings.ExpectedSharedLock;
+            var existingSharedLock = SharedLock.GetLock(this.Id);
+
+            // Shared lock status is OK if expected and existing are null or equal
+            if (existingSharedLock == expectedSharedLock)
+                return;
+
+            // Throw exception if there is expected lock but the node is free.
+            if (null != expectedSharedLock)
+                throw new LockedNodeException(Lock, "The shared lock is missing on this Node.");
+
+            // Throw exception if there node is locked and the user does not have it.
+            throw new LockedNodeException(Lock, "There is a shared lock on this Node.");
         }
         private static bool NameExists(IEnumerable<Node> nodeList, string name)
         {
