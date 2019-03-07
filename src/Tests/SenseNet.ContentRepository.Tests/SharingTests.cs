@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Portal.OData;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -159,8 +160,15 @@ namespace SenseNet.ContentRepository.Tests
 
             var sharingItems = new List<SharingData> { sd1 };
 
-            Test(() =>
+            Test(false,
+                builder => { builder.UseTracer(new SnDebugViewTracer()); },
+                () =>
             {
+                
+                SnTrace.Index.Enabled = true;
+                SnTrace.IndexQueue.Enabled = true;
+                SnTrace.Database.Enabled = true;
+
                 var root = CreateTestRoot();
 
                 var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;

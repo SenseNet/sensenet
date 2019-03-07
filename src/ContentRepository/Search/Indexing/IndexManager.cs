@@ -101,6 +101,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static void RegisterActivity(IndexingActivityBase activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
+
+            Trace.WriteLine($"TMPINVEST: RegisterActivity type: {activity.GetType().Name}");
         }
 
         /// <summary>
@@ -125,6 +127,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static void ExecuteDistributedActivity(IndexingActivityBase activity)
         {
+            Trace.WriteLine($"TMPINVEST: ExecuteDistributedActivity type: {activity.GetType().Name}");
             SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
             activity.Distribute();
 
