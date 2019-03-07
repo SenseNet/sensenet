@@ -160,8 +160,9 @@ namespace SenseNet.ContentRepository.Tests
 
             var sharingItems = new List<SharingData> { sd1 };
 
-            //if (RepositoryInstance.Started())
-            //    RepositoryInstance.Shutdown();
+            // workaround for having a half-started repository
+            if (RepositoryInstance.Started())
+                RepositoryInstance.Shutdown();
 
             Test(false,
                 builder =>
@@ -194,7 +195,6 @@ namespace SenseNet.ContentRepository.Tests
 
                 state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-                Trace.WriteLine($"TMPINVEST: Expected id: {id1}");
                 
                 if (indexData.TryGetValue("Sharing", out var sv) && sv != null)
                 {

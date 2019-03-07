@@ -131,14 +131,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.CommitPopulateNode. Version: {0}, VersionId: {1}, Path: {2}", state.Node.Version, state.Node.VersionId, state.Node.Path))
             {
-                var sharingTestDoc = string.Compare(state.Node?.Name, "Document-1-Sharing-CheckByRawQuery",
-                                         StringComparison.InvariantCultureIgnoreCase) == 0;
-
-                if (sharingTestDoc)
-                {
-                    Trace.WriteLine($"TMPINVEST: CommitPopulateNode called with sharing test doc.");
-                }
-
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
                     DeleteTree(state.OriginalPath, state.Node.Id);
@@ -146,23 +138,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
                 else if (state.IsNewNode)
                 {
-                    if (sharingTestDoc)
-                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode NEW node.");
-
                     CreateBrandNewNode(state.Node, versioningInfo, indexDocument);
                 }
                 else if (state.Settings.IsNewVersion())
                 {
-                    if (sharingTestDoc)
-                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode NEW version.");
-
                     AddNewVersion(state.Node, versioningInfo, indexDocument);
                 }
                 else
                 {
-                    if (sharingTestDoc)
-                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode update.");
-
                     UpdateVersion(state, versioningInfo, indexDocument);
                 }
 
