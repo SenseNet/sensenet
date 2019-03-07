@@ -125,7 +125,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static void ExecuteDistributedActivity(IndexingActivityBase activity)
         {
-            Trace.WriteLine($"TMPINVEST: ExecuteDistributedActivity type: {activity.GetType().Name}");
             SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
             activity.Distribute();
 

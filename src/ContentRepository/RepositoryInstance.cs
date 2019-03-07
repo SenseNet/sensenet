@@ -172,7 +172,6 @@ namespace SenseNet.ContentRepository
         {
             if (IndexingEngineIsRunning)
             {
-                Trace.WriteLine($"TMPINVEST: IndexingEngine has already started, SKIP.");
                 ConsoleWrite("IndexingEngine has already started.");
                 return;
             }
@@ -428,10 +427,7 @@ namespace SenseNet.ContentRepository
         {
             if (_instance == null)
             {
-                if (_started)
-                {
-                    _started = false;
-                }
+                _started = false;
 
                 SnLog.WriteWarning("Repository shutdown has already completed.");
                 return;
@@ -483,7 +479,6 @@ namespace SenseNet.ContentRepository
                 SnLog.WriteInformation(msg);
 
                 _instance = null;
-
                 _started = false;
             }
         }

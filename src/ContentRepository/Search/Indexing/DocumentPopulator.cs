@@ -141,9 +141,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (sharingTestDoc)
-                        Trace.WriteLine($"TMPINVEST: CommitPopulateNode changed path, delete/addtree.");
-
                     DeleteTree(state.OriginalPath, state.Node.Id);
                     AddTree(state.NewPath, state.Node.Id);
                 }
@@ -346,8 +343,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            Trace.WriteLine($"TMPINVEST: CreateActivity type: {type}, path: {path}");
-
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
@@ -389,8 +384,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static void ExecuteActivity(IndexingActivityBase activity)
         {
-            Trace.WriteLine($"TMPINVEST: ExecuteActivity type: {activity.GetType().Name}");
-
             IndexManager.RegisterActivity(activity);
             IndexManager.ExecuteActivity(activity);
         }

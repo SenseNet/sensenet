@@ -160,47 +160,31 @@ namespace SenseNet.ContentRepository.Tests
 
             var sharingItems = new List<SharingData> { sd1 };
 
-            if (RepositoryInstance.Started())
-                RepositoryInstance.Shutdown();
+            //if (RepositoryInstance.Started())
+            //    RepositoryInstance.Shutdown();
 
             Test(false,
                 builder =>
                 {
-                    Trace.WriteLine($"TMPINVEST: Repobuilder action called.");
-
-                    builder.UseTracer(new SnDebugViewTracer())
-                        .StartIndexingEngine();
+                    //builder.UseTracer(new SnDebugViewTracer())
+                    //    .StartIndexingEngine();
                 },
                 () =>
             {
-                Trace.WriteLine($"TMPINVEST: Sharing_Indexing_CheckByRawQuery START");
                 Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
-
-                //if (!IndexManager.Running)
-                //    IndexManager.Start(Console.Out);
 
                 var state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
 
-                IndexManager.DeleteAllIndexingActivities();
-                DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
-
-                SnTrace.Index.Enabled = true;
-                SnTrace.IndexQueue.Enabled = true;
-                SnTrace.Database.Enabled = true;
-
-                state = DistributedIndexingActivityQueue.GetCurrentState();
-                Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-                Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
+                //IndexManager.DeleteAllIndexingActivities();
+                //DistributedIndexingActivityQueue._setCurrentExecutionState(IndexingActivityStatus.Startup);
+                //state = DistributedIndexingActivityQueue.GetCurrentState();
+                //Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
+                //Trace.WriteLine($"TMPINVEST: IndexManager is running: {IndexManager.Running}");
 
                 var root = CreateTestRoot();
 
                 var indexData = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.IndexData;
-
-                if (indexData.TryGetValue("Path", out var pathField))
-                {
-                    Trace.WriteLine($"TMPINVEST: Index: Path field count: {pathField.Count}. TestRoot count: {pathField.Keys.Count(k => k?.Contains(root.Name.ToLowerInvariant()) ?? false)}");
-                }
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1-Sharing-CheckByRawQuery");
                 var gc = (GenericContent)content.ContentHandler;
@@ -210,15 +194,6 @@ namespace SenseNet.ContentRepository.Tests
 
                 state = DistributedIndexingActivityQueue.GetCurrentState();
                 Trace.WriteLine($"TMPINVEST: LastActivity: {state.Termination.LastActivityId}, waitingset: {state.DependencyManager.WaitingSetLength}");
-
-                if (indexData.TryGetValue("Id", out var idField))
-                {
-                    Trace.WriteLine($"TMPINVEST: Index: Id field count: {idField.Count}. TestContent count: {idField.Keys.Count(k => k?.Contains(id1.ToString()) ?? false)}");
-                }
-
-                var indxFieldCount = indexData.Values.Count(indx => indx.Values.Any(vids => vids.Contains(gc.VersionId)));
-
-                Trace.WriteLine($"TMPINVEST: VersionId {gc.VersionId} count in index: {indxFieldCount}");
                 Trace.WriteLine($"TMPINVEST: Expected id: {id1}");
                 
                 if (indexData.TryGetValue("Sharing", out var sv) && sv != null)
@@ -233,31 +208,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // TESTS
-                try
-                {
-                    Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
-                }
-                catch (Exception)
-                {
-                    if (indexData.TryGetValue("Sharing", out var sharingValues))
-                    {
-                        foreach (var sharingValue in sharingValues)
-                        {
-                            Trace.WriteLine(
-                                $"TMPINVEST: CheckByRawQuery: {sharingValue.Key?.Substring(0, Math.Min(100, sharingValue.Key.Length))} ----- {string.Join(",", sharingValue.Value)}");
-                        }
-                    }
-                    else
-                    {
-                        Trace.WriteLine("TMPINVEST: CheckByRawQuery: NO sharing index values found.");
-                    }
-
-                    throw;
-                }
-
-                // This test tend to fail in the cloud because the index does not contain
-                // the content newly created inside this test. It passes locally.
-#if DEBUG
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:I0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:C1"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:M0"));
@@ -267,11 +218,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0"));
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0,l1"));
-#else
-                Assert.Inconclusive();
-#endif
             });
-
         }
 
         [TestMethod]
