@@ -163,6 +163,8 @@ namespace SenseNet.ContentRepository.Tests
             Test(false,
                 builder =>
                 {
+                    Trace.WriteLine($"TMPINVEST: Repobuilder action called.");
+
                     builder.UseTracer(new SnDebugViewTracer())
                         .StartIndexingEngine();
                 },

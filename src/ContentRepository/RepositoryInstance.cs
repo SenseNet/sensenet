@@ -93,6 +93,8 @@ namespace SenseNet.ContentRepository
             {
                 lock (_startStopSync)
                 {
+                    Trace.WriteLine($"TMPINVEST: RepoStart: repo instance started: {_started}.");
+
                     if (!_started)
                     {
                         var instance = new RepositoryInstance();
@@ -115,6 +117,8 @@ namespace SenseNet.ContentRepository
         }
         internal void DoStart()
         {
+            Trace.WriteLine($"TMPINVEST: Starting Repository...");
+
             ConsoleWriteLine();
             ConsoleWriteLine("Starting Repository...");
             ConsoleWriteLine();
@@ -242,6 +246,8 @@ namespace SenseNet.ContentRepository
         }
         private void StartManagers()
         {
+            Trace.WriteLine($"TMPINVEST: StartManagers called.");
+
             object dummy;
             IClusterChannel channel = null;
 
@@ -476,6 +482,9 @@ namespace SenseNet.ContentRepository
                 SnLog.WriteInformation(msg);
 
                 _instance = null;
+
+                Trace.WriteLine($"TMPINVEST: Repo shutdown called.");
+
                 _started = false;
             }
         }
