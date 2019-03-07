@@ -89,12 +89,12 @@ namespace SenseNet.ContentRepository
         private static bool _started;
         internal static RepositoryInstance Start(RepositoryStartSettings settings)
         {
+            Trace.WriteLine($"TMPINVEST: RepoStart: repo instance started: {_started}.");
+
             if (!_started)
             {
                 lock (_startStopSync)
                 {
-                    Trace.WriteLine($"TMPINVEST: RepoStart: repo instance started: {_started}.");
-
                     if (!_started)
                     {
                         var instance = new RepositoryInstance();
@@ -431,8 +431,17 @@ namespace SenseNet.ContentRepository
 
         internal static void Shutdown()
         {
+            Trace.WriteLine($"TMPINVEST: Repo shutdown called.");
+
             if (_instance == null)
             {
+                Trace.WriteLine($"TMPINVEST: Repo shutdown called, but already completed.");
+                if (_started)
+                {
+                    Trace.WriteLine($"TMPINVEST: Repo started flag is switched OFF now.");
+                    _started = false;
+                }
+
                 SnLog.WriteWarning("Repository shutdown has already completed.");
                 return;
             }
@@ -483,7 +492,7 @@ namespace SenseNet.ContentRepository
 
                 _instance = null;
 
-                Trace.WriteLine($"TMPINVEST: Repo shutdown called.");
+                Trace.WriteLine($"TMPINVEST: Repo shutdown finished.");
 
                 _started = false;
             }

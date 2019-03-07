@@ -113,6 +113,8 @@ namespace SenseNet.Tests
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
 
+            Trace.WriteLine($"TMPINVEST: ExecuteTesT: calling respo start. Indexing engine setting: {builder?.StartIndexingEngine}");
+
             using (Repository.Start(builder))
             {
                 if (useCurrentUser)
