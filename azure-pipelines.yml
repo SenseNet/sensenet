@@ -30,4 +30,4 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     testSelector: 'testAssemblies'
-    testAssemblyVer2: '**\SenseNet.ContentRepository.Tests.dll
+    testAssemblyVer2: '**\SenseNet.ContentRepository.Tests.dll'
