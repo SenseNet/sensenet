@@ -422,6 +422,8 @@ namespace SenseNet.ContentRepository
         {
             if (_instance == null)
             {
+                _started = false;
+
                 SnLog.WriteWarning("Repository shutdown has already completed.");
                 return;
             }
@@ -430,6 +432,8 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                 {
+                    _started = false;
+
                     SnLog.WriteWarning("Repository shutdown has already completed.");
                     return;
                 }

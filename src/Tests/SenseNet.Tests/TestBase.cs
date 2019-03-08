@@ -65,6 +65,10 @@ namespace SenseNet.Tests
         [TestInitialize]
         public void InitializeTest()
         {
+            // workaround for having a half-started repository
+            if (RepositoryInstance.Started())
+                RepositoryInstance.Shutdown();
+
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
         }
