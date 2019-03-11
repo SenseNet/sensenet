@@ -61,11 +61,11 @@ namespace SenseNet.ContentRepository.Storage
         ModifyingLocked
     }
 
-    //UNDONE: Complete code comment
+    //UNDONE:REFACTOR Complete code comment
     /// <summary>
     /// WARNING!!! DO NOT MODIFY ANY PROPERTY OF THE GIVEN node AND changeData ...
     /// </summary>
-    public interface INodeSaveChecker //UNDONE: move to a separate file
+    public interface INodeSaveChecker //UNDONE:REFACTOR move to a separate file
     {
         bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage);
     }

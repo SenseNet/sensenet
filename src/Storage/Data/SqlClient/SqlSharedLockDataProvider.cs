@@ -7,37 +7,37 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         public DataProvider MainProvider { get; set; }
         public void DeleteAllSharedLocks()
         {
-            //UNDONE: not implemented DeleteAllSharedLocks
+            //UNDONE:DB not implemented DeleteAllSharedLocks
             throw new NotImplementedException();
         }
 
         public void CreateSharedLock(int contentId, string @lock)
         {
-            //UNDONE: not implemented CreateSharedLock
+            //UNDONE:DB not implemented CreateSharedLock
             throw new NotImplementedException();
         }
 
         public string RefreshSharedLock(int contentId, string @lock)
         {
-            //UNDONE: not implemented RefreshSharedLock
+            //UNDONE:DB not implemented RefreshSharedLock
             throw new NotImplementedException();
         }
 
         public string ModifySharedLock(int contentId, string @lock, string newLock)
         {
-            //UNDONE: not implemented ModifySharedLock
+            //UNDONE:DB not implemented ModifySharedLock
             throw new NotImplementedException();
         }
 
         public string GetSharedLock(int contentId)
         {
-            //UNDONE: not implemented GetSharedLock
+            //UNDONE:DB not implemented GetSharedLock
             throw new NotImplementedException();
         }
 
         public string DeleteSharedLock(int contentId, string @lock)
         {
-            //UNDONE: not implemented DeleteSharedLock
+            //UNDONE:DB not implemented DeleteSharedLock
             throw new NotImplementedException();
         }
     }
