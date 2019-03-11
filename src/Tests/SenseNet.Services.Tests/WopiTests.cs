@@ -641,8 +641,23 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_GetLock_ExclusivelyLocked()
         {
-            //UNDONE:? Test GetLock operation with a checked-out file
-            Assert.Inconclusive();
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+                file.CheckOut();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "GET_LOCK"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(existingLock, actualLock);
+            });
         }
 
         /* --------------------------------------------------------- Lock */
@@ -741,8 +756,24 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_Lock_ExclusivelyLocked()
         {
-            //UNDONE:? Test Lock operation with a checked-out file
-            Assert.Inconclusive();
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                file.CheckOut();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "CheckedOut");
+                AssertHeader(response.Headers, "X-WOPI-Lock", "");
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
         }
 
         /* --------------------------------------------------------- RefreshLock */
@@ -844,8 +875,27 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_RefreshLock_ExclusivelyLocked()
         {
-            //UNDONE:? Test RefreshLock operation with a checked-out file
-            Assert.Inconclusive();
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+
+                SharedLock.Lock(file.Id, expectedLock);
+                file.CheckOut();
+
+                SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                var refreshedDate = GetSharedLockCreationDate(file.Id);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                Assert.IsTrue((DateTime.UtcNow - refreshedDate).TotalSeconds < 1);
+            });
         }
 
         /* --------------------------------------------------------- Unlock */
@@ -945,8 +995,23 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_Unlock_ExclusivelyLocked()
         {
-            //UNDONE:? Test Unlock operation with a checked-out file
-            Assert.Inconclusive();
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+                file.CheckOut();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", existingLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
         }
 
         /* --------------------------------------------------------- UnlockAndRelock */
@@ -1054,8 +1119,25 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_UnlockAndRelock_ExclusivelyLocked()
         {
-            //UNDONE:? Test UnlockAndRelock operation with a checked-out file
-            Assert.Inconclusive();
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+                file.CheckOut();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                    new[] { "X-WOPI-OldLock", existingLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(expectedLock, actualLock);
+            });
         }
 
         /* --------------------------------------------------------- CheckFileInfo */
@@ -1101,7 +1183,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual("Admin", response.UserFriendlyName);
                 Assert.IsNull(response.UserInfo);
 
-                //UNDONE: Uncomment when document editing is allowed.
+                //UNDONE:RO/RW Uncomment when document editing is allowed.
                 //Assert.IsFalse(response.ReadOnly);
 
                 Assert.IsFalse(response.RestrictedWebViewOnly);
@@ -1110,7 +1192,7 @@ namespace SenseNet.Services.Tests
                 Assert.IsTrue(response.UserCanPresent);
                 Assert.IsFalse(response.UserCanRename);
 
-                //UNDONE: Uncomment when document editing is allowed.
+                //UNDONE:RO/RW Uncomment when document editing is allowed.
                 //Assert.IsTrue(response.UserCanWrite);
 
                 Assert.IsNull(response.CloseUrl);
@@ -1275,7 +1357,7 @@ namespace SenseNet.Services.Tests
 
         /* --------------------------------------------------------- PutRelativeFile */
 
-        [TestMethod]
+        //[TestMethod] /* temporarily inactivated */
         public void Wopi_Proc_PutRelativeFile_SuggestedFullname()
         {
             Assert.Inconclusive();

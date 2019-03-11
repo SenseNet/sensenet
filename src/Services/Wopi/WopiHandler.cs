@@ -16,7 +16,7 @@ using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Wopi
 {
-    internal class WopiNodeSaveChecker : INodeSaveChecker //UNDONE: move to a separate file
+    internal class WopiNodeSaveChecker : INodeSaveChecker //UNDONE:REFACTOR move to a separate file
     {
         public bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage)
         {
@@ -48,7 +48,7 @@ namespace SenseNet.Services.Wopi
             throw new InvalidContentActionException("The file is already open elsewhere.");
         }
     }
-    internal class WopiService : ISnService //UNDONE: move to a separate file
+    internal class WopiService : ISnService //UNDONE:REFACTOR move to a separate file
     {
         public static readonly string ExpectedSharedLock = "WOPI_ExpectedSharedLock";
 
@@ -301,7 +301,7 @@ namespace SenseNet.Services.Wopi
                 }
                 allowBits = allowBits & ~denyBits;
 
-                //UNDONE: Uncomment this instruction to allow document editing
+                //UNDONE:RO/RW Uncomment this instruction to allow document editing
                 //return new UserPermissions
                 //{
                 //    Write = (allowBits & PermissionType.Save.Mask) > 0,
@@ -311,7 +311,7 @@ namespace SenseNet.Services.Wopi
                 //                                            PermissionType.PreviewWithoutRedaction.Mask)),
                 //    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
                 //};
-                //UNDONE: Delete this instruction to allow document editing
+                //UNDONE:RO/RW Delete this instruction to allow document editing
                 return new UserPermissions
                 {
                     Write = false,
@@ -357,14 +357,14 @@ namespace SenseNet.Services.Wopi
             }
             else
             {
-                throw new NotImplementedException(); //UNDONE:! Check lock
+                throw new NotImplementedException(); //UNDONE:ProcessPutRelativeFileRequest Check lock
             }
 
             targetFile.Binary.FileName = targetName;
             targetFile.Binary.SetStream(wopiReq.RequestStream);
-            targetFile.Save(); //UNDONE:!!! shared lock?
+            targetFile.Save(); //UNDONE:ProcessPutRelativeFileRequest shared lock?
 
-            var url = "__notimplemented__"; //UNDONE:! Generate correct URL
+            var url = "__notimplemented__"; //UNDONE:ProcessPutRelativeFileRequest Generate correct URL
             return new PutRelativeFileResponse
             {
                 StatusCode = HttpStatusCode.OK,
@@ -400,8 +400,20 @@ namespace SenseNet.Services.Wopi
             var existingLock = SharedLock.GetLock(file.Id);
             if (existingLock == null)
             {
-                SharedLock.Lock(file.Id, wopiReq.Lock);
-                return new WopiResponse { StatusCode = HttpStatusCode.OK };
+                if (!file.Locked)
+                {
+                    SharedLock.Lock(file.Id, wopiReq.Lock);
+                    return new WopiResponse { StatusCode = HttpStatusCode.OK };
+                }
+                return new WopiResponse
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, ""},
+                        {WopiHeader.LockFailureReason, "CheckedOut"}
+                    }
+                };
             }
             if (existingLock != wopiReq.Lock)
             {
