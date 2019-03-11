@@ -567,8 +567,6 @@ namespace SenseNet.ContentRepository.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
-            builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider());
-
             Indexing.IsOuterSearchEngineEnabled = true;
 
             _repository = Repository.Start(builder);
