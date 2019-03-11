@@ -61,6 +61,15 @@ namespace SenseNet.ContentRepository.Storage
         ModifyingLocked
     }
 
+    //UNDONE: Complete code comment
+    /// <summary>
+    /// WARNING!!! DO NOT MODIFY ANY PROPERTY OF THE GIVEN node AND changeData ...
+    /// </summary>
+    public interface INodeSaveChecker //UNDONE: move to a separate file
+    {
+        bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage);
+    }
+
     /// <summary>
     /// <para>Represents a structured set of data that can be stored in the sensenet Content Repository.</para>
     /// <para>A <see cref="Node"/> can be loaded from the sensenet Content Repository, the data can be modified via the properties
@@ -93,6 +102,9 @@ namespace SenseNet.ContentRepository.Storage
     {
         private NodeData _data;
         internal NodeData Data => _data;
+
+        private List<INodeSaveChecker> NodeSaveCheckers =>
+            Providers.Instance.GetProvider<List<INodeSaveChecker>>("NodeSaveCheckers");
 
         private void SetNodeData(NodeData nodeData)
         {
@@ -2643,6 +2655,8 @@ namespace SenseNet.ContentRepository.Storage
                         customData = args.GetCustomData();
                     }
 
+                    AssertSaving(changedData);
+
                     BenchmarkCounter.IncrementBy(BenchmarkCounter.CounterName.BeforeSaveToDb, _data != null ? _data.SavingTimer.ElapsedTicks : 0);
                     if (_data != null)
                         _data.SavingTimer.Restart();
@@ -4067,6 +4081,17 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (AnyContentListDeleted != null)
                 AnyContentListDeleted(this, EventArgs.Empty);
+        }
+
+        private void AssertSaving(IEnumerable<ChangedData> changedData)
+        {
+            var checkers = NodeSaveCheckers;
+            if (checkers == null)
+                return;
+
+            foreach (var nodeSaveChecker in checkers)
+                if(!nodeSaveChecker.Check(this, changedData, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
         }
 
 
