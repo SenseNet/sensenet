@@ -1183,8 +1183,10 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual("Admin", response.UserFriendlyName);
                 Assert.IsNull(response.UserInfo);
 
-                //UNDONE:RO/RW Uncomment when document editing is allowed.
-                //Assert.IsFalse(response.ReadOnly);
+                if (WopiHandler.IsReadOnlyMode)
+                    Assert.IsTrue(response.ReadOnly);
+                else
+                    Assert.IsFalse(response.ReadOnly);
 
                 Assert.IsFalse(response.RestrictedWebViewOnly);
                 Assert.IsTrue(response.UserCanAttend);
@@ -1192,8 +1194,10 @@ namespace SenseNet.Services.Tests
                 Assert.IsTrue(response.UserCanPresent);
                 Assert.IsFalse(response.UserCanRename);
 
-                //UNDONE:RO/RW Uncomment when document editing is allowed.
-                //Assert.IsTrue(response.UserCanWrite);
+                if (WopiHandler.IsReadOnlyMode)
+                    Assert.IsFalse(response.UserCanWrite);
+                else
+                    Assert.IsTrue(response.UserCanWrite);
 
                 Assert.IsNull(response.CloseUrl);
                 Assert.IsNull(response.DownloadUrl);

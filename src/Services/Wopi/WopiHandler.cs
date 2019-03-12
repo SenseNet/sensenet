@@ -85,6 +85,8 @@ namespace SenseNet.Services.Wopi
     /// </summary>
     public class WopiHandler : IHttpHandler
     {
+        public static bool IsReadOnlyMode { get; } = false; //UNDONE:RO/RW main switch
+
         private static class WopiHeader
         {
             public static readonly string Lock = "X-WOPI-Lock";
@@ -301,25 +303,26 @@ namespace SenseNet.Services.Wopi
                 }
                 allowBits = allowBits & ~denyBits;
 
-                //UNDONE:RO/RW Uncomment this instruction to allow document editing
-                //return new UserPermissions
-                //{
-                //    Write = (allowBits & PermissionType.Save.Mask) > 0,
-                //    RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
-                //                         0 != (allowBits & (PermissionType.Preview.Mask +
-                //                                            PermissionType.PreviewWithoutWatermark.Mask +
-                //                                            PermissionType.PreviewWithoutRedaction.Mask)),
-                //    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
-                //};
-                //UNDONE:RO/RW Delete this instruction to allow document editing
+                if (IsReadOnlyMode)
+                {
+                    return new UserPermissions
+                    {
+                        Write = false,
+                        RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
+                                             0 != (allowBits & (PermissionType.Preview.Mask +
+                                                                PermissionType.PreviewWithoutWatermark.Mask +
+                                                                PermissionType.PreviewWithoutRedaction.Mask)),
+                        Create = false,
+                    };
+                }
                 return new UserPermissions
                 {
-                    Write = false,
+                    Write = (allowBits & PermissionType.Save.Mask) > 0,
                     RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
                                          0 != (allowBits & (PermissionType.Preview.Mask +
                                                             PermissionType.PreviewWithoutWatermark.Mask +
                                                             PermissionType.PreviewWithoutRedaction.Mask)),
-                    Create = false,
+                    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
                 };
             }
         }
