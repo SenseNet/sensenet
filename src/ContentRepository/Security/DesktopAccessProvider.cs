@@ -29,8 +29,7 @@ namespace SenseNet.ContentRepository.Security
         {
             get
             {
-                var user = Thread.CurrentPrincipal.Identity as IUser;
-                if (user != null)
+                if (Thread.CurrentPrincipal?.Identity is IUser user)
                     return user;
 
                 CurrentUser = StartupUser;
@@ -38,10 +37,7 @@ namespace SenseNet.ContentRepository.Security
                 CurrentUser = user;
                 return user;
             }
-            set
-            {
-                Thread.CurrentPrincipal = new SystemPrincipal(value);
-            }
+            set => Thread.CurrentPrincipal = new SystemPrincipal(value);
         }
 
         public override IUser GetCurrentUser()

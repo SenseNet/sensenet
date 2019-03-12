@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Security
         {
             get
             {
-                if (Thread.CurrentPrincipal.Identity is IUser user)
+                if (Thread.CurrentPrincipal?.Identity is IUser user)
                     return user;
 
                 CurrentUser = StartupUser;
