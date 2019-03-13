@@ -68,6 +68,8 @@ namespace SenseNet.ContentRepository.Storage
     public interface INodeSaveChecker //UNDONE:REFACTOR move to a separate file
     {
         bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage);
+        bool CheckMove(Node source, Node target, out string errorMessage);
+        bool CheckDelete(Node node, out string errorMessage);
     }
 
     /// <summary>
@@ -2977,6 +2979,7 @@ namespace SenseNet.ContentRepository.Storage
         private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
         {
             this.AssertLock();
+            AssertMoving(target);
 
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -3553,6 +3556,7 @@ namespace SenseNet.ContentRepository.Storage
                 this.Security.AssertSubtree(PermissionType.Delete);
 
                 this.AssertLock();
+                AssertDeletion();
 
                 var myPath = Path;
                 using (var audit = new AuditBlock(AuditEvent.ContentDeleted, "Trying to delete the content.",
@@ -4090,7 +4094,27 @@ namespace SenseNet.ContentRepository.Storage
                 return;
 
             foreach (var nodeSaveChecker in checkers)
-                if(!nodeSaveChecker.Check(this, changedData, out var errorMessage))
+                if (!nodeSaveChecker.Check(this, changedData, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
+        }
+        private void AssertMoving(Node target)
+        {
+            var checkers = NodeSaveCheckers;
+            if (checkers == null)
+                return;
+
+            foreach (var nodeSaveChecker in checkers)
+                if (!nodeSaveChecker.CheckMove(this, target, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
+        }
+        private void AssertDeletion()
+        {
+            var checkers = NodeSaveCheckers;
+            if (checkers == null)
+                return;
+
+            foreach (var nodeSaveChecker in checkers)
+                if (!nodeSaveChecker.CheckDelete(this, out var errorMessage))
                     throw new InvalidOperationException(errorMessage);
         }
 

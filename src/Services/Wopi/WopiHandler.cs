@@ -30,9 +30,10 @@ namespace SenseNet.Services.Wopi
             if (changeData == null)
                 return true;
 
-            // Changing metadata is always allowed
+            // Changing metadata is always allowed except rename
             var isFileContentChanged = changeData.Any(x => x.Name == "Binary");
-            if (!isFileContentChanged)
+            var isNameChanged = changeData.Any(x => x.Name == "Name");
+            if (!isFileContentChanged && !isNameChanged)
                 return true;
 
             // Changing file content is always allowed for Wopi
@@ -41,6 +42,37 @@ namespace SenseNet.Services.Wopi
             if (isWopiPutFile)
                 return true;
 
+            // Everything is allowed if the file is not locked
+            var existingLock = SharedLock.GetLock(file.Id);
+            if (existingLock == null)
+                return true;
+
+            throw new InvalidContentActionException("The file is already open elsewhere.");
+        }
+        public bool CheckMove(Node source, Node target, out string errorMessage)
+        {
+            errorMessage = null;
+
+            // Do not check if the node is not a file
+            if (!(source is File file))
+                return true;
+
+            // Everything is allowed if the file is not locked
+            var existingLock = SharedLock.GetLock(file.Id);
+            if (existingLock == null)
+                return true;
+
+            throw new InvalidContentActionException("The file is already open elsewhere.");
+        }
+        public bool CheckDelete(Node node, out string errorMessage)
+        {
+            errorMessage = null;
+
+            // Do not check if the node is not a file
+            if (!(node is File file))
+                return true;
+
+            // Everything is allowed if the file is not locked
             var existingLock = SharedLock.GetLock(file.Id);
             if (existingLock == null)
                 return true;
