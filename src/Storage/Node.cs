@@ -61,17 +61,6 @@ namespace SenseNet.ContentRepository.Storage
         ModifyingLocked
     }
 
-    //UNDONE:REFACTOR Complete code comment
-    /// <summary>
-    /// WARNING!!! DO NOT MODIFY ANY PROPERTY OF THE GIVEN node AND changeData ...
-    /// </summary>
-    public interface INodeSaveChecker //UNDONE:REFACTOR move to a separate file
-    {
-        bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage);
-        bool CheckMove(Node source, Node target, out string errorMessage);
-        bool CheckDelete(Node node, out string errorMessage);
-    }
-
     /// <summary>
     /// <para>Represents a structured set of data that can be stored in the sensenet Content Repository.</para>
     /// <para>A <see cref="Node"/> can be loaded from the sensenet Content Repository, the data can be modified via the properties
@@ -105,8 +94,8 @@ namespace SenseNet.ContentRepository.Storage
         private NodeData _data;
         internal NodeData Data => _data;
 
-        private List<INodeSaveChecker> NodeSaveCheckers =>
-            Providers.Instance.GetProvider<List<INodeSaveChecker>>("NodeSaveCheckers");
+        private List<INodeOperationValidator> NodeOperationValidators =>
+            Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");
 
         private void SetNodeData(NodeData nodeData)
         {
@@ -4089,32 +4078,32 @@ namespace SenseNet.ContentRepository.Storage
 
         private void AssertSaving(IEnumerable<ChangedData> changedData)
         {
-            var checkers = NodeSaveCheckers;
-            if (checkers == null)
+            var validators = NodeOperationValidators;
+            if (validators == null)
                 return;
-
-            foreach (var nodeSaveChecker in checkers)
-                if (!nodeSaveChecker.Check(this, changedData, out var errorMessage))
+            var data = changedData?.ToArray();
+            foreach (var validator in validators)
+                if (!validator.CheckSaving(this, data, out var errorMessage))
                     throw new InvalidOperationException(errorMessage);
         }
         private void AssertMoving(Node target)
         {
-            var checkers = NodeSaveCheckers;
-            if (checkers == null)
+            var validators = NodeOperationValidators;
+            if (validators == null)
                 return;
 
-            foreach (var nodeSaveChecker in checkers)
-                if (!nodeSaveChecker.CheckMove(this, target, out var errorMessage))
+            foreach (var validator in validators)
+                if (!validator.CheckMoving(this, target, out var errorMessage))
                     throw new InvalidOperationException(errorMessage);
         }
         private void AssertDeletion()
         {
-            var checkers = NodeSaveCheckers;
-            if (checkers == null)
+            var validators = NodeOperationValidators;
+            if (validators == null)
                 return;
 
-            foreach (var nodeSaveChecker in checkers)
-                if (!nodeSaveChecker.CheckDelete(this, out var errorMessage))
+            foreach (var validator in validators)
+                if (!validator.CheckDeletion(this, out var errorMessage))
                     throw new InvalidOperationException(errorMessage);
         }
 

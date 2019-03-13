@@ -5,101 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using Newtonsoft.Json;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
 using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Wopi
 {
-    internal class WopiNodeSaveChecker : INodeSaveChecker //UNDONE:REFACTOR move to a separate file
-    {
-        public bool Check(Node node, IEnumerable<ChangedData> changeData, out string errorMessage)
-        {
-            errorMessage = null;
-
-            // Do not check newly created node
-            if (changeData == null)
-                return true;
-
-            // Changing metadata is always allowed except rename
-            var isFileContentChanged = changeData.Any(x => x.Name == "Binary");
-            var isNameChanged = changeData.Any(x => x.Name == "Name");
-            if (!isFileContentChanged && !isNameChanged)
-                return true;
-
-            // Changing file content is always allowed for Wopi
-            var expectedSharedLock = node.GetCachedData(WopiService.ExpectedSharedLock);
-            var isWopiPutFile = !string.IsNullOrEmpty(expectedSharedLock as string);
-            if (isWopiPutFile)
-                return true;
-
-            // Everything is allowed if the node is not locked
-            var existingLock = SharedLock.GetLock(node.Id);
-            if (existingLock == null)
-                return true;
-
-            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
-        }
-        public bool CheckMove(Node source, Node target, out string errorMessage)
-        {
-            errorMessage = null;
-
-            // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(source.Id);
-            if (existingLock == null)
-                return true;
-
-            throw new LockedNodeException(source.Lock, "The content is already open elsewhere.");
-        }
-        public bool CheckDelete(Node node, out string errorMessage)
-        {
-            errorMessage = null;
-
-            // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(node.Id);
-            if (existingLock == null)
-                return true;
-
-            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
-        }
-    }
-    internal class WopiService : ISnService //UNDONE:REFACTOR move to a separate file
-    {
-        public static readonly string ExpectedSharedLock = "WOPI_ExpectedSharedLock";
-
-        public static WopiService Instance => Providers.Instance.GetProvider<WopiService>();
-
-        public bool Start()
-        {
-            if (Instance == null)
-                Providers.Instance.SetProvider(typeof(WopiService), this);
-
-            var checkers = Providers.Instance.GetProvider<List<INodeSaveChecker>>("NodeSaveCheckers");
-            if (checkers == null)
-            {
-                checkers =  new List<INodeSaveChecker>();
-                Providers.Instance.SetProvider("NodeSaveCheckers", checkers);
-            }
-
-            if (checkers.All(x => x.GetType() != typeof(WopiNodeSaveChecker)))
-                checkers.Add(new WopiNodeSaveChecker());
-
-            return true;
-        }
-        public void Shutdown()
-        {
-            var checkers = Providers.Instance.GetProvider<List<INodeSaveChecker>>("NodeSaveCheckers");
-            var checker = checkers?.FirstOrDefault(x => x.GetType() != typeof(WopiNodeSaveChecker));
-            if(checker != null)
-                checkers.Remove(checker);
-        }
-    }
-
     /// <summary>
     /// An <see cref="IHttpHandler"/> implementation to process the OData requests.
     /// </summary>
@@ -626,7 +539,6 @@ namespace SenseNet.Services.Wopi
         }
         private static void SaveFile(File file, string lockValue)
         {
-            var service = WopiService.Instance;
             file.SetCachedData(WopiService.ExpectedSharedLock, lockValue);
             try
             {
