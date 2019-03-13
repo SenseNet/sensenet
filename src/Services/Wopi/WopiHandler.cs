@@ -22,11 +22,7 @@ namespace SenseNet.Services.Wopi
         {
             errorMessage = null;
 
-            // Do not check if the node is not a file
-            if (!(node is File file))
-                return true;
-
-            // Do not check newly created file
+            // Do not check newly created node
             if (changeData == null)
                 return true;
 
@@ -37,47 +33,39 @@ namespace SenseNet.Services.Wopi
                 return true;
 
             // Changing file content is always allowed for Wopi
-            var expectedSharedLock = file.GetCachedData(WopiService.ExpectedSharedLock);
+            var expectedSharedLock = node.GetCachedData(WopiService.ExpectedSharedLock);
             var isWopiPutFile = !string.IsNullOrEmpty(expectedSharedLock as string);
             if (isWopiPutFile)
                 return true;
 
-            // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(file.Id);
+            // Everything is allowed if the node is not locked
+            var existingLock = SharedLock.GetLock(node.Id);
             if (existingLock == null)
                 return true;
 
-            throw new InvalidContentActionException("The file is already open elsewhere.");
+            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
         }
         public bool CheckMove(Node source, Node target, out string errorMessage)
         {
             errorMessage = null;
 
-            // Do not check if the node is not a file
-            if (!(source is File file))
-                return true;
-
             // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(source.Id);
             if (existingLock == null)
                 return true;
 
-            throw new InvalidContentActionException("The file is already open elsewhere.");
+            throw new LockedNodeException(source.Lock, "The content is already open elsewhere.");
         }
         public bool CheckDelete(Node node, out string errorMessage)
         {
             errorMessage = null;
 
-            // Do not check if the node is not a file
-            if (!(node is File file))
-                return true;
-
             // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(node.Id);
             if (existingLock == null)
                 return true;
 
-            throw new InvalidContentActionException("The file is already open elsewhere.");
+            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
         }
     }
     internal class WopiService : ISnService //UNDONE:REFACTOR move to a separate file

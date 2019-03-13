@@ -325,7 +325,7 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            ExpectError(typeof(InvalidContentActionException), () =>
+            ExpectError(typeof(LockedNodeException), () =>
             {
                 var context = OperationContext.Create().Lock(lockValue).UpdateFileContent(newContent);
             });
@@ -396,7 +396,7 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            ExpectError(typeof(InvalidContentActionException), () =>
+            ExpectError(typeof(LockedNodeException), () =>
             {
                 var context = OperationContext.Create().Lock(lockValue).Checkout().UpdateFileContent(newContent);
             });
@@ -437,7 +437,7 @@ namespace SenseNet.ContentRepository.Tests
         public void SharedLock_Rename_Locked_File()
         {
             var lockValue = "LCK_" + Guid.NewGuid();
-            ExpectError(typeof(InvalidContentActionException), () =>
+            ExpectError(typeof(LockedNodeException), () =>
             {
                 var context = OperationContext.Create().Lock(lockValue).Rename(Guid.NewGuid().ToString());
             });
@@ -446,7 +446,7 @@ namespace SenseNet.ContentRepository.Tests
         public void SharedLock_Move_Locked_File()
         {
             var lockValue = "LCK_" + Guid.NewGuid();
-            ExpectError(typeof(InvalidContentActionException), () =>
+            ExpectError(typeof(LockedNodeException), () =>
             {
                 var context = OperationContext.Create();
                 var target = context.CreateFolder();
@@ -457,7 +457,7 @@ namespace SenseNet.ContentRepository.Tests
         public void SharedLock_Delete_Locked_File()
         {
             var lockValue = "LCK_" + Guid.NewGuid();
-            ExpectError(typeof(InvalidContentActionException), () =>
+            ExpectError(typeof(LockedNodeException), () =>
             {
                 var context = OperationContext.Create().Lock(lockValue).Delete();
             });
@@ -627,6 +627,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             node.Name = Guid.NewGuid().ToString();
+            node.Save();
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]
