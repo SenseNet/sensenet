@@ -60,6 +60,13 @@ namespace SenseNet.ContentRepository
             set { base.SetProperty(WATERMARKPROPERTY, value); }
         }
 
+        [RepositoryProperty(nameof(PreviewComments), RepositoryDataType.Text)]
+        public virtual string PreviewComments
+        {
+            get => base.GetProperty<string>(nameof(PreviewComments));
+            set => base.SetProperty(nameof(PreviewComments), value);
+        }
+
         /// <summary>
         /// Defines a constant value for the name of the PageCount property.
         /// </summary>
@@ -129,6 +136,8 @@ namespace SenseNet.ContentRepository
                     return this.Watermark;
                 case PAGECOUNT_PROPERTY:
                     return this.PageCount;
+                case nameof(PreviewComments):
+                    return PreviewComments;
                 default:
                     return base.GetProperty(name);
             }
@@ -143,6 +152,9 @@ namespace SenseNet.ContentRepository
                     break;
                 case PAGECOUNT_PROPERTY:
                     this.PageCount = (int)value;
+                    break;
+                case nameof(PreviewComments):
+                    this.PreviewComments = (string)value;
                     break;
                 default:
                     base.SetProperty(name, value);
