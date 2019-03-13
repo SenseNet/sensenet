@@ -1,4 +1,5 @@
-﻿using SenseNet.Tools;
+﻿using System;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -16,6 +17,8 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public interface ISharedLockDataProviderExtension : IDataProviderExtension
     {
+        TimeSpan SharedLockTimeout { get; }
+
         void DeleteAllSharedLocks();
         void CreateSharedLock(int contentId, string @lock);
         string RefreshSharedLock(int contentId, string @lock);

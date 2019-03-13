@@ -36,6 +36,22 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expectedLockValue, actualLockValue);
         }
         [TestMethod]
+        public void SharedLock_GetTimedOut()
+        {
+            var node = CreateTestFolder();
+            var nodeId = node.Id;
+            var lockValue = Guid.NewGuid().ToString();
+            Assert.IsNull(SharedLock.GetLock(nodeId));
+            SharedLock.Lock(nodeId, lockValue);
+
+            // ACTION
+            var timeout = DataProvider.GetExtension<ISharedLockDataProviderExtension>().SharedLockTimeout;
+            SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddMinutes(-timeout.TotalMinutes - 1));
+
+            Assert.IsNull(SharedLock.GetLock(nodeId));
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(ContentNotFoundException))]
         public void SharedLock_Lock_MissingContent()
         {
@@ -116,6 +132,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(newLockValue, SharedLock.GetLock(nodeId));
         }
         [TestMethod]
+        [ExpectedException(typeof(LockedNodeException))]
         public void SharedLock_ModifyLockDifferent()
         {
             var node = CreateTestFolder();
@@ -143,6 +160,21 @@ namespace SenseNet.ContentRepository.Tests
             // ACTION
             SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue);
         }
+        [TestMethod]
+        [ExpectedException(typeof(SharedLockNotFoundException))]
+        public void SharedLock_ModifyLock_TimedOut()
+        {
+            var node = CreateTestFolder();
+            var nodeId = node.Id;
+            Assert.IsNull(SharedLock.GetLock(nodeId));
+            var oldLockValue = Guid.NewGuid().ToString();
+            var newLockValue = Guid.NewGuid().ToString();
+            SharedLock.Lock(nodeId, oldLockValue);
+            SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
+
+            // ACTION
+            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue);
+        }
 
         [TestMethod]
         public void SharedLock_RefreshLock()
@@ -159,6 +191,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue((DateTime.UtcNow - GetSharedLockCreationDate(nodeId)).TotalSeconds < 1);
         }
         [TestMethod]
+        [ExpectedException(typeof(LockedNodeException))]
         public void SharedLock_RefreshLock_Different()
         {
             var node = CreateTestFolder();
@@ -182,6 +215,19 @@ namespace SenseNet.ContentRepository.Tests
             // ACTION
             SharedLock.RefreshLock(nodeId, lockValue);
         }
+        [TestMethod]
+        [ExpectedException(typeof(SharedLockNotFoundException))]
+        public void SharedLock_RefreshLock_TimedOut()
+        {
+            var node = CreateTestFolder();
+            var nodeId = node.Id;
+            var lockValue = Guid.NewGuid().ToString();
+            SharedLock.Lock(nodeId, lockValue);
+            SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
+
+            // ACTION
+            SharedLock.RefreshLock(nodeId, lockValue);
+        }
 
         [TestMethod]
         public void SharedLock_Unlock()
@@ -197,6 +243,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNull(SharedLock.GetLock(nodeId));
         }
         [TestMethod]
+        [ExpectedException(typeof(LockedNodeException))]
         public void SharedLock_Unlock_Different()
         {
             var node = CreateTestFolder();
@@ -220,66 +267,26 @@ namespace SenseNet.ContentRepository.Tests
             // ACTION
             SharedLock.Unlock(nodeId, existingLock);
         }
+        [TestMethod]
+        [ExpectedException(typeof(SharedLockNotFoundException))]
+        public void SharedLock_Unlock_TimedOut()
+        {
+            var node = CreateTestFolder();
+            var nodeId = node.Id;
+            var existingLock = Guid.NewGuid().ToString();
+            SharedLock.Lock(nodeId, existingLock);
+            SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
 
-        //[TestMethod]
-        //public void SharedLock_Save_Matching()
-        //{
-        //    var file = CreateTestFile(CreateTestFolder(), "Lorem ipsum...");
-        //    var fileId = file.Id;
-        //    var index = file.Index;
-        //    var lockValue = "LCK_" + Guid.NewGuid();
-        //    SharedLock.Lock(fileId, lockValue);
-
-        //    file.Index++;
-        //    WopiHandler_SaveFile(file, lockValue);
-
-        //    var reloadedNode = Node.LoadNode(fileId);
-        //    Assert.AreEqual(index + 1, reloadedNode.Index);
-        //}
-        //[TestMethod]
-        //[ExpectedException(typeof(LockedNodeException))]
-        //public void SharedLock_Save_MissingLock()
-        //{
-        //    //var node = CreaeTestContent();
-        //    //var lockValue = "LCK_" + Guid.NewGuid();
-
-        //    //node.Index++;
-        //    //node.SaveWithSharedLock(lockValue);
-        //    Assert.Inconclusive();
-        //}
-        //[TestMethod]
-        //[ExpectedException(typeof(LockedNodeException))]
-        //public void SharedLock_Save_DifferentLock()
-        //{
-        //    //var node = CreaeTestContent();
-        //    //var nodeId = node.Id;
-        //    //var lockValue1 = "LCK_" + Guid.NewGuid();
-        //    //var lockValue2 = "LCK_" + Guid.NewGuid();
-        //    //SharedLock.Lock(nodeId, lockValue1);
-
-        //    //node.Index++;
-        //    //node.SaveWithSharedLock(lockValue2);
-        //    Assert.Inconclusive();
-        //}
-        //[TestMethod]
-        //[ExpectedException(typeof(LockedNodeException))]
-        //public void SharedLock_Save_Locked()
-        //{
-        //    var file = CreateTestFile(CreateTestFolder(), "Lorem ipsum...");
-        //    var fileId = file.Id;
-        //    var lockValue = "LCK_" + Guid.NewGuid();
-        //    SharedLock.Lock(fileId, lockValue);
-
-        //    file.Index++;
-        //    file.Save();
-        //}
+            // ACTION
+            SharedLock.Unlock(nodeId, existingLock);
+        }
 
 
-
+        // Save no exclusive locked
         [TestMethod]
         public void SharedLock_Save_Unchecked_Unlocked_MetaOnly()
         {
-            var context = SavingTestContext.Create().SaveMetadata(42);
+            var context = OperationContext.Create().SaveMetadata(42);
 
             Assert.AreEqual(42, context.LoadTestFile().Index);
         }
@@ -288,7 +295,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var newContent = "Dolor sit amet...";
 
-            var context = SavingTestContext.Create().UpdateFileContent(newContent);
+            var context = OperationContext.Create().UpdateFileContent(newContent);
 
             Assert.AreEqual(newContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
@@ -298,17 +305,17 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().WopiSave(lockValue, newContent);
+            var context = OperationContext.Create().WopiSave(lockValue, newContent);
 
             // expected result: file was not changed
-            Assert.AreEqual(SavingTestContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
+            Assert.AreEqual(OperationContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
         [TestMethod]
         public void SharedLock_Save_Unchecked_Locked_MetaOnly()
         {
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue).SaveMetadata(42);
+            var context = OperationContext.Create().Lock(lockValue).SaveMetadata(42);
 
             Assert.AreEqual(42, context.LoadTestFile().Index);
         }
@@ -320,7 +327,7 @@ namespace SenseNet.ContentRepository.Tests
 
             ExpectError(typeof(InvalidContentActionException), () =>
             {
-                var context = SavingTestContext.Create().Lock(lockValue).UpdateFileContent(newContent);
+                var context = OperationContext.Create().Lock(lockValue).UpdateFileContent(newContent);
             });
         }
         [TestMethod]
@@ -329,7 +336,7 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue).WopiSave(lockValue, newContent);
+            var context = OperationContext.Create().Lock(lockValue).WopiSave(lockValue, newContent);
 
             Assert.AreEqual(newContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
@@ -340,16 +347,17 @@ namespace SenseNet.ContentRepository.Tests
             var lockValue1 = "LCK_" + Guid.NewGuid();
             var lockValue2 = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue1).WopiSave(lockValue2, newContent);
+            var context = OperationContext.Create().Lock(lockValue1).WopiSave(lockValue2, newContent);
 
             // expected result: file was not changed
-            Assert.AreEqual(SavingTestContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
+            Assert.AreEqual(OperationContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
 
+        // Save exclusive locked
         [TestMethod]
         public void SharedLock_Save_CheckedOutForMe_Unlocked_MetaOnly()
         {
-            var context = SavingTestContext.Create().Checkout().SaveMetadata(42);
+            var context = OperationContext.Create().Checkout().SaveMetadata(42);
 
             Assert.AreEqual(42, context.LoadTestFile().Index);
         }
@@ -358,7 +366,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             var newContent = "Dolor sit amet...";
 
-            var context = SavingTestContext.Create().Checkout().UpdateFileContent(newContent);
+            var context = OperationContext.Create().Checkout().UpdateFileContent(newContent);
 
             Assert.AreEqual(newContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
@@ -368,17 +376,17 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Checkout().WopiSave(lockValue, newContent);
+            var context = OperationContext.Create().Checkout().WopiSave(lockValue, newContent);
 
             // expected result: file was not changed
-            Assert.AreEqual(SavingTestContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
+            Assert.AreEqual(OperationContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
         [TestMethod]
         public void SharedLock_Save_CheckedOutForMe_Locked_MetaOnly()
         {
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue).Checkout().SaveMetadata(42);
+            var context = OperationContext.Create().Lock(lockValue).Checkout().SaveMetadata(42);
 
             Assert.AreEqual(42, context.LoadTestFile().Index);
         }
@@ -390,7 +398,7 @@ namespace SenseNet.ContentRepository.Tests
 
             ExpectError(typeof(InvalidContentActionException), () =>
             {
-                var context = SavingTestContext.Create().Lock(lockValue).Checkout().UpdateFileContent(newContent);
+                var context = OperationContext.Create().Lock(lockValue).Checkout().UpdateFileContent(newContent);
             });
         }
         [TestMethod]
@@ -399,7 +407,7 @@ namespace SenseNet.ContentRepository.Tests
             var newContent = "Dolor sit amet...";
             var lockValue = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue).Checkout().WopiSave(lockValue, newContent);
+            var context = OperationContext.Create().Lock(lockValue).Checkout().WopiSave(lockValue, newContent);
 
             Assert.AreEqual(newContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
@@ -410,34 +418,68 @@ namespace SenseNet.ContentRepository.Tests
             var lockValue1 = "LCK_" + Guid.NewGuid();
             var lockValue2 = "LCK_" + Guid.NewGuid();
 
-            var context = SavingTestContext.Create().Lock(lockValue1).Checkout().WopiSave(lockValue2, newContent);
+            var context = OperationContext.Create().Lock(lockValue1).Checkout().WopiSave(lockValue2, newContent);
 
             // expected result: file was not changed
-            Assert.AreEqual(SavingTestContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
+            Assert.AreEqual(OperationContext.OriginalFileContent, RepositoryTools.GetStreamString(context.LoadTestFile().Binary.GetStream()));
         }
 
-        [TestMethod] public void SharedLock_Save_CheckedOutAnother_Unlocked_MetaOnly()
+        // Additional tests with SavingTestContext
+        [TestMethod]
+        public void SharedLock_Save_CheckedOutAnother_Unlocked_MetaOnly()
         {
             ExpectError(typeof(InvalidContentActionException), () =>
             {
-                var context = SavingTestContext.Create().Checkout("User1").SaveMetadata(42);
+                var context = OperationContext.Create().Checkout("User1").SaveMetadata(42);
+            });
+        }
+        [TestMethod]
+        public void SharedLock_Rename_Locked_File()
+        {
+            var lockValue = "LCK_" + Guid.NewGuid();
+            ExpectError(typeof(InvalidContentActionException), () =>
+            {
+                var context = OperationContext.Create().Lock(lockValue).Rename(Guid.NewGuid().ToString());
+            });
+        }
+        [TestMethod]
+        public void SharedLock_Move_Locked_File()
+        {
+            var lockValue = "LCK_" + Guid.NewGuid();
+            ExpectError(typeof(InvalidContentActionException), () =>
+            {
+                var context = OperationContext.Create();
+                var target = context.CreateFolder();
+                context.Lock(lockValue).Move(target);
+            });
+        }
+        [TestMethod]
+        public void SharedLock_Delete_Locked_File()
+        {
+            var lockValue = "LCK_" + Guid.NewGuid();
+            ExpectError(typeof(InvalidContentActionException), () =>
+            {
+                var context = OperationContext.Create().Lock(lockValue).Delete();
             });
         }
 
         private void ExpectError(Type expectedErrorType, Action action)
         {
+            var thrown = false;
             try
             {
                 action();
-                Assert.Fail($"Expected {expectedErrorType.Name} exception was not thrown.");
             }
             catch (Exception e)
             {
                 Assert.AreEqual(expectedErrorType, e.GetType());
+                thrown = true;
             }
+            if (!thrown)
+                Assert.Fail($"Expected {expectedErrorType.Name} exception was not thrown.");
         }
 
-        private class SavingTestContext
+        private class OperationContext
         {
             public static readonly string OriginalFileContent = "Lorem ipsum...";
             private int _testFileId;
@@ -446,8 +488,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 if (_testFileId == 0)
                 {
-                    var folder = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
-                    folder.Save();
+                    var folder = CreateFolder();
                     var file = new File(folder) {Name = Guid.NewGuid().ToString()};
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString(OriginalFileContent));
                     file.Save();
@@ -456,12 +497,19 @@ namespace SenseNet.ContentRepository.Tests
                 return Node.Load<File>(_testFileId);
             }
 
-            public static SavingTestContext Create()
+            public Folder CreateFolder()
             {
-                return new SavingTestContext();
+                var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                folder.Save();
+                return folder;
             }
 
-            public SavingTestContext Checkout(string userContentName = null)
+            public static OperationContext Create()
+            {
+                return new OperationContext();
+            }
+
+            public OperationContext Checkout(string userContentName = null)
             {
                 var file = LoadTestFile();
                 if (userContentName != null)
@@ -494,38 +542,57 @@ namespace SenseNet.ContentRepository.Tests
                 return user;
             }
 
-            public SavingTestContext Lock(string lockValue)
+            public OperationContext Lock(string lockValue)
             {
                 SharedLock.Lock(LoadTestFile().Id, lockValue);
                 return this;
             }
 
-            public SavingTestContext SaveMetadata(int index)
+            public OperationContext SaveMetadata(int index)
             {
                 var file = LoadTestFile();
                 file.Index = index;
                 file.Save();
                 return this;
             }
-            public SavingTestContext UpdateFileContent(string newContent)
+            public OperationContext UpdateFileContent(string newContent)
             {
                 var file = LoadTestFile();
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(newContent));
                 file.Save();
                 return this;
             }
-            public SavingTestContext WopiSave(string lockValue, string newContent)
+            public OperationContext WopiSave(string lockValue, string newContent)
             {
                 WopiHandler.ProcessPutFileRequest(LoadTestFile(), lockValue, RepositoryTools.GetStreamFromString(newContent));
                 return this;
             }
 
+            public OperationContext Move(Folder target)
+            {
+                LoadTestFile().MoveTo(target);
+                return this;
+            }
+
+            public OperationContext Rename(string newName)
+            {
+                var file = LoadTestFile();
+                file.Name = newName;
+                file.Save();
+                return this;
+            }
+
+            public OperationContext Delete()
+            {
+                LoadTestFile().ForceDelete();
+                return this;
+            }
         }
 
 
 
         [TestMethod]
-        public void SharedLock_Checkout()
+        public void SharedLock_Checkout_Locked_Folder()
         {
             var node = CreateTestFolder();
             var nodeId = node.Id;
@@ -539,11 +606,8 @@ namespace SenseNet.ContentRepository.Tests
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]
-        public void SharedLock_Delete()
+        public void SharedLock_Delete_Locked_Folder()
         {
-            //UNDONE: remove this line when SharedLock assert is implemented in the repo
-            Assert.Inconclusive();
-
             var node = CreateTestFolder();
             var nodeId = node.Id;
             var lockValue = "LCK_" + Guid.NewGuid();
@@ -551,6 +615,31 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             node.ForceDelete();
+        }
+        [TestMethod]
+        [ExpectedException(typeof(LockedNodeException))]
+        public void SharedLock_Rename_Locked_Folder()
+        {
+            var node = CreateTestFolder();
+            var nodeId = node.Id;
+            var lockValue = "LCK_" + Guid.NewGuid();
+            SharedLock.Lock(nodeId, lockValue);
+
+            // ACTION
+            node.Name = Guid.NewGuid().ToString();
+        }
+        [TestMethod]
+        [ExpectedException(typeof(LockedNodeException))]
+        public void SharedLock_Move_Locked_Folder()
+        {
+            var node = CreateTestFolder();
+            var target = CreateTestFolder();
+            var nodeId = node.Id;
+            var lockValue = "LCK_" + Guid.NewGuid();
+            SharedLock.Lock(nodeId, lockValue);
+
+            // ACTION
+            node.MoveTo(target);
         }
 
         /* ======================================================================== */
