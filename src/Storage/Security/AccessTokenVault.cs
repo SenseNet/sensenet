@@ -163,6 +163,14 @@ namespace SenseNet.ContentRepository.Storage.Security
             Storage.DeleteAccessTokensByContent(contentId);
         }
 
+        /// <summary>
+        /// Deletes all tokens that are expired a long time ago.
+        /// </summary>
+        public static void Cleanup()
+        {
+            Storage.CleanupAccessTokens();
+        }
+
         /* =========================================================================================== Token value generator */
 
         private static readonly char[] AllowedValueChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
@@ -180,6 +188,5 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             return new string(chars);
         }
-
     }
 }
