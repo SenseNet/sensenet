@@ -5,6 +5,9 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Services.Wopi
 {
+    /// <summary>
+    /// Registers a WopiNodeOperationValidator instance as an INodeOperationValidator.
+    /// </summary>
     internal class WopiService : ISnService
     {
         public static readonly string ExpectedSharedLock = "WOPI_ExpectedSharedLock";
