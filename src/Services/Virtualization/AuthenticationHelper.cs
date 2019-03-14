@@ -129,6 +129,8 @@ namespace SenseNet.Portal.Virtualization
             
             FormsAuthentication.SignOut();
 
+            AccessTokenVault.DeleteTokensByUser(user.Id);
+
             SnLog.WriteAudit(AuditEvent.Logout,
                 new Dictionary<string, object>
                 {
