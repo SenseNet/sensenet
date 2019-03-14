@@ -25,5 +25,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         string ModifySharedLock(int contentId, string @lock, string newLock);
         string GetSharedLock(int contentId);
         string DeleteSharedLock(int contentId, string @lock);
+        void CleanupSharedLocks();
     }
 }

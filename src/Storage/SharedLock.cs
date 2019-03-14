@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -42,6 +43,12 @@ namespace SenseNet.ContentRepository.Storage
         public static string Unlock(int contentId, string @lock)
         {
             return Storage.DeleteSharedLock(contentId, @lock);
+        }
+
+        public static void Cleanup()
+        {
+            SnTrace.Write("Cleanup shared locks.");
+            Storage.CleanupSharedLocks();
         }
     }
 }

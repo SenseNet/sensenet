@@ -122,6 +122,11 @@ namespace SenseNet.Tests.Implementations
             return existingLock;
         }
 
+        public void CleanupSharedLocks()
+        {
+            // do nothing
+        }
+
 
         private void DeleteTimedOutItems()
         {

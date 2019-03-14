@@ -169,6 +169,17 @@ SELECT @Result
             return existingLock; //UNDONE:UNNECESSARY RETURN VALUE?
         }
 
+        public void CleanupSharedLocks()
+        {
+            var sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
+            using (var proc = MainProvider.CreateDataProcedure(sql)
+                .AddParameter("@TimeoutInMinutes", Convert.ToInt32(SharedLockTimeout.TotalMinutes)))
+            {
+                proc.CommandType = CommandType.Text;
+                proc.ExecuteNonQuery();
+            }
+        }
+
         /* ============================================================= For tests */
 
         public DateTime GetCreationDate(int contentId)
