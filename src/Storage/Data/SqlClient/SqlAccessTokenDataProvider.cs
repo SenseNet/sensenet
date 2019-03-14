@@ -171,5 +171,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 proc.ExecuteNonQuery();
             }
         }
+
+        public void CleanupAccessTokens()
+        {
+            var sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
+            using (var proc = MainProvider.CreateDataProcedure(sql))
+            {
+                proc.CommandType = CommandType.Text;
+                proc.ExecuteNonQuery();
+            }
+        }
     }
 }

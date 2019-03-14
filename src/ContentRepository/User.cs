@@ -131,13 +131,19 @@ namespace SenseNet.ContentRepository
             set { _windowsIdentity = value; }
         }
 
+        private bool _inactivating;
         /// <inheritdoc />
         /// <remarks>Persisted as <see cref="RepositoryDataType.Int"/>.</remarks>
         [RepositoryProperty("Enabled", RepositoryDataType.Int)]
         public bool Enabled
         {
             get { return this.GetProperty<int>("Enabled") != 0; }
-            set { this["Enabled"] = value ? 1 : 0; }
+            set
+            {
+                this["Enabled"] = value ? 1 : 0;
+                if (this.Id != 0 && !value)
+                    _inactivating = true;
+            }
         }
 
         /// <inheritdoc />
@@ -915,6 +921,12 @@ namespace SenseNet.ContentRepository
         /// <remarks>Synchronizes the AD modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void Save(NodeSaveSettings settings)
         {
+            if (_inactivating)
+            {
+                AccessTokenVault.DeleteTokensByUser(this.Id);
+                _inactivating = false;
+            }
+
             // Check uniqueness first
             if (Id == 0 || PropertyNamesForCheckUniqueness.Any(p => IsPropertyChanged(p)))
                 CheckUniqueUser();
