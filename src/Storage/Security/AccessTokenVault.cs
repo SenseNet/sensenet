@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private static IAccessTokenDataProviderExtension Storage => DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
 
         /// <summary>
-        /// Deletes all AccessToken even if it is out of date.
+        /// Deletes all AccessTokens even if they are still valid.
         /// </summary>
         public static void DeleteAllAccessTokens()
         {
@@ -50,6 +50,16 @@ namespace SenseNet.ContentRepository.Storage.Security
             return token;
         }
 
+        /// <summary>
+        /// Loads an existing token or creates a new one for the given user with the specified timeout.
+        /// If there is an existing token that expires in less then 5 minutes, this method issues a new one.
+        /// The token can be bound to a content or any specified feature name.
+        /// </summary>
+        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="timeout">The timeout of the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="feature">Any word that identifies the feature.</param>
+        /// <returns>The eisting or new AccessToken instance.</returns>
         public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
             var maxExpiration = DateTime.UtcNow.Add(timeout);
@@ -165,7 +175,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Deletes all tokens that are expired a long time ago.
+        /// Deletes all access tokens that expired a certain time ago.
         /// </summary>
         public static void Cleanup()
         {
