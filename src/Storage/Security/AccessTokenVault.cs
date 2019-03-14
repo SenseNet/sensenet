@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Cryptography;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -168,6 +169,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public static void Cleanup()
         {
+            SnTrace.Write("Cleanup access tokens.");
             Storage.CleanupAccessTokens();
         }
 
