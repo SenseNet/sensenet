@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static void Cleanup()
         {
-            SnTrace.Write("Cleanup shared locks.");
+            SnTrace.Database.Write("Cleanup shared locks.");
             Storage.CleanupSharedLocks();
         }
     }
