@@ -534,7 +534,11 @@ namespace SenseNet.Services.Wopi
                 };
             }
 
-            file.Binary.SetStream(stream);
+            var binaryData = file.Binary;
+            binaryData.SetStream(stream);
+
+            file.Binary = binaryData;
+
             SaveFile(file, existingLock);
             //UNDONE:! Set X-WOPI-ItemVersion header if needed.
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
