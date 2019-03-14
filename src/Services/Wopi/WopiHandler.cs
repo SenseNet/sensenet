@@ -222,13 +222,15 @@ namespace SenseNet.Services.Wopi
             using (new SystemAccount())
             {
                 var entries = file.Security.GetEffectiveEntries();
+                var identities = new List<int> { user.Id };
+                if (user is User member)
+                    identities.AddRange(member.GetGroups());
 
-                var userId = user.Id;
                 var allowBits = 0UL;
                 var denyBits = 0UL;
                 foreach (var entry in entries)
                 {
-                    if (userId == entry.IdentityId)
+                    if (identities.Contains(entry.IdentityId))
                     {
                         allowBits |= entry.AllowBits;
                         denyBits |= entry.DenyBits;
