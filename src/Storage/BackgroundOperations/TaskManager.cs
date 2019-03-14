@@ -1,11 +1,9 @@
-﻿using Storage=SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
+﻿using SenseNet.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 
@@ -13,6 +11,7 @@ namespace SenseNet.BackgroundOperations
 {
     public static class SnTaskManager
     {
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public static class Settings
         {
             public static readonly string SETTINGSNAME = "TaskManagement";
@@ -26,10 +25,8 @@ namespace SenseNet.BackgroundOperations
         /// <summary>
         /// Url of the Task management web application, directly from the TaskManagement setting.
         /// </summary>
-        public static string Url
-        {
-            get { return Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTURL); }
-        }
+        public static string Url =>
+            ContentRepository.Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTURL);
 
         // ================================================================================== Static API
 
@@ -41,7 +38,7 @@ namespace SenseNet.BackgroundOperations
         public static RegisterTaskResult RegisterTask(RegisterTaskRequest requestData)
         {
             // start the task registration process only if a url is provided
-            var taskManUrl = SnTaskManager.Url;
+            var taskManUrl = Url;
             if (string.IsNullOrEmpty(taskManUrl))
                 return null;
 
@@ -55,11 +52,11 @@ namespace SenseNet.BackgroundOperations
         public static Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData)
         {
             // start the task registration process only if a url is provided
-            var taskManUrl = SnTaskManager.Url;
-            if (string.IsNullOrEmpty(taskManUrl))
-                return Task.FromResult<RegisterTaskResult>(null);
+            var taskManUrl = Url;
 
-            return Instance.RegisterTaskAsync(taskManUrl, requestData);
+            return string.IsNullOrEmpty(taskManUrl)
+                ? Task.FromResult<RegisterTaskResult>(null)
+                : Instance.RegisterTaskAsync(taskManUrl, requestData);
         }
 
         /// <summary>
@@ -68,14 +65,14 @@ namespace SenseNet.BackgroundOperations
         /// <returns>Returns true if the registration was successful.</returns>
         public static bool RegisterApplication()
         {
-            var taskManUrl = SnTaskManager.Url;
+            var taskManUrl = Url;
             if (string.IsNullOrEmpty(taskManUrl))
                 return false;
 
             var requestData = new RegisterApplicationRequest
             {
-                AppId = Storage.Settings.GetValue(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPID, null, Settings.TASKMANAGEMENTDEFAULTAPPID),
-                ApplicationUrl = Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPLICATIONURL)
+                AppId = ContentRepository.Storage.Settings.GetValue(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPID, null, Settings.TASKMANAGEMENTDEFAULTAPPID),
+                ApplicationUrl = ContentRepository.Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPLICATIONURL)
             };
 
             // make this a synchron call
@@ -104,17 +101,17 @@ namespace SenseNet.BackgroundOperations
 
         // ================================================================================== Instance
 
-        private static readonly object _initializationLock = new object();
-        private static ITaskManager __instance;
+        private static readonly object InitializationLock = new object();
+        private static ITaskManager _instance;
         private static ITaskManager Instance
         {
             get
             {
-                if (__instance == null)
+                if (_instance == null)
                 {
-                    lock (_initializationLock)
+                    lock (InitializationLock)
                     {
-                        if (__instance == null)
+                        if (_instance == null)
                         {
                             ITaskManager instance;
 
@@ -139,11 +136,11 @@ namespace SenseNet.BackgroundOperations
 
                             SnLog.WriteInformation("TaskManager created: " + instance);
 
-                            __instance = instance;
+                            _instance = instance;
                         }
                     }
                 }
-                return __instance;
+                return _instance;
             }
         }
     }
