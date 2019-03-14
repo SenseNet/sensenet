@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public static void Cleanup()
         {
-            SnTrace.Write("Cleanup access tokens.");
+            SnTrace.Database.Write("Cleanup access tokens.");
             Storage.CleanupAccessTokens();
         }
 
