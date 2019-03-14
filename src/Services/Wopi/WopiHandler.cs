@@ -257,7 +257,7 @@ namespace SenseNet.Services.Wopi
                                          0 != (allowBits & (PermissionType.Preview.Mask +
                                                             PermissionType.PreviewWithoutWatermark.Mask +
                                                             PermissionType.PreviewWithoutRedaction.Mask)),
-                    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
+                    Create = false
                 };
             }
         }
