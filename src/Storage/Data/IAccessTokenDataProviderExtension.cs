@@ -24,5 +24,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         void DeleteAccessToken(string tokenValue);
         void DeleteAccessTokensByUser(int userId);
         void DeleteAccessTokensByContent(int contentId);
+        void CleanupAccessTokens();
     }
 }

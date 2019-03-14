@@ -119,6 +119,11 @@ namespace SenseNet.Tests.Implementations
                 AccessTokens.Remove(row);
         }
 
+        public void CleanupAccessTokens()
+        {
+            // do nothing
+        }
+
         private AccessToken CreateAccessTokenFromRow(AccessTokenRow row)
         {
             return new AccessToken

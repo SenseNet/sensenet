@@ -138,6 +138,11 @@ namespace SenseNet.ContentRepository.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public void CleanupAccessTokens()
+            {
+                throw new NotImplementedException();
+            }
         }
         #endregion
 
