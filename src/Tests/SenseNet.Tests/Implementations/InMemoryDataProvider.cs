@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -574,8 +575,82 @@ namespace SenseNet.Tests.Implementations
         #region NOT IMPLEMENTED
         protected override PropertyMapping GetPropertyMappingInternal(PropertyType propType)
         {
-            throw new NotImplementedException();
+            PropertyStorageSchema storageSchema = PropertyStorageSchema.SingleColumn;
+            string tableName;
+            string columnName;
+            bool usePageIndex = false;
+            int page = 0;
+
+            switch (propType.DataType)
+            {
+                case DataType.String:
+                    usePageIndex = true;
+                    tableName = "FlatProperties";
+                    columnName = SqlProvider.StringMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
+                    break;
+                case DataType.Text:
+                    usePageIndex = false;
+                    tableName = "TextPropertiesNVarchar, TextPropertiesNText";
+                    columnName = "Value";
+                    storageSchema = PropertyStorageSchema.MultiTable;
+                    break;
+                case DataType.Int:
+                    usePageIndex = true;
+                    tableName = "FlatProperties";
+                    columnName = SqlProvider.IntMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
+                    break;
+                case DataType.Currency:
+                    usePageIndex = true;
+                    tableName = "FlatProperties";
+                    columnName = SqlProvider.CurrencyMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
+                    break;
+                case DataType.DateTime:
+                    usePageIndex = true;
+                    tableName = "FlatProperties";
+                    columnName = SqlProvider.DateTimeMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
+                    break;
+                case DataType.Binary:
+                    usePageIndex = false;
+                    tableName = "BinaryProperties";
+                    columnName = "ContentType, FileNameWithoutExtension, Extension, Size, Stream";
+                    storageSchema = PropertyStorageSchema.MultiColumn;
+                    break;
+                case DataType.Reference:
+                    usePageIndex = false;
+                    tableName = "ReferenceProperties";
+                    columnName = "ReferredNodeId";
+                    break;
+                default:
+                    throw new NotSupportedException("Unknown DataType" + propType.DataType);
+            }
+            return new PropertyMapping
+            {
+                StorageSchema = storageSchema,
+                TableName = tableName,
+                ColumnName = columnName,
+                PageIndex = page,
+                UsePageIndex = usePageIndex
+            };
         }
+        private static int GetColumnIndex(DataType dataType, int mapping, out int page)
+        {
+            int pageSize;
+            switch (dataType)
+            {
+                case DataType.String: pageSize = SqlProvider.StringPageSize; break;
+                case DataType.Int: pageSize = SqlProvider.IntPageSize; break;
+                case DataType.DateTime: pageSize = SqlProvider.DateTimePageSize; break;
+                case DataType.Currency: pageSize = SqlProvider.CurrencyPageSize; break;
+                default:
+                    page = 0;
+                    return 0;
+            }
+
+            page = mapping / pageSize;
+            int index = mapping % pageSize;
+            return index + 1;
+        }
+
 
         protected internal override long GetTreeSize(string path, bool includeChildren)
         {
@@ -994,6 +1069,11 @@ namespace SenseNet.Tests.Implementations
             return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, null);
         }
 
+        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
+        {
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, name);
+        }
+
         protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
             var nodes = _db.Nodes;
@@ -1024,18 +1104,84 @@ namespace SenseNet.Tests.Implementations
             return ids.ToArray();
         }
 
-        #region NOT IMPLEMENTED
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
-            throw new NotImplementedException();
+            // Partially implemented. See SnNotSupportedExceptions
+
+            var nodes = _db.Nodes;
+            if (nodeTypeIds != null)
+                nodes = nodes
+                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                    .ToList();
+
+            if (pathStart != null)
+            {
+                var path = pathStart.EndsWith("/") ? pathStart : pathStart + "/";
+                nodes = nodes
+                    .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                    .ToList();
+            }
+
+            if (properties != null)
+            {
+                var versionIds = nodes.Select(n => n.LastMinorVersionId).ToArray();
+                var flatRows = DB.FlatProperties.Where(f => versionIds.Contains(f.VersionId)).ToArray();
+                var resultVersions = flatRows
+                    .Where(f =>
+                    {
+                        foreach (var property in properties)
+                        {
+                            if (property.QueryOperator != Operator.Equal)
+                                throw new SnNotSupportedException($"NodeQuery by 'Operator.{property.QueryOperator}' property operator is not supported.");
+
+                            var pt = PropertyType.GetByName(property.PropertyName);
+                            if(pt == null)
+                                throw new SnNotSupportedException($"NodeQuery by '{property.PropertyName}' property is not supported.");
+
+                            var pm = pt.GetDatabaseInfo();
+                            var colName = pm.ColumnName;
+                            var dt = pt.DataType;
+                            var index = int.Parse(colName.Split('_')[1]) - 1;
+                            switch (dt)
+                            {
+                                case DataType.String:
+                                    if (f.Strings[index] != (string) property.Value)
+                                        return false;
+                                    break;
+                                case DataType.Int:
+                                    if (f.Integers[index] != (int?)property.Value)
+                                        return false;
+                                    break;
+                                case DataType.Currency:
+                                    if (f.Decimals[index] != (decimal?)property.Value)
+                                        return false;
+                                    break;
+                                case DataType.DateTime:
+                                    if (f.Datetimes[index] != (DateTime)property.Value)
+                                        return false;
+                                    break;
+                                default:
+                                    throw new SnNotSupportedException($"NodeQuery by 'DataType.{dt}' property data type is not supported.");
+                            }
+                        }
+                        return true;
+                    })
+                    .Select(f=>f.VersionId)
+                    .ToArray();
+
+                nodes = nodes
+                    .Where(n => resultVersions.Contains(n.LastMinorVersionId))
+                    .ToList();
+            }
+
+            if (orderByPath)
+                nodes = nodes
+                    .OrderBy(n => n.Path)
+                    .ToList();
+
+            var ids = nodes.Select(n => n.NodeId);
+            return ids.ToArray();
         }
-        #endregion
 
         protected internal override void ReleaseTreeLock(int[] lockIds)
         {
