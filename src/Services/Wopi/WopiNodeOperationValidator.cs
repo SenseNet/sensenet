@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Services.Wopi
 {
+    /// <summary>
+    /// Checks whether the save, move or delete operation is allowed by the 
+    /// current shared lock state of the content.
+    /// </summary>
     internal class WopiNodeOperationValidator : INodeOperationValidator
     {
         public bool CheckSaving(Node node, ChangedData[] changeData, out string errorMessage)

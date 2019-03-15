@@ -14,7 +14,7 @@ using File = SenseNet.ContentRepository.File;
 namespace SenseNet.Services.Wopi
 {
     /// <summary>
-    /// An <see cref="IHttpHandler"/> implementation to process the OData requests.
+    /// An <see cref="IHttpHandler"/> implementation to process the WOPI requests.
     /// </summary>
     public class WopiHandler : IHttpHandler
     {
