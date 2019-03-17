@@ -1354,7 +1354,7 @@ namespace SenseNet.Services.Tests
                 Assert.IsNotNull(response);
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 file = Node.Load<File>(file.Id);
-                //UNDONE:! Test X-WOPI-ItemVersion header: AssertHeader("X-WOPI-ItemVersion", ???);
+                //TODO:WOPI: Test X-WOPI-ItemVersion header: AssertHeader("X-WOPI-ItemVersion", ???);
                 Assert.AreEqual(newContent, RepositoryTools.GetStreamString(file.Binary.GetStream()));
             });
         }

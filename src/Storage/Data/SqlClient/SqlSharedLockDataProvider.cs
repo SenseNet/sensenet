@@ -85,7 +85,7 @@ SELECT @Result
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
 
-            return existingLock; //UNDONE:UNNECESSARY RETURN VALUE?
+            return existingLock;
         }
 
         public string ModifySharedLock(int contentId, string @lock, string newLock)
@@ -117,7 +117,7 @@ SELECT @Result
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
 
-            return existingLock; //UNDONE:UNNECESSARY RETURN VALUE?
+            return existingLock;
         }
 
         public string GetSharedLock(int contentId)
@@ -166,7 +166,7 @@ SELECT @Result
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
 
-            return existingLock; //UNDONE:UNNECESSARY RETURN VALUE?
+            return existingLock;
         }
 
         public void CleanupSharedLocks()

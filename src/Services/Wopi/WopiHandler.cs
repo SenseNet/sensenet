@@ -18,7 +18,7 @@ namespace SenseNet.Services.Wopi
     /// </summary>
     public class WopiHandler : IHttpHandler
     {
-        public static bool IsReadOnlyMode { get; } = false; //UNDONE:RO/RW main switch
+        public static bool IsReadOnlyMode { get; } = false;
 
         private static class WopiHeader
         {
@@ -295,17 +295,17 @@ namespace SenseNet.Services.Wopi
             }
             else
             {
-                throw new NotImplementedException(); //UNDONE:ProcessPutRelativeFileRequest Check lock
+                throw new NotImplementedException(); //TODO:WOPI: ProcessPutRelativeFileRequest Check lock
             }
 
             targetFile.Binary.FileName = targetName;
             targetFile.Binary.SetStream(wopiReq.RequestStream);
-            targetFile.Save(); //UNDONE:ProcessPutRelativeFileRequest shared lock?
+            targetFile.Save(); //TODO:WOPI: ProcessPutRelativeFileRequest shared lock?
 
-            var url = "__notimplemented__"; //UNDONE:ProcessPutRelativeFileRequest Generate correct URL
+            var url = "__notimplemented__"; //TODO:WOPI: ProcessPutRelativeFileRequest Generate correct URL
             return new PutRelativeFileResponse
             {
-                StatusCode = HttpStatusCode.OK,
+                StatusCode = HttpStatusCode.NotImplemented,
                 Name = targetFile.Name,
                 Url = url,
             };
@@ -540,7 +540,7 @@ namespace SenseNet.Services.Wopi
             file.Binary = binaryData;
 
             SaveFile(file, existingLock);
-            //UNDONE:! Set X-WOPI-ItemVersion header if needed.
+            //TODO:WOPI Set X-WOPI-ItemVersion header if needed.
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
         private static void SaveFile(File file, string lockValue)
