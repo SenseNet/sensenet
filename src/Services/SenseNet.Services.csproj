@@ -366,9 +366,11 @@
     <Compile Include="Wopi\PutRelativeFileResponse.cs" />
     <Compile Include="Wopi\WopiActions.cs" />
     <Compile Include="Wopi\WopiHandler.cs" />
+    <Compile Include="Wopi\WopiNodeOperationValidator.cs" />
     <Compile Include="Wopi\WopiRequest.cs" />
     <Compile Include="Wopi\WopiRequests.cs" />
     <Compile Include="Wopi\WopiResponse.cs" />
+    <Compile Include="Wopi\WopiService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\SenseNet.Common.csproj">

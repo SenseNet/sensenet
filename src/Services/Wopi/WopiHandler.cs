@@ -7,7 +7,6 @@ using System.Web;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
 using File = SenseNet.ContentRepository.File;
@@ -15,10 +14,12 @@ using File = SenseNet.ContentRepository.File;
 namespace SenseNet.Services.Wopi
 {
     /// <summary>
-    /// An <see cref="IHttpHandler"/> implementation to process the OData requests.
+    /// An <see cref="IHttpHandler"/> implementation to process the WOPI requests.
     /// </summary>
     public class WopiHandler : IHttpHandler
     {
+        public static bool IsReadOnlyMode { get; } = false;
+
         private static class WopiHeader
         {
             public static readonly string Lock = "X-WOPI-Lock";
@@ -83,23 +84,23 @@ namespace SenseNet.Services.Wopi
             switch (wopiReq.RequestType)
             {
                 case WopiRequestType.CheckFileInfo:
-                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiReq, portalContext);
+                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiReq);
                 case WopiRequestType.GetLock:
-                    return ProcessGetLockRequest((GetLockRequest)wopiReq, portalContext);
+                    return ProcessGetLockRequest((GetLockRequest)wopiReq);
                 case WopiRequestType.Lock:
-                    return ProcessLockRequest((LockRequest)wopiReq, portalContext);
+                    return ProcessLockRequest((LockRequest)wopiReq);
                 case WopiRequestType.Unlock:
-                    return ProcessUnlockRequest((UnlockRequest)wopiReq, portalContext);
+                    return ProcessUnlockRequest((UnlockRequest)wopiReq);
                 case WopiRequestType.RefreshLock:
-                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiReq, portalContext);
+                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiReq);
                 case WopiRequestType.UnlockAndRelock:
-                    return ProcessUnlockAndRelockRequest((UnlockAndRelockRequest)wopiReq, portalContext);
+                    return ProcessUnlockAndRelockRequest((UnlockAndRelockRequest)wopiReq);
                 case WopiRequestType.GetFile:
-                    return ProcessGetFileRequest((GetFileRequest)wopiReq, portalContext);
+                    return ProcessGetFileRequest((GetFileRequest)wopiReq);
                 case WopiRequestType.PutFile:
-                    return ProcessPutFileRequest((PutFileRequest)wopiReq, portalContext);
+                    return ProcessPutFileRequest((PutFileRequest)wopiReq);
                 case WopiRequestType.PutRelativeFile:
-                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiReq, portalContext);
+                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiReq);
                 case WopiRequestType.DeleteFile:
                 case WopiRequestType.RenameFile:
                 case WopiRequestType.CheckContainerInfo:
@@ -120,7 +121,7 @@ namespace SenseNet.Services.Wopi
             }
         }
 
-        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -221,13 +222,15 @@ namespace SenseNet.Services.Wopi
             using (new SystemAccount())
             {
                 var entries = file.Security.GetEffectiveEntries();
+                var identities = new List<int> { user.Id };
+                if (user is User member)
+                    identities.AddRange(member.GetGroups());
 
-                var userId = user.Id;
                 var allowBits = 0UL;
                 var denyBits = 0UL;
                 foreach (var entry in entries)
                 {
-                    if (userId == entry.IdentityId)
+                    if (identities.Contains(entry.IdentityId))
                     {
                         allowBits |= entry.AllowBits;
                         denyBits |= entry.DenyBits;
@@ -235,30 +238,31 @@ namespace SenseNet.Services.Wopi
                 }
                 allowBits = allowBits & ~denyBits;
 
-                //UNDONE: Uncomment this instruction to allow document editing
-                //return new UserPermissions
-                //{
-                //    Write = (allowBits & PermissionType.Save.Mask) > 0,
-                //    RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
-                //                         0 != (allowBits & (PermissionType.Preview.Mask +
-                //                                            PermissionType.PreviewWithoutWatermark.Mask +
-                //                                            PermissionType.PreviewWithoutRedaction.Mask)),
-                //    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
-                //};
-                //UNDONE: Delete this instruction to allow document editing
+                if (IsReadOnlyMode)
+                {
+                    return new UserPermissions
+                    {
+                        Write = false,
+                        RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
+                                             0 != (allowBits & (PermissionType.Preview.Mask +
+                                                                PermissionType.PreviewWithoutWatermark.Mask +
+                                                                PermissionType.PreviewWithoutRedaction.Mask)),
+                        Create = false,
+                    };
+                }
                 return new UserPermissions
                 {
-                    Write = false,
+                    Write = (allowBits & PermissionType.Save.Mask) > 0,
                     RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
                                          0 != (allowBits & (PermissionType.Preview.Mask +
                                                             PermissionType.PreviewWithoutWatermark.Mask +
                                                             PermissionType.PreviewWithoutRedaction.Mask)),
-                    Create = false,
+                    Create = false
                 };
             }
         }
 
-        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -291,22 +295,22 @@ namespace SenseNet.Services.Wopi
             }
             else
             {
-                throw new NotImplementedException(); //UNDONE:! Check lock
+                throw new NotImplementedException(); //TODO:WOPI: ProcessPutRelativeFileRequest Check lock
             }
 
             targetFile.Binary.FileName = targetName;
             targetFile.Binary.SetStream(wopiReq.RequestStream);
-            targetFile.Save();
+            targetFile.Save(); //TODO:WOPI: ProcessPutRelativeFileRequest shared lock?
 
-            var url = "__notimplemented__"; //UNDONE:! Generate correct URL
+            var url = "__notimplemented__"; //TODO:WOPI: ProcessPutRelativeFileRequest Generate correct URL
             return new PutRelativeFileResponse
             {
-                StatusCode = HttpStatusCode.OK,
+                StatusCode = HttpStatusCode.NotImplemented,
                 Name = targetFile.Name,
                 Url = url,
             };
         }
-        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -324,7 +328,7 @@ namespace SenseNet.Services.Wopi
                 }
             };
         }
-        private WopiResponse ProcessLockRequest(LockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessLockRequest(LockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -334,8 +338,20 @@ namespace SenseNet.Services.Wopi
             var existingLock = SharedLock.GetLock(file.Id);
             if (existingLock == null)
             {
-                SharedLock.Lock(file.Id, wopiReq.Lock);
-                return new WopiResponse { StatusCode = HttpStatusCode.OK };
+                if (!file.Locked)
+                {
+                    SharedLock.Lock(file.Id, wopiReq.Lock);
+                    return new WopiResponse { StatusCode = HttpStatusCode.OK };
+                }
+                return new WopiResponse
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, ""},
+                        {WopiHeader.LockFailureReason, "CheckedOut"}
+                    }
+                };
             }
             if (existingLock != wopiReq.Lock)
             {
@@ -352,7 +368,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockRequest(UnlockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessUnlockRequest(UnlockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -387,7 +403,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.Unlock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -422,7 +438,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -458,7 +474,7 @@ namespace SenseNet.Services.Wopi
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
 
-        private WopiResponse ProcessGetFileRequest(GetFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessGetFileRequest(GetFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -486,20 +502,26 @@ namespace SenseNet.Services.Wopi
             return wopiReq.MaxExpectedSize.Value >= length;
         }
 
-        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
+            return ProcessPutFileRequest(file, wopiReq.Lock, wopiReq.RequestStream);
+        }
+
+        /// <summary>Method for tests</summary>
+        internal static WopiResponse ProcessPutFileRequest(File file, string lockValue, Stream stream)
+        {
             var existingLock = SharedLock.GetLock(file.Id);
             if (existingLock == null)
             {
                 if (file.Binary.Size != 0)
                     return new WopiResponse { StatusCode = HttpStatusCode.Conflict };
             }
-            if (existingLock != wopiReq.Lock)
+            if (existingLock != lockValue)
             {
                 return new WopiResponse
                 {
@@ -512,10 +534,26 @@ namespace SenseNet.Services.Wopi
                 };
             }
 
-            file.Binary.SetStream(wopiReq.RequestStream);
-            file.Save();
-            //UNDONE:! Set X-WOPI-ItemVersion header if needed.
+            var binaryData = file.Binary;
+            binaryData.SetStream(stream);
+
+            file.Binary = binaryData;
+
+            SaveFile(file, existingLock);
+            //TODO:WOPI Set X-WOPI-ItemVersion header if needed.
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
+        }
+        private static void SaveFile(File file, string lockValue)
+        {
+            file.SetCachedData(WopiService.ExpectedSharedLock, lockValue);
+            try
+            {
+                file.Save();
+            }
+            finally
+            {
+                file.ResetCachedData(WopiService.ExpectedSharedLock);
+            }
         }
     }
 }

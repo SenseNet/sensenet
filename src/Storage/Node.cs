@@ -94,6 +94,9 @@ namespace SenseNet.ContentRepository.Storage
         private NodeData _data;
         internal NodeData Data => _data;
 
+        private List<INodeOperationValidator> NodeOperationValidators =>
+            Providers.Instance.GetProvider<List<INodeOperationValidator>>("NodeOperationValidators");
+
         private void SetNodeData(NodeData nodeData)
         {
             _data = nodeData;
@@ -2643,6 +2646,8 @@ namespace SenseNet.ContentRepository.Storage
                         customData = args.GetCustomData();
                     }
 
+                    AssertSaving(changedData);
+
                     BenchmarkCounter.IncrementBy(BenchmarkCounter.CounterName.BeforeSaveToDb, _data != null ? _data.SavingTimer.ElapsedTicks : 0);
                     if (_data != null)
                         _data.SavingTimer.Restart();
@@ -2963,6 +2968,7 @@ namespace SenseNet.ContentRepository.Storage
         private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
         {
             this.AssertLock();
+            AssertMoving(target);
 
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -3539,6 +3545,7 @@ namespace SenseNet.ContentRepository.Storage
                 this.Security.AssertSubtree(PermissionType.Delete);
 
                 this.AssertLock();
+                AssertDeletion();
 
                 var myPath = Path;
                 using (var audit = new AuditBlock(AuditEvent.ContentDeleted, "Trying to delete the content.",
@@ -4069,6 +4076,37 @@ namespace SenseNet.ContentRepository.Storage
                 AnyContentListDeleted(this, EventArgs.Empty);
         }
 
+        private void AssertSaving(IEnumerable<ChangedData> changedData)
+        {
+            var validators = NodeOperationValidators;
+            if (validators == null)
+                return;
+            var data = changedData?.ToArray();
+            foreach (var validator in validators)
+                if (!validator.CheckSaving(this, data, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
+        }
+        private void AssertMoving(Node target)
+        {
+            var validators = NodeOperationValidators;
+            if (validators == null)
+                return;
+
+            foreach (var validator in validators)
+                if (!validator.CheckMoving(this, target, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
+        }
+        private void AssertDeletion()
+        {
+            var validators = NodeOperationValidators;
+            if (validators == null)
+                return;
+
+            foreach (var validator in validators)
+                if (!validator.CheckDeletion(this, out var errorMessage))
+                    throw new InvalidOperationException(errorMessage);
+        }
+
 
         #region // ================================================================================================= Public Tools
 
@@ -4258,10 +4296,6 @@ namespace SenseNet.ContentRepository.Storage
             var userId = AccessProvider.Current.GetCurrentUser().Id;
             if (userId != -1 && (Lock.LockedBy != null && Lock.LockedBy.Id != userId) && Lock.Locked)
                 throw new LockedNodeException(Lock);
-
-            //UNDONE: uncomment when SharedLock storage is implemented
-            //if (null != SharedLock.GetLock(this.Id))
-            //    throw new LockedNodeException(Lock, "There is a shared lock on this Node.");
         }
         private static bool NameExists(IEnumerable<Node> nodeList, string name)
         {
