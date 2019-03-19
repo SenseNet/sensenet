@@ -571,15 +571,14 @@ namespace SenseNet.Tests.Implementations
                 .Select(v => new NodeHead.NodeVersion(v.Version, v.VersionId))
                 .ToArray();
         }
-
-        #region NOT IMPLEMENTED
+        
         protected override PropertyMapping GetPropertyMappingInternal(PropertyType propType)
         {
-            PropertyStorageSchema storageSchema = PropertyStorageSchema.SingleColumn;
+            var storageSchema = PropertyStorageSchema.SingleColumn;
             string tableName;
             string columnName;
-            bool usePageIndex = false;
-            int page = 0;
+            bool usePageIndex;
+            var page = 0;
 
             switch (propType.DataType)
             {
@@ -651,7 +650,7 @@ namespace SenseNet.Tests.Implementations
             return index + 1;
         }
 
-
+        #region NOT IMPLEMENTED
         protected internal override long GetTreeSize(string path, bool includeChildren)
         {
             throw new NotImplementedException();

@@ -9,9 +9,7 @@ using SenseNet.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.UI.WebControls;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Portal.AppModel;
 using SenseNet.Services.Wopi;
 using SenseNet.Tests.Implementations;
 // ReSharper disable CoVariantArrayConversion

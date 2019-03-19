@@ -1731,7 +1731,6 @@ namespace SenseNet.ContentRepository
                 op.Successful = true;
             }
         }
-
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// </summary>

@@ -171,7 +171,7 @@ SELECT @Result
 
         public void CleanupSharedLocks()
         {
-            var sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
+            const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
             using (var proc = MainProvider.CreateDataProcedure(sql)
                 .AddParameter("@TimeoutInMinutes", Convert.ToInt32(SharedLockTimeout.TotalMinutes)))
             {

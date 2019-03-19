@@ -84,23 +84,23 @@ namespace SenseNet.Services.Wopi
             switch (wopiReq.RequestType)
             {
                 case WopiRequestType.CheckFileInfo:
-                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiReq, portalContext);
+                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiReq);
                 case WopiRequestType.GetLock:
-                    return ProcessGetLockRequest((GetLockRequest)wopiReq, portalContext);
+                    return ProcessGetLockRequest((GetLockRequest)wopiReq);
                 case WopiRequestType.Lock:
-                    return ProcessLockRequest((LockRequest)wopiReq, portalContext);
+                    return ProcessLockRequest((LockRequest)wopiReq);
                 case WopiRequestType.Unlock:
-                    return ProcessUnlockRequest((UnlockRequest)wopiReq, portalContext);
+                    return ProcessUnlockRequest((UnlockRequest)wopiReq);
                 case WopiRequestType.RefreshLock:
-                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiReq, portalContext);
+                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiReq);
                 case WopiRequestType.UnlockAndRelock:
-                    return ProcessUnlockAndRelockRequest((UnlockAndRelockRequest)wopiReq, portalContext);
+                    return ProcessUnlockAndRelockRequest((UnlockAndRelockRequest)wopiReq);
                 case WopiRequestType.GetFile:
-                    return ProcessGetFileRequest((GetFileRequest)wopiReq, portalContext);
+                    return ProcessGetFileRequest((GetFileRequest)wopiReq);
                 case WopiRequestType.PutFile:
-                    return ProcessPutFileRequest((PutFileRequest)wopiReq, portalContext);
+                    return ProcessPutFileRequest((PutFileRequest)wopiReq);
                 case WopiRequestType.PutRelativeFile:
-                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiReq, portalContext);
+                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiReq);
                 case WopiRequestType.DeleteFile:
                 case WopiRequestType.RenameFile:
                 case WopiRequestType.CheckContainerInfo:
@@ -121,7 +121,7 @@ namespace SenseNet.Services.Wopi
             }
         }
 
-        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -262,7 +262,7 @@ namespace SenseNet.Services.Wopi
             }
         }
 
-        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -310,7 +310,7 @@ namespace SenseNet.Services.Wopi
                 Url = url,
             };
         }
-        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -328,7 +328,7 @@ namespace SenseNet.Services.Wopi
                 }
             };
         }
-        private WopiResponse ProcessLockRequest(LockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessLockRequest(LockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -368,7 +368,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockRequest(UnlockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessUnlockRequest(UnlockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -403,7 +403,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.Unlock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -438,7 +438,7 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
@@ -474,7 +474,7 @@ namespace SenseNet.Services.Wopi
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
 
-        private WopiResponse ProcessGetFileRequest(GetFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessGetFileRequest(GetFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -502,7 +502,7 @@ namespace SenseNet.Services.Wopi
             return wopiReq.MaxExpectedSize.Value >= length;
         }
 
-        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiReq, PortalContext portalContext)
+        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiReq)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
