@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public struct SaveResult
+    public struct SaveResult //UNDONE: DELETE THIS
     {
         public int NodeId;
         public int VersionId;
@@ -37,48 +37,39 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         /* ============================================================================================================= Nodes */
 
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        /// DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        /// </summary>
+        // Executes these:
+        // INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         public abstract Task<SaveResult> InsertNodeAsync(NodeData nodeData);
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: UpdateNodeRow(nodeData);
-        /// INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
-        /// DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        /// DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        /// </summary>
+        // Executes these:
+        // INodeWriter: UpdateNodeRow(nodeData);
+        // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
+        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         public abstract Task<SaveResult> UpdateNodeAsync(NodeData nodeData, IEnumerable<int> versionIdsToDelete);
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: UpdateNodeRow(nodeData);
-        /// INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, out lastMajorVersionId, out lastMinorVersionId);
-        /// DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        /// DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        /// </summary>
-        public abstract Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId, IEnumerable<int> versionIdsToDelete);
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: UpdateNodeRow(nodeData);
-        /// INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
-        /// DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        /// DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        /// </summary>
+        // Executes these:
+        // INodeWriter: UpdateNodeRow(nodeData);
+        // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, out lastMajorVersionId, out lastMinorVersionId);
+        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+        public abstract Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId, IEnumerable<int> versionIdsToDelete);
+        // Executes these:
+        // INodeWriter: UpdateNodeRow(nodeData);
+        // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
+        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         public abstract Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId, int expectedVersionId, IEnumerable<int> versionIdsToDelete);
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: UpdateNodeRow(nodeData);
-        /// </summary>
+        // Executes these:
+        // INodeWriter: UpdateNodeRow(nodeData);
         public abstract Task UpdateNodeHeadAsync(NodeData nodeData);
-        /// <summary>
-        /// Executes these:
-        /// INodeWriter: UpdateSubTreePath(string oldPath, string newPath);
-        /// </summary>
+        // Executes these:
+        // INodeWriter: UpdateSubTreePath(string oldPath, string newPath);
         public abstract Task UpdateSubTreePathAsync(string oldPath, string newPath);
 
-        public abstract Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray);
+        /// <summary>
+        /// Returns loaded NodeData by the given versionIds
+        /// </summary>
+        public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds);
 
         public abstract Task DeleteNodeAsync(int nodeId, long timestamp);
         public abstract Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp);

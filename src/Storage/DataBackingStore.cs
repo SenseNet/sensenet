@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Globalization;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Diagnostics;
@@ -245,7 +246,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             //return tokens.ToArray();
             var result1 = tokens.ToArray();
-            var result2 = DataStore.LoadNodes(headArray, versionIdArray);
+            var result2 = DataStore.LoadNodesAsync(headArray, versionIdArray).Result;
             DataStore.Checker.Assert_AreEqual(result1, result2);
             return result1;
         }
@@ -546,7 +547,7 @@ namespace SenseNet.ContentRepository.Storage
                     #region prepare check
                     var data2 = DataStore.Checker.Clone(data);
                     var settings2 = DataStore.Checker.Clone(settings);
-                    DataStore.SaveNode(data2, settings2);
+                    DataStore.SaveNodeAsync(data2, settings2, CancellationToken.None).Wait();
                     #endregion
 
                     int lastMajorVersionId, lastMinorVersionId;

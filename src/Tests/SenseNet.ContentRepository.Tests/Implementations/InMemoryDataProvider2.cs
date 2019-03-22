@@ -42,12 +42,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
+        public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray)
         {
             return System.Threading.Tasks.Task.Run(() =>
             {
                 //UNDONE:DB Implement LoadNodesAsync well.
-                return new NodeToken[0];
+                return (IEnumerable<NodeData>)new List<NodeData>();
             });
         }
 
