@@ -243,7 +243,11 @@ namespace SenseNet.ContentRepository.Storage
                         CacheNodeData(nodeData);
                 }
             }
-            return tokens.ToArray();
+            //return tokens.ToArray();
+            var result1 = tokens.ToArray();
+            var result2 = DataStore.LoadNodes(headArray, versionIdArray);
+            DataStore.Checker.Assert_AreEqual(result1, result2);
+            return result1;
         }
         // when create new
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
@@ -538,11 +542,24 @@ namespace SenseNet.ContentRepository.Storage
                         settings.LastMinorVersionIdBefore = settings.NodeHead.LastMinorVersionId;
                     }
 
+                    //UNDONE:DB    Remove checker region
+                    #region prepare check
+                    var data2 = DataStore.Checker.Clone(data);
+                    var settings2 = DataStore.Checker.Clone(settings);
+                    DataStore.SaveNode(data2, settings2);
+                    #endregion
+
                     int lastMajorVersionId, lastMinorVersionId;
                     DataProvider.Current.SaveNodeData(data, settings, out lastMajorVersionId, out lastMinorVersionId);
 
                     settings.LastMajorVersionIdAfter = lastMajorVersionId;
                     settings.LastMinorVersionIdAfter = lastMinorVersionId;
+
+                    //UNDONE:DB    Remove checker region
+                    #region check
+                    DataStore.Checker.Assert_AreEqual(data, data2);
+                    DataStore.Checker.Assert_AreEqual(settings, settings2);
+                    #endregion
 
                     // here we re-create the node head to insert it into the cache and refresh the version info);
                     if (lastMajorVersionId > 0 || lastMinorVersionId > 0)

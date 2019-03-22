@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -1254,6 +1255,123 @@ namespace SenseNet.ContentRepository.Storage
         protected virtual void PropertyChanged(string propertyName)
         {
             PropertyChangedCallback?.Invoke(propertyName);
+        }
+
+        /*=========================================================== Testing tools */
+
+        /// <summary>
+        /// For test purposes.
+        /// </summary>
+        internal NodeData Clone()
+        {
+            var clone = new NodeData(NodeType.GetById( this.NodeTypeId), NodeTypeManager.Current.ContentListTypes.GetItemById(this.ContentListTypeId))
+            {
+                _isShared = _isShared,
+                SharedData = SharedData,
+
+                // static slots
+                Id = Id,
+                NodeTypeId = NodeTypeId,
+                ContentListId = ContentListId,
+                ContentListTypeId = ContentListTypeId,
+                ParentId = ParentId,
+                Name = Name,
+                DisplayName = DisplayName,
+                Path = Path,
+                Index = Index,
+                CreatingInProgress = CreatingInProgress,
+                IsDeleted = IsDeleted,
+                CreationDate = CreationDate,
+                ModificationDate = ModificationDate,
+                CreatedById = CreatedById,
+                ModifiedById = ModifiedById,
+                VersionId = VersionId,
+                Version = Version,
+                VersionCreationDate = VersionCreationDate,
+                VersionModificationDate = VersionModificationDate,
+                VersionCreatedById = VersionCreatedById,
+                VersionModifiedById = VersionModifiedById,
+                Locked = Locked,
+                LockedById = LockedById,
+                ETag = ETag,
+                LockType = LockType,
+                LockTimeout = LockTimeout,
+                LockDate = LockDate,
+                LockToken = LockToken,
+                LastLockUpdate = LastLockUpdate,
+                IsSystem = IsSystem,
+                OwnerId = OwnerId,
+                SavingState = SavingState,
+                ChangedData = ChangedData,
+                NodeTimestamp = NodeTimestamp,
+                VersionTimestamp = VersionTimestamp,
+
+                //
+                ModificationDateChanged = ModificationDateChanged,
+                ModifiedByIdChanged = ModifiedByIdChanged,
+                VersionModificationDateChanged = VersionModificationDateChanged,
+                VersionModifiedByIdChanged = VersionModifiedByIdChanged,
+
+                //
+                DefaultName = DefaultName,
+                ContentFieldXml = ContentFieldXml,
+            };
+            CloneDynamicData(clone);
+            return clone;
+        }
+        private void CloneDynamicData(NodeData clone)
+        {
+            var propTypes = NodeTypeManager.Current.PropertyTypes;
+            var target = clone.dynamicData;
+            target.Clear();
+            foreach (var item in dynamicData)
+            {
+                var propType = propTypes.GetItemById(item.Key);
+                switch (propType.DataType)
+                {
+                    case DataType.String:
+                    case DataType.Text:
+                    case DataType.Int:
+                    case DataType.Currency:
+                        target.Add(item.Key, item.Value);
+                        break;
+                    case DataType.DateTime:
+                        target.Add(item.Key, new DateTime(((DateTime) item.Value).Ticks));
+                        break;
+                    case DataType.Binary:
+                        target.Add(item.Key, CloneBinaryProperty((BinaryDataValue)item.Value));
+                        break;
+                    case DataType.Reference:
+                        target.Add(item.Key, ((List<int>)item.Value).ToList());
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                if(item.Value is BinaryDataValue binaryData)
+                target.Add(item.Key, item.Value);
+            }
+        }
+        private BinaryDataValue CloneBinaryProperty(BinaryDataValue original)
+        {
+            return new BinaryDataValue
+            {
+                Id = original.Id,
+                Stream = CloneStream(original.Stream),
+                FileId = original.FileId,
+                Size = original.Size,
+                FileName = original.FileName,
+                ContentType = original.ContentType,
+                Checksum = original.Checksum,
+                Timestamp = original.Timestamp,
+                BlobProviderName = original.BlobProviderName,
+                BlobProviderData = original.BlobProviderData,
+            };
+        }
+        private Stream CloneStream(Stream original)
+        {
+            if (original is MemoryStream memStream)
+                return new MemoryStream(memStream.GetBuffer().ToArray());
+            throw new NotImplementedException();
         }
     }
 }

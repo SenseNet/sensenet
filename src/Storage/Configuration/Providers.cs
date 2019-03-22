@@ -121,6 +121,8 @@ namespace SenseNet.Configuration
             set { _dataProvider = new Lazy<DataProvider>(() => value); }
         }
         #endregion
+        public DataProvider2 DataProvider2 { get; set; }
+
 
         #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
         private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =

@@ -105,10 +105,12 @@
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="CryptoApiTests.cs" />
+    <Compile Include="DataProviderTests.cs" />
     <Compile Include="EvaluatorTests.cs" />
     <Compile Include="FieldSettingTests.cs" />
     <Compile Include="FileTests.cs" />
     <Compile Include="GenericContentTests.cs" />
+    <Compile Include="Implementations\InMemoryDataProvider2.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="LoggerTests.cs" />
