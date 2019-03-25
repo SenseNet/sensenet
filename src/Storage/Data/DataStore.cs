@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             saveResult.Path = path;
 
             if (saveResult.NodeId >= 0)
-                nodeData.Path = saveResult.Path;
+                nodeData.Id = saveResult.NodeId;
             if (saveResult.VersionId >= 0)
                 nodeData.VersionId = saveResult.VersionId;
             if (saveResult.NodeTimestamp >= 0L)
@@ -138,7 +138,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (saveResult.LastMinorVersionId >= 0)
                 settings.LastMinorVersionIdAfter = saveResult.LastMinorVersionId;
         }
-
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
         {
             // ORIGINAL SIGNATURES:
@@ -180,7 +179,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return tokens.ToArray();
         }
-
         public static async Task DeleteNodeAsync(int nodeId, long timestamp)
         {
             // ORIGINAL SIGNATURES:
@@ -193,7 +191,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             await DataProvider.DeleteNodeAsync(nodeId, timestamp);
         }
-
         public static async Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
         {
             // ORIGINAL SIGNATURES:

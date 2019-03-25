@@ -35,6 +35,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT managed in the CheckerBlock.
             });
         }
+        //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         [TestMethod]
         public void DP_Update()
         {
@@ -52,6 +53,8 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT managed in the CheckerBlock.
             });
         }
+        //UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
+        //UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
 
         private void DPTest(Action callback)
         {
