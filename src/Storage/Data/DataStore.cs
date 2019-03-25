@@ -41,6 +41,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
+            var nodeTimestampBefore = DataProvider.GetNodeTimestamp(nodeData.Id);
+            var versionTimestampBefore = DataProvider.GetVersionTimestamp(nodeData.VersionId);
+
             // ORIGINAL SIGNATURES:
             // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
             // private static void SaveNodeBaseData(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -80,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             nodeData.Path = path;
 
             // Save data
-            var saveResult = SaveResult.Default; // comes from DataProvider methods
+            SaveResult saveResult = null; // comes from DataProvider methods
             try
             {
                 var savingAlgorithm = settings.GetSavingAlgorithm();
@@ -108,6 +111,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
                         await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
+
+                    //UNDONE:DB MISSING LOGICAL STEP: SaveNodeProperties(nodeData, savingAlgorithm, writer, isNewNode);
                 }
                 else
                 {
@@ -122,6 +127,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw;
             }
             saveResult.Path = path;
+
+            AssertTimestampsIncremented(saveResult, nodeTimestampBefore, versionTimestampBefore); //UNDONE:DB -------Delete CheckTimestamps feature
 
             if (saveResult.NodeId >= 0)
                 nodeData.Id = saveResult.NodeId;
@@ -138,6 +145,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (saveResult.LastMinorVersionId >= 0)
                 settings.LastMinorVersionIdAfter = saveResult.LastMinorVersionId;
         }
+
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
         {
             // ORIGINAL SIGNATURES:
@@ -258,6 +266,15 @@ namespace SenseNet.ContentRepository.Storage.Data
                 cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
             DistributedApplication.Cache.Insert(cacheKey, nodeData, dependency);
+        }
+
+
+        private static void AssertTimestampsIncremented(SaveResult saveResult, long nodeTimestampBefore, long versionTimestampBefore) //UNDONE:DB -------Delete CheckTimestamps feature
+        {
+            if (saveResult.NodeTimestamp <= nodeTimestampBefore)
+                throw new Exception("NodeTimestamp need to be incremented.");
+            if (saveResult.VersionTimestamp <= versionTimestampBefore)
+                throw new Exception("VersionTimestamp need to be incremented.");
         }
 
     }

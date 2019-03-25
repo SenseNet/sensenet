@@ -83,8 +83,8 @@ namespace SenseNet.ContentRepository.Storage
             Assert_AreEqual(expected.IsSystem, actual.IsSystem, "IsSystem");
             Assert_AreEqual(expected.OwnerId, actual.OwnerId, -1, "OwnerId");
             Assert_AreEqual(expected.SavingState.ToString(), actual.SavingState.ToString(), "SavingState");
-            Assert_AreEqual_Timestamp(expected, actual, true);
-            Assert_AreEqual_Timestamp(expected, actual, false);
+            //Assert_AreEqual_Timestamp(expected, actual, true);
+            //Assert_AreEqual_Timestamp(expected, actual, false);
             //
             Assert_AreEqual(expected.ModificationDateChanged, actual.ModificationDateChanged, "ModificationDateChanged");
             Assert_AreEqual(expected.ModifiedByIdChanged, actual.ModifiedByIdChanged, "ModifiedByIdChanged");
@@ -93,30 +93,6 @@ namespace SenseNet.ContentRepository.Storage
             Assert_AreEqual(expected.DefaultName, actual.DefaultName, "DefaultName");
             //
             Assert_AreEqual(expected.ChangedData, actual.ChangedData);
-        }
-        public void Assert_AreEqual_Timestamp(NodeData expected, NodeData actual, bool nodeTimestamp)
-        {
-            var name = nodeTimestamp ? "NodeTimestamp" : "VersionTimestamp";
-            var actualAfter = nodeTimestamp ? actual.NodeTimestamp : actual.VersionTimestamp;
-            if (expected.SharedData == null)
-            {
-                if (actualAfter > 0L)
-                    return;
-                throw new Exception($"{name} cannot be 0L");
-            }
-            var actualBefore = nodeTimestamp ? actual.SharedData.NodeTimestamp : actual.SharedData.VersionTimestamp;
-            var expectedBefore = nodeTimestamp ? expected.SharedData.NodeTimestamp : expected.SharedData.VersionTimestamp;
-            var expectedAfter = nodeTimestamp ? expected.NodeTimestamp : expected.VersionTimestamp;
-
-            if (expectedBefore == expectedAfter)
-            {
-                if (actualBefore == actualAfter)
-                    return;
-                throw new Exception($"{name} need to be unchanged");
-            }
-            if (actualBefore < actualAfter)
-                return;
-            throw new Exception($"{name} need to be incremented");
         }
 
         private void Assert_AreSame(object expected, object actual, string name)

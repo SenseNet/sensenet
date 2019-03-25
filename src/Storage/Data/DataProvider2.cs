@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public struct SaveResult //UNDONE: DELETE THIS
+    public class SaveResult //UNDONE: DELETE THIS
     {
         public int NodeId;
         public int VersionId;
@@ -18,21 +18,24 @@ namespace SenseNet.ContentRepository.Storage.Data
         public int LastMajorVersionId;
         public int LastMinorVersionId;
 
-        public static SaveResult Default => new SaveResult
+        public SaveResult()
         {
-            NodeId = -1,
-            VersionId = -1,
-            NodeTimestamp = -1L,
-            VersionTimestamp = -1L,
-            Path = null,
-            LastMajorVersionId = -1,
-            LastMinorVersionId = -1
-        };
+            NodeId = -1;
+            VersionId = -1;
+            NodeTimestamp = -1L;
+            VersionTimestamp = -1L;
+            Path = null;
+            LastMajorVersionId = -1;
+            LastMinorVersionId = -1;
+        }
 
         public VersionNumber Version;
         public Dictionary<PropertyType, int> BinaryPropertyIds;
     }
 
+    /// <summary>
+    /// .... Expected minimal object structure: Nodes -> Versions -> BinaryProperties -> Files
+    /// </summary>
     public abstract class DataProvider2
     {
         /* ============================================================================================================= Nodes */
@@ -40,6 +43,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         // Executes these:
         // INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        /// <summary>
+        /// Persists a brand new objects that contains all static and dynamic properties of the actual node.
+        /// </summary>
+        /// <param name="nodeData">NodeData that will be inserted to.</param>
+        /// <returns>A SaveResult instance with the newly generated data:
+        /// NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.</returns>
         public abstract Task<SaveResult> InsertNodeAsync(NodeData nodeData);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
@@ -104,5 +113,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract DateTime RoundDateTime(DateTime d);
         public DataProviderChecker Checker { get; } = new DataProviderChecker();
+
+        public abstract long GetNodeTimestamp(int nodeId);
+        public abstract long GetVersionTimestamp(int versionId);
     }
 }
