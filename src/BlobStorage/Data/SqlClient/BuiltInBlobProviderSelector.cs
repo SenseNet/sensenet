@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         public BuiltInBlobProviderSelector()
         {
             // check if there is a configuration for an external blob provider
-            if (string.IsNullOrEmpty(BlobStorage.BlobProviderClassName))
+            if (string.IsNullOrEmpty(BlobStorage.BlobProviderClassName) || ExternalBlobProvider != null)
                 return;
 
             try
