@@ -277,5 +277,15 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new Exception("VersionTimestamp need to be incremented.");
         }
 
+        //UNDONE:DB -------Delete GetNodeTimestamp feature
+        public static long GetNodeTimestamp(int nodeId)
+        {
+            return DataProvider.GetNodeTimestamp(nodeId);
+        }
+        //UNDONE:DB -------Delete GetVersionTimestamp feature
+        public static long GetVersionTimestamp(int versionId)
+        {
+            return DataProvider.GetVersionTimestamp(versionId);
+        }
     }
 }

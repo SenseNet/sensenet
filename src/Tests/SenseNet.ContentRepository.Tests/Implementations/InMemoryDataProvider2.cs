@@ -342,12 +342,15 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             return (string)_nodes[nodeId]["Path"];
         }
+
+        //UNDONE:DB -------Delete GetNodeTimestamp feature
         public override long GetNodeTimestamp(int nodeId)
         {
             if (!_nodes.TryGetValue(nodeId, out var existing))
                 return 0L;
             return (long)existing["Timestamp"];
         }
+        //UNDONE:DB -------Delete GetVersionTimestamp feature
         public override long GetVersionTimestamp(int versionId)
         {
             if (!_versions.TryGetValue(versionId, out var existing))

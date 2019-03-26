@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
@@ -1259,15 +1260,21 @@ namespace SenseNet.ContentRepository.Storage
 
         /*=========================================================== Testing tools */
 
+        //UNDONE:DB -------Delete NodeData.Clone feature
         /// <summary>
         /// For test purposes.
         /// </summary>
         internal NodeData Clone()
         {
+            var isSharedBefore = IsShared;
+            IsShared = false;
+
+            var sharedClone = SharedData?.Clone();
+
             var clone = new NodeData(NodeType.GetById( this.NodeTypeId), NodeTypeManager.Current.ContentListTypes.GetItemById(this.ContentListTypeId))
             {
                 _isShared = _isShared,
-                SharedData = SharedData,
+                SharedData = sharedClone,
 
                 // static slots
                 Id = Id,
@@ -1303,8 +1310,8 @@ namespace SenseNet.ContentRepository.Storage
                 OwnerId = OwnerId,
                 SavingState = SavingState,
                 ChangedData = ChangedData,
-                NodeTimestamp = NodeTimestamp,
-                VersionTimestamp = VersionTimestamp,
+                NodeTimestamp = DataStore.GetNodeTimestamp(this.Id),
+                VersionTimestamp = DataStore.GetVersionTimestamp(this.VersionId),
 
                 //
                 ModificationDateChanged = ModificationDateChanged,
@@ -1317,6 +1324,8 @@ namespace SenseNet.ContentRepository.Storage
                 ContentFieldXml = ContentFieldXml,
             };
             CloneDynamicData(clone);
+
+            IsShared = isSharedBefore;
             return clone;
         }
         private void CloneDynamicData(NodeData clone)

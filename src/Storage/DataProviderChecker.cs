@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage
         public void Assert_AreEqual(NodeData expected, NodeData actual)
         {
             Assert_AreEqual(expected.IsShared, actual.IsShared, "IsShared");
-            Assert_AreSame(expected.SharedData, actual.SharedData, "SharedData");
+            //Assert_AreSame(expected.SharedData, actual.SharedData, "SharedData");
             //
             Assert_AreEqual(expected.Id, actual.Id, -1, "Id");
             Assert_AreEqual(expected.NodeTypeId, actual.NodeTypeId, -1, "NodeTypeId");

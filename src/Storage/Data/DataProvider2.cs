@@ -114,7 +114,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DateTime RoundDateTime(DateTime d);
         public DataProviderChecker Checker { get; } = new DataProviderChecker();
 
+        //UNDONE:DB -------Delete GetNodeTimestamp feature
         public abstract long GetNodeTimestamp(int nodeId);
+        //UNDONE:DB -------Delete GetVersionTimestamp feature
         public abstract long GetVersionTimestamp(int versionId);
     }
 }
