@@ -13,7 +13,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public int VersionId;
         public long NodeTimestamp;
         public long VersionTimestamp;
-        public string Path;
 
         public int LastMajorVersionId;
         public int LastMinorVersionId;
@@ -24,12 +23,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             VersionId = -1;
             NodeTimestamp = -1L;
             VersionTimestamp = -1L;
-            Path = null;
             LastMajorVersionId = -1;
             LastMinorVersionId = -1;
         }
 
+        //UNDONE:DB SaveResult.Version
         public VersionNumber Version;
+
+        //UNDONE:DB SaveResult.BinaryPropertyIds
         public Dictionary<PropertyType, int> BinaryPropertyIds;
     }
 
@@ -112,7 +113,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* ============================================================================================================= Tools */
 
         public abstract DateTime RoundDateTime(DateTime d);
-        public DataProviderChecker Checker { get; } = new DataProviderChecker();
 
         //UNDONE:DB -------Delete GetNodeTimestamp feature
         public abstract long GetNodeTimestamp(int nodeId);

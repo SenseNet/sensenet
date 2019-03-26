@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,28 +15,30 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    [DebuggerDisplay("{" + nameof(ToString) + "()}")]
+    public class SnapshotItem
+    {
+        public string Name;
+        public bool IsDp2;
+        public object Snapshot;
+
+        public override string ToString()
+        {
+            return $"{Name} DP{(IsDp2 ? 2 : 0)} {Snapshot.GetType().Name}";
+        }
+    }
+
     public static class DataStore
     {
-        private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
-        public static DataProviderChecker Checker => DataProvider.Checker;
+        //UNDONE:DB -------Remove DataStore.Enabled
+        public static bool Enabled { get; set; }
+        //UNDONE:DB -------Remove DataStore.Enabled
+        public static bool SnapshotsEnabled { get; set; }
 
-        public static IDisposable CheckerBlock()
-        {
-            return new CheckerBlockObject(Checker);
-        }
-        private class CheckerBlockObject:IDisposable
-        {
-            private readonly DataProviderChecker _checker;
-            public CheckerBlockObject(DataProviderChecker checker)
-            {
-                _checker = checker;
-                _checker.Enabled = true;
-            }
-            public void Dispose()
-            {
-                _checker.Enabled = false;
-            }
-        }
+        public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();
+
+
+        private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
 
         /* ============================================================================================================= Nodes */
 
@@ -66,21 +69,21 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             var isNewNode = nodeData.Id == 0; // shortcut
 
-            // Finalize path
-            string path;
-            if (nodeData.Id != Identifiers.PortalRootId)
-            {
-                var parent = NodeHead.Get(nodeData.ParentId);
-                if (parent == null)
-                    throw new ContentNotFoundException(nodeData.ParentId.ToString());
-                path = RepositoryPath.Combine(parent.Path, nodeData.Name);
-            }
-            else
-            {
-                path = Identifiers.RootPath;
-            }
-            Node.AssertPath(path);
-            nodeData.Path = path;
+            //// Finalize path
+            //string path;
+            //if (nodeData.Id != Identifiers.PortalRootId)
+            //{
+            //    var parent = NodeHead.Get(nodeData.ParentId);
+            //    if (parent == null)
+            //        throw new ContentNotFoundException(nodeData.ParentId.ToString());
+            //    path = RepositoryPath.Combine(parent.Path, nodeData.Name);
+            //}
+            //else
+            //{
+            //    path = Identifiers.RootPath;
+            //}
+            //Node.AssertPath(path);
+            //nodeData.Path = path;
 
             // Save data
             SaveResult saveResult = null; // comes from DataProvider methods
@@ -126,7 +129,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 throw;
             }
-            saveResult.Path = path;
 
             AssertTimestampsIncremented(saveResult, nodeTimestampBefore, versionTimestampBefore); //UNDONE:DB -------Delete CheckTimestamps feature
 
@@ -138,8 +140,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 nodeData.NodeTimestamp = saveResult.NodeTimestamp;
             if (saveResult.VersionTimestamp >= 0L)
                 nodeData.VersionTimestamp = saveResult.VersionTimestamp;
-            if (saveResult.Path != null)
-                nodeData.Path = saveResult.Path;
             if (saveResult.LastMajorVersionId >= 0)
                 settings.LastMajorVersionIdAfter = saveResult.LastMajorVersionId;
             if (saveResult.LastMinorVersionId >= 0)
@@ -286,6 +286,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static long GetVersionTimestamp(int versionId)
         {
             return DataProvider.GetVersionTimestamp(versionId);
+        }
+
+        //UNDONE:DB -------Remove DataStore.AddSnapshot
+        public static void AddSnapshot(string name, object snapshot)
+        {
+            if (!SnapshotsEnabled)
+                return;
+
+            Snapshots.Add(new SnapshotItem
+            {
+                Name = name,
+                IsDp2 = Enabled,
+                Snapshot = snapshot
+            });
         }
     }
 }

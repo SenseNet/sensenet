@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
-// ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Storage
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    //UNDONE:DB -------Delete DataProviderChecker feature
     public class DataProviderChecker
     {
         public bool Enabled { get; set; }
@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository.Storage
 
         }
 
-        public void Assert_AreEqual(NodeData expected, NodeData actual)
+        public static void Assert_AreEqual(NodeData expected, NodeData actual)
         {
             Assert_AreEqual(expected.IsShared, actual.IsShared, "IsShared");
             //Assert_AreSame(expected.SharedData, actual.SharedData, "SharedData");
@@ -95,42 +95,44 @@ namespace SenseNet.ContentRepository.Storage
             Assert_AreEqual(expected.ChangedData, actual.ChangedData);
         }
 
-        private void Assert_AreSame(object expected, object actual, string name)
+        private static void Assert_AreSame(object expected, object actual, string name)
         {
             if (!object.ReferenceEquals(expected, actual))
                 throw new Exception(
                     $"Expected and actual {name} are not the same equal.");
         }
 
-        private void Assert_AreEqual(IEnumerable<ChangedData> expected, IEnumerable<ChangedData> actual)
+        private static void Assert_AreEqual(IEnumerable<ChangedData> expected, IEnumerable<ChangedData> actual)
         {
             if (expected == null && actual == null)
                 return;
             throw new NotImplementedException();
         }
 
-        private void Assert_AreEqual(DateTime expected, DateTime actual, string name)
+        private static void Assert_AreEqual(DateTime expected, DateTime actual, string name)
+        {
+            var expectedDiff = 500;
+            var diff = (actual - expected).TotalMilliseconds;
+            if (diff > expectedDiff || diff < -expectedDiff)
+                throw new Exception(
+                    $"Different of expected and actual {name} is too big. Expected: {expectedDiff}, Actual: {diff} milliseconds.");
+        }
+
+        private static void Assert_AreEqual(long expected, long actual, string name)
         {
             if (expected != actual)
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
 
-        private void Assert_AreEqual(long expected, long actual, string name)
+        private static void Assert_AreEqual(string expected, string actual, string name)
         {
             if (expected != actual)
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
 
-        private void Assert_AreEqual(string expected, string actual, string name)
-        {
-            if (expected != actual)
-                throw new Exception(
-                    $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
-        }
-
-        internal void Assert_AreEqual(NodeSaveSettings expected, NodeSaveSettings actual)
+        public static void Assert_AreEqual(NodeSaveSettings expected, NodeSaveSettings actual)
         {
             Assert_AreEqual(expected.Node.Id, actual.Node.Id, -1, "Id");
             Assert_AreEqual(expected.CurrentVersionId, actual.CurrentVersionId, -1, "CurrentVersionId");
@@ -154,7 +156,7 @@ namespace SenseNet.ContentRepository.Storage
             Assert_AreEqual(expected.DeletableVersionIds, actual.DeletableVersionIds, "DeletableVersionIds");
         }
 
-        private void Assert_AreEqual(List<int> expected, List<int> actual, string name)
+        private static void Assert_AreEqual(List<int> expected, List<int> actual, string name)
         {
             var exp = string.Join(",", expected.OrderBy(x => x).Select(x => x.ToString()));
             var act = string.Join(",", actual.OrderBy(x => x).Select(x => x.ToString()));
@@ -162,19 +164,19 @@ namespace SenseNet.ContentRepository.Storage
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Expected: {exp}, Actual: {act}");
         }
-        private void Assert_AreEqual(bool expected, bool actual, string name)
+        private static void Assert_AreEqual(bool expected, bool actual, string name)
         {
             if (expected != actual)
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
-        private void Assert_AreEqual(VersioningMode expected, VersioningMode actual, string name)
+        private static void Assert_AreEqual(VersioningMode expected, VersioningMode actual, string name)
         {
             if (expected != actual)
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
-        private void Assert_AreEqual(int? expected, int? actual, string name)
+        private static void Assert_AreEqual(int? expected, int? actual, string name)
         {
             if (expected == null && actual == null)
                 return;
@@ -185,21 +187,21 @@ namespace SenseNet.ContentRepository.Storage
 
         /* =========================================================================================== Private */
 
-        private void Assert_AreEqual(int expected, int actual, int index, string name)
+        private static void Assert_AreEqual(int expected, int actual, int index, string name)
         {
             if (expected != actual)
                 throw new Exception(
                     $"Expected and actual {name} are not equal. Index: {index}. Expected: {expected}, Actual: {actual}");
         }
 
-        private void Assert_AreEqual(VersionNumber expected, VersionNumber actual, int index, string name)
+        private static void Assert_AreEqual(VersionNumber expected, VersionNumber actual, int index, string name)
         {
             if (expected.ToString() != actual.ToString())
                 throw new Exception(
                     $"Expected and actual VersionNumber are not equal. Index: {index}. Expected: {expected}, Actual: {actual}");
         }
 
-        private void Assert_AreEqual(TypeCollection<PropertyType> expected, TypeCollection<PropertyType> actual,
+        private static void Assert_AreEqual(TypeCollection<PropertyType> expected, TypeCollection<PropertyType> actual,
             int index, string name)
         {
             if (expected.Count != actual.Count)
@@ -207,24 +209,24 @@ namespace SenseNet.ContentRepository.Storage
                     $"Expected and actual {name} count are not equal. Index: {index}. Expected: {expected.Count}, Actual: {actual.Count}");
         }
 
-        private void Assert_AreEqual(NodeHead expected, NodeHead actual, int index)
+        private static void Assert_AreEqual(NodeHead expected, NodeHead actual, int index)
         {
             throw new NotImplementedException();
         }
 
-        private void Assert_AreEqual(NodeData expected, NodeData actual, int index)
+        private static void Assert_AreEqual(NodeData expected, NodeData actual, int index)
         {
             throw new NotImplementedException();
         }
 
         /* =========================================================================================== Private */
 
-        public NodeData Clone(NodeData original)
+        public static NodeData Clone(NodeData original)
         {
             return original.Clone();
         }
 
-        internal NodeSaveSettings Clone(NodeSaveSettings original)
+        public static NodeSaveSettings Clone(NodeSaveSettings original)
         {
             return new NodeSaveSettings
             {
