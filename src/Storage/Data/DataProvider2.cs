@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public class SaveResult //UNDONE: DELETE THIS
+    public class SaveResult //UNDONE:DB ?? Delete SaveResult or move to implementation ??
     {
         public int NodeId;
         public int VersionId;

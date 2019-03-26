@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository.Tests
     public class DataProviderTests : TestBase
     {
         [TestMethod]
-        public void DP_Create()
+        public void DPAB_Create()
         {
             DPTest(() =>
             {
@@ -35,9 +35,30 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT managed in the CheckerBlock.
             });
         }
+        [TestMethod]
+        public void DPAB_CreateFile()
+        {
+            DPTest(() =>
+            {
+                var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                folder.Save();
+                var file = new File(folder){Name = "File1" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
+
+                // ACTION
+                using (DataStore.CheckerBlock())
+                    file.Save();
+
+                // ASSERT managed in the CheckerBlock.
+
+                var db = ((InMemoryDataProvider) Providers.Instance.DataProvider).DB;
+                var dp2 = Providers.Instance.DataProvider2;
+
+            });
+        }
         //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         [TestMethod]
-        public void DP_Update()
+        public void DPAB_Update()
         {
             DPTest(() =>
             {

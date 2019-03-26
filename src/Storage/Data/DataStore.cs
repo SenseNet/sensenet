@@ -54,8 +54,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             // Before return the LastMajorVersionIdAfter and LastMinorVersionIdAfter properties of the given "settings" need to be updated
             //    instead of use the original output values.
 
-            //UNDONE:DB    ?Implement transaction related stuff (from DataBackingStore)
-            //UNDONE:DB    Implement cache invalidations (from DataBackingStore)
+            //UNDONE:DB ?Implement transaction related stuff (from DataBackingStore)
+            //UNDONE:DB Implement cache invalidations (from DataBackingStore)
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -87,7 +87,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 var savingAlgorithm = settings.GetSavingAlgorithm();
-                if (settings.NeedToSaveData) //UNDONE:    This decision by "NeedToSaveData" is provider responsibility.
+                if (settings.NeedToSaveData) //UNDONE: This decision by "NeedToSaveData" is provider responsibility.
                 {
                     switch (savingAlgorithm)
                     {

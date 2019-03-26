@@ -1356,8 +1356,6 @@ namespace SenseNet.ContentRepository.Storage
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-                if(item.Value is BinaryDataValue binaryData)
-                target.Add(item.Key, item.Value);
             }
         }
         private BinaryDataValue CloneBinaryProperty(BinaryDataValue original)

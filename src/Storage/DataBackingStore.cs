@@ -543,7 +543,7 @@ namespace SenseNet.ContentRepository.Storage
                         settings.LastMinorVersionIdBefore = settings.NodeHead.LastMinorVersionId;
                     }
 
-                    //UNDONE:DB    Remove checker region
+                    //UNDONE:DB -------Remove checker region
                     #region prepare check
                     var data2 = DataStore.Checker.Clone(data);
                     var settings2 = DataStore.Checker.Clone(settings);
@@ -556,7 +556,7 @@ namespace SenseNet.ContentRepository.Storage
                     settings.LastMajorVersionIdAfter = lastMajorVersionId;
                     settings.LastMinorVersionIdAfter = lastMinorVersionId;
 
-                    //UNDONE:DB    Remove checker region
+                    //UNDONE:DB -------Remove checker region
                     #region check
                     DataStore.Checker.Assert_AreEqual(data, data2);
                     DataStore.Checker.Assert_AreEqual(settings, settings2);
