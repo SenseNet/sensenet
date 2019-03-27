@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -84,12 +85,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task DeleteNodeAsync(int nodeId, long timestamp);
         public abstract Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp);
 
+        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds);
+
         /* ============================================================================================================= NodeHead */
 
         public abstract Task<NodeHead> LoadNodeHeadAsync(string path);
         public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId);
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId);
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
+        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
+
+        /* ============================================================================================================= IndexDocument */
+
+        public abstract Task<SaveResult> SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
 
         /* ============================================================================================================= Schema */
 
@@ -118,5 +126,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract long GetNodeTimestamp(int nodeId);
         //UNDONE:DB -------Delete GetVersionTimestamp feature
         public abstract long GetVersionTimestamp(int versionId);
+
+        public abstract void InstallDefaultStructure();
     }
 }

@@ -58,7 +58,10 @@ namespace SenseNet.ContentRepository.Storage
 
             if (item == null)
             {
-                item = DataProvider.Current.LoadNodeHead(nodeId);
+                item = DataStore.Enabled
+                    ? DataStore.LoadNodeHeadAsync(nodeId).Result
+                    : DataProvider.Current.LoadNodeHead(nodeId);
+
                 if (item != null)
                     CacheNodeHead(item, idKey, CreateNodeHeadPathCacheKey(item.Path));
             }
@@ -76,7 +79,12 @@ namespace SenseNet.ContentRepository.Storage
             if (item == null)
             {
                 Debug.WriteLine("#GetNodeHead from db: " + path);
-                item = DataProvider.Current.LoadNodeHead(path);
+
+                if (DataStore.Enabled)
+                    throw new NotImplementedException();
+                else
+                    item = DataProvider.Current.LoadNodeHead(path);
+
                 if (item != null)
                     CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);
             }
@@ -98,7 +106,13 @@ namespace SenseNet.ContentRepository.Storage
 
             if (unloadHeads.Count > 0)
             {
-                foreach (var head in DataProvider.Current.LoadNodeHeads(unloadHeads))
+                IEnumerable<NodeHead> heads;
+                if (DataStore.Enabled)
+                    throw new NotImplementedException();
+                else
+                    heads = DataProvider.Current.LoadNodeHeads(unloadHeads);
+
+                foreach (var head in heads)
                 {
                     if (head != null)
                         CacheNodeHead(head, CreateNodeHeadIdCacheKey(head.Id), CreateNodeHeadPathCacheKey(head.Path));
@@ -116,7 +130,10 @@ namespace SenseNet.ContentRepository.Storage
         }
         internal static NodeHead GetNodeHeadByVersionId(int versionId)
         {
-            return DataProvider.Current.LoadNodeHeadByVersionId(versionId);
+            if (DataStore.Enabled)
+                throw new NotImplementedException();
+            else
+                return DataProvider.Current.LoadNodeHeadByVersionId(versionId);
         }
 
         internal static void CacheNodeHead(NodeHead nodeHead)
@@ -154,7 +171,10 @@ namespace SenseNet.ContentRepository.Storage
                 return true;
 
             // If it wasn't in the cache, check the database
-            return DataProvider.NodeExists(path);
+            if (DataStore.Enabled)
+                throw new NotImplementedException();
+            else
+                return DataProvider.NodeExists(path);
         }
 
         internal static bool CanExistInDatabase(int id)
@@ -182,7 +202,10 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
         {
-            return DataProvider.Current.GetNodeVersions(nodeId);
+            if (DataStore.Enabled)
+                return DataStore.GetNodeVersions(nodeId).Result;
+            else
+                return DataProvider.Current.GetNodeVersions(nodeId);
         }
 
         // ====================================================================== Get NodeData
@@ -199,10 +222,17 @@ namespace SenseNet.ContentRepository.Storage
             token.NodeHead = head;
             if (nodeData == null)
             {
-                DataProvider.Current.LoadNodeData(new NodeToken[] { token });
-                nodeData = token.NodeData;
-                if (nodeData != null) // lost version
-                    CacheNodeData(nodeData, cacheKey);
+                if (DataStore.Enabled)
+                    token = DataStore.LoadNodesAsync(new[] {head}, new[] {versionId}).Result.First(); //UNDONE:DB --FirstOrDefault()?
+                else
+                    DataProvider.Current.LoadNodeData(new NodeToken[] { token });
+
+                if (!DataStore.Enabled) // DataStore inserts to te cache if needed
+                {
+                    nodeData = token.NodeData;
+                    if (nodeData != null) // lost version
+                        CacheNodeData(nodeData, cacheKey);
+                }
             }
             else
             {
@@ -255,7 +285,9 @@ namespace SenseNet.ContentRepository.Storage
             var listTypeId = listType == null ? 0 : listType.Id;
             var parentId = parent == null ? 0 : parent.Id;
             var userId = AccessProvider.Current.GetOriginalUser().Id;
-            var now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+            var now = DataStore.Enabled
+                ? DataStore.RoundDateTime(DateTime.UtcNow)
+                : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
             var name = String.Concat(nodeType.Name, "-", now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
             var path = (parent == null) ? "/" + name : RepositoryPath.Combine(parent.Path, name);
             var versionNumber = new VersionNumber(1, 0, VersionStatus.Approved);
@@ -294,9 +326,9 @@ namespace SenseNet.ContentRepository.Storage
                 ETag = null,
                 LockType = 0,
                 LockTimeout = 0,
-                LockDate = DataProvider.Current.DateTimeMinValue,
+                LockDate = DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue,
                 LockToken = null,
-                LastLockUpdate = DataProvider.Current.DateTimeMinValue,
+                LastLockUpdate = DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue,
 
                 //TODO: IsSystem
 
@@ -336,10 +368,20 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static object LoadProperty(int versionId, PropertyType propertyType)
         {
-            if (propertyType.DataType == DataType.Text)
-                return DataProvider.Current.LoadTextPropertyValue(versionId, propertyType.Id);
-            if (propertyType.DataType == DataType.Binary)
-                return DataProvider.Current.LoadBinaryPropertyValue(versionId, propertyType.Id);
+            if (DataStore.Enabled)
+            {
+                if (propertyType.DataType == DataType.Text)
+                    throw new NotImplementedException();
+                if (propertyType.DataType == DataType.Binary)
+                    throw new NotImplementedException();
+            }
+            else
+            {
+                if (propertyType.DataType == DataType.Text)
+                    return DataProvider.Current.LoadTextPropertyValue(versionId, propertyType.Id);
+                if (propertyType.DataType == DataType.Binary)
+                    return DataProvider.Current.LoadBinaryPropertyValue(versionId, propertyType.Id);
+            }
             return propertyType.DefaultValue;
         }
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
@@ -348,7 +390,10 @@ namespace SenseNet.ContentRepository.Storage
 
             if (TransactionScope.IsActive)
             {
-                binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
+                if (DataStore.Enabled)
+                    throw new NotImplementedException();
+                else
+                    binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
                 return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
             }
 
@@ -358,7 +403,10 @@ namespace SenseNet.ContentRepository.Storage
             if (binaryCacheEntity == null)
             {
                 // Not in cache, load it from the database
-                binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
+                if (DataStore.Enabled)
+                    throw new NotImplementedException();
+                else
+                    binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
 
                 // insert the binary cache entity into the 
                 // cache only if we know the node id
@@ -382,7 +430,10 @@ namespace SenseNet.ContentRepository.Storage
         }
         internal static Dictionary<int, string> LoadTextProperties(int versionId, int[] notLoadedPropertyTypeIds)
         {
-            return DataProvider.Current.LoadTextPropertyValues(versionId, notLoadedPropertyTypeIds);
+            if (DataStore.Enabled)
+                return DataStore.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds).Result;
+            else
+                return DataProvider.Current.LoadTextPropertyValues(versionId, notLoadedPropertyTypeIds);
         }
 
         // ====================================================================== Transaction callback
@@ -732,7 +783,16 @@ namespace SenseNet.ContentRepository.Storage
                     docStream.Flush();
                     docStream.Position = 0;
                     bytes = docStream.GetBuffer();
-                    DataProvider.SaveIndexDocument(node.Data, bytes);
+
+                    if (DataStore.Enabled)
+                    {
+                        var result = DataStore.SaveIndexDocumentAsync(node.Data, doc).Result;
+                        //UNDONE:DB Write a generalized method for process the SaveResult
+                        if (result.VersionTimestamp >= 0)
+                            node.Data.VersionTimestamp = result.VersionTimestamp;
+                    }
+                    else
+                        DataProvider.SaveIndexDocument(node.Data, bytes);
                 }
             }
             else
@@ -760,7 +820,11 @@ namespace SenseNet.ContentRepository.Storage
                     docStream.Flush();
                     docStream.Position = 0;
                     bytes = docStream.GetBuffer();
-                    DataProvider.SaveIndexDocument(node.Data, bytes);
+
+                    if (DataStore.Enabled)
+                        throw new NotImplementedException();
+                    else
+                        DataProvider.SaveIndexDocument(node.Data, bytes);
                 }
             }
             else

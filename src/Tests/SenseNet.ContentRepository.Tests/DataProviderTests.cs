@@ -65,26 +65,46 @@ namespace SenseNet.ContentRepository.Tests
 
         //    });
         //}
-        ////UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
-        //[TestMethod]
-        //public void DPAB_Update()
-        //{
-        //    DPTest(() =>
-        //    {
-        //        var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-        //        folder.Save();
-        //        folder = Node.Load<SystemFolder>(folder.Id);
-        //        folder.Index++;
+        //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
+        [TestMethod]
+        public void DPAB_Update()
+        {
+            DPTest(() =>
+            {
+                // PROVIDER-A
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Save();
+                folderA = Node.Load<SystemFolder>(folderA.Id);
+                folderA.Index++;
+                DataStore.SnapshotsEnabled = true;
+                folderA.Save();
+                DataStore.SnapshotsEnabled = false;
 
-        //        // ACTION
-        //        using (DataStore.CheckerBlock())
-        //            folder.Save();
+                // PROVIDER-B
+                DataStore.Enabled = true;
+                DistributedApplication.Cache.Reset();
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Save();
+                folderB = Node.Load<SystemFolder>(folderB.Id);
+                folderB.Index++;
+                DataStore.SnapshotsEnabled = true;
+                folderB.Save();
+                DataStore.SnapshotsEnabled = false;
 
-        //        // ASSERT managed in the CheckerBlock.
-        //    });
-        //}
-        ////UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
-        ////UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
+                // Check
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                Assert.IsTrue(nodeDataBeforeB.NodeTimestamp < nodeDataAfterB.NodeTimestamp);
+                Assert.IsTrue(nodeDataBeforeB.VersionTimestamp < nodeDataAfterB.VersionTimestamp);
+            });
+        }
+        //UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
+        //UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
 
         private void DPTest(Action callback)
         {
@@ -103,10 +123,11 @@ namespace SenseNet.ContentRepository.Tests
             Providers.Instance.DataProvider2 = new InMemoryDataProvider2();
             using (Repository.Start(builder))
             {
+                DataStore.InstallDefaultStructure();
+                new SnMaintenance().Shutdown();
                 using (new SystemAccount())
                     callback();
             }
         }
-
     }
 }

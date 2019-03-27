@@ -1310,8 +1310,8 @@ namespace SenseNet.ContentRepository.Storage
                 OwnerId = OwnerId,
                 SavingState = SavingState,
                 ChangedData = ChangedData,
-                NodeTimestamp = DataStore.GetNodeTimestamp(this.Id),
-                VersionTimestamp = DataStore.GetVersionTimestamp(this.VersionId),
+                NodeTimestamp = NodeTimestamp,
+                VersionTimestamp = VersionTimestamp,
 
                 //
                 ModificationDateChanged = ModificationDateChanged,

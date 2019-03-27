@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -39,6 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
+        public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ---- DataStore.DateTimeMinValue
 
         /* ============================================================================================================= Nodes */
 
@@ -208,6 +210,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.MoveNodeAsync(sourceNodeId, targetNodeId, sourceTimestamp, targetTimestamp);
         }
 
+        public static async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
+        {
+            return await DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds);
+        }
+
         /* ============================================================================================================= NodeHead */
 
         public static async Task<NodeHead> LoadNodeHeadAsync(string path)
@@ -225,6 +232,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
         {
             return await DataProvider.LoadNodeHeadsAsync(heads);
+        }
+        public static async Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId)
+        {
+            return await DataProvider.GetNodeVersions(nodeId);
+        }
+
+        /* ============================================================================================================= IndexDocument */
+
+        public static async Task<SaveResult> SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
+        {
+            return await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
         /* ============================================================================================================= Schema */
@@ -301,5 +319,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                 Snapshot = snapshot
             });
         }
+
+        public static void InstallDefaultStructure() //UNDONE:DB ------Implement well: InstallDefaultStructure
+        {
+            DataProvider.InstallDefaultStructure();
+        }
+
     }
 }
