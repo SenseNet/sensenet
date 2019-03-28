@@ -21,6 +21,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
     {
         // ReSharper disable once InconsistentNaming
         private int __lastNodeId = 1247; // Uses the GetNextNodeId() method.
+
         /// <summary>
         /// NodeId, NodeHead data
         /// </summary>
@@ -28,6 +29,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         // ReSharper disable once InconsistentNaming
         private int __lastVersionId = 260; // Uses the GetNextVersionId() method.
+
         /// <summary>
         /// VersionId, NodeData minus NodeHead
         /// </summary>
@@ -82,9 +84,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
 
-            if(!_nodes.TryGetValue(nodeData.Id, out var nodeDoc))
+            if (!_nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
-            if ((long)nodeDoc.Timestamp != nodeData.NodeTimestamp)
+            if ((long) nodeDoc.Timestamp != nodeData.NodeTimestamp)
                 throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
 
             var versionDoc = _versions[nodeData.VersionId];
@@ -99,9 +101,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionDoc.ChangedData = nodeData.ChangedData?.ToArray();
 
             // UpdateNodeRow
-            var path = nodeData.Id == Identifiers.PortalRootId
-                ? Identifiers.RootPath
-                : GetParentPath(nodeData.Id) + "/" + nodeData.Name; //UNDONE:DB Generalize "parent path + '/' + name" algorithm instead of calculating in the provider.
             nodeDoc.NodeTypeId = nodeData.NodeTypeId;
             nodeDoc.ContentListTypeId = nodeData.ContentListTypeId;
             nodeDoc.ContentListId = nodeData.ContentListId;
@@ -111,7 +110,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             nodeDoc.ParentNodeId = nodeData.ParentId;
             nodeDoc.Name = nodeData.Name;
             nodeDoc.DisplayName = nodeData.DisplayName;
-            nodeDoc.Path = path;
+            nodeDoc.Path = nodeData.Path;
             nodeDoc.Index = nodeData.Index;
             nodeDoc.Locked = nodeData.Locked;
             nodeDoc.LockedById = nodeData.LockedById;
@@ -144,12 +143,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return System.Threading.Tasks.Task.FromResult(result);
         }
 
-        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId, IEnumerable<int> versionIdsToDelete)
+        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId,
+            IEnumerable<int> versionIdsToDelete)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId, int expectedVersionId,
+        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
+            int expectedVersionId,
             IEnumerable<int> versionIdsToDelete)
         {
             throw new NotImplementedException();
@@ -218,7 +219,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
                 //UNDONE:DB dynamic properties
             }
-            return System.Threading.Tasks.Task.FromResult((IEnumerable<NodeData>)result);
+            return System.Threading.Tasks.Task.FromResult((IEnumerable<NodeData>) result);
         }
 
         public override System.Threading.Tasks.Task DeleteNodeAsync(int nodeId, long timestamp)
@@ -226,12 +227,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override System.Threading.Tasks.Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
+        public override System.Threading.Tasks.Task MoveNodeAsync(int sourceNodeId, int targetNodeId,
+            long sourceTimestamp, long targetTimestamp)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
+        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
+            int[] notLoadedPropertyTypeIds)
         {
             //UNDONE:DB dynamic properties
             var result = new Dictionary<int, string>();
@@ -250,33 +253,20 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (!_nodes.TryGetValue(nodeId, out var nodeDoc))
                 return null;
 
-            var name = nodeDoc.Name;
-            var displayName = nodeDoc.DisplayName;
-            var path = nodeDoc.Path;
-            var parentNodeId = nodeDoc.ParentNodeId;
-            var nodeTypeId = nodeDoc.NodeTypeId;
-            var contentListTypeId = nodeDoc.ContentListTypeId;
-            var contentListId = nodeDoc.ContentListId;
-            var creationDate = nodeDoc.CreationDate;
-            var modificationDate = nodeDoc.ModificationDate;
-            var lastMinorVersionId = nodeDoc.LastMinorVersionId;
-            var lastMajorVersionId = nodeDoc.LastMajorVersionId;
-            var ownerId = nodeDoc.OwnerId;
-            var createdById = nodeDoc.CreatedById;
-            var modifiedById = nodeDoc.ModifiedById;
-            var index = nodeDoc.Index;
-            var lockedById = nodeDoc.LockedById;
-            var timestamp = nodeDoc.Timestamp;
-
-            var head = new NodeHead(nodeId, name, displayName, path, parentNodeId, nodeTypeId, contentListTypeId, contentListId,
-                creationDate, modificationDate, lastMinorVersionId, lastMajorVersionId, ownerId, createdById, modifiedById,
-                index, lockedById, timestamp);
-            return System.Threading.Tasks.Task.FromResult(head);
+            return System.Threading.Tasks.Task.FromResult(NodeDocToNodeHead(nodeDoc));
         }
 
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)
         {
-            throw new NotImplementedException();
+            var versionDoc = _versions.Values.FirstOrDefault(x => x.VersionId == versionId);
+            if (versionDoc == null)
+                return null;
+
+            var nodeDoc = _nodes.Values.FirstOrDefault(x => x.NodeId == versionDoc.NodeId);
+            if (nodeDoc == null)
+                return null;
+
+            return System.Threading.Tasks.Task.FromResult(NodeDocToNodeHead(nodeDoc));
         }
 
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
@@ -295,6 +285,29 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return System.Threading.Tasks.Task.FromResult(result);
         }
 
+        private NodeHead NodeDocToNodeHead(NodeDoc nodeDoc)
+        {
+            return new NodeHead(
+                nodeDoc.NodeId,
+                nodeDoc.Name,
+                nodeDoc.DisplayName,
+                nodeDoc.Path,
+                nodeDoc.ParentNodeId,
+                nodeDoc.NodeTypeId,
+                nodeDoc.ContentListTypeId,
+                nodeDoc.ContentListId,
+                nodeDoc.CreationDate,
+                nodeDoc.ModificationDate,
+                nodeDoc.LastMinorVersionId,
+                nodeDoc.LastMajorVersionId,
+                nodeDoc.OwnerId,
+                nodeDoc.CreatedById,
+                nodeDoc.ModifiedById,
+                nodeDoc.Index,
+                nodeDoc.LockedById,
+                nodeDoc.Timestamp);
+        }
+
         /* ============================================================================================================= IndexDocument */
 
         public override Task<SaveResult> SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
@@ -307,7 +320,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 {
                     JsonSerializer.Create(new JsonSerializerSettings
                     {
-                        Converters = new List<JsonConverter>{new IndexFieldJsonConverter()},
+                        Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
                         NullValueHandling = NullValueHandling.Ignore,
                         DateTimeZoneHandling = DateTimeZoneHandling.Utc,
                         Formatting = Formatting.Indented
@@ -355,6 +368,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             return Interlocked.Increment(ref __lastNodeId);
         }
+
         private int GetNextVersionId()
         {
             return Interlocked.Increment(ref __lastVersionId);
@@ -396,6 +410,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 //Timestamp = nodeData,
             };
         }
+
         private VersionDoc GetVersionData(NodeData nodeData)
         {
             return new VersionDoc
@@ -416,16 +431,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         private void LoadLastVersionIds(int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
         {
             var allVersions = _versions.Values
-                    .Where(v => v.NodeId == nodeId)
-                    .OrderBy(v => v.Version.Major)
-                    .ThenBy(v => v.Version.Minor)
-                    .ThenBy(v => v.Version.Status)
-                    .ToArray();
+                .Where(v => v.NodeId == nodeId)
+                .OrderBy(v => v.Version.Major)
+                .ThenBy(v => v.Version.Minor)
+                .ThenBy(v => v.Version.Status)
+                .ToArray();
             var lastMinorVersion = allVersions.LastOrDefault();
             lastMinorVersionId = lastMinorVersion?.VersionId ?? 0;
 
             var majorVersions = allVersions
-                .Where(v => v.Version.Minor == 0 &&  v.Version.Status == VersionStatus.Approved)
+                .Where(v => v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
                 .ToArray();
 
             var lastMajorVersion = majorVersions.LastOrDefault();
@@ -444,6 +459,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 return 0L;
             return existing.Timestamp;
         }
+
         //UNDONE:DB -------Delete GetVersionTimestamp feature
         public override long GetVersionTimestamp(int versionId)
         {
@@ -467,6 +483,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             InstallNode(11, 11, 2, 5, "Operators", "/Root/IMS/BuiltIn/Portal/Operators");
             InstallNode(12, 12, 3, 5, "Startup", "/Root/IMS/BuiltIn/Portal/Startup");
         }
+
         private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
         {
             _nodes.Add(nodeId, new NodeDoc
@@ -544,13 +561,27 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             writer.WritePropertyName("Value");
             switch (value.Type)
             {
-                case IndexValueType.String:      writer.WriteValue(value.StringValue); break;
-                case IndexValueType.Bool:        writer.WriteValue(value.BooleanValue); break;
-                case IndexValueType.Int:         writer.WriteValue(value.IntegerValue); break;
-                case IndexValueType.Long:        writer.WriteValue(value.LongValue); break;
-                case IndexValueType.Float:       writer.WriteValue(value.SingleValue); break;
-                case IndexValueType.Double:      writer.WriteValue(value.DoubleValue); break;
-                case IndexValueType.DateTime:    writer.WriteValue(value.DateTimeValue); break;
+                case IndexValueType.String:
+                    writer.WriteValue(value.StringValue);
+                    break;
+                case IndexValueType.Bool:
+                    writer.WriteValue(value.BooleanValue);
+                    break;
+                case IndexValueType.Int:
+                    writer.WriteValue(value.IntegerValue);
+                    break;
+                case IndexValueType.Long:
+                    writer.WriteValue(value.LongValue);
+                    break;
+                case IndexValueType.Float:
+                    writer.WriteValue(value.SingleValue);
+                    break;
+                case IndexValueType.Double:
+                    writer.WriteValue(value.DoubleValue);
+                    break;
+                case IndexValueType.DateTime:
+                    writer.WriteValue(value.DateTimeValue);
+                    break;
                 case IndexValueType.StringArray:
                     writer.WriteStartArray();
                     writer.WriteRaw("\"" + string.Join("\",\"", value.StringArrayValue) + "\"");
@@ -563,7 +594,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             writer.WriteEndObject();
         }
 
-        public override IndexField ReadJson(JsonReader reader, Type objectType, IndexField existingValue, bool hasExistingValue,
+        public override IndexField ReadJson(JsonReader reader, Type objectType, IndexField existingValue,
+            bool hasExistingValue,
             JsonSerializer serializer)
         {
             throw new NotImplementedException();
@@ -571,6 +603,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
     }
 
     #region Data Document Classes
+
     internal class NodeDoc
     {
         private int _nodeId;
@@ -609,36 +642,281 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             get => _nodeId;
             set => _nodeId = value;
         }
-        public int NodeTypeId { get => _nodeTypeId; set { _nodeTypeId = value; SetTimestamp(); } }
-        public int ContentListTypeId { get => _contentListTypeId; set { _contentListTypeId = value; SetTimestamp(); } }
-        public int ContentListId { get => _contentListId; set { _contentListId = value; SetTimestamp(); } }
-        public bool CreatingInProgress { get => _creatingInProgress; set { _creatingInProgress = value; SetTimestamp(); } }
-        public bool IsDeleted { get => _isDeleted; set { _isDeleted = value; SetTimestamp(); } }
-        public int ParentNodeId { get => _parentNodeId; set { _parentNodeId = value; SetTimestamp(); } }
-        public string Name { get => _name; set { _name = value; SetTimestamp(); } }
-        public string DisplayName { get => _displayName; set { _displayName = value; SetTimestamp(); } }
-        public string Path { get => _path; set { _path = value; SetTimestamp(); } }
-        public int Index { get => _index; set { _index = value; SetTimestamp(); } }
-        public bool Locked { get => _locked; set { _locked = value; SetTimestamp(); } }
-        public int LockedById { get => _lockedById; set { _lockedById = value; SetTimestamp(); } }
-        public string ETag { get => _eTag; set { _eTag = value; SetTimestamp(); } }
-        public int LockType { get => _lockType; set { _lockType = value; SetTimestamp(); } }
-        public int LockTimeout { get => _lockTimeout; set { _lockTimeout = value; SetTimestamp(); } }
-        public DateTime LockDate { get => _lockDate; set { _lockDate = value; SetTimestamp(); } }
-        public string LockToken { get => _lockToken; set { _lockToken = value; SetTimestamp(); } }
-        public DateTime LastLockUpdate { get => _lastLockUpdate; set { _lastLockUpdate = value; SetTimestamp(); } }
-        public int LastMinorVersionId { get => _lastMinorVersionId; set { _lastMinorVersionId = value; SetTimestamp(); } }
-        public int LastMajorVersionId { get => _lastMajorVersionId; set { _lastMajorVersionId = value; SetTimestamp(); } }
-        public DateTime CreationDate { get => _creationDate; set { _creationDate = value; SetTimestamp(); } }
-        public int CreatedById { get => _createdById; set { _createdById = value; SetTimestamp(); } }
-        public DateTime ModificationDate { get => _modificationDate; set { _modificationDate = value; SetTimestamp(); } }
-        public int ModifiedById { get => _modifiedById; set { _modifiedById = value; SetTimestamp(); } }
-        public bool IsSystem { get => _isSystem; set { _isSystem = value; SetTimestamp(); } }
-        public int OwnerId { get => _ownerId; set { _ownerId = value; SetTimestamp(); } }
-        public ContentSavingState SavingState { get => _savingState; set { _savingState = value; SetTimestamp(); } }
+
+        public int NodeTypeId
+        {
+            get => _nodeTypeId;
+            set
+            {
+                _nodeTypeId = value;
+                SetTimestamp();
+            }
+        }
+
+        public int ContentListTypeId
+        {
+            get => _contentListTypeId;
+            set
+            {
+                _contentListTypeId = value;
+                SetTimestamp();
+            }
+        }
+
+        public int ContentListId
+        {
+            get => _contentListId;
+            set
+            {
+                _contentListId = value;
+                SetTimestamp();
+            }
+        }
+
+        public bool CreatingInProgress
+        {
+            get => _creatingInProgress;
+            set
+            {
+                _creatingInProgress = value;
+                SetTimestamp();
+            }
+        }
+
+        public bool IsDeleted
+        {
+            get => _isDeleted;
+            set
+            {
+                _isDeleted = value;
+                SetTimestamp();
+            }
+        }
+
+        public int ParentNodeId
+        {
+            get => _parentNodeId;
+            set
+            {
+                _parentNodeId = value;
+                SetTimestamp();
+            }
+        }
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                SetTimestamp();
+            }
+        }
+
+        public string DisplayName
+        {
+            get => _displayName;
+            set
+            {
+                _displayName = value;
+                SetTimestamp();
+            }
+        }
+
+        public string Path
+        {
+            get => _path;
+            set
+            {
+                _path = value;
+                SetTimestamp();
+            }
+        }
+
+        public int Index
+        {
+            get => _index;
+            set
+            {
+                _index = value;
+                SetTimestamp();
+            }
+        }
+
+        public bool Locked
+        {
+            get => _locked;
+            set
+            {
+                _locked = value;
+                SetTimestamp();
+            }
+        }
+
+        public int LockedById
+        {
+            get => _lockedById;
+            set
+            {
+                _lockedById = value;
+                SetTimestamp();
+            }
+        }
+
+        public string ETag
+        {
+            get => _eTag;
+            set
+            {
+                _eTag = value;
+                SetTimestamp();
+            }
+        }
+
+        public int LockType
+        {
+            get => _lockType;
+            set
+            {
+                _lockType = value;
+                SetTimestamp();
+            }
+        }
+
+        public int LockTimeout
+        {
+            get => _lockTimeout;
+            set
+            {
+                _lockTimeout = value;
+                SetTimestamp();
+            }
+        }
+
+        public DateTime LockDate
+        {
+            get => _lockDate;
+            set
+            {
+                _lockDate = value;
+                SetTimestamp();
+            }
+        }
+
+        public string LockToken
+        {
+            get => _lockToken;
+            set
+            {
+                _lockToken = value;
+                SetTimestamp();
+            }
+        }
+
+        public DateTime LastLockUpdate
+        {
+            get => _lastLockUpdate;
+            set
+            {
+                _lastLockUpdate = value;
+                SetTimestamp();
+            }
+        }
+
+        public int LastMinorVersionId
+        {
+            get => _lastMinorVersionId;
+            set
+            {
+                _lastMinorVersionId = value;
+                SetTimestamp();
+            }
+        }
+
+        public int LastMajorVersionId
+        {
+            get => _lastMajorVersionId;
+            set
+            {
+                _lastMajorVersionId = value;
+                SetTimestamp();
+            }
+        }
+
+        public DateTime CreationDate
+        {
+            get => _creationDate;
+            set
+            {
+                _creationDate = value;
+                SetTimestamp();
+            }
+        }
+
+        public int CreatedById
+        {
+            get => _createdById;
+            set
+            {
+                _createdById = value;
+                SetTimestamp();
+            }
+        }
+
+        public DateTime ModificationDate
+        {
+            get => _modificationDate;
+            set
+            {
+                _modificationDate = value;
+                SetTimestamp();
+            }
+        }
+
+        public int ModifiedById
+        {
+            get => _modifiedById;
+            set
+            {
+                _modifiedById = value;
+                SetTimestamp();
+            }
+        }
+
+        public bool IsSystem
+        {
+            get => _isSystem;
+            set
+            {
+                _isSystem = value;
+                SetTimestamp();
+            }
+        }
+
+        public int OwnerId
+        {
+            get => _ownerId;
+            set
+            {
+                _ownerId = value;
+                SetTimestamp();
+            }
+        }
+
+        public ContentSavingState SavingState
+        {
+            get => _savingState;
+            set
+            {
+                _savingState = value;
+                SetTimestamp();
+            }
+        }
+
         public long Timestamp => _timestamp;
 
         private static long _lastTimestamp;
+
         private void SetTimestamp()
         {
             _timestamp = Interlocked.Increment(ref _lastTimestamp);
@@ -700,6 +978,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             get => _versionId;
             set => _versionId = value;
         }
+
         public int NodeId
         {
             get => _nodeId;
@@ -709,6 +988,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         /// <summary>
         /// Gets or sets the clone of a VersionNumber
         /// </summary>
@@ -721,6 +1001,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public DateTime CreationDate
         {
             get => _creationDate;
@@ -730,6 +1011,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public int CreatedById
         {
             get => _createdById;
@@ -739,6 +1021,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public DateTime ModificationDate
         {
             get => _modificationDate;
@@ -748,6 +1031,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public int ModifiedById
         {
             get => _modifiedById;
@@ -757,6 +1041,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public string IndexDocument
         {
             get => _indexDocument;
@@ -766,6 +1051,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public IEnumerable<ChangedData> ChangedData
         {
             get => _changedData;
@@ -775,10 +1061,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SetTimestamp();
             }
         }
+
         public long Timestamp => _timestamp;
         //UNDONE:DB dynamic properties
 
         private static long _lastTimestamp;
+
         private void SetTimestamp()
         {
             _timestamp = Interlocked.Increment(ref _lastTimestamp);
@@ -801,5 +1089,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             };
         }
     }
+
     #endregion
 }

@@ -131,7 +131,7 @@ namespace SenseNet.ContentRepository.Storage
         internal static NodeHead GetNodeHeadByVersionId(int versionId)
         {
             if (DataStore.Enabled)
-                throw new NotImplementedException();
+                return DataStore.LoadNodeHeadByVersionIdAsync(versionId).Result;
             else
                 return DataProvider.Current.LoadNodeHeadByVersionId(versionId);
         }

@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.SnapshotsEnabled = true;
                 var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderA.Save();
-
+                
                 // ACTION-B
                 DataStore.Enabled = true;
                 var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
@@ -42,6 +42,36 @@ namespace SenseNet.ContentRepository.Tests
                 var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                CheckDynamicDataByVersionId(folderA.VersionId);
+            });
+        }
+
+        [TestMethod]
+        public void DPAB_Create_TextProperty()
+        {
+            DPTest(() =>
+            {
+                var description = "text property value.";
+
+                // ACTION-A
+                DataStore.SnapshotsEnabled = true;
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Description = description;
+                folderA.Save();
+
+                // ACTION-B
+                DataStore.Enabled = true;
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Description = description;
+                folderB.Save();
+
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                CheckDynamicDataByVersionId(folderA.VersionId);
             });
         }
         //[TestMethod]
@@ -101,10 +131,29 @@ namespace SenseNet.ContentRepository.Tests
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
                 Assert.IsTrue(nodeDataBeforeB.NodeTimestamp < nodeDataAfterB.NodeTimestamp);
                 Assert.IsTrue(nodeDataBeforeB.VersionTimestamp < nodeDataAfterB.VersionTimestamp);
+                CheckDynamicDataByVersionId(folderA.VersionId);
             });
         }
         //UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
+
+
+        private void CheckDynamicDataByVersionId(int versionId)
+        {
+            DataStore.SnapshotsEnabled = false;
+
+            DataStore.Enabled = false;
+            DistributedApplication.Cache.Reset();
+            var nodeA = Node.LoadNodeByVersionId(versionId);
+            var dymacPropertyValuesA = nodeA.PropertyTypes.Select(p => $"{p.Name}:{nodeA[p]}").ToArray();
+
+            DataStore.Enabled = true;
+            DistributedApplication.Cache.Reset();
+            var nodeB = Node.LoadNodeByVersionId(versionId);
+            var dymacPropertyValuesB = nodeB.PropertyTypes.Select(p => $"{p.Name}:{nodeB[p]}").ToArray();
+
+            DataProviderChecker.Assert_AreEqual(nodeA.Data, nodeB.Data);
+        }
 
         private void DPTest(Action callback)
         {

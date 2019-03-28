@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -90,9 +92,68 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Assert_AreEqual(expected.ModifiedByIdChanged, actual.ModifiedByIdChanged, "ModifiedByIdChanged");
             Assert_AreEqual(expected.VersionModificationDateChanged, actual.VersionModificationDateChanged, "VersionModificationDateChanged");
             Assert_AreEqual(expected.VersionModifiedByIdChanged, actual.VersionModifiedByIdChanged, "VersionModifiedByIdChanged");
-            Assert_AreEqual(expected.DefaultName, actual.DefaultName, "DefaultName");
+            //Assert_AreEqual(expected.DefaultName, actual.DefaultName, "DefaultName");
             //
             Assert_AreEqual(expected.ChangedData, actual.ChangedData);
+
+            Assert_DynamicPropertiesAreEqual(expected, actual);
+        }
+
+        private static void Assert_DynamicPropertiesAreEqual(NodeData expected, NodeData actual)
+        {
+            // Compare signatures
+            var expectedProps = (Dictionary<int, object>)(new PrivateObject(expected).GetField("dynamicData"));
+            var actualProps = (Dictionary<int, object>)(new PrivateObject(actual).GetField("dynamicData"));
+            var expectedSignature = expectedProps.Keys.OrderBy(x => x).ToArray();
+            var actualSignature = actualProps.Keys.OrderBy(x => x).ToArray();
+            Assert_AreEqual(expectedSignature, actualSignature, "DynamicPropertySignature");
+
+            // Compare properties
+            foreach (var key in expectedSignature)
+            {
+                var propertyType = NodeTypeManager.Current.PropertyTypes.GetItemById(key);
+                var expectedValue = expectedProps[key];
+                var actualValue = actualProps[key];
+                switch (propertyType.DataType)
+                {
+                    case DataType.String:
+                    case DataType.Text:
+                    case DataType.Int:
+                    case DataType.Currency:
+                    case DataType.DateTime:
+                        Assert.AreEqual(expectedValue, actualValue);
+                        break;
+                    case DataType.Binary:
+                        Assert_AreEqual((BinaryDataValue)expectedValue, (BinaryDataValue)actualValue);
+                        break;
+                    case DataType.Reference:
+                        Assert_AreEqual((List<int>)expectedValue, (List<int>)actualValue, $"ReferenceProperty '{propertyType.Name}'");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        private static void Assert_AreEqual(BinaryDataValue expected, BinaryDataValue actual)
+        {
+            Assert_AreEqual(expected.Id, actual.Id, -1, "BinaryDataValue.Id");
+            Assert_AreEqual(expected.FileId, actual.FileId, -1, "BinaryDataValue.FileId");
+            Assert_AreEqual(expected.Size, actual.Size, "BinaryDataValue.Size");
+            Assert_AreEqual(expected.FileName, actual.FileName, "BinaryDataValue.FileName");
+            Assert_AreEqual(expected.ContentType, actual.ContentType, "BinaryDataValue.ContentType");
+            Assert_AreEqual(expected.Checksum, actual.Checksum, "BinaryDataValue.Checksum");
+            Assert_AreEqual(expected.Timestamp, actual.Timestamp, "BinaryDataValue.Timestamp");
+            Assert_AreEqual(expected.BlobProviderName, actual.BlobProviderName, "BinaryDataValue.BlobProviderName");
+            Assert_AreEqual(expected.BlobProviderData, actual.BlobProviderData, "BinaryDataValue.BlobProviderData");
+            Assert_AreEqual(expected.Stream, actual.Stream, "BinaryDataValue.Stream");
+        }
+
+        private static void Assert_AreEqual(Stream expected, Stream actual, string name)
+        {
+            if (expected.Length != actual.Length)
+                throw new Exception(
+                    $"Expected and actual lengths of {name} are not equal. Expected: {expected.Length}, Actual: {actual.Length}");
         }
 
         private static void Assert_AreSame(object expected, object actual, string name)
@@ -156,7 +217,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Assert_AreEqual(expected.DeletableVersionIds, actual.DeletableVersionIds, "DeletableVersionIds");
         }
 
-        private static void Assert_AreEqual(List<int> expected, List<int> actual, string name)
+        //private static void Assert_AreEqual(List<int> expected, List<int> actual, string name)
+        private static void Assert_AreEqual(IEnumerable<int> expected, IEnumerable<int> actual, string name)
         {
             var exp = string.Join(",", expected.OrderBy(x => x).Select(x => x.ToString()));
             var act = string.Join(",", actual.OrderBy(x => x).Select(x => x.ToString()));
