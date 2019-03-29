@@ -20,9 +20,19 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 return sche;
             });
 
-            DataProvider.Current.AssertSchemaTimestampAndWriteModificationDate(this.SchemaTimestamp);
-            SchemaWriter schemaWriter = DataProvider.Current.CreateSchemaWriter();
-            RegisterSchema(origSchema, this, schemaWriter);
+            if (DataStore.Enabled)
+            {
+                var schemaLock = DataStore.StartSchemaUpdate_EXPERIMENTAL(this.SchemaTimestamp);
+                var schemaWriter = DataStore.CreateSchemaWriter();
+                RegisterSchema(origSchema, this, schemaWriter);
+                DataStore.FinishSchemaUpdate_EXPERIMENTAL(schemaLock);
+            }
+            else
+            {
+                DataProvider.Current.AssertSchemaTimestampAndWriteModificationDate(this.SchemaTimestamp);
+                var schemaWriter = DataProvider.Current.CreateSchemaWriter();
+                RegisterSchema(origSchema, this, schemaWriter);
+            }
         }
 
         private static void RegisterSchema(SchemaEditor origSchema, SchemaEditor newSchema, SchemaWriter schemaWriter)

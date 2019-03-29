@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Newtonsoft.Json;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -25,7 +24,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         /// <summary>
         /// NodeId, NodeHead data
         /// </summary>
-        private Dictionary<int, NodeDoc> _nodes = new Dictionary<int, NodeDoc>();
+        private readonly Dictionary<int, NodeDoc> _nodes = new Dictionary<int, NodeDoc>();
 
         // ReSharper disable once InconsistentNaming
         private int __lastVersionId = 260; // Uses the GetNextVersionId() method.
@@ -33,8 +32,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         /// <summary>
         /// VersionId, NodeData minus NodeHead
         /// </summary>
-        private Dictionary<int, VersionDoc> _versions = new Dictionary<int, VersionDoc>();
+        private readonly Dictionary<int, VersionDoc> _versions = new Dictionary<int, VersionDoc>();
 
+        private string _schemaLock;
+        private RepositorySchemaData _schema = new RepositorySchemaData();
 
         /* ============================================================================================================= Nodes */
 
@@ -86,7 +87,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             if (!_nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
-            if ((long) nodeDoc.Timestamp != nodeData.NodeTimestamp)
+            if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
                 throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
 
             var versionDoc = _versions[nodeData.VersionId];
@@ -335,24 +336,37 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Schema */
 
-        public override Task<DataSet> LoadSchemaAsync()
+        public override Task<RepositorySchemaData> LoadSchemaAsync()
         {
-            throw new NotImplementedException();
+            return System.Threading.Tasks.Task.FromResult(_schema.Clone());
         }
 
         public override SchemaWriter CreateSchemaWriter()
         {
-            throw new NotImplementedException();
+            var newSchema = _schema.Clone();
+            return new InMemorySchemaWriter(newSchema, () =>
+            {
+                newSchema.Timestamp = _schema.Timestamp + 1L;
+                _schema = newSchema;
+            });
         }
 
         public override string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp)
         {
-            throw new NotImplementedException();
+            if(schemaTimestamp != _schema.Timestamp)
+                throw new DataException("Storage schema is out of date.");
+            if (_schemaLock != null)
+                throw new DataException("Schema is locked by someone else.");
+            _schemaLock = Guid.NewGuid().ToString();
+            return _schemaLock;
         }
 
         public override long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock)
         {
-            throw new NotImplementedException();
+            if(schemaLock != _schemaLock)
+                throw new DataException("Schema is locked by someone else.");
+            _schemaLock = null;
+            return _schema.Timestamp;
         }
 
         /* ============================================================================================================= Tools */
@@ -447,11 +461,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
         }
 
-        private string GetParentPath(int nodeId)
-        {
-            return _nodes[nodeId].Path;
-        }
-
         //UNDONE:DB -------Delete GetNodeTimestamp feature
         public override long GetNodeTimestamp(int nodeId)
         {
@@ -531,6 +540,157 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 ChangedData = null,
             });
         }
+
+        #region private class InMemorySchemaWriter : SchemaWriter
+
+        private class InMemorySchemaWriter : SchemaWriter
+        {
+            private readonly Action _finishedCallback;
+            private readonly RepositorySchemaData _schema;
+
+            public InMemorySchemaWriter(RepositorySchemaData originalSchema, Action finishedCallback)
+            {
+                _schema = originalSchema;
+                _finishedCallback = finishedCallback;
+            }
+
+            public override void Open()
+            {
+                // Do nothing
+            }
+            public override void Close()
+            {
+                _finishedCallback();
+            }
+
+            public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
+            {
+                _schema.PropertyTypes.Add(new PropertyTypeData
+                {
+                    Id = GetMaxId(_schema.PropertyTypes) + 1,
+                    Name = name,
+                    DataType = dataType,
+                    Mapping = mapping,
+                    IsContentListProperty = isContentListProperty
+                });
+            }
+
+            public override void DeletePropertyType(PropertyType propertyType)
+            {
+                var pt =_schema.PropertyTypes.FirstOrDefault(p => p.Name == propertyType.Name &&
+                                                                  p.IsContentListProperty == propertyType.IsContentListProperty);
+                if (pt != null)
+                    _schema.PropertyTypes.Remove(pt);
+            }
+
+            public override void CreateNodeType(NodeType parent, string name, string className)
+            {
+                _schema.NodeTypes.Add(new NodeTypeData
+                {
+                    Id = Math.Max(GetMaxId(_schema.NodeTypes), GetMaxId(_schema.ContentListTypes)) + 1,
+                    Name = name,
+                    ParentName = parent?.Name,
+                    ClassName = className,
+                    Properties = new List<string>()
+                });
+            }
+
+            public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
+            {
+                var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == nodeType.Name);
+                if (nt == null)
+                    return;
+                nt.ParentName = parent?.Name;
+                nt.ClassName = className;
+            }
+
+            public override void DeleteNodeType(NodeType nodeType)
+            {
+                var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == nodeType.Name);
+                if (nt != null)
+                    _schema.NodeTypes.Remove(nt);
+            }
+
+            public override void CreateContentListType(string name)
+            {
+                _schema.ContentListTypes.Add(new ContentListTypeData
+                {
+                    Id = Math.Max(GetMaxId(_schema.NodeTypes), GetMaxId(_schema.ContentListTypes)) + 1,
+                    Name = name,
+                    Properties = new List<string>()
+                });
+            }
+
+            public override void DeleteContentListType(ContentListType contentListType)
+            {
+                var ct = _schema.ContentListTypes.FirstOrDefault(p => p.Name == contentListType.Name);
+                if (ct != null)
+                    _schema.ContentListTypes.Remove(ct);
+            }
+
+            public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
+            {
+                List<string> properties;
+                var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == owner.Name);
+                if (nt != null)
+                {
+                    if (!isDeclared)
+                        return;
+                    properties = nt.Properties;
+                }
+                else
+                {
+                    var ct = _schema.ContentListTypes.FirstOrDefault(p => p.Name == owner.Name);
+                    if (ct == null)
+                        return;
+                    properties = ct.Properties;
+                }
+
+                if (!properties.Contains(propertyType.Name))
+                    properties.Add(propertyType.Name);
+            }
+
+            public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
+            {
+                var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == owner.Name);
+                if (nt != null)
+                {
+                    nt.Properties.Remove(propertyType.Name);
+                    return;
+                }
+                var ct = _schema.ContentListTypes.FirstOrDefault(p => p.Name == owner.Name);
+                ct?.Properties.Remove(propertyType.Name);
+            }
+
+            public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
+            {
+                var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == owner.Name);
+                if (nt == null)
+                    return;
+
+                if (isDeclared)
+                {
+                    if (!nt.Properties.Contains(propertyType.Name))
+                        nt.Properties.Add(propertyType.Name);
+                }
+                else
+                {
+                    nt.Properties.Remove(propertyType.Name);
+                }
+            }
+
+            /* ========================================================================================================= Tools */
+
+            [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+            private int GetMaxId(IEnumerable<ISchemaItemData> list)
+            {
+                return list.Any() ? list.Max(p => p.Id) : 0;
+            }
+
+        }
+
+        #endregion
+
     }
 
     internal class IndexFieldJsonConverter : JsonConverter<IndexField>

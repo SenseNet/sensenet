@@ -83,8 +83,16 @@ namespace SenseNet.ContentRepository.Storage.Schema
             using (var op = SnTrace.Database.StartOperation("Load storage schema."))
             {
                 Clear();
-                DataSet dataSet = DataProvider.Current.LoadSchema();
-                Load(dataSet);
+                if (DataStore.Enabled)
+                {
+                    var schemaData = DataStore.LoadSchemaAsync().Result;
+                    Load(schemaData);
+                }
+                else
+                {
+                    var dataSet = DataProvider.Current.LoadSchema();
+                    Load(dataSet);
+                }
                 op.Successful = true;
             }
         }
@@ -93,11 +101,95 @@ namespace SenseNet.ContentRepository.Storage.Schema
             Load(BuildDataSetFromXml(schemaXml));
         }
 
+        // -------------------------------------------------------------------------------- Load from RepositorySchemaData
+
+        private void Load(RepositorySchemaData schemaData)
+        {
+            BuildPropertyTypes(schemaData.PropertyTypes);
+            BuildNodeTypes(schemaData.NodeTypes);
+            BuildContentListTypes(schemaData.ContentListTypes);
+        }
+
+        private void BuildPropertyTypes(IEnumerable<PropertyTypeData> data)
+        {
+            foreach (var item in data)
+                CreatePropertyType(item.Id, item.Name, item.DataType, item.Mapping, item.IsContentListProperty);
+        }
+        private void BuildNodeTypes(IEnumerable<NodeTypeData> data)
+        {
+            var nodeTypes = data.ToList();
+
+            while (nodeTypes.Count > 0)
+            {
+                for (var i = nodeTypes.Count - 1; i >= 0; i--)
+                {
+                    var nti = nodeTypes[i];
+                    NodeType parent = null;
+                    if (nti.ParentName == null || (parent = _nodeTypes[nti.ParentName]) != null)
+                    {
+                        var type = CreateNodeType(nti.Id, parent, nti.Name, nti.ClassName);
+                        BuildProperties(type, nti.Properties);
+                        nodeTypes.Remove(nti);
+                    }
+                }
+            }
+        }
+        private void BuildContentListTypes(IEnumerable<ContentListTypeData> data)
+        {
+            foreach (var item in data)
+            {
+                var type = CreateContentListType(item.Id, item.Name);
+                BuildProperties(type, item.Properties);
+            }
+        }
+        private void BuildProperties(PropertySet type, IEnumerable<string> propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                var propertyType = _propertyTypes[propertyName];
+                if (propertyType == null)
+                    throw new InvalidSchemaException(
+                        SR.Exceptions.Schema.Msg_PropertyTypeDoesNotExist + ": name=" + type.Name);
+
+                AddPropertyTypeToPropertySet(propertyType, type);
+            }
+        }
+
+        // -------------------------------------------------------------------------------- ToRepositorySchemaData
+
+        public RepositorySchemaData ToRepositorySchemaData()
+        {
+            return new RepositorySchemaData
+            {
+                PropertyTypes = _propertyTypes.Select(p => new PropertyTypeData
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    DataType = p.DataType,
+                    Mapping = p.Mapping,
+                    IsContentListProperty = p.IsContentListProperty
+                }).ToList(),
+                NodeTypes = _nodeTypes.Select(n => new NodeTypeData
+                {
+                    Id = n.Id,
+                    Name = n.Name,
+                    ParentName = n.Parent?.Name,
+                    ClassName = n.ClassName,
+                    Properties = n.DeclaredPropertyTypes.Select(p => p.Name).ToList()
+                }).ToList(),
+                ContentListTypes = _contentListTypes.Select(c => new ContentListTypeData
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Properties = c.PropertyTypes.Select(p => p.Name).ToList()
+                }).ToList(),
+            };
+        }
+
         // -------------------------------------------------------------------------------- Load from DataSet
 
         private void Load(DataSet dataSet)
         {
-
             Dictionary<int, DataType> dataTypeHelper = BuildDataTypeHelper(dataSet);
             Dictionary<int, PropertySetType> propertySetTypeHelper = BuildPropertySetTypeHelper(dataSet);
 
@@ -477,7 +569,10 @@ namespace SenseNet.ContentRepository.Storage.Schema
         public PropertyType CreateContentListPropertyType(DataType dataType, int ordinalNumber)
         {
             string name = String.Concat("#", dataType, "_", ordinalNumber);
-            int mapping = ordinalNumber + DataProvider.Current.ContentListMappingOffsets[dataType];
+            int mapping = ordinalNumber +
+                (DataStore.Enabled
+                ? DataStore.ContentListMappingOffsets[dataType]
+                : DataProvider.Current.ContentListMappingOffsets[dataType]);
             return CreateContentListPropertyType(name, dataType, mapping);
         }
         private PropertyType CreateContentListPropertyType(string name, DataType dataType, int mapping)

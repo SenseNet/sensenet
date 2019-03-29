@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
@@ -21,6 +23,41 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
+        [TestMethod]
+        public void DPAB_Schema_Save()
+        {
+            DPTest(() =>
+            {
+                var storedSchema = GetStoredSchema();
+                Assert.AreEqual(0L, storedSchema.Timestamp);
+                Assert.IsNull(storedSchema.PropertyTypes);
+                Assert.IsNull(storedSchema.NodeTypes);
+                Assert.IsNull(storedSchema.ContentListTypes);
+
+                var ed = new SchemaEditor();
+                ed.Load();
+                var xml = new XmlDocument();
+                xml.LoadXml(ed.ToXml());
+
+                DataStore.Enabled = true;
+                var ed2 = new SchemaEditor();
+                ed2.Load(xml);
+                ed2.Register();
+
+                storedSchema = GetStoredSchema();
+
+                Assert.IsTrue(0L < storedSchema.Timestamp);
+                Assert.AreEqual(ActiveSchema.PropertyTypes.Count, storedSchema.PropertyTypes.Count);
+                Assert.AreEqual(ActiveSchema.NodeTypes.Count, storedSchema.NodeTypes.Count);
+                Assert.AreEqual(ActiveSchema.ContentListTypes.Count, storedSchema.ContentListTypes.Count);
+                //UNDONE:DB ----Deep check: storedSchema
+            });
+        }
+        private RepositorySchemaData GetStoredSchema()
+        {
+            return (RepositorySchemaData)new PrivateObject(Providers.Instance.DataProvider2).GetField("_schema");
+        }
+
         [TestMethod]
         public void DPAB_Create()
         {

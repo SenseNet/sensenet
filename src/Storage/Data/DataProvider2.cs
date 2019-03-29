@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ============================================================================================================= Schema */
 
-        public abstract Task<DataSet> LoadSchemaAsync();
+        public abstract Task<RepositorySchemaData> LoadSchemaAsync();
         public abstract SchemaWriter CreateSchemaWriter();
 
         //UNDONE:DB ------Refactor: Move to SchemaWriter? Delete the freature and implement individually in the providers?
@@ -122,9 +122,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract DateTime RoundDateTime(DateTime d);
 
-        //UNDONE:DB -------Delete GetNodeTimestamp feature
+        //UNDONE:DB -------Delete GetNodeTimestamp method
         public abstract long GetNodeTimestamp(int nodeId);
-        //UNDONE:DB -------Delete GetVersionTimestamp feature
+        //UNDONE:DB -------Delete GetVersionTimestamp method
         public abstract long GetVersionTimestamp(int versionId);
 
         public abstract void InstallDefaultStructure();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +18,7 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
-    public class SnapshotItem
+    public class SnapshotItem //UNDONE:DB -------Remove SnapshotItem class
     {
         public string Name;
         public bool IsDp2;
@@ -36,11 +37,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         //UNDONE:DB -------Remove DataStore.Enabled
         public static bool SnapshotsEnabled { get; set; }
 
-        public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();
+        public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();//UNDONE:DB -------Remove DataStore.Snapshots
 
 
         private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
         public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ---- DataStore.DateTimeMinValue
+
+        /* ============================================================================================================= Installation */
+
+        public static void InstallDefaultStructure() //UNDONE:DB ------Implement well: InstallDefaultStructure
+        {
+            DataProvider.InstallDefaultStructure();
+        }
 
         /* ============================================================================================================= Nodes */
 
@@ -247,19 +255,45 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ============================================================================================================= Schema */
 
-        public static async Task<DataSet> LoadSchemaAsync()
+        public static async Task<RepositorySchemaData> LoadSchemaAsync()
         {
             return await DataProvider.LoadSchemaAsync();
         }
-        public static DataSet LoadSchema()
-        {
-            return LoadSchemaAsync().Result;
-        }
 
+        public static string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp)
+        {
+            return DataProvider.StartSchemaUpdate_EXPERIMENTAL(schemaTimestamp);
+        }
         public static SchemaWriter CreateSchemaWriter()
         {
             return DataProvider.CreateSchemaWriter();
         }
+        public static long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock)
+        {
+            return DataProvider.FinishSchemaUpdate_EXPERIMENTAL(schemaLock);
+        }
+
+        #region Backward compatibility
+
+        private static readonly int _contentListStartPage = 10000000;
+        internal static readonly int StringPageSize = 80;
+        internal static readonly int IntPageSize = 40;
+        internal static readonly int DateTimePageSize = 25;
+        internal static readonly int CurrencyPageSize = 15;
+
+        public static IDictionary<DataType, int> ContentListMappingOffsets { get; } =
+            new ReadOnlyDictionary<DataType, int>(new Dictionary<DataType, int>
+        {
+            {DataType.String, StringPageSize * _contentListStartPage},
+            {DataType.Int, IntPageSize * _contentListStartPage},
+            {DataType.DateTime, DateTimePageSize * _contentListStartPage},
+            {DataType.Currency, CurrencyPageSize * _contentListStartPage},
+            {DataType.Binary, 0},
+            {DataType.Reference, 0},
+            {DataType.Text, 0}
+        });
+
+        #endregion
 
         /* ============================================================================================================= Tools */
 
@@ -319,11 +353,5 @@ namespace SenseNet.ContentRepository.Storage.Data
                 Snapshot = snapshot
             });
         }
-
-        public static void InstallDefaultStructure() //UNDONE:DB ------Implement well: InstallDefaultStructure
-        {
-            DataProvider.InstallDefaultStructure();
-        }
-
     }
 }
