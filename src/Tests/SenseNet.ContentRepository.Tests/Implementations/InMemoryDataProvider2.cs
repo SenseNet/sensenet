@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 if (!_nodes.TryGetValue(versionDoc.NodeId, out var nodeDoc))
                     continue;
 
-                result.Add(new NodeData(nodeDoc.NodeTypeId, nodeDoc.ContentListTypeId)
+                var nodeData = new NodeData(nodeDoc.NodeTypeId, nodeDoc.ContentListTypeId)
                 {
                     Id = nodeDoc.NodeId,
                     NodeTypeId = nodeDoc.NodeTypeId,
@@ -216,9 +216,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     VersionModifiedById = versionDoc.ModifiedById,
                     NodeTimestamp = nodeDoc.Timestamp,
                     VersionTimestamp = versionDoc.Timestamp
-                });
+                };
 
-                //UNDONE:DB dynamic properties
+                var dynamicProps = versionDoc.DynamicProperties;
+                foreach (var propertyType in nodeData.PropertyTypes)
+                    if (dynamicProps.TryGetValue(propertyType.Name, out var value))
+                        nodeData.SetDynamicRawData(propertyType, GetClone(value, propertyType.DataType));
+
+                result.Add(nodeData);
             }
             return System.Threading.Tasks.Task.FromResult((IEnumerable<NodeData>) result);
         }
@@ -237,7 +242,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
             int[] notLoadedPropertyTypeIds)
         {
-            //UNDONE:DB dynamic properties
+            //UNDONE:DB!! dynamic properties: theoretically not called but need to test
             var result = new Dictionary<int, string>();
             return System.Threading.Tasks.Task.FromResult(result);
         }
@@ -369,7 +374,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return _schema.Timestamp;
         }
 
-        /* ============================================================================================================= Tools */
+        /* ============================================================================================================= Provider Tools */
 
         public override DateTime RoundDateTime(DateTime d)
         {
@@ -427,6 +432,37 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private VersionDoc GetVersionData(NodeData nodeData)
         {
+            // Tune property values
+            var dynamicData = new Dictionary<string, object>();
+            foreach (var propertyType in nodeData.PropertyTypes)
+            {
+                // Set default if needed
+                var value = nodeData.GetDynamicRawData(propertyType) ?? propertyType.DefaultValue;
+
+                // Tune values by data type
+                switch (propertyType.DataType)
+                {
+                    case DataType.String:
+                    case DataType.Text:
+                    case DataType.Int:
+                    case DataType.Currency:
+                    case DataType.DateTime:
+                        dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
+                        break;
+                    case DataType.Binary:
+                        //UNDONE: DB Save DataType.Binary
+                        dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
+                        break;
+                    case DataType.Reference:
+                        // Optional filter: do not store empty references.
+                        if (EmptyReferencesFilter(propertyType, value))
+                            dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
             return new VersionDoc
             {
                 VersionId = nodeData.VersionId,
@@ -436,10 +472,18 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 CreatedById = nodeData.VersionCreatedById,
                 ModificationDate = nodeData.VersionModificationDate,
                 ModifiedById = nodeData.VersionModifiedById,
-                //IndexDocument = ____,
                 ChangedData = nodeData.ChangedData,
-                //Timestamp = ____,
+                DynamicProperties = dynamicData,
+                // IndexDocument and Timestamp will be set later.
             };
+        }
+        private bool EmptyReferencesFilter(PropertyType propertyType, object value)
+        {
+            if (propertyType.DataType != DataType.Reference)
+                return true;
+            if (value == null)
+                return false;
+            return ((IEnumerable<int>)value).Any();
         }
 
         private void LoadLastVersionIds(int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -538,7 +582,57 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 ModifiedById = 1,
                 IndexDocument = null,
                 ChangedData = null,
+                DynamicProperties = new Dictionary<string, object>()
             });
+        }
+
+        /* ====================================================================== Tools */
+
+        private object GetClone(object value, DataType dataType)
+        {
+            if (value == null)
+                return null;
+
+            switch (dataType)
+            {
+                case DataType.String:
+                case DataType.Text:
+                    return new string(value.ToString().ToCharArray());
+                case DataType.Int:
+                    return (int)value;
+                case DataType.Currency:
+                    return (decimal)value;
+                case DataType.DateTime:
+                    return new DateTime(((DateTime)value).Ticks);
+                case DataType.Binary:
+                    return CloneBinaryProperty((BinaryDataValue)value);
+                case DataType.Reference:
+                    return ((IEnumerable<int>)value).ToArray();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        private BinaryDataValue CloneBinaryProperty(BinaryDataValue original)
+        {
+            return new BinaryDataValue
+            {
+                Id = original.Id,
+                Stream = CloneStream(original.Stream),
+                FileId = original.FileId,
+                Size = original.Size,
+                FileName = original.FileName,
+                ContentType = original.ContentType,
+                Checksum = original.Checksum,
+                Timestamp = original.Timestamp,
+                BlobProviderName = original.BlobProviderName,
+                BlobProviderData = original.BlobProviderData,
+            };
+        }
+        private Stream CloneStream(Stream original)
+        {
+            if (original is MemoryStream memStream)
+                return new MemoryStream(memStream.GetBuffer().ToArray());
+            throw new NotImplementedException();
         }
 
         #region private class InMemorySchemaWriter : SchemaWriter
@@ -1130,6 +1224,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         private int _modifiedById;
         private string _indexDocument; //UNDONE:DB --- Do not store IndexDocument in the VersionDoc
         private IEnumerable<ChangedData> _changedData;
+        Dictionary<string, object> _dynamicProperties;
         private long _timestamp;
 
         // ReSharper disable once ConvertToAutoProperty
@@ -1223,15 +1318,23 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         public long Timestamp => _timestamp;
-        //UNDONE:DB dynamic properties
 
+        public Dictionary<string, object> DynamicProperties
+        {
+            get => _dynamicProperties;
+            set
+            {
+                _dynamicProperties = value;
+                SetTimestamp();
+            }
+        }
+
+        /* =======================================================  */
         private static long _lastTimestamp;
-
         private void SetTimestamp()
         {
             _timestamp = Interlocked.Increment(ref _lastTimestamp);
         }
-
         public VersionDoc Clone()
         {
             return new VersionDoc

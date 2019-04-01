@@ -113,23 +113,21 @@ namespace SenseNet.ContentRepository.Storage.Data
             lastMinorVersionId = 0;
             
             bool isNewNode = nodeData.Id == 0; // shortcut
-            //string path;
 
+            //// Finalize path
+            //string path;
             //if (nodeData.Id != Identifiers.PortalRootId)
             //{
             //    var parent = NodeHead.Get(nodeData.ParentId);
             //    if (parent == null)
             //        throw new ContentNotFoundException(nodeData.ParentId.ToString());
-
             //    path = RepositoryPath.Combine(parent.Path, nodeData.Name);
             //}
             //else
             //{
             //    path = Identifiers.RootPath;
             //}
-
             //Node.AssertPath(path);
-
             //nodeData.Path = path;
 
             var writer = this.CreateNodeWriter();

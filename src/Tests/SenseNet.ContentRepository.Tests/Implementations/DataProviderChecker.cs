@@ -100,9 +100,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private static void Assert_DynamicPropertiesAreEqual(NodeData expected, NodeData actual)
         {
-            // Compare signatures
+            // prepare collections
             var expectedProps = (Dictionary<int, object>)(new PrivateObject(expected).GetField("dynamicData"));
             var actualProps = (Dictionary<int, object>)(new PrivateObject(actual).GetField("dynamicData"));
+
+            // Compare signatures
             var expectedSignature = expectedProps.Keys.OrderBy(x => x).ToArray();
             var actualSignature = actualProps.Keys.OrderBy(x => x).ToArray();
             Assert_AreEqual(expectedSignature, actualSignature, "DynamicPropertySignature");
@@ -117,16 +119,22 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 {
                     case DataType.String:
                     case DataType.Text:
+                        Assert_AreEqual((string)expectedValue, (string)actualValue, propertyType.Name);
+                        break;
                     case DataType.Int:
+                        Assert_AreEqual((int?)expectedValue, (int?)actualValue, propertyType.Name);
+                        break;
                     case DataType.Currency:
+                        Assert_AreEqual((decimal?)expectedValue, (decimal?)actualValue, propertyType.Name);
+                        break;
                     case DataType.DateTime:
-                        Assert.AreEqual(expectedValue, actualValue);
+                        Assert_AreEqual((DateTime?)expectedValue, (DateTime?)actualValue, propertyType.Name);
                         break;
                     case DataType.Binary:
                         Assert_AreEqual((BinaryDataValue)expectedValue, (BinaryDataValue)actualValue);
                         break;
                     case DataType.Reference:
-                        Assert_AreEqual((List<int>)expectedValue, (List<int>)actualValue, $"ReferenceProperty '{propertyType.Name}'");
+                        Assert_AreEqual((IEnumerable<int>)expectedValue, (IEnumerable<int>)actualValue, $"ReferenceProperty '{propertyType.Name}'");
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -177,6 +185,21 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 throw new Exception(
                     $"Different of expected and actual {name} is too big. Expected: {expectedDiff}, Actual: {diff} milliseconds.");
         }
+        private static void Assert_AreEqual(DateTime? expected, DateTime? actual, string name)
+        {
+            if (expected == null && actual == null)
+                return;
+            if (expected == null)
+                throw new Exception($"Expected and actual {name} are not equal. Expected: <null>, Actual: {actual}");
+            if (actual == null)
+                throw new Exception($"Expected and actual {name} are not equal. Expected: {expected}, Actual: <null>");
+
+            var expectedDiff = 500;
+            var diff = (actual.Value - expected.Value).TotalMilliseconds;
+            if (diff > expectedDiff || diff < -expectedDiff)
+                throw new Exception(
+                    $"Difference of expected and actual {name} is too big. Expected: {expectedDiff}, Actual: {diff} milliseconds.");
+        }
 
         private static void Assert_AreEqual(long expected, long actual, string name)
         {
@@ -216,7 +239,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Assert_AreEqual(expected.DeletableVersionIds, actual.DeletableVersionIds, "DeletableVersionIds");
         }
 
-        //private static void Assert_AreEqual(List<int> expected, List<int> actual, string name)
         private static void Assert_AreEqual(IEnumerable<int> expected, IEnumerable<int> actual, string name)
         {
             var exp = string.Join(",", expected.OrderBy(x => x).Select(x => x.ToString()));
@@ -238,6 +260,20 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
         private static void Assert_AreEqual(int? expected, int? actual, string name)
+        {
+            if (expected == null && actual == null)
+                return;
+            if (expected != actual)
+                throw new Exception(
+                    $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
+        }
+        private static void Assert_AreEqual(decimal expected, decimal actual, string name)
+        {
+            if (expected != actual)
+                throw new Exception(
+                    $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
+        }
+        private static void Assert_AreEqual(decimal? expected, decimal? actual, string name)
         {
             if (expected == null && actual == null)
                 return;

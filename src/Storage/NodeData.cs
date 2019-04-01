@@ -1380,5 +1380,14 @@ namespace SenseNet.ContentRepository.Storage
                 return new MemoryStream(memStream.GetBuffer().ToArray());
             throw new NotImplementedException();
         }
+
+        //UNDONE:DB -------Delete NodeData.GetPropertyNames
+        /// <summary>
+        /// For test purposes.
+        /// </summary>
+        internal string[] GetPropertyNames()
+        {
+            return PropertyTypes.Select(x => x.Name).ToArray();
+        }
     }
 }
