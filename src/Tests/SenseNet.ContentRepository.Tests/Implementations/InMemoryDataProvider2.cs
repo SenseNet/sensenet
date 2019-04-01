@@ -18,11 +18,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
+        private string _schemaLock;
+        private RepositorySchemaData _schema = new RepositorySchemaData();
+
         // ReSharper disable once InconsistentNaming
         private int __lastNodeId = 1247; // Uses the GetNextNodeId() method.
 
         /// <summary>
-        /// NodeId, NodeHead data
+        /// NodeId --> NodeDoc (NodeHead)
         /// </summary>
         private readonly Dictionary<int, NodeDoc> _nodes = new Dictionary<int, NodeDoc>();
 
@@ -30,16 +33,27 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         private int __lastVersionId = 260; // Uses the GetNextVersionId() method.
 
         /// <summary>
-        /// VersionId, NodeData minus NodeHead
+        /// VersionId --> VersionDoc (NodeData minus NodeHead)
         /// </summary>
         private readonly Dictionary<int, VersionDoc> _versions = new Dictionary<int, VersionDoc>();
 
-        private string _schemaLock;
-        private RepositorySchemaData _schema = new RepositorySchemaData();
+        // ReSharper disable once InconsistentNaming
+        private int __binaryPropertyId = 0; // Uses the GetBinaryPropertyId() method.
+        /// <summary>
+        /// BinaryPropertyId --> BinaryPropertyDoc
+        /// </summary>
+        private readonly Dictionary<int, BinaryPropertyDoc> _binaryProperties = new Dictionary<int, BinaryPropertyDoc>();
+
+        // ReSharper disable once InconsistentNaming
+        private int __fileId = 0; // Uses the GetFileId() method.
+        /// <summary>
+        /// FileId --> FileDoc
+        /// </summary>
+        private readonly Dictionary<int, FileDoc> _files = new Dictionary<int, FileDoc>();
 
         /* ============================================================================================================= Nodes */
 
-        public override async Task<SaveResult> InsertNodeAsync(NodeData nodeData)
+        public override async Task<SaveResult> InsertNodeAsync(NodeData nodeData, SavingAlgorithm savingAlgorithm)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -58,7 +72,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             _versions[versionId] = versionData;
 
-            //UNDONE:DB BinaryIds?
+
+            // Manage BinaryProperties
+            foreach (var binPropType in nodeData.PropertyTypes.Where(x => x.DataType == DataType.Binary))
+            {
+                var value = nodeData.GetDynamicRawData(binPropType) ?? binPropType.DefaultValue;
+                var binValue = (BinaryDataValue)value;
+                SaveBinaryProperty(binValue, versionId, binPropType, true, savingAlgorithm);
+            }
+
+            // Manage last versionIds and timestamps
 
             LoadLastVersionIds(nodeId, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeHeadData.LastMajorVersionId = lastMajorVersionId;
@@ -73,6 +96,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             saveResult.VersionTimestamp = versionData.Timestamp;
 
             return await System.Threading.Tasks.Task.FromResult(saveResult);
+        }
+
+        private void SaveBinaryProperty(BinaryDataValue value, int versionId, PropertyType propertyType, bool isNewNode, SavingAlgorithm savingAlgorithm)
+        {
+            if (value == null || value.IsEmpty)
+                BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
+            else if (value.Id == 0 || savingAlgorithm != SavingAlgorithm.UpdateSameVersion)
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyType.Id, isNewNode);
+            else
+                BlobStorage.UpdateBinaryProperty(value);
         }
 
         public override Task<SaveResult> UpdateNodeAsync(NodeData nodeData, IEnumerable<int> versionIdsToDelete)
@@ -133,6 +166,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             nodeDoc.LastMinorVersionId = lastMinorVersionId;
 
             //UNDONE:DB BinaryIds?
+            //UNDONE:DB Save DataType.Binary
 
             var result = new SaveResult
             {
@@ -449,14 +483,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     case DataType.DateTime:
                         dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
                         break;
-                    case DataType.Binary:
-                        //UNDONE: DB Save DataType.Binary
-                        dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
-                        break;
                     case DataType.Reference:
                         // Optional filter: do not store empty references.
                         if (EmptyReferencesFilter(propertyType, value))
                             dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
+                        break;
+                    case DataType.Binary:
+                        // Do nothing. These properties are managed by the caller
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -1353,5 +1386,26 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
+    internal class BinaryPropertyDoc
+    {
+        public int BinaryPropertyId { get; set; }
+
+
+        public BinaryPropertyDoc Clone()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class FileDoc
+    {
+        public int FileId { get; set; }
+
+
+        public FileDoc Clone()
+        {
+            throw new NotImplementedException();
+        }
+    }
     #endregion
 }

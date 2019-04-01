@@ -111,27 +111,43 @@ namespace SenseNet.ContentRepository.Tests
                 CheckDynamicDataByVersionId(folderA.VersionId);
             });
         }
-        //[TestMethod]
-        //public void DPAB_CreateFile()
-        //{
-        //    DPTest(() =>
-        //    {
-        //        var folder = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-        //        folder.Save();
-        //        var file = new File(folder){Name = "File1" };
-        //        file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
+        [TestMethod]
+        public void DPAB_CreateFile()
+        {
+            DPTest(() =>
+            {
+                var filecontent = "text property value.";
 
-        //        // ACTION
-        //        using (DataStore.CheckerBlock())
-        //            file.Save();
+                // ACTION-A
+                DataStore.SnapshotsEnabled = false;
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Save();
+                var fileA = new File(folderA) { Name = "File1" };
+                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
+                DataStore.SnapshotsEnabled = true;
+                fileA.Save();
 
-        //        // ASSERT managed in the CheckerBlock.
+                // ACTION-B
+                DataStore.Enabled = true;
+                DataStore.SnapshotsEnabled = false;
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Save();
+                var fileB = new File(folderB) { Name = "File1" };
+                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
+                DataStore.SnapshotsEnabled = true;
+                fileB.Save();
 
-        //        var db = ((InMemoryDataProvider) Providers.Instance.DataProvider).DB;
-        //        var dp2 = Providers.Instance.DataProvider2;
+                // ASSERT
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                CheckDynamicDataByVersionId(folderA.VersionId);
 
-        //    });
-        //}
+            });
+        }
         //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         [TestMethod]
         public void DPAB_Update()

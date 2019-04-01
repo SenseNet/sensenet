@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
-                        saveResult = await DataProvider.InsertNodeAsync(nodeData);
+                        saveResult = await DataProvider.InsertNodeAsync(nodeData, savingAlgorithm);
                         if (saveResult == null)
                             throw new InvalidOperationException(saveResultCannorBeNull);
                         break;

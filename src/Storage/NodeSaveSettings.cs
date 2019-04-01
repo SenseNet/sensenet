@@ -6,7 +6,7 @@ using System.Text;
 namespace SenseNet.ContentRepository.Storage
 {
     public enum VersioningMode { None, Major, Full }
-    internal enum SavingAlgorithm { CreateNewNode, UpdateSameVersion, CopyToNewVersionAndUpdate, CopyToSpecifiedVersionAndUpdate }
+    public enum SavingAlgorithm { CreateNewNode, UpdateSameVersion, CopyToNewVersionAndUpdate, CopyToSpecifiedVersionAndUpdate }
 
     public class NodeSaveSettings
     {
