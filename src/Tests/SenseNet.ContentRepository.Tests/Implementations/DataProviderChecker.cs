@@ -158,9 +158,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private static void Assert_AreEqual(Stream expected, Stream actual, string name)
         {
-            if (expected.Length != actual.Length)
-                throw new Exception(
-                    $"Expected and actual lengths of {name} are not equal. Expected: {expected.Length}, Actual: {actual.Length}");
+            if (expected == null && actual == null)
+                return;
+            if (expected != null && actual != null)
+                return;
+            if (expected == null)
+                throw new Exception($"Actual {name} is not null. Expected: null");
+            throw new Exception($"Actual {name} is null. Expected: not null");
         }
 
         private static void Assert_AreSame(object expected, object actual, string name)

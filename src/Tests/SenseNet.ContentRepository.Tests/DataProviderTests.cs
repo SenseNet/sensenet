@@ -82,7 +82,6 @@ namespace SenseNet.ContentRepository.Tests
                 CheckDynamicDataByVersionId(folderA.VersionId);
             });
         }
-
         [TestMethod]
         public void DPAB_Create_TextProperty()
         {
@@ -116,7 +115,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             DPTest(() =>
             {
-                var filecontent = "text property value.";
+                var filecontent = "File content.";
 
                 // ACTION-A
                 DataStore.SnapshotsEnabled = false;
@@ -148,7 +147,6 @@ namespace SenseNet.ContentRepository.Tests
 
             });
         }
-        //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         [TestMethod]
         public void DPAB_Update()
         {
@@ -187,6 +185,55 @@ namespace SenseNet.ContentRepository.Tests
                 CheckDynamicDataByVersionId(folderA.VersionId);
             });
         }
+        [TestMethod]
+        public void DPAB_UpdateFile()
+        {
+            DPTest(() =>
+            {
+                var filecontent1 = "File content 1.";
+                var filecontent2 = "File content 2.";
+
+                //// ACTION-A
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Save();
+                var fileA = new File(folderA) { Name = "File1" };
+                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileA.Save();
+                fileA = Node.Load<File>(fileA.Id);
+                var binaryA = fileA.Binary;
+                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileA.Binary = binaryA;
+                DataStore.SnapshotsEnabled = true;
+                fileA.Save();
+                DataStore.SnapshotsEnabled = false;
+
+                // ACTION-B
+                DataStore.Enabled = true;
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Save();
+                var fileB = new File(folderB) { Name = "File1" };
+                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileB.Save();
+                fileB = Node.Load<File>(fileB.Id);
+                var binaryB = fileB.Binary;
+                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileB.Binary = binaryB;
+                DataStore.SnapshotsEnabled = true;
+                fileB.Save();
+                DataStore.SnapshotsEnabled = false;
+
+                // ASSERT
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                CheckDynamicDataByVersionId(folderA.VersionId);
+            });
+        }
+
+        //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
 

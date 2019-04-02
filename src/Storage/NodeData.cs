@@ -1376,9 +1376,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         private Stream CloneStream(Stream original)
         {
-            if (original is MemoryStream memStream)
-                return new MemoryStream(memStream.GetBuffer().ToArray());
-            throw new NotImplementedException();
+            if (original == null)
+                return null;
+            return Stream.Null;
         }
 
         //UNDONE:DB -------Delete NodeData.GetPropertyNames
