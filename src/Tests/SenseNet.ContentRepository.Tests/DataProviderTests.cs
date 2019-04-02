@@ -55,7 +55,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private RepositorySchemaData GetStoredSchema()
         {
-            return (RepositorySchemaData)new PrivateObject(Providers.Instance.DataProvider2).GetField("_schema");
+            return ((InMemoryDataProvider2) Providers.Instance.DataProvider2).DB.Schema;
         }
 
         [TestMethod]
@@ -222,8 +222,9 @@ namespace SenseNet.ContentRepository.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            Providers.Instance.DataProvider2 = new InMemoryDataProvider2();
-            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2();
+            var dp2 = new InMemoryDataProvider2();
+            Providers.Instance.DataProvider2 = dp2;
+            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);
 
             using (Repository.Start(builder))
             {

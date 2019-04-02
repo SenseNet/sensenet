@@ -152,7 +152,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Assert_AreEqual(expected.Checksum, actual.Checksum, "BinaryDataValue.Checksum");
             Assert_AreEqual(expected.Timestamp, actual.Timestamp, "BinaryDataValue.Timestamp");
             Assert_AreEqual(expected.BlobProviderName, actual.BlobProviderName, "BinaryDataValue.BlobProviderName");
-            Assert_AreEqual(expected.BlobProviderData, actual.BlobProviderData, "BinaryDataValue.BlobProviderData");
+            //Assert_AreEqual(expected.BlobProviderData, actual.BlobProviderData, "BinaryDataValue.BlobProviderData");
             Assert_AreEqual(expected.Stream, actual.Stream, "BinaryDataValue.Stream");
         }
 

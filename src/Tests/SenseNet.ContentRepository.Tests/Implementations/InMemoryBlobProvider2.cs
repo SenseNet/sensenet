@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
     public class InMemoryBlobStorageMetaDataProvider2 : IBlobStorageMetaDataProvider
     {
-        private InMemoryDataProvider2 _dataProvider;
+        public InMemoryDataProvider2 DataProvider { get; set; }
 
         public InMemoryBlobStorageMetaDataProvider2()
         {
@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
         public InMemoryBlobStorageMetaDataProvider2(InMemoryDataProvider2 dataProvider)
         {
-            _dataProvider = dataProvider;
+            DataProvider = dataProvider;
         }
 
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
@@ -42,48 +42,50 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
-            throw new NotImplementedException();
-            //var streamLength = value.Stream?.Length ?? 0;
-            //var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
+            var streamLength = value.Stream?.Length ?? 0;
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
-            //// blob operation
+            // blob operation
 
-            //blobProvider.Allocate(ctx);
+            blobProvider.Allocate(ctx);
 
-            //using (var stream = blobProvider.GetStreamForWrite(ctx))
-            //    value.Stream?.CopyTo(stream);
+            using (var stream = blobProvider.GetStreamForWrite(ctx))
+                value.Stream?.CopyTo(stream);
 
-            //value.BlobProviderName = ctx.Provider.GetType().FullName;
-            //value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
+            value.BlobProviderName = ctx.Provider.GetType().FullName;
+            value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
 
-            //// metadata operation
-            //var db = _dataProvider.DB;
-            //if (!isNewNode)
-            //    db.BinaryProperties.RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            // metadata operation
+            var db = DataProvider.DB;
+            if (!isNewNode)
+                foreach (var key in db.BinaryProperties
+                                      .Where(x=>x.Value.VersionId == versionId && x.Value.PropertyTypeId == propertyTypeId)
+                                      .Select(x=>x.Key))
+                    db.BinaryProperties.Remove(key);
 
-            //var fileId = db.Files.Count == 0 ? 1 : db.Files.Max(r => r.FileId) + 1;
-            //db.Files.Add(new InMemoryDataProvider.FileRecord
-            //{
-            //    FileId = fileId,
-            //    ContentType = value.ContentType,
-            //    Extension = value.FileName.Extension,
-            //    FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
-            //    Size = Math.Max(0, value.Size),
-            //    BlobProvider = value.BlobProviderName,
-            //    BlobProviderData = value.BlobProviderData
-            //});
-            //var binaryPropertyId = db.BinaryProperties.Count == 0 ? 1 : db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
-            //db.BinaryProperties.Add(new InMemoryDataProvider.BinaryPropertyRecord
-            //{
-            //    BinaryPropertyId = binaryPropertyId,
-            //    FileId = fileId,
-            //    PropertyTypeId = propertyTypeId, 
-            //    VersionId = versionId
-            //});
+            var fileId = db.GetNextFileId();
+            db.Files.Add(fileId, new FileDoc
+            {
+                FileId = fileId,
+                ContentType = value.ContentType,
+                Extension = value.FileName.Extension,
+                FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
+                Size = Math.Max(0, value.Size),
+                BlobProvider = value.BlobProviderName,
+                BlobProviderData = value.BlobProviderData
+            });
+            var binaryPropertyId = db.GetNextBinaryPropertyId();
+            db.BinaryProperties.Add(binaryPropertyId, new BinaryPropertyDoc
+            {
+                BinaryPropertyId = binaryPropertyId,
+                FileId = fileId,
+                PropertyTypeId = propertyTypeId,
+                VersionId = versionId
+            });
 
-            //value.Id = binaryPropertyId;
-            //value.FileId = fileId;
-            //value.Timestamp = 0L; //TODO: file row timestamp
+            value.Id = binaryPropertyId;
+            value.FileId = fileId;
+            value.Timestamp = 0L; //TODO: file row timestamp
         }
 
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
