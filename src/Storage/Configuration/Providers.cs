@@ -121,7 +121,8 @@ namespace SenseNet.Configuration
             set { _dataProvider = new Lazy<DataProvider>(() => value); }
         }
         #endregion
-        public DataProvider2 DataProvider2 { get; set; } //UNDONE:DB ------Implement well Providers.DataProvider2
+        //UNDONE:DB ------Implement well Providers.DataProvider2
+        public DataProvider2 DataProvider2 { get; set; }
 
 
         #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
@@ -139,6 +140,8 @@ namespace SenseNet.Configuration
             set { _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>(() => value); }
         }
         #endregion
+        //UNDONE:DB ------Implement well Providers.BlobMetaDataProvider2
+        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider2 { get; set; }
 
         #region private Lazy<IBlobProviderSelector> _blobProviderSelector = new Lazy<IBlobProviderSelector>
         private Lazy<IBlobProviderSelector> _blobProviderSelector =

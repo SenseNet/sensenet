@@ -223,6 +223,8 @@ namespace SenseNet.ContentRepository.Tests
             Indexing.IsOuterSearchEngineEnabled = true;
 
             Providers.Instance.DataProvider2 = new InMemoryDataProvider2();
+            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2();
+
             using (Repository.Start(builder))
             {
                 DataStore.InstallDefaultStructure();

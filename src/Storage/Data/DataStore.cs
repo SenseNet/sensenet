@@ -32,9 +32,20 @@ namespace SenseNet.ContentRepository.Storage.Data
 
     public static class DataStore
     {
-        //UNDONE:DB -------Remove DataStore.Enabled
-        public static bool Enabled { get; set; }
-        //UNDONE:DB -------Remove DataStore.Enabled
+        // ReSharper disable once InconsistentNaming
+        //UNDONE:DB -------Remove DataStore.__enabled
+        private static bool __enabled;
+        public static bool Enabled
+        {
+            get => __enabled;
+            set
+            {
+                __enabled = value;
+                BlobStorageComponents.DataStoreEnabled = value;
+            }
+        }
+
+        //UNDONE:DB -------Remove DataStore.SnapshotsEnabled
         public static bool SnapshotsEnabled { get; set; }
 
         public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();//UNDONE:DB -------Remove DataStore.Snapshots
