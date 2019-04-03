@@ -657,7 +657,7 @@ namespace SenseNet.ContentRepository.Storage
                     return  (dynamicData.TryGetValue(propId, out data)) ? data : null;
             }
 
-            data = DataBackingStore.LoadProperty(this.VersionId, propertyType);
+            data = DataBackingStore.LoadProperty(this.VersionId, propertyType); //UNDONE:DB!!!!!!!!!! POTENTIEL BUG SOURCE: BinaryProperty loaded without blob provider information
             lock (_readPropertySync)
                 dynamicData[propId] = data;
             return data;

@@ -125,6 +125,10 @@ namespace SenseNet.ContentRepository.Tests
                 fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
                 DataStore.SnapshotsEnabled = true;
                 fileA.Save();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileA = Node.Load<File>(fileA.Id);
+                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
 
                 // ACTION-B
                 DataStore.Enabled = true;
@@ -135,6 +139,10 @@ namespace SenseNet.ContentRepository.Tests
                 fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
                 DataStore.SnapshotsEnabled = true;
                 fileB.Save();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileB = Node.Load<File>(fileB.Id);
+                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
                 var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
@@ -143,8 +151,11 @@ namespace SenseNet.ContentRepository.Tests
                 var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-                CheckDynamicDataByVersionId(folderA.VersionId);
 
+                CheckDynamicDataByVersionId(fileA.VersionId);
+
+                Assert.AreEqual(filecontent, reloadedFileContentA);
+                Assert.AreEqual(filecontent, reloadedFileContentB);
             });
         }
         [TestMethod]
@@ -190,14 +201,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             DPTest(() =>
             {
-                var filecontent1 = "File content 1.";
-                var filecontent2 = "File content 2.";
+                var filecontent1 = "1111 File content 1.";
+                var filecontent2 = "2222 File content 2.";
 
                 //// ACTION-A
                 var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderA.Save();
                 var fileA = new File(folderA) { Name = "File1" };
                 fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileA.Binary = fileA.Binary;
                 fileA.Save();
                 fileA = Node.Load<File>(fileA.Id);
                 var binaryA = fileA.Binary;
@@ -206,6 +218,9 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.SnapshotsEnabled = true;
                 fileA.Save();
                 DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileA = Node.Load<File>(fileA.Id);
+                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
 
                 // ACTION-B
                 DataStore.Enabled = true;
@@ -221,6 +236,9 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.SnapshotsEnabled = true;
                 fileB.Save();
                 DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileB = Node.Load<File>(fileB.Id);
+                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
                 var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
@@ -229,7 +247,11 @@ namespace SenseNet.ContentRepository.Tests
                 var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-                CheckDynamicDataByVersionId(folderA.VersionId);
+
+                CheckDynamicDataByVersionId(fileA.VersionId);
+
+                Assert.AreEqual(filecontent2, reloadedFileContentA);
+                Assert.AreEqual(filecontent2, reloadedFileContentB);
             });
         }
 
@@ -241,6 +263,7 @@ namespace SenseNet.ContentRepository.Tests
         private void CheckDynamicDataByVersionId(int versionId)
         {
             DataStore.SnapshotsEnabled = false;
+            DataStore.Snapshots.Clear();
 
             DataStore.Enabled = false;
             DistributedApplication.Cache.Reset();

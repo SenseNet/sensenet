@@ -240,6 +240,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds);
         }
+        public static Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
+        {
+            return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+        }
 
         /* ============================================================================================================= NodeHead */
 
@@ -371,5 +375,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 Snapshot = snapshot
             });
         }
+
     }
 }

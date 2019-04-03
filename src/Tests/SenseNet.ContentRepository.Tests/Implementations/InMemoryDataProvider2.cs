@@ -302,6 +302,36 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return System.Threading.Tasks.Task.FromResult(result);
         }
 
+        [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
+        public override async Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
+        {
+            BinaryDataValue result = null;
+
+            var binaryDoc = DB.BinaryProperties.Values.FirstOrDefault(x =>
+                x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
+            if (binaryDoc == null)
+                return await System.Threading.Tasks.Task.FromResult(result);
+
+            if (!DB.Files.TryGetValue(binaryDoc.FileId, out var fileDoc))
+                return await System.Threading.Tasks.Task.FromResult(result);
+            if (fileDoc.Staging)
+                return await System.Threading.Tasks.Task.FromResult(result);
+
+            result = new BinaryDataValue
+            {
+                Id = binaryDoc.BinaryPropertyId,
+                FileId = binaryDoc.FileId,
+                Checksum = null,
+                FileName = new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
+                ContentType = fileDoc.ContentType,
+                Size = fileDoc.Size,
+                BlobProviderName = fileDoc.BlobProvider,
+                BlobProviderData = fileDoc.BlobProviderData,
+                Timestamp = fileDoc.Timestamp
+            };
+            return await System.Threading.Tasks.Task.FromResult(result);
+        }
+
         /* ============================================================================================================= NodeHead */
 
         public override Task<NodeHead> LoadNodeHeadAsync(string path)
@@ -1428,9 +1458,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public string Extension { get; set; }
         public string FileNameWithoutExtension { get; set; }
         public long Size { get; set; }
+        public bool Staging { get; set; }
         public string BlobProvider { get; set; }
         public string BlobProviderData { get; set; }
         public byte[] Buffer { get; set; }
+        public long Timestamp { get; set; } //UNDONE:DB ---FileDoc.Timestamp always 0L
 
         public FileDoc Clone()
         {
@@ -1441,9 +1473,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 Extension = Extension,
                 FileNameWithoutExtension = FileNameWithoutExtension,
                 Size = Size,
+                Staging = Staging,
                 BlobProvider = BlobProvider,
                 BlobProviderData = BlobProviderData,
-                Buffer = Buffer.ToArray()
+                Buffer = Buffer.ToArray(),
+                Timestamp = Timestamp
             };
         }
     }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {
@@ -32,7 +33,25 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            throw new NotImplementedException();
+            if (!DataProvider.DB.Files.TryGetValue(fileId, out var fileDoc))
+                return null;
+
+            var length = fileDoc.Size;
+            var providerName = fileDoc.BlobProvider;
+            var providerData = fileDoc.BlobProviderData;
+
+            var provider = BlobStorageBase.GetProvider(providerName);
+
+            return new BlobStorageContext(provider, providerData)
+            {
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = length,
+                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
+                    ? new BuiltinBlobProviderData()
+                    : provider.ParseData(providerData)
+            };
         }
 
         public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
@@ -163,42 +182,44 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            throw new NotImplementedException();
-            //var db = _dataProvider.DB;
-            //var binaryPropertyRow =
-            //    db.BinaryProperties.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
-            //if (binaryPropertyRow == null)
-            //    return null;
-            //var fileRow = db.Files.FirstOrDefault(r => r.FileId == binaryPropertyRow.FileId && !r.Staging);
-            //if (fileRow == null)
-            //    return null;
+            //throw new NotImplementedException();
+            var db = DataProvider.DB;
+            var binaryDoc =
+                db.BinaryProperties.Values.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            if (binaryDoc == null)
+                return null;
 
-            //var length = fileRow.Size;
-            //var binaryPropertyId = binaryPropertyRow.BinaryPropertyId;
-            //var fileId = fileRow.FileId;
+            if (!db.Files.TryGetValue(binaryDoc.FileId, out var fileDoc))
+                return null;
+            if (fileDoc.Staging)
+                return null;
 
-            //var providerName = fileRow.BlobProvider;
-            //var providerTextData = fileRow.BlobProviderData;
+            var length = fileDoc.Size;
+            var binaryPropertyId = binaryDoc.BinaryPropertyId;
+            var fileId = fileDoc.FileId;
 
-            //var rawData = fileRow.Stream;
+            var providerName = fileDoc.BlobProvider;
+            var providerTextData = fileDoc.BlobProviderData;
 
-            //var provider = BlobStorageBase.GetProvider(providerName);
-            //var context = new BlobStorageContext(provider, providerTextData)
-            //{
-            //    VersionId = versionId,
-            //    PropertyTypeId = propertyTypeId,
-            //    FileId = fileId,
-            //    Length = length,
-            //};
+            var rawData = fileDoc.Buffer;
 
-            //return new BinaryCacheEntity
-            //{
-            //    Length = length,
-            //    RawData = rawData,
-            //    BinaryPropertyId = binaryPropertyId,
-            //    FileId = fileId,
-            //    Context = context
-            //};
+            var provider = BlobStorageBase.GetProvider(providerName);
+            var context = new BlobStorageContext(provider, providerTextData)
+            {
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = length,
+            };
+
+            return new BinaryCacheEntity
+            {
+                Length = length,
+                RawData = rawData,
+                BinaryPropertyId = binaryPropertyId,
+                FileId = fileId,
+                Context = context
+            };
         }
 
         public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)

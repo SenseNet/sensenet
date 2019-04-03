@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 
 namespace SenseNet.Tests.Implementations
 {
@@ -32,7 +33,26 @@ namespace SenseNet.Tests.Implementations
 
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            throw new NotImplementedException();
+            var fileRow = _dataProvider.DB.Files.FirstOrDefault(f => f.FileId == fileId);
+            if (fileRow == null)
+                return null;
+
+            var length = fileRow.Size;
+            var providerName = fileRow.BlobProvider;
+            var providerData = fileRow.BlobProviderData;
+
+            var provider = BlobStorageBase.GetProvider(providerName);
+
+            return new BlobStorageContext(provider, providerData)
+            {
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = length,
+                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
+                    ? new BuiltinBlobProviderData() //UNDONE:Blob: Unwanted dependency. Null should be better.
+                    : provider.ParseData(providerData)
+            };
         }
 
         public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
@@ -49,8 +69,13 @@ namespace SenseNet.Tests.Implementations
 
             blobProvider.Allocate(ctx);
 
-            using (var stream = blobProvider.GetStreamForWrite(ctx))
-                value.Stream?.CopyTo(stream);
+            var sourceStream = value.Stream;
+            if (sourceStream != null)
+            {
+                sourceStream.Seek(0L, SeekOrigin.Begin);
+                using (var stream = blobProvider.GetStreamForWrite(ctx))
+                    sourceStream.CopyTo(stream);
+            }
 
             value.BlobProviderName = ctx.Provider.GetType().FullName;
             value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
@@ -245,7 +270,7 @@ namespace SenseNet.Tests.Implementations
 
         public override void Flush()
         {
-            throw new NotImplementedException();
+            // do nothing
         }
 
         public override long Seek(long offset, SeekOrigin origin)

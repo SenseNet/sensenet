@@ -87,6 +87,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp);
 
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds);
+        public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId);
 
         /* ============================================================================================================= NodeHead */
 

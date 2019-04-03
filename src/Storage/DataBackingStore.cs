@@ -18,6 +18,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tools;
+using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -373,7 +374,7 @@ namespace SenseNet.ContentRepository.Storage
                 if (propertyType.DataType == DataType.Text)
                     throw new NotImplementedException();
                 if (propertyType.DataType == DataType.Binary)
-                    throw new NotImplementedException();
+                    return DataStore.LoadBinaryPropertyValueAsync(versionId, propertyType.Id).Result;
             }
             else
             {
@@ -403,10 +404,9 @@ namespace SenseNet.ContentRepository.Storage
             if (binaryCacheEntity == null)
             {
                 // Not in cache, load it from the database
-                if (DataStore.Enabled)
-                    throw new NotImplementedException();
-                else
-                    binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
+                binaryCacheEntity = DataStore.Enabled
+                    ? BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId)
+                    : DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId);
 
                 // insert the binary cache entity into the 
                 // cache only if we know the node id
