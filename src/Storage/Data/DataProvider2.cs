@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="savingAlgorithm">Defines the version handling mode.</param>
         /// <returns>Required SaveResult instance with the newly generated data:
         /// NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.</returns>
-        public abstract Task<SaveResult> InsertNodeAsync(NodeData nodeData, SavingAlgorithm savingAlgorithm);
+        public abstract Task<SaveResult> InsertNodeAsync(NodeData nodeData);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);

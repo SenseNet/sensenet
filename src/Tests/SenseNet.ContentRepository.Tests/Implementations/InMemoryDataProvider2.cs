@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Nodes */
 
-        public override async Task<SaveResult> InsertNodeAsync(NodeData nodeData, SavingAlgorithm savingAlgorithm)
+        public override async Task<SaveResult> InsertNodeAsync(NodeData nodeData)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 var value = nodeData.GetDynamicRawData(binPropType) ?? binPropType.DefaultValue;
                 var binValue = (BinaryDataValue)value;
-                SaveBinaryProperty(binValue, versionId, binPropType, true, savingAlgorithm);
+                SaveBinaryProperty(binValue, versionId, binPropType, true, SavingAlgorithm.CreateNewNode);
             }
 
             // Manage last versionIds and timestamps
@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobStorage.UpdateBinaryProperty(value);
         }
 
-        public override Task<SaveResult> UpdateNodeAsync(NodeData nodeData, IEnumerable<int> versionIdsToDelete)
+        public override async Task<SaveResult> UpdateNodeAsync(NodeData nodeData, IEnumerable<int> versionIdsToDelete)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -138,22 +138,21 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+            //UNDONE:DB DeleteVersion is not implemented
+
 
             if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
             if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
                 throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
 
-            var versionDoc = DB.Versions[nodeData.VersionId];
+            await DeleteVersionsAsync(versionIdsToDelete);
+
+            var versionId = nodeData.VersionId;
+            var versionDoc = GetVersionData(nodeData);
 
             // UpdateVersionRow
-            versionDoc.NodeId = nodeData.Id;
-            versionDoc.Version = nodeData.Version;
-            versionDoc.CreationDate = nodeData.VersionCreationDate;
-            versionDoc.CreatedById = nodeData.VersionCreatedById;
-            versionDoc.ModificationDate = nodeData.VersionModificationDate;
-            versionDoc.ModifiedById = nodeData.VersionModifiedById;
-            versionDoc.ChangedData = nodeData.ChangedData?.ToArray();
+            DB.Versions[versionId] = versionDoc;
 
             // UpdateNodeRow
             nodeDoc.NodeTypeId = nodeData.NodeTypeId;
@@ -186,8 +185,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             nodeDoc.LastMajorVersionId = lastMajorVersionId;
             nodeDoc.LastMinorVersionId = lastMinorVersionId;
 
-            //UNDONE:DB BinaryIds?
-            //UNDONE:DB Save DataType.Binary
+            // Manage BinaryProperties
+            foreach (var binPropType in nodeData.PropertyTypes.Where(x => x.DataType == DataType.Binary))
+            {
+                var value = nodeData.GetDynamicRawData(binPropType) ?? binPropType.DefaultValue;
+                var binValue = (BinaryDataValue)value;
+                SaveBinaryProperty(binValue, versionId, binPropType, true, SavingAlgorithm.UpdateSameVersion);
+            }
 
             var result = new SaveResult
             {
@@ -196,7 +200,26 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 LastMajorVersionId = lastMajorVersionId,
                 LastMinorVersionId = lastMinorVersionId
             };
-            return System.Threading.Tasks.Task.FromResult(result);
+            return await System.Threading.Tasks.Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS
+        /// </summary>
+        private System.Threading.Tasks.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
+        {
+            foreach (var versionId in versionIdsToDelete)
+            {
+                foreach (var binPropId in DB.BinaryProperties.Values
+                    .Where(x => x.VersionId == versionId)
+                    .Select(x => x.BinaryPropertyId)
+                    .ToArray())
+                {
+                    DB.BinaryProperties.Remove(binPropId);
+                }
+                DB.Versions.Remove(versionId);
+            }
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
         public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId,
@@ -541,7 +564,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 VersionId = nodeData.VersionId,
                 NodeId = nodeData.Id,
-                Version = nodeData.Version,
+                Version = nodeData.Version.Clone(),
                 CreationDate = nodeData.VersionCreationDate,
                 CreatedById = nodeData.VersionCreatedById,
                 ModificationDate = nodeData.VersionModificationDate,

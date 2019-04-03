@@ -114,63 +114,60 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
         {
-            throw new NotImplementedException();
-            //var streamLength = value.Stream?.Length ?? 0;
-            //var isExternal = false;
-            //if (streamLength > 0)
-            //{
-            //    var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
-            //    {
-            //        VersionId = 0,
-            //        PropertyTypeId = 0,
-            //        FileId = value.FileId,
-            //        Length = streamLength,
-            //    };
+            var streamLength = value.Stream?.Length ?? 0;
+            var isExternal = false;
+            if (streamLength > 0)
+            {
+                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                };
 
-            //    blobProvider.Allocate(ctx);
-            //    isExternal = true;
+                blobProvider.Allocate(ctx);
+                isExternal = true;
 
-            //    value.BlobProviderName = ctx.Provider.GetType().FullName;
-            //    value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
-            //}
+                value.BlobProviderName = ctx.Provider.GetType().FullName;
+                value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
+            }
 
-            //var isRepositoryStream = value.Stream is RepositoryStream;
-            //var hasStream = isRepositoryStream || value.Stream is MemoryStream;
-            //if (!isExternal && !hasStream)
-            //    // do not do any database operation if the stream is not modified
-            //    return;
+            var isRepositoryStream = value.Stream is RepositoryStream;
+            var hasStream = isRepositoryStream || value.Stream is MemoryStream;
+            if (!isExternal && !hasStream)
+                // do not do any database operation if the stream is not modified
+                return;
 
-            //var db = _dataProvider.DB;
-            //var fileId = db.Files.Count == 0 ? 1 : db.Files.Max(r => r.FileId) + 1;
-            //db.Files.Add(new InMemoryDataProvider.FileRecord
-            //{
-            //    FileId = fileId,
-            //    ContentType = value.ContentType,
-            //    Extension = value.FileName.Extension,
-            //    FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
-            //    Size = Math.Max(0, value.Size),
-            //    BlobProvider = value.BlobProviderName,
-            //    BlobProviderData = value.BlobProviderData
-            //});
+            var db = DataProvider.DB;
+            var fileId = db.GetNextFileId();
+            db.Files.Add(fileId, new FileDoc
+            {
+                FileId = fileId,
+                ContentType = value.ContentType,
+                Extension = value.FileName.Extension,
+                FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
+                Size = Math.Max(0, value.Size),
+                BlobProvider = value.BlobProviderName,
+                BlobProviderData = value.BlobProviderData
+            });
+            if (db.BinaryProperties.TryGetValue(value.Id, out var binaryPropertyDoc))
+                binaryPropertyDoc.FileId = fileId;
 
-            //var binaryPropertyRow = db.BinaryProperties.FirstOrDefault(r => r.BinaryPropertyId == value.Id);
-            //if(binaryPropertyRow != null)
-            //    binaryPropertyRow.FileId = fileId;
+            if (fileId > 0 && fileId != value.FileId)
+                value.FileId = fileId;
 
-            //if (fileId > 0 && fileId != value.FileId)
-            //    value.FileId = fileId;
+            // update stream with a new context
+            var newCtx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+            {
+                VersionId = 0,
+                PropertyTypeId = 0,
+                FileId = value.FileId,
+                Length = streamLength,
+            };
 
-            //// update stream with a new context
-            //var newCtx = new BlobStorageContext(blobProvider, value.BlobProviderData)
-            //{
-            //    VersionId = 0,
-            //    PropertyTypeId = 0,
-            //    FileId = value.FileId,
-            //    Length = streamLength,
-            //};
-
-            //using (var stream = blobProvider.GetStreamForWrite(newCtx))
-            //    value.Stream?.CopyTo(stream);
+            using (var stream = blobProvider.GetStreamForWrite(newCtx))
+                value.Stream?.CopyTo(stream);
         }
 
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
