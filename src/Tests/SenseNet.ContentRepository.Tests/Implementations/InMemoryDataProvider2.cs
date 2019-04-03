@@ -74,19 +74,17 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Nodes */
 
-        public override async Task<SaveResult> InsertNodeAsync(NodeData nodeData)
+        public override async System.Threading.Tasks.Task InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings)
         {
             //UNDONE:DB Lock? Transaction?
 
-            var saveResult = new SaveResult();
-
             var nodeId = DB.GetNextNodeId();
-            saveResult.NodeId = nodeId;
+            nodeData.Id = nodeId;
             var nodeHeadData = GetNodeHeadData(nodeData);
             nodeHeadData.NodeId = nodeId;
 
             var versionId = DB.GetNextVersionId();
-            saveResult.VersionId = versionId;
+            nodeData.VersionId = versionId;
             var versionData = GetVersionData(nodeData);
             versionData.VersionId = versionId;
             versionData.NodeId = nodeId;
@@ -106,16 +104,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             LoadLastVersionIds(nodeId, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeHeadData.LastMajorVersionId = lastMajorVersionId;
             nodeHeadData.LastMinorVersionId = lastMinorVersionId;
-
-            saveResult.LastMajorVersionId = lastMajorVersionId;
-            saveResult.LastMinorVersionId = lastMinorVersionId;
+            settings.LastMajorVersionIdAfter = lastMajorVersionId;
+            settings.LastMinorVersionIdAfter = lastMinorVersionId;
 
             DB.Nodes[nodeId] = nodeHeadData;
 
-            saveResult.NodeTimestamp = nodeHeadData.Timestamp;
-            saveResult.VersionTimestamp = versionData.Timestamp;
+            nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+            nodeData.VersionTimestamp = versionData.Timestamp;
 
-            return await System.Threading.Tasks.Task.FromResult(saveResult);
+            // ReSharper disable once RedundantJumpStatement
+            return;
         }
         private void SaveBinaryProperty(BinaryDataValue value, int versionId, PropertyType propertyType, bool isNewNode, SavingAlgorithm savingAlgorithm)
         {
@@ -127,7 +125,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobStorage.UpdateBinaryProperty(value);
         }
 
-        public override async Task<SaveResult> UpdateNodeAsync(NodeData nodeData, IEnumerable<int> versionIdsToDelete)
+        public override async System.Threading.Tasks.Task UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -137,7 +135,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
             //UNDONE:DB DeleteVersion is not implemented
-
 
             if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
@@ -191,17 +188,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 SaveBinaryProperty(binValue, versionId, binPropType, true, SavingAlgorithm.UpdateSameVersion);
             }
 
-            var result = new SaveResult
-            {
-                NodeTimestamp = nodeDoc.Timestamp,
-                VersionTimestamp = versionDoc.Timestamp,
-                LastMajorVersionId = lastMajorVersionId,
-                LastMinorVersionId = lastMinorVersionId
-            };
-            return await System.Threading.Tasks.Task.FromResult(result);
+            nodeData.NodeTimestamp = nodeDoc.Timestamp;
+            nodeData.VersionTimestamp = versionDoc.Timestamp;
+            settings.LastMajorVersionIdAfter = lastMajorVersionId;
+            settings.LastMinorVersionIdAfter = lastMinorVersionId;
+
+            // ReSharper disable once RedundantJumpStatement
+            return;
         }
         /// <summary>
-        /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS
+        /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS AND NODESAVESETTINGS
         /// </summary>
         private System.Threading.Tasks.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
         {
@@ -219,13 +215,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId,
+        public override System.Threading.Tasks.Task CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId,
             IEnumerable<int> versionIdsToDelete)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<SaveResult> CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
+        public override System.Threading.Tasks.Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
             int expectedVersionId,
             IEnumerable<int> versionIdsToDelete)
         {
@@ -421,9 +417,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= IndexDocument */
 
-        public override Task<SaveResult> SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
+        public override async System.Threading.Tasks.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
         {
-            var result = new SaveResult();
             if (DB.Versions.TryGetValue(nodeData.VersionId, out var versionDoc))
             {
                 string serializedDoc;
@@ -439,9 +434,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     serializedDoc = writer.GetStringBuilder().ToString();
                 }
                 versionDoc.IndexDocument = serializedDoc;
-                result.VersionTimestamp = versionDoc.Timestamp;
+                nodeData.VersionTimestamp = versionDoc.Timestamp;
             }
-            return System.Threading.Tasks.Task.FromResult(result);
+            // ReSharper disable once RedundantJumpStatement
+            return;
         }
 
         /* ============================================================================================================= Schema */

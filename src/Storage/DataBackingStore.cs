@@ -786,10 +786,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     if (DataStore.Enabled)
                     {
-                        var result = DataStore.SaveIndexDocumentAsync(node.Data, doc).Result;
-                        //UNDONE:DB Write a generalized method for process the SaveResult
-                        if (result.VersionTimestamp >= 0)
-                            node.Data.VersionTimestamp = result.VersionTimestamp;
+                        DataStore.SaveIndexDocumentAsync(node.Data, doc).Wait();
                     }
                     else
                         DataProvider.SaveIndexDocument(node.Data, bytes);

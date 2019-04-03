@@ -93,35 +93,25 @@ namespace SenseNet.ContentRepository.Storage.Data
             // SAVE DATA
             // Do not block any exception from the called methods.
             // If need a catch block rethrow away the exception.
-            SaveResult saveResult = null; // comes from DataProvider methods
 
             var savingAlgorithm = settings.GetSavingAlgorithm();
             if (settings.NeedToSaveData) //UNDONE: This decision by "NeedToSaveData" is provider responsibility.
             {
-                const string saveResultCannorBeNull = "Return value saveResult cannot be null.";
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
-                        saveResult = await DataProvider.InsertNodeAsync(nodeData);
-                        if (saveResult == null)
-                            throw new InvalidOperationException(saveResultCannorBeNull);
+                        await DataProvider.InsertNodeAsync(nodeData, settings);
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
-                        saveResult = await DataProvider.UpdateNodeAsync(nodeData, settings.DeletableVersionIds);
-                        if (saveResult == null)
-                            throw new InvalidOperationException(saveResultCannorBeNull);
+                        await DataProvider.UpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
-                        saveResult = await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
                             settings.DeletableVersionIds);
-                        if (saveResult == null)
-                            throw new InvalidOperationException(saveResultCannorBeNull);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
-                        saveResult = await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
                             settings.ExpectedVersionId, settings.DeletableVersionIds);
-                        if (saveResult == null)
-                            throw new InvalidOperationException(saveResultCannorBeNull);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
@@ -138,24 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
 
             // Deletable checker method
-            AssertTimestampsIncremented(saveResult, nodeTimestampBefore, versionTimestampBefore); //UNDONE:DB -------Delete CheckTimestamps feature
-
-            if (saveResult != null)
-            {
-                // Write successful modifications after all checks or transaction commit.
-                if (saveResult.NodeId >= 0)
-                    nodeData.Id = saveResult.NodeId;
-                if (saveResult.VersionId >= 0)
-                    nodeData.VersionId = saveResult.VersionId;
-                if (saveResult.NodeTimestamp >= 0L)
-                    nodeData.NodeTimestamp = saveResult.NodeTimestamp;
-                if (saveResult.VersionTimestamp >= 0L)
-                    nodeData.VersionTimestamp = saveResult.VersionTimestamp;
-                if (saveResult.LastMajorVersionId >= 0)
-                    settings.LastMajorVersionIdAfter = saveResult.LastMajorVersionId;
-                if (saveResult.LastMinorVersionId >= 0)
-                    settings.LastMinorVersionIdAfter = saveResult.LastMinorVersionId;
-            }
+            AssertTimestampsIncremented(nodeData, nodeTimestampBefore, versionTimestampBefore); //UNDONE:DB -------Delete CheckTimestamps feature
         }
 
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
@@ -254,9 +227,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ============================================================================================================= IndexDocument */
 
-        public static async Task<SaveResult> SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
+        public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
         {
-            return await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
+            await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
         /* ============================================================================================================= Schema */
@@ -327,11 +300,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
 
-        private static void AssertTimestampsIncremented(SaveResult saveResult, long nodeTimestampBefore, long versionTimestampBefore) //UNDONE:DB -------Delete CheckTimestamps feature
+        private static void AssertTimestampsIncremented(NodeData nodeData, long nodeTimestampBefore, long versionTimestampBefore) //UNDONE:DB -------Delete CheckTimestamps feature
         {
-            if (saveResult.NodeTimestamp <= nodeTimestampBefore)
+            if (nodeData.NodeTimestamp <= nodeTimestampBefore)
                 throw new Exception("NodeTimestamp need to be incremented.");
-            if (saveResult.VersionTimestamp <= versionTimestampBefore)
+            if (nodeData.VersionTimestamp <= versionTimestampBefore)
                 throw new Exception("VersionTimestamp need to be incremented.");
         }
 
