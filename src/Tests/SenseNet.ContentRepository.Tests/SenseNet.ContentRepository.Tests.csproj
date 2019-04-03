@@ -111,8 +111,11 @@
     <Compile Include="FileTests.cs" />
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="Implementations\DataProviderChecker.cs" />
+    <Compile Include="Implementations\IndexFieldJsonConverter.cs" />
     <Compile Include="Implementations\InMemoryBlobProvider2.cs" />
+    <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider2.cs" />
+    <Compile Include="Implementations\InMemorySchemaWriter.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="LoggerTests.cs" />
