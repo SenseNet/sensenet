@@ -255,9 +255,11 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        //UNDONE:DB TEST: DP_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
-        //UNDONE:DB TEST: DP_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
-        //UNDONE:DB TEST: DP_Update with RENAME (assert paths changed in the subtree)
+        //UNDONE:DB TEST: DPAB_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
+        //UNDONE:DB TEST: DPAB_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
+        //UNDONE:DB TEST: DPAB_Update with RENAME (assert paths changed in the subtree)
+        //UNDONE:DB TEST: DPAB_Create and Rollback
+        //UNDONE:DB TEST: DPAB_Update and Rollback
 
 
         private void CheckDynamicDataByVersionId(int versionId)
