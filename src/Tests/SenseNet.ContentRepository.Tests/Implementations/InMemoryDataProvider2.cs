@@ -136,15 +136,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, int currentVersionId,
-            IEnumerable<int> versionIdsToDelete)
+        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings,
+            IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
             if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
             if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
                 throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
 
-            DeleteVersionsAsync(versionIdsToDelete);
 
             if (!DB.Versions.TryGetValue(currentVersionId, out var currentVersionDoc))
                 throw new Exception($"Version not found. VersionId: {currentVersionId}.");
@@ -154,11 +153,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var versionDoc = GetVersionData(changedDynamicData, currentVersionDoc);
 
             // UpdateVersionRow
-            var versionId = DB.GetNextVersionId();
+            var versionId = expectedVersionId == 0 ? DB.GetNextVersionId() : expectedVersionId;
             nodeData.VersionId = versionId;
             versionDoc.VersionId = versionId;
             versionDoc.Version = nodeData.Version;
             DB.Versions[versionId] = versionDoc;
+
+            // Delete unnecessary versions
+            DeleteVersionsAsync(versionIdsToDelete);
 
             // UpdateNodeRow
             nodeDoc = GetNodeHeadData(nodeData);
@@ -181,13 +183,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             settings.LastMinorVersionIdAfter = lastMinorVersionId;
 
             return STT.Task.CompletedTask;
-        }
-
-        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
-            int expectedVersionId,
-            IEnumerable<int> versionIdsToDelete)
-        {
-            throw new NotImplementedException();
         }
 
         public override STT.Task UpdateNodeHeadAsync(NodeData nodeData)

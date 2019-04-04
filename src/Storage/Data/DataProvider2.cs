@@ -37,16 +37,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
-        // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, out lastMajorVersionId, out lastMinorVersionId);
-        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        public abstract Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, int currentVersionId, IEnumerable<int> versionIdsToDelete);
-        // Executes these:
-        // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        public abstract Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId, int expectedVersionId, IEnumerable<int> versionIdsToDelete);
+        public abstract Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         public abstract Task UpdateNodeHeadAsync(NodeData nodeData);

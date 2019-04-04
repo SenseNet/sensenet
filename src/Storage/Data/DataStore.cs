@@ -106,12 +106,12 @@ namespace SenseNet.ContentRepository.Storage.Data
                         await DataProvider.UpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.CurrentVersionId,
-                            settings.DeletableVersionIds);
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds,
+                            settings.CurrentVersionId);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
-                            settings.ExpectedVersionId, settings.DeletableVersionIds);
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds,
+                            settings.CurrentVersionId, settings.ExpectedVersionId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
