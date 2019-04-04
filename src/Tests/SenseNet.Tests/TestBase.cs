@@ -101,9 +101,9 @@ namespace SenseNet.Tests
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
             DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
-            var portalContextAcc = new PrivateType(typeof(PortalContext));
-            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+            ContentTypeManager.Reset();            
+
+            OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTest();
 
@@ -114,6 +114,8 @@ namespace SenseNet.Tests
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
 
+            OnBeforeRepositoryStart(builder);
+
             using (Repository.Start(builder))
             {
                 if (useCurrentUser)
@@ -122,7 +124,13 @@ namespace SenseNet.Tests
                     using (new SystemAccount())
                         callback();
             }
+
+            OnAfterRepositoryShutdown();
         }
+
+        protected virtual void OnTestInitialize() { }
+        protected virtual void OnBeforeRepositoryStart(RepositoryBuilder builder) { }
+        protected virtual void OnAfterRepositoryShutdown() { }
 
         // ==========================================================
 
