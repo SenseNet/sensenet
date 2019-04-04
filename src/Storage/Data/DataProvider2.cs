@@ -8,33 +8,6 @@ using SenseNet.Search.Indexing;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //public class SaveResult //UNDONE:DB ?? Delete SaveResult or move to implementation ??
-    //{
-    //    public int NodeId;
-    //    public int VersionId;
-    //    public long NodeTimestamp;
-    //    public long VersionTimestamp;
-
-    //    public int LastMajorVersionId;
-    //    public int LastMinorVersionId;
-
-    //    public SaveResult()
-    //    {
-    //        NodeId = -1;
-    //        VersionId = -1;
-    //        NodeTimestamp = -1L;
-    //        VersionTimestamp = -1L;
-    //        LastMajorVersionId = -1;
-    //        LastMinorVersionId = -1;
-    //    }
-
-    //    //UNDONE:DB SaveResult.Version
-    //    public VersionNumber Version;
-
-    //    //UNDONE:DB SaveResult.BinaryPropertyIds
-    //    public Dictionary<PropertyType, int> BinaryPropertyIds;
-    //}
-
     /// <summary>
     /// .... Expected minimal object structure: Nodes -> Versions -> BinaryProperties -> Files
     /// </summary>
@@ -67,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, out lastMajorVersionId, out lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        public abstract Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId, IEnumerable<int> versionIdsToDelete);
+        public abstract Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, int currentVersionId, IEnumerable<int> versionIdsToDelete);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);

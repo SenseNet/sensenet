@@ -4,7 +4,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
@@ -14,58 +14,6 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
-    {
-        /* ================================================================================================ SCHEMA */
-        public string SchemaLock { get; set; }
-        public RepositorySchemaData Schema { get; set; } = new RepositorySchemaData();
-
-        /* ================================================================================================ Nodes */
-        /// <summary>
-        /// NodeId --> NodeDoc (NodeHead)
-        /// </summary>
-        public Dictionary<int, NodeDoc> Nodes { get; } = new Dictionary<int, NodeDoc>();
-        private int __lastNodeId = 1247;
-        public int GetNextNodeId()
-        {
-            return Interlocked.Increment(ref __lastNodeId);
-        }
-
-        /* ================================================================================================ Versions */
-        /// <summary>
-        /// VersionId --> VersionDoc (NodeData minus NodeHead)
-        /// </summary>
-        public Dictionary<int, VersionDoc> Versions { get; } = new Dictionary<int, VersionDoc>();
-        private int __lastVersionId = 260;
-        public int GetNextVersionId()
-        {
-            return Interlocked.Increment(ref __lastVersionId);
-        }
-
-        /* ================================================================================================ BinaryProperties */
-        /// <summary>
-        /// BinaryPropertyId --> BinaryPropertyDoc
-        /// </summary>
-        public Dictionary<int, BinaryPropertyDoc> BinaryProperties { get; } = new Dictionary<int, BinaryPropertyDoc>();
-        private int __binaryPropertyId = 112;
-        public int GetNextBinaryPropertyId()
-        {
-            return Interlocked.Increment(ref __binaryPropertyId);
-        }
-
-        /* ================================================================================================ Files */
-        /// <summary>
-        /// FileId --> FileDoc
-        /// </summary>
-        public Dictionary<int, FileDoc> Files { get; } = new Dictionary<int, FileDoc>();
-        private int __fileId = 112;
-        public int GetNextFileId()
-        {
-            return Interlocked.Increment(ref __fileId);
-        }
-    }
-
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
@@ -74,7 +22,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Nodes */
 
-        public override async System.Threading.Tasks.Task InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings)
+        public override STT.Task InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -112,8 +60,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             nodeData.NodeTimestamp = nodeHeadData.Timestamp;
             nodeData.VersionTimestamp = versionData.Timestamp;
 
-            // ReSharper disable once RedundantJumpStatement
-            return;
+            return STT.Task.CompletedTask;
         }
         private void SaveBinaryProperty(BinaryDataValue value, int versionId, PropertyType propertyType, bool isNewNode, SavingAlgorithm savingAlgorithm)
         {
@@ -125,7 +72,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobStorage.UpdateBinaryProperty(value);
         }
 
-        public override async System.Threading.Tasks.Task UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
+        public override STT.Task UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -134,14 +81,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-            //UNDONE:DB DeleteVersion is not implemented
 
             if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
             if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
                 throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
 
-            await DeleteVersionsAsync(versionIdsToDelete);
+            DeleteVersionsAsync(versionIdsToDelete);
 
             var versionId = nodeData.VersionId;
             var versionDoc = GetVersionData(nodeData);
@@ -150,35 +96,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             DB.Versions[versionId] = versionDoc;
 
             // UpdateNodeRow
-            nodeDoc.NodeTypeId = nodeData.NodeTypeId;
-            nodeDoc.ContentListTypeId = nodeData.ContentListTypeId;
-            nodeDoc.ContentListId = nodeData.ContentListId;
-            nodeDoc.CreatingInProgress = nodeData.CreatingInProgress;
-            nodeDoc.IsDeleted = nodeData.IsDeleted;
-            //nodeHeadData.IsInherited = nodeData.IsInherited;
-            nodeDoc.ParentNodeId = nodeData.ParentId;
-            nodeDoc.Name = nodeData.Name;
-            nodeDoc.DisplayName = nodeData.DisplayName;
-            nodeDoc.Path = nodeData.Path;
-            nodeDoc.Index = nodeData.Index;
-            nodeDoc.Locked = nodeData.Locked;
-            nodeDoc.LockedById = nodeData.LockedById;
-            nodeDoc.ETag = nodeData.ETag;
-            nodeDoc.LockType = nodeData.LockType;
-            nodeDoc.LockTimeout = nodeData.LockTimeout;
-            nodeDoc.LockDate = nodeData.LockDate;
-            nodeDoc.LockToken = nodeData.LockToken;
-            nodeDoc.LastLockUpdate = nodeData.LastLockUpdate;
-            nodeDoc.CreationDate = nodeData.CreationDate;
-            nodeDoc.CreatedById = nodeData.CreatedById;
-            nodeDoc.ModificationDate = nodeData.ModificationDate;
-            nodeDoc.ModifiedById = nodeData.ModifiedById;
-            nodeDoc.IsSystem = nodeData.IsSystem;
-            nodeDoc.OwnerId = nodeData.OwnerId;
-            nodeDoc.SavingState = nodeData.SavingState;
+            nodeDoc = GetNodeHeadData(nodeData);
             LoadLastVersionIds(nodeData.Id, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeDoc.LastMajorVersionId = lastMajorVersionId;
             nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeDoc.NodeId] = nodeDoc;
 
             // Manage BinaryProperties
             foreach (var binPropType in nodeData.PropertyTypes.Where(x => x.DataType == DataType.Binary))
@@ -193,13 +115,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             settings.LastMajorVersionIdAfter = lastMajorVersionId;
             settings.LastMinorVersionIdAfter = lastMinorVersionId;
 
-            // ReSharper disable once RedundantJumpStatement
-            return;
+            return STT.Task.CompletedTask;
         }
         /// <summary>
         /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS AND NODESAVESETTINGS
         /// </summary>
-        private System.Threading.Tasks.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
+        private STT.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
         {
             foreach (var versionId in versionIdsToDelete)
             {
@@ -212,28 +133,69 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 }
                 DB.Versions.Remove(versionId);
             }
-            return System.Threading.Tasks.Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public override System.Threading.Tasks.Task CopyAndUpdateNodeAsync(NodeData nodeData, int settingsCurrentVersionId,
+        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, int currentVersionId,
             IEnumerable<int> versionIdsToDelete)
         {
-            throw new NotImplementedException();
+            if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
+            if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
+                throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
+
+            DeleteVersionsAsync(versionIdsToDelete);
+
+            if (!DB.Versions.TryGetValue(currentVersionId, out var currentVersionDoc))
+                throw new Exception($"Version not found. VersionId: {currentVersionId}.");
+
+            // Get updated version data by nodeData
+            var changedDynamicData = nodeData.GetDynamicData();
+            var versionDoc = GetVersionData(changedDynamicData, currentVersionDoc);
+
+            // UpdateVersionRow
+            var versionId = DB.GetNextVersionId();
+            nodeData.VersionId = versionId;
+            versionDoc.VersionId = versionId;
+            versionDoc.Version = nodeData.Version;
+            DB.Versions[versionId] = versionDoc;
+
+            // UpdateNodeRow
+            nodeDoc = GetNodeHeadData(nodeData);
+            LoadLastVersionIds(nodeData.Id, out var lastMajorVersionId, out var lastMinorVersionId);
+            nodeDoc.LastMajorVersionId = lastMajorVersionId;
+            nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeDoc.NodeId] = nodeDoc;
+
+            // Manage BinaryProperties
+            foreach (var item in changedDynamicData.Where(x => x.Key.DataType == DataType.Binary))
+            {
+                var propertyType = item.Key;
+                var value = item.Value ?? propertyType.DefaultValue;
+                SaveBinaryProperty((BinaryDataValue)value, versionId, propertyType, false, SavingAlgorithm.CopyToNewVersionAndUpdate);
+            }
+
+            nodeData.NodeTimestamp = nodeDoc.Timestamp;
+            nodeData.VersionTimestamp = versionDoc.Timestamp;
+            settings.LastMajorVersionIdAfter = lastMajorVersionId;
+            settings.LastMinorVersionIdAfter = lastMinorVersionId;
+
+            return STT.Task.CompletedTask;
         }
 
-        public override System.Threading.Tasks.Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
+        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, int currentVersionId,
             int expectedVersionId,
             IEnumerable<int> versionIdsToDelete)
         {
             throw new NotImplementedException();
         }
 
-        public override System.Threading.Tasks.Task UpdateNodeHeadAsync(NodeData nodeData)
+        public override STT.Task UpdateNodeHeadAsync(NodeData nodeData)
         {
             throw new NotImplementedException();
         }
 
-        public override System.Threading.Tasks.Task UpdateSubTreePathAsync(string oldPath, string newPath)
+        public override STT.Task UpdateSubTreePathAsync(string oldPath, string newPath)
         {
             throw new NotImplementedException();
         }
@@ -296,15 +258,15 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
                 result.Add(nodeData);
             }
-            return System.Threading.Tasks.Task.FromResult((IEnumerable<NodeData>) result);
+            return STT.Task.FromResult((IEnumerable<NodeData>) result);
         }
 
-        public override System.Threading.Tasks.Task DeleteNodeAsync(int nodeId, long timestamp)
+        public override STT.Task DeleteNodeAsync(int nodeId, long timestamp)
         {
             throw new NotImplementedException();
         }
 
-        public override System.Threading.Tasks.Task MoveNodeAsync(int sourceNodeId, int targetNodeId,
+        public override STT.Task MoveNodeAsync(int sourceNodeId, int targetNodeId,
             long sourceTimestamp, long targetTimestamp)
         {
             throw new NotImplementedException();
@@ -315,23 +277,23 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             //UNDONE:DB!! dynamic properties: theoretically not called but need to test
             var result = new Dictionary<int, string>();
-            return System.Threading.Tasks.Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public override async Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
+        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
         {
             BinaryDataValue result = null;
 
             var binaryDoc = DB.BinaryProperties.Values.FirstOrDefault(x =>
                 x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
             if (binaryDoc == null)
-                return await System.Threading.Tasks.Task.FromResult(result);
+                return STT.Task.FromResult(result);
 
             if (!DB.Files.TryGetValue(binaryDoc.FileId, out var fileDoc))
-                return await System.Threading.Tasks.Task.FromResult(result);
+                return STT.Task.FromResult(result);
             if (fileDoc.Staging)
-                return await System.Threading.Tasks.Task.FromResult(result);
+                return STT.Task.FromResult(result);
 
             result = new BinaryDataValue
             {
@@ -345,7 +307,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobProviderData = fileDoc.BlobProviderData,
                 Timestamp = fileDoc.Timestamp
             };
-            return await System.Threading.Tasks.Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
 
         /* ============================================================================================================= NodeHead */
@@ -360,7 +322,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (!DB.Nodes.TryGetValue(nodeId, out var nodeDoc))
                 return null;
 
-            return System.Threading.Tasks.Task.FromResult(NodeDocToNodeHead(nodeDoc));
+            return STT.Task.FromResult(NodeDocToNodeHead(nodeDoc));
         }
 
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)
@@ -373,7 +335,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (nodeDoc == null)
                 return null;
 
-            return System.Threading.Tasks.Task.FromResult(NodeDocToNodeHead(nodeDoc));
+            return STT.Task.FromResult(NodeDocToNodeHead(nodeDoc));
         }
 
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
@@ -389,7 +351,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 .ThenBy(x => x.Version.Minor)
                 .Select(x => new NodeHead.NodeVersion(x.Version.Clone(), x.VersionId))
                 .ToArray();
-            return System.Threading.Tasks.Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
 
         private NodeHead NodeDocToNodeHead(NodeDoc nodeDoc)
@@ -417,7 +379,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= IndexDocument */
 
-        public override async System.Threading.Tasks.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
+        public override STT.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
         {
             if (DB.Versions.TryGetValue(nodeData.VersionId, out var versionDoc))
             {
@@ -436,15 +398,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 versionDoc.IndexDocument = serializedDoc;
                 nodeData.VersionTimestamp = versionDoc.Timestamp;
             }
-            // ReSharper disable once RedundantJumpStatement
-            return;
+            return STT.Task.CompletedTask;
         }
 
         /* ============================================================================================================= Schema */
 
         public override Task<RepositorySchemaData> LoadSchemaAsync()
         {
-            return System.Threading.Tasks.Task.FromResult(DB.Schema.Clone());
+            return STT.Task.FromResult(DB.Schema.Clone());
         }
 
         public override SchemaWriter CreateSchemaWriter()
@@ -567,6 +528,43 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 // IndexDocument and Timestamp will be set later.
             };
         }
+        private VersionDoc GetVersionData(IDictionary<PropertyType, object> changedDynamicData, VersionDoc sourceVersionDoc)
+        {
+            var dynamicData = CloneDynamicProperties(sourceVersionDoc.DynamicProperties);
+            foreach (var item in changedDynamicData)
+            {
+                var propertyType = item.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Binary)
+                    // Handled by higher level
+                    continue;
+                var clone = GetClone(item.Value, dataType);
+                if (dataType == DataType.Reference)
+                {
+                    // Remove empty references
+                    if (!((IEnumerable<int>) clone).Any())
+                    {
+                        dynamicData.Remove(propertyType.Name);
+                        continue;
+                    }
+                }
+                dynamicData[propertyType.Name] = clone;
+            }
+
+            return new VersionDoc
+            {
+                VersionId = sourceVersionDoc.VersionId,
+                NodeId = sourceVersionDoc.NodeId,
+                Version = sourceVersionDoc.Version.Clone(),
+                CreationDate = sourceVersionDoc.CreationDate,
+                CreatedById = sourceVersionDoc.CreatedById,
+                ModificationDate = sourceVersionDoc.ModificationDate,
+                ModifiedById = sourceVersionDoc.ModifiedById,
+                ChangedData = sourceVersionDoc.ChangedData,
+                DynamicProperties = dynamicData,
+                // IndexDocument and Timestamp will be set later.
+            };
+        }
         private bool EmptyReferencesFilter(PropertyType propertyType, object value)
         {
             if (propertyType.DataType != DataType.Reference)
@@ -678,6 +676,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ====================================================================== Tools */
 
+        private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> source)
+        {
+            return source.ToDictionary(x => x.Key, x => GetClone(x.Value, PropertyType.GetByName(x.Key).DataType));
+        }
         private object GetClone(object value, DataType dataType)
         {
             if (value == null)

@@ -785,9 +785,7 @@ namespace SenseNet.ContentRepository.Storage
                     bytes = docStream.GetBuffer();
 
                     if (DataStore.Enabled)
-                    {
                         DataStore.SaveIndexDocumentAsync(node.Data, doc).Wait();
-                    }
                     else
                         DataProvider.SaveIndexDocument(node.Data, bytes);
                 }

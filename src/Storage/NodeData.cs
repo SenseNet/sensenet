@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -69,6 +70,24 @@ namespace SenseNet.ContentRepository.Storage
         private object[] staticData;
         private bool[] staticDataIsModified;
         private Dictionary<int, object> dynamicData;
+
+        public IDictionary<PropertyType, object> GetDynamicData()
+        {
+            lock (_readPropertySync)
+                return new ReadOnlyDictionary<PropertyType, object>(
+                    dynamicData.ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.Key), x => x.Value));
+        }
+        public IDictionary<string, object> GetDynamicDataNameKey()
+        {
+            lock (_readPropertySync)
+                return new ReadOnlyDictionary<string, object>(
+                    dynamicData.ToDictionary(x => ActiveSchema.PropertyTypes[x.Key].Name, x => x.Value));
+        }
+        public IDictionary<int, object> GetDynamicDataIdKey()
+        {
+            lock (_readPropertySync)
+                return new ReadOnlyDictionary<int, object>(dynamicData);
+        }
 
         internal TypeCollection<PropertyType> PropertyTypes { get; private set; }
         private int[] TextPropertyIds { get; set; }

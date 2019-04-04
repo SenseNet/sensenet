@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -12,17 +11,19 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
-using SenseNet.Diagnostics;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
     public class DataProviderTests : TestBase
     {
+        // The prefix DPAB_ means: DataProvider A-B comparative test when A is the 
+        //     old in-memory DataProvider implementation and B is the new one.
+
         [TestMethod]
         public void DPAB_Schema_Save()
         {
@@ -61,6 +62,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DPAB_Create()
         {
+            // TESTED: DataProvider2: InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
+
             DPTest(() =>
             {
                 // ACTION-A
@@ -85,6 +88,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DPAB_Create_TextProperty()
         {
+            // TESTED: DataProvider2: InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
+
             DPTest(() =>
             {
                 var description = "text property value.";
@@ -113,6 +118,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DPAB_CreateFile()
         {
+            // TESTED: DataProvider2: InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
+
             DPTest(() =>
             {
                 var filecontent = "File content.";
@@ -158,9 +165,12 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(filecontent, reloadedFileContentB);
             });
         }
+
         [TestMethod]
         public void DPAB_Update()
         {
+            // TESTED: DataProvider2: UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
+
             DPTest(() =>
             {
                 // PROVIDER-A
@@ -197,8 +207,10 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void DPAB_UpdateFile()
+        public void DPAB_UpdateFile_SameVersion()
         {
+            // TESTED: DataProvider2: UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
+
             DPTest(() =>
             {
                 var filecontent1 = "1111 File content 1.";
@@ -255,13 +267,74 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DPAB_UpdateFile_NewVersion()
+        {
+            DPTest(() =>
+            {
+                var filecontent1 = "1111 File content 1.";
+                var filecontent2 = "2222 File content 2.";
+
+                //// ACTION-A
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Save();
+                var fileA = new File(folderA) { Name = "File1",VersioningMode = VersioningType.MajorAndMinor };
+                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileA.Binary = fileA.Binary;
+                fileA.Save();
+                fileA = Node.Load<File>(fileA.Id);
+                var binaryA = fileA.Binary;
+                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileA.Binary = binaryA;
+                DataStore.SnapshotsEnabled = true;
+                fileA.Save();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileA = Node.Load<File>(fileA.Id);
+                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
+
+                // ACTION-B
+                DataStore.Enabled = true;
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Save();
+                var fileB = new File(folderB) { Name = "File1", VersioningMode = VersioningType.MajorAndMinor};
+                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileB.Save();
+                fileB = Node.Load<File>(fileB.Id);
+                var binaryB = fileB.Binary;
+                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileB.Binary = binaryB;
+                DataStore.SnapshotsEnabled = true;
+                fileB.Save();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileB = Node.Load<File>(fileB.Id);
+                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
+
+                // ASSERT
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+
+                CheckDynamicDataByVersionId(fileA.VersionId);
+
+                Assert.AreEqual(filecontent2, reloadedFileContentA);
+                Assert.AreEqual(filecontent2, reloadedFileContentB);
+            });
+        }
+
         //UNDONE:DB TEST: DPAB_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DPAB_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DPAB_Update with RENAME (assert paths changed in the subtree)
         //UNDONE:DB TEST: DPAB_Create and Rollback
         //UNDONE:DB TEST: DPAB_Update and Rollback
+        //UNDONE:DB TEST: DPAB_Update: Delete existing references
+        /* ================================================================================================== */
 
-
+        [SuppressMessage("ReSharper", "UnusedVariable")]
         private void CheckDynamicDataByVersionId(int versionId)
         {
             DataStore.SnapshotsEnabled = false;

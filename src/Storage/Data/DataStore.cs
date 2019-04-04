@@ -90,12 +90,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             var isNewNode = nodeData.Id == 0; // shortcut
 
-            // SAVE DATA
+            // SAVE DATA (head, version, dynamic metadata, binaries)
             // Do not block any exception from the called methods.
             // If need a catch block rethrow away the exception.
 
             var savingAlgorithm = settings.GetSavingAlgorithm();
-            if (settings.NeedToSaveData) //UNDONE: This decision by "NeedToSaveData" is provider responsibility.
+            if (settings.NeedToSaveData)
             {
                 switch (savingAlgorithm)
                 {
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         await DataProvider.UpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings.CurrentVersionId,
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.CurrentVersionId,
                             settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
@@ -119,8 +119,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
                     await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
-
-                //UNDONE:DB MISSING LOGICAL STEP: SaveNodeProperties(nodeData, savingAlgorithm, writer, isNewNode);
             }
             else
             {
@@ -128,7 +126,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
 
             // Deletable checker method
-            AssertTimestampsIncremented(nodeData, nodeTimestampBefore, versionTimestampBefore); //UNDONE:DB -------Delete CheckTimestamps feature
+            //UNDONE:DB -------Delete CheckTimestamps feature
+            AssertTimestampsIncremented(nodeData, nodeTimestampBefore, versionTimestampBefore);
         }
 
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
@@ -300,7 +299,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
 
-        private static void AssertTimestampsIncremented(NodeData nodeData, long nodeTimestampBefore, long versionTimestampBefore) //UNDONE:DB -------Delete CheckTimestamps feature
+        //UNDONE:DB -------Delete CheckTimestamps feature
+        private static void AssertTimestampsIncremented(NodeData nodeData, long nodeTimestampBefore, long versionTimestampBefore)
         {
             if (nodeData.NodeTimestamp <= nodeTimestampBefore)
                 throw new Exception("NodeTimestamp need to be incremented.");
