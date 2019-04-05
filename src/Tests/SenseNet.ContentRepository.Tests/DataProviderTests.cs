@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
@@ -146,9 +147,10 @@ namespace SenseNet.ContentRepository.Tests
                 fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
                 DataStore.SnapshotsEnabled = true;
                 fileB.Save();
+                var fileBId = fileB.Id;
                 DataStore.SnapshotsEnabled = false;
                 DistributedApplication.Cache.Reset();
-                fileB = Node.Load<File>(fileB.Id);
+                fileB = Node.Load<File>(fileBId);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT

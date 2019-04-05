@@ -11,6 +11,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Indexing;
 
@@ -100,7 +101,19 @@ namespace SenseNet.ContentRepository.Storage.Data
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
-                        await DataProvider.InsertNodeAsync(nodeData, settings);
+                        var nodeHeadData = nodeData.GetNodeHeadData();
+                        var versionData = nodeData.GetVersionData();
+                        var dynamicData = nodeData.GetDynamicData();
+
+                        await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+
+                        nodeData.Id = nodeHeadData.NodeId;
+                        nodeData.VersionId = versionData.VersionId;
+                        nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+                        nodeData.VersionTimestamp = versionData.Timestamp;
+                        settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
+                        settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
+                        //UNDONE:DB!!! CHECK BINARY IDS
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
                         await DataProvider.UpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds);

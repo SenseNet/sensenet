@@ -4,7 +4,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Storage.Data
+namespace SenseNet.ContentRepository.Storage.DataModel
 {
     public interface ISchemaItemData
     {

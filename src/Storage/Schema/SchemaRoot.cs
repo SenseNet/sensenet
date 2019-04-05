@@ -6,8 +6,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using System.Globalization;
 using System.Xml;
 using SenseNet.Diagnostics;
-using System.Diagnostics;
 using System.Linq;
+using SenseNet.ContentRepository.Storage.DataModel;
 
 namespace SenseNet.ContentRepository.Storage.Schema
 {

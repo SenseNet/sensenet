@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
@@ -71,12 +72,76 @@ namespace SenseNet.ContentRepository.Storage
         private bool[] staticDataIsModified;
         private Dictionary<int, object> dynamicData;
 
-        public IDictionary<PropertyType, object> GetDynamicData()
+        // ----------------------------------------------------------- Storage models
+
+        internal NodeHeadData GetNodeHeadData()
+        {
+            return new NodeHeadData
+            {
+                NodeId = Id,
+                NodeTypeId = NodeTypeId,
+                ContentListTypeId = ContentListTypeId,
+                ContentListId = ContentListId,
+                CreatingInProgress = CreatingInProgress,
+                IsDeleted = IsDeleted,
+                ParentNodeId = ParentId,
+                Name = Name,
+                DisplayName = DisplayName,
+                Path = Path,
+                Index = Index,
+                Locked = Locked,
+                LockedById = LockedById,
+                ETag = ETag,
+                LockType = LockType,
+                LockTimeout = LockTimeout,
+                LockDate = LockDate,
+                LockToken = LockToken,
+                LastLockUpdate = LastLockUpdate,
+                LastMinorVersionId = 0,
+                LastMajorVersionId = 0,
+                CreationDate = CreationDate,
+                CreatedById = CreatedById,
+                ModificationDate = ModificationDate,
+                ModifiedById = ModifiedById,
+                IsSystem = IsSystem,
+                OwnerId = OwnerId,
+                SavingState = SavingState,
+                Timestamp = NodeTimestamp,
+            };
+        }
+        internal VersionData GetVersionData()
+        {
+            return new VersionData
+            {
+                VersionId = VersionId,
+                NodeId = Id,
+                Version = Version,
+                CreationDate = VersionCreationDate,
+                CreatedById = VersionCreatedById,
+                ModificationDate = VersionModificationDate,
+                ModifiedById = VersionModifiedById,
+                ChangedData = ChangedData,
+                Timestamp = VersionTimestamp,
+            };
+        }
+        internal DynamicData GetDynamicData()
         {
             lock (_readPropertySync)
-                return new ReadOnlyDictionary<PropertyType, object>(
-                    dynamicData.ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.Key), x => x.Value));
+            {
+                var propertyTypes = dynamicData.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x)).ToArray();
+                return new DynamicData
+                {
+                    PropertyTypes = propertyTypes,
+                    DynamicProperties = propertyTypes
+                        .Where(pt => pt.DataType != DataType.Binary)
+                        .ToDictionary(pt => pt, pt => dynamicData[pt.Id] ?? pt.DefaultValue),
+                    BinaryProperties = propertyTypes
+                        .Where(pt => pt.DataType == DataType.Binary)
+                        .ToDictionary(pt => pt, pt => (BinaryDataValue) dynamicData[pt.Id])
+                };                
+            }
         }
+
         public IDictionary<string, object> GetDynamicDataNameKey()
         {
             lock (_readPropertySync)

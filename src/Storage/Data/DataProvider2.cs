@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Indexing;
 
@@ -18,17 +19,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         // Executes these:
         // INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        /// <summary>
-        /// Persists a brand new objects that contains all static and dynamic properties of the actual node.
-        /// Write back the newly generated data to the given "nodeData":
-        ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds.
-        /// Write back the modified data into the given "settings"
-        ///     LastMajorVersionId, LastMinorVersionId.
-        /// </summary>
-        /// <param name="nodeData">NodeData that will be inserted to.</param>
-        /// <param name="settings">NodeSaveSettings instance.</param>
-        /// <returns></returns>
-        public abstract Task InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
+        // SUMMARY
+        // Persists a brand new objects that contains all static and dynamic properties of the actual node.
+        // Write back the newly generated data to the given "nodeData":
+        //     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds.
+        // Write back the modified data into the given "settings"
+        //     LastMajorVersionId, LastMinorVersionId.
+        public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
