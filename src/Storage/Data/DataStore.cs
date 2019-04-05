@@ -105,33 +105,27 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     case SavingAlgorithm.CreateNewNode:
                         await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
-                        nodeData.Id = nodeHeadData.NodeId;
-                        nodeData.VersionId = versionData.VersionId;
-                        nodeData.NodeTimestamp = nodeHeadData.Timestamp;
-                        nodeData.VersionTimestamp = versionData.Timestamp;
-                        settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
-                        settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
                         await DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
-                        nodeData.Id = nodeHeadData.NodeId;
-                        nodeData.VersionId = versionData.VersionId;
-                        nodeData.NodeTimestamp = nodeHeadData.Timestamp;
-                        nodeData.VersionTimestamp = versionData.Timestamp;
-                        settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
-                        settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds,
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                             settings.CurrentVersionId);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds,
+                        await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                             settings.CurrentVersionId, settings.ExpectedVersionId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
                 }
+                nodeData.Id = nodeHeadData.NodeId;
+                nodeData.VersionId = versionData.VersionId;
+                nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+                nodeData.VersionTimestamp = versionData.Timestamp;
+                settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
+                settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
 
                 if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
                     await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
