@@ -98,25 +98,28 @@ namespace SenseNet.ContentRepository.Storage.Data
             var savingAlgorithm = settings.GetSavingAlgorithm();
             if (settings.NeedToSaveData)
             {
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData();
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
-                        var nodeHeadData = nodeData.GetNodeHeadData();
-                        var versionData = nodeData.GetVersionData();
-                        var dynamicData = nodeData.GetDynamicData();
-
                         await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
-
                         nodeData.Id = nodeHeadData.NodeId;
                         nodeData.VersionId = versionData.VersionId;
                         nodeData.NodeTimestamp = nodeHeadData.Timestamp;
                         nodeData.VersionTimestamp = versionData.Timestamp;
                         settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
                         settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
-                        //UNDONE:DB!!! CHECK BINARY IDS
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
-                        await DataProvider.UpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds);
+                        await DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
+                        nodeData.Id = nodeHeadData.NodeId;
+                        nodeData.VersionId = versionData.VersionId;
+                        nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+                        nodeData.VersionTimestamp = versionData.Timestamp;
+                        settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
+                        settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
                         await DataProvider.CopyAndUpdateNodeAsync(nodeData, settings, settings.DeletableVersionIds,
