@@ -12,8 +12,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Portal;
-using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -68,6 +66,9 @@ namespace SenseNet.Tests
             // workaround for having a half-started repository
             if (RepositoryInstance.Started())
                 RepositoryInstance.Shutdown();
+
+            // the original collector default value is a class that is not available in this context
+            Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
 
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);

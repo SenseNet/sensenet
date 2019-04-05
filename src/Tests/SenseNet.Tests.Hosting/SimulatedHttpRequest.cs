@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Web.Hosting;
-using System.Web.UI;
 
 namespace SenseNet.Tests
 {
@@ -84,15 +83,13 @@ namespace SenseNet.Tests
 		{
 			return Path.Combine(this.GetAppPath(), virtualPath);
 		}
-
-
+        
 	    public override string GetUnknownRequestHeader(string name)
 	    {
 	        var items = _headers.Where(x => name.Equals(x[0], StringComparison.OrdinalIgnoreCase))
 	            .Select(x => x[1]).ToArray();
+
 	        return string.Join(", ", items);
-	        var item = _headers.FirstOrDefault(x => name.Equals(x[0], StringComparison.OrdinalIgnoreCase));
-	        return item?[1];
 	    }
 	    public override string[][] GetUnknownRequestHeaders()
 	    {
@@ -103,8 +100,7 @@ namespace SenseNet.Tests
 	    {
 	        return _httpMethod ?? "GET";
 	    }
-
-
+        
 	    public override byte[] GetPreloadedEntityBody()
 	    {
 	        if (_inputStream == null)
@@ -119,6 +115,5 @@ namespace SenseNet.Tests
 	        }
             return _inputBuffer;
 	    }
-
 	}
 }
