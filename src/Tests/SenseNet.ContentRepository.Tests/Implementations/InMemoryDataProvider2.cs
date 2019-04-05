@@ -80,14 +80,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
                 throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
-
-            DeleteVersionsAsync(versionIdsToDelete);
-
             // Get VersionDoc and update
             if (!DB.Versions.TryGetValue(versionData.VersionId, out var versionDoc))
                 throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             var versionId = versionData.VersionId;
             UpdateVersionDoc(versionDoc, versionData, dynamicData);
+
+            // Delete unnecessary versions
+            DeleteVersionsAsync(versionIdsToDelete);
 
             // Update NodeDoc (create a new nodeDoc instance)
             nodeDoc = CreateNodeDoc(nodeHeadData);
@@ -112,54 +112,46 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS AND NODESAVESETTINGS
         /// </summary>
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings,
+        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData,
             IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
-            throw new NotImplementedException();
-            //if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
-            //    throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
-            //if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
-            //    throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
+            if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
+                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
+            // Get existing VersionDoc and update
+            if (!DB.Versions.TryGetValue(currentVersionId, out var currentVersionDoc))
+                throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            var versionId = expectedVersionId == 0 ? DB.GetNextVersionId() : expectedVersionId;
+            var versionDoc = CloneVersionDoc(currentVersionDoc);
+            versionDoc.VersionId = versionId;
+            versionData.VersionId = versionId;
+            UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
-            //if (!DB.Versions.TryGetValue(currentVersionId, out var currentVersionDoc))
-            //    throw new Exception($"Version not found. VersionId: {currentVersionId}.");
+            // Add or change updated VersionDoc
+            DB.Versions[versionId] = versionDoc;
 
-            //// Get updated version data by nodeData
-            //var changedDynamicData = nodeData.GetDynamicData();
-            //var versionDoc = GetVersionData(changedDynamicData, currentVersionDoc);
+            // Delete unnecessary versions
+            DeleteVersionsAsync(versionIdsToDelete);
 
-            //// UpdateVersionDoc
-            //var versionId = expectedVersionId == 0 ? DB.GetNextVersionId() : expectedVersionId;
-            //nodeData.VersionId = versionId;
-            //versionDoc.VersionId = versionId;
-            //versionDoc.Version = nodeData.Version;
-            //DB.Versions[versionId] = versionDoc;
+            // UpdateNodeDoc
+            nodeDoc = CreateNodeDoc(nodeHeadData);
+            LoadLastVersionIds(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
+            nodeDoc.LastMajorVersionId = lastMajorVersionId;
+            nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeDoc.NodeId] = nodeDoc;
 
-            //// Delete unnecessary versions
-            //DeleteVersionsAsync(versionIdsToDelete);
+            // Manage BinaryProperties
+            foreach (var item in dynamicData.BinaryProperties)
+                SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
 
-            //// UpdateNodeDoc
-            //nodeDoc = GetNodeHeadData(nodeData);
-            //LoadLastVersionIds(nodeData.Id, out var lastMajorVersionId, out var lastMinorVersionId);
-            //nodeDoc.LastMajorVersionId = lastMajorVersionId;
-            //nodeDoc.LastMinorVersionId = lastMinorVersionId;
-            //DB.Nodes[nodeDoc.NodeId] = nodeDoc;
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
+            versionData.Timestamp = versionDoc.Timestamp;
+            nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+            nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
-            //// Manage BinaryProperties
-            //foreach (var item in changedDynamicData.Where(x => x.Key.DataType == DataType.Binary))
-            //{
-            //    var propertyType = item.Key;
-            //    var value = item.Value ?? propertyType.DefaultValue;
-            //    SaveBinaryProperty((BinaryDataValue)value, versionId, propertyType, false, SavingAlgorithm.CopyToNewVersionAndUpdate);
-            //}
-
-            //nodeData.NodeTimestamp = nodeDoc.Timestamp;
-            //nodeData.VersionTimestamp = versionDoc.Timestamp;
-            //settings.LastMajorVersionIdAfter = lastMajorVersionId;
-            //settings.LastMinorVersionIdAfter = lastMinorVersionId;
-
-            //return STT.Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
         public override STT.Task UpdateNodeHeadAsync(NodeData nodeData)
@@ -654,6 +646,23 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return ((IEnumerable<int>)value).Any();
         }
 
+        private VersionDoc CloneVersionDoc(VersionDoc source)
+        {
+            return new VersionDoc
+            {
+                VersionId = source.VersionId,
+                NodeId = source.NodeId,
+                Version = source.Version.Clone(),
+                CreationDate = source.CreationDate,
+                CreatedById = source.CreatedById,
+                ModificationDate = source.ModificationDate,
+                ModifiedById = source.ModifiedById,
+                ChangedData = source.ChangedData,
+                DynamicProperties = CloneDynamicProperties(source.DynamicProperties),
+                IndexDocument = source.IndexDocument
+                // Timestamp handled by the new instance itself.
+            };
+        }
         private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> source)
         {
             return source.ToDictionary(x => x.Key, x => GetClone(x.Value, PropertyType.GetByName(x.Key).DataType));
