@@ -66,6 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
+            //UNDONE:DB -------Delete CheckTimestamps feature
             var nodeTimestampBefore = DataProvider.GetNodeTimestamp(nodeData.Id);
             var versionTimestampBefore = DataProvider.GetVersionTimestamp(nodeData.VersionId);
 
@@ -89,55 +90,62 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
-            var isNewNode = nodeData.Id == 0; // shortcut
+            var isNewNode = nodeData.Id == 0;
 
             // SAVE DATA (head, version, dynamic metadata, binaries)
             // Do not block any exception from the called methods.
             // If need a catch block rethrow away the exception.
 
+            var nodeHeadData = nodeData.GetNodeHeadData();
             var savingAlgorithm = settings.GetSavingAlgorithm();
             if (settings.NeedToSaveData)
             {
-                var nodeHeadData = nodeData.GetNodeHeadData();
                 var versionData = nodeData.GetVersionData();
-                var dynamicData = nodeData.GetDynamicData();
+                DynamicData dynamicData;
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
+                        dynamicData = nodeData.GetDynamicData(false);
                         await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+                        // Write back the new NodeId
+                        nodeData.Id = nodeHeadData.NodeId;
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
+                        dynamicData = nodeData.GetDynamicData(false);
                         await DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
+                        dynamicData = nodeData.GetDynamicData(true);
                         await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                             settings.CurrentVersionId);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
+                        dynamicData = nodeData.GetDynamicData(true);
                         await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                             settings.CurrentVersionId, settings.ExpectedVersionId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
                 }
-                nodeData.Id = nodeHeadData.NodeId;
+                // Write back the version level changed values
                 nodeData.VersionId = versionData.VersionId;
-                nodeData.NodeTimestamp = nodeHeadData.Timestamp;
                 nodeData.VersionTimestamp = versionData.Timestamp;
-                settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
-                settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
+                //UNDONE:DB -------Delete CheckTimestamps feature
+                AssertVersionTimestampIncremented(nodeData, versionTimestampBefore);
 
                 if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
                     await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
             }
             else
             {
-                await DataProvider.UpdateNodeHeadAsync(nodeData);
+                await DataProvider.UpdateNodeHeadAsync(nodeHeadData, settings.DeletableVersionIds);
             }
-
-            // Deletable checker method
+            // Write back NodeHead level changed values
+            settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
+            settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
+            nodeData.NodeTimestamp = nodeHeadData.Timestamp;
             //UNDONE:DB -------Delete CheckTimestamps feature
-            AssertTimestampsIncremented(nodeData, nodeTimestampBefore, versionTimestampBefore);
+            AssertNodeTimestampIncremented(nodeData, nodeTimestampBefore);
         }
 
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
@@ -310,10 +318,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         //UNDONE:DB -------Delete CheckTimestamps feature
-        private static void AssertTimestampsIncremented(NodeData nodeData, long nodeTimestampBefore, long versionTimestampBefore)
+        private static void AssertNodeTimestampIncremented(NodeData nodeData, long nodeTimestampBefore)
         {
             if (nodeData.NodeTimestamp <= nodeTimestampBefore)
                 throw new Exception("NodeTimestamp need to be incremented.");
+        }
+        private static void AssertVersionTimestampIncremented(NodeData nodeData, long versionTimestampBefore)
+        {
             if (nodeData.VersionTimestamp <= versionTimestampBefore)
                 throw new Exception("VersionTimestamp need to be incremented.");
         }

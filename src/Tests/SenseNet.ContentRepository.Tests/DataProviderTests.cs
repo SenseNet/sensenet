@@ -267,7 +267,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(filecontent2, reloadedFileContentB);
             });
         }
-
         [TestMethod]
         public void DPAB_UpdateFile_NewVersion()
         {
@@ -325,7 +324,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(filecontent2, reloadedFileContentB);
             });
         }
-
         [TestMethod]
         public void DPAB_UpdateFile_ExpectedVersion()
         {
@@ -385,6 +383,68 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(filecontent2, reloadedFileContentA);
                 Assert.AreEqual(filecontent2, reloadedFileContentB);
+            });
+        }
+
+        [TestMethod]
+        public void DPAB_Update_HeadOnly()
+        {
+            DPTest(() =>
+            {
+                var filecontent1 = "1111 File content 1.";
+                var filecontent2 = "2222 File content 2.";
+
+                //// ACTION-A
+                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderA.Save();
+                var fileA = new File(folderA) { Name = "File1" };
+                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileA.Save();
+                fileA.CheckOut();
+                fileA = Node.Load<File>(fileA.Id);
+                var binaryA = fileA.Binary;
+                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileA.Binary = binaryA;
+                fileA.Save();
+                DataStore.SnapshotsEnabled = true;
+                fileA.UndoCheckOut();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileA = Node.Load<File>(fileA.Id);
+                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
+
+                // ACTION-B
+                DataStore.Enabled = true;
+                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folderB.Save();
+                var fileB = new File(folderB) { Name = "File1" };
+                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                fileB.Save();
+                fileB.CheckOut();
+                fileB = Node.Load<File>(fileB.Id);
+                var binaryB = fileB.Binary;
+                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                fileB.Binary = binaryB;
+                fileB.Save();
+                DataStore.SnapshotsEnabled = true;
+                fileB.UndoCheckOut();
+                DataStore.SnapshotsEnabled = false;
+                DistributedApplication.Cache.Reset();
+                fileB = Node.Load<File>(fileB.Id);
+                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
+
+                // ASSERT
+                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
+                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
+                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
+                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
+                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
+                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+
+                CheckDynamicDataByVersionId(fileA.VersionId);
+
+                Assert.AreEqual(filecontent1, reloadedFileContentA);
+                Assert.AreEqual(filecontent1, reloadedFileContentB);
             });
         }
 

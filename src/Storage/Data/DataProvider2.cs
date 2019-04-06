@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
-        public abstract Task UpdateNodeHeadAsync(NodeData nodeData);
+        public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
         // Executes these:
         // INodeWriter: UpdateSubTreePath(string oldPath, string newPath);
         public abstract Task UpdateSubTreePathAsync(string oldPath, string newPath);

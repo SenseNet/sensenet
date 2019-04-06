@@ -57,5 +57,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public PropertyType[] PropertyTypes { get; set; }
         public IDictionary<PropertyType, object> DynamicProperties;
         public IDictionary<PropertyType, BinaryDataValue> BinaryProperties;
+        public IDictionary<PropertyType, string> VeryLongTextValues; //UNDONE:DB!!! Discuss: requires or not
     }
 }

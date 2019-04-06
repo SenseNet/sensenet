@@ -124,20 +124,22 @@ namespace SenseNet.ContentRepository.Storage
                 Timestamp = VersionTimestamp,
             };
         }
-        internal DynamicData GetDynamicData()
+        internal DynamicData GetDynamicData(bool allBinaries)
         {
             lock (_readPropertySync)
             {
-                var propertyTypes = dynamicData.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x)).ToArray();
+                var changedPropertyTypes = dynamicData.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x)).ToArray();
+                var binaryTypes =
+                    (allBinaries ? (IEnumerable<PropertyType>) PropertyTypes : changedPropertyTypes)
+                    .Where(pt => pt.DataType == DataType.Binary).ToArray();
                 return new DynamicData
                 {
-                    PropertyTypes = propertyTypes,
-                    DynamicProperties = propertyTypes
+                    PropertyTypes = PropertyTypes.ToArray(),
+                    DynamicProperties = changedPropertyTypes
                         .Where(pt => pt.DataType != DataType.Binary)
                         .ToDictionary(pt => pt, pt => dynamicData[pt.Id] ?? pt.DefaultValue),
-                    BinaryProperties = propertyTypes
-                        .Where(pt => pt.DataType == DataType.Binary)
-                        .ToDictionary(pt => pt, pt => (BinaryDataValue) dynamicData[pt.Id])
+                    BinaryProperties = binaryTypes
+                        .ToDictionary(pt => pt, pt => (BinaryDataValue)GetDynamicRawData(pt))
                 };                
             }
         }

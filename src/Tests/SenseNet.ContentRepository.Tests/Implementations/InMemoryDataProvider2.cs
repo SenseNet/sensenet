@@ -55,15 +55,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             return STT.Task.CompletedTask;
         }
-        private void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
-        {
-            if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
-            else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
-            else
-                BlobStorage.UpdateBinaryProperty(value);
-        }
 
         public override STT.Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData, IEnumerable<int> versionIdsToDelete)
         {
@@ -108,10 +99,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        /// <summary>
-        /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS AND NODESAVESETTINGS
-        /// </summary>
-
         public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData,
             IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
@@ -129,6 +116,21 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionData.VersionId = versionId;
             UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
+            // Copy existing binary properties as new instances
+            //foreach (var binaryPropertyDoc in DB.BinaryProperties.Values.Where(x => x.VersionId == currentVersionId).ToArray())
+            //{
+            //    var newId = DB.GetNextBinaryPropertyId();
+            //    var clone = binaryPropertyDoc.Clone();
+            //    clone.BinaryPropertyId = newId;
+            //    clone.VersionId = versionId;
+            //    DB.BinaryProperties[newId] = clone;
+
+            //    // Write back the new Id
+            //    var pt = dynamicData.PropertyTypes.FirstOrDefault(x => x.Id == clone.PropertyTypeId);
+            //    if (pt != null && dynamicData.BinaryProperties.TryGetValue(pt, out var binaryDataValue))
+            //        binaryDataValue.Id = newId;
+            //}
+
             // Add or change updated VersionDoc
             DB.Versions[versionId] = versionDoc;
 
@@ -144,7 +146,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             // Manage BinaryProperties
             foreach (var item in dynamicData.BinaryProperties)
-                SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
+                SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
 
             nodeHeadData.Timestamp = nodeDoc.Timestamp;
             versionData.Timestamp = versionDoc.Timestamp;
@@ -154,9 +156,29 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateNodeHeadAsync(NodeData nodeData)
+        public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete)
         {
-            throw new NotImplementedException();
+            if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
+                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+
+            // Delete unnecessary versions
+            DeleteVersionsAsync(versionIdsToDelete);
+
+            // Update NodeDoc (create a new nodeDoc instance)
+            nodeDoc = CreateNodeDoc(nodeHeadData);
+            LoadLastVersionIds(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
+            nodeDoc.LastMajorVersionId = lastMajorVersionId;
+            nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeDoc.NodeId] = nodeDoc;
+
+            // Update return values
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
+            nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+            nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+            return STT.Task.CompletedTask;
         }
 
         public override STT.Task UpdateSubTreePathAsync(string oldPath, string newPath)
@@ -510,6 +532,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         /* ====================================================================== Tools */
+
+        private void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
+        {
+            if (value == null || value.IsEmpty)
+                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
+            else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+            else
+                BlobStorage.UpdateBinaryProperty(value);
+        }
 
         private NodeDoc CreateNodeDoc(NodeHeadData nodeHeadData)
         {
