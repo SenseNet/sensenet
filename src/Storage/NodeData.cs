@@ -134,6 +134,7 @@ namespace SenseNet.ContentRepository.Storage
                     .Where(pt => pt.DataType == DataType.Binary).ToArray();
                 return new DynamicData
                 {
+                    VersionId = VersionId,
                     PropertyTypes = PropertyTypes.ToArray(),
                     DynamicProperties = changedPropertyTypes
                         .Where(pt => pt.DataType != DataType.Binary)

@@ -33,6 +33,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             var versionId = DB.GetNextVersionId();
             versionData.VersionId = versionId;
+            dynamicData.VersionId = versionId;
             versionData.NodeId = nodeId;
 
             var versionDoc = CreateVersionDoc(versionData, dynamicData);
@@ -75,6 +76,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (!DB.Versions.TryGetValue(versionData.VersionId, out var versionDoc))
                 throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             var versionId = versionData.VersionId;
+            dynamicData.VersionId = versionData.VersionId;
             UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
             // Delete unnecessary versions
@@ -114,6 +116,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var versionDoc = CloneVersionDoc(currentVersionDoc);
             versionDoc.VersionId = versionId;
             versionData.VersionId = versionId;
+            dynamicData.VersionId = versionId;
             UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
             // Add or change updated VersionDoc
