@@ -168,7 +168,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override STT.Task UpdateSubTreePathAsync(string oldPath, string newPath)
         {
-            throw new NotImplementedException();
+            foreach (var nodeDoc in DB.Nodes.Values
+                                            .Where(n => n.Path.StartsWith(oldPath + "/", StringComparison.OrdinalIgnoreCase))
+                                            .ToArray())
+            {
+                nodeDoc.Path = newPath + nodeDoc.Path.Substring(oldPath.Length);
+            }
+            return STT.Task.CompletedTask;
         }
 
         public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray)
