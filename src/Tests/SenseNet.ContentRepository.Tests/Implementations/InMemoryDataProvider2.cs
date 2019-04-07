@@ -116,21 +116,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionData.VersionId = versionId;
             UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
-            // Copy existing binary properties as new instances
-            //foreach (var binaryPropertyDoc in DB.BinaryProperties.Values.Where(x => x.VersionId == currentVersionId).ToArray())
-            //{
-            //    var newId = DB.GetNextBinaryPropertyId();
-            //    var clone = binaryPropertyDoc.Clone();
-            //    clone.BinaryPropertyId = newId;
-            //    clone.VersionId = versionId;
-            //    DB.BinaryProperties[newId] = clone;
-
-            //    // Write back the new Id
-            //    var pt = dynamicData.PropertyTypes.FirstOrDefault(x => x.Id == clone.PropertyTypeId);
-            //    if (pt != null && dynamicData.BinaryProperties.TryGetValue(pt, out var binaryDataValue))
-            //        binaryDataValue.Id = newId;
-            //}
-
             // Add or change updated VersionDoc
             DB.Versions[versionId] = versionDoc;
 
@@ -633,7 +618,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionDoc.ModifiedById = versionData.ModifiedById;
             versionDoc.ChangedData = null; //UNDONE:------- Set clone of original or delete this property
 
-            var dynamicProperties = CloneDynamicProperties(versionDoc.DynamicProperties);
+            var dynamicProperties = versionDoc.DynamicProperties;
             foreach (var item in dynamicData.DynamicProperties)
             {
                 var propertyType = item.Key;

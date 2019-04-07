@@ -61,6 +61,103 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void DPAB_Schema_HandleAllDynamicProps()
+        {
+            var contentTypeName = "TestContent";
+            var ctd = $"<ContentType name='{contentTypeName}' parentType='GenericContent'" + @"
+             handler='SenseNet.ContentRepository.GenericContent'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <Fields>
+    <Field name='ShortText1' type='ShortText'/>
+    <Field name='LongText1' type='LongText'/>
+    <Field name='Integer1' type='Integer'/>
+    <Field name='Number1' type='Number'/>
+    <Field name='DateTime1' type='DateTime'/>
+    <Field name='Reference1' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            DPTest(() =>
+            {
+                try
+                {
+                    ContentTypeInstaller.InstallContentType(ctd);
+                    var unused = ContentType.GetByName(contentTypeName); // preload schema
+                    DataStore.Enabled = true;
+
+                    var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                    folderB.Save();
+
+                    var db = GetDb();
+
+                    // ACTION-1 CREATE
+                    // Create all kind of dynamic properties
+                    var nodeB = new GenericContent(folderB, contentTypeName)
+                    {
+                        Name = $"{contentTypeName}1",
+                        ["ShortText1"] = "ShortText value 1",
+                        ["LongText1"] = "LongText value 1",
+                        ["Integer1"] = 42,
+                        ["Number1"] = 42.56m,
+                        ["DateTime1"] = new DateTime(1111, 11, 11)
+                    };
+                    nodeB.AddReference("Reference1", Repository.Root);
+                    nodeB.AddReference("Reference1", folderB);
+                    nodeB.Save();
+
+                    // ASSERT-1
+                    var storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    Assert.AreEqual("ShortText value 1", storedProps["ShortText1"]);
+                    Assert.AreEqual("LongText value 1", storedProps["LongText1"]);
+                    Assert.AreEqual(42, storedProps["Integer1"]);
+                    Assert.AreEqual(42.56m, storedProps["Number1"]);
+                    Assert.AreEqual(new DateTime(1111, 11, 11), storedProps["DateTime1"]);
+                    Assert.AreEqual($"{Repository.Root.Id},{folderB.Id}", ArrayToString((int[])storedProps["Reference1"]));
+
+                    // ACTION-2 UPDATE-1
+                    nodeB = Node.Load<GenericContent>(nodeB.Id);
+                    // Update all kind of dynamic properties
+                    nodeB["ShortText1"] = "ShortText value 2";
+                    nodeB["LongText1"] = "LongText value 2";
+                    nodeB["Integer1"] = 43;
+                    nodeB["Number1"] = 42.099m;
+                    nodeB["DateTime1"] = new DateTime(1111, 11, 22);
+                    nodeB.RemoveReference("Reference1", Repository.Root);
+                    nodeB.Save();
+
+                    // ASSERT-2
+                    storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
+                    Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
+                    Assert.AreEqual(43, storedProps["Integer1"]);
+                    Assert.AreEqual(42.099m, storedProps["Number1"]);
+                    Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
+                    Assert.AreEqual($"{folderB.Id}", ArrayToString((int[])storedProps["Reference1"]));
+
+                    // ACTION-3 UPDATE-2
+                    nodeB = Node.Load<GenericContent>(nodeB.Id);
+                    // Remove existing references
+                    nodeB.RemoveReference("Reference1", folderB);
+                    nodeB.Save();
+
+                    // ASSERT-3
+                    storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
+                    Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
+                    Assert.AreEqual(43, storedProps["Integer1"]);
+                    Assert.AreEqual(42.099m, storedProps["Number1"]);
+                    Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
+                    Assert.IsFalse(storedProps.ContainsKey("Reference1"));
+                }
+                finally
+                {
+                    DataStore.Enabled = false;
+                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                }
+            });
+        }
+
+        [TestMethod]
         public void DPAB_Create()
         {
             // TESTED: DataProvider2: InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
@@ -448,15 +545,20 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        //UNDONE:DB TEST: DPAB_Create with all kind of dynamic properties (string, int, datetime, money, text, reference, binary)
-        //UNDONE:DB TEST: DPAB_Update with all kind of DYNAMIC PROPERTIES (string, int, datetime, money, text, reference, binary)
         //UNDONE:DB TEST: DPAB_Update with RENAME (assert paths changed in the subtree)
         //UNDONE:DB TEST: DPAB_Create and Rollback
         //UNDONE:DB TEST: DPAB_Update and Rollback
-        //UNDONE:DB TEST: DPAB_Update: Delete existing references
         /* ================================================================================================== */
 
-        [SuppressMessage("ReSharper", "UnusedVariable")]
+        private InMemoryDataBase2 GetDb()
+        {
+            return ((InMemoryDataProvider2)Providers.Instance.DataProvider2).DB;
+        }
+        private string ArrayToString(int[] array) //UNDONE:DB --------Move to TestBase
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+
         private void CheckDynamicDataByVersionId(int versionId)
         {
             DataStore.SnapshotsEnabled = false;
@@ -465,12 +567,12 @@ namespace SenseNet.ContentRepository.Tests
             DataStore.Enabled = false;
             DistributedApplication.Cache.Reset();
             var nodeA = Node.LoadNodeByVersionId(versionId);
-            var dymacPropertyValuesA = nodeA.PropertyTypes.Select(p => $"{p.Name}:{nodeA[p]}").ToArray();
+            var unused1 = nodeA.PropertyTypes.Select(p => $"{p.Name}:{nodeA[p]}").ToArray();
 
             DataStore.Enabled = true;
             DistributedApplication.Cache.Reset();
             var nodeB = Node.LoadNodeByVersionId(versionId);
-            var dymacPropertyValuesB = nodeB.PropertyTypes.Select(p => $"{p.Name}:{nodeB[p]}").ToArray();
+            var unused2 = nodeB.PropertyTypes.Select(p => $"{p.Name}:{nodeB[p]}").ToArray();
 
             DataProviderChecker.Assert_AreEqual(nodeA.Data, nodeB.Data);
         }
