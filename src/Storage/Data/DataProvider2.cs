@@ -95,6 +95,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         //UNDONE:DB -------Delete GetVersionTimestamp method
         public abstract long GetVersionTimestamp(int versionId);
 
-        public abstract void InstallDefaultStructure();
+        public abstract void InstallDataPackage(DataPackage data);
     }
 }

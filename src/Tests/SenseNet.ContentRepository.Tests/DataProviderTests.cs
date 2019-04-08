@@ -627,11 +627,16 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(builder))
             {
-                DataStore.InstallDefaultStructure();
+                DataStore.InstallDataPackage(GetInitialStructure());
                 new SnMaintenance().Shutdown();
                 using (new SystemAccount())
                     callback();
             }
+        }
+
+        private DataPackage GetInitialStructure()
+        {
+            throw new NotImplementedException();
         }
     }
 }

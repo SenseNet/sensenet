@@ -460,7 +460,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return existing.Timestamp;
         }
 
-        public override void InstallDefaultStructure()
+        public override void InstallDataPackage(DataPackage data)
         {
             InstallNode(1, 1, 3, 5, "Admin", "/Root/IMS/BuiltIn/Portal/Admin");
             InstallNode(2, 2, 4, 0, "Root", "/Root");
@@ -475,7 +475,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             InstallNode(11, 11, 2, 5, "Operators", "/Root/IMS/BuiltIn/Portal/Operators");
             InstallNode(12, 12, 3, 5, "Startup", "/Root/IMS/BuiltIn/Portal/Startup");
         }
-
         private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
         {
             DB.Nodes.Add(nodeId, new NodeDoc
