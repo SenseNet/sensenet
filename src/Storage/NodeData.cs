@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage
                 Timestamp = VersionTimestamp,
             };
         }
-        internal DynamicData GetDynamicData(bool allBinaries)
+        internal DynamicPropertyData GetDynamicData(bool allBinaries)
         {
             lock (_readPropertySync)
             {
@@ -132,7 +132,7 @@ namespace SenseNet.ContentRepository.Storage
                 var binaryTypes =
                     (allBinaries ? (IEnumerable<PropertyType>) PropertyTypes : changedPropertyTypes)
                     .Where(pt => pt.DataType == DataType.Binary).ToArray();
-                return new DynamicData
+                return new DynamicPropertyData
                 {
                     VersionId = VersionId,
                     PropertyTypes = PropertyTypes.ToArray(),

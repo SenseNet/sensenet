@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Nodes */
 
-        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData)
+        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData, IEnumerable<int> versionIdsToDelete)
+        public override STT.Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicData dynamicData,
+        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
             if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
@@ -573,7 +573,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 // Timestamp handled by the new instance itself.
             };
         }
-        private VersionDoc CreateVersionDoc(VersionData versionData, DynamicData dynamicData)
+        private VersionDoc CreateVersionDoc(VersionData versionData, DynamicPropertyData dynamicData)
         {
             // Clone property values
             var dynamicProperties = new Dictionary<string, object>();
@@ -617,7 +617,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 // Timestamp handled by the new instance itself.
             };
         }
-        private void UpdateVersionDoc(VersionDoc versionDoc, VersionData versionData, DynamicData dynamicData)
+        private void UpdateVersionDoc(VersionDoc versionDoc, VersionData versionData, DynamicPropertyData dynamicData)
         {
             versionDoc.NodeId = versionData.NodeId;
             versionDoc.Version = versionData.Version.Clone();
@@ -648,6 +648,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 dynamicProperties[propertyType.Name] = clone;
             }
         }
+        // ReSharper disable once UnusedMethodReturnValue.Local
         private STT.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
         {
             foreach (var versionId in versionIdsToDelete)

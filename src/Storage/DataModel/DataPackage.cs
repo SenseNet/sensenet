@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SenseNet.ContentRepository.Storage.DataModel;
+﻿using System.Collections.Generic;
 
-namespace SenseNet.Storage.DataModel
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Storage.DataModel
 {
     public class DataPackage
     {
@@ -25,6 +23,6 @@ namespace SenseNet.Storage.DataModel
         /// <summary>
         /// Gets or sets the new or modified dynamic property values by VersionId
         /// </summary>
-        public IDictionary<int, DynamicData> DynamicPropertyes { get; set; }
+        public IDictionary<int, DynamicPropertyData> DynamicPropertyes { get; set; }
     }
 }

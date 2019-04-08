@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Indexing;
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -101,7 +98,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (settings.NeedToSaveData)
             {
                 var versionData = nodeData.GetVersionData();
-                DynamicData dynamicData;
+                DynamicPropertyData dynamicData;
                 switch (savingAlgorithm)
                 {
                     case SavingAlgorithm.CreateNewNode:
