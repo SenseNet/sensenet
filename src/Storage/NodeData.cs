@@ -76,6 +76,8 @@ namespace SenseNet.ContentRepository.Storage
 
         internal NodeHeadData GetNodeHeadData()
         {
+            var nodeHead = NodeHead.Get(Id);
+            
             return new NodeHeadData
             {
                 NodeId = Id,
@@ -97,8 +99,8 @@ namespace SenseNet.ContentRepository.Storage
                 LockDate = LockDate,
                 LockToken = LockToken,
                 LastLockUpdate = LastLockUpdate,
-                LastMinorVersionId = 0,
-                LastMajorVersionId = 0,
+                LastMinorVersionId = nodeHead.LastMinorVersionId,
+                LastMajorVersionId = nodeHead.LastMajorVersionId,
                 CreationDate = CreationDate,
                 CreatedById = CreatedById,
                 ModificationDate = ModificationDate,

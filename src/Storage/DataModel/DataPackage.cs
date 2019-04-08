@@ -6,6 +6,12 @@ namespace SenseNet.ContentRepository.Storage.DataModel
     public class DataPackage
     {
         /// <summary>
+        /// Gets or sets the relative filesystem path of the binary streams in the DynamicProperties.BinaryProperties
+        /// If the streams are not in the filesystem, this value need to be null.
+        /// </summary>
+        public string RootPath { get; set; }
+
+        /// <summary>
         /// Gets or sets the new or modified schema items.
         /// </summary>
         public RepositorySchemaData Schema { get; set; }
@@ -23,6 +29,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /// <summary>
         /// Gets or sets the new or modified dynamic property values by VersionId
         /// </summary>
-        public IDictionary<int, DynamicPropertyData> DynamicPropertyes { get; set; }
+        public IEnumerable<DynamicPropertyData> DynamicProperties { get; set; }
     }
 }

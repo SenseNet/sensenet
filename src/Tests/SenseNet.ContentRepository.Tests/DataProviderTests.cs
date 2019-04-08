@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,12 +18,141 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
     public class DataProviderTests : TestBase
     {
+        [TestMethod]
+        public void DP_xxxx()
+        {
+            DPTest(() =>
+            {
+                using (var schemaWriter = new StreamWriter(@"D:\schema.txt", false))
+                {
+                    var ed = new SchemaEditor();
+                    ed.Load();
+                    var schemaData = ed.ToRepositorySchemaData();
+
+                    schemaWriter.WriteLine("PROPERTYTYPES");
+                    schemaWriter.WriteLine("      Id, Type      , Mapping, Name");
+                    schemaWriter.WriteLine("    ----- ----------- -------- ---------------");
+                    foreach (var pt in schemaData.PropertyTypes)
+                        schemaWriter.WriteLine($"    {pt.Id,4:#}, {pt.DataType,-10}, {pt.Mapping,7:#0}, {pt.Name}");
+
+                    schemaWriter.WriteLine("NODETYPES");
+                    schemaWriter.WriteLine("      Id, Name                          , Parent                        , ClassName                                                   , Properties");
+                    schemaWriter.WriteLine("    ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------");
+                    foreach (var nt in schemaData.NodeTypes)
+                        schemaWriter.WriteLine($"    {nt.Id,4:#}, {nt.Name,-30}, {nt.ParentName??"<null>",-30}, {nt.ClassName,-60}, " +
+                                               $"[{(string.Join(",", nt.Properties))}]");
+                }
+
+                using (var nodeWriter = new StreamWriter(@"D:\nodes.txt", false))
+                using (var versionWriter = new StreamWriter(@"D:\versions.txt", false))
+                using (var dynamicDataWriter = new StreamWriter(@"D:\dynamicData.txt", false))
+                {
+                    nodeWriter.WriteLine("NodeId, TypeId, Parent,  Index, MinorV, MajorV, IsSys,  Owner, Name,                                     DisplayName,                                        Path");
+                    nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- ------ ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
+                    versionWriter.WriteLine("VersionId, NodeId,  Version");
+                    versionWriter.WriteLine("---------- ------- ---------");
+                    foreach (var nodeId in ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId))
+                    {
+                        var node = Node.LoadNode(nodeId);
+                        var dummy = node.PropertyTypes.Select(p => node[p]).ToArray();
+
+                        Write(nodeWriter, node.Data.GetNodeHeadData());
+                        Write(versionWriter, node.Data.GetVersionData());
+                        Write(dynamicDataWriter, node.Path, node.Data.GetDynamicData(true));
+                    }
+                }
+            });
+        }
+        private void Write(TextWriter writer, NodeHeadData d)
+        {
+            writer.WriteLine($"{d.NodeId,6:#}, {d.NodeTypeId,6:#}, {d.ParentNodeId,6:#0}, {d.Index,6:#0}, " +
+                             $"{d.LastMinorVersionId,6:#}, {d.LastMajorVersionId,6:#},   {(d.IsSystem ? "sys" : "---")}, " +
+                             $"{d.OwnerId,6:#}, {d.Name,-40}, {d.DisplayName,-50}, {d.Path}");
+        }
+        private void Write(TextWriter writer, VersionData d)
+        {
+            writer.WriteLine($"{d.VersionId,9:#}, {d.NodeId,6:#},  {d.Version}");
+        }
+        private void Write(TextWriter writer, string path, DynamicPropertyData d)
+        {
+            var relevantBinaries =
+                d.BinaryProperties.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value);
+
+            var transformedDynamic = new Dictionary<string, string>();
+            foreach (var item in d.DynamicProperties)
+            {
+                if (item.Value == null)
+                    continue;
+                var value = ValueToString(item);
+                if (value != null)
+                    transformedDynamic.Add(item.Key.Name, value);
+            }
+
+            if (relevantBinaries.Count > 0 || transformedDynamic.Count > 0)
+            {
+                writer.WriteLine($"VersionId: {d.VersionId}");
+
+                if (relevantBinaries.Count > 0)
+                {
+                    writer.WriteLine("    BinaryProperties");
+                    foreach (var item in relevantBinaries)
+                    {
+                        writer.WriteLine($"        {item.Key.Name}: {ValueToString(path, item.Value)}");
+                    }
+                }
+                if (transformedDynamic.Count > 0)
+                {
+                    writer.WriteLine("    DynamicProperties");
+                    foreach (var item in transformedDynamic)
+                        writer.WriteLine($"        {item.Key}: {item.Value}");
+                }
+            }
+        }
+        private string ValueToString(string path, BinaryDataValue d)
+        {
+            //var streamValue = d.Stream?.GetType().Name ?? "null";
+            // 2, 2, 31386, GenericContent.ContentType, text/xml, 
+            return $"#{d.Id}, F{d.FileId}, {d.Size}L, {d.FileName}, {d.ContentType}, {path}";
+        }
+        private string ValueToString(KeyValuePair<PropertyType, object> item)
+        {
+            switch (item.Key.DataType)
+            {
+                case DataType.String:
+                case DataType.Text:
+                    return (string)item.Value;
+                case DataType.Int:
+                    var intValue = (int)item.Value;
+                    if (intValue == default(int))
+                        return null;
+                    return item.Value.ToString();
+                case DataType.Currency:
+                    var decimalValue = (decimal)item.Value;
+                    if (decimalValue == default(decimal))
+                        return null;
+                    return ((decimal)item.Value).ToString(CultureInfo.InvariantCulture);
+                case DataType.DateTime:
+                    var dateTimeValue = (DateTime) item.Value;
+                    if (dateTimeValue == default(DateTime))
+                        return null;
+                    return dateTimeValue.ToString("O");
+                case DataType.Reference:
+                    return "[" + string.Join(",", ((IEnumerable<int>)item.Value).Select(x => x.ToString())) + "]";
+                // ReSharper disable once RedundantCaseLabel
+                case DataType.Binary:
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
 
@@ -636,7 +767,46 @@ namespace SenseNet.ContentRepository.Tests
 
         private DataPackage GetInitialStructure()
         {
-            throw new NotImplementedException();
+            /*
+            */
+            return new DataPackage
+            {
+                RootPath = @"..\..\..\..\nuget\snadmin\install-services\import",
+                Schema = new RepositorySchemaData
+                {
+                    PropertyTypes = new List<PropertyTypeData>
+                    {
+                        new PropertyTypeData {Id = 1, DataType = DataType.Binary, Name = "Binary", Mapping = 0}
+                    },
+                    NodeTypes = new List<NodeTypeData>
+                    {
+                        new NodeTypeData
+                        {
+                           
+                        }
+                    },
+                    //ContentListTypes = new List<ContentListTypeData>()
+                },
+                Nodes = new[]
+                {
+                    new NodeHeadData
+                    {
+
+                    }
+                }
+            };
+            //InstallNode(1, 1, 3, 5, "Admin", "/Root/IMS/BuiltIn/Portal/Admin");
+            //InstallNode(2, 2, 4, 0, "Root", "/Root");
+            //InstallNode(3, 3, 6, 2, "IMS", "/Root/IMS");
+            //InstallNode(4, 4, 7, 3, "BuiltIn", "/Root/IMS/BuiltIn");
+            //InstallNode(5, 5, 8, 4, "Portal", "/Root/IMS/BuiltIn/Portal");
+            //InstallNode(6, 6, 3, 5, "Visitor", "/Root/IMS/BuiltIn/Portal/Visitor");
+            //InstallNode(7, 7, 2, 5, "Administrators", "/Root/IMS/BuiltIn/Portal/Administrators");
+            //InstallNode(8, 8, 2, 5, "Everyone", "/Root/IMS/BuiltIn/Portal/Everyone");
+            //InstallNode(9, 9, 2, 5, "Owners", "/Root/IMS/BuiltIn/Portal/Owners");
+            //InstallNode(10, 10, 3, 5, "Somebody", "/Root/IMS/BuiltIn/Portal/Somebody");
+            //InstallNode(11, 11, 2, 5, "Operators", "/Root/IMS/BuiltIn/Portal/Operators");
+            //InstallNode(12, 12, 3, 5, "Startup", "/Root/IMS/BuiltIn/Portal/Startup");
         }
     }
 }

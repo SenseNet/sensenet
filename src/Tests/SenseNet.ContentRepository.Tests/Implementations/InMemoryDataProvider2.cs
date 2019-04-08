@@ -29,7 +29,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             var nodeId = DB.GetNextNodeId();
             nodeHeadData.NodeId = nodeId;
-            nodeHeadData.NodeId = nodeId;
 
             var versionId = DB.GetNextVersionId();
             versionData.VersionId = versionId;
@@ -462,67 +461,55 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override void InstallDataPackage(DataPackage data)
         {
-            InstallNode(1, 1, 3, 5, "Admin", "/Root/IMS/BuiltIn/Portal/Admin");
-            InstallNode(2, 2, 4, 0, "Root", "/Root");
-            InstallNode(3, 3, 6, 2, "IMS", "/Root/IMS");
-            InstallNode(4, 4, 7, 3, "BuiltIn", "/Root/IMS/BuiltIn");
-            InstallNode(5, 5, 8, 4, "Portal", "/Root/IMS/BuiltIn/Portal");
-            InstallNode(6, 6, 3, 5, "Visitor", "/Root/IMS/BuiltIn/Portal/Visitor");
-            InstallNode(7, 7, 2, 5, "Administrators", "/Root/IMS/BuiltIn/Portal/Administrators");
-            InstallNode(8, 8, 2, 5, "Everyone", "/Root/IMS/BuiltIn/Portal/Everyone");
-            InstallNode(9, 9, 2, 5, "Owners", "/Root/IMS/BuiltIn/Portal/Owners");
-            InstallNode(10, 10, 3, 5, "Somebody", "/Root/IMS/BuiltIn/Portal/Somebody");
-            InstallNode(11, 11, 2, 5, "Operators", "/Root/IMS/BuiltIn/Portal/Operators");
-            InstallNode(12, 12, 3, 5, "Startup", "/Root/IMS/BuiltIn/Portal/Startup");
         }
-        private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
-        {
-            DB.Nodes.Add(nodeId, new NodeDoc
-            {
-                NodeId = nodeId,
-                NodeTypeId = nodeTypeId,
-                ParentNodeId = parentNodeId,
-                Name = name,
-                Path = path,
-                LastMinorVersionId = versionId,
-                LastMajorVersionId = versionId,
+        //private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
+        //{
+        //    DB.Nodes.Add(nodeId, new NodeDoc
+        //    {
+        //        NodeId = nodeId,
+        //        NodeTypeId = nodeTypeId,
+        //        ParentNodeId = parentNodeId,
+        //        Name = name,
+        //        Path = path,
+        //        LastMinorVersionId = versionId,
+        //        LastMajorVersionId = versionId,
 
-                ContentListTypeId = 0,
-                ContentListId = 0,
-                CreatingInProgress = false,
-                IsDeleted = false,
-                Index = 0,
-                Locked = false,
-                LockedById = 0,
-                ETag = null,
-                LockType = 0,
-                LockTimeout = 0,
-                LockDate = new DateTime(1900, 1, 1),
-                LockToken = string.Empty,
-                LastLockUpdate = new DateTime(1900, 1, 1),
-                CreationDate = DateTime.UtcNow,
-                CreatedById = 1,
-                ModificationDate = DateTime.UtcNow,
-                ModifiedById = 1,
-                DisplayName = null,
-                IsSystem = false,
-                OwnerId = 1,
-                SavingState = ContentSavingState.Finalized,
-            });
-            DB.Versions.Add(versionId, new VersionDoc
-            {
-                VersionId = versionId,
-                NodeId = nodeId,
-                Version = new VersionNumber(1, 0, VersionStatus.Approved),
-                CreationDate = DateTime.UtcNow,
-                CreatedById = 1,
-                ModificationDate = DateTime.UtcNow,
-                ModifiedById = 1,
-                IndexDocument = null,
-                ChangedData = null,
-                DynamicProperties = new Dictionary<string, object>()
-            });
-        }
+        //        ContentListTypeId = 0,
+        //        ContentListId = 0,
+        //        CreatingInProgress = false,
+        //        IsDeleted = false,
+        //        Index = 0,
+        //        Locked = false,
+        //        LockedById = 0,
+        //        ETag = null,
+        //        LockType = 0,
+        //        LockTimeout = 0,
+        //        LockDate = new DateTime(1900, 1, 1),
+        //        LockToken = string.Empty,
+        //        LastLockUpdate = new DateTime(1900, 1, 1),
+        //        CreationDate = DateTime.UtcNow,
+        //        CreatedById = 1,
+        //        ModificationDate = DateTime.UtcNow,
+        //        ModifiedById = 1,
+        //        DisplayName = null,
+        //        IsSystem = false,
+        //        OwnerId = 1,
+        //        SavingState = ContentSavingState.Finalized,
+        //    });
+        //    DB.Versions.Add(versionId, new VersionDoc
+        //    {
+        //        VersionId = versionId,
+        //        NodeId = nodeId,
+        //        Version = new VersionNumber(1, 0, VersionStatus.Approved),
+        //        CreationDate = DateTime.UtcNow,
+        //        CreatedById = 1,
+        //        ModificationDate = DateTime.UtcNow,
+        //        ModifiedById = 1,
+        //        IndexDocument = null,
+        //        ChangedData = null,
+        //        DynamicProperties = new Dictionary<string, object>()
+        //    });
+        //}
 
         /* ====================================================================== Tools */
 
