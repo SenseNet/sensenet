@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository.Storage
                 return new DynamicPropertyData
                 {
                     VersionId = VersionId,
-                    PropertyTypes = PropertyTypes.ToArray(),
+                    PropertyTypes = PropertyTypes.ToList(),
                     DynamicProperties = changedPropertyTypes
                         .Where(pt => pt.DataType != DataType.Binary)
                         .ToDictionary(pt => pt, pt => dynamicData[pt.Id] ?? pt.DefaultValue),

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -6,7 +7,7 @@ using System.Linq;
 namespace SenseNet.ContentRepository.Storage.DataModel
 {
     [DebuggerDisplay("{Name}: {ParentName}")]
-    public class NodeTypeData : ISchemaItemData
+    public class NodeTypeData : ISchemaItemData, IDataModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -24,6 +25,33 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                 ClassName = ClassName,
                 Properties = Properties.ToList()
             };
+        }
+
+        public void SetProperty(string name, string value)
+        {
+            switch (name)
+            {
+                case "Id":
+                    Id = int.Parse(value);
+                    break;
+                case "Name":
+                    Name = value;
+                    break;
+                case "ParentName":
+                    ParentName = value;
+                    break;
+                case "ClassName":
+                    ClassName = value;
+                    break;
+                case "Properties":
+                    var names = value.Length > 2
+                        ? value.Substring(1, value.Length - 2).Split(' ').ToList()
+                        : new List<string>();
+                    Properties = names;
+                    break;
+                default:
+                    throw new ApplicationException("Unknown property: " + name);
+            }
         }
     }
 }

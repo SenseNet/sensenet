@@ -1,9 +1,10 @@
 ﻿using System;
+using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel
 {
-    public class NodeHeadData
+    public class NodeHeadData : IDataModel
     {
         public int NodeId;
         public int NodeTypeId;
@@ -34,5 +35,107 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public int OwnerId;
         public ContentSavingState SavingState;
         public long Timestamp;
+
+        public void SetProperty(string name, string value)
+        {
+            switch (name)
+            {
+                case "NodeId":
+                    NodeId = int.Parse(value);
+                    break;
+                case "TypeId":
+                case "NodeTypeId":
+                    NodeTypeId = int.Parse(value);
+                    break;
+                case "ContentListTypeId":
+                    ContentListTypeId = int.Parse(value);
+                    break;
+                case "ContentListId":
+                    ContentListId = int.Parse(value);
+                    break;
+                case "CreatingInProgress":
+                    CreatingInProgress = value.ToLowerInvariant() == "true";
+                    break;
+                case "IsDeleted":
+                    IsDeleted = value.ToLowerInvariant() == "true";
+                    break;
+                case "Parent":
+                case "ParentId":
+                case "ParentNodeId":
+                    ParentNodeId = int.Parse(value);
+                    break;
+                case "Name":
+                    Name = value;
+                    break;
+                case "DisplayName":
+                    DisplayName = value;
+                    break;
+                case "Path":
+                    Path = value;
+                    break;
+                case "Index":
+                    Index = int.Parse(value);
+                    break;
+                case "Locked":
+                    Locked = value.ToLowerInvariant() == "true";
+                    break;
+                case "LockedById":
+                    LockedById = int.Parse(value);
+                    break;
+                case "ETag":
+                    ETag = value;
+                    break;
+                case "LockType":
+                    LockType = int.Parse(value);
+                    break;
+                case "LockTimeout":
+                    LockTimeout = int.Parse(value);
+                    break;
+                case "LockDate":
+                    LockDate = DateTime.Parse(value);
+                    break;
+                case "LockToken":
+                    LockToken = value;
+                    break;
+                case "LastLockUpdate":
+                    LastLockUpdate = DateTime.Parse(value);
+                    break;
+                case "MinorV":
+                case "LastMinorVersionId":
+                    LastMinorVersionId = int.Parse(value);
+                    break;
+                case "MajorV":
+                case "LastMajorVersionId":
+                    LastMajorVersionId = int.Parse(value);
+                    break;
+                case "CreationDate":
+                    CreationDate = DateTime.Parse(value);
+                    break;
+                case "CreatedById":
+                    CreatedById = int.Parse(value);
+                    break;
+                case "ModificationDate":
+                    ModificationDate = DateTime.Parse(value);
+                    break;
+                case "ModifiedById":
+                    ModifiedById = int.Parse(value);
+                    break;
+                case "IsSystem":
+                    IsSystem = value.ToLowerInvariant() == "true";
+                    break;
+                case "Owner":
+                case "OwnerId":
+                    OwnerId = int.Parse(value);
+                    break;
+                case "SavingState":
+                    SavingState = (ContentSavingState)Enum.Parse(typeof(ContentSavingState), value, true);
+                    break;
+                case "Timestamp":
+                    Timestamp = long.Parse(value);
+                    break;
+                default:
+                    throw new ApplicationException("Unknown property: " + name);
+            }
+        }
     }
 }

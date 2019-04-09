@@ -25,38 +25,45 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
+        private string _initialPropertyTypePath = @"D:\propertyTypes.txt";
+        private string _initialNodeTypePath = @"D:\nodeTypes.txt";
+        private string _initialNodesPath = @"D:\nodes.txt";
+        private string _initialVersionsPath = @"D:\versions.txt";
+        private string _initialDynamicDataPath = @"D:\dynamicData.txt";
+
         [TestMethod]
-        public void DP_xxxx()
+        public void InitialData_ToString()
         {
             DPTest(() =>
             {
-                using (var schemaWriter = new StreamWriter(@"D:\schema.txt", false))
+                var ed = new SchemaEditor();
+                ed.Load();
+                var schemaData = ed.ToRepositorySchemaData();
+
+                using (var writer = new StreamWriter(_initialPropertyTypePath, false))
                 {
-                    var ed = new SchemaEditor();
-                    ed.Load();
-                    var schemaData = ed.ToRepositorySchemaData();
-
-                    schemaWriter.WriteLine("PROPERTYTYPES");
-                    schemaWriter.WriteLine("      Id, Type      , Mapping, Name");
-                    schemaWriter.WriteLine("    ----- ----------- -------- ---------------");
+                    writer.WriteLine("  Id| DataType  | Mapping| Name");
+                    writer.WriteLine("----- ----------- -------- ---------------");
                     foreach (var pt in schemaData.PropertyTypes)
-                        schemaWriter.WriteLine($"    {pt.Id,4:#}, {pt.DataType,-10}, {pt.Mapping,7:#0}, {pt.Name}");
-
-                    schemaWriter.WriteLine("NODETYPES");
-                    schemaWriter.WriteLine("      Id, Name                          , Parent                        , ClassName                                                   , Properties");
-                    schemaWriter.WriteLine("    ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------");
-                    foreach (var nt in schemaData.NodeTypes)
-                        schemaWriter.WriteLine($"    {nt.Id,4:#}, {nt.Name,-30}, {nt.ParentName??"<null>",-30}, {nt.ClassName,-60}, " +
-                                               $"[{(string.Join(",", nt.Properties))}]");
+                        writer.WriteLine($"{pt.Id,4:#}| {pt.DataType,-10}| {pt.Mapping,7:#0}| {pt.Name}");
                 }
 
-                using (var nodeWriter = new StreamWriter(@"D:\nodes.txt", false))
-                using (var versionWriter = new StreamWriter(@"D:\versions.txt", false))
-                using (var dynamicDataWriter = new StreamWriter(@"D:\dynamicData.txt", false))
+                using (var writer = new StreamWriter(_initialNodeTypePath, false))
                 {
-                    nodeWriter.WriteLine("NodeId, TypeId, Parent,  Index, MinorV, MajorV, IsSys,  Owner, Name,                                     DisplayName,                                        Path");
-                    nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- ------ ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
-                    versionWriter.WriteLine("VersionId, NodeId,  Version");
+                    writer.WriteLine("  Id| Name                          | ParentName                    | ClassName                                                   | Properties");
+                    writer.WriteLine("----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------");
+                    foreach (var nt in schemaData.NodeTypes)
+                        writer.WriteLine($"{nt.Id,4:#}| {nt.Name,-30}| {nt.ParentName ?? "<null>",-30}| {nt.ClassName,-60}| " +
+                                         $"[{(string.Join(" ", nt.Properties))}]");
+                }
+
+                using (var nodeWriter = new StreamWriter(_initialNodesPath, false))
+                using (var versionWriter = new StreamWriter(_initialVersionsPath, false))
+                using (var dynamicDataWriter = new StreamWriter(_initialDynamicDataPath, false))
+                {
+                    nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path");
+                    nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
+                    versionWriter.WriteLine("VersionId| NodeId|  Version");
                     versionWriter.WriteLine("---------- ------- ---------");
                     foreach (var nodeId in ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId))
                     {
@@ -68,17 +75,19 @@ namespace SenseNet.ContentRepository.Tests
                         Write(dynamicDataWriter, node.Path, node.Data.GetDynamicData(true));
                     }
                 }
+
+                Assert.Inconclusive();
             });
         }
         private void Write(TextWriter writer, NodeHeadData d)
         {
-            writer.WriteLine($"{d.NodeId,6:#}, {d.NodeTypeId,6:#}, {d.ParentNodeId,6:#0}, {d.Index,6:#0}, " +
-                             $"{d.LastMinorVersionId,6:#}, {d.LastMajorVersionId,6:#},   {(d.IsSystem ? "sys" : "---")}, " +
-                             $"{d.OwnerId,6:#}, {d.Name,-40}, {d.DisplayName,-50}, {d.Path}");
+            writer.WriteLine($"{d.NodeId,6:#}| {d.NodeTypeId,6:#}| {d.ParentNodeId,6:#0}| {d.Index,6:#0}| " +
+                             $"{d.LastMinorVersionId,6:#}| {d.LastMajorVersionId,6:#}| {d.IsSystem,8}| " +
+                             $"{d.OwnerId,6:#}| {d.Name,-40}| {d.DisplayName,-50}| {d.Path}");
         }
         private void Write(TextWriter writer, VersionData d)
         {
-            writer.WriteLine($"{d.VersionId,9:#}, {d.NodeId,6:#},  {d.Version}");
+            writer.WriteLine($"{d.VersionId,9:#}| {d.NodeId,6:#}|  {d.Version}");
         }
         private void Write(TextWriter writer, string path, DynamicPropertyData d)
         {
@@ -92,7 +101,7 @@ namespace SenseNet.ContentRepository.Tests
                     continue;
                 var value = ValueToString(item);
                 if (value != null)
-                    transformedDynamic.Add(item.Key.Name, value);
+                    transformedDynamic.Add($"{item.Key.Name}:{item.Key.DataType}", value);
             }
 
             if (relevantBinaries.Count > 0 || transformedDynamic.Count > 0)
@@ -151,6 +160,179 @@ namespace SenseNet.ContentRepository.Tests
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        [TestMethod]
+        public void InitialData_Parse()
+        {
+            var propertyTypes = ParseDatamodels<PropertyTypeData>(ReadLines(_initialPropertyTypePath));
+            var nodeTypes = ParseDatamodels<NodeTypeData>(ReadLines(_initialNodeTypePath));
+            var nodes = ParseDatamodels<NodeHeadData>(ReadLines(_initialNodesPath));
+            var versions = ParseDatamodels<VersionData>(ReadLines(_initialVersionsPath));
+            var dynamicProperties = ParseDynamicProperties(ReadLines(_initialDynamicDataPath));
+
+            var dataPackage = new DataPackage
+            {
+                Schema = new RepositorySchemaData
+                {
+                    PropertyTypes = propertyTypes,
+                    NodeTypes = nodeTypes
+                },
+                Nodes = nodes,
+                Versions = versions,
+                DynamicProperties = dynamicProperties
+            };
+
+            Assert.Inconclusive();
+        }
+        private IEnumerable<string> ReadLines(string path)
+        {
+            using (var reader = new StreamReader(path))
+                foreach (var item in ReadLines(reader))
+                    yield return item;
+        }
+        private IEnumerable<string> ReadLines(TextReader reader)
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+                yield return line;
+        }
+        private List<T> ParseDatamodels<T>(IEnumerable<string> lines) where T: class, IDataModel, new()
+        {
+            var result = new List<T>();
+
+            var isHead = true;
+            var headLines = new List<string>();
+            string[] head = null;
+            foreach (var line in lines)
+            {
+                if (isHead)
+                {
+                    if ((line.StartsWith("-") || line.StartsWith("=")) && !line.Contains('|'))
+                    {
+                        isHead = false;
+                        if (headLines.Count > 1)
+                            throw new NotImplementedException();
+                        head = ParseLine(headLines[0]);
+                    }
+                    else
+                    {
+                        headLines.Add(line);
+                    }
+                    continue;
+                }
+                result.Add(Parse<T>(line, head));
+            }
+
+            return result;
+        }
+        private T Parse<T>(string line, string[] head) where T : class, IDataModel, new()
+        {
+            var result = new T();
+
+            var values = ParseLine(line);
+            if (values.Length != head.Length)
+                throw new ApplicationException($"The line is not valid: expected head: {string.Join("| ", head)}. " +
+                                               $"Actual line: {line}");
+            for (int i = 0; i < values.Length; i++)
+            {
+                var name = head[i];
+                var value = values[i];
+                result.SetProperty(name, value);
+            }
+
+            return result;
+        }
+        private string[] ParseLine(string line)
+        {
+            return line.Split('|').Select(x => x.Trim()).ToArray();
+        }
+        private IEnumerable<DynamicPropertyData> ParseDynamicProperties(IEnumerable<string> lines)
+        {
+            var result = new List<DynamicPropertyData>();
+
+            var parsingBinaryProperties = false;
+            var parsingDynamicProperties = false;
+            int versionId;
+            DynamicPropertyData data = new DynamicPropertyData();
+            var lineNumber = 0;
+            foreach (var line in lines)
+            {
+                lineNumber++;
+                if (line.StartsWith("VersionId: "))
+                {
+                    parsingBinaryProperties = false;
+                    parsingDynamicProperties = false;
+                    versionId = int.Parse(line.Substring(11));
+                    data = new DynamicPropertyData{VersionId = versionId};
+                    result.Add(data);
+                }
+                else if (line == "    BinaryProperties")
+                {
+                    parsingBinaryProperties = true;
+                    parsingDynamicProperties = false;
+                    data.BinaryProperties = new Dictionary<PropertyType, BinaryDataValue>();
+                }
+                else if (line == "    DynamicProperties")
+                {
+                    parsingBinaryProperties = false;
+                    parsingDynamicProperties = true;
+                    data.DynamicProperties = new Dictionary<PropertyType, object>();
+                }
+                else if (line.StartsWith("        "))
+                {
+                    if (parsingBinaryProperties)
+                    {
+                        // Binary: #82, F82, 0L, OAuth.settings, application/octet-stream, /Root/System/Settings/OAuth.settings
+                    }
+                    else if (parsingDynamicProperties)
+                    {
+                        // LastLoggedOut:DateTime: 2018-11-14T02:54:03.0000000Z
+                        var p = line.IndexOf(':');
+                        var name = line.Substring(0, p).Trim();
+
+                        var p1 = line.IndexOf(':', p + 1);
+                        var dataType = (DataType) Enum.Parse(typeof(DataType), line.Substring(p + 1, p1 - p - 1));
+
+                        var value = ParseDynamicValue(line.Substring(p1 + 1).Trim(), dataType);
+                        var propertyType = data.EnsurePropertyType(name, dataType);
+
+                        data.DynamicProperties.Add(propertyType, value);
+                    }
+                    else
+                        throw GetCannotParseDynamicPropertiesException(lineNumber, line);
+                }
+                else
+                    throw GetCannotParseDynamicPropertiesException(lineNumber, line);
+            }
+
+            return result;
+        }
+        private object ParseDynamicValue(string src, DataType dataType)
+        {
+            switch (dataType)
+            {
+                case DataType.String:
+                case DataType.Text:
+                    return src;
+                case DataType.Int:
+                    return int.Parse(src);
+                case DataType.Currency:
+                    return decimal.Parse(src, CultureInfo.InvariantCulture);
+                case DataType.DateTime:
+                    return DateTime.Parse(src, CultureInfo.InvariantCulture);
+                case DataType.Reference:
+                    return src.Substring(1, src.Length - 2).Split(',').Select(int.Parse).ToArray();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null);
+            }
+        }
+
+        private Exception GetCannotParseDynamicPropertiesException(int lineNumber, string line)
+        {
+            return new ApplicationException(
+                $"Cannot parse the dynamic properties because the line {lineNumber} is invalid: " + line);
+        }
+
 
 
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 

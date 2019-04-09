@@ -8,8 +8,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 {
     internal class InitialData
     {
-        #region private string _propertyTypes = @"
-        private string _propertyTypes = @"
+        #region PropertyTypes
+        public string PropertyTypes = @"
       Id, Type      , Mapping, Name
     ----- ----------- -------- ---------------
        1, Binary    ,       0, Binary
@@ -167,8 +167,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 ";
         #endregion
 
-        #region private string _nodeTypes = @"
-        private string _nodeTypes = @"
+        #region NodeTypes
+        public string NodeTypes = @"
       Id, Name                          , Parent                        , ClassName                                                   , Properties
     ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------
        9, ContentType                   , <null>                        , SenseNet.ContentRepository.Schema.ContentType               , [Binary]
@@ -252,8 +252,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 ";
         #endregion
 
-        #region private static string _nodes = @"
-        private static string _nodes = @"
+        #region Nodes
+        public string Nodes = @"
 NodeId, TypeId, Parent,  Index, MinorV, MajorV, IsSys,  Owner, Name,                                     DisplayName,                                        Path
 ------- ------- -------  ------ ------- ------- ------ ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
      1,      3,      5,      0,      1,      1,   ---,      1, Admin                                   , """"                                              , /Root/IMS/BuiltIn/Portal/Admin
@@ -519,8 +519,8 @@ NodeId, TypeId, Parent,  Index, MinorV, MajorV, IsSys,  Owner, Name,            
 ";
         #endregion
 
-        #region private static string _versions = @"
-        private static string _versions = @"
+        #region Versions
+        public string Versions = @"
 VersionId, NodeId,  Version
 ---------- ------- ---------
         1,      1,  V1.0.A
@@ -786,8 +786,8 @@ VersionId, NodeId,  Version
 ";
         #endregion
 
-        #region private static string _dynamicData = @"
-        private static string _dynamicData = @"
+        #region DynamicData
+        public string DynamicData = @"
 VersionId: 1
     DynamicProperties
         Enabled: 1
