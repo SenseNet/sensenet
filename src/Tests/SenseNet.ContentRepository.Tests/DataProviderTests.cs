@@ -282,7 +282,19 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     if (parsingBinaryProperties)
                     {
+                        // name    id, file, size, filename,    mime,                     stream reference
                         // Binary: #82, F82, 0L, OAuth.settings, application/octet-stream, /Root/System/Settings/OAuth.settings
+                        var src = line.Split(':', ',');
+                        var propertyType = data.EnsurePropertyType(src[0], DataType.Binary);
+                        data.BinaryProperties.Add(propertyType, new BinaryDataValue
+                        {
+                            Id = int.Parse(src[1].Trim().Substring(1)),
+                            FileId = int.Parse(src[2].Trim().Substring(1)),
+                            Size = long.Parse(src[3].Trim().TrimEnd('L')),
+                            FileName = src[4].Trim(),
+                            ContentType = src[5].Trim(),
+                            BlobProviderData = src[6].Trim()
+                        });
                     }
                     else if (parsingDynamicProperties)
                     {
