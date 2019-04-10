@@ -7,8 +7,10 @@ using System.Linq;
 using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Indexing;
 
@@ -22,57 +24,40 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Nodes */
 
-        public override STT.Task InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings)
+        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
             //UNDONE:DB Lock? Transaction?
 
             var nodeId = DB.GetNextNodeId();
-            nodeData.Id = nodeId;
-            var nodeHeadData = GetNodeHeadData(nodeData);
             nodeHeadData.NodeId = nodeId;
 
             var versionId = DB.GetNextVersionId();
-            nodeData.VersionId = versionId;
-            var versionData = GetVersionData(nodeData);
             versionData.VersionId = versionId;
+            dynamicData.VersionId = versionId;
             versionData.NodeId = nodeId;
 
-            DB.Versions[versionId] = versionData;
+            var versionDoc = CreateVersionDoc(versionData, dynamicData);
+            DB.Versions[versionId] = versionDoc;
+            versionData.Timestamp = versionDoc.Timestamp;
 
-            // Manage BinaryProperties
-            foreach (var binPropType in nodeData.PropertyTypes.Where(x => x.DataType == DataType.Binary))
-            {
-                var value = nodeData.GetDynamicRawData(binPropType) ?? binPropType.DefaultValue;
-                var binValue = (BinaryDataValue)value;
-                SaveBinaryProperty(binValue, versionId, binPropType, true, SavingAlgorithm.CreateNewNode);
-            }
+            foreach (var item in dynamicData.BinaryProperties)
+                SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
 
             // Manage last versionIds and timestamps
-
             LoadLastVersionIds(nodeId, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeHeadData.LastMajorVersionId = lastMajorVersionId;
             nodeHeadData.LastMinorVersionId = lastMinorVersionId;
-            settings.LastMajorVersionIdAfter = lastMajorVersionId;
-            settings.LastMinorVersionIdAfter = lastMinorVersionId;
 
-            DB.Nodes[nodeId] = nodeHeadData;
-
-            nodeData.NodeTimestamp = nodeHeadData.Timestamp;
-            nodeData.VersionTimestamp = versionData.Timestamp;
+            var nodeDoc = CreateNodeDoc(nodeHeadData);
+            nodeDoc.LastMajorVersionId = lastMajorVersionId;
+            nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeId] = nodeDoc;
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
 
             return STT.Task.CompletedTask;
         }
-        private void SaveBinaryProperty(BinaryDataValue value, int versionId, PropertyType propertyType, bool isNewNode, SavingAlgorithm savingAlgorithm)
-        {
-            if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
-            else if (value.Id == 0 || savingAlgorithm != SavingAlgorithm.UpdateSameVersion)
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyType.Id, isNewNode);
-            else
-                BlobStorage.UpdateBinaryProperty(value);
-        }
 
-        public override STT.Task UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
+        public override STT.Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete)
         {
             //UNDONE:DB Lock? Transaction?
 
@@ -82,117 +67,117 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
 
-            if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
-                throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
-            if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
-                throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
+            if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
+                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
+            // Get VersionDoc and update
+            if (!DB.Versions.TryGetValue(versionData.VersionId, out var versionDoc))
+                throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            var versionId = versionData.VersionId;
+            dynamicData.VersionId = versionData.VersionId;
+            UpdateVersionDoc(versionDoc, versionData, dynamicData);
+
+            // Delete unnecessary versions
             DeleteVersionsAsync(versionIdsToDelete);
 
-            var versionId = nodeData.VersionId;
-            var versionDoc = GetVersionData(nodeData);
-
-            // UpdateVersionRow
-            DB.Versions[versionId] = versionDoc;
-
-            // UpdateNodeRow
-            nodeDoc = GetNodeHeadData(nodeData);
-            LoadLastVersionIds(nodeData.Id, out var lastMajorVersionId, out var lastMinorVersionId);
+            // Update NodeDoc (create a new nodeDoc instance)
+            nodeDoc = CreateNodeDoc(nodeHeadData);
+            LoadLastVersionIds(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeDoc.LastMajorVersionId = lastMajorVersionId;
             nodeDoc.LastMinorVersionId = lastMinorVersionId;
             DB.Nodes[nodeDoc.NodeId] = nodeDoc;
 
             // Manage BinaryProperties
-            foreach (var binPropType in nodeData.PropertyTypes.Where(x => x.DataType == DataType.Binary))
-            {
-                var value = nodeData.GetDynamicRawData(binPropType) ?? binPropType.DefaultValue;
-                var binValue = (BinaryDataValue)value;
-                SaveBinaryProperty(binValue, versionId, binPropType, true, SavingAlgorithm.UpdateSameVersion);
-            }
+            foreach (var item in dynamicData.BinaryProperties)
+                SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, false);
 
-            nodeData.NodeTimestamp = nodeDoc.Timestamp;
-            nodeData.VersionTimestamp = versionDoc.Timestamp;
-            settings.LastMajorVersionIdAfter = lastMajorVersionId;
-            settings.LastMinorVersionIdAfter = lastMinorVersionId;
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
+            versionData.Timestamp = versionDoc.Timestamp;
+            nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+            nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
             return STT.Task.CompletedTask;
         }
-        /// <summary>
-        /// WARNING! LAST VERSIONIDS NEED TO BE UPDATED IN THE RELATED NODEDOCS AND NODESAVESETTINGS
-        /// </summary>
-        private STT.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
-        {
-            foreach (var versionId in versionIdsToDelete)
-            {
-                foreach (var binPropId in DB.BinaryProperties.Values
-                    .Where(x => x.VersionId == versionId)
-                    .Select(x => x.BinaryPropertyId)
-                    .ToArray())
-                {
-                    DB.BinaryProperties.Remove(binPropId);
-                }
-                DB.Versions.Remove(versionId);
-            }
-            return STT.Task.CompletedTask;
-        }
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings,
+        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
-            if (!DB.Nodes.TryGetValue(nodeData.Id, out var nodeDoc))
-                throw new Exception($"Cannot update a deleted Node. Id: {nodeData.Id}, path: {nodeData.Path}.");
-            if (nodeDoc.Timestamp != nodeData.NodeTimestamp)
-                throw new Exception($"Node is out of date Id: {nodeData.Id}, path: {nodeData.Path}.");
+            if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
+                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
-
+            // Get existing VersionDoc and update
             if (!DB.Versions.TryGetValue(currentVersionId, out var currentVersionDoc))
-                throw new Exception($"Version not found. VersionId: {currentVersionId}.");
-
-            // Get updated version data by nodeData
-            var changedDynamicData = nodeData.GetDynamicData();
-            var versionDoc = GetVersionData(changedDynamicData, currentVersionDoc);
-
-            // UpdateVersionRow
+                throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             var versionId = expectedVersionId == 0 ? DB.GetNextVersionId() : expectedVersionId;
-            nodeData.VersionId = versionId;
+            var versionDoc = CloneVersionDoc(currentVersionDoc);
             versionDoc.VersionId = versionId;
-            versionDoc.Version = nodeData.Version;
+            versionData.VersionId = versionId;
+            dynamicData.VersionId = versionId;
+            UpdateVersionDoc(versionDoc, versionData, dynamicData);
+
+            // Add or change updated VersionDoc
             DB.Versions[versionId] = versionDoc;
 
             // Delete unnecessary versions
             DeleteVersionsAsync(versionIdsToDelete);
 
-            // UpdateNodeRow
-            nodeDoc = GetNodeHeadData(nodeData);
-            LoadLastVersionIds(nodeData.Id, out var lastMajorVersionId, out var lastMinorVersionId);
+            // UpdateNodeDoc
+            nodeDoc = CreateNodeDoc(nodeHeadData);
+            LoadLastVersionIds(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
             nodeDoc.LastMajorVersionId = lastMajorVersionId;
             nodeDoc.LastMinorVersionId = lastMinorVersionId;
             DB.Nodes[nodeDoc.NodeId] = nodeDoc;
 
             // Manage BinaryProperties
-            foreach (var item in changedDynamicData.Where(x => x.Key.DataType == DataType.Binary))
-            {
-                var propertyType = item.Key;
-                var value = item.Value ?? propertyType.DefaultValue;
-                SaveBinaryProperty((BinaryDataValue)value, versionId, propertyType, false, SavingAlgorithm.CopyToNewVersionAndUpdate);
-            }
+            foreach (var item in dynamicData.BinaryProperties)
+                SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
 
-            nodeData.NodeTimestamp = nodeDoc.Timestamp;
-            nodeData.VersionTimestamp = versionDoc.Timestamp;
-            settings.LastMajorVersionIdAfter = lastMajorVersionId;
-            settings.LastMinorVersionIdAfter = lastMinorVersionId;
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
+            versionData.Timestamp = versionDoc.Timestamp;
+            nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+            nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateNodeHeadAsync(NodeData nodeData)
+        public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete)
         {
-            throw new NotImplementedException();
+            if (!DB.Nodes.TryGetValue(nodeHeadData.NodeId, out var nodeDoc))
+                throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+            if (nodeDoc.Timestamp != nodeHeadData.Timestamp)
+                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+
+            // Delete unnecessary versions
+            DeleteVersionsAsync(versionIdsToDelete);
+
+            // Update NodeDoc (create a new nodeDoc instance)
+            nodeDoc = CreateNodeDoc(nodeHeadData);
+            LoadLastVersionIds(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
+            nodeDoc.LastMajorVersionId = lastMajorVersionId;
+            nodeDoc.LastMinorVersionId = lastMinorVersionId;
+            DB.Nodes[nodeDoc.NodeId] = nodeDoc;
+
+            // Update return values
+            nodeHeadData.Timestamp = nodeDoc.Timestamp;
+            nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+            nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+            return STT.Task.CompletedTask;
         }
 
         public override STT.Task UpdateSubTreePathAsync(string oldPath, string newPath)
         {
-            throw new NotImplementedException();
+            foreach (var nodeDoc in DB.Nodes.Values
+                                            .Where(n => n.Path.StartsWith(oldPath + "/", StringComparison.OrdinalIgnoreCase))
+                                            .ToArray())
+            {
+                nodeDoc.Path = newPath + nodeDoc.Path.Substring(oldPath.Length);
+            }
+            return STT.Task.CompletedTask;
         }
 
         public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray)
@@ -335,7 +320,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
         {
-            throw new NotImplementedException();
+            var headIds = heads.ToArray();
+            IEnumerable<NodeHead> result = DB.Nodes
+                .Where(x => headIds.Contains(x.Key))
+                .Select(x => NodeDocToNodeHead(x.Value))
+                .ToArray();
+            return STT.Task.FromResult(result);
         }
 
         public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId)
@@ -440,135 +430,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ============================================================================================================= Infrastructure */
 
-        private NodeDoc GetNodeHeadData(NodeData nodeData)
-        {
-            return new NodeDoc
-            {
-                NodeId = nodeData.Id,
-                NodeTypeId = nodeData.NodeTypeId,
-                ContentListTypeId = nodeData.ContentListTypeId,
-                ContentListId = nodeData.ContentListId,
-                CreatingInProgress = nodeData.CreatingInProgress,
-                IsDeleted = nodeData.IsDeleted,
-                //IsInherited = nodeData.???,
-                ParentNodeId = nodeData.ParentId,
-                Name = nodeData.Name,
-                Path = nodeData.Path,
-                Index = nodeData.Index,
-                Locked = nodeData.Locked,
-                LockedById = nodeData.LockedById,
-                ETag = nodeData.ETag,
-                LockType = nodeData.LockType,
-                LockTimeout = nodeData.LockTimeout,
-                LockDate = nodeData.LockDate,
-                LockToken = nodeData.LockToken,
-                LastLockUpdate = nodeData.LastLockUpdate,
-                //LastMinorVersionId = nodeData,
-                //LastMajorVersionId = nodeData,
-                CreationDate = nodeData.CreationDate,
-                CreatedById = nodeData.CreatedById,
-                ModificationDate = nodeData.ModificationDate,
-                ModifiedById = nodeData.ModifiedById,
-                DisplayName = nodeData.DisplayName,
-                IsSystem = nodeData.IsSystem,
-                OwnerId = nodeData.OwnerId,
-                SavingState = nodeData.SavingState,
-                //Timestamp = nodeData,
-            };
-        }
-
-        private VersionDoc GetVersionData(NodeData nodeData)
-        {
-            // Tune property values
-            var dynamicData = new Dictionary<string, object>();
-            foreach (var propertyType in nodeData.PropertyTypes)
-            {
-                // Set default if needed
-                var value = nodeData.GetDynamicRawData(propertyType) ?? propertyType.DefaultValue;
-
-                // Tune values by data type
-                switch (propertyType.DataType)
-                {
-                    case DataType.String:
-                    case DataType.Text:
-                    case DataType.Int:
-                    case DataType.Currency:
-                    case DataType.DateTime:
-                        dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
-                        break;
-                    case DataType.Reference:
-                        // Optional filter: do not store empty references.
-                        if (EmptyReferencesFilter(propertyType, value))
-                            dynamicData.Add(propertyType.Name, GetClone(value, propertyType.DataType));
-                        break;
-                    case DataType.Binary:
-                        // Do nothing. These properties are managed by the caller
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            return new VersionDoc
-            {
-                VersionId = nodeData.VersionId,
-                NodeId = nodeData.Id,
-                Version = nodeData.Version.Clone(),
-                CreationDate = nodeData.VersionCreationDate,
-                CreatedById = nodeData.VersionCreatedById,
-                ModificationDate = nodeData.VersionModificationDate,
-                ModifiedById = nodeData.VersionModifiedById,
-                ChangedData = nodeData.ChangedData,
-                DynamicProperties = dynamicData,
-                // IndexDocument and Timestamp will be set later.
-            };
-        }
-        private VersionDoc GetVersionData(IDictionary<PropertyType, object> changedDynamicData, VersionDoc sourceVersionDoc)
-        {
-            var dynamicData = CloneDynamicProperties(sourceVersionDoc.DynamicProperties);
-            foreach (var item in changedDynamicData)
-            {
-                var propertyType = item.Key;
-                var dataType = propertyType.DataType;
-                if (dataType == DataType.Binary)
-                    // Handled by higher level
-                    continue;
-                var clone = GetClone(item.Value, dataType);
-                if (dataType == DataType.Reference)
-                {
-                    // Remove empty references
-                    if (!((IEnumerable<int>) clone).Any())
-                    {
-                        dynamicData.Remove(propertyType.Name);
-                        continue;
-                    }
-                }
-                dynamicData[propertyType.Name] = clone;
-            }
-
-            return new VersionDoc
-            {
-                VersionId = sourceVersionDoc.VersionId,
-                NodeId = sourceVersionDoc.NodeId,
-                Version = sourceVersionDoc.Version.Clone(),
-                CreationDate = sourceVersionDoc.CreationDate,
-                CreatedById = sourceVersionDoc.CreatedById,
-                ModificationDate = sourceVersionDoc.ModificationDate,
-                ModifiedById = sourceVersionDoc.ModifiedById,
-                ChangedData = sourceVersionDoc.ChangedData,
-                DynamicProperties = dynamicData,
-                // IndexDocument and Timestamp will be set later.
-            };
-        }
-        private bool EmptyReferencesFilter(PropertyType propertyType, object value)
-        {
-            if (propertyType.DataType != DataType.Reference)
-                return true;
-            if (value == null)
-                return false;
-            return ((IEnumerable<int>)value).Any();
-        }
-
         private void LoadLastVersionIds(int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
         {
             var allVersions = DB.Versions.Values
@@ -604,73 +465,276 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return existing.Timestamp;
         }
 
-        public override void InstallDefaultStructure()
+        public override void InstallInitialData(InitialData data)
         {
-            InstallNode(1, 1, 3, 5, "Admin", "/Root/IMS/BuiltIn/Portal/Admin");
-            InstallNode(2, 2, 4, 0, "Root", "/Root");
-            InstallNode(3, 3, 6, 2, "IMS", "/Root/IMS");
-            InstallNode(4, 4, 7, 3, "BuiltIn", "/Root/IMS/BuiltIn");
-            InstallNode(5, 5, 8, 4, "Portal", "/Root/IMS/BuiltIn/Portal");
-            InstallNode(6, 6, 3, 5, "Visitor", "/Root/IMS/BuiltIn/Portal/Visitor");
-            InstallNode(7, 7, 2, 5, "Administrators", "/Root/IMS/BuiltIn/Portal/Administrators");
-            InstallNode(8, 8, 2, 5, "Everyone", "/Root/IMS/BuiltIn/Portal/Everyone");
-            InstallNode(9, 9, 2, 5, "Owners", "/Root/IMS/BuiltIn/Portal/Owners");
-            InstallNode(10, 10, 3, 5, "Somebody", "/Root/IMS/BuiltIn/Portal/Somebody");
-            InstallNode(11, 11, 2, 5, "Operators", "/Root/IMS/BuiltIn/Portal/Operators");
-            InstallNode(12, 12, 3, 5, "Startup", "/Root/IMS/BuiltIn/Portal/Startup");
+            DB.Schema = data.Schema;
+            ContentTypeManager.Reset();
+
+            foreach (var node in data.Nodes)
+            {
+                var versionId = node.LastMajorVersionId;
+                if (versionId != node.LastMinorVersionId)
+                    throw new NotSupportedException("Cannot install a node with more than one versions.");
+                var version = data.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if(version == null)
+                    throw new NotSupportedException("Cannot install a node without a versions.");
+                var props = data.DynamicProperties.FirstOrDefault(x => x.VersionId == versionId);
+                InstallNode(node, version, props);
+            }
+            ContentTypeManager.Reset();
         }
-
-        private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
+        private void InstallNode(NodeHeadData nData, VersionData vData, DynamicPropertyData dData)
         {
-            DB.Nodes.Add(nodeId, new NodeDoc
+            DB.Nodes.Add(nData.NodeId, new NodeDoc
             {
-                NodeId = nodeId,
-                NodeTypeId = nodeTypeId,
-                ParentNodeId = parentNodeId,
-                Name = name,
-                Path = path,
-                LastMinorVersionId = versionId,
-                LastMajorVersionId = versionId,
+                NodeId = nData.NodeId,
+                NodeTypeId = nData.NodeTypeId,
+                ParentNodeId = nData.ParentNodeId,
+                Name = nData.Name,
+                Path = nData.Path,
+                LastMinorVersionId = nData.LastMinorVersionId,
+                LastMajorVersionId = nData.LastMajorVersionId,
 
-                ContentListTypeId = 0,
-                ContentListId = 0,
-                CreatingInProgress = false,
-                IsDeleted = false,
-                Index = 0,
-                Locked = false,
-                LockedById = 0,
-                ETag = null,
-                LockType = 0,
-                LockTimeout = 0,
-                LockDate = new DateTime(1900, 1, 1),
-                LockToken = string.Empty,
-                LastLockUpdate = new DateTime(1900, 1, 1),
-                CreationDate = DateTime.UtcNow,
-                CreatedById = 1,
-                ModificationDate = DateTime.UtcNow,
-                ModifiedById = 1,
-                DisplayName = null,
-                IsSystem = false,
-                OwnerId = 1,
-                SavingState = ContentSavingState.Finalized,
+                ContentListTypeId = nData.ContentListTypeId,
+                ContentListId = nData.ContentListId,
+                CreatingInProgress = nData.CreatingInProgress,
+                IsDeleted = nData.IsDeleted,
+                Index = nData.Index,
+                Locked = nData.Locked,
+                LockedById = nData.LockedById,
+                ETag = nData.ETag,
+                LockType = nData.LockType,
+                LockTimeout = nData.LockTimeout,
+                LockDate = nData.LockDate == default(DateTime)  ? new DateTime(1900, 1, 1): nData.LockDate,
+                LockToken = nData.LockToken ?? string.Empty,
+                LastLockUpdate = nData.LastLockUpdate == default(DateTime) ? new DateTime(1900, 1, 1) : nData.LastLockUpdate,
+                CreationDate = nData.CreationDate == default(DateTime) ? DateTime.UtcNow : nData.CreationDate,
+                CreatedById = nData.CreatedById == 0 ? 1 : nData.CreatedById,
+                ModificationDate = nData.ModificationDate == default(DateTime) ? DateTime.UtcNow : nData.ModificationDate,
+                ModifiedById = nData.ModifiedById == 0 ? 1 : nData.ModifiedById,
+                DisplayName = nData.DisplayName,
+                IsSystem = nData.IsSystem,
+                OwnerId = nData.OwnerId,
+                SavingState = nData.SavingState
             });
-            DB.Versions.Add(versionId, new VersionDoc
+
+            DB.Versions.Add(vData.VersionId, new VersionDoc
             {
-                VersionId = versionId,
-                NodeId = nodeId,
-                Version = new VersionNumber(1, 0, VersionStatus.Approved),
-                CreationDate = DateTime.UtcNow,
-                CreatedById = 1,
-                ModificationDate = DateTime.UtcNow,
-                ModifiedById = 1,
+                VersionId = vData.VersionId,
+                NodeId = vData.NodeId,
+                Version = vData.Version,
+                CreationDate = vData.CreationDate == default(DateTime) ? DateTime.UtcNow : vData.CreationDate,
+                CreatedById = vData.CreatedById == 0 ? 1 : vData.CreatedById,
+                ModificationDate = vData.ModificationDate == default(DateTime) ? DateTime.UtcNow : vData.ModificationDate,
+                ModifiedById = vData.ModifiedById == 0 ? 1 : vData.ModifiedById,
                 IndexDocument = null,
-                ChangedData = null,
-                DynamicProperties = new Dictionary<string, object>()
+                ChangedData = vData.ChangedData,
+                DynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value) ?? new Dictionary<string, object>()
             });
+
+            if (dData != null)
+            {
+                if (dData.BinaryProperties != null)
+                {
+                    foreach (var binPropItem in dData.BinaryProperties)
+                    {
+                        var propertyType = binPropItem.Key;
+                        var binProp = binPropItem.Value;
+
+                        DB.BinaryProperties.Add(binProp.Id, new BinaryPropertyDoc
+                        {
+                            BinaryPropertyId = binProp.Id,
+                            FileId = binProp.FileId,
+                            VersionId = dData.VersionId,
+                            PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
+                        });
+
+                        var blobProviderName = binProp.BlobProviderName;
+                        if (blobProviderName == null && binProp.BlobProviderData != null
+                                                     && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                            blobProviderName = typeof(FileSystemReaderBlobProvider).FullName;
+
+                        DB.Files.Add(binProp.FileId, new FileDoc
+                        {
+                            FileId = binProp.FileId,
+                            FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
+                            Extension = binProp.FileName.Extension,
+                            ContentType = binProp.ContentType,
+                            Size = binProp.Size,
+                            Timestamp = binProp.Timestamp,
+                            BlobProvider = blobProviderName,
+                            BlobProviderData = binProp.BlobProviderData,
+                        });
+                    }
+                }
+            }
         }
 
         /* ====================================================================== Tools */
 
+        private void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
+        {
+            if (value == null || value.IsEmpty)
+                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
+            else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+            else
+                BlobStorage.UpdateBinaryProperty(value);
+        }
+
+        private NodeDoc CreateNodeDoc(NodeHeadData nodeHeadData)
+        {
+            return new NodeDoc
+            {
+                NodeId = nodeHeadData.NodeId,
+                NodeTypeId = nodeHeadData.NodeTypeId,
+                ContentListTypeId = nodeHeadData.ContentListTypeId,
+                ContentListId = nodeHeadData.ContentListId,
+                CreatingInProgress = nodeHeadData.CreatingInProgress,
+                IsDeleted = nodeHeadData.IsDeleted,
+                //IsInherited = nodeHeadData.???,
+                ParentNodeId = nodeHeadData.ParentNodeId,
+                Name = nodeHeadData.Name,
+                Path = nodeHeadData.Path,
+                Index = nodeHeadData.Index,
+                Locked = nodeHeadData.Locked,
+                LockedById = nodeHeadData.LockedById,
+                ETag = nodeHeadData.ETag,
+                LockType = nodeHeadData.LockType,
+                LockTimeout = nodeHeadData.LockTimeout,
+                LockDate = nodeHeadData.LockDate,
+                LockToken = nodeHeadData.LockToken,
+                LastLockUpdate = nodeHeadData.LastLockUpdate,
+                //LastMinorVersionId will be set later.
+                //LastMajorVersionId will be set later.
+                CreationDate = nodeHeadData.CreationDate,
+                CreatedById = nodeHeadData.CreatedById,
+                ModificationDate = nodeHeadData.ModificationDate,
+                ModifiedById = nodeHeadData.ModifiedById,
+                DisplayName = nodeHeadData.DisplayName,
+                IsSystem = nodeHeadData.IsSystem,
+                OwnerId = nodeHeadData.OwnerId,
+                SavingState = nodeHeadData.SavingState,
+                // Timestamp handled by the new instance itself.
+            };
+        }
+        private VersionDoc CreateVersionDoc(VersionData versionData, DynamicPropertyData dynamicData)
+        {
+            // Clone property values
+            var dynamicProperties = new Dictionary<string, object>();
+            foreach (var item in dynamicData.DynamicProperties)
+            {
+                var propertyType = item.Key;
+                switch (propertyType.DataType)
+                {
+                    case DataType.String:
+                    case DataType.Text:
+                    case DataType.Int:
+                    case DataType.Currency:
+                    case DataType.DateTime:
+                        dynamicProperties.Add(propertyType.Name, GetClone(item.Value, propertyType.DataType));
+                        break;
+                    case DataType.Reference:
+                        // Do not store empty references.
+                        if (EmptyReferencesFilter(propertyType, item.Value))
+                            dynamicProperties.Add(propertyType.Name, GetClone(item.Value, propertyType.DataType));
+                        break;
+                    case DataType.Binary:
+                        // Do nothing. These properties are managed by the caller
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            return new VersionDoc
+            {
+                VersionId = versionData.VersionId,
+                NodeId = versionData.NodeId,
+                Version = versionData.Version.Clone(),
+                CreationDate = versionData.CreationDate,
+                CreatedById = versionData.CreatedById,
+                ModificationDate = versionData.ModificationDate,
+                ModifiedById = versionData.ModifiedById,
+                ChangedData = null, //UNDONE:------- Set clone of original or delete this property
+                DynamicProperties = dynamicProperties,
+                // IndexDocument will be set later.
+                // Timestamp handled by the new instance itself.
+            };
+        }
+        private void UpdateVersionDoc(VersionDoc versionDoc, VersionData versionData, DynamicPropertyData dynamicData)
+        {
+            versionDoc.NodeId = versionData.NodeId;
+            versionDoc.Version = versionData.Version.Clone();
+            versionDoc.CreationDate = versionData.CreationDate;
+            versionDoc.CreatedById = versionData.CreatedById;
+            versionDoc.ModificationDate = versionData.ModificationDate;
+            versionDoc.ModifiedById = versionData.ModifiedById;
+            versionDoc.ChangedData = null; //UNDONE:------- Set clone of original or delete this property
+
+            var dynamicProperties = versionDoc.DynamicProperties;
+            foreach (var item in dynamicData.DynamicProperties)
+            {
+                var propertyType = item.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Binary)
+                    // Handled by higher level
+                    continue;
+                var clone = GetClone(item.Value, dataType);
+                if (dataType == DataType.Reference)
+                {
+                    // Remove empty references
+                    if (!((IEnumerable<int>)clone).Any())
+                    {
+                        dynamicProperties.Remove(propertyType.Name);
+                        continue;
+                    }
+                }
+                dynamicProperties[propertyType.Name] = clone;
+            }
+        }
+        // ReSharper disable once UnusedMethodReturnValue.Local
+        private STT.Task DeleteVersionsAsync(IEnumerable<int> versionIdsToDelete)
+        {
+            foreach (var versionId in versionIdsToDelete)
+            {
+                foreach (var binPropId in DB.BinaryProperties.Values
+                    .Where(x => x.VersionId == versionId)
+                    .Select(x => x.BinaryPropertyId)
+                    .ToArray())
+                {
+                    DB.BinaryProperties.Remove(binPropId);
+                }
+                DB.Versions.Remove(versionId);
+            }
+            return STT.Task.CompletedTask;
+        }
+        private bool EmptyReferencesFilter(PropertyType propertyType, object value)
+        {
+            if (propertyType.DataType != DataType.Reference)
+                return true;
+            if (value == null)
+                return false;
+            return ((IEnumerable<int>)value).Any();
+        }
+
+        private VersionDoc CloneVersionDoc(VersionDoc source)
+        {
+            return new VersionDoc
+            {
+                VersionId = source.VersionId,
+                NodeId = source.NodeId,
+                Version = source.Version.Clone(),
+                CreationDate = source.CreationDate,
+                CreatedById = source.CreatedById,
+                ModificationDate = source.ModificationDate,
+                ModifiedById = source.ModifiedById,
+                ChangedData = source.ChangedData,
+                DynamicProperties = CloneDynamicProperties(source.DynamicProperties),
+                IndexDocument = source.IndexDocument
+                // Timestamp handled by the new instance itself.
+            };
+        }
         private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> source)
         {
             return source.ToDictionary(x => x.Key, x => GetClone(x.Value, PropertyType.GetByName(x.Key).DataType));

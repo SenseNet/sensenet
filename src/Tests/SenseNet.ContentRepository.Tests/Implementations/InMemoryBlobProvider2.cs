@@ -69,10 +69,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // metadata operation
             var db = DataProvider.DB;
             if (!isNewNode)
-                foreach (var key in db.BinaryProperties
-                                      .Where(x=>x.Value.VersionId == versionId && x.Value.PropertyTypeId == propertyTypeId)
-                                      .Select(x=>x.Key))
-                    db.BinaryProperties.Remove(key);
+                DeleteBinaryProperty(versionId, propertyTypeId);
 
             var fileId = db.GetNextFileId();
             db.Files.Add(fileId, new FileDoc
@@ -101,7 +98,20 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
-            throw new NotImplementedException();
+            var db = DataProvider.DB;
+            if (!isNewNode)
+                DeleteBinaryProperty(versionId, propertyTypeId);
+
+            var binaryPropertyId = db.GetNextBinaryPropertyId();
+            db.BinaryProperties.Add(binaryPropertyId, new BinaryPropertyDoc
+            {
+                BinaryPropertyId = binaryPropertyId,
+                FileId = value.FileId,
+                PropertyTypeId = propertyTypeId,
+                VersionId = versionId
+            });
+
+            value.Id = binaryPropertyId;
         }
 
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
@@ -164,9 +174,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
-            throw new NotImplementedException();
-            //_dataProvider.DB.BinaryProperties
-            //    .RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            var db = DataProvider.DB;
+            foreach (var key in db.BinaryProperties
+                                  .Where(x => x.Value.VersionId == versionId && x.Value.PropertyTypeId == propertyTypeId)
+                                  .Select(x => x.Key).ToArray())
+                db.BinaryProperties.Remove(key);
         }
 
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)

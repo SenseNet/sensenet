@@ -500,6 +500,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 _timestamp = _timestamp,
             };
         }
+        // ReSharper disable once UnusedParameter.Local
         private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> dynamicProperties)
         {
             throw new NotImplementedException();
