@@ -7,6 +7,7 @@ using System.Linq;
 using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -459,57 +460,110 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return existing.Timestamp;
         }
 
-        public override void InstallDataPackage(DataPackage data)
+        public override void InstallInitialData(InitialData data)
         {
-        }
-        //private void InstallNode(int nodeId, int versionId, int nodeTypeId, int parentNodeId, string name, string path)
-        //{
-        //    DB.Nodes.Add(nodeId, new NodeDoc
-        //    {
-        //        NodeId = nodeId,
-        //        NodeTypeId = nodeTypeId,
-        //        ParentNodeId = parentNodeId,
-        //        Name = name,
-        //        Path = path,
-        //        LastMinorVersionId = versionId,
-        //        LastMajorVersionId = versionId,
+            DB.Schema = data.Schema;
+            ContentTypeManager.Reset();
 
-        //        ContentListTypeId = 0,
-        //        ContentListId = 0,
-        //        CreatingInProgress = false,
-        //        IsDeleted = false,
-        //        Index = 0,
-        //        Locked = false,
-        //        LockedById = 0,
-        //        ETag = null,
-        //        LockType = 0,
-        //        LockTimeout = 0,
-        //        LockDate = new DateTime(1900, 1, 1),
-        //        LockToken = string.Empty,
-        //        LastLockUpdate = new DateTime(1900, 1, 1),
-        //        CreationDate = DateTime.UtcNow,
-        //        CreatedById = 1,
-        //        ModificationDate = DateTime.UtcNow,
-        //        ModifiedById = 1,
-        //        DisplayName = null,
-        //        IsSystem = false,
-        //        OwnerId = 1,
-        //        SavingState = ContentSavingState.Finalized,
-        //    });
-        //    DB.Versions.Add(versionId, new VersionDoc
-        //    {
-        //        VersionId = versionId,
-        //        NodeId = nodeId,
-        //        Version = new VersionNumber(1, 0, VersionStatus.Approved),
-        //        CreationDate = DateTime.UtcNow,
-        //        CreatedById = 1,
-        //        ModificationDate = DateTime.UtcNow,
-        //        ModifiedById = 1,
-        //        IndexDocument = null,
-        //        ChangedData = null,
-        //        DynamicProperties = new Dictionary<string, object>()
-        //    });
-        //}
+            foreach (var node in data.Nodes)
+            {
+                var versionId = node.LastMajorVersionId;
+                if (versionId != node.LastMinorVersionId)
+                    throw new NotSupportedException("Cannot install a node with more than one versions.");
+                var version = data.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if(version == null)
+                    throw new NotSupportedException("Cannot install a node without a versions.");
+                var props = data.DynamicProperties.FirstOrDefault(x => x.VersionId == versionId);
+                InstallNode(node, version, props);
+            }
+            ContentTypeManager.Reset();
+        }
+        private void InstallNode(NodeHeadData nData, VersionData vData, DynamicPropertyData dData)
+        {
+            DB.Nodes.Add(nData.NodeId, new NodeDoc
+            {
+                NodeId = nData.NodeId,
+                NodeTypeId = nData.NodeTypeId,
+                ParentNodeId = nData.ParentNodeId,
+                Name = nData.Name,
+                Path = nData.Path,
+                LastMinorVersionId = nData.LastMinorVersionId,
+                LastMajorVersionId = nData.LastMajorVersionId,
+
+                ContentListTypeId = nData.ContentListTypeId,
+                ContentListId = nData.ContentListId,
+                CreatingInProgress = nData.CreatingInProgress,
+                IsDeleted = nData.IsDeleted,
+                Index = nData.Index,
+                Locked = nData.Locked,
+                LockedById = nData.LockedById,
+                ETag = nData.ETag,
+                LockType = nData.LockType,
+                LockTimeout = nData.LockTimeout,
+                LockDate = nData.LockDate == default(DateTime)  ? new DateTime(1900, 1, 1): nData.LockDate,
+                LockToken = nData.LockToken ?? string.Empty,
+                LastLockUpdate = nData.LastLockUpdate == default(DateTime) ? new DateTime(1900, 1, 1) : nData.LastLockUpdate,
+                CreationDate = nData.CreationDate == default(DateTime) ? DateTime.UtcNow : nData.CreationDate,
+                CreatedById = nData.CreatedById == 0 ? 1 : nData.CreatedById,
+                ModificationDate = nData.ModificationDate == default(DateTime) ? DateTime.UtcNow : nData.ModificationDate,
+                ModifiedById = nData.ModifiedById == 0 ? 1 : nData.ModifiedById,
+                DisplayName = nData.DisplayName,
+                IsSystem = nData.IsSystem,
+                OwnerId = nData.OwnerId,
+                SavingState = nData.SavingState
+            });
+
+            DB.Versions.Add(vData.VersionId, new VersionDoc
+            {
+                VersionId = vData.VersionId,
+                NodeId = vData.NodeId,
+                Version = vData.Version,
+                CreationDate = vData.CreationDate == default(DateTime) ? DateTime.UtcNow : vData.CreationDate,
+                CreatedById = vData.CreatedById == 0 ? 1 : vData.CreatedById,
+                ModificationDate = vData.ModificationDate == default(DateTime) ? DateTime.UtcNow : vData.ModificationDate,
+                ModifiedById = vData.ModifiedById == 0 ? 1 : vData.ModifiedById,
+                IndexDocument = null,
+                ChangedData = vData.ChangedData,
+                DynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value) ?? new Dictionary<string, object>()
+            });
+
+            if (dData != null)
+            {
+                if (dData.BinaryProperties != null)
+                {
+                    foreach (var binPropItem in dData.BinaryProperties)
+                    {
+                        var propertyType = binPropItem.Key;
+                        var binProp = binPropItem.Value;
+
+                        DB.BinaryProperties.Add(binProp.Id, new BinaryPropertyDoc
+                        {
+                            BinaryPropertyId = binProp.Id,
+                            FileId = binProp.FileId,
+                            VersionId = dData.VersionId,
+                            PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
+                        });
+
+                        var blobProviderName = binProp.BlobProviderName;
+                        if (blobProviderName == null && binProp.BlobProviderData != null
+                                                     && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                            blobProviderName = typeof(FileSystemReaderBlobProvider).FullName;
+
+                        DB.Files.Add(binProp.FileId, new FileDoc
+                        {
+                            FileId = binProp.FileId,
+                            FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
+                            Extension = binProp.FileName.Extension,
+                            ContentType = binProp.ContentType,
+                            Size = binProp.Size,
+                            Timestamp = binProp.Timestamp,
+                            BlobProvider = blobProviderName,
+                            BlobProviderData = binProp.BlobProviderData,
+                        });
+                    }
+                }
+            }
+        }
 
         /* ====================================================================== Tools */
 

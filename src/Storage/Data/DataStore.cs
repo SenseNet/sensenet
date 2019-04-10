@@ -54,9 +54,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ============================================================================================================= Installation */
 
-        public static void InstallDataPackage(DataPackage data)
+        public static void InstallDataPackage(InitialData data)
         {
-            DataProvider.InstallDataPackage(data);
+            DataProvider.InstallInitialData(data);
         }
 
         /* ============================================================================================================= Nodes */
