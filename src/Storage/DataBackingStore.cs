@@ -109,7 +109,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 IEnumerable<NodeHead> heads;
                 if (DataStore.Enabled)
-                    throw new NotImplementedException();
+                    heads = DataStore.LoadNodeHeadsAsync(unloadHeads).Result;
                 else
                     heads = DataProvider.Current.LoadNodeHeads(unloadHeads);
 

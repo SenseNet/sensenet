@@ -320,7 +320,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
         {
-            throw new NotImplementedException();
+            var headIds = heads.ToArray();
+            IEnumerable<NodeHead> result = DB.Nodes
+                .Where(x => headIds.Contains(x.Key))
+                .Select(x => NodeDocToNodeHead(x.Value))
+                .ToArray();
+            return STT.Task.FromResult(result);
         }
 
         public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId)

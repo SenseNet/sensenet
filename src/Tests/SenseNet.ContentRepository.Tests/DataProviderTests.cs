@@ -618,6 +618,21 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_LoadChildren()
+        {
+            DPTest(() =>
+            {
+                DistributedApplication.Cache.Reset();
+                var loadedA = Repository.Root.Children.Select(x=>x.Id.ToString()).ToArray();
+                DataStore.Enabled = true;
+                DistributedApplication.Cache.Reset();
+                var loadedB = Repository.Root.Children.Select(x => x.Id.ToString()).ToArray();
+
+                Assert.AreEqual(string.Join(",", loadedA), string.Join(",", loadedB));
+            });
+        }
+
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
 
