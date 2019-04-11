@@ -156,8 +156,6 @@ namespace SenseNet.Tests.Implementations
                 });
         }
 
-        #region NOT IMPLEMENTED
-
         public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
@@ -173,8 +171,6 @@ namespace SenseNet.Tests.Implementations
             }
             return result.ToArray();
         }
-
-        #endregion
 
         public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
@@ -406,6 +402,7 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         public static readonly string MagicCommandText = "Select something from anywhere";
         public override IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
@@ -451,6 +448,7 @@ namespace SenseNet.Tests.Implementations
             return new InMemorySchemaWriter(_db.Schema);
         }
 
+        #region NOT IMPLEMENTED
         protected internal override DataOperationResult DeleteNodeTree(int nodeId)
         {
             throw new NotImplementedException();
@@ -745,8 +743,6 @@ namespace SenseNet.Tests.Implementations
             };
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override IEnumerable<NodeType> LoadChildTypesToAllow(int sourceNodeId)
         {
             var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
@@ -781,7 +777,6 @@ namespace SenseNet.Tests.Implementations
 
             return typesToAllow.Distinct().Select(ntid => NodeTypeManager.Current.NodeTypes.Single(nt => nt.Id == ntid)).ToArray();
         }
-        #endregion
 
         protected internal override IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
@@ -993,8 +988,6 @@ namespace SenseNet.Tests.Implementations
                 .ToDictionary(t => t.PropertyTypeId, t => t.Value);
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0)
         {
             var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
@@ -1022,7 +1015,6 @@ namespace SenseNet.Tests.Implementations
 
             return DataOperationResult.Successful;
         }
-        #endregion 
 
         protected override int NodeCount(string path)
         {
@@ -1040,13 +1032,12 @@ namespace SenseNet.Tests.Implementations
             return DB.Nodes.Any(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
         {
             return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
         }
 
+        #region NOT IMPLEMENTED
         protected internal override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds)
         {
             throw new NotImplementedException();
