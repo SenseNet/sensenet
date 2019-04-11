@@ -3580,8 +3580,13 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             // prevent concurrency problems
                             using (var treeLock = TreeLock.Acquire(this.Path))
+                            {
                                 // main work
-                                DataProvider.Current.DeleteNodePsychical(this.Id, this.NodeTimestamp);
+                                if (DataStore.Enabled)
+                                    DataStore.DeleteNodeAsync(Id, NodeTimestamp).Wait();
+                                else
+                                    DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp);
+                            }
                             // successful
                             break;
                         }
@@ -3755,7 +3760,12 @@ namespace SenseNet.ContentRepository.Storage
                 try
                 {
                     using (var treeLock = TreeLock.Acquire(nodeRef.Path))
-                        DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp);
+                    {
+                        if(DataStore.Enabled)
+                            DataStore.DeleteNodeAsync(nodeRef.Id, nodeRef.NodeTimestamp).Wait();
+                        else
+                            DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp);
+                    }
                 }
                 catch (Exception e) // rethrow
                 {

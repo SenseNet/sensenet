@@ -243,7 +243,38 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override STT.Task DeleteNodeAsync(int nodeId, long timestamp)
         {
-            throw new NotImplementedException();
+            if (!DB.Nodes.TryGetValue(nodeId, out var nodeDoc))
+                return STT.Task.CompletedTask;
+
+            if (nodeDoc.Timestamp != timestamp)
+                throw new NodeIsOutOfDateException($"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
+                                                   $"Path:\"{nodeDoc.Path}\"");
+
+            var path = nodeDoc.Path;
+            var nodeIds = DB.Nodes.Values
+                .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                .Select(n => n.NodeId)
+                .ToArray();
+            var versionIds = DB.Versions.Values
+                .Where(v => nodeIds.Contains(v.NodeId))
+                .Select(v => v.VersionId)
+                .ToArray();
+            var binPropAndfileIds = DB.BinaryProperties.Values
+                .Where(b => versionIds.Contains(b.VersionId))
+                .Select(b => new {b.BinaryPropertyId, b.FileId})
+                .ToArray();
+
+            foreach (var item in binPropAndfileIds)
+            {
+                DB.BinaryProperties.Remove(item.BinaryPropertyId);
+                DB.Files.Remove(item.FileId);
+            }
+            foreach (var versionId in versionIds)
+                DB.Versions.Remove(versionId);
+            foreach (var nId in nodeIds)
+                DB.Nodes.Remove(nId);
+
+            return STT.Task.CompletedTask;
         }
 
         public override STT.Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
@@ -327,10 +358,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override Task<NodeHead> LoadNodeHeadAsync(int nodeId)
         {
-            if (!DB.Nodes.TryGetValue(nodeId, out var nodeDoc))
-                return null;
-
-            return STT.Task.FromResult(NodeDocToNodeHead(nodeDoc));
+            NodeHead result = null;
+            if (DB.Nodes.TryGetValue(nodeId, out var nodeDoc))
+                result = NodeDocToNodeHead(nodeDoc);
+            return STT.Task.FromResult(result);
         }
 
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)

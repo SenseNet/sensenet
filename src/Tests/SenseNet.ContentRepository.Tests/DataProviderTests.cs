@@ -669,6 +669,49 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_ForceDelete()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                var db = GetDb();
+                var nodeCount = db.Nodes.Count;
+                var versionCount = db.Versions.Count;
+                var binPropCount = db.BinaryProperties.Count;
+                var fileCount = db.Files.Count;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                root.Save();
+                var f1 = new SystemFolder(root) {Name = "F1"};
+                f1.Save();
+                var f2 = new File(root) { Name = "F2" };
+                f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f2.Save();
+                var f3 = new SystemFolder(f1) {Name = "F3"};
+                f3.Save();
+                var f4 = new File(root) { Name = "F4" };
+                f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f4.Save();
+
+                // ACTION
+                Node.ForceDelete(root.Path);
+
+                // ASSERT
+                Assert.IsNull(Node.Load<SystemFolder>(root.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f1.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f2.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
+                Assert.IsNull(Node.Load<SystemFolder>(f4.Id));
+                Assert.AreEqual(nodeCount, db.Nodes.Count);
+                Assert.AreEqual(versionCount, db.Versions.Count);
+                Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
+                Assert.AreEqual(fileCount, db.Files.Count);
+            });
+        }
+
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
 
