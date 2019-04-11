@@ -633,6 +633,42 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_Move()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+                // ACTION
+                Node.Move(source.Path, target.Path);
+
+                // ASSERT
+                target = Node.Load<SystemFolder>(target.Id);
+                source = Node.Load<SystemFolder>(source.Id);
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual("/Root/TestRoot", root.Path);
+                Assert.AreEqual("/Root/TestRoot/Target", target.Path);
+                Assert.AreEqual("/Root/TestRoot/Target/Source", source.Path);
+                Assert.AreEqual("/Root/TestRoot/Target/Source/F1", f1.Path);
+                Assert.AreEqual("/Root/TestRoot/Target/Source/F2", f2.Path);
+                Assert.AreEqual("/Root/TestRoot/Target/Source/F1/F3", f3.Path);
+                Assert.AreEqual("/Root/TestRoot/Target/Source/F1/F4", f4.Path);
+            });
+        }
+
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
 

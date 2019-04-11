@@ -173,7 +173,7 @@ namespace SenseNet.ContentRepository.Storage
 
             // If it wasn't in the cache, check the database
             if (DataStore.Enabled)
-                throw new NotImplementedException();
+                return DataStore.NodeExistsAsync(path).Result;
             else
                 return DataProvider.NodeExists(path);
         }

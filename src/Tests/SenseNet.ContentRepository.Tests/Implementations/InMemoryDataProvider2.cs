@@ -246,10 +246,32 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override STT.Task MoveNodeAsync(int sourceNodeId, int targetNodeId,
-            long sourceTimestamp, long targetTimestamp)
+        public override STT.Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
         {
-            throw new NotImplementedException();
+            if (!DB.Nodes.TryGetValue(sourceNodeId, out var sourceNode))
+                throw new DataException("Cannot move node, it does not exist.");
+
+            if (!DB.Nodes.TryGetValue(targetNodeId, out var targetNode))
+                throw new DataException("Cannot move node, target does not exist.");
+
+            if(sourceTimestamp != sourceNode.Timestamp)
+                throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
+                                                   $"Path:{sourceNode.Path}, TargetPath: {targetNode.Path}");
+
+            sourceNode.ParentNodeId = targetNodeId;
+
+            var path = sourceNode.Path;
+            var nodes = DB.Nodes.Values
+                .Where(n => n.NodeId == sourceNode.NodeId ||
+                            n.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            var sourceParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
+
+            foreach (var node in nodes)
+                node.Path = node.Path.Replace(sourceParentPath, targetNode.Path);
+
+            return STT.Task.CompletedTask;
         }
 
         public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
@@ -287,6 +309,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobProviderData = fileDoc.BlobProviderData,
                 Timestamp = fileDoc.Timestamp
             };
+            return STT.Task.FromResult(result);
+        }
+
+        public override Task<bool> NodeExistsAsync(string path)
+        {
+            var result = DB.Nodes.Any(x=>x.Value.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
             return STT.Task.FromResult(result);
         }
 

@@ -216,6 +216,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
         }
 
+        public static async Task<bool> NodeExistsAsync(string path)
+        {
+            return await DataProvider.NodeExistsAsync(path);
+        }
+
         /* ============================================================================================================= NodeHead */
 
         public static async Task<NodeHead> LoadNodeHeadAsync(string path)
@@ -351,5 +356,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             });
         }
 
+        public static IEnumerable<NodeType> LoadChildTypesToAllow(int id)
+        {
+            //UNDONE:DB! LoadChildTypesToAllow is not implemented well. Allows all types.
+            return ActiveSchema.NodeTypes.ToArray();
+        }
     }
 }

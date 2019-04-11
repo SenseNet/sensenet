@@ -2934,7 +2934,10 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
-            return DataProvider.Current.LoadChildTypesToAllow(this.Id);
+            if(DataStore.Enabled)
+                return DataStore.LoadChildTypesToAllow(this.Id);
+            else
+                return DataProvider.Current.LoadChildTypesToAllow(this.Id);
         }
 
         /// <summary>
@@ -3011,7 +3014,10 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp);
+                        if (DataStore.Enabled)
+                            DataStore.MoveNodeAsync(this.Id, target.Id, sourceTimestamp, targetTimestamp).Wait();
+                        else
+                            DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp);
                     }
                     catch (DataOperationException e) // rethrow
                     {
