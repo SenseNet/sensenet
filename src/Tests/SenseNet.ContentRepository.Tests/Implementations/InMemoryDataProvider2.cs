@@ -672,25 +672,25 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionDoc.ModifiedById = versionData.ModifiedById;
             versionDoc.ChangedData = null; //UNDONE:------- Set clone of original or delete this property
 
-            var dynamicProperties = versionDoc.DynamicProperties;
-            foreach (var item in dynamicData.DynamicProperties)
+            var target = versionDoc.DynamicProperties;
+            foreach (var sourceItem in dynamicData.DynamicProperties)
             {
-                var propertyType = item.Key;
+                var propertyType = sourceItem.Key;
                 var dataType = propertyType.DataType;
                 if (dataType == DataType.Binary)
                     // Handled by higher level
                     continue;
-                var clone = GetClone(item.Value, dataType);
+                var clone = GetClone(sourceItem.Value, dataType);
                 if (dataType == DataType.Reference)
                 {
                     // Remove empty references
                     if (!((IEnumerable<int>)clone).Any())
                     {
-                        dynamicProperties.Remove(propertyType.Name);
+                        target.Remove(propertyType.Name);
                         continue;
                     }
                 }
-                dynamicProperties[propertyType.Name] = clone;
+                target[propertyType.Name] = clone;
             }
         }
         // ReSharper disable once UnusedMethodReturnValue.Local
