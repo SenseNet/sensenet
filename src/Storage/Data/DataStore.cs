@@ -244,6 +244,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.GetNodeVersions(nodeId);
         }
 
+        /* ============================================================================================================= Tree */
+
+        public static async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
+        {
+            return await DataProvider.LoadChildTypesToAllowAsync(nodeId);
+        }
+
         /* ============================================================================================================= IndexDocument */
 
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
@@ -299,11 +306,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.RoundDateTime(d);
         }
+        public static bool IsCacheableText(string value)
+        {
+            return DataProvider.IsCacheableText(value);
+        }
 
         /* ============================================================================================================= */
 
         private static readonly string NodeDataPrefix = "NodeData.";
-        private static string GenerateNodeDataVersionIdCacheKey(int versionId)
+        internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
         {
             return string.Concat(NodeDataPrefix, versionId);
         }
@@ -354,12 +365,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 IsDp2 = Enabled,
                 Snapshot = snapshot
             });
-        }
-
-        public static IEnumerable<NodeType> LoadChildTypesToAllow(int id)
-        {
-            //UNDONE:DB! LoadChildTypesToAllow is not implemented well. Allows all types.
-            return ActiveSchema.NodeTypes.ToArray();
         }
     }
 }

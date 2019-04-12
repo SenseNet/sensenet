@@ -833,7 +833,10 @@ namespace SenseNet.ContentRepository.Storage
                         if (propType.DataType == DataType.Text)
                         {
                             var item = dynamicData[propTypeId] as string;
-                            if (!SenseNet.ContentRepository.Storage.Data.DataProvider.Current.IsCacheableText(item))
+                            var isCacheable = DataStore.Enabled 
+                                ? DataStore.IsCacheableText(item)
+                                : DataProvider.Current.IsCacheableText(item);
+                            if (!isCacheable)
                                 dynamicData.Remove(propTypeId);
                         }
                     }

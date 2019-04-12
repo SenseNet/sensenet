@@ -19,6 +19,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
+        internal const int TextAlternationSizeLimit = 4000;
+
         // ReSharper disable once InconsistentNaming
         internal InMemoryDataBase2 DB = new InMemoryDataBase2();
 
@@ -305,11 +307,19 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
-            int[] notLoadedPropertyTypeIds)
+        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
         {
-            //UNDONE:DB!! dynamic properties: theoretically not called but need to test
             var result = new Dictionary<int, string>();
+
+            if(!DB.Versions.TryGetValue(versionId, out var versionDoc))
+                return STT.Task.FromResult(result);
+
+            var collection = versionDoc.DynamicProperties;
+            result = collection.Keys
+                .Select(PropertyType.GetByName)
+                .Where(x => notLoadedPropertyTypeIds.Contains(x.Id))
+                .ToDictionary(x => x.Id, x => (string) collection[x.Name]);
+
             return STT.Task.FromResult(result);
         }
 
@@ -353,7 +363,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override Task<NodeHead> LoadNodeHeadAsync(string path)
         {
-            throw new NotImplementedException();
+            NodeHead result = null;
+            var nodeDoc = DB.Nodes.Values.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+            if(nodeDoc != null)
+                result = NodeDocToNodeHead(nodeDoc);
+            return STT.Task.FromResult(result);
         }
 
         public override Task<NodeHead> LoadNodeHeadAsync(int nodeId)
@@ -421,6 +435,28 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 nodeDoc.Timestamp);
         }
 
+        /* ============================================================================================================= Tree */
+
+        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
+        {
+            // /Root
+            // /Root/Site1
+            // /Root/Site1/Folder1
+            // /Root/Site1/Folder1/Folder2
+            // /Root/Site1/Folder1/Folder3
+            // /Root/Site1/Folder1/Folder3/Task1
+            // /Root/Site1/Folder1/DocLib1
+            // /Root/Site1/Folder1/DocLib1/File1
+            // /Root/Site1/Folder1/DocLib1/SystemFolder1
+            // /Root/Site1/Folder1/DocLib1/SystemFolder1/File2
+            // /Root/Site1/Folder1/MemoList
+            // /Root/Site2
+            //
+            // Move /Root/Site1/Folder1 to /Root/Site2
+            // Expected type list: Folder, Task1, DocLib1, MemoList
+            throw new NotImplementedException();
+        }
+
         /* ============================================================================================================= IndexDocument */
 
         public override STT.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
@@ -485,6 +521,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public override DateTime RoundDateTime(DateTime d)
         {
             return new DateTime(d.Ticks / 100000 * 100000);
+        }
+
+        public override bool IsCacheableText(string text)
+        {
+            return text?.Length < TextAlternationSizeLimit;
         }
 
         /* ============================================================================================================= Infrastructure */

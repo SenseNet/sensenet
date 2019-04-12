@@ -65,6 +65,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
 
+        /* ============================================================================================================= Tree */
+
+        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
+
         /* ============================================================================================================= IndexDocument */
 
         public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
@@ -91,6 +95,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* ============================================================================================================= Tools */
 
         public abstract DateTime RoundDateTime(DateTime d);
+        public abstract bool IsCacheableText(string text);
 
         //UNDONE:DB -------Delete GetNodeTimestamp method
         public abstract long GetNodeTimestamp(int nodeId);

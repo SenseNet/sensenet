@@ -81,10 +81,9 @@ namespace SenseNet.ContentRepository.Storage
             {
                 Debug.WriteLine("#GetNodeHead from db: " + path);
 
-                if (DataStore.Enabled)
-                    throw new NotImplementedException();
-                else
-                    item = DataProvider.Current.LoadNodeHead(path);
+                item = DataStore.Enabled
+                    ? DataStore.LoadNodeHeadAsync(path).Result
+                    : DataProvider.Current.LoadNodeHead(path);
 
                 if (item != null)
                     CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);

@@ -2935,7 +2935,7 @@ namespace SenseNet.ContentRepository.Storage
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
             if(DataStore.Enabled)
-                return DataStore.LoadChildTypesToAllow(this.Id);
+                return DataStore.LoadChildTypesToAllowAsync(this.Id).Result;
             else
                 return DataProvider.Current.LoadChildTypesToAllow(this.Id);
         }

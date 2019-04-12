@@ -234,6 +234,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             {
                 var name = head[i];
                 var value = values[i];
+                if (value == "<null>")
+                    value = null;
                 result.SetProperty(name, value);
             }
 

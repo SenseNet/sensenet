@@ -670,6 +670,137 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void DP_RefreshCacheAfterSave()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+
+                // ACTION-1: Create
+                root.Save();
+                var nodeTimestamp1 = root.NodeTimestamp;
+                var versionTimestamp1 = root.VersionTimestamp;
+
+                // ASSERT-1: NodeData is in cache after creation
+                var cacheKey1 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+                var item1 = DistributedApplication.Cache[cacheKey1];
+                Assert.IsNotNull(item1);
+                var cachedNodeData1 = item1 as NodeData;
+                Assert.IsNotNull(cachedNodeData1);
+                Assert.AreEqual(nodeTimestamp1, cachedNodeData1.NodeTimestamp);
+                Assert.AreEqual(versionTimestamp1, cachedNodeData1.VersionTimestamp);
+
+                // ACTION-2: Update
+                root.Save();
+                var nodeTimestamp2 = root.NodeTimestamp;
+                var versionTimestamp2 = root.VersionTimestamp;
+
+                // ASSERT-2: NodeData is refreshed in the cache after update
+                var cacheKey2 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+                if (cacheKey1 != cacheKey2)
+                    Assert.Inconclusive("Cache keys need to eqal to valid test.");
+                var item2 = DistributedApplication.Cache[cacheKey2];
+                Assert.IsNotNull(item2);
+                var cachedNodeData2 = item2 as NodeData;
+                Assert.IsNotNull(cachedNodeData2);
+                Assert.AreEqual(nodeTimestamp2, cachedNodeData2.NodeTimestamp);
+                Assert.AreEqual(versionTimestamp2, cachedNodeData2.VersionTimestamp);
+            });
+        }
+
+        [TestMethod]
+        public void DP_LazyLoadedBigText()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+                var nearlyLongText1 = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
+                var nearlyLongText2 = new string('b', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
+                var longText = new string('c', InMemoryDataProvider2.TextAlternationSizeLimit + 10);
+                var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
+
+                // ACTION-1: Creation with text that shorter than the magic limit
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = nearlyLongText1 };
+                root.Save();
+                var cacheKey = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
+
+                // ASSERT-1: text property is in cache
+                var cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                Assert.IsTrue(cachedNodeData.IsShared);
+                var dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
+                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
+                Assert.AreEqual(nearlyLongText1, (string)dynamicProperties[descriptionPropertyType]);
+
+                // ACTION-2: Update with text that shorter than the magic limit
+                root = Node.Load<SystemFolder>(root.Id);
+                root.Description = nearlyLongText2;
+                root.Save();
+
+                // ASSERT-2: text property is in cache
+                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                Assert.IsTrue(cachedNodeData.IsShared);
+                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
+                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
+                Assert.AreEqual(nearlyLongText2, (string)dynamicProperties[descriptionPropertyType]);
+
+                // ACTION-3: Update with text that longer than the magic limit
+                root = Node.Load<SystemFolder>(root.Id);
+                root.Description = longText;
+                root.Save();
+
+                // ASSERT-3: text property is not in the cache
+                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                Assert.IsTrue(cachedNodeData.IsShared);
+                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
+                Assert.IsFalse(dynamicProperties.ContainsKey(descriptionPropertyType));
+
+                // ACTION-4: Load the text property
+                var loadedValue = root.Description;
+
+                // ASSERT-4: Property is loaded and is in cache
+                Assert.AreEqual(longText, loadedValue);
+                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                Assert.IsTrue(cachedNodeData.IsShared);
+                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
+                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
+            });
+        }
+
+        [TestMethod]
+        public void DP_LoadChildTypesToAllow()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var site1 = new Site(root) { Name = "Site1" }; site1.Save();
+                site1.AllowChildTypes(new[] { "Task" }); site1.Save();
+                site1 = Node.Load<Site>(site1.Id);
+                var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.Save();
+                var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.Save();
+                var folder3 = new Folder(folder1) { Name = "Folder3" }; folder3.Save();
+                var task1 = new Task(folder3) { Name = "Task1" }; task1.Save();
+                var doclib1 = new ContentList(folder3, "DocumentLibrary") { Name = "Doclib1" }; doclib1.Save();
+                var file1 = new File(doclib1) { Name = "File1" }; file1.Save();
+                var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.Save();
+                var file2 = new File(systemFolder1) { Name = "File2" }; file2.Save();
+                var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.Save();
+                var site2 = new Site(root) { Name = "Site2" }; site2.Save();
+
+                // ACTION
+                var types = DataStore.LoadChildTypesToAllowAsync(folder1.Id).Result;
+
+                // ASSERT
+                var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
+                Assert.AreEqual("DocumentLibrary, Folder, MemoList, Task", names);
+            });
+        }
+
+        [TestMethod]
         public void DP_ForceDelete()
         {
             DPTest(() =>
