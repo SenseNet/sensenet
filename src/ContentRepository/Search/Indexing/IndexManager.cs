@@ -99,7 +99,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static void RegisterActivity(IndexingActivityBase activity)
         {
-            DataProvider.Current.RegisterIndexingActivity(activity);
+            if (DataStore.Enabled)
+                DataStore.RegisterIndexingActivity(activity);
+            else
+                DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
         /// <summary>

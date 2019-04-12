@@ -636,9 +636,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetCreationDate(DateTime creation)
         {
-            if (creation < DataProvider.Current.DateTimeMinValue)
+            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > DataProvider.Current.DateTimeMaxValue)
+            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.CreationDate = creation;
@@ -683,9 +683,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.ModificationDate; }
             set
             {
-                if (value < DataProvider.Current.DateTimeMinValue)
+                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > DataProvider.Current.DateTimeMaxValue)
+                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -779,9 +779,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetVersionCreationDate(DateTime creation)
         {
-            if (creation < DataProvider.Current.DateTimeMinValue)
+            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > DataProvider.Current.DateTimeMaxValue)
+            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.VersionCreationDate = creation;
@@ -826,9 +826,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.VersionModificationDate; }
             set
             {
-                if (value < DataProvider.Current.DateTimeMinValue)
+                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > DataProvider.Current.DateTimeMaxValue)
+                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -2401,7 +2401,9 @@ namespace SenseNet.ContentRepository.Storage
                 // Update the modification
                 
                 // update to current
-                DateTime now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                var now = DataStore.Enabled
+                    ? DataStore.RoundDateTime(DateTime.UtcNow)
+                    : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
                 this.ModificationDate = now;
                 this.Data.ModifiedById = currentUserId;
                 this.VersionModificationDate = now;
@@ -2566,7 +2568,9 @@ namespace SenseNet.ContentRepository.Storage
                     if (!isElevatedMode ||
                         ElevatedModificationVisibilityRule.EvaluateRule(this))
                     {
-                        var now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                        var now = DataStore.Enabled
+                            ? DataStore.RoundDateTime(DateTime.UtcNow)
+                            : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
                         if (!_data.VersionModificationDateChanged)
                             this.VersionModificationDate = now;
                         if (!_data.VersionModifiedByIdChanged)
@@ -2784,7 +2788,9 @@ namespace SenseNet.ContentRepository.Storage
                 this.Version = settings.ExpectedVersion;
 
                 MakePrivateData();
-                _data.VersionCreationDate = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                _data.VersionCreationDate = DataStore.Enabled
+                    ? DataStore.RoundDateTime(DateTime.UtcNow)
+                    : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
             }
 
             if (settings.LockerUserId != null)

@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage
 
             foreach (var path in paths)
             {
-                if (DataProvider.Current.IsTreeLocked(path))
+                if (DataStore.Enabled ? DataStore.IsTreeLocked(path) : DataProvider.Current.IsTreeLocked(path))
                 {
                     var msg = "Cannot perform the operation because another process is making changes on this path: " + path;
                     SnTrace.ContentOperation.Write("TreeLock: Checking {0}", String.Join(", ", paths));

@@ -20,7 +20,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// instantiated by the sensenet infrastructure at system startup
         /// based on the configuration.
         /// </summary>
-        public static DataProvider Instance => Providers.Instance.DataProvider;
+        public static DataProvider Instance {
+            get
+            {
+                if (DataStore.Enabled) //UNDONE:DB ------Delete this check
+                    throw new Exception("####### INVALID DataProvider ACCESS #######");
+                return Providers.Instance.DataProvider;
+            }
+        }
 
         /// <summary>
         /// Returns the DataProvider extension instance by it's registered type.

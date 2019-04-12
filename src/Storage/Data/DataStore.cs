@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
@@ -50,7 +52,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
+        public static int PathMaxLength { get; } = 450; //UNDONE:DB ---- DataStore.PathMaxLength
         public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ---- DataStore.DateTimeMinValue
+        public static DateTime DateTimeMaxValue { get; } = DateTime.MaxValue; //UNDONE:DB ---- DataStore.DateTimeMaxValue
+        public static decimal DecimalMinValue { get; } = decimal.MinValue; //UNDONE:DB ---- DataStore.DecimalMinValue
+        public static decimal DecimalMaxValue { get; } = decimal.MinValue; //UNDONE:DB ---- DataStore.DecimalMaxValue
 
         /* ============================================================================================================= Installation */
 
@@ -365,6 +371,35 @@ namespace SenseNet.ContentRepository.Storage.Data
                 IsDp2 = Enabled,
                 Snapshot = snapshot
             });
+        }
+
+
+
+
+        public static void WriteAuditEvent(AuditEventInfo auditEventInfo)
+        {
+            //UNDONE:DB:@IMPLEMENT WriteAuditEvent(AuditEventInfo auditEventInfo)
+        }
+        public static bool IsTreeLocked(string path)
+        {
+            //UNDONE:DB:@IMPLEMENT IsTreeLocked(string path)
+            return false;
+        }
+        public static void RegisterIndexingActivity(IIndexingActivity activity)
+        {
+            //UNDONE:DB:@IMPLEMENT WriteAuditEvent(AuditEventInfo auditEventInfo)
+        }
+
+        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
+        {
+            //UNDONE:DB:@IMPLEMENT QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
+            return Providers.Instance.DataProvider.QueryNodesByTypeAndPath(typeIds, pathStart, orderByPath);
+        }
+
+        public static int InstanceCount(int[] ints)
+        {
+            //UNDONE:DB:@IMPLEMENT QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
+            return Providers.Instance.DataProvider.InstanceCount(ints);
         }
     }
 }

@@ -65,12 +65,12 @@ namespace SenseNet.ContentRepository.Storage
                 internal static Exception Exc_LessThanDateTimeMinValue()
                 {
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be less than ",
-						Data.DataProvider.Current.DateTimeMinValue.ToString(CultureInfo.CurrentCulture)));
+						(Data.DataStore.Enabled ? Data.DataStore.DateTimeMinValue : Data.DataProvider.Current.DateTimeMinValue).ToString(CultureInfo.CurrentCulture)));
 				}
 				internal static Exception Exc_BiggerThanDateTimeMaxValue()
 				{
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be bigger than ",
-						Data.DataProvider.Current.DateTimeMaxValue.ToString(CultureInfo.CurrentCulture)));
+						(Data.DataStore.Enabled ? Data.DataStore.DateTimeMaxValue : Data.DataProvider.Current.DateTimeMaxValue).ToString(CultureInfo.CurrentCulture)));
 				}
 
                 internal static string Error_Preview_BinaryAccess_2 = "$Error_Storage:Preview_BinaryAccess_2";

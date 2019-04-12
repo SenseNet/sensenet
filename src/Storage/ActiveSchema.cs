@@ -21,17 +21,13 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
         /// </summary>
-        public static DateTime DateTimeMinValue
-        {
-            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DateTimeMinValue; }
-        }
+        public static DateTime DateTimeMinValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMinValue : Data.DataProvider.Current.DateTimeMinValue;
+
         /// <summary>
         /// Gets the DataProvider dependent last DateTime value
         /// </summary>
-        public static DateTime DateTimeMaxValue
-        {
-            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DateTimeMaxValue; }
-        }
+        public static DateTime DateTimeMaxValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMaxValue : Data.DataProvider.Current.DateTimeMaxValue;
+
         /// <summary>
         /// Gets the maximum length of the short text datatype
         /// </summary>
@@ -39,17 +35,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent smallest decimal value
         /// </summary>
-        public static decimal DecimalMinValue
-        {
-            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DecimalMinValue; }
-        }
+        public static decimal DecimalMinValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMinValue : Data.DataProvider.Current.DecimalMinValue;
+
         /// <summary>
         /// Gets the DataProvider dependent biggest decimal value
         /// </summary>
-        public static decimal DecimalMaxValue
-        {
-            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DecimalMaxValue; }
-        }
+        public static decimal DecimalMaxValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMaxValue : Data.DataProvider.Current.DecimalMaxValue;
 
 
         /// <summary>
