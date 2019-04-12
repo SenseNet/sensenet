@@ -454,7 +454,30 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             //
             // Move /Root/Site1/Folder1 to /Root/Site2
             // Expected type list: Folder, Task1, DocLib1, MemoList
-            throw new NotImplementedException();
+
+            var permeableList = new[] {"Folder", "Page"}
+                .Select(x => ActiveSchema.NodeTypes[x])
+                .Where(x => x != null)
+                .Select(x => x.Id)
+                .ToList();
+
+            var typeIdList = new List<int>();
+            if (DB.Nodes.TryGetValue(nodeId, out var nodeDoc))
+            {
+                typeIdList.Add(nodeDoc.NodeTypeId);
+                CollectChildTypesToAllow(nodeDoc, permeableList, typeIdList);
+            }
+            var result = typeIdList.Distinct().Select(x => ActiveSchema.NodeTypes.GetItemById(x)).ToArray();
+            return STT.Task.FromResult((IEnumerable<NodeType>)result);
+        }
+        private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
+        {
+            foreach (var child in DB.Nodes.Values.Where(x => x.ParentNodeId == root.NodeId))
+            {
+                typeIdList.Add(child.NodeTypeId);
+                if (permeableList.Contains(child.NodeTypeId))
+                    CollectChildTypesToAllow(child, permeableList, typeIdList);
+            }
         }
 
         /* ============================================================================================================= IndexDocument */
