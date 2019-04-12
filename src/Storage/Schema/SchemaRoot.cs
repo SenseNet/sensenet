@@ -108,6 +108,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
             BuildPropertyTypes(schemaData.PropertyTypes);
             BuildNodeTypes(schemaData.NodeTypes);
             BuildContentListTypes(schemaData.ContentListTypes);
+
+            SchemaTimestamp = schemaData.Timestamp;
         }
 
         private void BuildPropertyTypes(IEnumerable<PropertyTypeData> data)
