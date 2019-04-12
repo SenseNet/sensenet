@@ -592,8 +592,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             DPTest(() =>
             {
-                // Create a small subtree
                 DataStore.Enabled = true;
+
+                // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
                 var f2 = new SystemFolder(root) { Name = "F2" }; f2.Save();
@@ -693,14 +694,17 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(versionTimestamp1, cachedNodeData1.VersionTimestamp);
 
                 // ACTION-2: Update
+                root.Index++;
                 root.Save();
                 var nodeTimestamp2 = root.NodeTimestamp;
                 var versionTimestamp2 = root.VersionTimestamp;
 
-                // ASSERT-2: NodeData is refreshed in the cache after update
+                // ASSERT-2: NodeData is refreshed in the cache after update,
+                Assert.AreNotEqual(nodeTimestamp1, nodeTimestamp2);
+                Assert.AreNotEqual(versionTimestamp1, versionTimestamp2);
                 var cacheKey2 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
                 if (cacheKey1 != cacheKey2)
-                    Assert.Inconclusive("Cache keys need to eqal to valid test.");
+                    Assert.Inconclusive("The test is invalid because the cache keys are not equal.");
                 var item2 = DistributedApplication.Cache[cacheKey2];
                 Assert.IsNotNull(item2);
                 var cachedNodeData2 = item2 as NodeData;
