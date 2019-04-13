@@ -21,12 +21,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
         /// </summary>
-        public static DateTime DateTimeMinValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMinValue : Data.DataProvider.Current.DateTimeMinValue;
+        public static DateTime DateTimeMinValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMinValue : Data.DataProvider.Current.DateTimeMinValue; //DB:ok
 
         /// <summary>
         /// Gets the DataProvider dependent last DateTime value
         /// </summary>
-        public static DateTime DateTimeMaxValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMaxValue : Data.DataProvider.Current.DateTimeMaxValue;
+        public static DateTime DateTimeMaxValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMaxValue : Data.DataProvider.Current.DateTimeMaxValue; //DB:ok
 
         /// <summary>
         /// Gets the maximum length of the short text datatype
@@ -35,12 +35,12 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent smallest decimal value
         /// </summary>
-        public static decimal DecimalMinValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMinValue : Data.DataProvider.Current.DecimalMinValue;
+        public static decimal DecimalMinValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMinValue : Data.DataProvider.Current.DecimalMinValue; //DB:ok
 
         /// <summary>
         /// Gets the DataProvider dependent biggest decimal value
         /// </summary>
-        public static decimal DecimalMaxValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMaxValue : Data.DataProvider.Current.DecimalMaxValue;
+        public static decimal DecimalMaxValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMaxValue : Data.DataProvider.Current.DecimalMaxValue; //DB:ok
 
 
         /// <summary>

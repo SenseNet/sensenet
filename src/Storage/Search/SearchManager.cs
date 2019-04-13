@@ -157,21 +157,21 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
-            return DataProvider.LoadIndexDocument(versionId);
+            return DataProvider.LoadIndexDocument(versionId); //DB:??
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
         /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
-            return DataProvider.LoadIndexDocument(versionId);
+            return DataProvider.LoadIndexDocument(versionId); //DB:??
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
         /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
-            return DataProvider.LoadIndexDocument(path, excludedNodeTypes);
+            return DataProvider.LoadIndexDocument(path, excludedNodeTypes); //DB:??
         }
 
         /// <summary>

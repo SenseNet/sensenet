@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            return DataProvider.Current.StartChunk(node.VersionId, pt.Id, fullSize);
+            return DataProvider.Current.StartChunk(node.VersionId, pt.Id, fullSize); //DB:??
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata == null ? null : binaryMetadata.RawData);
+            DataProvider.Current.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata == null ? null : binaryMetadata.RawData); //DB:??
 
             NodeIdDependency.FireChanged(node.Id);
             StorageContext.L2Cache.Clear();
@@ -514,7 +514,7 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize);
+            DataProvider.Current.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize); //DB:??
         }
 
         public static void CopyFromStream(int contentId, Stream input, string fieldName = "Binary", BinaryData binaryData = null)
@@ -526,7 +526,7 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.CopyFromStream(node.VersionId, token, input);
+            DataProvider.Current.CopyFromStream(node.VersionId, token, input); //DB:??
 
             CommitChunk(contentId, token, input.Length, fieldName, binaryData);
         }

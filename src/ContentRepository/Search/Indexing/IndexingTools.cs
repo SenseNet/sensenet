@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // 3: save indexDocument.
             docData.IndexDocumentChanged();
-            DataProvider.SaveIndexDocument(versionId, docData.SerializedIndexDocument);
+            DataProvider.SaveIndexDocument(versionId, docData.SerializedIndexDocument); //DB:??
 
             // 4: distributed cache invalidation because of version timestamp.
             DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);

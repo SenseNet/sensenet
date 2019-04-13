@@ -148,9 +148,9 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             if (SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
 
-            var script = DataProvider.GetAppModelScript(paths, false, false);
+            var script = DataProvider.GetAppModelScript(paths, false, false); //DB:??
 
-            using (var proc = DataProvider.Instance.CreateDataProcedure(script))
+            using (var proc = DataProvider.Instance.CreateDataProcedure(script)) //DB:??
             {
                 proc.CommandType = System.Data.CommandType.Text;
 
@@ -178,11 +178,11 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             if (SearchManager.IsOuterEngineEnabled)
                 return ResolveAllByPathsFromIndexedEngine(paths, resolveChildren);
 
-            var script = DataProvider.GetAppModelScript(paths, true, resolveChildren);
+            var script = DataProvider.GetAppModelScript(paths, true, resolveChildren); //DB:??
             var pathIndexer = paths.ToList();
 
             List<NodeHead>[] resultSorter;
-            using (var proc = DataProvider.Instance.CreateDataProcedure(script))
+            using (var proc = DataProvider.Instance.CreateDataProcedure(script)) //DB:??
             {
                 proc.CommandType = System.Data.CommandType.Text;
 

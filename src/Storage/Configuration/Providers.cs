@@ -107,18 +107,18 @@ namespace SenseNet.Configuration
         #endregion
 
         #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
-        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
+        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() => //DB:ok
         {
-            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
-            
+            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider"); //DB:ok
+
             CommonComponents.TransactionFactory = dbp;
 
             return dbp;
         });
-        public virtual DataProvider DataProvider
+        public virtual DataProvider DataProvider //DB:ok
         {
             get { return _dataProvider.Value; }
-            set { _dataProvider = new Lazy<DataProvider>(() => value); }
+            set { _dataProvider = new Lazy<DataProvider>(() => value); } //DB:ok
         }
         #endregion
         //UNDONE:DB ------Implement well Providers.DataProvider2

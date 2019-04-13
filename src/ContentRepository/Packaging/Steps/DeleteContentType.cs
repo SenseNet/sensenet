@@ -204,7 +204,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
 
-            using (var cmd = DataProvider.Instance.CreateDataProcedure(sql))
+            using (var cmd = DataProvider.Instance.CreateDataProcedure(sql)) //DB:??
             {
                 cmd.CommandType = CommandType.Text;
                 using (var reader = cmd.ExecuteReader())

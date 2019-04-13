@@ -13,14 +13,15 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public abstract class DataProvider : ITransactionFactory
+    public abstract class DataProvider : ITransactionFactory //DB:ok
     {
         /// <summary>
         /// Returns the DataProvider instance that is a singleton
         /// instantiated by the sensenet infrastructure at system startup
         /// based on the configuration.
         /// </summary>
-        public static DataProvider Instance {
+        public static DataProvider Instance //DB:??
+        {
             get
             {
                 if (DataStore.Enabled) //UNDONE:DB ------Delete this check
@@ -59,7 +60,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
         //TODO: [Obsolete("Use Instance() method instead.")]
-        public static DataProvider Current => Instance;
+        public static DataProvider Current => Instance; //DB:ok
 
         // ====================================================== Query support
 

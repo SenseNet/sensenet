@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                     continue;
 
                 string tableName;
-                if (!DataProvider.Current.IsCacheableText(value))
+                if (!DataProvider.Current.IsCacheableText(value)) //DB:ok
                 {
                     tableName = "TextPropertiesNText";
                     parameters.Add(new SqlParameter(VALUE_PARAMPREFIX + paramIndex, SqlDbType.NText) { Value = value });

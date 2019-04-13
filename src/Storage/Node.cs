@@ -636,9 +636,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetCreationDate(DateTime creation)
         {
-            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
+            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue)) //DB:ok
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
+            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue)) //DB:ok
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.CreationDate = creation;
@@ -683,9 +683,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.ModificationDate; }
             set
             {
-                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
+                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue)) //DB:ok
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
+                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue)) //DB:ok
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -779,9 +779,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetVersionCreationDate(DateTime creation)
         {
-            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
+            if (creation < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue)) //DB:ok
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
+            if (creation > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue)) //DB:ok
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.VersionCreationDate = creation;
@@ -826,9 +826,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.VersionModificationDate; }
             set
             {
-                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue))
+                if (value < (DataStore.Enabled ? DataStore.DateTimeMinValue : DataProvider.Current.DateTimeMinValue)) //DB:ok
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue))
+                if (value > (DataStore.Enabled ? DataStore.DateTimeMaxValue : DataProvider.Current.DateTimeMaxValue)) //DB:ok
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -2201,7 +2201,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(nodeId));
+            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(nodeId)); //DB:??
         }
         /// <summary>
         /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
@@ -2211,7 +2211,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException("path");
-            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(path));
+            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(path)); //DB:??
         }
 
         /// <summary>
@@ -2401,9 +2401,7 @@ namespace SenseNet.ContentRepository.Storage
                 // Update the modification
                 
                 // update to current
-                var now = DataStore.Enabled
-                    ? DataStore.RoundDateTime(DateTime.UtcNow)
-                    : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                var now = DataStore.Enabled ? DataStore.RoundDateTime(DateTime.UtcNow) : DataProvider.Current.RoundDateTime(DateTime.UtcNow); //DB:ok
                 this.ModificationDate = now;
                 this.Data.ModifiedById = currentUserId;
                 this.VersionModificationDate = now;
@@ -2568,9 +2566,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (!isElevatedMode ||
                         ElevatedModificationVisibilityRule.EvaluateRule(this))
                     {
-                        var now = DataStore.Enabled
-                            ? DataStore.RoundDateTime(DateTime.UtcNow)
-                            : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                        var now = DataStore.Enabled ? DataStore.RoundDateTime(DateTime.UtcNow) : DataProvider.Current.RoundDateTime(DateTime.UtcNow); //DB:ok
                         if (!_data.VersionModificationDateChanged)
                             this.VersionModificationDate = now;
                         if (!_data.VersionModifiedByIdChanged)
@@ -2788,9 +2784,7 @@ namespace SenseNet.ContentRepository.Storage
                 this.Version = settings.ExpectedVersion;
 
                 MakePrivateData();
-                _data.VersionCreationDate = DataStore.Enabled
-                    ? DataStore.RoundDateTime(DateTime.UtcNow)
-                    : DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                _data.VersionCreationDate = DataStore.Enabled ? DataStore.RoundDateTime(DateTime.UtcNow) : DataProvider.Current.RoundDateTime(DateTime.UtcNow); //DB:ok
             }
 
             if (settings.LockerUserId != null)
@@ -2932,7 +2926,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
-            return DataProvider.Current.LoadChildTypesToAllow(nodeId);
+            return DataProvider.Current.LoadChildTypesToAllow(nodeId); //DB:??
         }
         //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
@@ -2940,10 +2934,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
-            if(DataStore.Enabled)
-                return DataStore.LoadChildTypesToAllowAsync(this.Id).Result;
-            else
-                return DataProvider.Current.LoadChildTypesToAllow(this.Id);
+            return DataStore.Enabled ? DataStore.LoadChildTypesToAllowAsync(this.Id).Result : DataProvider.Current.LoadChildTypesToAllow(this.Id); //DB:ok
         }
 
         /// <summary>
@@ -3020,10 +3011,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        if (DataStore.Enabled)
-                            DataStore.MoveNodeAsync(this.Id, target.Id, sourceTimestamp, targetTimestamp).Wait();
-                        else
-                            DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp);
+                        if (DataStore.Enabled) DataStore.MoveNodeAsync(this.Id, target.Id, sourceTimestamp, targetTimestamp).Wait(); else DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp); //DB:ok
                     }
                     catch (DataOperationException e) // rethrow
                     {
@@ -3570,9 +3558,9 @@ namespace SenseNet.ContentRepository.Storage
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                     var customData = args.GetCustomData();
 
-                    var contentListTypesInTree = (this is IContentList) ?
-                        new List<ContentListType>(new[] { this.ContentListType }) :
-                        DataStore.Enabled?DataStore.GetContentListTypesInTree(this.Path) : DataProvider.Current.GetContentListTypesInTree(this.Path);
+                    var contentListTypesInTree = (this is IContentList)
+                        ? new List<ContentListType>(new[] {this.ContentListType})
+                        : DataStore.Enabled ? DataStore.GetContentListTypesInTree(this.Path) : DataProvider.Current.GetContentListTypesInTree(this.Path); //DB:ok
 
                     var logProps = CollectAllProperties(this.Data);
                     var oldPath = this.Path;
@@ -3588,10 +3576,7 @@ namespace SenseNet.ContentRepository.Storage
                             using (var treeLock = TreeLock.Acquire(this.Path))
                             {
                                 // main work
-                                if (DataStore.Enabled)
-                                    DataStore.DeleteNodeAsync(Id, NodeTimestamp).Wait();
-                                else
-                                    DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp);
+                                if (DataStore.Enabled) DataStore.DeleteNodeAsync(Id, NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp); //DB:ok
                             }
                             // successful
                             break;
@@ -3767,10 +3752,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     using (var treeLock = TreeLock.Acquire(nodeRef.Path))
                     {
-                        if(DataStore.Enabled)
-                            DataStore.DeleteNodeAsync(nodeRef.Id, nodeRef.NodeTimestamp).Wait();
-                        else
-                            DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp);
+                        if(DataStore.Enabled) DataStore.DeleteNodeAsync(nodeRef.Id, nodeRef.NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp); //DB:ok
                     }
                 }
                 catch (Exception e) // rethrow
@@ -4295,7 +4277,7 @@ namespace SenseNet.ContentRepository.Storage
 
         private static long GetTreeSize(string path, bool includeChildren)
         {
-            return DataProvider.Current.GetTreeSize(path, includeChildren);
+            return DataProvider.Current.GetTreeSize(path, includeChildren); //DB:??
         }
 
         #endregion

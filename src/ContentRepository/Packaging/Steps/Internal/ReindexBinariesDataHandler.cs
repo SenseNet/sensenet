@@ -13,7 +13,7 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables()
             {
                 // proc CreateTable
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTables))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTables)) //DB:??
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -21,7 +21,7 @@ namespace SenseNet.Packaging.Steps.Internal
             }
             internal static void StartBackgroundTasks()
             {
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTasks))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTasks)) //DB:??
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -33,7 +33,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
 
                 // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks)
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks) //DB:??
                     .AddParameter("@AssignedTaskCount", taskCount)
                     .AddParameter("@TimeOutInMinutes", timeoutInMinutes))
                 {
@@ -55,7 +55,7 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void FinishTask(int versionId)
             {
                 // proc FinishTask(@VersionId int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask)
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask) //DB:??
                     .AddParameter("@VersionId", versionId))
                 {
                     cmd.CommandType = CommandType.Text;
@@ -68,7 +68,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void CreateTempTask(int versionId, int rank)
             {
                 // proc CreateTempTask(@VersionId int, @Rank int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask)
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask) //DB:??
                     .AddParameter("@VersionId", versionId)
                     .AddParameter("@Rank", rank))
                 {
@@ -82,7 +82,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
 
                 // proc GetAllNodeIds(@From int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.GetAllNodeIds))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.GetAllNodeIds)) //DB:??
                 {
                     cmd.CommandType = CommandType.Text;
 
@@ -97,7 +97,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void DropTables()
             {
                 // proc DropTables
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.DropTables))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.DropTables)) //DB:??
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -109,7 +109,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 try
                 {
                     // proc DropTables
-                    using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CheckFeature))
+                    using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CheckFeature)) //DB:??
                     {
                         cmd.CommandType = CommandType.Text;
                         var result = cmd.ExecuteScalar();
@@ -125,7 +125,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static DateTime LoadTimeLimit()
             {
                 // proc GetTimeLimit
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.SelectTimeLimit))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.SelectTimeLimit)) //DB:??
                 {
                     cmd.CommandType = CommandType.Text;
                     var result = cmd.ExecuteScalar();

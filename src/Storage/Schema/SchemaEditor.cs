@@ -29,8 +29,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
             }
             else
             {
-                DataProvider.Current.AssertSchemaTimestampAndWriteModificationDate(this.SchemaTimestamp);
-                var schemaWriter = DataProvider.Current.CreateSchemaWriter();
+                DataProvider.Current.AssertSchemaTimestampAndWriteModificationDate(this.SchemaTimestamp); //DB:ok
+                var schemaWriter = DataProvider.Current.CreateSchemaWriter(); //DB:ok
                 RegisterSchema(origSchema, this, schemaWriter);
             }
         }

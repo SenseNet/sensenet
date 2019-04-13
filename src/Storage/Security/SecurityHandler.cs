@@ -1729,7 +1729,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             {
                 using (new SystemAccount())
                 {
-                    DataProvider.Current.InstallDefaultSecurityStructure();
+                    DataProvider.Current.InstallDefaultSecurityStructure(); //DB:??
 
                     CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)

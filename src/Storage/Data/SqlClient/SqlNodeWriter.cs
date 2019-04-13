@@ -361,7 +361,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                     if (exc.Message.Contains("The INSERT statement conflicted with the FOREIGN KEY constraint \"FK_ReferenceProperties_Nodes\"."))
                     {
                         // Get node heads for the IDs
-                        var heads = DataProvider.Current.LoadNodeHeads(value);
+                        var heads = DataProvider.Current.LoadNodeHeads(value); //DB:ok
                         // Select the IDs of the existing node heads
                         value = heads.Where(h => h != null).Select(h => h.Id);
                     }

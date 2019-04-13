@@ -25,7 +25,7 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
-            using (var proc = DataProvider.Instance.CreateDataProcedure(SCRIPT))
+            using (var proc = DataProvider.Instance.CreateDataProcedure(SCRIPT)) //DB:??
             {
                 proc.CommandType = CommandType.Text;
                 using (var reader = proc.ExecuteReader())

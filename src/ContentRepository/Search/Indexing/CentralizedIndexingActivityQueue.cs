@@ -152,7 +152,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             SnTrace.IndexQueue.Write($"CIAQ: Refreshing indexing activity locks: {string.Join(", ", waitingIds)}");
 
-            DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+            DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds); //DB:??
         }
         private static void DeleteFinishedActivitiesOccasionally()
         {
@@ -160,7 +160,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 using (var op = SnTrace.IndexQueue.StartOperation("CIAQ: DeleteFinishedActivities"))
                 {
-                    DataProvider.Current.DeleteFinishedIndexingActivities();
+                    DataProvider.Current.DeleteFinishedIndexingActivities(); //DB:??
                     _lastDeleteFinishedTime = DateTime.UtcNow;
 
                     op.Successful = true;
@@ -215,7 +215,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             // load some executable activities and currently finished ones
-            var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(
+            var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities( //DB:??
                 IndexingActivityFactory.Instance,
                 MaxCount,
                 RunningTimeoutInSeconds,
@@ -322,7 +322,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         act.ExecuteIndexingActivity();
 
                     // publish the finishing state
-                    DataProvider.Current.UpdateIndexingActivityRunningState(act.Id, IndexingActivityRunningState.Done);
+                    DataProvider.Current.UpdateIndexingActivityRunningState(act.Id, IndexingActivityRunningState.Done); //DB:??
                 }
                 catch (Exception e)
                 {

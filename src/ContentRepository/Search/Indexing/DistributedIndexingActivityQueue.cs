@@ -740,7 +740,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
-                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:??
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
 
@@ -807,7 +807,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
-                    return DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    return DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:??
                 }
             }
         }

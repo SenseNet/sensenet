@@ -25,7 +25,7 @@ namespace SenseNet.Diagnostics
 
         public static AuditLogEntry[] LoadLastEntries(int count)
         {
-            return DataProvider.Current.LoadLastAuditLogEntries(count);
+            return DataProvider.Current.LoadLastAuditLogEntries(count); //DB:ok
         }
     }
 }

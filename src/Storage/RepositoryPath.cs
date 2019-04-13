@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        public static int MaxLength { get { return Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength; } }
+        public static int MaxLength => Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength; //DB:ok
 
         // ===================================================================================================== Methods 
 
@@ -182,7 +182,7 @@ namespace SenseNet.ContentRepository.Storage
                 throw new ArgumentNullException("path");
             if (path.Length == 0)
                 return PathResult.Empty;
-            if (path.Length > (Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength))
+            if (path.Length > (Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength)) //DB:??
                 return PathResult.TooLong;
             if (PathContainsInvalidChar(path))
                 return PathResult.InvalidPathChar;
@@ -262,7 +262,7 @@ namespace SenseNet.ContentRepository.Storage
                     return new InvalidPathException(EmptyNameMessage);
                 case PathResult.TooLong:
                     // Path too long. Max length is {0}.
-                    return new InvalidPathException(string.Format(PathTooLongMessage, Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength));
+                    return new InvalidPathException(string.Format(PathTooLongMessage, Data.DataStore.Enabled ? Data.DataStore.PathMaxLength : Data.DataProvider.Current.PathMaxLength)); //DB:??
                 case PathResult.InvalidPathChar:
                     // Content path may only contain alphanumeric characters or '.', '(', ')', '[', ']', '/'!
                     return new InvalidPathException(String.Concat(InvalidPathMessage, " Path: ", path));

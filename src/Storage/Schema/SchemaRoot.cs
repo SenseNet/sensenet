@@ -90,7 +90,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 }
                 else
                 {
-                    var dataSet = DataProvider.Current.LoadSchema();
+                    var dataSet = DataProvider.Current.LoadSchema(); //DB:ok
                     Load(dataSet);
                 }
                 op.Successful = true;
@@ -571,10 +571,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
         public PropertyType CreateContentListPropertyType(DataType dataType, int ordinalNumber)
         {
             string name = String.Concat("#", dataType, "_", ordinalNumber);
-            int mapping = ordinalNumber +
-                (DataStore.Enabled
-                ? DataStore.ContentListMappingOffsets[dataType]
-                : DataProvider.Current.ContentListMappingOffsets[dataType]);
+            int mapping = ordinalNumber + 
+                (DataStore.Enabled ? DataStore.ContentListMappingOffsets[dataType] : DataProvider.Current.ContentListMappingOffsets[dataType]); //DB:ok
             return CreateContentListPropertyType(name, dataType, mapping);
         }
         private PropertyType CreateContentListPropertyType(string name, DataType dataType, int mapping)
