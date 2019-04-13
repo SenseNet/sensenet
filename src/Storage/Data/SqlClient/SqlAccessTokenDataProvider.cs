@@ -7,7 +7,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     public class SqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
-        public DataProvider MainProvider { get; set; }
+        private DataProvider _mainProvider;
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance);
 
         private string _accessTokenValueCollationName;
         private string AccessTokenValueCollationName

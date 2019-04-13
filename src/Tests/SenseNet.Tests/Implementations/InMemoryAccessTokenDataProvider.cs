@@ -33,7 +33,6 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        public DataProvider MainProvider { get; set; }
         public List<AccessTokenRow> AccessTokens { get; set; } = new List<AccessTokenRow>();
 
         public void DeleteAllAccessTokens()

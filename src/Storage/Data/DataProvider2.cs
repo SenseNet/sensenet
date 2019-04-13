@@ -13,6 +13,22 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public abstract class DataProvider2
     {
+        /* ============================================================================================================= Extensions */
+
+        private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
+
+        public virtual void SetExtension(Type providerType, IDataProviderExtension provider)
+        {
+            _dataProvidersByType[providerType] = provider;
+        }
+
+        internal T GetExtensionInstance<T>() where T : class, IDataProviderExtension
+        {
+            if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
+                return provider as T;
+            return null;
+        }
+
         /* ============================================================================================================= Nodes */
 
         // Executes these:
@@ -68,6 +84,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* ============================================================================================================= Tree */
 
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
+
+        /* ============================================================================================================= TreeLock */
+
+        public abstract int AcquireTreeLock(string path);
+        public abstract bool IsTreeLocked(string path);
+        public abstract void ReleaseTreeLock(int[] lockIds);
+        public abstract Dictionary<int, string> LoadAllTreeLocks();
 
         /* ============================================================================================================= IndexDocument */
 

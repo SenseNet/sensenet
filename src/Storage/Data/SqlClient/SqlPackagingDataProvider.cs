@@ -9,7 +9,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     public class SqlPackagingDataProvider : IPackagingDataProviderExtension
     {
-        public DataProvider MainProvider { get; set; }
+        private DataProvider _mainProvider;
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance);
 
         #region SQL InstalledComponentsScript
         private static readonly string InstalledComponentsScript = @"SELECT P2.Description, P1.ComponentId, P1.ComponentVersion, P1a.ComponentVersion AcceptableVersion

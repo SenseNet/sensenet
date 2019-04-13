@@ -27,12 +27,12 @@ namespace SenseNet.ContentRepository.Storage
         {
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
 
-            var lockIds = paths.Select(p => DataProvider.Current.AcquireTreeLock(p)).ToArray();
+            var lockIds = paths.Select(p => DataStore.Enabled ? DataStore.AcquireTreeLock(p) : DataProvider.Current.AcquireTreeLock(p)).ToArray();
             for (int i = 0; i < lockIds.Length; i++)
             {
                 if (lockIds[i] == 0)
                 {
-                    DataProvider.Current.ReleaseTreeLock(lockIds);
+                    if (DataStore.Enabled) DataStore.ReleaseTreeLock(lockIds); else DataProvider.Current.ReleaseTreeLock(lockIds);
                     var msg = "Cannot acquire a tree lock for " + paths[i];
                     SnTrace.ContentOperation.Write("TreeLock: " + msg);
                     throw new LockedTreeException(msg);
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public void Dispose()
         {
-            DataProvider.Current.ReleaseTreeLock(_lockIds);
+            if(DataStore.Enabled) DataStore.ReleaseTreeLock(_lockIds); else DataProvider.Current.ReleaseTreeLock(_lockIds);
 
             if (this._logOp != null)
             {
@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static Dictionary<int, string> GetAllLocks()
         {
-            return DataProvider.Current.LoadAllTreeLocks();
+            return DataStore.Enabled ? DataStore.LoadAllTreeLocks() : DataProvider.Current.LoadAllTreeLocks();
         }
     }
 }

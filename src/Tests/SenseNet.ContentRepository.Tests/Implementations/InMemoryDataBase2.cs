@@ -55,5 +55,17 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             return Interlocked.Increment(ref __fileId);
         }
+
+        /* ================================================================================================ Files */
+        /// <summary>
+        /// TreeLockId --> TreeLockDoc
+        /// </summary>
+        public Dictionary<int, TreeLockDoc> TreeLocks { get; } = new Dictionary<int, TreeLockDoc>();
+        private int __treeLockId = 0;
+        public int GetNextTreeLockId()
+        {
+            return Interlocked.Increment(ref __treeLockId);
+        }
+
     }
 }

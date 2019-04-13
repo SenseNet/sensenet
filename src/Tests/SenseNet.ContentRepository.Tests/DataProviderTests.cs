@@ -889,13 +889,13 @@ namespace SenseNet.ContentRepository.Tests
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
-            var builder = CreateRepositoryBuilderForTest();
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
             var dp2 = new InMemoryDataProvider2();
             Providers.Instance.DataProvider2 = dp2;
             Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);
+
+            var builder = CreateRepositoryBuilderForTest();
+
+            Indexing.IsOuterSearchEngineEnabled = true;
 
             using (Repository.Start(builder))
             {

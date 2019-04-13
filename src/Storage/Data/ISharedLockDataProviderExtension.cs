@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.Configuration;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -8,6 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static IRepositoryBuilder UseSharedLockDataProviderExtension(this IRepositoryBuilder builder, ISharedLockDataProviderExtension provider)
         {
             DataProvider.Instance.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
+            Providers.Instance.DataProvider2.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
             return builder;
         }
     }

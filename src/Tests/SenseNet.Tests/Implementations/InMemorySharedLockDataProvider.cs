@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
-    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension
+    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension //UNDONE:DB:@ Store data in the inmem database
     {
         public class SharedLockRow
         {
@@ -28,7 +28,6 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        public DataProvider MainProvider { get; set; }
         public List<SharedLockRow> SharedLocks { get; set; } = new List<SharedLockRow>();
 
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);

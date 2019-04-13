@@ -366,6 +366,11 @@ namespace SenseNet.Tests.Implementations
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
         }
+        protected internal override void ReleaseTreeLock(int[] lockIds)
+        {
+            foreach (var item in _db.TreeLocks.Where(t => lockIds.Contains(t.TreeLockId)).ToArray())
+                _db.TreeLocks.Remove(item);
+        }
         protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
             return _db.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
@@ -1171,12 +1176,6 @@ namespace SenseNet.Tests.Implementations
 
             var ids = nodes.Select(n => n.NodeId);
             return ids.ToArray();
-        }
-
-        protected internal override void ReleaseTreeLock(int[] lockIds)
-        {
-            foreach (var item in _db.TreeLocks.Where(t => lockIds.Contains(t.TreeLockId)).ToArray())
-                _db.TreeLocks.Remove(item);
         }
 
         #region NOT IMPLEMENTED

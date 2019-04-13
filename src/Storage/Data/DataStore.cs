@@ -52,15 +52,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
-        public static int PathMaxLength { get; } = 450; //UNDONE:DB ---- DataStore.PathMaxLength
-        public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ---- DataStore.DateTimeMinValue
-        public static DateTime DateTimeMaxValue { get; } = DateTime.MaxValue; //UNDONE:DB ---- DataStore.DateTimeMaxValue
-        public static decimal DecimalMinValue { get; } = decimal.MinValue; //UNDONE:DB ---- DataStore.DecimalMinValue
-        public static decimal DecimalMaxValue { get; } = decimal.MinValue; //UNDONE:DB ---- DataStore.DecimalMaxValue
+        public static int PathMaxLength { get; } = 450; //UNDONE:DB ----DataStore.PathMaxLength
+        public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ----DataStore.DateTimeMinValue
+        public static DateTime DateTimeMaxValue { get; } = DateTime.MaxValue; //UNDONE:DB ----DataStore.DateTimeMaxValue
+        public static decimal DecimalMinValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMinValue
+        public static decimal DecimalMaxValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMaxValue
 
         /* ============================================================================================================= Installation */
 
-        public static void InstallDataPackage(InitialData data)
+        public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC
         {
             DataProvider.InstallInitialData(data);
         }
@@ -376,30 +376,115 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
 
-        public static void WriteAuditEvent(AuditEventInfo auditEventInfo)
+        public static void WriteAuditEvent(AuditEventInfo auditEventInfo) //UNDONE:DB: ASYNC
         {
-            //UNDONE:DB:@IMPLEMENT WriteAuditEvent(AuditEventInfo auditEventInfo)
+            //UNDONE:DB:@NOTIMPLEMENTED
         }
-        public static bool IsTreeLocked(string path)
+        public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
         {
-            //UNDONE:DB:@IMPLEMENT IsTreeLocked(string path)
-            return false;
-        }
-        public static void RegisterIndexingActivity(IIndexingActivity activity)
-        {
-            //UNDONE:DB:@IMPLEMENT WriteAuditEvent(AuditEventInfo auditEventInfo)
+            //UNDONE:DB:@NOTIMPLEMENTED
         }
 
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
+        public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
         {
-            //UNDONE:DB:@IMPLEMENT QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
+            return DataProvider.GetExtensionInstance<T>();
+        }
+
+        public static List<ContentListType> GetContentListTypesInTree(string path) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.GetContentListTypesInTree(path);
+        }
+
+        /* ============================================================================================================= NodeQuery */
+
+        public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.AcquireTreeLock(path);
+        }
+
+        public static bool IsTreeLocked(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.IsTreeLocked(path);
+        }
+
+        public static void ReleaseTreeLock(int[] lockIds) //UNDONE:DB: ASYNC
+        {
+            DataProvider.ReleaseTreeLock(lockIds);
+        }
+
+        public static Dictionary<int, string> LoadAllTreeLocks() //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadAllTreeLocks();
+        }
+
+        /* ============================================================================================================= NodeQuery */
+
+        public static int InstanceCount(int[] ints) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.InstanceCount(ints);
+        }
+
+        public static IEnumerable<int> GetChildrenIdentfiers(int parentId) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.GetChildrenIdentfiers(parentId);
+        }
+
+        public static IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByPath(pathStart, orderByPath);
+        }
+
+        public static IEnumerable<int> QueryNodesByType(int[] typeIds) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByType(typeIds);
+        }
+
+        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
             return Providers.Instance.DataProvider.QueryNodesByTypeAndPath(typeIds, pathStart, orderByPath);
         }
 
-        public static int InstanceCount(int[] ints)
+        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string[] pathStart, bool orderByPath) //UNDONE:DB: ASYNC
         {
-            //UNDONE:DB:@IMPLEMENT QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath)
-            return Providers.Instance.DataProvider.InstanceCount(ints);
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByTypeAndPath(typeIds, pathStart, orderByPath);
+        }
+
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] typeIds, string pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndName(typeIds, pathStart, orderByPath, name);
+        }
+
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] typeIds, string[] pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndName(typeIds, pathStart, orderByPath, name);
+        }
+
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] typeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndProperty(typeIds, pathStart, orderByPath, properties);
+        }
+
+        public static IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] typeIds) //UNDONE:DB: ASYNC
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            return Providers.Instance.DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, typeIds);
+        }
+
+        /* ============================================================================================================= */
+
+        public static void Reset()
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
         }
     }
 }

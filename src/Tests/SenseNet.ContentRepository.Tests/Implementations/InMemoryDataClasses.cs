@@ -556,4 +556,21 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             };
         }
     }
+
+    internal class TreeLockDoc
+    {
+        public int TreeLockId;
+        public string Path;
+        public DateTime LockedAt;
+
+        public TreeLockDoc Clone()
+        {
+            return new TreeLockDoc
+            {
+                TreeLockId = TreeLockId,
+                Path = Path,
+                LockedAt = LockedAt
+            };
+        }
+    }
 }

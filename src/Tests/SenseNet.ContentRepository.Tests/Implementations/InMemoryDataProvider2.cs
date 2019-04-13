@@ -470,6 +470,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var result = typeIdList.Distinct().Select(x => ActiveSchema.NodeTypes.GetItemById(x)).ToArray();
             return STT.Task.FromResult((IEnumerable<NodeType>)result);
         }
+
         private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
         {
             foreach (var child in DB.Nodes.Values.Where(x => x.ParentNodeId == root.NodeId))
@@ -478,6 +479,65 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 if (permeableList.Contains(child.NodeTypeId))
                     CollectChildTypesToAllow(child, permeableList, typeIdList);
             }
+        }
+
+        /* ============================================================================================================= TreeLock */
+
+        public override int AcquireTreeLock(string path)
+        {
+            var parentChain = GetParentChain(path);
+            var timeMin = GetObsoleteLimitTime();
+
+            if (DB.TreeLocks.Values
+                .Any(t => t.LockedAt > timeMin &&
+                          (parentChain.Contains(t.Path) ||
+                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
+                return 0;
+
+            var newTreeLockId = DB.GetNextTreeLockId();
+            DB.TreeLocks.Add(newTreeLockId, new TreeLockDoc
+            {
+                TreeLockId = newTreeLockId,
+                Path = path,
+                LockedAt = DateTime.Now
+            });
+
+            return newTreeLockId;
+        }
+
+        public override bool IsTreeLocked(string path)
+        {
+            var parentChain = GetParentChain(path);
+            var timeMin = GetObsoleteLimitTime();
+
+            return DB.TreeLocks.Values
+                .Any(t => t.LockedAt > timeMin &&
+                          (parentChain.Contains(t.Path) ||
+                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+        public override void ReleaseTreeLock(int[] lockIds)
+        {
+            foreach (var lockId in lockIds)
+                DB.TreeLocks.Remove(lockId);
+        }
+
+        public override Dictionary<int, string> LoadAllTreeLocks()
+        {
+            return DB.TreeLocks.Values.ToDictionary(t => t.TreeLockId, t => t.Path);
+        }
+
+        private string[] GetParentChain(string path)
+        {
+            var paths = path.Split(RepositoryPath.PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
+            paths[0] = "/" + paths[0];
+            for (int i = 1; i < paths.Length; i++)
+                paths[i] = paths[i - 1] + "/" + paths[i];
+            return paths.Reverse().ToArray();
+        }
+        private DateTime GetObsoleteLimitTime()
+        {
+            return DateTime.Now.AddHours(-8.0);
         }
 
         /* ============================================================================================================= IndexDocument */

@@ -9,9 +9,6 @@ namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestPackageStorageProvider : IPackagingDataProviderExtension
     {
-        public DataProvider MainProvider { get; set; }
-
-
         private int _id;
 
         private List<Package> Storage { get; } = new List<Package>();

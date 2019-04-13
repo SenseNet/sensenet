@@ -3572,7 +3572,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     var contentListTypesInTree = (this is IContentList) ?
                         new List<ContentListType>(new[] { this.ContentListType }) :
-                        DataProvider.Current.GetContentListTypesInTree(this.Path);
+                        DataStore.Enabled?DataStore.GetContentListTypesInTree(this.Path) : DataProvider.Current.GetContentListTypesInTree(this.Path);
 
                     var logProps = CollectAllProperties(this.Data);
                     var oldPath = this.Path;

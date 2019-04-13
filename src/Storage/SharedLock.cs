@@ -12,7 +12,16 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public static class SharedLock
     {
-        private static ISharedLockDataProviderExtension Storage => DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+        private static ISharedLockDataProviderExtension Storage
+        {
+            get
+            {
+                if (DataStore.Enabled)
+                    return DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>();
+                else
+                    return DataProvider.GetExtension<ISharedLockDataProviderExtension>();
+            }
+        }
 
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.
