@@ -573,4 +573,52 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             };
         }
     }
+
+    internal class LogEntryDoc
+    {
+        public int LogId;
+        public int EventId;
+        public string Category;
+        public int Priority;
+        public string Severity;
+        public string Title;
+        public int ContentId;
+        public string ContentPath;
+        public string UserName;
+        public DateTime LogDate;
+        public string MachineName;
+        public string AppDomainName;
+        public int ProcessId;
+        public string ProcessName;
+        public string ThreadName;
+        public int Win32ThreadId;
+        public string Message;
+        public string FormattedMessage;
+
+        public LogEntryDoc Clone()
+        {
+            return new LogEntryDoc
+            {
+                LogId = LogId,
+                EventId = EventId,
+                Category = Category,
+                Priority = Priority,
+                Severity = Severity,
+                Title = Title,
+                ContentId = ContentId,
+                ContentPath = ContentPath,
+                UserName = UserName,
+                LogDate = LogDate,
+                MachineName = MachineName,
+                AppDomainName = AppDomainName,
+                ProcessId = ProcessId,
+                ProcessName = ProcessName,
+                ThreadName = ThreadName,
+                Win32ThreadId = Win32ThreadId,
+                Message = Message,
+                FormattedMessage = FormattedMessage,
+            };
+        }
+    }
+
 }

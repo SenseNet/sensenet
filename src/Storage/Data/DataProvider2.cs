@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
@@ -84,6 +85,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* ============================================================================================================= Tree */
 
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
+        public abstract List<ContentListType> GetContentListTypesInTree(string path);
 
         /* ============================================================================================================= TreeLock */
 
@@ -114,6 +116,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns a newly generated schemaTimestamp.
         /// </summary>
         public abstract long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock);
+
+        /* ============================================================================================================= Logging */
+
+        public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
 
         /* ============================================================================================================= Tools */
 

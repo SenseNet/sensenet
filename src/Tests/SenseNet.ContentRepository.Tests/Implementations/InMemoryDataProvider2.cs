@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
@@ -471,6 +472,15 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.FromResult((IEnumerable<NodeType>)result);
         }
 
+        public override List<ContentListType> GetContentListTypesInTree(string path)
+        {
+            return DB.Nodes.Values
+                .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
+                            n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
+                .ToList();
+        }
+
         private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
         {
             foreach (var child in DB.Nodes.Values.Where(x => x.ParentNodeId == root.NodeId))
@@ -597,6 +607,35 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 throw new DataException("Schema is locked by someone else.");
             DB.SchemaLock = null;
             return DB.Schema.Timestamp;
+        }
+
+        /* ============================================================================================================= Logging */
+
+        public override void WriteAuditEvent(AuditEventInfo auditEvent)
+        {
+            var newId = DB.GetNextLogId();
+
+            DB.LogEntries.Add(newId, new LogEntryDoc
+            {
+                LogId = newId,
+                EventId = auditEvent.EventId,
+                Category = auditEvent.Category,
+                Priority = auditEvent.Priority,
+                Severity = auditEvent.Severity,
+                Title = auditEvent.Title,
+                ContentId = auditEvent.ContentId,
+                ContentPath = auditEvent.ContentPath,
+                UserName = auditEvent.UserName,
+                LogDate = auditEvent.Timestamp,
+                MachineName = auditEvent.MachineName,
+                AppDomainName = auditEvent.AppDomainName,
+                ProcessId = auditEvent.ProcessId,
+                ProcessName = auditEvent.ProcessName,
+                ThreadName = auditEvent.ThreadName,
+                Win32ThreadId = auditEvent.ThreadId,
+                Message = auditEvent.Message,
+                FormattedMessage = auditEvent.FormattedMessage,
+            });
         }
 
         /* ============================================================================================================= Provider Tools */

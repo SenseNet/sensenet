@@ -256,6 +256,29 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.LoadChildTypesToAllowAsync(nodeId);
         }
+        public static List<ContentListType> GetContentListTypesInTree(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetContentListTypesInTree(path);
+        }
+
+        /* ============================================================================================================= TreeLock */
+
+        public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.AcquireTreeLock(path);
+        }
+        public static bool IsTreeLocked(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.IsTreeLocked(path);
+        }
+        public static void ReleaseTreeLock(int[] lockIds) //UNDONE:DB: ASYNC
+        {
+            DataProvider.ReleaseTreeLock(lockIds);
+        }
+        public static Dictionary<int, string> LoadAllTreeLocks() //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadAllTreeLocks();
+        }
 
         /* ============================================================================================================= IndexDocument */
 
@@ -305,6 +328,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         });
 
         #endregion
+
+        /* ============================================================================================================= Logging */
+
+        public static void WriteAuditEvent(AuditEventInfo auditEvent) //UNDONE:DB: ASYNC
+        {
+            DataProvider.WriteAuditEvent(auditEvent);
+        }
 
         /* ============================================================================================================= Tools */
 
@@ -376,10 +406,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
 
-        public static void WriteAuditEvent(AuditEventInfo auditEventInfo) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-        }
         public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
         {
             //UNDONE:DB:@NOTIMPLEMENTED
@@ -390,33 +416,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.GetExtensionInstance<T>();
         }
 
-        public static List<ContentListType> GetContentListTypesInTree(string path) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.GetContentListTypesInTree(path);
-        }
 
-        /* ============================================================================================================= NodeQuery */
-
-        public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
-        {
-            return DataProvider.AcquireTreeLock(path);
-        }
-
-        public static bool IsTreeLocked(string path) //UNDONE:DB: ASYNC
-        {
-            return DataProvider.IsTreeLocked(path);
-        }
-
-        public static void ReleaseTreeLock(int[] lockIds) //UNDONE:DB: ASYNC
-        {
-            DataProvider.ReleaseTreeLock(lockIds);
-        }
-
-        public static Dictionary<int, string> LoadAllTreeLocks() //UNDONE:DB: ASYNC
-        {
-            return DataProvider.LoadAllTreeLocks();
-        }
 
         /* ============================================================================================================= NodeQuery */
 
