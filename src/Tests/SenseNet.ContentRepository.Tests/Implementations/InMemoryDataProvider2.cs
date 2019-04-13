@@ -8,6 +8,7 @@ using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -434,6 +435,150 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 nodeDoc.Index,
                 nodeDoc.LockedById,
                 nodeDoc.Timestamp);
+        }
+
+        /* ============================================================================================================= NodeQuery */
+
+        public override int InstanceCount(int[] nodeTypeIds)
+        {
+            return DB.Nodes.Values.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
+        }
+        public override IEnumerable<int> GetChildrenIdentfiers(int parentId)
+        {
+            return DB.Nodes.Values.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
+        }
+        public override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
+        {
+            return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
+        }
+        public override IEnumerable<int> QueryNodesByType(int[] typeIds)
+        {
+            return QueryNodesByTypeAndPath(typeIds, new string[0], false);
+        }
+        public override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
+        {
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
+        }
+        public override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
+        {
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
+        }
+        public override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
+        {
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, name);
+        }
+        public override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
+        {
+
+            IEnumerable<NodeDoc> nodes = DB.Nodes.Values;
+            if (nodeTypeIds != null)
+                nodes = nodes
+                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                    .ToList();
+
+            if (name != null)
+                nodes = nodes
+                    .Where(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                    .ToList();
+
+            if (pathStart != null && pathStart.Length > 0)
+            {
+                var paths = pathStart.Select(p => p.EndsWith("/") ? p : p + "/").ToArray();
+                nodes = nodes
+                    .Where(n => paths.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
+                    .ToList();
+            }
+
+            if (orderByPath)
+                nodes = nodes
+                    .OrderBy(n => n.Path)
+                    .ToList();
+
+            var ids = nodes.Select(n => n.NodeId);
+            return ids.ToArray();
+        }
+        public override IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
+        {
+            // Partially implemented. See SnNotSupportedExceptions
+
+            IEnumerable<NodeDoc> nodes = DB.Nodes.Values;
+            if (nodeTypeIds != null)
+                nodes = nodes
+                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                    .ToList();
+
+            if (pathStart != null)
+            {
+                var path = pathStart.EndsWith("/") ? pathStart : pathStart + "/";
+                nodes = nodes
+                    .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                    .ToList();
+            }
+
+            if (properties != null)
+            {
+                var versionIds = nodes.Select(n => n.LastMinorVersionId).ToArray();
+                var flatRows = DB.Versions.Values.Where(f => versionIds.Contains(f.VersionId)).ToArray();
+                var resultVersions = flatRows
+                    .Where(v =>
+                    {
+                        foreach (var property in properties)
+                        {
+                            if (property.QueryOperator != Operator.Equal)
+                                throw new SnNotSupportedException($"NodeQuery by 'Operator.{property.QueryOperator}' property operator is not supported.");
+
+                            var pt = PropertyType.GetByName(property.PropertyName);
+                            if (pt == null)
+                                throw new SnNotSupportedException($"NodeQuery by '{property.PropertyName}' property is not supported.");
+
+                            var pm = pt.GetDatabaseInfo();
+                            var colName = pm.ColumnName;
+                            var dt = pt.DataType;
+                            var index = int.Parse(colName.Split('_')[1]) - 1;
+                            switch (dt)
+                            {
+                                case DataType.String:
+                                    if ((string)v.DynamicProperties[pt.Name] != (string)property.Value)
+                                        return false;
+                                    break;
+                                case DataType.Int:
+                                    if ((int)v.DynamicProperties[pt.Name] != (int)property.Value)
+                                        return false;
+                                    break;
+                                case DataType.Currency:
+                                    if ((decimal)v.DynamicProperties[pt.Name] != (decimal)property.Value)
+                                        return false;
+                                    break;
+                                case DataType.DateTime:
+                                    if ((DateTime)v.DynamicProperties[pt.Name] != (DateTime)property.Value)
+                                        return false;
+                                    break;
+                                default:
+                                    throw new SnNotSupportedException($"NodeQuery by 'DataType.{dt}' property data type is not supported.");
+                            }
+                        }
+                        return true;
+                    })
+                    .Select(f => f.VersionId)
+                    .ToArray();
+
+                nodes = nodes
+                    .Where(n => resultVersions.Contains(n.LastMinorVersionId))
+                    .ToList();
+            }
+
+            if (orderByPath)
+                nodes = nodes
+                    .OrderBy(n => n.Path)
+                    .ToList();
+
+            var ids = nodes.Select(n => n.NodeId);
+            return ids.ToArray();
+        }
+        public override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds)
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+            throw new NotImplementedException();
         }
 
         /* ============================================================================================================= Tree */

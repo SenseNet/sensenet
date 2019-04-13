@@ -250,6 +250,49 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.GetNodeVersions(nodeId);
         }
 
+        /* ============================================================================================================= NodeQuery */
+
+        public static int InstanceCount(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.InstanceCount(nodeTypeIds);
+        }
+        public static IEnumerable<int> GetChildrenIdentfiers(int parentId) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetChildrenIdentfiers(parentId);
+        }
+        public static IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByPath(pathStart, orderByPath);
+        }
+        public static IEnumerable<int> QueryNodesByType(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByType(nodeTypeIds);
+        }
+        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+        }
+        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+        }
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+        }
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+        }
+        public static IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByTypeAndPathAndProperty(nodeTypeIds, pathStart, orderByPath, properties);
+        }
+        public static IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, nodeTypeIds);
+        }
+
         /* ============================================================================================================= Tree */
 
         public static async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
@@ -418,67 +461,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
 
-        /* ============================================================================================================= NodeQuery */
-
-        public static int InstanceCount(int[] ints) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.InstanceCount(ints);
-        }
-
-        public static IEnumerable<int> GetChildrenIdentfiers(int parentId) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.GetChildrenIdentfiers(parentId);
-        }
-
-        public static IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByPath(pathStart, orderByPath);
-        }
-
-        public static IEnumerable<int> QueryNodesByType(int[] typeIds) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByType(typeIds);
-        }
-
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByTypeAndPath(typeIds, pathStart, orderByPath);
-        }
-
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] typeIds, string[] pathStart, bool orderByPath) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByTypeAndPath(typeIds, pathStart, orderByPath);
-        }
-
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] typeIds, string pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndName(typeIds, pathStart, orderByPath, name);
-        }
-
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] typeIds, string[] pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndName(typeIds, pathStart, orderByPath, name);
-        }
-
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] typeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByTypeAndPathAndProperty(typeIds, pathStart, orderByPath, properties);
-        }
-
-        public static IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] typeIds) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            return Providers.Instance.DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, typeIds);
-        }
 
         /* ============================================================================================================= */
 
