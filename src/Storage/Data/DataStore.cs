@@ -501,7 +501,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
 
-       /* =============================================================================================== */
+        /* =============================================================================================== */
 
+        public static IEnumerable<VersionNumber> GetVersionNumbers(int nodeId) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetVersionNumbers(nodeId);
+        }
+        public static IEnumerable<VersionNumber> GetVersionNumbers(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetVersionNumbers(path);
+        }
     }
 }

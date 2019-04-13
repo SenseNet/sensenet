@@ -847,6 +847,67 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_MoreVersions()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = false;
+
+                // Old dataprovider
+                var folderA = new SystemFolder(Repository.Root)
+                {
+                    Name = "Folder1",
+                    VersioningMode = VersioningType.MajorAndMinor
+                };
+                folderA.Save();
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        folderA.CheckOut();
+                        folderA.Index++;
+                        folderA.Save();
+                        folderA.CheckIn();
+                    }
+                    folderA.Publish();
+                }
+                var allVersinsA1 = Node.GetVersionNumbers(folderA.Id);
+                var allVersinsA2 = Node.GetVersionNumbers(folderA.Path);
+
+                // New dataprovider
+                DataStore.Enabled = true;
+
+                var folderB = new SystemFolder(Repository.Root)
+                {
+                    Name = "Folder1",
+                    VersioningMode = VersioningType.MajorAndMinor
+                };
+                folderB.Save();
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        folderB.CheckOut();
+                        folderB.Index++;
+                        folderB.Save();
+                        folderB.CheckIn();
+                    }
+                    folderB.Publish();
+                }
+                var allVersinsB1 = Node.GetVersionNumbers(folderA.Id);
+                var allVersinsB2 = Node.GetVersionNumbers(folderA.Path);
+
+                // Check
+                Assert.AreEqual(10, allVersinsA1.Count);
+                AssertSequenceEqual(allVersinsA1, allVersinsA2);
+                AssertSequenceEqual(allVersinsA1, allVersinsB1);
+                AssertSequenceEqual(allVersinsA2, allVersinsB2);
+            });
+        }
+
+
+
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
 

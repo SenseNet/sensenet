@@ -432,6 +432,20 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.FromResult(result);
         }
 
+        public override IEnumerable<VersionNumber> GetVersionNumbers(int nodeId)
+        {
+            var versions = DB.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
+            return versions;
+        }
+
+        public override IEnumerable<VersionNumber> GetVersionNumbers(string path)
+        {
+            var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+            if (node == null)
+                return new VersionNumber[0];
+            return GetVersionNumbers(node.NodeId);
+        }
+
         private NodeHead NodeDocToNodeHead(NodeDoc nodeDoc)
         {
             return new NodeHead(

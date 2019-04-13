@@ -658,12 +658,15 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override VersionNumber[] GetVersionNumbers(string path)
         {
-            throw new NotImplementedException();
+            var node = _db.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+            if(node == null)
+                return new VersionNumber[0];
+            return GetVersionNumbers(node.NodeId);
         }
-        #endregion
 
         protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
         {
