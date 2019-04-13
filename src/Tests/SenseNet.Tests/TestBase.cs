@@ -71,6 +71,8 @@ namespace SenseNet.Tests
 
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+
+            DataStore.Enabled = false;
         }
 
         [TestCleanup]

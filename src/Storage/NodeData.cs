@@ -1435,13 +1435,13 @@ namespace SenseNet.ContentRepository.Storage
                         target.Add(item.Key, item.Value);
                         break;
                     case DataType.DateTime:
-                        target.Add(item.Key, new DateTime(((DateTime) item.Value).Ticks));
+                        target.Add(item.Key, item.Value == null ? null : (object)(new DateTime(((DateTime) item.Value).Ticks)));
                         break;
                     case DataType.Binary:
                         target.Add(item.Key, CloneBinaryProperty((BinaryDataValue)item.Value));
                         break;
                     case DataType.Reference:
-                        target.Add(item.Key, ((List<int>)item.Value).ToList());
+                        target.Add(item.Key, ((List<int>) item.Value)?.ToList());
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -1450,6 +1450,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         private BinaryDataValue CloneBinaryProperty(BinaryDataValue original)
         {
+            if (original == null)
+                return null;
+
             return new BinaryDataValue
             {
                 Id = original.Id,
