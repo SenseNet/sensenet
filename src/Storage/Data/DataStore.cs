@@ -58,14 +58,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static decimal DecimalMinValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMinValue
         public static decimal DecimalMaxValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMaxValue
 
-        /* ============================================================================================================= Installation */
+
+        public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
+        {
+            return DataProvider.GetExtensionInstance<T>();
+        }
+
+        public static void Reset()
+        {
+            //UNDONE:DB:@NOTIMPLEMENTED
+        }
+
+        /* =============================================================================================== Installation */
 
         public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC
         {
             DataProvider.InstallInitialData(data);
         }
 
-        /* ============================================================================================================= Nodes */
+        /* =============================================================================================== Nodes */
 
         public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
@@ -227,7 +238,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.NodeExistsAsync(path);
         }
 
-        /* ============================================================================================================= NodeHead */
+        /* =============================================================================================== NodeHead */
 
         public static async Task<NodeHead> LoadNodeHeadAsync(string path)
         {
@@ -250,7 +261,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.GetNodeVersions(nodeId);
         }
 
-        /* ============================================================================================================= NodeQuery */
+        /* =============================================================================================== NodeQuery */
 
         public static int InstanceCount(int[] nodeTypeIds) //UNDONE:DB: ASYNC
         {
@@ -293,7 +304,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, nodeTypeIds);
         }
 
-        /* ============================================================================================================= Tree */
+        /* =============================================================================================== Tree */
 
         public static async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
         {
@@ -304,7 +315,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.GetContentListTypesInTree(path);
         }
 
-        /* ============================================================================================================= TreeLock */
+        /* =============================================================================================== TreeLock */
 
         public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
         {
@@ -323,14 +334,57 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadAllTreeLocks();
         }
 
-        /* ============================================================================================================= IndexDocument */
+        /* =============================================================================================== IndexDocument */
 
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
         {
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
-        /* ============================================================================================================= Schema */
+        /* =============================================================================================== IndexingActivity */
+
+        public static IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadIndexingActivities(fromId, toId, count, executingUnprocessedActivities, activityFactory);
+        }
+        public static IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadIndexingActivities(gaps, executingUnprocessedActivities, activityFactory);
+        }
+        public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
+        {
+            DataProvider.RegisterIndexingActivity(activity);
+        }
+        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+        }
+        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds) //UNDONE:DB: ASYNC (out parameter!)
+        {
+            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds, out finishedActivitiyIds);
+        }
+        public static void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState) //UNDONE:DB: ASYNC
+        {
+            DataProvider.UpdateIndexingActivityRunningState(indexingActivityId, runningState);
+        }
+        public static void RefreshIndexingActivityLockTime(int[] waitingIds) //UNDONE:DB: ASYNC
+        {
+            DataProvider.RefreshIndexingActivityLockTime(waitingIds);
+        }
+        public static int GetLastIndexingActivityId() //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetLastIndexingActivityId();
+        }
+        public static void DeleteFinishedIndexingActivities() //UNDONE:DB: ASYNC
+        {
+            DataProvider.DeleteFinishedIndexingActivities();
+        }
+        public static void DeleteAllIndexingActivities() //UNDONE:DB: ASYNC
+        {
+            DataProvider.DeleteAllIndexingActivities();
+        }
+
+        /* =============================================================================================== Schema */
 
         public static async Task<RepositorySchemaData> LoadSchemaAsync()
         {
@@ -372,14 +426,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #endregion
 
-        /* ============================================================================================================= Logging */
+        /* =============================================================================================== Logging */
 
         public static void WriteAuditEvent(AuditEventInfo auditEvent) //UNDONE:DB: ASYNC
         {
             DataProvider.WriteAuditEvent(auditEvent);
         }
 
-        /* ============================================================================================================= Tools */
+        /* =============================================================================================== Tools */
 
         public static DateTime RoundDateTime(DateTime d)
         {
@@ -390,7 +444,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.IsCacheableText(value);
         }
 
-        /* ============================================================================================================= */
+        /* =============================================================================================== */
 
         private static readonly string NodeDataPrefix = "NodeData.";
         internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
@@ -447,26 +501,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
 
+       /* =============================================================================================== */
 
-
-        public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-        }
-
-        public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
-        {
-            return DataProvider.GetExtensionInstance<T>();
-        }
-
-
-
-
-        /* ============================================================================================================= */
-
-        public static void Reset()
-        {
-            //UNDONE:DB:@NOTIMPLEMENTED
-        }
     }
 }

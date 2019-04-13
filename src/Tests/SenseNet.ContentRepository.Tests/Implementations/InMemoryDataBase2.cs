@@ -9,14 +9,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
     internal class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
     {
         /* ================================================================================================ SCHEMA */
+
         public string SchemaLock { get; set; }
         public RepositorySchemaData Schema { get; set; } = new RepositorySchemaData();
 
         /* ================================================================================================ Nodes */
-        /// <summary>
-        /// NodeId --> NodeDoc (NodeHead)
-        /// </summary>
-        public Dictionary<int, NodeDoc> Nodes { get; } = new Dictionary<int, NodeDoc>();
+
+        public List<NodeDoc> Nodes { get; } = new List<NodeDoc>();
         private int __lastNodeId = 1247;
         public int GetNextNodeId()
         {
@@ -24,10 +23,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         /* ================================================================================================ Versions */
-        /// <summary>
-        /// VersionId --> VersionDoc (NodeData minus NodeHead)
-        /// </summary>
-        public Dictionary<int, VersionDoc> Versions { get; } = new Dictionary<int, VersionDoc>();
+
+        public List<VersionDoc> Versions { get; } = new List<VersionDoc>();
         private int __lastVersionId = 260;
         public int GetNextVersionId()
         {
@@ -35,10 +32,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         /* ================================================================================================ BinaryProperties */
-        /// <summary>
-        /// BinaryPropertyId --> BinaryPropertyDoc
-        /// </summary>
-        public Dictionary<int, BinaryPropertyDoc> BinaryProperties { get; } = new Dictionary<int, BinaryPropertyDoc>();
+
+        public List<BinaryPropertyDoc> BinaryProperties { get; } = new List<BinaryPropertyDoc>();
         private int __binaryPropertyId = 112;
         public int GetNextBinaryPropertyId()
         {
@@ -46,10 +41,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         /* ================================================================================================ Files */
-        /// <summary>
-        /// FileId --> FileDoc
-        /// </summary>
-        public Dictionary<int, FileDoc> Files { get; } = new Dictionary<int, FileDoc>();
+
+        public List<FileDoc> Files { get; } = new List<FileDoc>();
         private int __fileId = 112;
         public int GetNextFileId()
         {
@@ -57,25 +50,30 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
 
         /* ================================================================================================ Files */
-        /// <summary>
-        /// TreeLockId --> TreeLockDoc
-        /// </summary>
-        public Dictionary<int, TreeLockDoc> TreeLocks { get; } = new Dictionary<int, TreeLockDoc>();
+
+        public List<TreeLockDoc> TreeLocks { get; } = new List<TreeLockDoc>();
         private int __treeLockId = 0;
         public int GetNextTreeLockId()
         {
             return Interlocked.Increment(ref __treeLockId);
         }
 
-        /* ================================================================================================ Files */
-        /// <summary>
-        /// LogId --> LogEntryDoc
-        /// </summary>
-        public Dictionary<int, LogEntryDoc> LogEntries { get; } = new Dictionary<int, LogEntryDoc>();
+        /* ================================================================================================ LogEntries */
+
+        public List<LogEntryDoc> LogEntries { get; } = new List<LogEntryDoc>();
         private int __logId = 0;
         public int GetNextLogId()
         {
             return Interlocked.Increment(ref __logId);
+        }
+
+        /* ================================================================================================ IndexingActivities */
+
+        public List<IndexingActivityDoc> IndexingActivities { get; } = new List<IndexingActivityDoc>();
+        private int __indexingActivityId = 0;
+        public int GetNextIndexingActivitiyId()
+        {
+            return Interlocked.Increment(ref __indexingActivityId);
         }
 
     }

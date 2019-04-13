@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -25,7 +23,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            if (!DataProvider.DB.Files.TryGetValue(fileId, out var fileDoc))
+            var fileDoc = DataProvider.DB.Files.FirstOrDefault(x => x.FileId == fileId);
+            if (fileDoc == null)
                 return null;
 
             var length = fileDoc.Size;
@@ -72,7 +71,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
             var fileId = db.GetNextFileId();
-            db.Files.Add(fileId, new FileDoc
+            db.Files.Add(new FileDoc
             {
                 FileId = fileId,
                 ContentType = value.ContentType,
@@ -83,7 +82,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobProviderData = value.BlobProviderData
             });
             var binaryPropertyId = db.GetNextBinaryPropertyId();
-            db.BinaryProperties.Add(binaryPropertyId, new BinaryPropertyDoc
+            db.BinaryProperties.Add(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
                 FileId = fileId,
@@ -103,7 +102,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
             var binaryPropertyId = db.GetNextBinaryPropertyId();
-            db.BinaryProperties.Add(binaryPropertyId, new BinaryPropertyDoc
+            db.BinaryProperties.Add(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
                 FileId = value.FileId,
@@ -143,7 +142,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             var db = DataProvider.DB;
             var fileId = db.GetNextFileId();
-            db.Files.Add(fileId, new FileDoc
+            db.Files.Add(new FileDoc
             {
                 FileId = fileId,
                 ContentType = value.ContentType,
@@ -153,7 +152,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 BlobProvider = value.BlobProviderName,
                 BlobProviderData = value.BlobProviderData
             });
-            if (db.BinaryProperties.TryGetValue(value.Id, out var binaryPropertyDoc))
+            var binaryPropertyDoc = db.BinaryProperties.FirstOrDefault(x => x.BinaryPropertyId == value.Id);
+            if (binaryPropertyDoc != null)
                 binaryPropertyDoc.FileId = fileId;
 
             if (fileId > 0 && fileId != value.FileId)
@@ -175,10 +175,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
             var db = DataProvider.DB;
-            foreach (var key in db.BinaryProperties
-                                  .Where(x => x.Value.VersionId == versionId && x.Value.PropertyTypeId == propertyTypeId)
-                                  .Select(x => x.Key).ToArray())
-                db.BinaryProperties.Remove(key);
+            foreach (var item in db.BinaryProperties
+                                  .Where(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId)
+                                  .ToArray())
+                db.BinaryProperties.Remove(item);
         }
 
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
@@ -186,11 +186,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             //throw new NotImplementedException();
             var db = DataProvider.DB;
             var binaryDoc =
-                db.BinaryProperties.Values.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+                db.BinaryProperties.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
             if (binaryDoc == null)
                 return null;
 
-            if (!db.Files.TryGetValue(binaryDoc.FileId, out var fileDoc))
+            var fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
+            if (fileDoc == null)
                 return null;
             if (fileDoc.Staging)
                 return null;

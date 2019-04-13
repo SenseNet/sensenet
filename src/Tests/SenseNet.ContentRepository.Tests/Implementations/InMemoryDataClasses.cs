@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
@@ -581,6 +582,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public string Category;
         public int Priority;
         public string Severity;
+
         public string Title;
         public int ContentId;
         public string ContentPath;
@@ -621,4 +623,32 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
+    internal class IndexingActivityDoc
+    {
+        public int IndexingActivityId;
+        public IndexingActivityType ActivityType;
+        public DateTime CreationDate;
+        public IndexingActivityRunningState RunningState;
+        public DateTime? LockTime;
+        public int NodeId;
+        public int VersionId;
+        public string Path;
+        public string Extension;
+
+        public IndexingActivityDoc Clone()
+        {
+            return new IndexingActivityDoc
+            {
+                IndexingActivityId = IndexingActivityId,
+                ActivityType = ActivityType,
+                CreationDate = CreationDate,
+                RunningState = RunningState,
+                LockTime = LockTime,
+                NodeId = NodeId,
+                VersionId = VersionId,
+                Path = Path,
+                Extension = Extension,
+            };
+        }
+    }
 }

@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (TransactionScope.IsActive)
             {
-                if (DataStore.Enabled) throw new NotImplementedException(); else binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId); //DB:ok
+                if (DataStore.Enabled) throw new NotImplementedException(); else binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId); //DB:??
                 return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
             }
 
@@ -785,7 +785,7 @@ namespace SenseNet.ContentRepository.Storage
                     docStream.Position = 0;
                     bytes = docStream.GetBuffer();
 
-                    if (DataStore.Enabled) throw new NotImplementedException(); else DataProvider.SaveIndexDocument(node.Data, bytes); //DB:ok
+                    if (DataStore.Enabled) throw new NotImplementedException(); else DataProvider.SaveIndexDocument(node.Data, bytes); //DB:??
                 }
             }
             else

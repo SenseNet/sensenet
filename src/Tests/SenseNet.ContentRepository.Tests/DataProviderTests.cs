@@ -536,7 +536,7 @@ namespace SenseNet.ContentRepository.Tests
                     nodeB.Save();
 
                     // ASSERT-1
-                    var storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    var storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
                     Assert.AreEqual("ShortText value 1", storedProps["ShortText1"]);
                     Assert.AreEqual("LongText value 1", storedProps["LongText1"]);
                     Assert.AreEqual(42, storedProps["Integer1"]);
@@ -556,7 +556,7 @@ namespace SenseNet.ContentRepository.Tests
                     nodeB.Save();
 
                     // ASSERT-2
-                    storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
                     Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
                     Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
                     Assert.AreEqual(43, storedProps["Integer1"]);
@@ -571,7 +571,7 @@ namespace SenseNet.ContentRepository.Tests
                     nodeB.Save();
 
                     // ASSERT-3
-                    storedProps = db.Versions[nodeB.VersionId].DynamicProperties;
+                    storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
                     Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
                     Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
                     Assert.AreEqual(43, storedProps["Integer1"]);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -14,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public abstract class DataProvider2
     {
-        /* ============================================================================================================= Extensions */
+        /* =============================================================================================== Extensions */
 
         private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
 
@@ -30,7 +31,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return null;
         }
 
-        /* ============================================================================================================= Nodes */
+        /* =============================================================================================== Nodes */
 
         // Executes these:
         // INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
@@ -74,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<bool> NodeExistsAsync(string path);
 
-        /* ============================================================================================================= NodeHead */
+        /* =============================================================================================== NodeHead */
 
         public abstract Task<NodeHead> LoadNodeHeadAsync(string path);
         public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId);
@@ -82,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
 
-        /* ============================================================================================================= NodeQuery */
+        /* =============================================================================================== NodeQuery */
 
         public abstract int InstanceCount(int[] nodeTypeIds);
         public abstract IEnumerable<int> GetChildrenIdentfiers(int parentId);
@@ -95,23 +96,36 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
         public abstract IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds);
 
-        /* ============================================================================================================= Tree */
+        /* =============================================================================================== Tree */
 
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
         public abstract List<ContentListType> GetContentListTypesInTree(string path);
 
-        /* ============================================================================================================= TreeLock */
+        /* =============================================================================================== TreeLock */
 
         public abstract int AcquireTreeLock(string path);
         public abstract bool IsTreeLocked(string path);
         public abstract void ReleaseTreeLock(int[] lockIds);
         public abstract Dictionary<int, string> LoadAllTreeLocks();
 
-        /* ============================================================================================================= IndexDocument */
+        /* =============================================================================================== IndexDocument */
 
         public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
 
-        /* ============================================================================================================= Schema */
+        /* =============================================================================================== IndexingActivity */
+
+        public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract void RegisterIndexingActivity(IIndexingActivity activity);
+        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
+        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds);
+        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
+        public abstract void RefreshIndexingActivityLockTime(int[] waitingIds);
+        public abstract int GetLastIndexingActivityId();
+        public abstract void DeleteFinishedIndexingActivities();
+        public abstract void DeleteAllIndexingActivities();
+
+        /* =============================================================================================== Schema */
 
         public abstract Task<RepositorySchemaData> LoadSchemaAsync();
         public abstract SchemaWriter CreateSchemaWriter();
@@ -130,11 +144,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public abstract long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock);
 
-        /* ============================================================================================================= Logging */
+        /* =============================================================================================== Logging */
 
         public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
 
-        /* ============================================================================================================= Tools */
+        /* =============================================================================================== Tools */
 
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);

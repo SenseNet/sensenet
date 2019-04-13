@@ -148,12 +148,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataProvider.Current.GetLastIndexingActivityId(); //DB:??
+            return DataStore.Enabled ? DataStore.GetLastIndexingActivityId() : DataProvider.Current.GetLastIndexingActivityId(); //DB:ok
         }
 
         internal static void DeleteAllIndexingActivities()
         {
-            DataProvider.Current.DeleteAllIndexingActivities(); //DB:??
+            if (DataStore.Enabled) DataStore.DeleteAllIndexingActivities(); else DataProvider.Current.DeleteAllIndexingActivities(); //DB:ok
         }
 
         /// <summary>
