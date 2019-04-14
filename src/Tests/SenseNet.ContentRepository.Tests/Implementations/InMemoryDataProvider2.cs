@@ -609,8 +609,35 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
         public override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds)
         {
-            //UNDONE:DB:@NOTIMPLEMENTED
-            throw new NotImplementedException();
+            //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
+            if (referenceName == null)
+                throw new ArgumentNullException(nameof(referenceName));
+            if (referenceName.Length == 0)
+                throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
+            var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+            if (referenceProperty == null)
+                throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
+
+            IEnumerable<NodeDoc> nodes = (nodeTypeIds == null || nodeTypeIds.Length == 0)
+                ? DB.Nodes
+                : DB.Nodes.Where(n => nodeTypeIds.Contains(n.NodeTypeId));
+
+            var result = nodes
+                .SelectMany(n => new[] {n.LastMajorVersionId, n.LastMinorVersionId})
+                .Distinct()
+                .Select(i => DB.Versions.FirstOrDefault(v => v.VersionId == i))
+                .Where(v =>
+                {
+                    if (v == null)
+                        return false;
+                    if (!v.DynamicProperties.TryGetValue(referenceName, out var refs))
+                        return false;
+                    return ((int[]) refs).Contains(referredNodeId);
+                })
+                .Select(v => v.NodeId)
+                .ToArray();
+
+            return result;
         }
 
         /* =============================================================================================== Tree */
@@ -1256,7 +1283,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 CreatedById = versionData.CreatedById,
                 ModificationDate = versionData.ModificationDate,
                 ModifiedById = versionData.ModifiedById,
-                ChangedData = null, //UNDONE:------- Set clone of original or delete this property
+                ChangedData = null, //UNDONE:DB -------Set clone of original or delete this property
                 DynamicProperties = dynamicProperties,
                 // IndexDocument will be set later.
                 // Timestamp handled by the new instance itself.
@@ -1270,7 +1297,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             versionDoc.CreatedById = versionData.CreatedById;
             versionDoc.ModificationDate = versionData.ModificationDate;
             versionDoc.ModifiedById = versionData.ModifiedById;
-            versionDoc.ChangedData = null; //UNDONE:------- Set clone of original or delete this property
+            versionDoc.ChangedData = null; //UNDONE:DB -------Set clone of original or delete this property
 
             var target = versionDoc.DynamicProperties;
             foreach (var sourceItem in dynamicData.DynamicProperties)

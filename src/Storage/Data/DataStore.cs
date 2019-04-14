@@ -52,11 +52,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
-        public static int PathMaxLength { get; } = 450; //UNDONE:DB ----DataStore.PathMaxLength
-        public static DateTime DateTimeMinValue { get; } = DateTime.MinValue; //UNDONE:DB ----DataStore.DateTimeMinValue
-        public static DateTime DateTimeMaxValue { get; } = DateTime.MaxValue; //UNDONE:DB ----DataStore.DateTimeMaxValue
-        public static decimal DecimalMinValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMinValue
-        public static decimal DecimalMaxValue { get; } = decimal.MinValue; //UNDONE:DB ----DataStore.DecimalMaxValue
+
+        public static int PathMaxLength => DataProvider.PathMaxLength;
+        public static DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;
+        public static DateTime DateTimeMaxValue => DataProvider.DateTimeMaxValue;
+        public static decimal DecimalMinValue => DataProvider.DecimalMinValue;
+        public static decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
 
         public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension

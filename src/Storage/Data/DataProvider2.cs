@@ -15,6 +15,12 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public abstract class DataProvider2
     {
+        public virtual int PathMaxLength { get; } = 450;
+        public virtual DateTime DateTimeMinValue { get; } = DateTime.MinValue;
+        public virtual DateTime DateTimeMaxValue { get; } = DateTime.MaxValue;
+        public virtual decimal DecimalMinValue { get; } = decimal.MinValue;
+        public virtual decimal DecimalMaxValue { get; } = decimal.MinValue;
+
         /* =============================================================================================== Extensions */
 
         private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();

@@ -1045,12 +1045,39 @@ namespace SenseNet.Tests.Implementations
             return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
         }
 
-        #region NOT IMPLEMENTED
         protected internal override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds)
         {
-            throw new NotImplementedException();
+            //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
+            if (referenceName == null)
+                throw new ArgumentNullException(nameof(referenceName));
+            if (referenceName.Length == 0)
+                throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
+            var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+            if (referenceProperty == null)
+                throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
+
+            var nodes = (allowedTypeIds == null || allowedTypeIds.Length == 0)
+                ? DB.Nodes
+                : DB.Nodes.Where(n => allowedTypeIds.Contains(n.NodeTypeId));
+
+            var result = nodes
+                .SelectMany(n => new[] { n.LastMajorVersionId, n.LastMinorVersionId })
+                .Distinct()
+                .Select(i => DB.Versions.FirstOrDefault(v => v.VersionId == i))
+                .Where(v =>
+                {
+                    if (v == null)
+                        return false;
+                    return DB.ReferenceProperties.Any(r =>
+                        r.VersionId == v.VersionId &&
+                        r.PropertyTypeId == referenceProperty.Id &&
+                        r.ReferredNodeId == referredNodeId);
+                })
+                .Select(v => v.NodeId)
+                .ToArray();
+
+            return result;
         }
-        #endregion
 
         protected internal override IEnumerable<int> QueryNodesByType(int[] typeIds)
         {

@@ -2201,7 +2201,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbers(nodeId) : DataProvider.Current.GetVersionNumbers(nodeId)); //DB:??
+            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbers(nodeId) : DataProvider.Current.GetVersionNumbers(nodeId)); //DB:ok
         }
         /// <summary>
         /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
@@ -2926,7 +2926,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
-            return DataProvider.Current.LoadChildTypesToAllow(nodeId); //DB:??
+            return DataStore.Enabled ? DataStore.LoadChildTypesToAllowAsync(nodeId).Result : DataProvider.Current.LoadChildTypesToAllow(nodeId); //DB:ok
         }
         //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
