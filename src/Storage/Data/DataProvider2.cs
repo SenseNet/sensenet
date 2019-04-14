@@ -21,6 +21,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual decimal DecimalMinValue { get; } = decimal.MinValue;
         public virtual decimal DecimalMaxValue { get; } = decimal.MinValue;
 
+        public virtual void Reset()
+        {
+            // Do nothing if the provider is stateless.
+        }
+
         /* =============================================================================================== Extensions */
 
         private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();

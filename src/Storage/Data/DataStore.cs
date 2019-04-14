@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static void Reset()
         {
-            //UNDONE:DB:@NOTIMPLEMENTED
+            DataProvider.Reset();
         }
 
         /* =============================================================================================== Installation */
