@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
+using SenseNet.Search.Querying;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
@@ -906,6 +907,32 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_NodeEnumerator()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(root) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+                var f5 = new SystemFolder(f3) { Name = "F5" }; f5.Save();
+                var f6 = new SystemFolder(f3) { Name = "F6" }; f6.Save();
+
+                // ACTION
+                // Use ExecutionHint.ForceRelationalEngine for a valid dataprovider test case.
+                var result = NodeEnumerator.GetNodes(root.Path, ExecutionHint.ForceRelationalEngine);
+
+                // ASSERT
+                var names = string.Join(", ", result.Select(n => n.Name));
+                // preorder tree-walking
+                Assert.AreEqual("TestRoot, F1, F3, F5, F6, F4, F2", names);
+            });
+        }
 
 
         //UNDONE:DB TEST: DP_AB_Create and Rollback
@@ -972,6 +999,7 @@ namespace SenseNet.ContentRepository.Tests
                     callback();
             }
         }
+
 
         private InitialData _initialData;
         private InitialData GetInitialStructure()
