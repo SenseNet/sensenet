@@ -51,7 +51,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();//UNDONE:DB -------Remove DataStore.Snapshots
 
 
-        private static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
+        public static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
 
         public static int PathMaxLength => DataProvider.PathMaxLength;
         public static DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;

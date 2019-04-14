@@ -651,4 +651,23 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             };
         }
     }
+
+    internal class SharedLockDoc //UNDONE:@@ SharedLockDoc is an extension
+    {
+        public int SharedLockId;
+        public int ContentId;
+        public string Lock;
+        public DateTime CreationDate;
+
+        public SharedLockDoc Clone()
+        {
+            return new SharedLockDoc
+            {
+                SharedLockId = SharedLockId,
+                ContentId = ContentId,
+                Lock = Lock,
+                CreationDate = CreationDate
+            };
+        }
+    }
 }

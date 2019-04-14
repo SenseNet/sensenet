@@ -118,6 +118,7 @@
     <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider2.cs" />
     <Compile Include="Implementations\InMemorySchemaWriter.cs" />
+    <Compile Include="Implementations\InMemorySharedLockDataProvider2.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="LoggerTests.cs" />
