@@ -933,6 +933,24 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("TestRoot, F1, F3, F5, F6, F4, F2", names);
             });
         }
+        [TestMethod]
+        public void DP_NameSuffix()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var f1 = new SystemFolder(root) { Name = "folder(42)" }; f1.Save();
+
+                // ACTION
+                var newName = ContentNamingProvider.IncrementNameSuffixToLastName("folder(11)", f1.ParentId);
+
+                // ASSERT
+                Assert.AreEqual("folder(43)", newName);
+            });
+        }
 
 
         //UNDONE:DB TEST: DP_AB_Create and Rollback

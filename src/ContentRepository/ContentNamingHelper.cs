@@ -204,7 +204,7 @@ namespace SenseNet.ContentRepository
             var fileName = Path.GetFileNameWithoutExtension(currentName);
             var count = ParseSuffix(fileName, out nameBase);
 
-            var lastName = DataProvider.Current.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext); //DB:??
+            var lastName = DataStore.Enabled ? DataStore.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext) : DataProvider.Current.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext); //DB:ok
 
             // if there is no suffixed name in db, return with first variant
             if (lastName == null)

@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -1051,6 +1052,29 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public override bool IsCacheableText(string text)
         {
             return text?.Length < TextAlternationSizeLimit;
+        }
+
+        public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
+        {
+            var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
+            var existingName = DB.Nodes
+                .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
+                .Select(n => n.Name.ToLowerInvariant())
+                .OrderByDescending(GetSuffix)
+                .FirstOrDefault();
+            return existingName;
+        }
+        private int GetSuffix(string name)
+        {
+            var p0 = name.LastIndexOf("(");
+            if (p0 < 0)
+                return 0;
+            var p1 = name.IndexOf(")", p0);
+            if (p1 < 0)
+                return 0;
+            var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
+            var order = int.Parse(suffix);
+            return order;
         }
 
         /* =============================================================================================== Infrastructure */

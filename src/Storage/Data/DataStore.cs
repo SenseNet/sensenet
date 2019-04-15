@@ -444,6 +444,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsCacheableText(value);
         }
+        public static string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetNameOfLastNodeWithNameBase(parentId, namebase, extension);
+        }
 
         /* =============================================================================================== */
 
