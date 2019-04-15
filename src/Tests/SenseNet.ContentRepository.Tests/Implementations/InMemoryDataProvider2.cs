@@ -1077,6 +1077,22 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return order;
         }
 
+        public override long GetTreeSize(string path, bool includeChildren)
+        {
+            var collection = includeChildren
+                ? DB.Nodes
+                    .Where(n => n.Path == path || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))
+                : DB.Nodes
+                    .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
+
+            return collection
+                .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))
+                .SelectMany(v => DB.BinaryProperties.Where(b => b.VersionId == v.VersionId))
+                .SelectMany(b => DB.Files.Where(f => f.FileId == b.FileId))
+                .Select(f => f.Size).Sum();
+        }
+
         /* =============================================================================================== Infrastructure */
 
         private void LoadLastVersionIds(int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)

@@ -448,6 +448,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.GetNameOfLastNodeWithNameBase(parentId, namebase, extension);
         }
+        public static long GetTreeSize(string path, bool includeChildren)
+        {
+            return DataProvider.GetTreeSize(path, includeChildren);
+        }
 
         /* =============================================================================================== */
 

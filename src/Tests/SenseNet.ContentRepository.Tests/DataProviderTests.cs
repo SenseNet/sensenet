@@ -933,6 +933,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("TestRoot, F1, F3, F5, F6, F4, F2", names);
             });
         }
+
         [TestMethod]
         public void DP_NameSuffix()
         {
@@ -950,6 +951,56 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 Assert.AreEqual("folder(43)", newName);
             });
+        }
+
+        [TestMethod]
+        public void DP_AB_TreeSize()
+        {
+            DPTest(() =>
+            {
+                var fileContent = "File content.";
+
+                // ARRANGE-A
+                DataStore.Enabled = false;
+                var rootA = new SystemFolder(Repository.Root) { Name = "TestRoot" }; rootA.Save();
+                var fileA1 = CreateFile(rootA, "File1", fileContent);
+                var fileA2 = CreateFile(rootA, "File2", fileContent);
+                var folderA1 = new SystemFolder(rootA) { Name = "Folder1" }; folderA1.Save();
+                var fileA3 = CreateFile(folderA1, "File3", fileContent);
+                var fileA4 = CreateFile(folderA1, "File4", fileContent);
+                fileA4.CheckOut();
+
+                // ACTION-A
+                var folderSizeA = Node.GetTreeSize(rootA.Path, false);
+                var treeSizeA = Node.GetTreeSize(rootA.Path, true);
+
+                // ARRANGE-B
+                DataStore.Enabled = true;
+                var rootB = new SystemFolder(Repository.Root) { Name = "TestRoot" }; rootB.Save();
+                var fileB1 = CreateFile(rootB, "File1", fileContent);
+                var fileB2 = CreateFile(rootB, "File2", fileContent);
+                var folderB1 = new SystemFolder(rootB) { Name = "Folder1" }; folderB1.Save();
+                var fileB3 = CreateFile(folderB1, "File3", fileContent);
+                var fileB4 = CreateFile(folderB1, "File4", fileContent);
+                fileB4.CheckOut();
+
+                // ACTION-B
+                var folderSizeB = Node.GetTreeSize(rootB.Path, false);
+                var treeSizeB = Node.GetTreeSize(rootB.Path, true);
+
+                // ASSERT
+                Assert.AreEqual(2 * (fileContent.Length + 3), folderSizeA);
+                Assert.AreEqual(5 * (fileContent.Length + 3), treeSizeA);
+                Assert.AreEqual(folderSizeA, folderSizeB);
+                Assert.AreEqual(treeSizeA, treeSizeB);
+            });
+        }
+        private File CreateFile(Node parent, string name, string fileContent)
+        {
+            var file = new File(parent) { Name = name };
+            file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
+            file.Save();
+            return file;
         }
 
 

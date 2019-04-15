@@ -166,6 +166,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
         public abstract string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension);
+        public abstract long GetTreeSize(string path, bool includeChildren);
 
         /* =============================================================================================== Infrastructure */
 
@@ -177,7 +178,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract long GetNodeTimestamp(int nodeId);
         //UNDONE:DB -------Delete GetVersionTimestamp method
         public abstract long GetVersionTimestamp(int versionId);
-
 
     }
 }

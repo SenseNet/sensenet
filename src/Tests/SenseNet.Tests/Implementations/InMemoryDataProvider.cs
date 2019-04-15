@@ -653,12 +653,21 @@ namespace SenseNet.Tests.Implementations
             return index + 1;
         }
 
-        #region NOT IMPLEMENTED
         protected internal override long GetTreeSize(string path, bool includeChildren)
         {
-            throw new NotImplementedException();
+            var collection = includeChildren
+                ? _db.Nodes
+                      .Where(n => n.Path == path || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))
+                : _db.Nodes
+                      .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                      .SelectMany(n => _db.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId) );
+
+            return collection
+                .SelectMany(n => _db.Versions.Where(v => v.NodeId == n.NodeId))
+                .SelectMany(v => _db.BinaryProperties.Where(b => b.VersionId == v.VersionId))
+                .SelectMany(b => _db.Files.Where(f => f.FileId == b.FileId))
+                .Select(f=>f.Size).Sum();
         }
-        #endregion
 
         protected internal override VersionNumber[] GetVersionNumbers(string path)
         {

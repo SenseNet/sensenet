@@ -4270,14 +4270,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Returns size of all blobs of all <see cref="Node"/> in the subtree that is identified by the given path.
         /// </summary>
-        public static long GetTreeSize(string path)
+        public static long GetTreeSize(string path, bool includeChildren = true)
         {
-            return GetTreeSize(path, true);
-        }
-
-        private static long GetTreeSize(string path, bool includeChildren)
-        {
-            return DataProvider.Current.GetTreeSize(path, includeChildren); //DB:??
+            return DataStore.Enabled ? DataStore.GetTreeSize(path, includeChildren) : DataProvider.Current.GetTreeSize(path, includeChildren); //DB:ok
         }
 
         #endregion
