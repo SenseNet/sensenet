@@ -782,6 +782,60 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
+        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)
+        {
+            return versionIds.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
+        }
+        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)
+        {
+            var result = new List<IndexDocumentData>();
+            var pathExt = path + "/";
+
+            var collection = excludedNodeTypes == null || excludedNodeTypes.Length == 0
+                ? DB.Nodes
+                : DB.Nodes.Where(n => !excludedNodeTypes.Contains(n.NodeTypeId));
+
+            foreach (var node in collection.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
+                                                       n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
+                foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
+                    result.Add(CreateIndexDocumentData(node, version));
+
+            return result;
+        }
+        private IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
+        {
+            var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
+            if (version == null)
+                return null;
+            var node = DB.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
+            if (node == null)
+                return null;
+            return CreateIndexDocumentData(node, version);
+        }
+        private IndexDocumentData CreateIndexDocumentData(NodeDoc node, VersionDoc version)
+        {
+            var approved = version.Version.Status == VersionStatus.Approved;
+            var isLastMajor = node.LastMajorVersionId == version.VersionId;
+
+            //UNDONE:DB INDEXDOCUMENT
+            //var bytes = version.IndexDocument ?? new byte[0];
+            var bytes = new byte[0];
+
+            return new IndexDocumentData(null, bytes)
+            {
+                NodeTypeId = node.NodeTypeId,
+                VersionId = version.VersionId,
+                NodeId = node.NodeId,
+                ParentId = node.ParentNodeId,
+                Path = node.Path,
+                IsSystem = node.IsSystem,
+                IsLastDraft = node.LastMinorVersionId == version.VersionId,
+                IsLastPublic = approved && isLastMajor,
+                NodeTimestamp = node.Timestamp,
+                VersionTimestamp = version.Timestamp,
+            };
+        }
+
         /* =============================================================================================== IndexingActivity */
 
         public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)

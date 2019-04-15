@@ -855,8 +855,12 @@ namespace SenseNet.Tests.Implementations
             var result = new List<IndexDocumentData>();
             var pathExt = path + "/";
 
-            foreach (var node in _db.Nodes.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
-                                                      n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
+            var collection = excludedNodeTypes == null || excludedNodeTypes.Length == 0
+                ? _db.Nodes
+                : _db.Nodes.Where(n => !excludedNodeTypes.Contains(n.NodeTypeId));
+
+            foreach (var node in collection.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
+                                                       n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
                 foreach (var version in _db.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
                     result.Add(CreateIndexDocumentData(node, version));
 

@@ -162,7 +162,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             //UNDONE:DB -------Delete CheckTimestamps feature
             AssertNodeTimestampIncremented(nodeData, nodeTimestampBefore);
         }
-
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray)
         {
             // ORIGINAL SIGNATURES:
@@ -261,6 +260,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetNodeVersions(nodeId);
         }
+        public static IEnumerable<VersionNumber> GetVersionNumbers(int nodeId) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetVersionNumbers(nodeId);
+        }
+        public static IEnumerable<VersionNumber> GetVersionNumbers(string path) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.GetVersionNumbers(path);
+        }
 
         /* =============================================================================================== NodeQuery */
 
@@ -340,6 +347,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
         {
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
+        }
+
+        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)//UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadIndexDocuments(versionIds);
+        }
+        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)//UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadIndexDocuments(path, excludedNodeTypes);
         }
 
         /* =============================================================================================== IndexingActivity */
@@ -448,7 +464,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.GetNameOfLastNodeWithNameBase(parentId, namebase, extension);
         }
-        public static long GetTreeSize(string path, bool includeChildren)
+        public static long GetTreeSize(string path, bool includeChildren) //UNDONE:DB: ASYNC
         {
             return DataProvider.GetTreeSize(path, includeChildren);
         }
@@ -512,13 +528,5 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== */
 
-        public static IEnumerable<VersionNumber> GetVersionNumbers(int nodeId) //UNDONE:DB: ASYNC
-        {
-            return DataProvider.GetVersionNumbers(nodeId);
-        }
-        public static IEnumerable<VersionNumber> GetVersionNumbers(string path) //UNDONE:DB: ASYNC
-        {
-            return DataProvider.GetVersionNumbers(path);
-        }
     }
 }

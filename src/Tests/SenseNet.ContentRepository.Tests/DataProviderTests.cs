@@ -8,6 +8,7 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -956,37 +957,37 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DP_AB_TreeSize()
         {
+            var fileContent = "File content.";
+            void CreateStructure()
+            {
+                var root = CreateFolder(Repository.Root, "TestRoot");
+                var file1 = CreateFile(root, "File1", fileContent);
+                var file2 = CreateFile(root, "File2", fileContent);
+                var folder1 = CreateFolder(root, "Folder1");
+                var file3 = CreateFile(folder1, "File3", fileContent);
+                var file4 = CreateFile(folder1, "File4", fileContent);
+                file4.CheckOut();
+            }
+
             DPTest(() =>
             {
-                var fileContent = "File content.";
+                var testRootPath = "/Root/TestRoot";
 
                 // ARRANGE-A
                 DataStore.Enabled = false;
-                var rootA = new SystemFolder(Repository.Root) { Name = "TestRoot" }; rootA.Save();
-                var fileA1 = CreateFile(rootA, "File1", fileContent);
-                var fileA2 = CreateFile(rootA, "File2", fileContent);
-                var folderA1 = new SystemFolder(rootA) { Name = "Folder1" }; folderA1.Save();
-                var fileA3 = CreateFile(folderA1, "File3", fileContent);
-                var fileA4 = CreateFile(folderA1, "File4", fileContent);
-                fileA4.CheckOut();
+                CreateStructure();
 
                 // ACTION-A
-                var folderSizeA = Node.GetTreeSize(rootA.Path, false);
-                var treeSizeA = Node.GetTreeSize(rootA.Path, true);
+                var folderSizeA = Node.GetTreeSize(testRootPath, false);
+                var treeSizeA = Node.GetTreeSize(testRootPath, true);
 
                 // ARRANGE-B
                 DataStore.Enabled = true;
-                var rootB = new SystemFolder(Repository.Root) { Name = "TestRoot" }; rootB.Save();
-                var fileB1 = CreateFile(rootB, "File1", fileContent);
-                var fileB2 = CreateFile(rootB, "File2", fileContent);
-                var folderB1 = new SystemFolder(rootB) { Name = "Folder1" }; folderB1.Save();
-                var fileB3 = CreateFile(folderB1, "File3", fileContent);
-                var fileB4 = CreateFile(folderB1, "File4", fileContent);
-                fileB4.CheckOut();
+                CreateStructure();
 
                 // ACTION-B
-                var folderSizeB = Node.GetTreeSize(rootB.Path, false);
-                var treeSizeB = Node.GetTreeSize(rootB.Path, true);
+                var folderSizeB = Node.GetTreeSize(testRootPath, false);
+                var treeSizeB = Node.GetTreeSize(testRootPath, true);
 
                 // ASSERT
                 Assert.AreEqual(2 * (fileContent.Length + 3), folderSizeA);
@@ -994,6 +995,12 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(folderSizeA, folderSizeB);
                 Assert.AreEqual(treeSizeA, treeSizeB);
             });
+        }
+        private SystemFolder CreateFolder(Node parent, string name)
+        {
+            var folder = new SystemFolder(parent) { Name = name };
+            folder.Save();
+            return folder;
         }
         private File CreateFile(Node parent, string name, string fileContent)
         {
@@ -1003,6 +1010,86 @@ namespace SenseNet.ContentRepository.Tests
             return file;
         }
 
+
+        [TestMethod]
+        public void DP_AB_LoadIndexDocuments()
+        {
+            var fileContent = "File content.";
+            void CreateStructure()
+            {
+                var root = CreateFolder(Repository.Root, "TestRoot");
+                var file1 = CreateFile(root, "File1", fileContent);
+                var file2 = CreateFile(root, "File2", fileContent);
+                var folder1 = CreateFolder(root, "Folder1");
+                var file3 = CreateFile(folder1, "File3", fileContent);
+                var file4 = CreateFile(folder1, "File4", fileContent);
+                file4.CheckOut();
+                var folder2 = CreateFolder(folder1, "Folder2");
+                var fileA5 = CreateFile(folder2, "File5", fileContent);
+                var fileA6 = CreateFile(folder2, "File6", fileContent);
+            }
+
+            DPTest(() =>
+            {
+                var testRootPath = "/Root/TestRoot";
+                SystemFolder testRoot;
+                var fileNodeType = ActiveSchema.NodeTypes["File"];
+                var systemFolderType = ActiveSchema.NodeTypes["SystemFolder"];
+
+                // ARRANGE-A
+                DataStore.Enabled = false;
+                CreateStructure();
+                testRoot = Node.Load<SystemFolder>(testRootPath);
+                var testRootChildren = testRoot.Children.ToArray();
+
+                // ACTION-A
+                // #1 One version
+                var indxDataA1 = SearchManager.LoadIndexDocumentByVersionId(testRoot.VersionId);
+                // #2 More versions
+                var indxDataA2 = SearchManager.LoadIndexDocumentByVersionId(testRootChildren.Select(x => x.VersionId).ToArray()).ToArray();
+                // #3 Subtree all
+                var indxDataA3 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new int[0]).ToArray();
+                // #4 Only folders
+                var indxDataA4 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { fileNodeType.Id }).ToArray();
+                // #4 Only folders
+                var indxDataA5 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { systemFolderType.Id }).ToArray();
+
+                // ARRANGE-A
+                DataStore.Enabled = true;
+                CreateStructure();
+                testRoot = Node.Load<SystemFolder>(testRootPath);
+                testRootChildren = testRoot.Children.ToArray();
+
+                // ACTION-A
+                // #1 One version
+                var indxDataB1 = SearchManager.LoadIndexDocumentByVersionId(testRoot.VersionId);
+                // #2 More versions
+                var indxDataB2 = SearchManager.LoadIndexDocumentByVersionId(testRootChildren.Select(x => x.VersionId).ToArray()).ToArray();
+                // #3 Subtree all
+                var indxDataB3 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new int[0]).ToArray();
+                // #4 Only folders
+                var indxDataB4 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { fileNodeType.Id }).ToArray();
+                // #4 Only folders
+                var indxDataB5 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { systemFolderType.Id }).ToArray();
+
+                // ASSERT
+                // #1 One version
+                Assert.AreEqual(testRootPath, indxDataA1.Path);
+                Assert.AreEqual(indxDataA1.Path, indxDataB1.Path);
+                // #2 More versions
+                Assert.AreEqual(3, indxDataA2.Length);
+                Assert.AreEqual(indxDataA2.Length, indxDataB2.Length);
+                // #3 Subtree all
+                Assert.AreEqual(10, indxDataA3.Length);
+                Assert.AreEqual(indxDataA3.Length, indxDataB3.Length);
+                // #4 Only folders
+                Assert.AreEqual(3, indxDataA4.Length);
+                Assert.AreEqual(indxDataA4.Length, indxDataB4.Length);
+                // #4 Only files
+                Assert.AreEqual(7, indxDataA5.Length);
+                Assert.AreEqual(indxDataA5.Length, indxDataB5.Length);
+            });
+        }
 
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
