@@ -9,8 +9,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
-        private DataProvider _mainProvider; //DB:??
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:??
+        private DataProvider _mainProvider; //DB:ok but rewrite in the SqlSharedLockDataProvider2
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok but rewrite in the SqlSharedLockDataProvider2
 
         public void DeleteAllSharedLocks()
         {
