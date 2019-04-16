@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// instantiated by the sensenet infrastructure at system startup
         /// based on the configuration.
         /// </summary>
-        public static DataProvider Instance //DB:??
+        public static DataProvider Instance //DB:ok
         {
             get
             {
