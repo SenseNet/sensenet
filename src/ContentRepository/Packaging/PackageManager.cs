@@ -310,5 +310,128 @@ namespace SenseNet.Packaging
             }
             return propertyName;
         }
+
+        /// <summary>
+        /// Executes all relevant patches in all known components. A patch is relevant only
+        /// if its min and max versions encompass the currently installed version and the
+        /// supported component version in the assembly is higher than the one in the database.
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches()
+        {
+            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents());
+        }
+
+        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(IEnumerable<SnComponentInfo> assemblyComponents)
+        {
+            var results = new Dictionary<string, Dictionary<Version, PackagingResult>>();
+
+            foreach (var assemblyComponent in assemblyComponents)
+            {
+                var patchResults = ExecuteAssemblyPatch(assemblyComponent);
+
+                if (patchResults?.Any() ?? false)
+                    results[assemblyComponent.ComponentId] = patchResults;
+            }
+
+            return results;
+        }
+        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatch(SnComponentInfo assemblyComponent)
+        {
+            var patchResults = new Dictionary<Version, PackagingResult>();
+
+            // If there is no installed component for this id, skip patching.
+            var installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => c.ComponentId == assemblyComponent.ComponentId);
+            if (installedComponent == null)
+                return patchResults;
+
+            // check which db version is supported by the assembly
+            if (assemblyComponent.SupportedVersion == null ||
+                assemblyComponent.SupportedVersion <= installedComponent.Version)
+                return patchResults;
+
+            // Supported version in the assembly is higher than 
+            // the physical version: there should be a patch.
+            if (assemblyComponent.Patches?.Any() ?? false)
+            {
+                foreach (var patch in assemblyComponent.Patches)
+                {
+                    if (patch.MinVersion > installedComponent.Version ||
+                        patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
+                        patch.MaxVersion < installedComponent.Version ||
+                        patch.MaxVersionIsExclusive && patch.MaxVersion == installedComponent.Version)
+                        continue;
+
+                    //UNDONE: handle other patch formats (resource or filesystem path)
+                    if (patch.Contents.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var patchResult = ExecutePatch(patch.Contents);
+                        patchResults[patch.Version] = patchResult;
+
+                        //UNDONE: what if there are multiple patches and one fails: cleanup?
+                        if (!patchResult.Successful || patchResult.Errors > 0)
+                        {
+                            //TODO: log and throw error
+                        }
+                    }
+
+                    // reload
+                    installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => c.ComponentId == assemblyComponent.ComponentId);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Missing patch for component {installedComponent.ComponentId}. " +
+                                                    $"Installed version is {installedComponent.Version}. " +
+                                                    $"The assembly requires at least version {assemblyComponent.SupportedVersion}.");
+            }
+
+            return patchResults;
+        }
+
+        //UNDONE: check if these methods are necessary 
+        // or can be refactored to use existing methods.
+        internal static PackagingResult ExecutePatch(string manifestXml, TextWriter console = null)
+        {
+            try
+            {
+                var xml = new XmlDocument();
+                xml.LoadXml(manifestXml);
+                return ExecutePatch(xml, console);
+            }
+            catch (XmlException ex)
+            {
+                throw new InvalidPackageException("Invalid manifest xml.", ex);
+            }
+        }
+        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, TextWriter console = null)
+        {
+            var phase = -1;
+            var errors = 0;
+            PackagingResult result;
+
+            do
+            {
+                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter());
+                errors += result.Errors;
+            } while (result.NeedRestart);
+
+            result.Errors = errors;
+            return result;
+        }
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
+        {
+            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
+
+            //UNDONE: CreateForTest?
+            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", 
+                new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, 
+                null, console ?? new StringWriter());
+
+            var result = ExecuteCurrentPhase(manifest, executionContext);
+            RepositoryVersionInfo.Reset();
+
+            return result;
+        }
     }
 }

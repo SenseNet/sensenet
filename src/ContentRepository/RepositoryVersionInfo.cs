@@ -200,5 +200,46 @@ namespace SenseNet.ContentRepository
             // Everything is fine, assembly is runnable.
             return true;
         }
+
+        internal static SnComponentInfo[] GetAssemblyComponents()
+        {
+            return TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract)
+                .Select(t => TypeResolver.CreateInstance(t.FullName) as ISnComponent)
+                .Where(c => c != null)
+                .OrderBy(c => c.ComponentId, new SnComponentComparer())
+                .Select(SnComponentInfo.Create)
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Compares and sorts components loaded from the assemblies based on the order
+        /// found in the database. This is necessary to execute patches in the same
+        /// dependency order as they were installed.
+        /// </summary>
+        internal class SnComponentComparer : IComparer<string>
+        {
+            private readonly string[] _installedComponents;
+
+            internal SnComponentComparer(string[] installedComponents = null)
+            {
+                _installedComponents = installedComponents ?? 
+                                       Instance.Components.Select(ci => ci.ComponentId).ToArray();
+            }
+
+            public int Compare(string componentId1, string componentId2)
+            {
+                var idx1 = Array.FindIndex(_installedComponents, ic => string.Equals(ic, componentId1));
+                var idx2 = Array.FindIndex(_installedComponents, ic => string.Equals(ic, componentId2));
+
+                if (idx1 < 0 && idx2 < 0)
+                    return string.Compare(componentId1, componentId2, StringComparison.InvariantCultureIgnoreCase);
+                if (idx1 < 0)
+                    return 1;
+                if (idx2 < 0)
+                    return -1;
+
+                return idx1 < idx2 ? -1 : (idx1 == idx2 ? 0 : 1);
+            }
+        }
     }
 }

@@ -34,5 +34,19 @@ namespace SenseNet.ContentRepository
         /// <param name="componentVersion">The currently installed version of the component.</param>
         /// <returns>True if the assembly and component versions are compatible.</returns>
         bool IsComponentAllowed(Version componentVersion);
+
+        SnPatch[] Patches { get; }
+    }
+
+    public class SnPatch
+    {
+        public Version Version { get; set; }
+        public Version MinVersion { get; set; }
+        public Version MaxVersion { get; set; }
+        public bool MinVersionIsExclusive { get; set; }
+        public bool MaxVersionIsExclusive { get; set; }
+
+        //UNDONE: finalize patch definition options (resource, code, Manifest object)
+        public string Contents { get; set; }
     }
 }
