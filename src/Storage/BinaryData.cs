@@ -455,7 +455,9 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            return DataProvider.Current.StartChunk(node.VersionId, pt.Id, fullSize); //DB:??
+            return DataStore.Enabled
+                ? BlobStorage.StartChunk(node.VersionId, pt.Id, fullSize)
+                : DataProvider.Current.StartChunk(node.VersionId, pt.Id, fullSize); //DB:ok
         }
 
         /// <summary>
@@ -492,7 +494,10 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata == null ? null : binaryMetadata.RawData); //DB:??
+            if (DataStore.Enabled)
+                BlobStorage.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata?.RawData);
+            else
+                DataProvider.Current.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata == null ? null : binaryMetadata.RawData); //DB:ok
 
             NodeIdDependency.FireChanged(node.Id);
             StorageContext.L2Cache.Clear();
@@ -514,7 +519,10 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize); //DB:??
+            if (DataStore.Enabled)
+                BlobStorage.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize);
+            else
+                DataProvider.Current.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize); //DB:ok
         }
 
         public static void CopyFromStream(int contentId, Stream input, string fieldName = "Binary", BinaryData binaryData = null)
@@ -526,7 +534,10 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out node, out pt);
 
-            DataProvider.Current.CopyFromStream(node.VersionId, token, input); //DB:??
+            if (DataStore.Enabled)
+                BlobStorage.CopyFromStream(node.VersionId, token, input);
+            else
+                DataProvider.Current.CopyFromStream(node.VersionId, token, input); //DB:ok
 
             CommitChunk(contentId, token, input.Length, fieldName, binaryData);
         }
