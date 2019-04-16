@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (TransactionScope.IsActive)
             {
-                if (DataStore.Enabled) throw new NotImplementedException(); else binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId); //DB:??
+                binaryCacheEntity = DataStore.Enabled ? BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId) : DataProvider.Current.LoadBinaryCacheEntity(versionId, propertyTypeId); //DB:ok
                 return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
             }
 
