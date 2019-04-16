@@ -1091,6 +1091,26 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void DP_LoadEntityTree()
+        {
+            DPTest(() =>
+            {
+                // ACTION
+                var treeData = DataStore.LoadEntityTree();
+
+                // ASSERT check the right ordering: every node follows it's parent node.
+                var tree = new Dictionary<int, EntityTreeNodeData>();
+                foreach (var node in treeData)
+                {
+                    if (node.ParentId != 0)
+                        if(!tree.ContainsKey(node.ParentId))
+                            Assert.Fail($"The parent is not yet loaded. Id: {node.Id}, ParentId: {node.ParentId}");
+                    tree.Add(node.Id, node);
+                }
+            });
+        }
+
         //UNDONE:DB TEST: DP_AB_Create and Rollback
         //UNDONE:DB TEST: DP_AB_Update and Rollback
 

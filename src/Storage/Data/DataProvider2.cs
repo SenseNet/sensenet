@@ -113,6 +113,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
         public abstract List<ContentListType> GetContentListTypesInTree(string path);
+        public abstract IEnumerable<EntityTreeNodeData> LoadEntityTree();
 
         /* =============================================================================================== TreeLock */
 

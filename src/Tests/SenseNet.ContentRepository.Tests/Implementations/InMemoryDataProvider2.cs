@@ -687,7 +687,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
                 .ToList();
         }
-
         private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
         {
             foreach (var child in DB.Nodes.Where(x => x.ParentNodeId == root.NodeId))
@@ -696,6 +695,19 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 if (permeableList.Contains(child.NodeTypeId))
                     CollectChildTypesToAllow(child, permeableList, typeIdList);
             }
+        }
+
+        public override IEnumerable<EntityTreeNodeData> LoadEntityTree()
+        {
+            return DB.Nodes
+                .OrderBy(n => n.Path)
+                .Select(n => new EntityTreeNodeData
+                {
+                    Id = n.NodeId,
+                    ParentId = n.ParentNodeId,
+                    OwnerId = n.OwnerId
+                })
+                .ToArray();
         }
 
         /* =============================================================================================== TreeLock */

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
@@ -1721,21 +1722,30 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static class SecurityInstaller
         {
             /// <summary>
-            /// Clear security tables and copies ids of the full content tree structure from the repository to the security component.
-            /// Security component must be available.
+            /// Clears the security storage copies ids of the full content tree structure from the repository 
+            /// to the security component. Security component must be available.
             /// WARNING! Use only in install scenarios.
             /// </summary>
             public static void InstallDefaultSecurityStructure()
             {
                 using (new SystemAccount())
                 {
-                    DataProvider.Current.InstallDefaultSecurityStructure(); //DB:??
+                    if(DataStore.Enabled) CreateEntities(); else DataProvider.Current.InstallDefaultSecurityStructure(); //DB:ok
 
                     CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
                         .Apply();
                 }
             }
+	        private static void CreateEntities()
+	        {
+	            var securityContext = SecurityContext;
+	            DeleteEverythingAndRestart();
+
+	            var entityTreeNodes = DataStore.LoadEntityTree();
+	            foreach (var entityTreeNode in entityTreeNodes)
+	                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
+	        }
         }
 
         /// <summary>

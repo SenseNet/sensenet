@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -8,10 +9,14 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
+
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
 // ReSharper disable once CheckNamespace
@@ -75,6 +80,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC
         {
             DataProvider.InstallInitialData(data);
+        }
+
+        public static IEnumerable<EntityTreeNodeData> LoadEntityTree() //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadEntityTree();
         }
 
         /* =============================================================================================== Nodes */
@@ -468,6 +478,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.GetTreeSize(path, includeChildren);
         }
+
+        public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
         /* =============================================================================================== */
 
