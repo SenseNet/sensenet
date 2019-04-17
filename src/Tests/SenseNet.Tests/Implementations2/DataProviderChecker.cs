@@ -181,7 +181,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         private static void Assert_AreEqual(DateTime expected, DateTime actual, string name)
         {
-            var expectedDiff = 500;
+            var expectedDiff = 1000;
             var diff = (actual - expected).TotalMilliseconds;
             if (diff > expectedDiff || diff < -expectedDiff)
                 throw new Exception(

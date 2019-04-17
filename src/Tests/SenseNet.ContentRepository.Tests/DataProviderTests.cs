@@ -544,7 +544,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(42, storedProps["Integer1"]);
                     Assert.AreEqual(42.56m, storedProps["Number1"]);
                     Assert.AreEqual(new DateTime(1111, 11, 11), storedProps["DateTime1"]);
-                    Assert.AreEqual($"{Repository.Root.Id},{folderB.Id}", ArrayToString((int[])storedProps["Reference1"]));
+                    Assert.AreEqual($"{Repository.Root.Id},{folderB.Id}", ArrayToString((List<int>)storedProps["Reference1"]));
 
                     // ACTION-2 UPDATE-1
                     nodeB = Node.Load<GenericContent>(nodeB.Id);
@@ -564,7 +564,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(43, storedProps["Integer1"]);
                     Assert.AreEqual(42.099m, storedProps["Number1"]);
                     Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
-                    Assert.AreEqual($"{folderB.Id}", ArrayToString((int[])storedProps["Reference1"]));
+                    Assert.AreEqual($"{folderB.Id}", ArrayToString((List<int>)storedProps["Reference1"]));
 
                     // ACTION-3 UPDATE-2
                     nodeB = Node.Load<GenericContent>(nodeB.Id);
@@ -1121,6 +1121,10 @@ namespace SenseNet.ContentRepository.Tests
             return ((InMemoryDataProvider2)Providers.Instance.DataProvider2).DB;
         }
         private string ArrayToString(int[] array) //UNDONE:DB --------Move to TestBase
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        private string ArrayToString(List<int> array) //UNDONE:DB --------Move to TestBase
         {
             return string.Join(",", array.Select(x => x.ToString()));
         }
