@@ -332,7 +332,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                 case DataType.DateTime:
                     return DateTime.Parse(src, CultureInfo.InvariantCulture);
                 case DataType.Reference:
-                    return src.Substring(1, src.Length - 2).Split(',').Select(int.Parse).ToArray();
+                    return src.Substring(1, src.Length - 2).Split(',').Select(int.Parse).ToList();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null);
             }

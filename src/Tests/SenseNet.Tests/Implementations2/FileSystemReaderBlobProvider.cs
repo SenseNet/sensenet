@@ -27,14 +27,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             var path = (string) context.BlobProviderData;
-
+            string fsPath;
             // Transform CTD paths
             var ctdRoot = Repository.ContentTypesFolderPath + "/";
-            if (path.StartsWith(ctdRoot))
-                path = ctdRoot + RepositoryPath.GetFileName(path);
 
             //UNDONE:DB!!!!!!!!!!! DO NOT USE ABSOUTE PATH OF YOUR MACHINE
-            var fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import", path.Substring("/root/".Length).Replace("/", "\\"));
+            if (path.StartsWith(ctdRoot))
+            {
+                path = ctdRoot + RepositoryPath.GetFileName(path);
+                fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import",
+                    path.Substring("/root/".Length).Replace("/", "\\") + ".xml");
+                if (!System.IO.File.Exists(fsPath))
+                    fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import",
+                        path.Substring("/root/".Length).Replace("/", "\\") + "Ctd.xml");
+            }
+            else
+            {
+                fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import",
+                    path.Substring("/root/".Length).Replace("/", "\\"));
+            }
+            //var fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import", path.Substring("/root/".Length).Replace("/", "\\"));
             return new FileStream(fsPath, FileMode.Open, FileAccess.Read);
         }
         public Stream GetStreamForWrite(BlobStorageContext context)

@@ -8,7 +8,10 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         public static IRepositoryBuilder UseAccessTokenDataProviderExtension(this IRepositoryBuilder builder, IAccessTokenDataProviderExtension provider)
         {
+var backup = DataStore.Enabled;
+DataStore.Enabled = false;
             DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), provider); //DB:??
+DataStore.Enabled = backup;
             return builder;
         }
     }

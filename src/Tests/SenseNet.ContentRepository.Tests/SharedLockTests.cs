@@ -654,6 +654,8 @@ namespace SenseNet.ContentRepository.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
+            DataStore.Enabled = EnableDataStore;
+
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
@@ -663,8 +665,15 @@ namespace SenseNet.ContentRepository.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            _repository = Repository.Start(builder);
+var backup = DataStore.Enabled;
+DataStore.Enabled = true;
             DataStore.InstallDataPackage(GetInitialStructure());
+DataStore.Enabled = backup;
+
+            _repository = Repository.Start(builder);
+
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             using (new SystemAccount())
             {

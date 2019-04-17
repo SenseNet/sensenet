@@ -1491,7 +1491,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 case DataType.Binary:
                     return CloneBinaryProperty((BinaryDataValue)value);
                 case DataType.Reference:
-                    return ((IEnumerable<int>)value).ToArray();
+                    return ((IEnumerable<int>)value).ToList();
                 default:
                     throw new ArgumentOutOfRangeException();
             }

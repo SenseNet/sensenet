@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
@@ -25,6 +26,7 @@ namespace SenseNet.Tests
     [TestClass]
     public class TestBase
     {
+        protected static bool EnableDataStore = true;
 
         private static volatile bool _prototypesCreated;
         private static readonly object PrototypeSync = new object();
@@ -73,7 +75,7 @@ namespace SenseNet.Tests
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
 
-            DataStore.Enabled = true;
+            DataStore.Enabled = EnableDataStore;
         }
 
         [TestCleanup]
@@ -345,6 +347,22 @@ namespace SenseNet.Tests
         protected static void InstallCarContentType()
         {
             ContentTypeInstaller.InstallContentType(CarContentType);
+        }
+
+
+        private static InitialData _initialData;
+        protected static InitialData GetInitialStructure()
+        {
+            if (_initialData == null)
+            {
+                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
+                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
+                using (var nr = new StreamReader(@"D:\nodes.txt"))
+                using (var vr = new StreamReader(@"D:\versions.txt"))
+                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
+                    _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+            }
+            return _initialData;
         }
 
     }
