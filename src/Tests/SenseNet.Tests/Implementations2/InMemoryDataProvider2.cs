@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using STT = System.Threading.Tasks;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Schema;
@@ -17,16 +16,17 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
-        internal const int TextAlternationSizeLimit = 4000;
+        public const int TextAlternationSizeLimit = 4000;
 
         // ReSharper disable once InconsistentNaming
-        internal InMemoryDataBase2 DB = new InMemoryDataBase2();
+        public InMemoryDataBase2 DB { get; } = new InMemoryDataBase2();
 
         /* =============================================================================================== Nodes */
 

@@ -3,10 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.DataModel;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
+    public class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
     {
         /* ================================================================================================ SCHEMA */
 

@@ -5,9 +5,9 @@ using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
-    internal class NodeDoc
+    public class NodeDoc
     {
         private int _nodeId;
         private int _nodeTypeId;
@@ -362,7 +362,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class VersionDoc
+    public class VersionDoc
     {
         private int _versionId;
         private int _nodeId;
@@ -508,7 +508,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class BinaryPropertyDoc
+    public class BinaryPropertyDoc
     {
         public int BinaryPropertyId { get; set; }
         public int VersionId { get; set; }
@@ -527,7 +527,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class FileDoc
+    public class FileDoc
     {
         public int FileId { get; set; }
         public string ContentType { get; set; }
@@ -558,7 +558,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class TreeLockDoc
+    public class TreeLockDoc
     {
         public int TreeLockId;
         public string Path;
@@ -575,7 +575,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class LogEntryDoc
+    public class LogEntryDoc
     {
         public int LogId;
         public int EventId;
@@ -623,7 +623,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class IndexingActivityDoc
+    public class IndexingActivityDoc
     {
         public int IndexingActivityId;
         public IndexingActivityType ActivityType;
@@ -652,7 +652,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
     }
 
-    internal class SharedLockDoc //UNDONE:@@ SharedLockDoc is an extension
+    public class SharedLockDoc //UNDONE:@@ SharedLockDoc is an extension
     {
         public int SharedLockId;
         public int ContentId;

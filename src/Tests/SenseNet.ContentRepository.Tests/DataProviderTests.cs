@@ -14,13 +14,13 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Search.Querying;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.ContentRepository.Tests
 {

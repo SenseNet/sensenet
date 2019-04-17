@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     internal class IndexFieldJsonConverter : JsonConverter<IndexField>
     {

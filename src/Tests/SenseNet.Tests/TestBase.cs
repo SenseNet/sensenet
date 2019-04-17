@@ -18,6 +18,7 @@ using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.Tests
 {
@@ -175,6 +176,7 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
+            var dataProvider2 = new InMemoryDataProvider2();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
             return new RepositoryBuilder()
