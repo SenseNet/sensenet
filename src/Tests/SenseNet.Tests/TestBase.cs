@@ -73,7 +73,7 @@ namespace SenseNet.Tests
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
 
-            DataStore.Enabled = false;
+            DataStore.Enabled = true;
         }
 
         [TestCleanup]
@@ -181,6 +181,8 @@ namespace SenseNet.Tests
 
             //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2
             dp2.SetExtension(typeof(ISharedLockDataProviderExtension), new InMemorySharedLockDataProvider2());
+            //UNDONE:DB ----RepositoryBuilder and InMemoryAccessTokenDataProvider2
+            dp2.SetExtension(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider2());
 
             //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
             Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);

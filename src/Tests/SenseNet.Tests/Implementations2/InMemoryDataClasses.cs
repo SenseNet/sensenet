@@ -670,4 +670,29 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             };
         }
     }
+
+    public class AccessTokenDoc //UNDONE:@@ AccessTokenDoc is an extension
+    {
+        public int AccessTokenRowId;
+        public string Value;
+        public int UserId;
+        public int? ContentId;
+        public string Feature;
+        public DateTime CreationDate;
+        public DateTime ExpirationDate;
+
+        public AccessTokenDoc Clone()
+        {
+            return new AccessTokenDoc
+            {
+                AccessTokenRowId = AccessTokenRowId,
+                Value = Value,
+                UserId = UserId,
+                ContentId = ContentId,
+                Feature = Feature,
+                CreationDate = CreationDate,
+                ExpirationDate = ExpirationDate
+            };
+        }
+    }
 }

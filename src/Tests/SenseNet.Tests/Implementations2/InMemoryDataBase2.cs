@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -8,6 +10,24 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
     {
+        private readonly Dictionary<Type, object> _collections = new Dictionary<Type, object>
+        {
+            {typeof(NodeDoc), new DataCollection<NodeDoc>()},
+            {typeof(VersionDoc), new DataCollection<VersionDoc>()},
+            {typeof(BinaryPropertyDoc), new DataCollection<BinaryPropertyDoc>()},
+            {typeof(FileDoc), new DataCollection<FileDoc>()},
+            {typeof(TreeLockDoc), new DataCollection<TreeLockDoc>()},
+            {typeof(LogEntryDoc), new DataCollection<LogEntryDoc>()},
+            {typeof(IndexingActivityDoc), new DataCollection<IndexingActivityDoc>()},
+            /* ====================================================================== EXTENSIONS */
+            {typeof(SharedLockDoc), new DataCollection<SharedLockDoc>()},
+            {typeof(AccessTokenDoc), new DataCollection<AccessTokenDoc>()},
+        };
+        public DataCollection<T> GetCollection<T>()
+        {
+            return (DataCollection<T>) _collections[typeof(T)];
+        }
+
         /* ================================================================================================ SCHEMA */
 
         public string SchemaLock { get; set; }
@@ -83,6 +103,49 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public int GetNextSharedLockId()
         {
             return Interlocked.Increment(ref __sharedLockId);
+        }
+    }
+
+    public class DataCollection<T> : IEnumerable<T>
+    {
+        private readonly List<T> _list = new List<T>();
+        public int Count => _list.Count;
+
+        public DataCollection(int lastId = 0)
+        {
+            _lastId = lastId;
+        }
+
+        private int _lastId;
+        public int GetNextId()
+        {
+            return Interlocked.Increment(ref _lastId);
+        }
+
+        public void Add(T item)
+        {
+            _list.Add(item);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+
+        public void Clear()
+        {
+            _list.Clear();
+        }
+
+        public void Remove(T item)
+        {
+            _list.Remove(item);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage.Security
     {
         private const int MinimumTokenExpirationMinutes = 5;
 
-        private static IAccessTokenDataProviderExtension Storage => DataProvider.GetExtension<IAccessTokenDataProviderExtension>(); //DB:??
+        private static IAccessTokenDataProviderExtension Storage => DataStore.Enabled ? DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>() : DataProvider.GetExtension<IAccessTokenDataProviderExtension>(); //DB:ok
 
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.
