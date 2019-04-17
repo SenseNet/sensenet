@@ -1153,16 +1153,6 @@ namespace SenseNet.ContentRepository.Tests
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
-            //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
-            var dp2 = new InMemoryDataProvider2();
-            Providers.Instance.DataProvider2 = dp2;
-
-            //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2
-            dp2.SetExtension(typeof(ISharedLockDataProviderExtension), new InMemorySharedLockDataProvider2());
-
-            //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
-            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);
-
             var builder = CreateRepositoryBuilderForTest();
 
             Indexing.IsOuterSearchEngineEnabled = true;

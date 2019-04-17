@@ -175,8 +175,17 @@ namespace SenseNet.Tests
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
+            //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
+            var dp2 = new InMemoryDataProvider2();
+            Providers.Instance.DataProvider2 = dp2;
+
+            //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2
+            dp2.SetExtension(typeof(ISharedLockDataProviderExtension), new InMemorySharedLockDataProvider2());
+
+            //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
+            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);
+
             var dataProvider = new InMemoryDataProvider();
-            var dataProvider2 = new InMemoryDataProvider2();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
             return new RepositoryBuilder()
