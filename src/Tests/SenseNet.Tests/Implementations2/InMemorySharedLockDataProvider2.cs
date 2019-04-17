@@ -9,30 +9,34 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 {
     public class InMemorySharedLockDataProvider2 : ISharedLockDataProviderExtension
     {
-        //UNDONE:@@ SharedLockDoc is an extension
-        private List<SharedLockDoc> SharedLocks { get; } = ((InMemoryDataProvider2) DataStore.DataProvider).DB.SharedLocks;
+        public DataCollection<SharedLockDoc> GetSharedLocks()
+        {
+            return ((InMemoryDataProvider2)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
+        }
+
 
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
         public void DeleteAllSharedLocks()
         {
-            SharedLocks.Clear();
+            GetSharedLocks().Clear();
         }
 
         public void CreateSharedLock(int contentId, string @lock)
         {
+            var sharedLocks = GetSharedLocks();
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            var row = SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            var row = sharedLocks.FirstOrDefault(x => x.ContentId == contentId);
             if (row != null && row.CreationDate < timeLimit)
             {
-                SharedLocks.Remove(row);
+                sharedLocks.Remove(row);
                 row = null;
             }
 
             if (row == null)
             {
-                var newSharedLockId = SharedLocks.Count == 0 ? 1 : SharedLocks.Max(t => t.SharedLockId) + 1;
-                SharedLocks.Add(new SharedLockDoc
+                var newSharedLockId = sharedLocks.Count == 0 ? 1 : sharedLocks.Max(t => t.SharedLockId) + 1;
+                sharedLocks.Add(new SharedLockDoc
                 {
                     SharedLockId = newSharedLockId,
                     ContentId = contentId,
@@ -52,7 +56,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             DeleteTimedOutItems();
 
-            var row = SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            var row = GetSharedLocks().FirstOrDefault(x => x.ContentId == contentId);
             if (row == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (row.Lock != @lock)
@@ -63,15 +67,17 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public string ModifySharedLock(int contentId, string @lock, string newLock)
         {
+            var sharedLocks = GetSharedLocks();
+
             DeleteTimedOutItems();
 
-            var existingItem = SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            var existingItem = sharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
             if (existingItem != null)
             {
                 existingItem.Lock = newLock;
                 return null;
             }
-            var existingLock = SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            var existingLock = sharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
@@ -82,20 +88,22 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public string GetSharedLock(int contentId)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            return SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock;
+            return GetSharedLocks().FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock;
         }
 
         public string DeleteSharedLock(int contentId, string @lock)
         {
+            var sharedLocks = GetSharedLocks();
+
             DeleteTimedOutItems();
 
-            var existingItem = SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            var existingItem = sharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
             if (existingItem != null)
             {
-                SharedLocks.Remove(existingItem);
+                sharedLocks.Remove(existingItem);
                 return null;
             }
-            var existingLock = SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            var existingLock = sharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
@@ -108,13 +116,27 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             // do nothing
         }
 
+        public void SetSharedLockCreationDate(int nodeId, DateTime value)
+        {
+            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
+            sharedLockRow.CreationDate = value;
+        }
+
+        public DateTime GetSharedLockCreationDate(int nodeId)
+        {
+            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
+            return sharedLockRow.CreationDate;
+        }
+
 
         private void DeleteTimedOutItems()
         {
+            var sharedLocks = GetSharedLocks();
+
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            var timedOutItems = SharedLocks.Where(x => x.CreationDate < timeLimit).ToArray();
+            var timedOutItems = sharedLocks.Where(x => x.CreationDate < timeLimit).ToArray();
             foreach (var item in timedOutItems)
-                SharedLocks.Remove(item);
+                sharedLocks.Remove(item);
         }
     }
 }

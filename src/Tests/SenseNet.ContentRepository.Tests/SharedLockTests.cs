@@ -19,6 +19,13 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class SharedLockTests : TestBase
     {
+        private ISharedLockDataProviderExtension GetDataProvider()
+        {
+            return DataStore.Enabled
+                ? DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>()
+                : DataProvider.GetExtension<ISharedLockDataProviderExtension>(); //DB:ok
+        }
+
         [TestMethod]
         public void SharedLock_LockAndGetLock()
         {
@@ -43,12 +50,11 @@ namespace SenseNet.ContentRepository.Tests
             SharedLock.Lock(nodeId, lockValue);
 
             // ACTION
-            var timeout = DataProvider.GetExtension<ISharedLockDataProviderExtension>().SharedLockTimeout;
+            var timeout = GetDataProvider().SharedLockTimeout;
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddMinutes(-timeout.TotalMinutes - 1));
 
             Assert.IsNull(SharedLock.GetLock(nodeId));
         }
-
         [TestMethod]
         [ExpectedException(typeof(ContentNotFoundException))]
         public void SharedLock_Lock_MissingContent()
@@ -658,6 +664,7 @@ namespace SenseNet.ContentRepository.Tests
             Indexing.IsOuterSearchEngineEnabled = true;
 
             _repository = Repository.Start(builder);
+            DataStore.InstallDataPackage(GetInitialStructure());
 
             using (new SystemAccount())
             {
@@ -698,19 +705,23 @@ namespace SenseNet.ContentRepository.Tests
 
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+            //if (!(GetDataProvider() is InMemorySharedLockDataProvider dataProvider))
+            //    throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
 
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            sharedLockRow.CreationDate = value;
+            //var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
+            //sharedLockRow.CreationDate = value;
+
+            GetDataProvider().SetSharedLockCreationDate(nodeId, value);
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+            //if (!(GetDataProvider() is InMemorySharedLockDataProvider dataProvider))
+            //    throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
 
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            return sharedLockRow.CreationDate;
+            //var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
+            //return sharedLockRow.CreationDate;
+            return GetDataProvider().GetSharedLockCreationDate(nodeId);
+
         }
 
         private readonly PrivateType _wopiHandlerAcc = new PrivateType(typeof(WopiHandler));

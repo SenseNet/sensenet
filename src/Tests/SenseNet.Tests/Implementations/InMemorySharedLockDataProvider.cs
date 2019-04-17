@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
-    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension //UNDONE:DB:@ Store data in the inmem database
+    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public class SharedLockRow
         {
@@ -124,6 +124,18 @@ namespace SenseNet.Tests.Implementations
         public void CleanupSharedLocks()
         {
             // do nothing
+        }
+
+        public void SetSharedLockCreationDate(int nodeId, DateTime value)
+        {
+            var sharedLockRow = SharedLocks.First(x => x.ContentId == nodeId);
+            sharedLockRow.CreationDate = value;
+        }
+
+        public DateTime GetSharedLockCreationDate(int nodeId)
+        {
+            var sharedLockRow = SharedLocks.First(x => x.ContentId == nodeId);
+            return sharedLockRow.CreationDate;
         }
 
 

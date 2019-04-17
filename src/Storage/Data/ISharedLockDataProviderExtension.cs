@@ -27,5 +27,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         string GetSharedLock(int contentId);
         string DeleteSharedLock(int contentId, string @lock);
         void CleanupSharedLocks();
+
+        /// <summary>
+        /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.
+        /// </summary>
+        void SetSharedLockCreationDate(int nodeId, DateTime value);
+        /// <summary>
+        /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.
+        /// </summary>
+        DateTime GetSharedLockCreationDate(int nodeId);
     }
 }

@@ -181,6 +181,17 @@ SELECT @Result
             }
         }
 
+        /// <inheritdoc/>
+        public void SetSharedLockCreationDate(int nodeId, DateTime value)
+        {
+            throw new NotImplementedException(); //UNDONE:DB: SQLIMPL SetSharedLockCreationDate
+        }
+        /// <inheritdoc/>
+        public DateTime GetSharedLockCreationDate(int nodeId)
+        {
+            throw new NotImplementedException(); //UNDONE:DB: SQLIMPL GetSharedLockCreationDate
+        }
+
         /* ============================================================= For tests */
 
         public DateTime GetCreationDate(int contentId)
