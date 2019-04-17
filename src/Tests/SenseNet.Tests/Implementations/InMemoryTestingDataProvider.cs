@@ -10,8 +10,8 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryTestingDataProvider : ITestingDataProviderExtension
     {
-        private DataProvider _mainProvider;
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance);
+        private DataProvider _mainProvider; //DB:ok
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok
 
         // ReSharper disable once InconsistentNaming
         public InMemoryDataProvider.Database DB => ((InMemoryDataProvider) MainProvider).DB;

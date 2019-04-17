@@ -37,7 +37,7 @@ namespace SenseNet.Tests.SelfTest
             Node node;
             var result = Test(() =>
             {
-                var lastNodeId = ((InMemoryDataProvider)DataProvider.Current).LastNodeId;
+                var lastNodeId = ((InMemoryDataProvider)DataProvider.Current).LastNodeId; //DB:??test??
 
                 var root = Node.LoadNode(Identifiers.RootPath);
                 node = new SystemFolder(root)

@@ -23,7 +23,7 @@ using SenseNet.Security;
 
 namespace SenseNet.Tests.Implementations
 {
-    public partial class InMemoryDataProvider : DataProvider
+    public partial class InMemoryDataProvider : DataProvider //DB:ok
     {
         internal const int StringPageSize = 80;
         internal const int IntPageSize = 40;

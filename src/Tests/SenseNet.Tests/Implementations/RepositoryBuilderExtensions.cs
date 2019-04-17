@@ -8,7 +8,10 @@ namespace SenseNet.Tests.Implementations
     {
         public static IRepositoryBuilder UseTestingDataProviderExtension(this IRepositoryBuilder repositoryBuilder, ITestingDataProviderExtension provider)
         {
-            DataProvider.Instance.SetExtension(typeof(ITestingDataProviderExtension), provider);
+var backup = DataStore.Enabled;
+DataStore.Enabled = false;
+            DataProvider.Instance.SetExtension(typeof(ITestingDataProviderExtension), provider); //DB:??
+DataStore.Enabled = backup;
             return repositoryBuilder;
         }
     }

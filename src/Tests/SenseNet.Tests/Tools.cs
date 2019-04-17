@@ -55,8 +55,8 @@ namespace SenseNet.Tests
 
         public class DataProviderSwindler : IDisposable
         {
-            readonly DataProvider _providerInstanceBackup;
-            public DataProviderSwindler(DataProvider providerInstance)
+            readonly DataProvider _providerInstanceBackup; //DB:?? not used?
+            public DataProviderSwindler(DataProvider providerInstance) //DB:?? not used?
             {
                 _providerInstanceBackup = Providers.Instance.DataProvider;
                 Providers.Instance.DataProvider = providerInstance;

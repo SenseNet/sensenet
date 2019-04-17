@@ -43,7 +43,7 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var db = DataProvider.Current;
+                var db = DataProvider.Current; //DB:??test??
                 var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // load last indexing activity
@@ -119,7 +119,7 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var db = DataProvider.Current;
+                var db = DataProvider.Current; //DB:??test??
                 var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // load last indexing activity
@@ -209,7 +209,7 @@ namespace SenseNet.Tests.SelfTest
                 node1.ForceDelete();
 
                 // load last indexing activity
-                var db = DataProvider.Current;
+                var db = DataProvider.Current; //DB:??test??
                 var activityId = db.GetLastIndexingActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
@@ -422,7 +422,7 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var db = DataProvider.Current;
+                var db = DataProvider.Current; //DB:??test??
                 var indexDoc = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // check the index document head consistency
@@ -469,12 +469,12 @@ namespace SenseNet.Tests.SelfTest
                     SearchManager.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
-                var db = DataProvider.Current;
+                var db = DataProvider.Current; //DB:??test??
                 var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
-                var nodeCount = DataProvider.GetNodeCount();
-                var versionCount = DataProvider.GetVersionCount();
+                var nodeCount = DataProvider.GetNodeCount(); //DB:??test??
+                var versionCount = DataProvider.GetVersionCount(); //DB:??test??
 
                 return new Tuple<IIndexingActivity[], InMemoryIndex, int, int>(activities, GetTestIndex(), nodeCount, versionCount);
             });

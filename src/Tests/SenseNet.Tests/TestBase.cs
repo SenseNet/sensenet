@@ -239,7 +239,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000);
+            var idSet = DataStore.Enabled ? DataStore.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000) : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)

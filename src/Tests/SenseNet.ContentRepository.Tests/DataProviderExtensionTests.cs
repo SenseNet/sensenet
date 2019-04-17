@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Tests
                 new InMemoryDataProvider.LogEntriesRow{Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d)},
             });
 
-            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>(); //DB:??test??
             testingDataProvider.InitializeForTests();
 
             // ACTION
@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             // Call a not interface method
-            var actual = ((InMemoryTestingDataProvider)DataProvider.GetExtension<ITestingDataProviderExtension>())
+            var actual = ((InMemoryTestingDataProvider)DataProvider.GetExtension<ITestingDataProviderExtension>()) //DB:??test??
                 .TestMethodThatIsNotInterfaceMember("asdf");
 
             // ASSERT
@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
             const int paramValue = 42;
 
             // ACTION
-            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText)
+            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText) //DB:??test??
                 .AddParameter(paramName, paramValue);
 
             // ASSERT
@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Tests
             CreateRepositoryBuilderForTest();
 
             // ACTION
-            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText)
+            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText) //DB:??test??
                 .AddParameter("Param0", 42, DbType.Int64)
                 .AddParameter("Param1", "asdf", DbType.AnsiString);
 
@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText)
+            var proc = DataProvider.Instance.CreateDataProcedure(InMemoryDataProvider.MagicCommandText) //DB:??test??
                     .AddParameter("Param0", values[0])
                     .AddParameter("Param1", values[1])
                     .AddParameter("Param2", values[2])

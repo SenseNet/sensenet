@@ -1576,21 +1576,19 @@ namespace SenseNet.Services.Tests
             Assert.AreEqual(expectedValue, actualValue);
         }
 
+        private ISharedLockDataProviderExtension GetDataProvider()
+        {
+            return DataStore.Enabled
+                ? DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>()
+                : DataProvider.GetExtension<ISharedLockDataProviderExtension>(); //DB:ok
+        }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
-
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            sharedLockRow.CreationDate = value;
+            GetDataProvider().SetSharedLockCreationDate(nodeId, value);
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
-
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            return sharedLockRow.CreationDate;
+            return GetDataProvider().GetSharedLockCreationDate(nodeId);
         }
     }
 }

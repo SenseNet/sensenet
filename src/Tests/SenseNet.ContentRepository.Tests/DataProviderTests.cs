@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Tests
                 using (var vw = new StreamWriter(_initialVersionsPath, false))
                 using (var dw = new StreamWriter(_initialDynamicDataPath, false))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null, 
-                        ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId));
+                        ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
             });
             Assert.Inconclusive();
         }

@@ -540,5 +540,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== */
 
+        public static IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static AuditLogEntry[] LoadLastAuditLogEntries(int count)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

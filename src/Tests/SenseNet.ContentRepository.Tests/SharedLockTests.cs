@@ -714,21 +714,10 @@ DataStore.Enabled = backup;
 
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            //if (!(GetDataProvider() is InMemorySharedLockDataProvider dataProvider))
-            //    throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
-
-            //var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            //sharedLockRow.CreationDate = value;
-
             GetDataProvider().SetSharedLockCreationDate(nodeId, value);
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            //if (!(GetDataProvider() is InMemorySharedLockDataProvider dataProvider))
-            //    throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
-
-            //var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            //return sharedLockRow.CreationDate;
             return GetDataProvider().GetSharedLockCreationDate(nodeId);
 
         }
