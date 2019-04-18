@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -12,7 +9,6 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Portal;
@@ -27,22 +23,16 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
-        private string _initialPropertyTypePath = @"D:\propertyTypes.txt";
-        private string _initialNodeTypePath = @"D:\nodeTypes.txt";
-        private string _initialNodesPath = @"D:\nodes.txt";
-        private string _initialVersionsPath = @"D:\versions.txt";
-        private string _initialDynamicDataPath = @"D:\dynamicData.txt";
-
         //[TestMethod]
         public void InitialData_Create()
         {
             DPTest(() =>
             {
-                using (var ntw = new StreamWriter(_initialPropertyTypePath, false))
-                using (var ptw = new StreamWriter(_initialNodeTypePath, false))
-                using (var nw = new StreamWriter(_initialNodesPath, false))
-                using (var vw = new StreamWriter(_initialVersionsPath, false))
-                using (var dw = new StreamWriter(_initialDynamicDataPath, false))
+                using (var ntw = new StreamWriter(@"D:\propertyTypes.txt", false))
+                using (var ptw = new StreamWriter(@"D:\nodeTypes.txt", false))
+                using (var nw = new StreamWriter(@"D:\nodes.txt", false))
+                using (var vw = new StreamWriter(@"D:\versions.txt", false))
+                using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null, 
                         ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
             });
@@ -1170,20 +1160,5 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-
-        private InitialData _initialData;
-        private InitialData GetInitialStructure()
-        {
-            if (_initialData == null)
-            {
-                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
-                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
-                using (var nr = new StreamReader(@"D:\nodes.txt"))
-                using (var vr = new StreamReader(@"D:\versions.txt"))
-                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
-                    _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
-            }
-            return _initialData;
-        }
     }
 }

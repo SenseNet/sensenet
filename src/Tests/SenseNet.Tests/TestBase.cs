@@ -353,13 +353,23 @@ namespace SenseNet.Tests
         private static InitialData _initialData;
         protected static InitialData GetInitialStructure()
         {
+            //if (_initialData == null)
+            //{
+            //    using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
+            //    using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
+            //    using (var nr = new StreamReader(@"D:\nodes.txt"))
+            //    using (var vr = new StreamReader(@"D:\versions.txt"))
+            //    using (var dr = new StreamReader(@"D:\dynamicData.txt"))
+            //        _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+            //}
+            //return _initialData;
             if (_initialData == null)
             {
-                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
-                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
-                using (var nr = new StreamReader(@"D:\nodes.txt"))
-                using (var vr = new StreamReader(@"D:\versions.txt"))
-                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
+                using (var ptr = new StringReader(InitialTestData.PropertyTypes))
+                using (var ntr = new StringReader(InitialTestData.NodeTypes))
+                using (var nr = new StringReader(InitialTestData.Nodes))
+                using (var vr = new StringReader(InitialTestData.Versions))
+                using (var dr = new StringReader(InitialTestData.DynamicData))
                     _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
             }
             return _initialData;

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -16,6 +18,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
@@ -1284,8 +1287,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                         var blobProviderName = binProp.BlobProviderName;
                         if (blobProviderName == null && binProp.BlobProviderData != null
-                                                     && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
-                            blobProviderName = typeof(FileSystemReaderBlobProvider).FullName;
+                            && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                        {
+                            blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
+                                ? typeof(ContentTypeStringBlobProvider).FullName
+                                : typeof(FileSystemReaderBlobProvider).FullName;
+                        }
 
                         DB.Files.Add(new FileDoc
                         {

@@ -207,9 +207,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     if ((line.StartsWith("-") || line.StartsWith("=")) && !line.Contains('|'))
                     {
                         isHead = false;
-                        if (headLines.Count > 1)
-                            throw new NotImplementedException();
-                        head = ParseLine(headLines[0]);
+                        head = ParseLine(headLines.Last());
                     }
                     else
                     {
