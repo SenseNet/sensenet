@@ -779,18 +779,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == nodeData.VersionId);
             if (versionDoc != null)
             {
-                string serializedDoc;
-                using (var writer = new StringWriter())
-                {
-                    JsonSerializer.Create(new JsonSerializerSettings
-                    {
-                        Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                        Formatting = Formatting.Indented
-                    }).Serialize(writer, indexDoc);
-                    serializedDoc = writer.GetStringBuilder().ToString();
-                }
+                var serializedDoc = indexDoc.Serialize();
                 versionDoc.IndexDocument = serializedDoc;
                 nodeData.VersionTimestamp = versionDoc.Timestamp;
             }
@@ -832,11 +821,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var approved = version.Version.Status == VersionStatus.Approved;
             var isLastMajor = node.LastMajorVersionId == version.VersionId;
 
-            //UNDONE:DB INDEXDOCUMENT
-            //var bytes = version.IndexDocument ?? new byte[0];
-            var bytes = new byte[0];
-
-            return new IndexDocumentData(null, bytes)
+            return new IndexDocumentData(null, version.IndexDocument)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = version.VersionId,

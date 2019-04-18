@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using Newtonsoft.Json;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
@@ -244,17 +245,29 @@ namespace SenseNet.Search.Indexing
 
         /* =========================================================================================== */
 
-        /// <summary>
-        /// Returns with the deserialized IndexDocument.
-        /// </summary>
-        /// <param name="serializedIndexDocument"></param>
-        /// <returns></returns>
-        public static IndexDocument Deserialize(byte[] serializedIndexDocument)
+        private static readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
         {
-            var docStream = new MemoryStream(serializedIndexDocument);
-            var formatter = new BinaryFormatter();
-            var indxDoc = (IndexDocument)formatter.Deserialize(docStream);
-            return indxDoc;
+            Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.Indented
+        };
+
+        public static IndexDocument Deserialize(string serializedIndexDocument)
+        {
+            var result = JsonSerializer.Create(_serializerSettings).Deserialize<IndexDocument>(
+                new JsonTextReader(new StringReader(serializedIndexDocument)));
+            return result;
+        }
+
+        public string Serialize()
+        {
+            using (var writer = new StringWriter())
+            {
+                JsonSerializer.Create(_serializerSettings).Serialize(writer, this);
+                var serializedDoc = writer.GetStringBuilder().ToString();
+                return serializedDoc;
+            }
         }
     }
 }

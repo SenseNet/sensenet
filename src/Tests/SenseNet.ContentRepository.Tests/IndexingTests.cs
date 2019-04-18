@@ -494,7 +494,7 @@ namespace SenseNet.ContentRepository.Tests
             var versions = dataProvider.DB.Versions
                 .Where(v => v.VersionId == ids[1].Item2 || v.VersionId == ids[2].Item2);
             foreach(var version in versions)
-                version.IndexDocument = new byte[0];
+                version.IndexDocument = string.Empty;
 
             // Roll back the time. Expected unprocessed sequence when next restart:
             //   Update "Folder2" (error), Add "Folder3", Update "Folder3", ...

@@ -108,7 +108,6 @@
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="Implementations2\DataProviderChecker.cs" />
     <Compile Include="Implementations2\FileSystemReaderBlobProvider.cs" />
-    <Compile Include="Implementations2\IndexFieldJsonConverter.cs" />
     <Compile Include="Implementations2\InMemoryBlobProvider2.cs" />
     <Compile Include="Implementations2\InMemoryDataBase2.cs" />
     <Compile Include="Implementations2\InMemoryDataClasses.cs" />

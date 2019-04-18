@@ -745,25 +745,11 @@ namespace SenseNet.ContentRepository.Storage
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
             var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
-            byte[] bytes;
-            if (doc != null)
-            {
-                using (var docStream = new MemoryStream())
-                {
-                    var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    formatter.Serialize(docStream, doc);
-                    docStream.Flush();
-                    docStream.Position = 0;
-                    bytes = docStream.GetBuffer();
+            var serializedIndexDocument = doc.Serialize();
 
-                    if (DataStore.Enabled) DataStore.SaveIndexDocumentAsync(node.Data, doc).Wait(); else DataProvider.SaveIndexDocument(node.Data, bytes); //DB:ok
-                }
-            }
-            else
-            {
-                bytes = new byte[0];
-            }
-            return CreateIndexDocumentData(node, doc, bytes);
+            if (DataStore.Enabled) DataStore.SaveIndexDocumentAsync(node.Data, doc).Wait(); else DataProvider.SaveIndexDocument(node.Data, serializedIndexDocument); //DB:ok
+
+            return CreateIndexDocumentData(node, doc, serializedIndexDocument);
         }
         public static IndexDocumentData SaveIndexDocument(Node node, IndexDocumentData indexDocumentData)
         {
@@ -773,29 +759,14 @@ namespace SenseNet.ContentRepository.Storage
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
             var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
+            var serializedIndexDocument = completedDocument.Serialize();
 
-            byte[] bytes;
-            if (completedDocument != null)
-            {
-                using (var docStream = new MemoryStream())
-                {
-                    var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    formatter.Serialize(docStream, completedDocument);
-                    docStream.Flush();
-                    docStream.Position = 0;
-                    bytes = docStream.GetBuffer();
+            if (DataStore.Enabled) DataStore.SaveIndexDocumentAsync(node.Data, completedDocument).Wait(); else DataProvider.SaveIndexDocument(node.Data, serializedIndexDocument); //DB:ok
 
-                    if (DataStore.Enabled) throw new NotImplementedException(); else DataProvider.SaveIndexDocument(node.Data, bytes); //DB:??
-                }
-            }
-            else
-            {
-                bytes = new byte[0];
-            }
-            return CreateIndexDocumentData(node, completedDocument, bytes);
+            return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
         }
 
-        internal static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, byte[] serializedIndexDocument)
+        internal static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, string serializedIndexDocument)
         {
             return new IndexDocumentData(indexDocument, serializedIndexDocument)
             {
