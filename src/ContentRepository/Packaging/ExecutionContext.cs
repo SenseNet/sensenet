@@ -48,6 +48,7 @@ namespace SenseNet.Packaging
         /// <summary>True if the StartRepository step has already executed.</summary>
         public bool RepositoryStarted { get; internal set; }
         internal bool Test { get; set; }
+        internal RepositoryStartSettings RepositoryStartSettings { get; set; }
 
         /// <summary>
         /// DO NOT USE THIS CONSTRUCTOR FROM TESTS. Use ExecutionContext.CreateForTest method instead.
@@ -76,10 +77,14 @@ namespace SenseNet.Packaging
                 SetVariable(name, value ?? defaultValue);
             }
         }
-        internal static ExecutionContext CreateForTest(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console)
+        internal static ExecutionContext CreateForTest(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console, RepositoryStartSettings settings = null)
         {
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
-            return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console) { Test = true };
+            return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console)
+            {
+                Test = true, 
+                RepositoryStartSettings = settings
+            };
         }
 
         /// <summary>Verifies that the Repository is running and throws an exception if not.</summary>

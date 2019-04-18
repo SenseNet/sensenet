@@ -317,18 +317,21 @@ namespace SenseNet.Packaging
         /// supported component version in the assembly is higher than the one in the database.
         /// </summary>
         /// <returns></returns>
-        public static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches()
+        public static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
+            TextWriter console = null, RepositoryStartSettings settings = null)
         {
-            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents());
+            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), console, settings);
         }
 
-        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(IEnumerable<SnComponentInfo> assemblyComponents)
+        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
+            IEnumerable<SnComponentInfo> assemblyComponents,
+            TextWriter console = null, RepositoryStartSettings settings = null)
         {
             var results = new Dictionary<string, Dictionary<Version, PackagingResult>>();
 
             foreach (var assemblyComponent in assemblyComponents)
             {
-                var patchResults = ExecuteAssemblyPatch(assemblyComponent);
+                var patchResults = ExecuteAssemblyPatch(assemblyComponent, console, settings);
 
                 if (patchResults?.Any() ?? false)
                     results[assemblyComponent.ComponentId] = patchResults;
@@ -336,7 +339,8 @@ namespace SenseNet.Packaging
 
             return results;
         }
-        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatch(SnComponentInfo assemblyComponent)
+        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatch(SnComponentInfo assemblyComponent,
+            TextWriter console = null, RepositoryStartSettings settings = null)
         {
             var patchResults = new Dictionary<Version, PackagingResult>();
 
@@ -365,13 +369,13 @@ namespace SenseNet.Packaging
                     //UNDONE: handle other patch formats (resource or filesystem path)
                     if (patch.Contents.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var patchResult = ExecutePatch(patch.Contents);
+                        var patchResult = ExecutePatch(patch.Contents, console, settings);
                         patchResults[patch.Version] = patchResult;
 
-                        //UNDONE: what if there are multiple patches and one fails: cleanup?
                         if (!patchResult.Successful || patchResult.Errors > 0)
                         {
-                            //TODO: log and throw error
+                            throw new PackagingException(
+                                $"Package execution failed for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
                         }
                     }
 
@@ -391,20 +395,20 @@ namespace SenseNet.Packaging
 
         //UNDONE: check if these methods are necessary 
         // or can be refactored to use existing methods.
-        internal static PackagingResult ExecutePatch(string manifestXml, TextWriter console = null)
+        internal static PackagingResult ExecutePatch(string manifestXml, TextWriter console = null, RepositoryStartSettings settings = null)
         {
             try
             {
                 var xml = new XmlDocument();
                 xml.LoadXml(manifestXml);
-                return ExecutePatch(xml, console);
+                return ExecutePatch(xml, console, settings);
             }
             catch (XmlException ex)
             {
                 throw new InvalidPackageException("Invalid manifest xml.", ex);
             }
         }
-        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, TextWriter console = null)
+        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, TextWriter console = null, RepositoryStartSettings settings = null)
         {
             var phase = -1;
             var errors = 0;
@@ -412,23 +416,44 @@ namespace SenseNet.Packaging
 
             do
             {
-                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter());
+                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter(), settings);
                 errors += result.Errors;
             } while (result.NeedRestart);
 
             result.Errors = errors;
             return result;
         }
-        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null, RepositoryStartSettings settings = null)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
 
-            //UNDONE: CreateForTest?
+            //UNDONE: ExecutionContext: create real context
+            // Fill context with real indexing folder, repo start settings, providers and other 
+            // parameters necessary for real life steps to run.
             var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", 
                 new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, 
-                null, console ?? new StringWriter());
+                null, console ?? new StringWriter(), settings);
 
-            var result = ExecuteCurrentPhase(manifest, executionContext);
+            //UNDONE: this flag should be set by the creator method above
+            executionContext.Test = false;
+
+            PackagingResult result; 
+
+            try
+            {
+                result = ExecuteCurrentPhase(manifest, executionContext);
+            }
+            finally
+            {
+                if (Repository.Started())
+                {
+                    console?.WriteLine("-------------------------------------------------------------");
+                    console?.Write("Stopping repository ... ");
+                    Repository.Shutdown();
+                    console?.WriteLine("Ok.");
+                }
+            }
+
             RepositoryVersionInfo.Reset();
 
             return result;

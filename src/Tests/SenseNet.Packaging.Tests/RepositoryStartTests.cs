@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Tests.Implementations;
@@ -156,6 +157,42 @@ namespace SenseNet.Packaging.Tests
             }
         };
     }
+    internal class TestComponentPatchStartRepository : ISnComponent
+    {
+        public string ComponentId => nameof(TestComponentPatchStartRepository);
+        public Version SupportedVersion { get; } = new Version(1, 1);
+        public bool IsComponentAllowed(Version componentVersion)
+        {
+            return true;
+        }
+        public SnPatch[] Patches { get; } =
+        {
+            new SnPatch
+            {
+                Version = new Version(1, 1),
+                MaxVersion = new Version(1, 0),
+                MinVersion = new Version(1, 0),
+                Contents = @"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <Id>" + nameof(TestComponentPatchStartRepository) + @"</Id>
+                            <ReleaseDate>2018-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Dependencies>
+                                <Dependency id='" + nameof(TestComponentPatchStartRepository) + @"' minVersion='1.0' maxVersion='1.0' />
+                            </Dependencies>
+                            <Steps>
+                                <StartRepository />
+                                <AddField contentType=""File"">
+                                  <FieldXml>
+                                    <Field name=""NewStartField"" type=""ShortText"">
+                                    </Field>
+                                  </FieldXml>
+                                </AddField>
+                            </Steps>
+                        </Package>"
+            }
+        };
+    }
     #endregion
 
     [TestClass]
@@ -251,6 +288,28 @@ namespace SenseNet.Packaging.Tests
                         new RepositoryVersionInfo.SnComponentComparer(new[] { "C1", "C2", "C3" })).ToArray()));
         }
 
+        [TestMethod]
+        public void Packaging_StartRepository_AddFieldPatch()
+        {
+            const string componentId = nameof(TestComponentPatchStartRepository);
+
+            Test(builder =>
+             {
+                 // install a test component so that the built-in patch for that component gets executed
+                 PackageManager.Storage.SavePackage(new Package
+                 {
+                     ComponentId = componentId,
+                     ComponentVersion = new Version(1, 0),
+                     ExecutionResult = ExecutionResult.Successful,
+                     PackageType = PackageType.Install
+                 });
+             },
+             () =>
+             {
+                 // make sure the built-in patch has added a new field
+                 Assert.IsTrue(ContentType.GetByName("File").FieldSettings.Any(fs => fs.Name == "NewStartField"));
+             });
+        }
         private static void PatchAndCheck(string componentId, 
             Version[] packageVersions,
             Version[] successfulPatchVersions,

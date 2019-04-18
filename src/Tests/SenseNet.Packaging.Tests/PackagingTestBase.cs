@@ -34,8 +34,7 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new PrivateType(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var builder = CreateRepositoryBuilderForTest();
-            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+            var unused = CreateRepositoryBuilderForTestInstance();
 
             RepositoryVersionInfo.Reset();
         }
@@ -43,6 +42,14 @@ namespace SenseNet.Packaging.Tests
         public void AfterTest()
         {
             // do nothing
+        }
+
+        protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        {
+            var builder = base.CreateRepositoryBuilderForTestInstance();
+            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+
+            return builder;
         }
 
         /*================================================= tools */
