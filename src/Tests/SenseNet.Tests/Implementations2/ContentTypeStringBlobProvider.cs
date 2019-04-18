@@ -5,7 +5,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     internal class ContentTypeStringBlobProvider : IBlobProvider
     {
