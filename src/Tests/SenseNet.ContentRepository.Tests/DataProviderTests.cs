@@ -23,10 +23,11 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
-        //[TestMethod]
+        [TestMethod]
         public void InitialData_Create()
         {
-            DPTest(() =>
+            DataStore.Enabled = false;
+            Test(() =>
             {
                 using (var ntw = new StreamWriter(@"D:\propertyTypes.txt", false))
                 using (var ptw = new StreamWriter(@"D:\nodeTypes.txt", false))

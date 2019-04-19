@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
@@ -255,8 +256,74 @@ namespace SenseNet.Search.Indexing
 
         public static IndexDocument Deserialize(string serializedIndexDocument)
         {
-            var result = JsonSerializer.Create(_serializerSettings).Deserialize<IndexDocument>(
+            //var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize<IndexDocument>(
+            //    new JsonTextReader(new StringReader(serializedIndexDocument)));
+            //return deserialized;
+            var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize(
                 new JsonTextReader(new StringReader(serializedIndexDocument)));
+            var result = new IndexDocument();
+            foreach (JObject field in (JArray)deserialized)
+            {
+                string name = null;
+                var type = IndexValueType.String;
+                var mode = IndexingMode.Default;
+                var store = IndexStoringMode.Default;
+                var termVector = IndexTermVector.Default;
+                object value = null;
+
+                foreach (var item in field)
+                {
+                    switch (item.Key)
+                    {
+                        case "Name": name = ((JValue)item.Value).ToString(); break;
+                        case "Type": type = (IndexValueType)Enum.Parse(typeof(IndexValueType), ((JValue)item.Value).ToString(), true); break;
+                        case "Mode": mode = (IndexingMode)Enum.Parse(typeof(IndexingMode), ((JValue)item.Value).ToString(), true); break;
+                        case "Store": store = (IndexStoringMode)Enum.Parse(typeof(IndexStoringMode), ((JValue)item.Value).ToString(), true); break;
+                        case "TermVector": termVector = (IndexTermVector)Enum.Parse(typeof(IndexTermVector), ((JValue)item.Value).ToString(), true); break;
+                        case "Value":
+                            if(item.Value is JValue jvalue)
+                                value = jvalue;
+                            else if (item.Value is JArray jarray)
+                                value = jarray.Select(x => x.ToString()).ToArray();
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+
+                IndexField indexField;
+                switch (type)
+                {
+                    case IndexValueType.String:
+                        indexField = new IndexField(name, value?.ToString(), mode, store, termVector);
+                        break;
+                    case IndexValueType.StringArray:
+                        indexField = new IndexField(name, (string[])value, mode, store, termVector);
+                        break;
+                    case IndexValueType.Bool:
+                        indexField = new IndexField(name, Convert.ToBoolean(value), mode, store, termVector);
+                        break;
+                    case IndexValueType.Int:
+                        indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
+                        break;
+                    case IndexValueType.Long:
+                        indexField = new IndexField(name, Convert.ToInt64(value), mode, store, termVector);
+                        break;
+                    case IndexValueType.Float:
+                        indexField = new IndexField(name, Convert.ToSingle(value), mode, store, termVector);
+                        break;
+                    case IndexValueType.Double:
+                        indexField = new IndexField(name, Convert.ToDouble(value), mode, store, termVector);
+                        break;
+                    case IndexValueType.DateTime:
+                        indexField = new IndexField(name, DateTime.Parse(value.ToString()), mode, store, termVector);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                result.Add(indexField);
+            }
             return result;
         }
 
