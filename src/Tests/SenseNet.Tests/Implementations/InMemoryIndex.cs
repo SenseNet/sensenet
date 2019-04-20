@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -24,7 +26,7 @@ namespace SenseNet.Tests.Implementations
             _prototype = prototype;
         }
 
-        private InMemoryIndex() { }
+        public InMemoryIndex() { }
 
         /// <summary>
         /// Gets or sets the path of the local disk directory
@@ -342,11 +344,11 @@ namespace SenseNet.Tests.Implementations
 
         public void Save(string fileName)
         {
-            var data = new Dictionary<string, List<string>>();
+            var index = new Dictionary<string, List<string>>();
             foreach (var item in IndexData)
             {
                 var list = new List<string>();
-                data.Add(item.Key, list);
+                index.Add(item.Key, list);
                 foreach (var term in item.Value)
                     list.Add(term.Key + ": " + string.Join(", ",
                                  term.Value
@@ -355,11 +357,77 @@ namespace SenseNet.Tests.Implementations
                                  .ToArray()));
             }
 
+            var data = new { Index = index, Stored = StoredData };
+
             using (var writer = new StreamWriter(fileName, false))
+                JsonSerializer.Create(SerializerSettings).Serialize(writer, data);
+        }
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.Indented
+        };
+        public void Load(string path)
+        {
+            Clear();
+            var deserialized = (JObject)(JsonSerializer.Create(SerializerSettings).Deserialize(new JsonTextReader(new StreamReader(path))));
+            var index = deserialized["Index"];
+
+            var fields = (JObject)index;
+            foreach (var field in fields)
             {
-                JsonSerializer ser = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented });
-                ser.Serialize(writer, data);
+                var fieldName = field.Key;
+                var values = (JArray) field.Value;
+
+                var data = new Dictionary<string, List<int>>();
+
+                foreach (var termData in values.Select(v => v.ToString()).ToArray())
+                {
+                    var p = termData.LastIndexOf(":");
+                    var name = termData.Substring(0, p);
+                    var idSrc = termData.Substring(p + 1);
+                    var ids = idSrc.Split(',').Select(int.Parse).ToList();
+                    data.Add(name, ids);
+                }
+
+
+                this.IndexData.Add(fieldName, data);
             }
+
+            var stored = (JArray)deserialized["Stored"];
+            foreach (JObject tuple in stored)
+            {
+                var versionId = (int)tuple["Item1"];
+                var indexFields = ((JArray)tuple["Item2"]).Select(x=> CreateIndexField((JObject)x)).ToList();
+
+                StoredData.Add(new Tuple<int, List<IndexField>>(versionId, indexFields));
+            }
+        }
+
+        private IndexField CreateIndexField(JObject x)
+        {
+            var name = (string)x["Name"];
+            var type = (IndexValueType)(int)x["Type"];
+            var mode = (IndexingMode)(int)x["Mode"];
+            var store = (IndexStoringMode)(int)x["Store"];
+            var termVector = (IndexTermVector)(int)x["TermVector"];
+            IndexField indexField = null;
+            switch (type)
+            {
+                case IndexValueType.String: indexField = new IndexField(name, (string)x["StringValue"], mode, store, termVector); break;
+                case IndexValueType.StringArray: throw new NotSupportedException();
+                case IndexValueType.Bool: indexField = new IndexField(name, (bool)x["BooleanValue"], mode, store, termVector); break;
+                case IndexValueType.Int: indexField = new IndexField(name, (int)x["IntegerValue"], mode, store, termVector); break;
+                case IndexValueType.Long: indexField = new IndexField(name, (long)x["LongValue"], mode, store, termVector); break;
+                case IndexValueType.Float: indexField = new IndexField(name, (float)x["SingleValue"], mode, store, termVector); break;
+                case IndexValueType.Double: indexField = new IndexField(name, (double)x["DoubleValue"], mode, store, termVector); break;
+                case IndexValueType.DateTime: indexField = new IndexField(name, (DateTime)x["DateTimeValue"], mode, store, termVector); break;
+                default: throw new ArgumentOutOfRangeException();
+            }
+
+            return indexField;
         }
     }
 }

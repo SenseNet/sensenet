@@ -36,9 +36,31 @@ namespace SenseNet.ContentRepository.Tests
                 using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null, 
                         ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
+
+                var index = ((InMemoryIndexingEngine) Providers.Instance.SearchEngine.IndexingEngine).Index;
+                index.Save(@"D:\index.txt");
             });
             Assert.Inconclusive();
         }
+
+        [TestMethod]
+        public void InitialData_LoadIndex()
+        {
+            DataStore.Enabled = false;
+            Test(() =>
+            {
+                var index = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index;
+                index.Save(@"D:\index.txt");
+
+                var loaded = new InMemoryIndex();
+                loaded.Load(@"D:\index.txt");
+
+                loaded.Save(@"D:\index1.txt");
+            });
+            Assert.Inconclusive();
+        }
+
+
         //[TestMethod]
         public void InitialData_LoadStream()
         {
