@@ -1133,12 +1133,12 @@ namespace SenseNet.ContentRepository.Tests
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
+            PrepareRepository();
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
             using (Repository.Start(builder))
             {
-                PrepareRepository();
 
                 using (new SystemAccount())
                     callback();

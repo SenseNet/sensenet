@@ -111,6 +111,8 @@ namespace SenseNet.Tests
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
+            if(DataStore.Enabled)
+                DataStore.InstallDataPackage(GetInitialData());
 
             initialize?.Invoke(builder);
 
@@ -157,6 +159,8 @@ namespace SenseNet.Tests
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();
+            if (DataStore.Enabled)
+                DataStore.InstallDataPackage(GetInitialData());
 
             initialize?.Invoke(builder);
 
