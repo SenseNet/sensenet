@@ -15,18 +15,19 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndex
     {
+        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
         private static InMemoryIndex _prototype;
+        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
         public static InMemoryIndex Create()
         {
             return _prototype == null ? new InMemoryIndex() : _prototype.Clone();
         }
 
+        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
         public static void SetPrototype(InMemoryIndex prototype)
         {
             _prototype = prototype;
         }
-
-        public InMemoryIndex() { }
 
         /// <summary>
         /// Gets or sets the path of the local disk directory
@@ -42,7 +43,7 @@ namespace SenseNet.Tests.Implementations
         // VersionId, IndexFields
         internal List<Tuple<int, List<IndexField>>> StoredData { get; private set; } = new List<Tuple<int, List<IndexField>>>();
 
-        private InMemoryIndex Clone()
+        public InMemoryIndex Clone()
         {
             using(var op = SnTrace.Index.StartOperation("Clone index."))
             {
@@ -369,10 +370,15 @@ namespace SenseNet.Tests.Implementations
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Formatting = Formatting.Indented
         };
+
         public void Load(string path)
         {
+            Load(new StreamReader(path));
+        }
+        public void Load(TextReader reader)
+        {
             Clear();
-            var deserialized = (JObject)(JsonSerializer.Create(SerializerSettings).Deserialize(new JsonTextReader(new StreamReader(path))));
+            var deserialized = (JObject)(JsonSerializer.Create(SerializerSettings).Deserialize(new JsonTextReader(reader)));
             var index = deserialized["Index"];
 
             var fields = (JObject)index;

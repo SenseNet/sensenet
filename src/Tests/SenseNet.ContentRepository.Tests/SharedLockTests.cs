@@ -667,7 +667,7 @@ namespace SenseNet.ContentRepository.Tests
 
 var backup = DataStore.Enabled;
 DataStore.Enabled = true;
-            DataStore.InstallDataPackage(GetInitialStructure());
+            DataStore.InstallDataPackage(GetInitialData());
 DataStore.Enabled = backup;
 
             _repository = Repository.Start(builder);

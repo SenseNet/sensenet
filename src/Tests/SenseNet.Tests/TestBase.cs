@@ -350,8 +350,23 @@ namespace SenseNet.Tests
         }
 
 
+
+        protected void PrepareRepository()
+        {
+            new SnMaintenance().Shutdown();
+
+            // Data
+            DataStore.InstallDataPackage(GetInitialData());
+
+            // Index
+            if (!(Providers.Instance.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine))
+                throw new Exception("Only an InMemoryIndexingEngine is allowed here.");
+            indexingEngine.Index = GetInitialIndex();
+
+        }
+
         private static InitialData _initialData;
-        protected static InitialData GetInitialStructure()
+        protected static InitialData GetInitialData()
         {
             //if (_initialData == null)
             //{
@@ -375,5 +390,16 @@ namespace SenseNet.Tests
             return _initialData;
         }
 
+        private static InMemoryIndex _initialIndex;
+        protected static InMemoryIndex GetInitialIndex()
+        {
+            if (_initialIndex == null)
+            {
+                var index = new InMemoryIndex();
+                index.Load(new StringReader(InitialTestIndex.Index));
+                _initialIndex = index;
+            }
+            return _initialIndex.Clone();
+        }
     }
 }

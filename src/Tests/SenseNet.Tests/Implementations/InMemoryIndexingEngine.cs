@@ -7,7 +7,7 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndexingEngine : IIndexingEngine
     {
-        public InMemoryIndex Index { get; } = InMemoryIndex.Create();
+        public InMemoryIndex Index { get; set; } = InMemoryIndex.Create();
 
         public bool Running { get; private set; }
 

@@ -23,44 +23,6 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
-        [TestMethod]
-        public void InitialData_Create()
-        {
-            DataStore.Enabled = false;
-            Test(() =>
-            {
-                using (var ntw = new StreamWriter(@"D:\propertyTypes.txt", false))
-                using (var ptw = new StreamWriter(@"D:\nodeTypes.txt", false))
-                using (var nw = new StreamWriter(@"D:\nodes.txt", false))
-                using (var vw = new StreamWriter(@"D:\versions.txt", false))
-                using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null, 
-                        ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
-
-                var index = ((InMemoryIndexingEngine) Providers.Instance.SearchEngine.IndexingEngine).Index;
-                index.Save(@"D:\index.txt");
-            });
-            Assert.Inconclusive();
-        }
-
-        [TestMethod]
-        public void InitialData_LoadIndex()
-        {
-            DataStore.Enabled = false;
-            Test(() =>
-            {
-                var index = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index;
-                index.Save(@"D:\index.txt");
-
-                var loaded = new InMemoryIndex();
-                loaded.Load(@"D:\index.txt");
-
-                loaded.Save(@"D:\index1.txt");
-            });
-            Assert.Inconclusive();
-        }
-
-
         //[TestMethod]
         public void InitialData_LoadStream()
         {
@@ -1176,8 +1138,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(builder))
             {
-                DataStore.InstallDataPackage(GetInitialStructure());
-                new SnMaintenance().Shutdown();
+                PrepareRepository();
+
                 using (new SystemAccount())
                     callback();
             }
