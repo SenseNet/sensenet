@@ -117,10 +117,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== TreeLock */
 
-        public abstract int AcquireTreeLock(string path);
-        public abstract bool IsTreeLocked(string path);
-        public abstract void ReleaseTreeLock(int[] lockIds);
-        public abstract Dictionary<int, string> LoadAllTreeLocks();
+        public abstract Task<int> AcquireTreeLockAsync(string path);
+        public abstract Task<bool> IsTreeLockedAsync(string path);
+        public abstract Task ReleaseTreeLockAsync(int[] lockIds);
+        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync();
 
         /* =============================================================================================== IndexDocument */
 

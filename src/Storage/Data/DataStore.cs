@@ -335,21 +335,21 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== TreeLock */
 
-        public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
+        public static async Task<int> AcquireTreeLockAsync(string path)
         {
-            return DataProvider.AcquireTreeLock(path);
+            return await DataProvider.AcquireTreeLockAsync(path);
         }
-        public static bool IsTreeLocked(string path) //UNDONE:DB: ASYNC
+        public static async Task<bool> IsTreeLockedAsync(string path)
         {
-            return DataProvider.IsTreeLocked(path);
+            return await DataProvider.IsTreeLockedAsync(path);
         }
-        public static void ReleaseTreeLock(int[] lockIds) //UNDONE:DB: ASYNC
+        public static async void ReleaseTreeLockAsync(int[] lockIds)
         {
-            DataProvider.ReleaseTreeLock(lockIds);
+            await DataProvider.ReleaseTreeLockAsync(lockIds);
         }
-        public static Dictionary<int, string> LoadAllTreeLocks() //UNDONE:DB: ASYNC
+        public static async Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
-            return DataProvider.LoadAllTreeLocks();
+            return await DataProvider.LoadAllTreeLocksAsync();
         }
 
         /* =============================================================================================== IndexDocument */

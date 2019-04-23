@@ -722,7 +722,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== TreeLock */
 
-        public override int AcquireTreeLock(string path)
+        public override Task<int> AcquireTreeLockAsync(string path)
         {
             var parentChain = GetParentChain(path);
             var timeMin = GetObsoleteLimitTime();
@@ -731,7 +731,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
-                return 0;
+                return STT.Task.FromResult(0);
 
             var newTreeLockId = DB.GetNextTreeLockId();
             DB.TreeLocks.Add(new TreeLockDoc
@@ -741,29 +741,32 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 LockedAt = DateTime.Now
             });
 
-            return newTreeLockId;
+            return STT.Task.FromResult(newTreeLockId);
         }
 
-        public override bool IsTreeLocked(string path)
+        public override Task<bool> IsTreeLockedAsync(string path)
         {
             var parentChain = GetParentChain(path);
             var timeMin = GetObsoleteLimitTime();
 
-            return DB.TreeLocks
+            var result = DB.TreeLocks
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
+            return STT.Task.FromResult(result);
         }
 
-        public override void ReleaseTreeLock(int[] lockIds)
+        public override STT.Task ReleaseTreeLockAsync(int[] lockIds)
         {
             foreach (var lockId in lockIds)
                 DB.TreeLocks.RemoveAll(x => x.TreeLockId == lockId);
+            return STT.Task.CompletedTask;
         }
 
-        public override Dictionary<int, string> LoadAllTreeLocks()
+        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
-            return DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+            var result = DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+            return STT.Task.FromResult(result);
         }
 
         private string[] GetParentChain(string path)
