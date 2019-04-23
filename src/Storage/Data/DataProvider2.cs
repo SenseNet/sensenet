@@ -129,6 +129,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds);
         public abstract IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes);
 
+        public abstract IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId);
+
         /* =============================================================================================== IndexingActivity */
 
         public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
@@ -182,6 +184,5 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract long GetNodeTimestamp(int nodeId);
         //UNDONE:DB -------Delete GetVersionTimestamp method
         public abstract long GetVersionTimestamp(int versionId);
-
     }
 }

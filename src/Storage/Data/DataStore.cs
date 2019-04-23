@@ -359,13 +359,18 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)//UNDONE:DB: ASYNC
+        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds) //UNDONE:DB: ASYNC
         {
             return DataProvider.LoadIndexDocuments(versionIds);
         }
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)//UNDONE:DB: ASYNC
+        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes) //UNDONE:DB: ASYNC
         {
             return DataProvider.LoadIndexDocuments(path, excludedNodeTypes);
+        }
+
+        public static IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId) //UNDONE:DB: ASYNC
+        {
+            return DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(fromId, toId);
         }
 
         /* =============================================================================================== IndexingActivity */
@@ -539,11 +544,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         /* =============================================================================================== */
-
-        public static IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
-        {
-            throw new NotImplementedException();
-        }
 
         public static AuditLogEntry[] LoadLastAuditLogEntries(int count)
         {

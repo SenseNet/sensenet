@@ -78,10 +78,10 @@ namespace SenseNet.Tests.SelfTest
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-var backup = DataStore.Enabled;
-DataStore.Enabled = true;
-            DataStore.InstallDataPackage(GetInitialData());
-DataStore.Enabled = backup;
+//var backup = DataStore.Enabled;
+//DataStore.Enabled = true;
+//            DataStore.InstallDataPackage(GetInitialData());
+//DataStore.Enabled = backup;
 
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();

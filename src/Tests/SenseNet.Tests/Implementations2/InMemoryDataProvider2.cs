@@ -36,6 +36,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
             //UNDONE:DB Lock? Transaction?
+            // Check unique keys.
+            if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
+                throw new NodeAlreadyExistsException();
 
             var nodeId = DB.GetNextNodeId();
             nodeHeadData.NodeId = nodeId;
@@ -80,7 +83,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Get VersionDoc and update
             var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
@@ -120,7 +123,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Get existing VersionDoc and update
             var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
@@ -166,7 +169,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Delete unnecessary versions
             DeleteVersionsAsync(versionIdsToDelete);
@@ -806,6 +809,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
             return result;
         }
+
+        public override IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
+        {
+            return DB.Versions
+                .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
+                .Select(v => v.NodeId)
+                .ToArray();
+        }
+
         private IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
             var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
