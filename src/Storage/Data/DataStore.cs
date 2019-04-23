@@ -281,45 +281,45 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeQuery */
 
-        public static int InstanceCount(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<int> InstanceCountAsync(int[] nodeTypeIds)
         {
-            return DataProvider.InstanceCount(nodeTypeIds);
+            return await DataProvider.InstanceCountAsync(nodeTypeIds);
         }
-        public static IEnumerable<int> GetChildrenIdentfiers(int parentId) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
         {
-            return DataProvider.GetChildrenIdentfiers(parentId);
+            return await DataProvider.GetChildrenIdentfiersAsync(parentId);
         }
-        public static IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByPath(pathStart, orderByPath);
+            return await DataProvider.QueryNodesByPathAsync(pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByType(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds)
         {
-            return DataProvider.QueryNodesByType(nodeTypeIds);
+            return await DataProvider.QueryNodesByTypeAsync(nodeTypeIds);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+            return await DataProvider.QueryNodesByTypeAndPathAsync(nodeTypeIds, pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+            return await DataProvider.QueryNodesByTypeAndPathAsync(nodeTypeIds, pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+            return await DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+            return await DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndProperty(nodeTypeIds, pathStart, orderByPath, properties);
+            return await DataProvider.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
         }
-        public static IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
         {
-            return DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, nodeTypeIds);
+            return await DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
         }
 
         /* =============================================================================================== Tree */

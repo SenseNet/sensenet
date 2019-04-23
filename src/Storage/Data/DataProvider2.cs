@@ -98,16 +98,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeQuery */
 
-        public abstract int InstanceCount(int[] nodeTypeIds);
-        public abstract IEnumerable<int> GetChildrenIdentfiers(int parentId);
-        public abstract IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByType(int[] nodeTypeIds);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
-        public abstract IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds);
+        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds);
+        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId);
+        public abstract Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
+        public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds);
 
         /* =============================================================================================== Tree */
 
