@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
 {
@@ -48,5 +49,7 @@ namespace SenseNet.ContentRepository
 
         //UNDONE: finalize patch definition options (resource, code, Manifest object)
         public string Contents { get; set; }
+
+        public Func<RepositoryStartSettings, ExecutionResult> Execute;
     }
 }

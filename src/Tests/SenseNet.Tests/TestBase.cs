@@ -27,7 +27,7 @@ namespace SenseNet.Tests
 
         private static volatile bool _prototypesCreated;
         private static readonly object PrototypeSync = new object();
-        private void EnsurePrototypes()
+        protected void EnsurePrototypes()
         {
             if (!_prototypesCreated)
             {

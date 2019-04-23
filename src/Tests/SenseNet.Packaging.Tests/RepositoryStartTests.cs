@@ -1,11 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Tests.Implementations;
+using SenseNet.Tools;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -193,6 +198,37 @@ namespace SenseNet.Packaging.Tests
             }
         };
     }
+
+    internal class TestComponentPatchChangeHandler : ISnComponent
+    {
+        public string ComponentId => nameof(TestComponentPatchChangeHandler);
+        public Version SupportedVersion { get; } = new Version(1, 1);
+        public bool IsComponentAllowed(Version componentVersion)
+        {
+            return true;
+        }
+        public SnPatch[] Patches { get; } =
+        {
+            new SnPatch
+            {
+                Version = new Version(1, 1),
+                MaxVersion = new Version(1, 0),
+                MinVersion = new Version(1, 0),
+                Execute = rss =>
+                {
+                    // find the GenericContent CTD file in the current db (not the prototype)
+                    var proto = ((InMemoryDataProvider)DataProvider.Current).DB;
+                    var gcFile = proto.Files.First(ff =>
+                        ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == "GenericContent");
+
+                    // restore the original handler
+                    RepositoryStartTests.SetContentHandler(gcFile, "SenseNet.ContentRepository.GenericContent");
+
+                    return ExecutionResult.Successful;
+                }
+            }
+        };
+    }
     #endregion
 
     [TestClass]
@@ -310,6 +346,71 @@ namespace SenseNet.Packaging.Tests
                  Assert.IsTrue(ContentType.GetByName("File").FieldSettings.Any(fs => fs.Name == "NewStartField"));
              });
         }
+        [TestMethod]
+        public void Packaging_StartRepository_ChangeCtdPatch()
+        {
+            // if this is the first test, we need to make sure the prototype is already created
+            EnsurePrototypes();
+
+            // find the GenericContent CTD content file
+            var proto = InMemoryDataProvider.Prototype;
+            var gcFile = proto.Files.First(ff =>
+                ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == "GenericContent");
+
+            // set a fake handler
+            SetContentHandler(gcFile, "unknownhandler");
+            
+            var thrown = false;
+
+            try
+            {
+                //UNDONE: change assert logic for the invalid handler
+                // When ContentTypeManager is able to handle a missing handler without throwing
+                // and exception, change this logic to check for the invalid content type instead
+                // of expecting and exception.
+
+                // this should throw an exception because of the incorrect content handler
+                Test(() => { });
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException?.InnerException?.InnerException is TypeNotFoundException tnfe && 
+                    tnfe.Message.Contains("unknownhandler"))
+                {
+                    thrown = true;
+                }
+            }
+            
+            if (!thrown)
+                Assert.Fail("TypeNotFoundException was not thrown.");
+
+            try
+            {
+                Test(builder =>
+                    {
+                        // install a test component so that the built-in patch for that component gets executed
+                        PackageManager.Storage.SavePackage(new Package
+                        {
+                            ComponentId = nameof(TestComponentPatchChangeHandler),
+                            ComponentVersion = new Version(1, 0),
+                            ExecutionResult = ExecutionResult.Successful,
+                            PackageType = PackageType.Install
+                        });
+                    },
+                    () =>
+                    {
+                        // the CTD should contain the new handler
+                        Assert.AreEqual("SenseNet.ContentRepository.GenericContent",
+                            ContentType.GetByName("GenericContent").HandlerName);
+                    });
+            }
+            finally
+            {
+                // reset the correct handler in the prototype
+                SetContentHandler(gcFile, "SenseNet.ContentRepository.GenericContent");
+            }
+        }
+
         private static void PatchAndCheck(string componentId, 
             Version[] packageVersions,
             Version[] successfulPatchVersions,
@@ -376,6 +477,24 @@ namespace SenseNet.Packaging.Tests
 
             if (installedComponent != null)
                 Assert.AreEqual(expectedVersion, installedComponent.Version);
+        }
+
+        internal static void SetContentHandler(InMemoryDataProvider.FileRecord fr, string handler)
+        {
+            string ctdString;
+
+            using (var xmlReaderStream = new MemoryStream(fr.Stream))
+            {
+                var gcXmlDoc = new XmlDocument();
+                gcXmlDoc.Load(xmlReaderStream);
+
+                gcXmlDoc.DocumentElement.Attributes["handler"].Value = handler;
+
+                ctdString = gcXmlDoc.OuterXml;
+            }
+
+            fr.Stream = Encoding.UTF8.GetBytes(ctdString);
+            fr.Size = fr.Stream.Length;
         }
     }
 }

@@ -367,7 +367,7 @@ namespace SenseNet.Packaging
                         continue;
 
                     //UNDONE: handle other patch formats (resource or filesystem path)
-                    if (patch.Contents.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase))
+                    if (patch.Contents?.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase) ?? false)
                     {
                         var patchResult = ExecutePatch(patch.Contents, console, settings);
                         patchResults[patch.Version] = patchResult;
@@ -377,6 +377,10 @@ namespace SenseNet.Packaging
                             throw new PackagingException(
                                 $"Package execution failed for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
                         }
+                    }
+                    else
+                    {
+                        patch.Execute?.Invoke(settings);
                     }
 
                     // reload
