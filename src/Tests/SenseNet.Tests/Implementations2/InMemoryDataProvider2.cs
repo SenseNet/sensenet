@@ -688,13 +688,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult((IEnumerable<NodeType>)result);
         }
 
-        public override List<ContentListType> GetContentListTypesInTree(string path)
+        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
         {
-            return DB.Nodes
+            var result = DB.Nodes
                 .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
                             n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
                 .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
                 .ToList();
+            return STT.Task.FromResult(result);
         }
         private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
         {

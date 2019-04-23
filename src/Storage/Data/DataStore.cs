@@ -328,9 +328,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.LoadChildTypesToAllowAsync(nodeId);
         }
-        public static List<ContentListType> GetContentListTypesInTree(string path) //UNDONE:DB: ASYNC
+        public static async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
         {
-            return DataProvider.GetContentListTypesInTree(path);
+            return await DataProvider.GetContentListTypesInTreeAsync(path);
         }
 
         /* =============================================================================================== TreeLock */
