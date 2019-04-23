@@ -105,14 +105,12 @@ namespace SenseNet.Tests
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
+            //DistributedApplication.Cache.Reset();
+            //ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
-            //if(DataStore.Enabled)
-            //    DataStore.InstallDataPackage(GetInitialData());
 
             initialize?.Invoke(builder);
 
@@ -120,6 +118,9 @@ namespace SenseNet.Tests
 
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
+
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             using (Repository.Start(builder))
             {
@@ -159,8 +160,6 @@ namespace SenseNet.Tests
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();
-            //if (DataStore.Enabled)
-            //    DataStore.InstallDataPackage(GetInitialData());
 
             initialize?.Invoke(builder);
 
@@ -363,9 +362,6 @@ DataStore.Enabled = backup;
         protected void PrepareRepository()
         {
             new SnMaintenance().Shutdown();
-
-            //// Data
-            //DataStore.InstallDataPackage(GetInitialData());
 
             // Index
             if (!(Providers.Instance.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine))
