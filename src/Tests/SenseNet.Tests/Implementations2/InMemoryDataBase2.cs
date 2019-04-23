@@ -22,6 +22,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             /* ====================================================================== EXTENSIONS */
             {typeof(SharedLockDoc), new DataCollection<SharedLockDoc>()},
             {typeof(AccessTokenDoc), new DataCollection<AccessTokenDoc>()},
+            {typeof(PackageDoc), new DataCollection<PackageDoc>()},
         };
         public DataCollection<T> GetCollection<T>()
         {

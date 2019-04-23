@@ -695,4 +695,35 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             };
         }
     }
+
+    public class PackageDoc //UNDONE:@@ PackageDoc is an extension
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public string ComponentId { get; set; }
+        public PackageType PackageType { get; set; }
+        public DateTime ReleaseDate { get; set; }
+        public DateTime ExecutionDate { get; set; }
+        public ExecutionResult ExecutionResult { get; set; }
+        public Version ComponentVersion { get; set; }
+        public Exception ExecutionError { get; set; }
+        public string Manifest { get; set; }
+
+        public PackageDoc Clone()
+        {
+            return new PackageDoc
+            {
+                Id = Id,
+                Description = Description,
+                ComponentId = ComponentId,
+                PackageType = PackageType,
+                ReleaseDate = ReleaseDate,
+                ExecutionDate = ExecutionDate,
+                ExecutionResult = ExecutionResult,
+                ComponentVersion = ComponentVersion,
+                ExecutionError = ExecutionError,
+                Manifest = Manifest,
+            };
+        }
+    }
 }

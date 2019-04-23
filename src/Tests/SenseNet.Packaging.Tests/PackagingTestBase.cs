@@ -35,7 +35,11 @@ namespace SenseNet.Packaging.Tests
             loggerAcc.SetStaticField("_loggers", loggers);
 
             var builder = CreateRepositoryBuilderForTest();
-            builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+
+            if (DataStore.Enabled)
+                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
+            else
+                builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
 
             RepositoryVersionInfo.Reset();
         }
