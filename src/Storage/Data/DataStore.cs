@@ -359,18 +359,18 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
-            return DataProvider.LoadIndexDocuments(versionIds);
+            return await DataProvider.LoadIndexDocumentsAsync(versionIds);
         }
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            return DataProvider.LoadIndexDocuments(path, excludedNodeTypes);
+            return await DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
-        public static IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
         {
-            return DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(fromId, toId);
+            return await DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(fromId, toId);
         }
 
         /* =============================================================================================== IndexingActivity */

@@ -792,11 +792,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
-            return versionIds.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
+            var result = versionIds.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
+            return STT.Task.FromResult((IEnumerable<IndexDocumentData>) result);
         }
-        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
             var result = new List<IndexDocumentData>();
             var pathExt = path + "/";
@@ -810,15 +811,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
                     result.Add(CreateIndexDocumentData(node, version));
 
-            return result;
+            return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
         }
 
-        public override IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
+        public override Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
         {
-            return DB.Versions
+            var result = DB.Versions
                 .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
                 .Select(v => v.NodeId)
                 .ToArray();
+            return STT.Task.FromResult((IEnumerable<int>)result);
         }
 
         private IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
