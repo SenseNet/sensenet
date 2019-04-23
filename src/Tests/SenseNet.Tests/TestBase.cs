@@ -247,7 +247,7 @@ DataStore.Enabled = backup;
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.Enabled ? DataStore.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000) : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
+            var idSet = DataStore.Enabled ? DataStore.LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(0, 11000).Result : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
