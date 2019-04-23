@@ -270,13 +270,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetNodeVersions(nodeId);
         }
-        public static IEnumerable<VersionNumber> GetVersionNumbers(int nodeId) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
         {
-            return DataProvider.GetVersionNumbers(nodeId);
+            return await DataProvider.GetVersionNumbersAsync(nodeId);
         }
-        public static IEnumerable<VersionNumber> GetVersionNumbers(string path) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
         {
-            return DataProvider.GetVersionNumbers(path);
+            return await DataProvider.GetVersionNumbersAsync(path);
         }
 
         /* =============================================================================================== NodeQuery */

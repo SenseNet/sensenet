@@ -439,18 +439,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(result);
         }
 
-        public override IEnumerable<VersionNumber> GetVersionNumbers(int nodeId)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
         {
             var versions = DB.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
-            return versions;
+            return STT.Task.FromResult((IEnumerable<VersionNumber>)versions);
         }
 
-        public override IEnumerable<VersionNumber> GetVersionNumbers(string path)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
         {
             var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
             if (node == null)
-                return new VersionNumber[0];
-            return GetVersionNumbers(node.NodeId);
+                return STT.Task.FromResult((IEnumerable<VersionNumber>)new VersionNumber[0]);
+            return GetVersionNumbersAsync(node.NodeId);
         }
 
         private NodeHead NodeDocToNodeHead(NodeDoc nodeDoc)

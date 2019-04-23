@@ -93,8 +93,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId);
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
-        public abstract IEnumerable<VersionNumber> GetVersionNumbers(int nodeId);
-        public abstract IEnumerable<VersionNumber> GetVersionNumbers(string path);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path);
 
         /* =============================================================================================== NodeQuery */
 
