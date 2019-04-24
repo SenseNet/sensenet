@@ -153,7 +153,7 @@ namespace SenseNet.ContentRepository.Tests
             else
                 RepositoryStart_NamedProviders_OLD();
         }
-        public void RepositoryStart_NamedProviders_NEW()
+        private void RepositoryStart_NamedProviders_NEW()
         {
             var dbProvider = new InMemoryDataProvider2();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
@@ -164,8 +164,8 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
-            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
+            ////UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
+            //Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider2(dbProvider)
@@ -202,7 +202,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(SnTrace.Workflow.Enabled);
             }
         }
-        public void RepositoryStart_NamedProviders_OLD()
+        private void RepositoryStart_NamedProviders_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
@@ -250,6 +250,38 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableAll()
         {
+            if (DataStore.Enabled)
+                RepositoryStart_NodeObservers_DisableAll_NEW();
+            else
+                RepositoryStart_NodeObservers_DisableAll_OLD();
+        }
+        private void RepositoryStart_NodeObservers_DisableAll_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.IsFalse(Providers.Instance.NodeObservers.Any());
+            }
+        }
+        private void RepositoryStart_NodeObservers_DisableAll_OLD()
+        {
             var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
@@ -271,8 +303,43 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(Providers.Instance.NodeObservers.Any());
             }
         }
+
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableOne()
+        {
+            if (DataStore.Enabled)
+                RepositoryStart_NodeObservers_EnableOne_NEW();
+            else
+                RepositoryStart_NodeObservers_EnableOne_OLD();
+        }
+        private void RepositoryStart_NodeObservers_EnableOne_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(TestNodeObserver1))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.AreEqual(1, Providers.Instance.NodeObservers.Length);
+                Assert.AreEqual(typeof(TestNodeObserver1), Providers.Instance.NodeObservers[0].GetType());
+            }
+        }
+        private void RepositoryStart_NodeObservers_EnableOne_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
 
@@ -297,8 +364,44 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(typeof(TestNodeObserver1), Providers.Instance.NodeObservers[0].GetType());
             }
         }
+
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableMore()
+        {
+            if (DataStore.Enabled)
+                RepositoryStart_NodeObservers_EnableMore_NEW();
+            else
+                RepositoryStart_NodeObservers_EnableMore_OLD();
+        }
+        private void RepositoryStart_NodeObservers_EnableMore_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.AreEqual(2, Providers.Instance.NodeObservers.Length);
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+            }
+        }
+        private void RepositoryStart_NodeObservers_EnableMore_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
 
@@ -324,8 +427,45 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
             }
         }
+
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableOne()
+        {
+            if (DataStore.Enabled)
+                RepositoryStart_NodeObservers_DisableOne_NEW();
+            else
+                RepositoryStart_NodeObservers_DisableOne_OLD();
+        }
+        private void RepositoryStart_NodeObservers_DisableOne_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers(typeof(TestNodeObserver1))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.IsFalse(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
+
+                //TODO: currently this does not work, because observers are enabled/disabled globally.
+                // Itt will, when we move to a per-thread environment in tests.
+                //Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+            }
+        }
+        private void RepositoryStart_NodeObservers_DisableOne_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
 
@@ -424,6 +564,47 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_Default()
         {
+            if (DataStore.Enabled)
+                RepositoryStart_DataProviderExtensions_Default_NEW();
+            else
+                RepositoryStart_DataProviderExtensions_Default_OLD();
+        }
+        private void RepositoryStart_DataProviderExtensions_Default_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine();
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
+            ////UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
+            //Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(securityDbProvider)
+                .UseSearchEngine(searchEngine)
+                .UseAccessProvider(accessProvider)
+                .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.AreEqual(typeof(SqlPackagingDataProvider), DataStore.DataProvider.GetExtensionInstance<IPackagingDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(SqlAccessTokenDataProvider), DataStore.DataProvider.GetExtensionInstance<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
+            }
+        }
+        private void RepositoryStart_DataProviderExtensions_Default_OLD()
+        {
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine();
@@ -454,6 +635,51 @@ namespace SenseNet.ContentRepository.Tests
 
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_OverrideDefault()
+        {
+            if (DataStore.Enabled)
+                RepositoryStart_DataProviderExtensions_OverrideDefault_NEW();
+            else
+                RepositoryStart_DataProviderExtensions_OverrideDefault_OLD();
+        }
+        private void RepositoryStart_DataProviderExtensions_OverrideDefault_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine();
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
+            ////UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
+            //Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
+
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
+                .UseSecurityDataProvider(securityDbProvider)
+                .UseSearchEngine(searchEngine)
+                .UseAccessProvider(accessProvider)
+                .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                //Assert.AreEqual(typeof(TestPackagingDataProvider), DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
+            }
+        }
+        private void RepositoryStart_DataProviderExtensions_OverrideDefault_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
