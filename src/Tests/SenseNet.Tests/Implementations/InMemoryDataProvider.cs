@@ -1288,11 +1288,6 @@ namespace SenseNet.Tests.Implementations
             }).ToArray();
         }
 
-        public int LastNodeId
-        {
-            get { return _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(n => n.NodeId); }
-        }
-
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
         {
             var innerLastMinorVersionId = 0;

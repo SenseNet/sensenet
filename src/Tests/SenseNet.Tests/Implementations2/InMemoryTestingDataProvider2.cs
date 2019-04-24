@@ -5,16 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
+using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
-    public class InMemoryTestingDataProvider : ITestingDataProviderExtension
+    public class InMemoryTestingDataProvider2 : ITestingDataProviderExtension
     {
-        private DataProvider _mainProvider; //DB:ok
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok
+        private DataProvider2 _mainProvider; //DB:ok
+        public DataProvider2 MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider); //DB:ok
 
         // ReSharper disable once InconsistentNaming
-        public InMemoryDataProvider.Database DB => ((InMemoryDataProvider) MainProvider).DB;
+        public InMemoryDataBase2 DB => ((InMemoryDataProvider2)MainProvider).DB;
 
         public void InitializeForTests()
         {

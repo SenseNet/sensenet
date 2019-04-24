@@ -542,13 +542,5 @@ namespace SenseNet.ContentRepository.Storage.Data
             });
         }
 
-
-        /* =============================================================================================== */
-
-        public static AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }

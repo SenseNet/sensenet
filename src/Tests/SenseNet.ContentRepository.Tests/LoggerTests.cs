@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -93,7 +94,7 @@ namespace SenseNet.ContentRepository.Tests
                 folder.ForceDelete();
 
                 // load audit log entries
-                var entries = DataStore.Enabled ? DataStore.LoadLastAuditLogEntries(10) : DataProvider.Current.LoadLastAuditLogEntries(10); //DB:ok
+                var entries = DataStore.Enabled ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10) : DataProvider.Current.LoadLastAuditLogEntries(10); //DB:ok
                 var relatedEntries = entries.Where(e => e.ContentId == folderId).ToArray();
 
                 // assertions

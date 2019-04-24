@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -35,9 +36,12 @@ namespace SenseNet.Tests.SelfTest
         public void InMemDb_Create()
         {
             Node node;
-            var result = Test(() =>
+            Test(() =>
             {
-                var lastNodeId = ((InMemoryDataProvider)DataProvider.Current).LastNodeId; //DB:??test??
+                var lastNodeId =
+                    DataStore.Enabled
+                        ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().GetLastNodeId()
+                        : DataProvider.GetExtension<ITestingDataProviderExtension>().GetLastNodeId(); //DB:ok
 
                 var root = Node.LoadNode(Identifiers.RootPath);
                 node = new SystemFolder(root)
@@ -49,13 +53,10 @@ namespace SenseNet.Tests.SelfTest
                 node.Save();
 
                 node = Node.Load<SystemFolder>(node.Id);
-                return new Tuple<int, Node>(lastNodeId, node);
 
+                Assert.AreEqual(lastNodeId + 1, node.Id);
+                Assert.AreEqual("/Root/Node1", node.Path);
             });
-            var lastId = result.Item1;
-            node = result.Item2;
-            Assert.AreEqual(lastId + 1, node.Id);
-            Assert.AreEqual("/Root/Node1", node.Path);
         }
 
         [TestMethod]

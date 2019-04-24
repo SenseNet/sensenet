@@ -200,6 +200,7 @@ DataStore.Enabled = backup;
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
+
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
@@ -209,7 +210,7 @@ DataStore.Enabled = backup;
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
