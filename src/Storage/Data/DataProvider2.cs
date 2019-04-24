@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds);
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
 
-        public abstract Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId);
+        public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId);
 
         /* =============================================================================================== IndexingActivity */
 

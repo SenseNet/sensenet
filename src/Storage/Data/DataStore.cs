@@ -368,9 +368,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             return await DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
-        public static async Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
+        public static async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId)
         {
-            return await DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(fromId, toId);
+            return await DataProvider.LoadNotIndexedNodeIdsAsync(fromId, toId);
         }
 
         /* =============================================================================================== IndexingActivity */

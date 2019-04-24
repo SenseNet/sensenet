@@ -819,7 +819,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
         }
 
-        public override Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
+        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId)
         {
             var result = DB.Versions
                 .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
