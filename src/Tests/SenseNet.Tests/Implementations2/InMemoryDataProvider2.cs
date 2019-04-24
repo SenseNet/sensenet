@@ -1163,7 +1163,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return order;
         }
 
-        public override long GetTreeSize(string path, bool includeChildren)
+        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren)
         {
             var collection = includeChildren
                 ? DB.Nodes
@@ -1172,11 +1172,13 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                     .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
 
-            return collection
+            var result = collection
                 .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))
                 .SelectMany(v => DB.BinaryProperties.Where(b => b.VersionId == v.VersionId))
                 .SelectMany(b => DB.Files.Where(f => f.FileId == b.FileId))
                 .Select(f => f.Size).Sum();
+
+            return STT.Task.FromResult(result);
         }
 
         /* =============================================================================================== Infrastructure */

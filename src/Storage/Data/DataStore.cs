@@ -479,9 +479,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension);
         }
-        public static long GetTreeSize(string path, bool includeChildren) //UNDONE:DB: ASYNC
+        public static async Task<long> GetTreeSizeAsync(string path, bool includeChildren)
         {
-            return DataProvider.GetTreeSize(path, includeChildren);
+            return await DataProvider.GetTreeSizeAsync(path, includeChildren);
         }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();

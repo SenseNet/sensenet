@@ -4272,7 +4272,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static long GetTreeSize(string path, bool includeChildren = true)
         {
-            return DataStore.Enabled ? DataStore.GetTreeSize(path, includeChildren) : DataProvider.Current.GetTreeSize(path, includeChildren); //DB:ok
+            return DataStore.Enabled ? DataStore.GetTreeSizeAsync(path, includeChildren).Result : DataProvider.Current.GetTreeSize(path, includeChildren); //DB:ok
         }
 
         #endregion
