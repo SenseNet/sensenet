@@ -460,9 +460,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public static void WriteAuditEvent(AuditEventInfo auditEvent) //UNDONE:DB: ASYNC
+        public static async Task WriteAuditEventAsync(AuditEventInfo auditEvent)
         {
-            DataProvider.WriteAuditEvent(auditEvent);
+            await DataProvider.WriteAuditEventAsync(auditEvent);
         }
 
         /* =============================================================================================== Tools */

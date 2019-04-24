@@ -1099,7 +1099,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Logging */
 
-        public override void WriteAuditEvent(AuditEventInfo auditEvent)
+        public override STT.Task WriteAuditEventAsync(AuditEventInfo auditEvent)
         {
             var newId = DB.GetNextLogId();
 
@@ -1124,6 +1124,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 Message = auditEvent.Message,
                 FormattedMessage = auditEvent.FormattedMessage,
             });
+
+            return STT.Task.CompletedTask;
         }
 
         /* =============================================================================================== Provider Tools */

@@ -165,7 +165,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
+        public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent);
 
         /* =============================================================================================== Provider Tools */
 

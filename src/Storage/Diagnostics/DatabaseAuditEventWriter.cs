@@ -9,7 +9,7 @@ namespace SenseNet.Diagnostics
     {
         public void Write(IAuditEvent auditEvent, IDictionary<string, object> properties)
         {
-            if (DataStore.Enabled) DataStore.WriteAuditEvent(new AuditEventInfo(auditEvent, properties)); else DataProvider.Current.WriteAuditEvent(new AuditEventInfo(auditEvent, properties)); //DB:ok
+            if (DataStore.Enabled) DataStore.WriteAuditEventAsync(new AuditEventInfo(auditEvent, properties)).Wait(); else DataProvider.Current.WriteAuditEvent(new AuditEventInfo(auditEvent, properties)); //DB:ok
         }
     }
 }
