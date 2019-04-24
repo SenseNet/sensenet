@@ -91,9 +91,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
-            //UNDONE:DB -------Delete CheckTimestamps feature
-            var nodeTimestampBefore = DataProvider.GetNodeTimestamp(nodeData.Id);
-            var versionTimestampBefore = DataProvider.GetVersionTimestamp(nodeData.VersionId);
+            //UNDONE:DB -------Delete nodeTimestampBefore and versionTimestampBefore feature
+            var nodeTimestampBefore = DataProvider.GetNodeTimestampAsync(nodeData.Id).Result;
+            var versionTimestampBefore = DataProvider.GetVersionTimestampAsync(nodeData.VersionId).Result;
 
             // ORIGINAL SIGNATURES:
             // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -487,6 +487,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetVersionCountAsync(path);
         }
+        public static async Task<long> GetNodeTimestampAsync(int nodeId)
+        {
+            return await DataProvider.GetNodeTimestampAsync(nodeId);
+        }
+        public static async Task<long> GetVersionTimestampAsync(int versionId)
+        {
+            return await DataProvider.GetVersionTimestampAsync(versionId);
+        }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
@@ -508,7 +516,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             DistributedApplication.Cache.Insert(cacheKey, nodeData, dependency);
         }
 
-
         //UNDONE:DB -------Delete CheckTimestamps feature
         private static void AssertNodeTimestampIncremented(NodeData nodeData, long nodeTimestampBefore)
         {
@@ -519,17 +526,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             if (nodeData.VersionTimestamp <= versionTimestampBefore)
                 throw new Exception("VersionTimestamp need to be incremented.");
-        }
-
-        //UNDONE:DB -------Delete GetNodeTimestamp feature
-        public static long GetNodeTimestamp(int nodeId)
-        {
-            return DataProvider.GetNodeTimestamp(nodeId);
-        }
-        //UNDONE:DB -------Delete GetVersionTimestamp feature
-        public static long GetVersionTimestamp(int versionId)
-        {
-            return DataProvider.GetVersionTimestamp(versionId);
         }
 
         //UNDONE:DB -------Remove DataStore.AddSnapshot

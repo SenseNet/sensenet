@@ -176,10 +176,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
-        //UNDONE:DB -------Delete GetNodeTimestamp method
-        public abstract long GetNodeTimestamp(int nodeId);
-        //UNDONE:DB -------Delete GetVersionTimestamp method
-        public abstract long GetVersionTimestamp(int versionId);
+        public abstract Task<long> GetNodeTimestampAsync(int nodeId);
+        public abstract Task<long> GetVersionTimestampAsync(int versionId);
 
     }
 }
