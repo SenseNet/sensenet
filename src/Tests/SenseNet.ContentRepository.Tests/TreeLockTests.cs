@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void TreeLock_AcquieAndScope()
         {
-            Test<object>(() =>
+            Test(() =>
             {
                 using (TreeLock.Acquire("/Root/A/B/C"))
                 {
@@ -27,15 +27,13 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsFalse(IsLocked("/Root/A/B/X"));
                     Assert.IsFalse(IsLocked("/Root/A/X"));
                     Assert.IsFalse(IsLocked("/Root/X"));
-
-                    return null;
                 }
             });
         }
         [TestMethod]
         public void TreeLock_Release()
         {
-            Test<object>(() =>
+            Test(() =>
             {
                 var locks = TreeLock.GetAllLocks();
                 Assert.AreEqual(0, locks.Count);
@@ -80,15 +78,13 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(IsLocked("/Root/A/B"));
                 Assert.IsFalse(IsLocked("/Root/A"));
                 Assert.IsFalse(IsLocked("/Root"));
-
-                return null;
             });
         }
 
         [TestMethod]
         public void TreeLock_CannotAcquire()
         {
-            Test<object>(() =>
+            Test(() =>
             {
                 var locks = TreeLock.GetAllLocks();
                 Assert.AreEqual(0, locks.Count);
@@ -115,8 +111,6 @@ namespace SenseNet.ContentRepository.Tests
                         Assert.IsTrue(locks.ContainsValue("/Root/A/B/C"));
                     }
                 }
-
-                return null;
             });
         }
 
@@ -140,7 +134,7 @@ namespace SenseNet.ContentRepository.Tests
             // contains an underscore. Previously this did not work correctly
             // because the SQL LIKE operator treated it as a special character.
 
-            Test<object>(() =>
+            Test(() =>
             {
                 using (TreeLock.Acquire("/Root/A/BxB/C"))
                 {
@@ -163,8 +157,6 @@ namespace SenseNet.ContentRepository.Tests
                     }
 
                     Assert.IsTrue(thrown, "#1");
-
-                    return null;
                 }
             });
         }

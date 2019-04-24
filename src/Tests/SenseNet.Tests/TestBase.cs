@@ -137,17 +137,6 @@ namespace SenseNet.Tests
         protected T Test<T>(Func<T> callback)
         {
             return Test(false, null, callback);
-
-        }
-        protected T Test<T>(bool useCurrentUser, Func<T> callback)
-        {
-            return Test(useCurrentUser, null, callback);
-
-        }
-        protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
-        {
-            return Test(false, initialize, callback);
-
         }
         protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
         {
@@ -205,7 +194,7 @@ DataStore.Enabled = backup;
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobMetaDataProvider(DataStore.Enabled ? (IBlobStorageMetaDataProvider)new InMemoryBlobStorageMetaDataProvider2(dp2) : new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())

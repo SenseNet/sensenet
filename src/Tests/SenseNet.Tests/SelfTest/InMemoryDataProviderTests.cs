@@ -19,18 +19,24 @@ namespace SenseNet.Tests.SelfTest
         [TestMethod]
         public void InMemDb_LoadRootById()
         {
-            var node = Test(() => Node.LoadNode(Identifiers.PortalRootId));
+            Test(() =>
+            {
+                var node = Node.LoadNode(Identifiers.PortalRootId);
+                Assert.AreEqual(Identifiers.PortalRootId, node.Id);
+                Assert.AreEqual(Identifiers.RootPath, node.Path);
+            }
+        );
 
-            Assert.AreEqual(Identifiers.PortalRootId, node.Id);
-            Assert.AreEqual(Identifiers.RootPath, node.Path);
         }
         [TestMethod]
         public void InMemDb_LoadRootByPath()
         {
-            var node = Test(() => Node.LoadNode(Identifiers.RootPath));
-
-            Assert.AreEqual(Identifiers.PortalRootId, node.Id);
-            Assert.AreEqual(Identifiers.RootPath, node.Path);
+            Test(() =>
+            {
+                var node = Node.LoadNode(Identifiers.RootPath);
+                Assert.AreEqual(Identifiers.PortalRootId, node.Id);
+                Assert.AreEqual(Identifiers.RootPath, node.Path);
+            });
         }
         [TestMethod]
         public void InMemDb_Create()
@@ -66,7 +72,6 @@ namespace SenseNet.Tests.SelfTest
             {
                 var user = User.Somebody;
                 Assert.AreEqual("BuiltIn", user.Domain);
-                return 0;
             });
         }
         [TestMethod]
@@ -86,8 +91,6 @@ namespace SenseNet.Tests.SelfTest
                 // ASSERT
                 admin = Node.Load<User>(Identifiers.AdministratorUserId);
                 Assert.AreEqual(testValue, admin.FullName);
-
-                return 0;
             });
         }
 
@@ -115,8 +118,6 @@ namespace SenseNet.Tests.SelfTest
                     admin = Node.Load<User>(Identifiers.AdministratorUserId);
                     Assert.AreEqual(testValue, admin.GetProperty<string>(propertyName));
                 });
-
-                return 0;
             });
         }
 
@@ -128,7 +129,6 @@ namespace SenseNet.Tests.SelfTest
                 var group = Group.Administrators;
                 Assert.IsTrue(group.Members.Any());
                 Assert.IsTrue(group.HasReference(PropertyType.GetByName("Members"), User.Administrator));
-                return 0;
             });
         }
 
@@ -152,8 +152,6 @@ namespace SenseNet.Tests.SelfTest
                 editors = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Editors"); // reload
                 var editorMembersAfter = editors.Members.Select(n => n.Id).OrderBy(i => i).ToArray();
                 Assert.IsTrue(editorMembersAfter.Contains(developersGroupId));
-
-                return 0;
             });
         }
 
@@ -224,8 +222,6 @@ namespace SenseNet.Tests.SelfTest
                 var expected = string.Join(",", buffer.Select(x => x.ToString()));
                 var actual = string.Join(",", b.Select(x => x.ToString()));
                 Assert.AreEqual(expected, actual);
-
-                return 0;
             });
         }
     }
