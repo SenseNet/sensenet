@@ -42,6 +42,19 @@ namespace SenseNet.ContentRepository
 
             return repositoryBuilder;
         }
+        public static IRepositoryBuilder UseDataProvider2(this IRepositoryBuilder repositoryBuilder, DataProvider2 dataProvider) //DB:ok
+        {
+            Configuration.Providers.Instance.DataProvider2 = dataProvider;
+
+            //UNDONE:DB: TransactionFactory?
+            //if (dataProvider != null)
+            //{
+            //    CommonComponents.TransactionFactory = dataProvider2;
+            //    WriteLog("TransactionFactory", dataProvider);
+            //}
+
+            return repositoryBuilder;
+        }
 
         /// <summary>
         /// Sets the blob metadata provider.

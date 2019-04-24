@@ -173,6 +173,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract bool IsCacheableText(string text);
         public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension);
         public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren);
+        public abstract Task<int> GetVersionCountAsync(string path);
 
         /* =============================================================================================== Infrastructure */
 

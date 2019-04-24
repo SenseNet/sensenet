@@ -1022,45 +1022,42 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityDoc activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityDoc activityDoc, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            throw new NotImplementedException(); //UNDONE:DB LoadFullIndexingActivity is not implemented.
-            /*
-            var nodeRecord = DB.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
-            var versionRecord = DB.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
-            var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
+            var nodeDoc = DB.Nodes.FirstOrDefault(r => r.NodeId == activityDoc.NodeId);
+            var versionDoc = DB.Versions.FirstOrDefault(r => r.VersionId == activityDoc.VersionId);
+            var activity = activityFactory.CreateActivity(activityDoc.ActivityType);
 
-            activity.Id = activityRecord.IndexingActivityId;
-            activity.ActivityType = activityRecord.ActivityType;
-            activity.CreationDate = activityRecord.CreationDate;
-            activity.RunningState = activityRecord.RunningState;
-            activity.LockTime = activityRecord.LockTime;
-            activity.NodeId = activityRecord.NodeId;
-            activity.VersionId = activityRecord.VersionId;
-            activity.Path = activityRecord.Path;
+            activity.Id = activityDoc.IndexingActivityId;
+            activity.ActivityType = activityDoc.ActivityType;
+            activity.CreationDate = activityDoc.CreationDate;
+            activity.RunningState = activityDoc.RunningState;
+            activity.LockTime = activityDoc.LockTime;
+            activity.NodeId = activityDoc.NodeId;
+            activity.VersionId = activityDoc.VersionId;
+            activity.Path = activityDoc.Path;
             activity.FromDatabase = true;
             activity.IsUnprocessedActivity = executingUnprocessedActivities;
-            activity.Extension = activityRecord.Extension;
+            activity.Extension = activityDoc.Extension;
 
-            if (versionRecord?.IndexDocument != null && nodeRecord != null)
+            if (versionDoc?.IndexDocument != null && nodeDoc != null)
             {
-                activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
+                activity.IndexDocumentData = new IndexDocumentData(null, versionDoc.IndexDocument)
                 {
-                    NodeTypeId = nodeRecord.NodeTypeId,
+                    NodeTypeId = nodeDoc.NodeTypeId,
                     VersionId = activity.VersionId,
                     NodeId = activity.NodeId,
-                    ParentId = nodeRecord.ParentNodeId,
+                    ParentId = nodeDoc.ParentNodeId,
                     Path = activity.Path,
-                    IsSystem = nodeRecord.IsSystem,
-                    IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
-                    NodeTimestamp = nodeRecord.Timestamp,
-                    VersionTimestamp = versionRecord.Timestamp,
+                    IsSystem = nodeDoc.IsSystem,
+                    IsLastDraft = nodeDoc.LastMinorVersionId == activity.VersionId,
+                    IsLastPublic = versionDoc.Version.Status == VersionStatus.Approved && nodeDoc.LastMajorVersionId == activity.VersionId,
+                    NodeTimestamp = nodeDoc.Timestamp,
+                    VersionTimestamp = versionDoc.Timestamp,
                 };
             }
 
             return activity;
-            */
         }
 
         /* =============================================================================================== Schema */
@@ -1180,6 +1177,21 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Select(f => f.Size).Sum();
 
             return STT.Task.FromResult(result);
+        }
+
+        public override Task<int> GetVersionCountAsync(string path)
+        {
+            if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                return STT.Task.FromResult(DB.Versions.Count);
+
+            var count = DB.Nodes.Join(DB.Versions, n => n.NodeId, v => v.NodeId,
+                    (node, version) => new { Node = node, Version = version })
+                .Count(
+                    x =>
+                        x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
+                            StringComparison.InvariantCultureIgnoreCase)
+                        || x.Node.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+            return STT.Task.FromResult(count);
         }
 
         /* =============================================================================================== Infrastructure */

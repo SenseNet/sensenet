@@ -332,8 +332,8 @@ DataStore.Enabled = backup;
                 DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), null); //UNDONE:DB:@@ Set valid instance for the default platform.
             if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())
                 DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), null); //UNDONE:DB:@@ Set valid instance for the default platform.
-            if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), null); //UNDONE:DB:@@ Set valid instance for the default platform.
+            if (null == DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>())
+                DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), null); //UNDONE:DB:@@ Set valid instance for the default platform.
         }
 
         private static void InitializeOAuthProviders()

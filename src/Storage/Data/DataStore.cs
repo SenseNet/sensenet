@@ -483,6 +483,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetTreeSizeAsync(path, includeChildren);
         }
+        public static async Task<int> GetVersionCountAsync(string path)
+        {
+            return await DataProvider.GetVersionCountAsync(path);
+        }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
@@ -541,6 +545,5 @@ namespace SenseNet.ContentRepository.Storage.Data
                 Snapshot = snapshot
             });
         }
-
     }
 }

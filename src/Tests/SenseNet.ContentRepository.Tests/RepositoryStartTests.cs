@@ -17,6 +17,7 @@ using SenseNet.Search;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -146,6 +147,62 @@ namespace SenseNet.ContentRepository.Tests
 
         [TestMethod]
         public void RepositoryStart_NamedProviders()
+        {
+           if(DataStore.Enabled)
+               RepositoryStart_NamedProviders_NEW();
+            else
+                RepositoryStart_NamedProviders_OLD();
+        }
+        public void RepositoryStart_NamedProviders_NEW()
+        {
+            var dbProvider = new InMemoryDataProvider2();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine();
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
+            //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
+            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider2(dbProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseSecurityDataProvider(securityDbProvider)
+                .UseSearchEngine(searchEngine)
+                .UseAccessProvider(accessProvider)
+                .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Test", "Web", "System");
+
+            DataStore.InstallDataPackage(GetInitialData());
+
+            using (Repository.Start(repoBuilder))
+            {
+                Assert.AreSame(dbProvider, DataStore.DataProvider); //DB:??test??
+                Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
+                Assert.AreEqual(accessProvider, AccessProvider.Current);
+                Assert.AreEqual(emvrProvider, Providers.Instance.ElevatedModificationVisibilityRuleProvider);
+
+                // Currently this does not work, because the property below re-creates the security 
+                // db provider from the prototype, so it cannot be ref equal with the original.
+                // Assert.AreEqual(securityDbProvider, SecurityHandler.SecurityContext.DataProvider);
+                Assert.AreEqual(securityDbProvider, Providers.Instance.SecurityDataProvider);
+
+                // Check a few trace categories that were switched ON above.
+                Assert.IsTrue(SnTrace.Custom.Enabled);
+                Assert.IsTrue(SnTrace.Test.Enabled);
+                Assert.IsTrue(SnTrace.Web.Enabled);
+                Assert.IsTrue(SnTrace.System.Enabled);
+                Assert.IsFalse(SnTrace.TaskManagement.Enabled);
+                Assert.IsFalse(SnTrace.Workflow.Enabled);
+            }
+        }
+        public void RepositoryStart_NamedProviders_OLD()
         {
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());

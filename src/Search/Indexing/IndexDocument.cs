@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -256,75 +257,79 @@ namespace SenseNet.Search.Indexing
 
         public static IndexDocument Deserialize(string serializedIndexDocument)
         {
-            //var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize<IndexDocument>(
-            //    new JsonTextReader(new StringReader(serializedIndexDocument)));
-            //return deserialized;
-            var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize(
-                new JsonTextReader(new StringReader(serializedIndexDocument)));
-            var result = new IndexDocument();
-            foreach (JObject field in (JArray)deserialized)
+            try
             {
-                string name = null;
-                var type = IndexValueType.String;
-                var mode = IndexingMode.Default;
-                var store = IndexStoringMode.Default;
-                var termVector = IndexTermVector.Default;
-                object value = null;
-
-                foreach (var item in field)
+                var deserialized = JsonSerializer.Create(_serializerSettings).Deserialize(
+                    new JsonTextReader(new StringReader(serializedIndexDocument)));
+                var result = new IndexDocument();
+                foreach (JObject field in (JArray)deserialized)
                 {
-                    switch (item.Key)
+                    string name = null;
+                    var type = IndexValueType.String;
+                    var mode = IndexingMode.Default;
+                    var store = IndexStoringMode.Default;
+                    var termVector = IndexTermVector.Default;
+                    object value = null;
+
+                    foreach (var item in field)
                     {
-                        case "Name": name = ((JValue)item.Value).ToString(); break;
-                        case "Type": type = (IndexValueType)Enum.Parse(typeof(IndexValueType), ((JValue)item.Value).ToString(), true); break;
-                        case "Mode": mode = (IndexingMode)Enum.Parse(typeof(IndexingMode), ((JValue)item.Value).ToString(), true); break;
-                        case "Store": store = (IndexStoringMode)Enum.Parse(typeof(IndexStoringMode), ((JValue)item.Value).ToString(), true); break;
-                        case "TermVector": termVector = (IndexTermVector)Enum.Parse(typeof(IndexTermVector), ((JValue)item.Value).ToString(), true); break;
-                        case "Value":
-                            if(item.Value is JValue jvalue)
-                                value = jvalue;
-                            else if (item.Value is JArray jarray)
-                                value = jarray.Select(x => x.ToString()).ToArray();
+                        switch (item.Key)
+                        {
+                            case "Name": name = ((JValue)item.Value).ToString(); break;
+                            case "Type": type = (IndexValueType)Enum.Parse(typeof(IndexValueType), ((JValue)item.Value).ToString(), true); break;
+                            case "Mode": mode = (IndexingMode)Enum.Parse(typeof(IndexingMode), ((JValue)item.Value).ToString(), true); break;
+                            case "Store": store = (IndexStoringMode)Enum.Parse(typeof(IndexStoringMode), ((JValue)item.Value).ToString(), true); break;
+                            case "TermVector": termVector = (IndexTermVector)Enum.Parse(typeof(IndexTermVector), ((JValue)item.Value).ToString(), true); break;
+                            case "Value":
+                                if (item.Value is JValue jvalue)
+                                    value = jvalue;
+                                else if (item.Value is JArray jarray)
+                                    value = jarray.Select(x => x.ToString()).ToArray();
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+                    }
+
+                    IndexField indexField;
+                    switch (type)
+                    {
+                        case IndexValueType.String:
+                            indexField = new IndexField(name, value?.ToString(), mode, store, termVector);
+                            break;
+                        case IndexValueType.StringArray:
+                            indexField = new IndexField(name, (string[])value, mode, store, termVector);
+                            break;
+                        case IndexValueType.Bool:
+                            indexField = new IndexField(name, Convert.ToBoolean(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.Int:
+                            indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.Long:
+                            indexField = new IndexField(name, Convert.ToInt64(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.Float:
+                            indexField = new IndexField(name, Convert.ToSingle(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.Double:
+                            indexField = new IndexField(name, Convert.ToDouble(value), mode, store, termVector);
+                            break;
+                        case IndexValueType.DateTime:
+                            indexField = new IndexField(name, DateTime.Parse(value.ToString()), mode, store, termVector);
                             break;
                         default:
-                            throw new NotSupportedException();
+                            throw new ArgumentOutOfRangeException();
                     }
-                }
 
-                IndexField indexField;
-                switch (type)
-                {
-                    case IndexValueType.String:
-                        indexField = new IndexField(name, value?.ToString(), mode, store, termVector);
-                        break;
-                    case IndexValueType.StringArray:
-                        indexField = new IndexField(name, (string[])value, mode, store, termVector);
-                        break;
-                    case IndexValueType.Bool:
-                        indexField = new IndexField(name, Convert.ToBoolean(value), mode, store, termVector);
-                        break;
-                    case IndexValueType.Int:
-                        indexField = new IndexField(name, Convert.ToInt32(value), mode, store, termVector);
-                        break;
-                    case IndexValueType.Long:
-                        indexField = new IndexField(name, Convert.ToInt64(value), mode, store, termVector);
-                        break;
-                    case IndexValueType.Float:
-                        indexField = new IndexField(name, Convert.ToSingle(value), mode, store, termVector);
-                        break;
-                    case IndexValueType.Double:
-                        indexField = new IndexField(name, Convert.ToDouble(value), mode, store, termVector);
-                        break;
-                    case IndexValueType.DateTime:
-                        indexField = new IndexField(name, DateTime.Parse(value.ToString()), mode, store, termVector);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    result.Add(indexField);
                 }
-
-                result.Add(indexField);
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new SerializationException("Cannot deserialize the index document: " + e.Message, e);
+            }
         }
 
         public string Serialize()

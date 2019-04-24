@@ -210,7 +210,8 @@ DataStore.Enabled = backup;
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
-                .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
