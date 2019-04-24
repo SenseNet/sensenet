@@ -96,15 +96,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             return Interlocked.Increment(ref __indexingActivityId);
         }
-
-        /* ================================================================================================ IndexingActivities */
-        //UNDONE:@@ SharedLockDoc is an extension
-        public List<SharedLockDoc> SharedLocks { get; } = new List<SharedLockDoc>();
-        private int __sharedLockId = 0;
-        public int GetNextSharedLockId()
-        {
-            return Interlocked.Increment(ref __sharedLockId);
-        }
     }
 
     public class DataCollection<T> : IEnumerable<T>
