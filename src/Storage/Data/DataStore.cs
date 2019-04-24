@@ -475,9 +475,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsCacheableText(value);
         }
-        public static string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension) //UNDONE:DB: ASYNC
+        public static async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
         {
-            return DataProvider.GetNameOfLastNodeWithNameBase(parentId, namebase, extension);
+            return await DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension);
         }
         public static long GetTreeSize(string path, bool includeChildren) //UNDONE:DB: ASYNC
         {

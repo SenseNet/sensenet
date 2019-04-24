@@ -1140,7 +1140,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return text?.Length < TextAlternationSizeLimit;
         }
 
-        public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
+        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
         {
             var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
             var existingName = DB.Nodes
@@ -1148,7 +1148,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Select(n => n.Name.ToLowerInvariant())
                 .OrderByDescending(GetSuffix)
                 .FirstOrDefault();
-            return existingName;
+            return STT.Task.FromResult(existingName);
         }
         private int GetSuffix(string name)
         {

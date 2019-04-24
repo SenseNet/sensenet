@@ -200,15 +200,14 @@ namespace SenseNet.ContentRepository
         {
             currentName = RepositoryPath.GetFileName(currentName);
             var ext = Path.GetExtension(currentName);
-            string nameBase;
             var fileName = Path.GetFileNameWithoutExtension(currentName);
-            var count = ParseSuffix(fileName, out nameBase);
+            var count = ParseSuffix(fileName, out var nameBase);
 
-            var lastName = DataStore.Enabled ? DataStore.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext) : DataProvider.Current.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext); //DB:ok
+            var lastName = DataStore.Enabled ? DataStore.GetNameOfLastNodeWithNameBaseAsync(parentNodeId, nameBase, ext).Result : DataProvider.Current.GetNameOfLastNodeWithNameBase(parentNodeId, nameBase, ext); //DB:ok
 
             // if there is no suffixed name in db, return with first variant
             if (lastName == null)
-                return String.Format("{0}(1){1}", nameBase, ext);
+                return $"{nameBase}(1){ext}";
 
             // there was a suffixed name in db in the form namebase(x), increment it
             // car(5)-> car(6), car(test)(5) -> car(test)(6), car(test) -> car(guid)

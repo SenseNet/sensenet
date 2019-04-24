@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
-        public abstract string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension);
+        public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension);
         public abstract long GetTreeSize(string path, bool includeChildren);
 
         /* =============================================================================================== Infrastructure */
