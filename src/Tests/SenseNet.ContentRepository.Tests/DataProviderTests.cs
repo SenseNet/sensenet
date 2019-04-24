@@ -1072,7 +1072,7 @@ namespace SenseNet.ContentRepository.Tests
             DPTest(() =>
             {
                 // ACTION
-                var treeData = DataStore.LoadEntityTree();
+                var treeData = DataStore.LoadEntityTreeAsync().Result;
 
                 // ASSERT check the right ordering: every node follows it's parent node.
                 var tree = new Dictionary<int, EntityTreeNodeData>();

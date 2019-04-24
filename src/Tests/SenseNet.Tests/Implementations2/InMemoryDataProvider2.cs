@@ -707,9 +707,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override IEnumerable<EntityTreeNodeData> LoadEntityTree()
+        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
         {
-            return DB.Nodes
+            var result = DB.Nodes
                 .OrderBy(n => n.Path)
                 .Select(n => new EntityTreeNodeData
                 {
@@ -718,6 +718,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     OwnerId = n.OwnerId
                 })
                 .ToArray();
+            return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
         }
 
         /* =============================================================================================== TreeLock */
