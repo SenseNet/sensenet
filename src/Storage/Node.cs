@@ -2201,7 +2201,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbers(nodeId) : DataProvider.Current.GetVersionNumbers(nodeId)); //DB:ok
+            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbersAsync(nodeId).Result : DataProvider.Current.GetVersionNumbers(nodeId)); //DB:ok
         }
         /// <summary>
         /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
@@ -2211,7 +2211,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbers(path) : DataProvider.Current.GetVersionNumbers(path)); //DB:ok
+            return new List<VersionNumber>(DataStore.Enabled ? DataStore.GetVersionNumbersAsync(path).Result : DataProvider.Current.GetVersionNumbers(path)); //DB:ok
         }
 
         /// <summary>
@@ -3560,7 +3560,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     var contentListTypesInTree = (this is IContentList)
                         ? new List<ContentListType>(new[] {this.ContentListType})
-                        : DataStore.Enabled ? DataStore.GetContentListTypesInTree(this.Path) : DataProvider.Current.GetContentListTypesInTree(this.Path); //DB:ok
+                        : DataStore.Enabled ? DataStore.GetContentListTypesInTreeAsync(this.Path).Result : DataProvider.Current.GetContentListTypesInTree(this.Path); //DB:ok
 
                     var logProps = CollectAllProperties(this.Data);
                     var oldPath = this.Path;
@@ -4272,7 +4272,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static long GetTreeSize(string path, bool includeChildren = true)
         {
-            return DataStore.Enabled ? DataStore.GetTreeSize(path, includeChildren) : DataProvider.Current.GetTreeSize(path, includeChildren); //DB:ok
+            return DataStore.Enabled ? DataStore.GetTreeSizeAsync(path, includeChildren).Result : DataProvider.Current.GetTreeSize(path, includeChildren); //DB:ok
         }
 
         #endregion

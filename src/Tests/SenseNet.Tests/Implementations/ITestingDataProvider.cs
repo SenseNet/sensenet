@@ -17,5 +17,6 @@ namespace SenseNet.Tests.Implementations
         void CheckScript(string commandText);
         IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, Int32[] excludedNodeTypeIds);
         IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, Int32[] excludedNodeTypeIds);
+        int GetLastNodeId();
     }
 }

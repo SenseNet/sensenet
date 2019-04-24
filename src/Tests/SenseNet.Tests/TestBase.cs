@@ -105,8 +105,8 @@ namespace SenseNet.Tests
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
+            //DistributedApplication.Cache.Reset();
+            //ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
@@ -118,6 +118,9 @@ namespace SenseNet.Tests
 
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
+
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             using (Repository.Start(builder))
             {
@@ -134,17 +137,6 @@ namespace SenseNet.Tests
         protected T Test<T>(Func<T> callback)
         {
             return Test(false, null, callback);
-
-        }
-        protected T Test<T>(bool useCurrentUser, Func<T> callback)
-        {
-            return Test(useCurrentUser, null, callback);
-
-        }
-        protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
-        {
-            return Test(false, initialize, callback);
-
         }
         protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
         {
@@ -180,6 +172,11 @@ namespace SenseNet.Tests
             //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
             var dp2 = new InMemoryDataProvider2();
             Providers.Instance.DataProvider2 = dp2;
+var backup = DataStore.Enabled;
+DataStore.Enabled = true;
+DataStore.InstallDataPackage(GetInitialData());
+DataStore.Enabled = backup;
+
 
             //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2
             dp2.SetExtension(typeof(ISharedLockDataProviderExtension), new InMemorySharedLockDataProvider2());
@@ -192,15 +189,17 @@ namespace SenseNet.Tests
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
+
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobMetaDataProvider(DataStore.Enabled ? (IBlobStorageMetaDataProvider)new InMemoryBlobStorageMetaDataProvider2(dp2) : new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
+                .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
@@ -239,7 +238,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.Enabled ? DataStore.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000) : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
+            var idSet = DataStore.Enabled ? DataStore.LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(0, 11000).Result : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
@@ -350,8 +349,20 @@ namespace SenseNet.Tests
         }
 
 
+
+        protected void PrepareRepository()
+        {
+            new SnMaintenance().Shutdown();
+
+            // Index
+            if (!(Providers.Instance.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine))
+                throw new Exception("Only an InMemoryIndexingEngine is allowed here.");
+            indexingEngine.Index = GetInitialIndex();
+
+        }
+
         private static InitialData _initialData;
-        protected static InitialData GetInitialStructure()
+        protected static InitialData GetInitialData()
         {
             //if (_initialData == null)
             //{
@@ -375,5 +386,16 @@ namespace SenseNet.Tests
             return _initialData;
         }
 
+        private static InMemoryIndex _initialIndex;
+        protected static InMemoryIndex GetInitialIndex()
+        {
+            if (_initialIndex == null)
+            {
+                var index = new InMemoryIndex();
+                index.Load(new StringReader(InitialTestIndex.Index));
+                _initialIndex = index;
+            }
+            return _initialIndex.Clone();
+        }
     }
 }

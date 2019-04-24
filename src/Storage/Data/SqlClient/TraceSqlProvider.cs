@@ -194,15 +194,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), path);
             return base.VersionCount(path);
         }
-        protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
+        protected internal override void UpdateIndexDocument(NodeData nodeData, string serializedIndexDocument)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), nodeData, indexDocumentBytes);
-            base.UpdateIndexDocument(nodeData, indexDocumentBytes);
+            WriteLog(MethodBase.GetCurrentMethod(), nodeData, serializedIndexDocument);
+            base.UpdateIndexDocument(nodeData, serializedIndexDocument);
         }
-        protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
+        protected internal override void UpdateIndexDocument(int versionId, string serializedIndexDocument)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), versionId, indexDocumentBytes);
-            base.UpdateIndexDocument(versionId, indexDocumentBytes);
+            WriteLog(MethodBase.GetCurrentMethod(), versionId, serializedIndexDocument);
+            base.UpdateIndexDocument(versionId, serializedIndexDocument);
         }
         protected internal override IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {

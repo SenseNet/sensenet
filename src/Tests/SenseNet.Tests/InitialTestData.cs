@@ -5,7 +5,7 @@ namespace SenseNet.Tests
 {
     internal static class InitialTestData
     {
-        #region PropertyTypes
+        #region internal static readonly string PropertyTypes
         internal static readonly string PropertyTypes = @"
   Id| DataType  | Mapping| Name
 ----- ----------- -------- ---------------
@@ -164,7 +164,7 @@ namespace SenseNet.Tests
 ";
         #endregion
 
-        #region NodeTypes
+        #region internal static readonly string NodeTypes
         internal static readonly string NodeTypes = @"
   Id| Name                          | ParentName                    | ClassName                                                   | Properties
 ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------
@@ -249,7 +249,7 @@ namespace SenseNet.Tests
 ";
         #endregion
 
-        #region Nodes
+        #region internal static readonly string Nodes
         internal static readonly string Nodes = @"
 NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path
 ------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
@@ -516,7 +516,7 @@ NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name          
 ";
         #endregion
 
-        #region Versions
+        #region internal static readonly string Versions
         internal static readonly string Versions = @"
 VersionId| NodeId|  Version
 ---------- ------- ---------
@@ -783,7 +783,7 @@ VersionId| NodeId|  Version
 ";
         #endregion
 
-        #region DynamicData
+        #region internal static readonly string DynamicData
         internal static readonly string DynamicData = @"VersionId: 1
     DynamicProperties
         Enabled:Int: 1
@@ -2131,8 +2131,8 @@ VersionId: 260
         #endregion
 
 
-        #region CTD
-        public static readonly IDictionary<string, string> ContentTypeDefinitions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+        #region internal static readonly IDictionary<string, string> ContentTypeDefinitions
+        internal static readonly IDictionary<string, string> ContentTypeDefinitions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
         {
 			#region  1. Application
 			{ "Application", @"<?xml version=""1.0"" encoding=""utf-8""?>

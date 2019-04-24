@@ -665,11 +665,6 @@ namespace SenseNet.ContentRepository.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-var backup = DataStore.Enabled;
-DataStore.Enabled = true;
-            DataStore.InstallDataPackage(GetInitialStructure());
-DataStore.Enabled = backup;
-
             _repository = Repository.Start(builder);
 
             DistributedApplication.Cache.Reset();

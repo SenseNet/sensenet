@@ -44,8 +44,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(analyzersAfter[fieldName1] == analyzerValue1);
                 Assert.IsTrue(analyzersAfter.ContainsKey(fieldName2));
                 Assert.IsTrue(analyzersAfter[fieldName2] == analyzerValue2);
-
-                return true;
             });
         }
 
@@ -88,8 +86,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(message.Contains(contentTypeName));
                 Assert.IsTrue(message.Contains(fieldName));
                 Assert.IsTrue(message.Contains(analyzerValue));
-
-                return true;
             });
         }
     }

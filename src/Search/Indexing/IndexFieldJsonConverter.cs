@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using Newtonsoft.Json;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Search.Indexing
 {
     internal class IndexFieldJsonConverter : JsonConverter<IndexField>
     {

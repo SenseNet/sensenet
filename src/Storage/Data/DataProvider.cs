@@ -434,13 +434,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Index document save / load operations
 
-        internal static void SaveIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
+        internal static void SaveIndexDocument(NodeData nodeData, string serializedIndexDocument)
         {
-            Current.UpdateIndexDocument(nodeData, indexDocumentBytes);
+            Current.UpdateIndexDocument(nodeData, serializedIndexDocument);
         }
-        public static void SaveIndexDocument(int versionId, byte[] indexDocumentBytes)
+        public static void SaveIndexDocument(int versionId, string serializedIndexDocument)
         {
-            Current.UpdateIndexDocument(versionId, indexDocumentBytes);
+            Current.UpdateIndexDocument(versionId, serializedIndexDocument);
         }
         internal static IndexDocumentData LoadIndexDocument(int versionId)
         {
@@ -455,8 +455,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             return Current.LoadIndexDocumentsByPath(path, excludedNodeTypes);
         }
         protected internal abstract IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes);
-        protected internal abstract void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes);
-        protected internal abstract void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes);
+        protected internal abstract void UpdateIndexDocument(NodeData nodeData, string serializedIndexDocument);
+        protected internal abstract void UpdateIndexDocument(int versionId, string serializedIndexDocument);
         protected internal abstract IndexDocumentData LoadIndexDocumentByVersionId(int versionId);
         protected internal abstract IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId);
 

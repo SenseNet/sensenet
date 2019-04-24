@@ -8,7 +8,10 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
         {
-            DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), provider); //DB:ok
+            if (DataStore.Enabled)
+                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), provider);
+            else
+                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), provider); //DB:ok
             return builder;
         }
     }

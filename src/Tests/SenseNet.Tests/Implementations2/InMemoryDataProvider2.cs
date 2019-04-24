@@ -36,6 +36,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
             //UNDONE:DB Lock? Transaction?
+            // Check unique keys.
+            if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
+                throw new NodeAlreadyExistsException();
 
             var nodeId = DB.GetNextNodeId();
             nodeHeadData.NodeId = nodeId;
@@ -80,7 +83,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Get VersionDoc and update
             var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
@@ -120,7 +123,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Get existing VersionDoc and update
             var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
@@ -166,7 +169,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (existingNodeDoc == null)
                 throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
             if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                throw new Exception($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
             // Delete unnecessary versions
             DeleteVersionsAsync(versionIdsToDelete);
@@ -436,18 +439,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(result);
         }
 
-        public override IEnumerable<VersionNumber> GetVersionNumbers(int nodeId)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
         {
             var versions = DB.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
-            return versions;
+            return STT.Task.FromResult((IEnumerable<VersionNumber>)versions);
         }
 
-        public override IEnumerable<VersionNumber> GetVersionNumbers(string path)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
         {
             var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
             if (node == null)
-                return new VersionNumber[0];
-            return GetVersionNumbers(node.NodeId);
+                return STT.Task.FromResult((IEnumerable<VersionNumber>)new VersionNumber[0]);
+            return GetVersionNumbersAsync(node.NodeId);
         }
 
         private NodeHead NodeDocToNodeHead(NodeDoc nodeDoc)
@@ -475,35 +478,37 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== NodeQuery */
 
-        public override int InstanceCount(int[] nodeTypeIds)
+        public override Task<int> InstanceCountAsync(int[] nodeTypeIds)
         {
-            return DB.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
+            var result = DB.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
+            return STT.Task.FromResult(result);
         }
-        public override IEnumerable<int> GetChildrenIdentfiers(int parentId)
+        public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
         {
-            return DB.Nodes.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
+            var result = DB.Nodes.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
+            return STT.Task.FromResult((IEnumerable<int>)result);
         }
-        public override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
+        public override Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
         {
-            return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
+            return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath);
         }
-        public override IEnumerable<int> QueryNodesByType(int[] typeIds)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] typeIds)
         {
-            return QueryNodesByTypeAndPath(typeIds, new string[0], false);
+            return QueryNodesByTypeAndPathAsync(typeIds, new string[0], false);
         }
-        public override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
         }
-        public override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
         {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
         }
-        public override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
         {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, name);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
         }
-        public override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
 
             IEnumerable<NodeDoc> nodes = DB.Nodes;
@@ -530,10 +535,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .OrderBy(n => n.Path)
                     .ToList();
 
-            var ids = nodes.Select(n => n.NodeId);
-            return ids.ToArray();
+            var result = nodes.Select(n => n.NodeId).ToArray();
+            return STT.Task.FromResult((IEnumerable<int>)result);
         }
-        public override IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
             // Partially implemented. See SnNotSupportedExceptions
 
@@ -609,9 +614,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .ToList();
 
             var ids = nodes.Select(n => n.NodeId);
-            return ids.ToArray();
+
+            return STT.Task.FromResult((IEnumerable<int>)ids.ToArray());
         }
-        public override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds)
+        public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
         {
             //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
             if (referenceName == null)
@@ -641,7 +647,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Select(v => v.NodeId)
                 .ToArray();
 
-            return result;
+            return STT.Task.FromResult((IEnumerable<int>)result);
         }
 
         /* =============================================================================================== Tree */
@@ -682,13 +688,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult((IEnumerable<NodeType>)result);
         }
 
-        public override List<ContentListType> GetContentListTypesInTree(string path)
+        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
         {
-            return DB.Nodes
+            var result = DB.Nodes
                 .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
                             n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
                 .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
                 .ToList();
+            return STT.Task.FromResult(result);
         }
         private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
         {
@@ -700,9 +707,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override IEnumerable<EntityTreeNodeData> LoadEntityTree()
+        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
         {
-            return DB.Nodes
+            var result = DB.Nodes
                 .OrderBy(n => n.Path)
                 .Select(n => new EntityTreeNodeData
                 {
@@ -711,11 +718,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     OwnerId = n.OwnerId
                 })
                 .ToArray();
+            return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
         }
 
         /* =============================================================================================== TreeLock */
 
-        public override int AcquireTreeLock(string path)
+        public override Task<int> AcquireTreeLockAsync(string path)
         {
             var parentChain = GetParentChain(path);
             var timeMin = GetObsoleteLimitTime();
@@ -724,7 +732,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
-                return 0;
+                return STT.Task.FromResult(0);
 
             var newTreeLockId = DB.GetNextTreeLockId();
             DB.TreeLocks.Add(new TreeLockDoc
@@ -734,29 +742,32 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 LockedAt = DateTime.Now
             });
 
-            return newTreeLockId;
+            return STT.Task.FromResult(newTreeLockId);
         }
 
-        public override bool IsTreeLocked(string path)
+        public override Task<bool> IsTreeLockedAsync(string path)
         {
             var parentChain = GetParentChain(path);
             var timeMin = GetObsoleteLimitTime();
 
-            return DB.TreeLocks
+            var result = DB.TreeLocks
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
+            return STT.Task.FromResult(result);
         }
 
-        public override void ReleaseTreeLock(int[] lockIds)
+        public override STT.Task ReleaseTreeLockAsync(int[] lockIds)
         {
             foreach (var lockId in lockIds)
                 DB.TreeLocks.RemoveAll(x => x.TreeLockId == lockId);
+            return STT.Task.CompletedTask;
         }
 
-        public override Dictionary<int, string> LoadAllTreeLocks()
+        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
-            return DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+            var result = DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+            return STT.Task.FromResult(result);
         }
 
         private string[] GetParentChain(string path)
@@ -779,29 +790,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == nodeData.VersionId);
             if (versionDoc != null)
             {
-                string serializedDoc;
-                using (var writer = new StringWriter())
-                {
-                    JsonSerializer.Create(new JsonSerializerSettings
-                    {
-                        Converters = new List<JsonConverter> {new IndexFieldJsonConverter()},
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                        Formatting = Formatting.Indented
-                    }).Serialize(writer, indexDoc);
-                    serializedDoc = writer.GetStringBuilder().ToString();
-                }
+                var serializedDoc = indexDoc.Serialize();
                 versionDoc.IndexDocument = serializedDoc;
                 nodeData.VersionTimestamp = versionDoc.Timestamp;
             }
             return STT.Task.CompletedTask;
         }
 
-        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
-            return versionIds.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
+            var result = versionIds.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
+            return STT.Task.FromResult((IEnumerable<IndexDocumentData>) result);
         }
-        public override IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
             var result = new List<IndexDocumentData>();
             var pathExt = path + "/";
@@ -815,8 +816,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
                     result.Add(CreateIndexDocumentData(node, version));
 
-            return result;
+            return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
         }
+
+        public override Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
+        {
+            var result = DB.Versions
+                .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
+                .Select(v => v.NodeId)
+                .ToArray();
+            return STT.Task.FromResult((IEnumerable<int>)result);
+        }
+
         private IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
             var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
@@ -832,11 +843,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var approved = version.Version.Status == VersionStatus.Approved;
             var isLastMajor = node.LastMajorVersionId == version.VersionId;
 
-            //UNDONE:DB INDEXDOCUMENT
-            //var bytes = version.IndexDocument ?? new byte[0];
-            var bytes = new byte[0];
-
-            return new IndexDocumentData(null, bytes)
+            return new IndexDocumentData(null, version.IndexDocument)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = version.VersionId,
@@ -853,7 +860,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== IndexingActivity */
 
-        public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<int> GetLastIndexingActivityIdAsync()
+        {
+            lock (DB.IndexingActivities)
+            {
+                var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
@@ -866,10 +882,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
@@ -882,33 +898,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        public override void RegisterIndexingActivity(IIndexingActivity activity)
-        {
-            lock (DB.IndexingActivities)
-            {
-                var newId = DB.IndexingActivities.Count == 0 ? 1 : DB.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
-
-                DB.IndexingActivities.Add(new IndexingActivityDoc
-                {
-                    IndexingActivityId = newId,
-                    ActivityType = activity.ActivityType,
-                    CreationDate = DateTime.UtcNow,
-                    RunningState = activity.RunningState,
-                    LockTime = activity.LockTime,
-                    NodeId = activity.NodeId,
-                    VersionId = activity.VersionId,
-                    Path = activity.Path,
-                    Extension = activity.Extension
-                });
-
-                activity.Id = newId;
-            }
-        }
-
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public override Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
             var output = new List<IIndexingActivity>();
             var recordsToStart = new List<IndexingActivityDoc>();
@@ -944,23 +938,49 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         output.Add(activity);
                 }
             }
-            return output.ToArray();
+
+            return STT.Task.FromResult(output.ToArray());
         }
 
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
+        public override Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds)
         {
-            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            var activities = LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds).Result;
             lock (DB.IndexingActivities)
             {
-                finishedActivitiyIds = DB.IndexingActivities
+                var finishedActivitiyIds = DB.IndexingActivities
                     .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
                     .Select(x => x.IndexingActivityId)
                     .ToArray();
+                var result = new Tuple<IIndexingActivity[], int[]>(activities, finishedActivitiyIds);
+                return STT.Task.FromResult(result);
             }
-            return activities;
         }
 
-        public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
+        public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity)
+        {
+            lock (DB.IndexingActivities)
+            {
+                var newId = DB.IndexingActivities.Count == 0 ? 1 : DB.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
+
+                DB.IndexingActivities.Add(new IndexingActivityDoc
+                {
+                    IndexingActivityId = newId,
+                    ActivityType = activity.ActivityType,
+                    CreationDate = DateTime.UtcNow,
+                    RunningState = activity.RunningState,
+                    LockTime = activity.LockTime,
+                    NodeId = activity.NodeId,
+                    VersionId = activity.VersionId,
+                    Path = activity.Path,
+                    Extension = activity.Extension
+                });
+
+                activity.Id = newId;
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState)
         {
             lock (DB.IndexingActivities)
             {
@@ -968,9 +988,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 if (activity != null)
                     activity.RunningState = runningState;
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override void RefreshIndexingActivityLockTime(int[] waitingIds)
+        public override STT.Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds)
         {
             lock (DB.IndexingActivities)
             {
@@ -982,69 +1003,61 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         activity.LockTime = now;
                 }
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override int GetLastIndexingActivityId()
-        {
-            lock (DB.IndexingActivities)
-            {
-                return DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
-            }
-        }
-
-        public override void DeleteFinishedIndexingActivities()
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync()
         {
             lock (DB.IndexingActivities)
                 DB.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
+            return STT.Task.CompletedTask;
         }
 
-        public override void DeleteAllIndexingActivities()
+        public override STT.Task DeleteAllIndexingActivitiesAsync()
         {
             lock (DB.IndexingActivities)
             {
                 DB.IndexingActivities.Clear();
             }
+            return STT.Task.CompletedTask;
         }
 
-        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityDoc activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityDoc activityDoc, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            throw new NotImplementedException(); //UNDONE:DB LoadFullIndexingActivity is not implemented.
-            /*
-            var nodeRecord = DB.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
-            var versionRecord = DB.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
-            var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
+            var nodeDoc = DB.Nodes.FirstOrDefault(r => r.NodeId == activityDoc.NodeId);
+            var versionDoc = DB.Versions.FirstOrDefault(r => r.VersionId == activityDoc.VersionId);
+            var activity = activityFactory.CreateActivity(activityDoc.ActivityType);
 
-            activity.Id = activityRecord.IndexingActivityId;
-            activity.ActivityType = activityRecord.ActivityType;
-            activity.CreationDate = activityRecord.CreationDate;
-            activity.RunningState = activityRecord.RunningState;
-            activity.LockTime = activityRecord.LockTime;
-            activity.NodeId = activityRecord.NodeId;
-            activity.VersionId = activityRecord.VersionId;
-            activity.Path = activityRecord.Path;
+            activity.Id = activityDoc.IndexingActivityId;
+            activity.ActivityType = activityDoc.ActivityType;
+            activity.CreationDate = activityDoc.CreationDate;
+            activity.RunningState = activityDoc.RunningState;
+            activity.LockTime = activityDoc.LockTime;
+            activity.NodeId = activityDoc.NodeId;
+            activity.VersionId = activityDoc.VersionId;
+            activity.Path = activityDoc.Path;
             activity.FromDatabase = true;
             activity.IsUnprocessedActivity = executingUnprocessedActivities;
-            activity.Extension = activityRecord.Extension;
+            activity.Extension = activityDoc.Extension;
 
-            if (versionRecord?.IndexDocument != null && nodeRecord != null)
+            if (versionDoc?.IndexDocument != null && nodeDoc != null)
             {
-                activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
+                activity.IndexDocumentData = new IndexDocumentData(null, versionDoc.IndexDocument)
                 {
-                    NodeTypeId = nodeRecord.NodeTypeId,
+                    NodeTypeId = nodeDoc.NodeTypeId,
                     VersionId = activity.VersionId,
                     NodeId = activity.NodeId,
-                    ParentId = nodeRecord.ParentNodeId,
+                    ParentId = nodeDoc.ParentNodeId,
                     Path = activity.Path,
-                    IsSystem = nodeRecord.IsSystem,
-                    IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
-                    NodeTimestamp = nodeRecord.Timestamp,
-                    VersionTimestamp = versionRecord.Timestamp,
+                    IsSystem = nodeDoc.IsSystem,
+                    IsLastDraft = nodeDoc.LastMinorVersionId == activity.VersionId,
+                    IsLastPublic = versionDoc.Version.Status == VersionStatus.Approved && nodeDoc.LastMajorVersionId == activity.VersionId,
+                    NodeTimestamp = nodeDoc.Timestamp,
+                    VersionTimestamp = versionDoc.Timestamp,
                 };
             }
 
             return activity;
-            */
         }
 
         /* =============================================================================================== Schema */
@@ -1084,7 +1097,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Logging */
 
-        public override void WriteAuditEvent(AuditEventInfo auditEvent)
+        public override STT.Task WriteAuditEventAsync(AuditEventInfo auditEvent)
         {
             var newId = DB.GetNextLogId();
 
@@ -1109,6 +1122,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 Message = auditEvent.Message,
                 FormattedMessage = auditEvent.FormattedMessage,
             });
+
+            return STT.Task.CompletedTask;
         }
 
         /* =============================================================================================== Provider Tools */
@@ -1123,7 +1138,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return text?.Length < TextAlternationSizeLimit;
         }
 
-        public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
+        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
         {
             var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
             var existingName = DB.Nodes
@@ -1131,7 +1146,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Select(n => n.Name.ToLowerInvariant())
                 .OrderByDescending(GetSuffix)
                 .FirstOrDefault();
-            return existingName;
+            return STT.Task.FromResult(existingName);
         }
         private int GetSuffix(string name)
         {
@@ -1146,7 +1161,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return order;
         }
 
-        public override long GetTreeSize(string path, bool includeChildren)
+        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren)
         {
             var collection = includeChildren
                 ? DB.Nodes
@@ -1155,11 +1170,28 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
                     .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
 
-            return collection
+            var result = collection
                 .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))
                 .SelectMany(v => DB.BinaryProperties.Where(b => b.VersionId == v.VersionId))
                 .SelectMany(b => DB.Files.Where(f => f.FileId == b.FileId))
                 .Select(f => f.Size).Sum();
+
+            return STT.Task.FromResult(result);
+        }
+
+        public override Task<int> GetVersionCountAsync(string path)
+        {
+            if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                return STT.Task.FromResult(DB.Versions.Count);
+
+            var count = DB.Nodes.Join(DB.Versions, n => n.NodeId, v => v.NodeId,
+                    (node, version) => new { Node = node, Version = version })
+                .Count(
+                    x =>
+                        x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
+                            StringComparison.InvariantCultureIgnoreCase)
+                        || x.Node.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+            return STT.Task.FromResult(count);
         }
 
         /* =============================================================================================== Infrastructure */

@@ -93,54 +93,56 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId);
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
-        public abstract IEnumerable<VersionNumber> GetVersionNumbers(int nodeId);
-        public abstract IEnumerable<VersionNumber> GetVersionNumbers(string path);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path);
 
         /* =============================================================================================== NodeQuery */
 
-        public abstract int InstanceCount(int[] nodeTypeIds);
-        public abstract IEnumerable<int> GetChildrenIdentfiers(int parentId);
-        public abstract IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByType(int[] nodeTypeIds);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
-        public abstract IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
-        public abstract IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds);
+        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds);
+        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId);
+        public abstract Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
+        public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds);
 
         /* =============================================================================================== Tree */
 
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
-        public abstract List<ContentListType> GetContentListTypesInTree(string path);
-        public abstract IEnumerable<EntityTreeNodeData> LoadEntityTree();
+        public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path);
+        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync();
 
         /* =============================================================================================== TreeLock */
 
-        public abstract int AcquireTreeLock(string path);
-        public abstract bool IsTreeLocked(string path);
-        public abstract void ReleaseTreeLock(int[] lockIds);
-        public abstract Dictionary<int, string> LoadAllTreeLocks();
+        public abstract Task<int> AcquireTreeLockAsync(string path);
+        public abstract Task<bool> IsTreeLockedAsync(string path);
+        public abstract Task ReleaseTreeLockAsync(int[] lockIds);
+        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync();
 
         /* =============================================================================================== IndexDocument */
 
         public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
 
-        public abstract IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds);
-        public abstract IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes);
+        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds);
+        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
+
+        public abstract Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId);
 
         /* =============================================================================================== IndexingActivity */
 
-        public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract void RegisterIndexingActivity(IIndexingActivity activity);
-        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
-        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds);
-        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
-        public abstract void RefreshIndexingActivityLockTime(int[] waitingIds);
-        public abstract int GetLastIndexingActivityId();
-        public abstract void DeleteFinishedIndexingActivities();
-        public abstract void DeleteAllIndexingActivities();
+        public abstract Task<int> GetLastIndexingActivityIdAsync();
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
+        public abstract Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds);
+        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity);
+        public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState);
+        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds);
+        public abstract Task DeleteFinishedIndexingActivitiesAsync();
+        public abstract Task DeleteAllIndexingActivitiesAsync();
 
         /* =============================================================================================== Schema */
 
@@ -163,14 +165,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
+        public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent);
 
         /* =============================================================================================== Provider Tools */
 
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
-        public abstract string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension);
-        public abstract long GetTreeSize(string path, bool includeChildren);
+        public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension);
+        public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren);
+        public abstract Task<int> GetVersionCountAsync(string path);
 
         /* =============================================================================================== Infrastructure */
 

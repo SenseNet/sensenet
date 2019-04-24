@@ -24,21 +24,6 @@ namespace SenseNet.ContentRepository.Tests
     public class DataProviderTests : TestBase
     {
         //[TestMethod]
-        public void InitialData_Create()
-        {
-            DPTest(() =>
-            {
-                using (var ntw = new StreamWriter(@"D:\propertyTypes.txt", false))
-                using (var ptw = new StreamWriter(@"D:\nodeTypes.txt", false))
-                using (var nw = new StreamWriter(@"D:\nodes.txt", false))
-                using (var vw = new StreamWriter(@"D:\versions.txt", false))
-                using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null, 
-                        ()=> ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
-            });
-            Assert.Inconclusive();
-        }
-        //[TestMethod]
         public void InitialData_LoadStream()
         {
             DPTest(() =>
@@ -1087,7 +1072,7 @@ namespace SenseNet.ContentRepository.Tests
             DPTest(() =>
             {
                 // ACTION
-                var treeData = DataStore.LoadEntityTree();
+                var treeData = DataStore.LoadEntityTreeAsync().Result;
 
                 // ASSERT check the right ordering: every node follows it's parent node.
                 var tree = new Dictionary<int, EntityTreeNodeData>();
@@ -1148,13 +1133,13 @@ namespace SenseNet.ContentRepository.Tests
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
+            PrepareRepository();
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
             using (Repository.Start(builder))
             {
-                DataStore.InstallDataPackage(GetInitialStructure());
-                new SnMaintenance().Shutdown();
+
                 using (new SystemAccount())
                     callback();
             }

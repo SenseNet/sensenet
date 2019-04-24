@@ -11,6 +11,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
@@ -82,6 +83,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_DefaultOrInformationOnly()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             Test(() =>
             {
                 // init
@@ -113,6 +117,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_Leaf()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             Test(() =>
             {
                 // init
@@ -143,6 +150,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_Subtree()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
 
@@ -174,6 +184,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_WithInstances()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
 
@@ -219,6 +232,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedContentType()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{0}' parentType='{1}' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
@@ -269,6 +285,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedFieldSetting()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{0}' parentType='{1}' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
@@ -335,6 +354,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedContent()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             Workspace CreateWorkspace(Node parent, string name, string[] allowedChildTypes)
             {
                 var w = new Workspace(parent) { Name = name };
@@ -402,6 +424,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_Applications()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
 
@@ -453,6 +478,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_ContentTemplate()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
 
@@ -502,6 +530,9 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_ContentView()
         {
+            if (DataStore.Enabled)
+                Assert.Inconclusive("This test uses custom script that is not supported feature in the new storage API.");
+
             var contentTypeTemplate =
                 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
 

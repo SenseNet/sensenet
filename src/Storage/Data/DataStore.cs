@@ -77,14 +77,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Installation */
 
-        public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC
+        public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC?? Only the TestBase uses this method but maybe it is a valid installation step
         {
             DataProvider.InstallInitialData(data);
         }
 
-        public static IEnumerable<EntityTreeNodeData> LoadEntityTree() //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
         {
-            return DataProvider.LoadEntityTree();
+            return await DataProvider.LoadEntityTreeAsync();
         }
 
         /* =============================================================================================== Nodes */
@@ -270,56 +270,56 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetNodeVersions(nodeId);
         }
-        public static IEnumerable<VersionNumber> GetVersionNumbers(int nodeId) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
         {
-            return DataProvider.GetVersionNumbers(nodeId);
+            return await DataProvider.GetVersionNumbersAsync(nodeId);
         }
-        public static IEnumerable<VersionNumber> GetVersionNumbers(string path) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
         {
-            return DataProvider.GetVersionNumbers(path);
+            return await DataProvider.GetVersionNumbersAsync(path);
         }
 
         /* =============================================================================================== NodeQuery */
 
-        public static int InstanceCount(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<int> InstanceCountAsync(int[] nodeTypeIds)
         {
-            return DataProvider.InstanceCount(nodeTypeIds);
+            return await DataProvider.InstanceCountAsync(nodeTypeIds);
         }
-        public static IEnumerable<int> GetChildrenIdentfiers(int parentId) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
         {
-            return DataProvider.GetChildrenIdentfiers(parentId);
+            return await DataProvider.GetChildrenIdentfiersAsync(parentId);
         }
-        public static IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByPath(pathStart, orderByPath);
+            return await DataProvider.QueryNodesByPathAsync(pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByType(int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds)
         {
-            return DataProvider.QueryNodesByType(nodeTypeIds);
+            return await DataProvider.QueryNodesByTypeAsync(nodeTypeIds);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+            return await DataProvider.QueryNodesByTypeAndPathAsync(nodeTypeIds, pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
         {
-            return DataProvider.QueryNodesByTypeAndPath(nodeTypeIds, pathStart, orderByPath);
+            return await DataProvider.QueryNodesByTypeAndPathAsync(nodeTypeIds, pathStart, orderByPath);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+            return await DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, name);
+            return await DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
         }
-        public static IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
-            return DataProvider.QueryNodesByTypeAndPathAndProperty(nodeTypeIds, pathStart, orderByPath, properties);
+            return await DataProvider.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
         }
-        public static IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] nodeTypeIds) //UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
         {
-            return DataProvider.QueryNodesByReferenceAndType(referenceName, referredNodeId, nodeTypeIds);
+            return await DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
         }
 
         /* =============================================================================================== Tree */
@@ -328,28 +328,28 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.LoadChildTypesToAllowAsync(nodeId);
         }
-        public static List<ContentListType> GetContentListTypesInTree(string path) //UNDONE:DB: ASYNC
+        public static async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
         {
-            return DataProvider.GetContentListTypesInTree(path);
+            return await DataProvider.GetContentListTypesInTreeAsync(path);
         }
 
         /* =============================================================================================== TreeLock */
 
-        public static int AcquireTreeLock(string path) //UNDONE:DB: ASYNC
+        public static async Task<int> AcquireTreeLockAsync(string path)
         {
-            return DataProvider.AcquireTreeLock(path);
+            return await DataProvider.AcquireTreeLockAsync(path);
         }
-        public static bool IsTreeLocked(string path) //UNDONE:DB: ASYNC
+        public static async Task<bool> IsTreeLockedAsync(string path)
         {
-            return DataProvider.IsTreeLocked(path);
+            return await DataProvider.IsTreeLockedAsync(path);
         }
-        public static void ReleaseTreeLock(int[] lockIds) //UNDONE:DB: ASYNC
+        public static async void ReleaseTreeLockAsync(int[] lockIds)
         {
-            DataProvider.ReleaseTreeLock(lockIds);
+            await DataProvider.ReleaseTreeLockAsync(lockIds);
         }
-        public static Dictionary<int, string> LoadAllTreeLocks() //UNDONE:DB: ASYNC
+        public static async Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
-            return DataProvider.LoadAllTreeLocks();
+            return await DataProvider.LoadAllTreeLocksAsync();
         }
 
         /* =============================================================================================== IndexDocument */
@@ -359,56 +359,61 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
 
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(IEnumerable<int> versionIds)//UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
-            return DataProvider.LoadIndexDocuments(versionIds);
+            return await DataProvider.LoadIndexDocumentsAsync(versionIds);
         }
-        public static IEnumerable<IndexDocumentData> LoadIndexDocuments(string path, int[] excludedNodeTypes)//UNDONE:DB: ASYNC
+        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            return DataProvider.LoadIndexDocuments(path, excludedNodeTypes);
+            return await DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
+        }
+
+        public static async Task<IEnumerable<int>> LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(int fromId, int toId)
+        {
+            return await DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocumentAsync(fromId, toId);
         }
 
         /* =============================================================================================== IndexingActivity */
 
-        public static IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        public static async Task<int> GetLastIndexingActivityIdAsync()
         {
-            return DataProvider.LoadIndexingActivities(fromId, toId, count, executingUnprocessedActivities, activityFactory);
+            return await DataProvider.GetLastIndexingActivityIdAsync();
         }
-        public static IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            return DataProvider.LoadIndexingActivities(gaps, executingUnprocessedActivities, activityFactory);
+            return await DataProvider.LoadIndexingActivitiesAsync(fromId, toId, count, executingUnprocessedActivities, activityFactory);
         }
-        public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            DataProvider.RegisterIndexingActivity(activity);
+            return await DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory);
         }
-        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
-            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds);
         }
-        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds) //UNDONE:DB: ASYNC (out parameter!)
+        public static async Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds) //UNDONE:DB: Do not use Tuple return value
         {
-            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds, out finishedActivitiyIds);
+            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds);
         }
-        public static void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState) //UNDONE:DB: ASYNC
+        public static async Task RegisterIndexingActivityAsync(IIndexingActivity activity)
         {
-            DataProvider.UpdateIndexingActivityRunningState(indexingActivityId, runningState);
+            await DataProvider.RegisterIndexingActivityAsync(activity);
         }
-        public static void RefreshIndexingActivityLockTime(int[] waitingIds) //UNDONE:DB: ASYNC
+        public static async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState)
         {
-            DataProvider.RefreshIndexingActivityLockTime(waitingIds);
+            await DataProvider.UpdateIndexingActivityRunningStateAsync(indexingActivityId, runningState);
         }
-        public static int GetLastIndexingActivityId() //UNDONE:DB: ASYNC
+        public static async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds)
         {
-            return DataProvider.GetLastIndexingActivityId();
+            await DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds);
         }
-        public static void DeleteFinishedIndexingActivities() //UNDONE:DB: ASYNC
+        public static async Task DeleteFinishedIndexingActivitiesAsync()
         {
-            DataProvider.DeleteFinishedIndexingActivities();
+            await DataProvider.DeleteFinishedIndexingActivitiesAsync();
         }
-        public static void DeleteAllIndexingActivities() //UNDONE:DB: ASYNC
+        public static async Task DeleteAllIndexingActivitiesAsync()
         {
-            DataProvider.DeleteAllIndexingActivities();
+            await DataProvider.DeleteAllIndexingActivitiesAsync();
         }
 
         /* =============================================================================================== Schema */
@@ -455,9 +460,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public static void WriteAuditEvent(AuditEventInfo auditEvent) //UNDONE:DB: ASYNC
+        public static async Task WriteAuditEventAsync(AuditEventInfo auditEvent)
         {
-            DataProvider.WriteAuditEvent(auditEvent);
+            await DataProvider.WriteAuditEventAsync(auditEvent);
         }
 
         /* =============================================================================================== Tools */
@@ -470,13 +475,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsCacheableText(value);
         }
-        public static string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension) //UNDONE:DB: ASYNC
+        public static async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
         {
-            return DataProvider.GetNameOfLastNodeWithNameBase(parentId, namebase, extension);
+            return await DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension);
         }
-        public static long GetTreeSize(string path, bool includeChildren) //UNDONE:DB: ASYNC
+        public static async Task<long> GetTreeSizeAsync(string path, bool includeChildren)
         {
-            return DataProvider.GetTreeSize(path, includeChildren);
+            return await DataProvider.GetTreeSizeAsync(path, includeChildren);
+        }
+        public static async Task<int> GetVersionCountAsync(string path)
+        {
+            return await DataProvider.GetVersionCountAsync(path);
         }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
@@ -535,19 +544,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 IsDp2 = Enabled,
                 Snapshot = snapshot
             });
-        }
-
-
-        /* =============================================================================================== */
-
-        public static IEnumerable<int> LoadIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            throw new NotImplementedException();
         }
     }
 }

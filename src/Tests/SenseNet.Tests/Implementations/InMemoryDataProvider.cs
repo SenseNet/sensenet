@@ -812,9 +812,9 @@ namespace SenseNet.Tests.Implementations
             var approved = version.Version.Status == VersionStatus.Approved;
             var isLastMajor = node.LastMajorVersionId == versionId;
 
-            var bytes = version.IndexDocument ?? new byte[0];
+            var serializedIndexDocument = version.IndexDocument ?? string.Empty;
 
-            return new IndexDocumentData(null, bytes)
+            return new IndexDocumentData(null, serializedIndexDocument)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = versionId,
@@ -833,9 +833,9 @@ namespace SenseNet.Tests.Implementations
             var approved = version.Version.Status == VersionStatus.Approved;
             var isLastMajor = node.LastMajorVersionId == version.VersionId;
 
-            var bytes = version.IndexDocument ?? new byte[0];
+            var serializedIndexDocument = version.IndexDocument ?? string.Empty;
 
-            return new IndexDocumentData(null, bytes)
+            return new IndexDocumentData(null, serializedIndexDocument)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = version.VersionId,
@@ -1234,20 +1234,20 @@ namespace SenseNet.Tests.Implementations
         }
         #endregion
 
-        protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
+        protected internal override void UpdateIndexDocument(int versionId, string serializedIndexDocument)
         {
             var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
             if (versionRow == null)
                 return;
-            versionRow.IndexDocument = indexDocumentBytes;
+            versionRow.IndexDocument = serializedIndexDocument;
         }
 
-        protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
+        protected internal override void UpdateIndexDocument(NodeData nodeData, string serializedIndexDocument)
         {
             var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == nodeData.VersionId);
             if (versionRow == null)
                 return;
-            versionRow.IndexDocument = indexDocumentBytes;
+            versionRow.IndexDocument = serializedIndexDocument;
             nodeData.VersionTimestamp = versionRow.VersionTimestamp;
         }
 
@@ -1286,11 +1286,6 @@ namespace SenseNet.Tests.Implementations
                 nullableOwnerId = n.OwnerId,
                 nullableParentId = n.ParentNodeId
             }).ToArray();
-        }
-
-        public int LastNodeId
-        {
-            get { return _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(n => n.NodeId); }
         }
 
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
@@ -2744,7 +2739,7 @@ namespace SenseNet.Tests.Implementations
             private int _createdById;
             private DateTime _modificationDate;
             private int _modifiedById;
-            private byte[] _indexDocument;
+            private string _indexDocument;
             private IEnumerable<ChangedData> _changedData;
             private long _versionTimestamp;
 
@@ -2811,7 +2806,7 @@ namespace SenseNet.Tests.Implementations
                     SetTimestamp();
                 }
             }
-            public byte[] IndexDocument
+            public string IndexDocument
             {
                 get => _indexDocument;
                 set
@@ -2848,7 +2843,7 @@ namespace SenseNet.Tests.Implementations
                     _createdById = _createdById,
                     _modificationDate = _modificationDate,
                     _modifiedById = _modifiedById,
-                    _indexDocument = _indexDocument.ToArray(),
+                    _indexDocument = _indexDocument,
                     _changedData = _changedData?.ToArray(),
                     _versionTimestamp = _versionTimestamp,
                 };
