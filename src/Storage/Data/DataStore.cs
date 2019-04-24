@@ -375,45 +375,45 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== IndexingActivity */
 
-        public static IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        public static async Task<int> GetLastIndexingActivityIdAsync()
         {
-            return DataProvider.LoadIndexingActivities(fromId, toId, count, executingUnprocessedActivities, activityFactory);
+            return await DataProvider.GetLastIndexingActivityIdAsync();
         }
-        public static IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            return DataProvider.LoadIndexingActivities(gaps, executingUnprocessedActivities, activityFactory);
+            return await DataProvider.LoadIndexingActivitiesAsync(fromId, toId, count, executingUnprocessedActivities, activityFactory);
         }
-        public static void RegisterIndexingActivity(IIndexingActivity activity) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            DataProvider.RegisterIndexingActivity(activity);
+            return await DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory);
         }
-        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds) //UNDONE:DB: ASYNC
+        public static async Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
-            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds);
         }
-        public static IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds) //UNDONE:DB: ASYNC (out parameter!)
+        public static async Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds) //UNDONE:DB: Do not use Tuple return value
         {
-            return DataProvider.LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds, out finishedActivitiyIds);
+            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds);
         }
-        public static void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState) //UNDONE:DB: ASYNC
+        public static async Task RegisterIndexingActivityAsync(IIndexingActivity activity)
         {
-            DataProvider.UpdateIndexingActivityRunningState(indexingActivityId, runningState);
+            await DataProvider.RegisterIndexingActivityAsync(activity);
         }
-        public static void RefreshIndexingActivityLockTime(int[] waitingIds) //UNDONE:DB: ASYNC
+        public static async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState)
         {
-            DataProvider.RefreshIndexingActivityLockTime(waitingIds);
+            await DataProvider.UpdateIndexingActivityRunningStateAsync(indexingActivityId, runningState);
         }
-        public static int GetLastIndexingActivityId() //UNDONE:DB: ASYNC
+        public static async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds)
         {
-            return DataProvider.GetLastIndexingActivityId();
+            await DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds);
         }
-        public static void DeleteFinishedIndexingActivities() //UNDONE:DB: ASYNC
+        public static async Task DeleteFinishedIndexingActivitiesAsync()
         {
-            DataProvider.DeleteFinishedIndexingActivities();
+            await DataProvider.DeleteFinishedIndexingActivitiesAsync();
         }
-        public static void DeleteAllIndexingActivities() //UNDONE:DB: ASYNC
+        public static async Task DeleteAllIndexingActivitiesAsync()
         {
-            DataProvider.DeleteAllIndexingActivities();
+            await DataProvider.DeleteAllIndexingActivitiesAsync();
         }
 
         /* =============================================================================================== Schema */

@@ -133,16 +133,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== IndexingActivity */
 
-        public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract void RegisterIndexingActivity(IIndexingActivity activity);
-        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
-        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds);
-        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
-        public abstract void RefreshIndexingActivityLockTime(int[] waitingIds);
-        public abstract int GetLastIndexingActivityId();
-        public abstract void DeleteFinishedIndexingActivities();
-        public abstract void DeleteAllIndexingActivities();
+        public abstract Task<int> GetLastIndexingActivityIdAsync();
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
+        public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
+        public abstract Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds);
+        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity);
+        public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState);
+        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds);
+        public abstract Task DeleteFinishedIndexingActivitiesAsync();
+        public abstract Task DeleteAllIndexingActivitiesAsync();
 
         /* =============================================================================================== Schema */
 

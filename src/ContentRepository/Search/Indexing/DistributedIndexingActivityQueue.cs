@@ -740,7 +740,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
-                    var segment = DataStore.Enabled ? DataStore.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance) : DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:ok
+                    var segment = DataStore.Enabled ? DataStore.LoadIndexingActivitiesAsync(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance).Result : DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:ok
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
 
@@ -807,7 +807,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
-                    return DataStore.Enabled ? DataStore.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance) : DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:ok
+                    return DataStore.Enabled ? DataStore.LoadIndexingActivitiesAsync(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance).Result : DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance); //DB:ok
                 }
             }
         }

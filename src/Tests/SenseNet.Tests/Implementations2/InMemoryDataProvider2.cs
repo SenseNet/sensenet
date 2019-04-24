@@ -859,7 +859,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== IndexingActivity */
 
-        public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<int> GetLastIndexingActivityIdAsync()
+        {
+            lock (DB.IndexingActivities)
+            {
+                var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
@@ -872,10 +881,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
@@ -888,33 +897,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        public override void RegisterIndexingActivity(IIndexingActivity activity)
-        {
-            lock (DB.IndexingActivities)
-            {
-                var newId = DB.IndexingActivities.Count == 0 ? 1 : DB.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
-
-                DB.IndexingActivities.Add(new IndexingActivityDoc
-                {
-                    IndexingActivityId = newId,
-                    ActivityType = activity.ActivityType,
-                    CreationDate = DateTime.UtcNow,
-                    RunningState = activity.RunningState,
-                    LockTime = activity.LockTime,
-                    NodeId = activity.NodeId,
-                    VersionId = activity.VersionId,
-                    Path = activity.Path,
-                    Extension = activity.Extension
-                });
-
-                activity.Id = newId;
-            }
-        }
-
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public override Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
             var output = new List<IIndexingActivity>();
             var recordsToStart = new List<IndexingActivityDoc>();
@@ -950,23 +937,49 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         output.Add(activity);
                 }
             }
-            return output.ToArray();
+
+            return STT.Task.FromResult(output.ToArray());
         }
 
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
+        public override Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds)
         {
-            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            var activities = LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds).Result;
             lock (DB.IndexingActivities)
             {
-                finishedActivitiyIds = DB.IndexingActivities
+                var finishedActivitiyIds = DB.IndexingActivities
                     .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
                     .Select(x => x.IndexingActivityId)
                     .ToArray();
+                var result = new Tuple<IIndexingActivity[], int[]>(activities, finishedActivitiyIds);
+                return STT.Task.FromResult(result);
             }
-            return activities;
         }
 
-        public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
+        public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity)
+        {
+            lock (DB.IndexingActivities)
+            {
+                var newId = DB.IndexingActivities.Count == 0 ? 1 : DB.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
+
+                DB.IndexingActivities.Add(new IndexingActivityDoc
+                {
+                    IndexingActivityId = newId,
+                    ActivityType = activity.ActivityType,
+                    CreationDate = DateTime.UtcNow,
+                    RunningState = activity.RunningState,
+                    LockTime = activity.LockTime,
+                    NodeId = activity.NodeId,
+                    VersionId = activity.VersionId,
+                    Path = activity.Path,
+                    Extension = activity.Extension
+                });
+
+                activity.Id = newId;
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState)
         {
             lock (DB.IndexingActivities)
             {
@@ -974,9 +987,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 if (activity != null)
                     activity.RunningState = runningState;
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override void RefreshIndexingActivityLockTime(int[] waitingIds)
+        public override STT.Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds)
         {
             lock (DB.IndexingActivities)
             {
@@ -988,28 +1002,23 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         activity.LockTime = now;
                 }
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override int GetLastIndexingActivityId()
-        {
-            lock (DB.IndexingActivities)
-            {
-                return DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
-            }
-        }
-
-        public override void DeleteFinishedIndexingActivities()
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync()
         {
             lock (DB.IndexingActivities)
                 DB.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
+            return STT.Task.CompletedTask;
         }
 
-        public override void DeleteAllIndexingActivities()
+        public override STT.Task DeleteAllIndexingActivitiesAsync()
         {
             lock (DB.IndexingActivities)
             {
                 DB.IndexingActivities.Clear();
             }
+            return STT.Task.CompletedTask;
         }
 
         private IIndexingActivity LoadFullIndexingActivity(IndexingActivityDoc activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
