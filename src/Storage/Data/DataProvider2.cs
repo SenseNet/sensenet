@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Infrastructure */
 
-        public abstract void InstallInitialData(InitialData data);
+        public abstract Task InstallInitialDataAsync(InitialData data);
 
         /* =============================================================================================== Tools */
 

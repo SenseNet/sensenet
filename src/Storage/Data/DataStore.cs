@@ -77,9 +77,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Installation */
 
-        public static void InstallDataPackage(InitialData data) //UNDONE:DB: ASYNC?? Only the TestBase uses this method but maybe it is a valid installation step
+        public static async Task InstallInitialDataAsync(InitialData data)
         {
-            DataProvider.InstallInitialData(data);
+            await DataProvider.InstallInitialDataAsync(data);
         }
 
         public static async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()

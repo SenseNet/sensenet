@@ -1233,7 +1233,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return versionDoc.Timestamp;
         }
 
-        public override void InstallInitialData(InitialData data)
+        public override STT.Task InstallInitialDataAsync(InitialData data)
         {
             DB.Schema = data.Schema;
             ContentTypeManager.Reset();
@@ -1250,6 +1250,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 InstallNode(node, version, props);
             }
             ContentTypeManager.Reset();
+
+            return STT.Task.CompletedTask;
         }
         private void InstallNode(NodeHeadData nData, VersionData vData, DynamicPropertyData dData)
         {

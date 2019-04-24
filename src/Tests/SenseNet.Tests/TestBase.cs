@@ -174,7 +174,7 @@ namespace SenseNet.Tests
             Providers.Instance.DataProvider2 = dp2;
 var backup = DataStore.Enabled;
 DataStore.Enabled = true;
-DataStore.InstallDataPackage(GetInitialData());
+DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 DataStore.Enabled = backup;
 
 

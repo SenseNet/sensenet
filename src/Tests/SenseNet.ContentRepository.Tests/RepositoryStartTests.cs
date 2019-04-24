@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -273,7 +273,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -331,7 +331,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -392,7 +392,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -454,7 +454,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -595,7 +595,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -671,7 +671,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallDataPackage(GetInitialData());
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             using (Repository.Start(repoBuilder))
             {
