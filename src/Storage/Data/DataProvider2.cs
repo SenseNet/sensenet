@@ -100,11 +100,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds);
         public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId);
-        public abstract Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name);
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
         public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds);

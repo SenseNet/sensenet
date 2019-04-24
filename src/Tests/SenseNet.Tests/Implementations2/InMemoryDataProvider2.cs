@@ -488,26 +488,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var result = DB.Nodes.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
             return STT.Task.FromResult((IEnumerable<int>)result);
         }
-        public override Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath);
-        }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] typeIds)
-        {
-            return QueryNodesByTypeAndPathAsync(typeIds, new string[0], false);
-        }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
-        }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
-        }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
-        {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
-        }
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
 
