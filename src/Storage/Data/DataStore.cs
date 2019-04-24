@@ -266,7 +266,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.LoadNodeHeadsAsync(heads);
         }
-        public static async Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId)
+        public static async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId)
         {
             return await DataProvider.GetNodeVersions(nodeId);
         }

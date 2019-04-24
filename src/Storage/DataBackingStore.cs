@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
         {
-            return DataStore.Enabled ? DataStore.GetNodeVersions(nodeId).Result : DataProvider.Current.GetNodeVersions(nodeId); //DB:ok
+            return DataStore.Enabled ? DataStore.GetNodeVersionsAsync(nodeId).Result : DataProvider.Current.GetNodeVersions(nodeId); //DB:ok
         }
 
         // ====================================================================== Get NodeData
