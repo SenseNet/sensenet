@@ -219,13 +219,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             IIndexingActivity[] loadedActivities;
             if (DataStore.Enabled)
             {
-                var asyncResult = DataStore.LoadExecutableIndexingActivitiesAsync(
+                var result = DataStore.LoadExecutableIndexingActivitiesAsync(
                     IndexingActivityFactory.Instance,
                     MaxCount,
                     RunningTimeoutInSeconds,
                     waitingActivityIds).Result;
-                loadedActivities = asyncResult.Item1;
-                finishedActivitiyIds = asyncResult.Item2;
+                loadedActivities = result.Activities;
+                finishedActivitiyIds = result.FinishedActivitiyIds;
             }
             else
             {

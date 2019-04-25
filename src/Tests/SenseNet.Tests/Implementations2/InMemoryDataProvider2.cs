@@ -1031,7 +1031,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(output.ToArray());
         }
 
-        public override Task<Tuple<IIndexingActivity[], int[]>> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds)
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds)
         {
             var activities = LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds).Result;
             lock (DB.IndexingActivities)
@@ -1040,8 +1040,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
                     .Select(x => x.IndexingActivityId)
                     .ToArray();
-                var result = new Tuple<IIndexingActivity[], int[]>(activities, finishedActivitiyIds);
-                return STT.Task.FromResult(result);
+                return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
+                {
+                    Activities = activities,
+                    FinishedActivitiyIds = finishedActivitiyIds
+                });
             }
         }
 
