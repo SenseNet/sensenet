@@ -289,25 +289,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetChildrenIdentfiersAsync(parentId);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
+        public static Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
         {
-            return await QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath);
+            return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds)
         {
-            return await QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false);
+            return QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            return await QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
         {
-            return await QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
         {
-            return await QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
         }
         public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
