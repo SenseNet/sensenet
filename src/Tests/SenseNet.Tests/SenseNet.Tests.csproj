@@ -86,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="Implementations2\DataCollection.cs" />
     <Compile Include="Implementations2\InMemoryAccessTokenDataProvider2.cs" />
     <Compile Include="Implementations2\InMemoryTestingDataProvider2.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">

@@ -70,7 +70,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (!isNewNode)
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
-            var fileId = db.GetNextFileId();
+            var fileId = db.Files.GetNextId();
             db.Files.Add(new FileDoc
             {
                 FileId = fileId,
@@ -81,7 +81,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 BlobProvider = value.BlobProviderName,
                 BlobProviderData = value.BlobProviderData
             });
-            var binaryPropertyId = db.GetNextBinaryPropertyId();
+            var binaryPropertyId = db.BinaryProperties.GetNextId();
             db.BinaryProperties.Add(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
@@ -101,7 +101,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (!isNewNode)
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
-            var binaryPropertyId = db.GetNextBinaryPropertyId();
+            var binaryPropertyId = db.BinaryProperties.GetNextId();
             db.BinaryProperties.Add(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
@@ -141,7 +141,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return;
 
             var db = DataProvider.DB;
-            var fileId = db.GetNextFileId();
+            var fileId = db.Files.GetNextId();
             db.Files.Add(new FileDoc
             {
                 FileId = fileId,

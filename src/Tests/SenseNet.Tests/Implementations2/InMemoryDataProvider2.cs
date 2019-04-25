@@ -6,8 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -43,10 +41,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
                     throw new NodeAlreadyExistsException();
 
-                var nodeId = DB.GetNextNodeId();
+                var nodeId = DB.Nodes.GetNextId();
                 nodeHeadData.NodeId = nodeId;
 
-                var versionId = DB.GetNextVersionId();
+                var versionId = DB.Versions.GetNextId();
                 versionData.VersionId = versionId;
                 dynamicData.VersionId = versionId;
                 versionData.NodeId = nodeId;
@@ -135,7 +133,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
                 if (currentVersionDoc == null)
                     throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                var versionId = expectedVersionId == 0 ? DB.GetNextVersionId() : expectedVersionId;
+                var versionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
                 var versionDoc = CloneVersionDoc(currentVersionDoc);
                 versionDoc.VersionId = versionId;
                 versionData.VersionId = versionId;
@@ -576,7 +574,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
-            // Partially implemented. See SnNotSupportedExceptions
+            //UNDONE:DB: Partially implemented.
             lock (DB)
             {
                 IEnumerable<NodeDoc> nodes = DB.Nodes;
@@ -612,7 +610,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                                 var pm = pt.GetDatabaseInfo();
                                 var colName = pm.ColumnName;
                                 var dt = pt.DataType;
-                                var index = int.Parse(colName.Split('_')[1]) - 1;
+                                var _ = int.Parse(colName.Split('_')[1]) - 1;
                                 switch (dt)
                                 {
                                     case DataType.String:
@@ -789,7 +787,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                                t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
                     return STT.Task.FromResult(0);
 
-                var newTreeLockId = DB.GetNextTreeLockId();
+                var newTreeLockId = DB.TreeLocks.GetNextId();
                 DB.TreeLocks.Add(new TreeLockDoc
                 {
                     TreeLockId = newTreeLockId,
@@ -1037,7 +1035,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             lock (DB.IndexingActivities)
             {
-                var newId = DB.IndexingActivities.Count == 0 ? 1 : DB.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
+                var newId = DB.IndexingActivities.GetNextId();
 
                 DB.IndexingActivities.Add(new IndexingActivityDoc
                 {
@@ -1188,7 +1186,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             lock (DB)
             {
-                var newId = DB.GetNextLogId();
+                var newId = DB.LogEntries.GetNextId();
 
                 DB.LogEntries.Add(new LogEntryDoc
                 {
@@ -1239,10 +1237,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         private int GetSuffix(string name)
         {
-            var p0 = name.LastIndexOf("(");
+            var p0 = name.LastIndexOf("(", StringComparison.Ordinal);
             if (p0 < 0)
                 return 0;
-            var p1 = name.IndexOf(")", p0);
+            var p1 = name.IndexOf(")", p0, StringComparison.Ordinal);
             if (p1 < 0)
                 return 0;
             var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
@@ -1401,44 +1399,41 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value) ?? new Dictionary<string, object>()
             });
 
-            if (dData != null)
+            if (dData?.BinaryProperties != null)
             {
-                if (dData.BinaryProperties != null)
+                foreach (var binPropItem in dData.BinaryProperties)
                 {
-                    foreach (var binPropItem in dData.BinaryProperties)
+                    var propertyType = binPropItem.Key;
+                    var binProp = binPropItem.Value;
+
+                    DB.BinaryProperties.Add(new BinaryPropertyDoc
                     {
-                        var propertyType = binPropItem.Key;
-                        var binProp = binPropItem.Value;
+                        BinaryPropertyId = binProp.Id,
+                        FileId = binProp.FileId,
+                        VersionId = dData.VersionId,
+                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
+                    });
 
-                        DB.BinaryProperties.Add(new BinaryPropertyDoc
-                        {
-                            BinaryPropertyId = binProp.Id,
-                            FileId = binProp.FileId,
-                            VersionId = dData.VersionId,
-                            PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
-                        });
-
-                        var blobProviderName = binProp.BlobProviderName;
-                        if (blobProviderName == null && binProp.BlobProviderData != null
-                            && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
-                        {
-                            blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
-                                ? typeof(ContentTypeStringBlobProvider).FullName
-                                : typeof(FileSystemReaderBlobProvider).FullName;
-                        }
-
-                        DB.Files.Add(new FileDoc
-                        {
-                            FileId = binProp.FileId,
-                            FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
-                            Extension = binProp.FileName.Extension,
-                            ContentType = binProp.ContentType,
-                            Size = binProp.Size,
-                            Timestamp = binProp.Timestamp,
-                            BlobProvider = blobProviderName,
-                            BlobProviderData = binProp.BlobProviderData,
-                        });
+                    var blobProviderName = binProp.BlobProviderName;
+                    if (blobProviderName == null && binProp.BlobProviderData != null
+                        && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                    {
+                        blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
+                            ? typeof(ContentTypeStringBlobProvider).FullName
+                            : typeof(FileSystemReaderBlobProvider).FullName;
                     }
+
+                    DB.Files.Add(new FileDoc
+                    {
+                        FileId = binProp.FileId,
+                        FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
+                        Extension = binProp.FileName.Extension,
+                        ContentType = binProp.ContentType,
+                        Size = binProp.Size,
+                        Timestamp = binProp.Timestamp,
+                        BlobProvider = blobProviderName,
+                        BlobProviderData = binProp.BlobProviderData,
+                    });
                 }
             }
         }
