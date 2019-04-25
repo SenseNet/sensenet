@@ -492,7 +492,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return await DataProvider.GetTreeSizeAsync(path, includeChildren);
         }
-        public static async Task<int> GetVersionCountAsync(string path)
+        public static async Task<int> GetNodeCountAsync(string path = null)
+        {
+            return await DataProvider.GetNodeCountAsync(path);
+        }
+        public static async Task<int> GetVersionCountAsync(string path = null)
         {
             return await DataProvider.GetVersionCountAsync(path);
         }

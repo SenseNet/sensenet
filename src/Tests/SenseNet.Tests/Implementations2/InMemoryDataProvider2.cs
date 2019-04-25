@@ -1283,6 +1283,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
+        public override Task<int> GetNodeCountAsync(string path)
+        {
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.Nodes.Count);
+
+                var count = DB.Nodes.Count(x => x.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase)
+                    || x.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+                return STT.Task.FromResult(count);
+            }
+        }
+
         public override Task<int> GetVersionCountAsync(string path)
         {
             lock (DB)
