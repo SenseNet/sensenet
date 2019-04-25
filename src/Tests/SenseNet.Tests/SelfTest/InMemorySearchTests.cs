@@ -405,8 +405,9 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var db = DataProvider.Current; //DB:??test??
-                var indexDoc = db.LoadIndexDocumentByVersionId(node.VersionId);
+                var indexDoc = DataStore.Enabled
+                    ? DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result
+                    : DataProvider.Instance.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // check the index document head consistency
                 Assert.IsNotNull(indexDoc);

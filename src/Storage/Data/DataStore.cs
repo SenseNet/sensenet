@@ -358,7 +358,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc);
         }
+        public static async Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc)
+        {
+            await DataProvider.SaveIndexDocumentAsync(versionId, indexDoc);
+        }
 
+        public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionIds)
+        {
+            var result = await DataProvider.LoadIndexDocumentsAsync(new []{versionIds});
+            return result.FirstOrDefault();
+        }
         public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
             return await DataProvider.LoadIndexDocumentsAsync(versionIds);

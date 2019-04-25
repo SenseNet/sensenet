@@ -863,6 +863,20 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
+        public override STT.Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc)
+        {
+            lock (DB)
+            {
+                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if (versionDoc != null)
+                {
+                    var serializedDoc = indexDoc.Serialize();
+                    versionDoc.IndexDocument = serializedDoc;
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
         public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
             lock (DB)

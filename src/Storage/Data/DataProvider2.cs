@@ -120,6 +120,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== IndexDocument */
 
         public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
+        public abstract Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc);
 
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds);
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
@@ -178,6 +179,5 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<long> GetNodeTimestampAsync(int nodeId);
         public abstract Task<long> GetVersionTimestampAsync(int versionId);
-
     }
 }
