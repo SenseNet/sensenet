@@ -82,9 +82,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.InstallInitialDataAsync(data);
         }
 
-        public static async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
+        public static Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
         {
-            return await DataProvider.LoadEntityTreeAsync();
+            return DataProvider.LoadEntityTreeAsync();
         }
 
         /* =============================================================================================== Nodes */
@@ -226,60 +226,60 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.MoveNodeAsync(sourceNodeId, targetNodeId, sourceTimestamp, targetTimestamp);
         }
 
-        public static async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
+        public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
         {
-            return await DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds);
+            return DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds);
         }
         public static Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
         {
             return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
         }
 
-        public static async Task<bool> NodeExistsAsync(string path)
+        public static Task<bool> NodeExistsAsync(string path)
         {
-            return await DataProvider.NodeExistsAsync(path);
+            return DataProvider.NodeExistsAsync(path);
         }
 
         /* =============================================================================================== NodeHead */
 
-        public static async Task<NodeHead> LoadNodeHeadAsync(string path)
+        public static Task<NodeHead> LoadNodeHeadAsync(string path)
         {
-            return await DataProvider.LoadNodeHeadAsync(path);
+            return DataProvider.LoadNodeHeadAsync(path);
         }
-        public static async Task<NodeHead> LoadNodeHeadAsync(int nodeId)
+        public static Task<NodeHead> LoadNodeHeadAsync(int nodeId)
         {
-            return await DataProvider.LoadNodeHeadAsync(nodeId);
+            return DataProvider.LoadNodeHeadAsync(nodeId);
         }
-        public static async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)
+        public static Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)
         {
-            return await DataProvider.LoadNodeHeadByVersionIdAsync(versionId);
+            return DataProvider.LoadNodeHeadByVersionIdAsync(versionId);
         }
-        public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
+        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
         {
-            return await DataProvider.LoadNodeHeadsAsync(heads);
+            return DataProvider.LoadNodeHeadsAsync(heads);
         }
-        public static async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId)
+        public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId)
         {
-            return await DataProvider.GetNodeVersions(nodeId);
+            return DataProvider.GetNodeVersions(nodeId);
         }
-        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
+        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
         {
-            return await DataProvider.GetVersionNumbersAsync(nodeId);
+            return DataProvider.GetVersionNumbersAsync(nodeId);
         }
-        public static async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
+        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
         {
-            return await DataProvider.GetVersionNumbersAsync(path);
+            return DataProvider.GetVersionNumbersAsync(path);
         }
 
         /* =============================================================================================== NodeQuery */
 
-        public static async Task<int> InstanceCountAsync(int[] nodeTypeIds)
+        public static Task<int> InstanceCountAsync(int[] nodeTypeIds)
         {
-            return await DataProvider.InstanceCountAsync(nodeTypeIds);
+            return DataProvider.InstanceCountAsync(nodeTypeIds);
         }
-        public static async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
+        public static Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
         {
-            return await DataProvider.GetChildrenIdentfiersAsync(parentId);
+            return DataProvider.GetChildrenIdentfiersAsync(parentId);
         }
         public static Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath)
         {
@@ -301,47 +301,47 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
-            return await DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
+            return DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
         {
-            return await DataProvider.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
+            return DataProvider.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
         }
-        public static async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
+        public static Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
         {
-            return await DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
+            return DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
         }
 
         /* =============================================================================================== Tree */
 
-        public static async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
+        public static Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
         {
-            return await DataProvider.LoadChildTypesToAllowAsync(nodeId);
+            return DataProvider.LoadChildTypesToAllowAsync(nodeId);
         }
-        public static async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
+        public static Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
         {
-            return await DataProvider.GetContentListTypesInTreeAsync(path);
+            return DataProvider.GetContentListTypesInTreeAsync(path);
         }
 
         /* =============================================================================================== TreeLock */
 
-        public static async Task<int> AcquireTreeLockAsync(string path)
+        public static Task<int> AcquireTreeLockAsync(string path)
         {
-            return await DataProvider.AcquireTreeLockAsync(path);
+            return DataProvider.AcquireTreeLockAsync(path);
         }
-        public static async Task<bool> IsTreeLockedAsync(string path)
+        public static Task<bool> IsTreeLockedAsync(string path)
         {
-            return await DataProvider.IsTreeLockedAsync(path);
+            return DataProvider.IsTreeLockedAsync(path);
         }
         public static async void ReleaseTreeLockAsync(int[] lockIds)
         {
             await DataProvider.ReleaseTreeLockAsync(lockIds);
         }
-        public static async Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
+        public static Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
-            return await DataProvider.LoadAllTreeLocksAsync();
+            return DataProvider.LoadAllTreeLocksAsync();
         }
 
         /* =============================================================================================== IndexDocument */
@@ -360,41 +360,41 @@ namespace SenseNet.ContentRepository.Storage.Data
             var result = await DataProvider.LoadIndexDocumentsAsync(new []{versionId});
             return result.FirstOrDefault();
         }
-        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
+        public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
         {
-            return await DataProvider.LoadIndexDocumentsAsync(versionIds);
+            return DataProvider.LoadIndexDocumentsAsync(versionIds);
         }
-        public static async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
+        public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            return await DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
+            return DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
-        public static async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId)
+        public static Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId)
         {
-            return await DataProvider.LoadNotIndexedNodeIdsAsync(fromId, toId);
+            return DataProvider.LoadNotIndexedNodeIdsAsync(fromId, toId);
         }
 
         /* =============================================================================================== IndexingActivity */
 
-        public static async Task<int> GetLastIndexingActivityIdAsync()
+        public static Task<int> GetLastIndexingActivityIdAsync()
         {
-            return await DataProvider.GetLastIndexingActivityIdAsync();
+            return DataProvider.GetLastIndexingActivityIdAsync();
         }
-        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            return await DataProvider.LoadIndexingActivitiesAsync(fromId, toId, count, executingUnprocessedActivities, activityFactory);
+            return DataProvider.LoadIndexingActivitiesAsync(fromId, toId, count, executingUnprocessedActivities, activityFactory);
         }
-        public static async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            return await DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory);
+            return DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory);
         }
-        public static async Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public static Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
-            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds);
+            return DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds);
         }
-        public static async Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds) //UNDONE:DB: Do not use Tuple return value
+        public static Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds) //UNDONE:DB: Do not use Tuple return value
         {
-            return await DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds);
+            return DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds);
         }
         public static async Task RegisterIndexingActivityAsync(IIndexingActivity activity)
         {
@@ -419,9 +419,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Schema */
 
-        public static async Task<RepositorySchemaData> LoadSchemaAsync()
+        public static Task<RepositorySchemaData> LoadSchemaAsync()
         {
-            return await DataProvider.LoadSchemaAsync();
+            return DataProvider.LoadSchemaAsync();
         }
 
         public static string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp)
@@ -476,29 +476,29 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsCacheableText(value);
         }
-        public static async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
+        public static Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
         {
-            return await DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension);
+            return DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension);
         }
-        public static async Task<long> GetTreeSizeAsync(string path, bool includeChildren)
+        public static Task<long> GetTreeSizeAsync(string path, bool includeChildren)
         {
-            return await DataProvider.GetTreeSizeAsync(path, includeChildren);
+            return DataProvider.GetTreeSizeAsync(path, includeChildren);
         }
-        public static async Task<int> GetNodeCountAsync(string path = null)
+        public static Task<int> GetNodeCountAsync(string path = null)
         {
-            return await DataProvider.GetNodeCountAsync(path);
+            return DataProvider.GetNodeCountAsync(path);
         }
-        public static async Task<int> GetVersionCountAsync(string path = null)
+        public static Task<int> GetVersionCountAsync(string path = null)
         {
-            return await DataProvider.GetVersionCountAsync(path);
+            return DataProvider.GetVersionCountAsync(path);
         }
-        public static async Task<long> GetNodeTimestampAsync(int nodeId)
+        public static Task<long> GetNodeTimestampAsync(int nodeId)
         {
-            return await DataProvider.GetNodeTimestampAsync(nodeId);
+            return DataProvider.GetNodeTimestampAsync(nodeId);
         }
-        public static async Task<long> GetVersionTimestampAsync(int versionId)
+        public static Task<long> GetVersionTimestampAsync(int versionId)
         {
-            return await DataProvider.GetVersionTimestampAsync(versionId);
+            return DataProvider.GetVersionTimestampAsync(versionId);
         }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
