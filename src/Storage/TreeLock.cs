@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (lockIds[i] == 0)
                 {
-                    if (DataStore.Enabled) DataStore.ReleaseTreeLockAsync(lockIds); else DataProvider.Current.ReleaseTreeLock(lockIds); //DB:ok
+                    if (DataStore.Enabled) DataStore.ReleaseTreeLockAsync(lockIds).Wait(); else DataProvider.Current.ReleaseTreeLock(lockIds); //DB:ok
                     var msg = "Cannot acquire a tree lock for " + paths[i];
                     SnTrace.ContentOperation.Write("TreeLock: " + msg);
                     throw new LockedTreeException(msg);
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public void Dispose()
         {
-            if(DataStore.Enabled) DataStore.ReleaseTreeLockAsync(_lockIds); else DataProvider.Current.ReleaseTreeLock(_lockIds); //DB:ok
+            if(DataStore.Enabled) DataStore.ReleaseTreeLockAsync(_lockIds).Wait(); else DataProvider.Current.ReleaseTreeLock(_lockIds); //DB:ok
 
             if (this._logOp != null)
             {

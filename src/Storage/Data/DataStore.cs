@@ -335,9 +335,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsTreeLockedAsync(path);
         }
-        public static async void ReleaseTreeLockAsync(int[] lockIds)
+        public static Task ReleaseTreeLockAsync(int[] lockIds)
         {
-            await DataProvider.ReleaseTreeLockAsync(lockIds);
+            return DataProvider.ReleaseTreeLockAsync(lockIds);
         }
         public static Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
         {
