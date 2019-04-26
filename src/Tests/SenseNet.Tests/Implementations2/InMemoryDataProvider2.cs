@@ -821,7 +821,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     TreeLockId = newTreeLockId,
                     Path = path,
-                    LockedAt = DateTime.Now
+                    LockedAt = DateTime.UtcNow
                 });
 
                 return STT.Task.FromResult(newTreeLockId);
@@ -872,7 +872,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         private DateTime GetObsoleteLimitTimeSafe()
         {
-            return DateTime.Now.AddHours(-8.0);
+            return DateTime.UtcNow.AddHours(-8.0);
         }
 
         /* =============================================================================================== IndexDocument */
