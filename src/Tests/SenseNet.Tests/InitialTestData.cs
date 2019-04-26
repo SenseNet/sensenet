@@ -785,6 +785,8 @@ VersionId| NodeId|  Version
 
         #region internal static readonly string DynamicData
         internal static readonly string DynamicData = @"VersionId: 1
+    LongTextProperties
+        OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:02.7522515Z</ModificationDate>      <Hash>$2a$10$PpzkmffYtUA5XV5nekcqVOKIZUpB8HUczoFcCmTkAUtCqUH5dS5Ki</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
     DynamicProperties
         Enabled:Int: 1
         Domain:String: BuiltIn
@@ -792,18 +794,20 @@ VersionId| NodeId|  Version
         PasswordHash:String: $2a$10$PpzkmffYtUA5XV5nekcqVOKIZUpB8HUczoFcCmTkAUtCqUH5dS5Ki
         LoginName:String: Admin
         LastLoggedOut:DateTime: 2018-11-14T02:54:02.0000000Z
-        OldPasswords:Text: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:02.7522515Z</ModificationDate>      <Hash>$2a$10$PpzkmffYtUA5XV5nekcqVOKIZUpB8HUczoFcCmTkAUtCqUH5dS5Ki</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
 VersionId: 6
+    LongTextProperties
+        OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
     DynamicProperties
         Enabled:Int: 1
         Domain:String: BuiltIn
         FullName:String: Visitor
         LoginName:String: Visitor
-        OldPasswords:Text: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
 VersionId: 7
     DynamicProperties
         Members:Reference: [1,1198]
 VersionId: 10
+    LongTextProperties
+        OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:03.2735274Z</ModificationDate>      <Hash>$2a$10$4l2GIJAN16.vVsBDbGXeEuQVWC2KvOrBpzvk97S32SgeyWq1Tm3ke</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
     DynamicProperties
         Enabled:Int: 1
         Domain:String: BuiltIn
@@ -811,12 +815,14 @@ VersionId: 10
         PasswordHash:String: $2a$10$4l2GIJAN16.vVsBDbGXeEuQVWC2KvOrBpzvk97S32SgeyWq1Tm3ke
         LoginName:String: Somebody
         LastLoggedOut:DateTime: 2018-11-14T02:54:03.0000000Z
-        OldPasswords:Text: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:03.2735274Z</ModificationDate>      <Hash>$2a$10$4l2GIJAN16.vVsBDbGXeEuQVWC2KvOrBpzvk97S32SgeyWq1Tm3ke</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
 VersionId: 11
+    LongTextProperties
+        Description: Members of this group are able to perform administrative tasks in the Content Repository - e.g. importing the creation date of content.
     DynamicProperties
         Members:Reference: [7]
-        Description:Text: Members of this group are able to perform administrative tasks in the Content Repository - e.g. importing the creation date of content.
 VersionId: 12
+    LongTextProperties
+        OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:03.4916714Z</ModificationDate>      <Hash>$2a$10$Ji1vBnecMjLLL7x70y8hOOwpUsvEQf.Xyjv1D9DQ1L/G/BOiYHS2G</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
     DynamicProperties
         Enabled:Int: 1
         Domain:String: BuiltIn
@@ -824,16 +830,15 @@ VersionId: 12
         PasswordHash:String: $2a$10$Ji1vBnecMjLLL7x70y8hOOwpUsvEQf.Xyjv1D9DQ1L/G/BOiYHS2G
         LoginName:String: Startup
         LastLoggedOut:DateTime: 2018-11-14T02:54:03.0000000Z
-        OldPasswords:Text: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:03.4916714Z</ModificationDate>      <Hash>$2a$10$Ji1vBnecMjLLL7x70y8hOOwpUsvEQf.Xyjv1D9DQ1L/G/BOiYHS2G</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
 VersionId: 13
     DynamicProperties
         Hidden:Int: 1
 VersionId: 14
-    DynamicProperties
-        AllowedChildTypes:Text: SystemFolder
+    LongTextProperties
+        AllowedChildTypes: SystemFolder
 VersionId: 15
-    DynamicProperties
-        AllowedChildTypes:Text: ContentType
+    LongTextProperties
+        AllowedChildTypes: ContentType
 VersionId: 17
     BinaryProperties
         Binary: #1, F1, 16010L, ContentType.ContentType, text/xml, /Root/System/Schema/ContentTypes/ContentType
@@ -971,7 +976,7 @@ VersionId: 61
         Binary: #45, F45, 395L, LongTextFieldSetting.ContentType, text/xml, /Root/System/Schema/ContentTypes/GenericContent/FieldSettingContent/TextFieldSetting/LongTextFieldSetting
 VersionId: 62
     BinaryProperties
-        Binary: #46, F46, 1874L, Memo.ContentType, text/xml, /Root/System/Schema/ContentTypes/GenericContent/ListItem/Memo
+        Binary: #46, F46, 1792L, Memo.ContentType, text/xml, /Root/System/Schema/ContentTypes/GenericContent/ListItem/Memo
 VersionId: 63
     BinaryProperties
         Binary: #47, F47, 462L, MemoList.ContentType, text/xml, /Root/System/Schema/ContentTypes/GenericContent/Folder/ContentList/ItemList/MemoList
@@ -1138,12 +1143,13 @@ VersionId: 107
         CacheControl:String: Nondefined
         StoredIcon:String: application
 VersionId: 109
+    LongTextProperties
+        Parameters: bool generateMissing
     DynamicProperties
         AppName:String: CheckPreviews
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: CheckPreviews
-        Parameters:Text: bool generateMissing
 VersionId: 110
     DynamicProperties
         AppName:String: EditInMicrosoftOffice
@@ -1153,6 +1159,8 @@ VersionId: 110
         CacheControl:String: Nondefined
         StoredIcon:String: application
 VersionId: 111
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: ExportToPdf
         Scenario:String: ListItem;DocumentDetails
@@ -1161,7 +1169,6 @@ VersionId: 111
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         StoredIcon:String: acrobat
-        Description:Text: 
 VersionId: 112
     DynamicProperties
         AppName:String: GetPageCount
@@ -1169,20 +1176,22 @@ VersionId: 112
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: GetPageCount
 VersionId: 113
+    LongTextProperties
+        Parameters: bool empty
     DynamicProperties
         AppName:String: GetPreviewsFolder
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: GetPreviewsFolder
-        Parameters:Text: bool empty
 VersionId: 114
+    LongTextProperties
+        Parameters: int page
     DynamicProperties
         AppName:String: PreviewAvailable
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: PreviewAvailable
-        Parameters:Text: int page
 VersionId: 115
     DynamicProperties
         AppName:String: RegeneratePreviews
@@ -1190,19 +1199,21 @@ VersionId: 115
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: RegeneratePreviews
 VersionId: 116
+    LongTextProperties
+        Parameters: int pageCount
     DynamicProperties
         AppName:String: SetPageCount
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: SetPageCount
-        Parameters:Text: int pageCount
 VersionId: 117
+    LongTextProperties
+        Parameters: SenseNet.Preview.PreviewStatus status
     DynamicProperties
         AppName:String: SetPreviewStatus
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: SetPreviewStatus
-        Parameters:Text: SenseNet.Preview.PreviewStatus status
 VersionId: 118
     DynamicProperties
         AppName:String: UploadResume
@@ -1212,6 +1223,8 @@ VersionId: 118
         CacheControl:String: Nondefined
         StoredIcon:String: upload
 VersionId: 120
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: CopyBatch
         Scenario:String: 
@@ -1222,8 +1235,9 @@ VersionId: 120
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: copy
-        Description:Text: 
 VersionId: 121
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: DeleteBatch
         Scenario:String: GridToolbar
@@ -1234,8 +1248,9 @@ VersionId: 121
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: delete
-        Description:Text: 
 VersionId: 122
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: ExportToCsv
         Scenario:String: ListActions;ExploreActions
@@ -1246,8 +1261,9 @@ VersionId: 122
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: download
-        Description:Text: 
 VersionId: 123
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: MoveBatch
         Scenario:String: GridToolbar
@@ -1258,7 +1274,6 @@ VersionId: 123
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: move
-        Description:Text: 
 VersionId: 124
     DynamicProperties
         AppName:String: Upload
@@ -1267,20 +1282,22 @@ VersionId: 124
         CacheControl:String: Nondefined
         StoredIcon:String: upload
 VersionId: 126
+    LongTextProperties
+        Parameters: string[] contentTypes
     DynamicProperties
         AppName:String: AddAllowedChildTypes
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.GenericContent
         MethodName:String: AddAllowedChildTypes
-        Parameters:Text: string[] contentTypes
 VersionId: 127
+    LongTextProperties
+        Parameters:         string level,        bool explicitOnly,        string member,        string[] includedTypes      
     DynamicProperties
         AppName:String: GetRelatedPermissions
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetRelatedPermissions
-        Parameters:Text:         string level,        bool explicitOnly,        string member,        string[] includedTypes      
 VersionId: 128
     DynamicProperties
         AppName:String: GetSharing
@@ -1289,13 +1306,16 @@ VersionId: 128
         ClassName:String: SenseNet.ContentRepository.Sharing.SharingActions
         MethodName:String: GetSharing
 VersionId: 129
+    LongTextProperties
+        Parameters: string skin, string category
     DynamicProperties
         AppName:String: GetTemplateScript
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.UI.HtmlTemplate
         MethodName:String: GetTemplateScript
-        Parameters:Text: string skin, string category
 VersionId: 130
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: HasPermission
         ActionTypeName:String: HasPermissionAction
@@ -1303,15 +1323,17 @@ VersionId: 130
         RequiredPermissions:String: _________________________________________________*______________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 131
+    LongTextProperties
+        Parameters:         string username,      string password      
     DynamicProperties
         AppName:String: Login
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.Virtualization.AuthenticationHelper
         MethodName:String: Login
-        Parameters:Text:         string username,      string password      
 VersionId: 132
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: Logout
         Scenario:String: UserActions
@@ -1319,8 +1341,9 @@ VersionId: 132
         IncludeBackUrl:String: False
         CacheControl:String: Nondefined
         StoredIcon:String: logout
-        Description:Text: 
 VersionId: 133
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: MoveTo
         Scenario:String: ListItem;ExploreActions;ManageViewsListItem
@@ -1332,7 +1355,6 @@ VersionId: 133
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: move
-        Description:Text: 
 VersionId: 134
     DynamicProperties
         AppName:String: Publish
@@ -1342,13 +1364,14 @@ VersionId: 134
         CacheControl:String: Nondefined
         StoredIcon:String: publish
 VersionId: 135
+    LongTextProperties
+        Parameters:      bool recursive,      SenseNet.ContentRepository.Search.Indexing.IndexRebuildLevel rebuildLevel      
     DynamicProperties
         AppName:String: RebuildIndex
         RequiredPermissions:String: _________________________________________________________*______
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Content+Operations
         MethodName:String: RebuildIndex
-        Parameters:Text:      bool recursive,      SenseNet.ContentRepository.Search.Indexing.IndexRebuildLevel rebuildLevel      
 VersionId: 136
     DynamicProperties
         AppName:String: RebuildIndexSubtree
@@ -1370,61 +1393,68 @@ VersionId: 138
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
 VersionId: 139
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: RemoveAllAspects
         ActionTypeName:String: RemoveAllAspectsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 140
+    LongTextProperties
+        Parameters:         string level,        string member,        string[] permissions      
     DynamicProperties
         AppName:String: GetRelatedItemsOneLevel
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetRelatedItemsOneLevel
-        Parameters:Text:         string level,        string member,        string[] permissions      
 VersionId: 141
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: RemoveAllFields
         ActionTypeName:String: RemoveAllFieldsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 142
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: RemoveAspects
         ActionTypeName:String: RemoveAspectsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 143
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: RemoveFields
         ActionTypeName:String: RemoveFieldsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 144
+    LongTextProperties
+        Parameters:         string id      
     DynamicProperties
         AppName:String: RemoveSharing
         RequiredPermissions:String: ________________________________________________*________*______
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Sharing.SharingActions
         MethodName:String: RemoveSharing
-        Parameters:Text:         string id      
 VersionId: 145
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: ResetRecentIndexingActivities
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: ResetRecentIndexingActivities
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 146
     DynamicProperties
         AppName:String: RestoreVersion
@@ -1433,14 +1463,17 @@ VersionId: 146
         CacheControl:String: Nondefined
         StoredIcon:String: restoreversion
 VersionId: 147
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: RetrieveFields
         ActionTypeName:String: RetrieveFieldsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 148
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: Rss
         Scenario:String: ListActions
@@ -1451,15 +1484,15 @@ VersionId: 148
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: rss
-        Description:Text: 
 VersionId: 149
+    LongTextProperties
+        Parameters:         string query,        string displayName,        string queryType      
     DynamicProperties
         AppName:String: SaveQuery
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.QueryBuilder
         MethodName:String: SaveQuery
-        Parameters:Text:         string query,        string displayName,        string queryType      
 VersionId: 150
     DynamicProperties
         AppName:String: SetPermissions
@@ -1469,28 +1502,33 @@ VersionId: 150
         CacheControl:String: Nondefined
         StoredIcon:String: security
 VersionId: 151
+    LongTextProperties
+        Parameters:         string token, SenseNet.ContentRepository.Sharing.SharingLevel level,         SenseNet.ContentRepository.Sharing.SharingMode mode, bool sendNotification      
     DynamicProperties
         AppName:String: Share
         RequiredPermissions:String: ________________________________________________*________*______
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Sharing.SharingActions
         MethodName:String: Share
-        Parameters:Text:         string token, SenseNet.ContentRepository.Sharing.SharingLevel level,         SenseNet.ContentRepository.Sharing.SharingMode mode, bool sendNotification      
 VersionId: 152
+    LongTextProperties
+        Parameters: long fullSize, string fieldName
     DynamicProperties
         AppName:String: StartBlobUpload
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ApplicationModel.UploadAction
         MethodName:String: StartBlobUpload
-        Parameters:Text: long fullSize, string fieldName
 VersionId: 153
+    LongTextProperties
+        Parameters: string name, string contentType, long fullSize, string fieldName
     DynamicProperties
         AppName:String: StartBlobUploadToParent
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ApplicationModel.UploadAction
         MethodName:String: StartBlobUploadToParent
-        Parameters:Text: string name, string contentType, long fullSize, string fieldName
 VersionId: 154
+    LongTextProperties
+        Parameters:         string user      
     DynamicProperties
         AppName:String: TakeLockOver
         RequiredPermissions:String: _______________________________________________________*________
@@ -1498,54 +1536,59 @@ VersionId: 154
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: TakeLockOver
-        Parameters:Text:         string user      
 VersionId: 155
+    LongTextProperties
+        Parameters: string[] contentTypes
     DynamicProperties
         AppName:String: RemoveAllowedChildTypes
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.GenericContent
         MethodName:String: RemoveAllowedChildTypes
-        Parameters:Text: string[] contentTypes
 VersionId: 156
+    LongTextProperties
+        Parameters:         string level,        bool explicitOnly,        string member,        string[] permissions,      
     DynamicProperties
         AppName:String: GetRelatedItems
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetRelatedItems
-        Parameters:Text:         string level,        bool explicitOnly,        string member,        string[] permissions,      
 VersionId: 157
+    LongTextProperties
+        Parameters:         string level,        string kind,        string[] permissions      
     DynamicProperties
         AppName:String: GetRelatedIdentitiesByPermissions
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetRelatedIdentities
-        Parameters:Text:         string level,        string kind,        string[] permissions      
 VersionId: 158
+    LongTextProperties
+        Parameters:         string level,        string kind      
     DynamicProperties
         AppName:String: GetRelatedIdentities
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetRelatedIdentities
-        Parameters:Text:         string level,        string kind      
 VersionId: 159
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: AddAspects
         ActionTypeName:String: AddAspectsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 160
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: AddFields
         ActionTypeName:String: AddFieldsAction
         RequiredPermissions:String: ______________________________________________*_________________
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 161
     DynamicProperties
         AppName:String: Ancestors
@@ -1569,12 +1612,13 @@ VersionId: 163
         CacheControl:String: Nondefined
         StoredIcon:String: checkin
 VersionId: 164
+    LongTextProperties
+        Parameters:         bool recurse      
     DynamicProperties
         AppName:String: CheckIndexIntegrity
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Search.Indexing.IntegrityChecker
         MethodName:String: CheckIndexIntegrity
-        Parameters:Text:         bool recurse      
 VersionId: 165
     DynamicProperties
         AppName:String: CheckOut
@@ -1584,6 +1628,9 @@ VersionId: 165
         CacheControl:String: Nondefined
         StoredIcon:String: checkout
 VersionId: 166
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: CheckSecurityConsistency
         Scenario:String: 
@@ -1594,9 +1641,9 @@ VersionId: 166
         CustomUrlParameters:String: 
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: CheckSecurityConsistency
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 167
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: CopyTo
         Scenario:String: ListItem;ExploreActions;ManageViewsListItem
@@ -1608,8 +1655,9 @@ VersionId: 167
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: copy
-        Description:Text: 
 VersionId: 168
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: Delete
         Scenario:String: WorkspaceActions;ListItem;ExploreActions;ListActions;ManageViewsListItem;SimpleListItem;SimpleApprovableListItem;ReadOnlyListItem;DocumentDetails
@@ -1621,21 +1669,22 @@ VersionId: 168
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: delete
-        Description:Text: 
 VersionId: 169
+    LongTextProperties
+        Parameters: SenseNet.TaskManagement.Core.SnTaskResult result
     DynamicProperties
         AppName:String: DocumentPreviewFinalizer
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: DocumentPreviewFinalizer
-        Parameters:Text: SenseNet.TaskManagement.Core.SnTaskResult result
 VersionId: 170
+    LongTextProperties
+        Parameters: string token, long fullSize, string fieldName, string fileName
     DynamicProperties
         AppName:String: FinalizeBlobUpload
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ApplicationModel.UploadAction
         MethodName:String: FinalizeBlobUpload
-        Parameters:Text: string token, long fullSize, string fieldName, string fileName
 VersionId: 171
     DynamicProperties
         AppName:String: FinalizeContent
@@ -1652,6 +1701,9 @@ VersionId: 172
         CacheControl:String: Nondefined
         StoredIcon:String: undocheckout
 VersionId: 173
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: GetAllContentTypes
         Scenario:String: 
@@ -1662,9 +1714,10 @@ VersionId: 173
         CustomUrlParameters:String: 
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: GetListOfAllContentTypes
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 174
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: GetAllowedChildTypesFromCTD
         Scenario:String: 
@@ -1675,30 +1728,31 @@ VersionId: 174
         CustomUrlParameters:String: 
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: GetAllowedChildTypesFromCTD
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 175
+    LongTextProperties
+        Description: 
+        Parameters:         string[] permissions      
     DynamicProperties
         AppName:String: GetAllowedUsers
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetAllowedUsers
-        Description:Text: 
-        Parameters:Text:         string[] permissions      
 VersionId: 176
+    LongTextProperties
+        Parameters: string fieldName
     DynamicProperties
         AppName:String: GetBinaryToken
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ApplicationModel.UploadAction
         MethodName:String: GetBinaryToken
-        Parameters:Text: string fieldName
 VersionId: 177
+    LongTextProperties
+        Parameters:         string identity      
     DynamicProperties
         AppName:String: GetChildrenPermissionInfo
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetChildrenPermissionInfo
-        Parameters:Text:         string identity      
 VersionId: 178
     DynamicProperties
         AppName:String: GetExistingPreviewImages
@@ -1706,34 +1760,38 @@ VersionId: 178
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: GetExistingPreviewImagesForOData
 VersionId: 179
+    LongTextProperties
+        Parameters:         string displayName      
     DynamicProperties
         AppName:String: GetNameFromDisplayName
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.ContentNamingProvider
         MethodName:String: GetNameFromDisplayName
-        Parameters:Text:         string displayName      
 VersionId: 180
+    LongTextProperties
+        Parameters:         string identity      
     DynamicProperties
         AppName:String: GetPermissionInfo
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetPermissionInfo
-        Parameters:Text:         string identity      
 VersionId: 181
+    LongTextProperties
+        Parameters:         string identity      
     DynamicProperties
         AppName:String: GetPermissionOverview
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.PermissionQuery
         MethodName:String: GetPermissionOverview
-        Parameters:Text:         string identity      
 VersionId: 182
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: GetPermissions
         ActionTypeName:String: GetPermissionsAction
         StyleHint:String: 
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
-        Description:Text: 
 VersionId: 183
     DynamicProperties
         AppName:String: GetPreviewImages
@@ -1743,38 +1801,45 @@ VersionId: 183
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: GetPreviewImagesForOData
 VersionId: 184
+    LongTextProperties
+        Parameters:         bool onlyPublic      
     DynamicProperties
         AppName:String: GetQueries
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.QueryBuilder
         MethodName:String: GetQueries
-        Parameters:Text:         bool onlyPublic      
 VersionId: 185
+    LongTextProperties
+        Parameters: 
     DynamicProperties
         AppName:String: GetQueryBuilderMetadata
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Portal.QueryBuilder
         MethodName:String: GetMetadata
-        Parameters:Text: 
 VersionId: 186
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: GetRecentIndexingActivities
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: GetRecentIndexingActivities
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 187
+    LongTextProperties
+        Description: 
+        Parameters: 
     DynamicProperties
         AppName:String: GetRecentSecurityActivities
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: GetRecentSecurityActivities
-        Description:Text: 
-        Parameters:Text: 
 VersionId: 188
+    LongTextProperties
+        Description: 
+        Parameters: string userOrGroup
     DynamicProperties
         AppName:String: TakeOwnership
         Scenario:String: 
@@ -1786,8 +1851,6 @@ VersionId: 188
         CustomUrlParameters:String: 
         ClassName:String: SenseNet.ContentRepository.RepositoryTools
         MethodName:String: TakeOwnership
-        Description:Text: 
-        Parameters:Text: string userOrGroup
 VersionId: 189
     DynamicProperties
         AppName:String: UndoCheckOut
@@ -1797,28 +1860,33 @@ VersionId: 189
         CacheControl:String: Nondefined
         StoredIcon:String: undocheckout
 VersionId: 191
+    LongTextProperties
+        Parameters: int[] contentIds
     DynamicProperties
         AppName:String: AddMembers
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Group
         MethodName:String: AddMembers
-        Parameters:Text: int[] contentIds
 VersionId: 192
+    LongTextProperties
+        Description: 
+        Parameters:         bool directOnly      
     DynamicProperties
         AppName:String: GetParentGroups
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetParentGroups
-        Description:Text: 
-        Parameters:Text:         bool directOnly      
 VersionId: 193
+    LongTextProperties
+        Parameters: int[] contentIds
     DynamicProperties
         AppName:String: RemoveMembers
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Group
         MethodName:String: RemoveMembers
-        Parameters:Text: int[] contentIds
 VersionId: 195
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: Thumbnail
         Scenario:String: 
@@ -1840,8 +1908,9 @@ VersionId: 195
         ResizeTypeMode:String: crop
         CropVAlign:String: Center
         CropHAlign:String: Center
-        Description:Text: 
 VersionId: 197
+    LongTextProperties
+        Description: 
     DynamicProperties
         AppName:String: Browse
         Scenario:String: ListItem;ExploreToolbar
@@ -1853,22 +1922,23 @@ VersionId: 197
         MaxAge:String: 
         CustomUrlParameters:String: 
         StoredIcon:String: link
-        Description:Text: 
 VersionId: 199
+    LongTextProperties
+        Parameters: string contentTypeName
     DynamicProperties
         AppName:String: GetSchema
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.Services.Metadata.ClientMetadataProvider
         MethodName:String: GetSchema
-        Parameters:Text: string contentTypeName
 VersionId: 200
+    LongTextProperties
+        Parameters: 
     DynamicProperties
         AppName:String: GetVersionInfo
         IncludeBackUrl:String: Default
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Repository
         MethodName:String: GetVersionInfo
-        Parameters:Text: 
 VersionId: 202
     DynamicProperties
         AppName:String: SetInitialPreviewProperties
@@ -1876,28 +1946,34 @@ VersionId: 202
         ClassName:String: SenseNet.Preview.DocumentPreviewProvider
         MethodName:String: SetInitialPreviewProperties
 VersionId: 204
+    LongTextProperties
+        Parameters: string text
     DynamicProperties
         AppName:String: Decrypt
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.Cryptography.CryptoServiceProvider
         MethodName:String: Decrypt
-        Parameters:Text: string text
 VersionId: 205
+    LongTextProperties
+        Parameters: string text
     DynamicProperties
         AppName:String: Encrypt
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.Cryptography.CryptoServiceProvider
         MethodName:String: Encrypt
-        Parameters:Text: string text
 VersionId: 207
+    LongTextProperties
+        Description: 
+        Parameters:         bool directOnly      
     DynamicProperties
         AppName:String: GetParentGroups
         CacheControl:String: Nondefined
         ClassName:String: SenseNet.ContentRepository.Security.PermissionQueryForRest
         MethodName:String: GetParentGroups
-        Description:Text: 
-        Parameters:Text:         bool directOnly      
 VersionId: 208
+    LongTextProperties
+        Description: 
+        Parameters: string back
     DynamicProperties
         AppName:String: Profile
         Scenario:String: UserActions
@@ -1905,8 +1981,6 @@ VersionId: 208
         StoredIcon:String: userprofile
         ClassName:String: SenseNet.Services.IdentityTools
         MethodName:String: BrowseProfile
-        Description:Text: 
-        Parameters:Text: string back
 VersionId: 209
     BinaryProperties
         Binary: #88, F88, 0L, Admin.png, image/png, /Root/IMS/BuiltIn/Portal/Admin/Admin.png
@@ -1915,44 +1989,50 @@ VersionId: 209
         Width:Int: 32
         Height:Int: 32
 VersionId: 210
+    LongTextProperties
+        Description: 
     DynamicProperties
         SyncGuid:String: 
         Members:Reference: [11,1200,1198]
-        Description:Text: 
 VersionId: 211
-    DynamicProperties
-        Description:Text: 
+    LongTextProperties
+        Description: 
 VersionId: 212
+    LongTextProperties
+        Description: 
     DynamicProperties
         SyncGuid:String: 
         Members:Reference: [7]
-        Description:Text: 
 VersionId: 213
-    DynamicProperties
-        Description:Text: 
+    LongTextProperties
+        Description: 
 VersionId: 214
+    LongTextProperties
+        Description: 
     DynamicProperties
         SyncGuid:String: 
         Members:Reference: [7]
-        Description:Text: 
 VersionId: 215
-    DynamicProperties
-        Description:Text: 
+    LongTextProperties
+        Description: 
 VersionId: 216
+    LongTextProperties
+        Description: 
     DynamicProperties
         SyncGuid:String: 
         Members:Reference: [1197,1202,11,1200,1198]
-        Description:Text: 
 VersionId: 217
+    LongTextProperties
+        Description: 
     DynamicProperties
         SyncGuid:String: 
-        Description:Text: 
 VersionId: 218
+    LongTextProperties
+        OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
     DynamicProperties
         Domain:String: BuiltIn
         FullName:String: VirtualADUser
         LoginName:String: VirtualADUser
-        OldPasswords:Text: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
 VersionId: 219
     DynamicProperties
         Hidden:Int: 1
@@ -2037,11 +2117,11 @@ VersionId: 237
     DynamicProperties
         PageCount:Int: -4
 VersionId: 238
-    DynamicProperties
-        AllowedChildTypes:Text: GetMetadataApplication SystemFolder Folder
+    LongTextProperties
+        AllowedChildTypes: GetMetadataApplication SystemFolder Folder
 VersionId: 239
-    DynamicProperties
-        AllowedChildTypes:Text: GetMetadataApplication SystemFolder Folder
+    LongTextProperties
+        AllowedChildTypes: GetMetadataApplication SystemFolder Folder
 VersionId: 240
     DynamicProperties
         AppName:String: complextypes
@@ -2108,9 +2188,10 @@ VersionId: 255
 VersionId: 256
     BinaryProperties
         Binary: #112, F112, 0L, vsshandler.ashx, application/octet-stream, /Root/System/WebRoot/vsshandler.ashx
+    LongTextProperties
+        Description: Http handler for serving Lucene index file paths. This content can be invoked only from the local machine.
     DynamicProperties
         PageCount:Int: -4
-        Description:Text: Http handler for serving Lucene index file paths. This content can be invoked only from the local machine.
 VersionId: 257
     DynamicProperties
         TrashDisabled:Int: 1

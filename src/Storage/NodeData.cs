@@ -139,10 +139,13 @@ namespace SenseNet.ContentRepository.Storage
                     VersionId = VersionId,
                     PropertyTypes = PropertyTypes.ToList(),
                     DynamicProperties = changedPropertyTypes
-                        .Where(pt => pt.DataType != DataType.Binary)
+                        .Where(pt => pt.DataType != DataType.Binary && pt.DataType != DataType.Text)
                         .ToDictionary(pt => pt, pt => dynamicData[pt.Id] ?? pt.DefaultValue),
                     BinaryProperties = binaryTypes
-                        .ToDictionary(pt => pt, pt => (BinaryDataValue)GetDynamicRawData(pt))
+                        .ToDictionary(pt => pt, pt => (BinaryDataValue)GetDynamicRawData(pt)),
+                    LongTextProperties = changedPropertyTypes
+                        .Where(pt => pt.DataType == DataType.Text)
+                        .ToDictionary(pt => pt, pt => dynamicData[pt.Id]?.ToString())
                 };                
             }
         }

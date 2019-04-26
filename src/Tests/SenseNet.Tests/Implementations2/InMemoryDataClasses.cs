@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -505,6 +506,28 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         private Dictionary<string, object> CloneDynamicProperties(Dictionary<string, object> dynamicProperties)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    [DebuggerDisplay("{VersionId}/{PropertyTypeId}: {Value}")]
+    public class LongTextPropertyDoc
+    {
+        public int LongTextPropertyId { get; set; }
+        public int VersionId { get; set; }
+        public int PropertyTypeId { get; set; }
+        public int Length { get; set; }
+        public string Value { get; set; }
+
+        public LongTextPropertyDoc Clone()
+        {
+            return new LongTextPropertyDoc
+            {
+                LongTextPropertyId = LongTextPropertyId,
+                VersionId = VersionId,
+                PropertyTypeId = PropertyTypeId,
+                Length = Length,
+                Value = Value
+            };
         }
     }
 

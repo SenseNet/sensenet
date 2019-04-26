@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public List<PropertyType> PropertyTypes { get; set; } = new List<PropertyType>();
         public IDictionary<PropertyType, object> DynamicProperties { get; set; }
         public IDictionary<PropertyType, BinaryDataValue> BinaryProperties { get; set; }
-        public IDictionary<PropertyType, string> VeryLongTextValues { get; set; } //UNDONE:DB!!! Discuss: requires or not
+        public IDictionary<PropertyType, string> LongTextProperties { get; set; }
 
         public PropertyType EnsurePropertyType(string name, DataType dataType)
         {

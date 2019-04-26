@@ -53,6 +53,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DB.Versions.Add(versionDoc);
                 versionData.Timestamp = versionDoc.Timestamp;
 
+                // Manage LongTextProperties
+                foreach (var item in dynamicData.LongTextProperties)
+                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+
+                // Manage BinaryProperties
                 foreach (var item in dynamicData.BinaryProperties)
                     SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
 
@@ -106,6 +111,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DB.Nodes.Remove(existingNodeDoc);
                 DB.Nodes.Add(nodeDoc);
 
+                // Manage LongTextProperties
+                foreach (var item in dynamicData.LongTextProperties)
+                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+
                 // Manage BinaryProperties
                 foreach (var item in dynamicData.BinaryProperties)
                     SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, false);
@@ -144,6 +153,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DB.Versions.RemoveAll(x => x.VersionId == versionId);
                 DB.Versions.Add(versionDoc);
 
+                // Manage LongTextProperties
+                CopyLongTextProperties(currentVersionId, versionId);
+                foreach (var item in dynamicData.LongTextProperties)
+                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+
+                // Manage BinaryProperties
+                // (copy old values is unnecessary because all binary properties were loaded before save).
+                foreach (var item in dynamicData.BinaryProperties)
+                    SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
+
                 // Delete unnecessary versions
                 DeleteVersionsSafe(versionIdsToDelete);
 
@@ -154,10 +173,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 nodeDoc.LastMinorVersionId = lastMinorVersionId;
                 DB.Nodes.Remove(existingNodeDoc);
                 DB.Nodes.Add(nodeDoc);
-
-                // Manage BinaryProperties
-                foreach (var item in dynamicData.BinaryProperties)
-                    SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
 
                 nodeHeadData.Timestamp = nodeDoc.Timestamp;
                 versionData.Timestamp = versionDoc.Timestamp;
@@ -270,6 +285,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         if (dynamicProps.TryGetValue(propertyType.Name, out var value))
                             nodeData.SetDynamicRawData(propertyType, GetClone(value, propertyType.DataType));
 
+                    // Load appropriate LongTextProperties
+                    var longTextPropertyTypeIds = nodeData.PropertyTypes
+                        .Where(p => p.DataType == DataType.Text)
+                        .Select(p => p.Id)
+                        .ToArray();
+                    var longTextProps = DB.LongTextProperties
+                        .Where(x => x.VersionId == versionId &&
+                                    longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
+                                    x.Length >= TextAlternationSizeLimit)
+                        .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
+                    foreach (var item in longTextProps)
+                        nodeData.SetDynamicRawData(item.Key, GetClone(item.Value.Value, DataType.Text));
+
                     result.Add(nodeData);
                 }
                 return STT.Task.FromResult((IEnumerable<NodeData>)result);
@@ -297,18 +325,28 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Where(v => nodeIds.Contains(v.NodeId))
                     .Select(v => v.VersionId)
                     .ToArray();
+                var longTextPropIds = DB.LongTextProperties
+                    .Where(l => versionIds.Contains(l.VersionId))
+                    .Select(l => l.LongTextPropertyId)
+                    .ToArray();
                 var binPropAndfileIds = DB.BinaryProperties
                     .Where(b => versionIds.Contains(b.VersionId))
                     .Select(b => new { b.BinaryPropertyId, b.FileId })
                     .ToArray();
 
+                foreach (var longTextPropId in longTextPropIds)
+                    DB.LongTextProperties.RemoveAll(x => x.VersionId == longTextPropId);
+
                 foreach (var item in binPropAndfileIds)
                 {
                     DB.BinaryProperties.RemoveAll(x => x.BinaryPropertyId == item.BinaryPropertyId);
+                    // Delete files is not necessary but if we do it here, maintenance service can be switched off.
                     DB.Files.RemoveAll(x => x.FileId == item.FileId);
                 }
+
                 foreach (var versionId in versionIds)
                     DB.Versions.RemoveAll(x => x.VersionId == versionId);
+
                 foreach (var nId in nodeIds)
                     DB.Nodes.RemoveAll(x => x.NodeId == nId);
             }
@@ -351,18 +389,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             lock (DB)
             {
-                var result = new Dictionary<int, string>();
-
-                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
-                if (versionDoc == null)
-                    return STT.Task.FromResult(result);
-
-                var collection = versionDoc.DynamicProperties;
-                result = collection.Keys
-                    .Select(PropertyType.GetByName)
-                    .Where(x => notLoadedPropertyTypeIds.Contains(x.Id))
-                    .ToDictionary(x => x.Id, x => (string)collection[x.Name]);
-
+                var result = DB.LongTextProperties
+                    .Where(x => x.VersionId == versionId && notLoadedPropertyTypeIds.Contains(x.PropertyTypeId))
+                    .ToDictionary(x => x.PropertyTypeId, x => x.Value);
                 return STT.Task.FromResult(result);
             }
         }
@@ -1429,6 +1458,24 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value) ?? new Dictionary<string, object>()
             });
 
+            if (dData?.LongTextProperties != null)
+            {
+                foreach (var longTextPropItem in dData.LongTextProperties)
+                {
+                    var propertyType = longTextPropItem.Key;
+                    var value = longTextPropItem.Value;
+
+                    DB.LongTextProperties.Add(new LongTextPropertyDoc
+                    {
+                        LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                        VersionId = dData.VersionId,
+                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id,
+                        Length = value.Length,
+                        Value = value
+                    });
+                }
+            }
+
             if (dData?.BinaryProperties != null)
             {
                 foreach (var binPropItem in dData.BinaryProperties)
@@ -1470,6 +1517,23 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* ====================================================================== Tools */
 
+        private void SaveLongTextProperty(int versionId, int propertyTypeId, string value)
+        {
+            var existing = DB.LongTextProperties
+                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
+            if (existing != null)
+                DB.LongTextProperties.Remove(existing);
+            if (value == null)
+                return;
+            DB.LongTextProperties.Add(new LongTextPropertyDoc
+            {
+                LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                Length = value.Length,
+                Value = value
+            });
+        }
         private void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
         {
             if (value == null || value.IsEmpty)
@@ -1478,6 +1542,23 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
             else
                 BlobStorage.UpdateBinaryProperty(value);
+        }
+
+        private void CopyLongTextProperties(int sourceVersionId, int targetVersionId)
+        {
+            DB.LongTextProperties.RemoveAll(x => x.VersionId == targetVersionId);
+
+            foreach (var src in DB.LongTextProperties.Where(x => x.VersionId == sourceVersionId).ToArray())
+            {
+                DB.LongTextProperties.Add(new LongTextPropertyDoc
+                {
+                    LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                    VersionId = targetVersionId,
+                    PropertyTypeId = src.PropertyTypeId,
+                    Length = src.Length,
+                    Value = src.Value
+                });
+            }
         }
 
         private NodeDoc CreateNodeDoc(NodeHeadData nodeHeadData)
@@ -1526,7 +1607,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 switch (propertyType.DataType)
                 {
                     case DataType.String:
-                    case DataType.Text:
+                    //case DataType.Text:
                     case DataType.Int:
                     case DataType.Currency:
                     case DataType.DateTime:
@@ -1575,9 +1656,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             {
                 var propertyType = sourceItem.Key;
                 var dataType = propertyType.DataType;
-                if (dataType == DataType.Binary)
+                if (dataType == DataType.Text || dataType == DataType.Binary)
                     // Handled by higher level
-                    continue;
+                    throw new Exception($"This property cannot be processed here: {propertyType.Name}:{dataType}");
                 var clone = GetClone(sourceItem.Value, dataType);
                 if (dataType == DataType.Reference)
                 {
@@ -1603,6 +1684,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     DB.BinaryProperties.RemoveAll(x => x.BinaryPropertyId == binPropId);
                 }
+
+                foreach (var longTextPropId in DB.LongTextProperties
+                    .Where(x => x.VersionId == versionId)
+                    .Select(x => x.LongTextPropertyId)
+                    .ToArray())
+                {
+                    DB.LongTextProperties.RemoveAll(x => x.LongTextPropertyId == longTextPropId);
+                }
+
                 DB.Versions.RemoveAll(x => x.VersionId == versionId);
             }
         }

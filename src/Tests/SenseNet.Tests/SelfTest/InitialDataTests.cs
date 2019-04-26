@@ -18,14 +18,14 @@ namespace SenseNet.Tests.SelfTest
     [TestClass]
     public class InitialDataTests : TestBase
     {
-        [TestMethod]
+        //[TestMethod]
         public void InitialData_Create()
         {
             DataStore.Enabled = false;
             Test(() =>
             {
-                using (var ntw = new StreamWriter(@"D:\propertyTypes.txt", false))
-                using (var ptw = new StreamWriter(@"D:\nodeTypes.txt", false))
+                using (var ptw = new StreamWriter(@"D:\propertyTypes.txt", false))
+                using (var ntw = new StreamWriter(@"D:\nodeTypes.txt", false))
                 using (var nw = new StreamWriter(@"D:\nodes.txt", false))
                 using (var vw = new StreamWriter(@"D:\versions.txt", false))
                 using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
@@ -37,8 +37,22 @@ namespace SenseNet.Tests.SelfTest
             });
             Assert.Inconclusive();
         }
-
-        [TestMethod]
+        //[TestMethod]
+        public void InitialData_Parse()
+        {
+            InitialData initialData;
+            {
+                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
+                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
+                using (var nr = new StreamReader(@"D:\nodes.txt"))
+                using (var vr = new StreamReader(@"D:\versions.txt"))
+                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
+                    initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+            }
+            Assert.IsTrue(initialData.Nodes.Any());
+            Assert.Inconclusive();
+        }
+        //[TestMethod]
         public void InitialData_LoadIndex()
         {
             DataStore.Enabled = false;
@@ -54,7 +68,7 @@ namespace SenseNet.Tests.SelfTest
             });
             Assert.Inconclusive();
         }
-        [TestMethod]
+        //[TestMethod]
         public void InitialData_CtdLoad()
         {
             InitialDataTest(() =>

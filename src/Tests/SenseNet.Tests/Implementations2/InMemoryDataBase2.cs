@@ -13,6 +13,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public DataCollection<NodeDoc> Nodes { get; } = new DataCollection<NodeDoc>(1247);
         public DataCollection<VersionDoc> Versions { get; } = new DataCollection<VersionDoc>(260);
+        public DataCollection<LongTextPropertyDoc> LongTextProperties { get; } = new DataCollection<LongTextPropertyDoc>();
         public DataCollection<BinaryPropertyDoc> BinaryProperties { get; } = new DataCollection<BinaryPropertyDoc>(112);
         public DataCollection<FileDoc> Files { get; } = new DataCollection<FileDoc>(112);
         public DataCollection<TreeLockDoc> TreeLocks { get; } = new DataCollection<TreeLockDoc>();
@@ -36,6 +37,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 /* WELL KNOWN COLLECTIONS */
                 {typeof(NodeDoc), Nodes},
                 {typeof(VersionDoc), Versions},
+                {typeof(LongTextPropertyDoc), LongTextProperties},
                 {typeof(BinaryPropertyDoc), BinaryProperties},
                 {typeof(FileDoc), Files},
                 {typeof(TreeLockDoc), TreeLocks},

@@ -513,9 +513,12 @@ namespace SenseNet.ContentRepository.Tests
                     nodeB.Save();
 
                     // ASSERT-1
+                    var longText1PropertyType = ActiveSchema.PropertyTypes["LongText1"];
                     var storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
+                    var storedTextProp = db.LongTextProperties.First(x => x.VersionId == nodeB.VersionId &&
+                                                                          x.PropertyTypeId == longText1PropertyType.Id);
                     Assert.AreEqual("ShortText value 1", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 1", storedProps["LongText1"]);
+                    Assert.AreEqual("LongText value 1", storedTextProp.Value);
                     Assert.AreEqual(42, storedProps["Integer1"]);
                     Assert.AreEqual(42.56m, storedProps["Number1"]);
                     Assert.AreEqual(new DateTime(1111, 11, 11), storedProps["DateTime1"]);
@@ -534,8 +537,10 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ASSERT-2
                     storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
+                    storedTextProp = db.LongTextProperties.First(x => x.VersionId == nodeB.VersionId &&
+                                                                          x.PropertyTypeId == longText1PropertyType.Id);
                     Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
+                    Assert.AreEqual("LongText value 2", storedTextProp.Value);
                     Assert.AreEqual(43, storedProps["Integer1"]);
                     Assert.AreEqual(42.099m, storedProps["Number1"]);
                     Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
@@ -549,8 +554,10 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ASSERT-3
                     storedProps = db.Versions.First(x => x.VersionId == nodeB.VersionId).DynamicProperties;
+                    storedTextProp = db.LongTextProperties.First(x => x.VersionId == nodeB.VersionId &&
+                                                                      x.PropertyTypeId == longText1PropertyType.Id);
                     Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 2", storedProps["LongText1"]);
+                    Assert.AreEqual("LongText value 2", storedTextProp.Value);
                     Assert.AreEqual(43, storedProps["Integer1"]);
                     Assert.AreEqual(42.099m, storedProps["Number1"]);
                     Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
@@ -710,9 +717,9 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT-1: text property is in cache
                 var cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
                 Assert.IsTrue(cachedNodeData.IsShared);
-                var dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
-                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
-                Assert.AreEqual(nearlyLongText1, (string)dynamicProperties[descriptionPropertyType]);
+                var longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
+                Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
+                Assert.AreEqual(nearlyLongText1, (string)longTextProperties[descriptionPropertyType]);
 
                 // ACTION-2: Update with text that shorter than the magic limit
                 root = Node.Load<SystemFolder>(root.Id);
@@ -722,9 +729,9 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT-2: text property is in cache
                 cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
                 Assert.IsTrue(cachedNodeData.IsShared);
-                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
-                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
-                Assert.AreEqual(nearlyLongText2, (string)dynamicProperties[descriptionPropertyType]);
+                longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
+                Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
+                Assert.AreEqual(nearlyLongText2, (string)longTextProperties[descriptionPropertyType]);
 
                 // ACTION-3: Update with text that longer than the magic limit
                 root = Node.Load<SystemFolder>(root.Id);
@@ -734,8 +741,8 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT-3: text property is not in the cache
                 cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
                 Assert.IsTrue(cachedNodeData.IsShared);
-                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
-                Assert.IsFalse(dynamicProperties.ContainsKey(descriptionPropertyType));
+                longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
+                Assert.IsFalse(longTextProperties.ContainsKey(descriptionPropertyType));
 
                 // ACTION-4: Load the text property
                 var loadedValue = root.Description;
@@ -744,8 +751,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(longText, loadedValue);
                 cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
                 Assert.IsTrue(cachedNodeData.IsShared);
-                dynamicProperties = cachedNodeData.GetDynamicData(false).DynamicProperties;
-                Assert.IsTrue(dynamicProperties.ContainsKey(descriptionPropertyType));
+                longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
+                Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
             });
         }
 

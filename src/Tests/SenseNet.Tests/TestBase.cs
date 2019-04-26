@@ -364,16 +364,6 @@ DataStore.Enabled = backup;
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            //if (_initialData == null)
-            //{
-            //    using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
-            //    using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
-            //    using (var nr = new StreamReader(@"D:\nodes.txt"))
-            //    using (var vr = new StreamReader(@"D:\versions.txt"))
-            //    using (var dr = new StreamReader(@"D:\dynamicData.txt"))
-            //        _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
-            //}
-            //return _initialData;
             if (_initialData == null)
             {
                 using (var ptr = new StringReader(InitialTestData.PropertyTypes))

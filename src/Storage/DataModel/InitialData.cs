@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -94,6 +95,15 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             var relevantBinaries =
                 d.BinaryProperties.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value);
 
+            var transformedLongText = new Dictionary<string, string>();
+            foreach (var item in d.LongTextProperties)
+            {
+                if (item.Value == null)
+                    continue;
+                var value = ValueToString(item);
+                if (value != null)
+                    transformedLongText.Add($"{item.Key.Name}", value);
+            }
             var transformedDynamic = new Dictionary<string, string>();
             foreach (var item in d.DynamicProperties)
             {
@@ -104,7 +114,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     transformedDynamic.Add($"{item.Key.Name}:{item.Key.DataType}", value);
             }
 
-            if (relevantBinaries.Count > 0 || transformedDynamic.Count > 0)
+            if (relevantBinaries.Count + transformedLongText.Count + transformedDynamic.Count > 0)
             {
                 writer.WriteLine($"VersionId: {d.VersionId}");
 
@@ -115,6 +125,12 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     {
                         writer.WriteLine($"        {item.Key.Name}: {ValueToString(path, item.Value)}");
                     }
+                }
+                if (transformedLongText.Count > 0)
+                {
+                    writer.WriteLine("    LongTextProperties");
+                    foreach (var item in transformedLongText)
+                        writer.WriteLine($"        {item.Key}: {item.Value}");
                 }
                 if (transformedDynamic.Count > 0)
                 {
@@ -130,12 +146,17 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             // 2, 2, 31386, GenericContent.ContentType, text/xml, 
             return $"#{d.Id}, F{d.FileId}, {d.Size}L, {d.FileName}, {d.ContentType}, {path}";
         }
+        private static string ValueToString(KeyValuePair<PropertyType, string> item)
+        {
+            // LongText property transformation (e.g. character escape (\t \r\n etc.) in the future)
+            return item.Value;
+        }
         private static string ValueToString(KeyValuePair<PropertyType, object> item)
         {
             switch (item.Key.DataType)
             {
                 case DataType.String:
-                case DataType.Text:
+                //case DataType.Text:
                     return (string)item.Value;
                 case DataType.Int:
                     var intValue = (int)item.Value;
@@ -243,14 +264,15 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         {
             return line.Split('|').Select(x => x.Trim()).ToArray();
         }
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         private static IEnumerable<DynamicPropertyData> ParseDynamicProperties(IEnumerable<string> lines)
         {
             var result = new List<DynamicPropertyData>();
 
             var parsingBinaryProperties = false;
+            var parsingLongTextProperties = false;
             var parsingDynamicProperties = false;
-            int versionId;
-            DynamicPropertyData data = new DynamicPropertyData();
+            DynamicPropertyData data = null;
             var lineNumber = 0;
             foreach (var line in lines)
             {
@@ -258,20 +280,30 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                 if (line.StartsWith("VersionId: "))
                 {
                     parsingBinaryProperties = false;
+                    parsingLongTextProperties = false;
                     parsingDynamicProperties = false;
-                    versionId = int.Parse(line.Substring(11));
+                    var versionId = int.Parse(line.Substring(11));
                     data = new DynamicPropertyData { VersionId = versionId };
                     result.Add(data);
                 }
                 else if (line == "    BinaryProperties")
                 {
                     parsingBinaryProperties = true;
+                    parsingLongTextProperties = false;
                     parsingDynamicProperties = false;
                     data.BinaryProperties = new Dictionary<PropertyType, BinaryDataValue>();
+                }
+                else if (line == "    LongTextProperties")
+                {
+                    parsingBinaryProperties = false;
+                    parsingLongTextProperties = true;
+                    parsingDynamicProperties = false;
+                    data.LongTextProperties = new Dictionary<PropertyType, string>();
                 }
                 else if (line == "    DynamicProperties")
                 {
                     parsingBinaryProperties = false;
+                    parsingLongTextProperties = false;
                     parsingDynamicProperties = true;
                     data.DynamicProperties = new Dictionary<PropertyType, object>();
                 }
@@ -292,6 +324,17 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                             ContentType = src[5].Trim(),
                             BlobProviderData = src[6].Trim()
                         });
+                    }
+                    else if (parsingLongTextProperties)
+                    {
+                        // OldPasswords: <?xml version="1.0" encoding="utf-16"?>  <ArrayOfOldPasswordData ....
+                        var p = line.IndexOf(':');
+                        var name = line.Substring(0, p).Trim();
+
+                        var value = line.Substring(p + 1).Trim();
+                        var propertyType = data.EnsurePropertyType(name, DataType.Text);
+
+                        data.LongTextProperties.Add(propertyType, value);
                     }
                     else if (parsingDynamicProperties)
                     {
