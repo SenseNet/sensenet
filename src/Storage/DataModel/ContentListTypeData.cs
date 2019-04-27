@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<string> Properties { get; set; }
+        public List<string> Properties { get; set; } = new List<string>();
 
         public ContentListTypeData Clone()
         {

@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public string Name { get; set; }
         public string ParentName { get; set; }
         public string ClassName { get; set; }
-        public List<string> Properties { get; set; }
+        public List<string> Properties { get; set; } = new List<string>();
 
         public NodeTypeData Clone()
         {

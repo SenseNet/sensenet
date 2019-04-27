@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -256,6 +257,10 @@ DataStore.Enabled = backup;
             return string.Join(",", array.Select(x => x.ToString()));
         }
         protected string ArrayToString(List<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(IEnumerable<object> array)
         {
             return string.Join(",", array.Select(x => x.ToString()));
         }

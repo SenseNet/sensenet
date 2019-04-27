@@ -41,7 +41,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void DeletePropertyType(PropertyType propertyType)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.DeletePropertyType
             var pt = _schema.PropertyTypes.FirstOrDefault(p => p.Name == propertyType.Name &&
                                                                p.IsContentListProperty == propertyType.IsContentListProperty);
             if (pt != null)
@@ -62,7 +61,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.ModifyNodeType
             var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == nodeType.Name);
             if (nt == null)
                 return;
@@ -72,7 +70,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void DeleteNodeType(NodeType nodeType)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.DeleteNodeType
             var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == nodeType.Name);
             if (nt != null)
                 _schema.NodeTypes.Remove(nt);
@@ -80,7 +77,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void CreateContentListType(string name)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.CreateContentListType
             _schema.ContentListTypes.Add(new ContentListTypeData
             {
                 Id = Math.Max(GetMaxId(_schema.NodeTypes), GetMaxId(_schema.ContentListTypes)) + 1,
@@ -91,7 +87,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void DeleteContentListType(ContentListType contentListType)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.DeleteContentListType
             var ct = _schema.ContentListTypes.FirstOrDefault(p => p.Name == contentListType.Name);
             if (ct != null)
                 _schema.ContentListTypes.Remove(ct);
@@ -121,7 +116,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.RemovePropertyTypeFromPropertySet
             var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == owner.Name);
             if (nt != null)
             {
@@ -134,7 +128,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
         {
-            //UNDONE:DB ----Missing test for InMemorySchemaWriter.UpdatePropertyTypeDeclarationState
             var nt = _schema.NodeTypes.FirstOrDefault(p => p.Name == owner.Name);
             if (nt == null)
                 return;
