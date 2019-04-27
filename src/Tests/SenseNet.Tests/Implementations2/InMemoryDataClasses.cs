@@ -675,7 +675,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class SharedLockDoc //UNDONE:@@ SharedLockDoc is an extension
+    public class SharedLockDoc //UNDONE:DB:@@ SharedLockDoc is an extension
     {
         public int SharedLockId;
         public int ContentId;
@@ -694,7 +694,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class AccessTokenDoc //UNDONE:@@ AccessTokenDoc is an extension
+    public class AccessTokenDoc //UNDONE:DB:@@ AccessTokenDoc is an extension
     {
         public int AccessTokenRowId;
         public string Value;
@@ -719,7 +719,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class PackageDoc //UNDONE:@@ PackageDoc is an extension
+    public class PackageDoc //UNDONE:DB:@@ PackageDoc is an extension
     {
         public int Id { get; set; }
         public string Description { get; set; }

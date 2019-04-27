@@ -251,6 +251,15 @@ DataStore.Enabled = backup;
             }
         }
 
+        protected string ArrayToString(int[] array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(List<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+
         protected void RebuildIndex()
         {
             var paths = new List<string>();

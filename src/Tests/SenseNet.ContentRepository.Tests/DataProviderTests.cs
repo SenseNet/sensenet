@@ -1102,14 +1102,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             return ((InMemoryDataProvider2)Providers.Instance.DataProvider2).DB;
         }
-        private string ArrayToString(int[] array) //UNDONE:DB --------Move to TestBase
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
-        private string ArrayToString(List<int> array) //UNDONE:DB --------Move to TestBase
-        {
-            return string.Join(",", array.Select(x => x.ToString()));
-        }
 
         private void CheckDynamicDataByVersionId(int versionId)
         {
