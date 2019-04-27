@@ -704,6 +704,39 @@ namespace SenseNet.ContentRepository.Tests
             DPTest(() =>
             {
                 DataStore.Enabled = true;
+                var nearlyLongText = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
+                var longText = new string('c', InMemoryDataProvider2.TextAlternationSizeLimit + 10);
+                var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
+
+                // ACTION-1a: Creation with text that shorter than the magic limit
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = nearlyLongText };
+                root.Save();
+                // ACTION-1b: Load the node
+                var loaded = DataStore.DataProvider.LoadNodesAsync(new[] {root.VersionId}).Result.First();
+                var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
+
+                // ASSERT-1
+                Assert.AreEqual(0, longTextProps.Count);
+
+                // ACTION-2a: Update text property value over the magic limit
+                var doc = ((InMemoryDataProvider2) DataStore.DataProvider).DB.LongTextProperties
+                    .First(x => x.Value == nearlyLongText);
+                doc.Value = longText;
+                doc.Length = longText.Length;
+                // ACTION-2b: Load the node
+                loaded = DataStore.DataProvider.LoadNodesAsync(new[] { root.VersionId }).Result.First();
+                longTextProps = loaded.GetDynamicData(false).LongTextProperties;
+
+                // ASSERT-2
+                Assert.AreEqual("Description", longTextProps.Keys.First().Name);
+            });
+        }
+        [TestMethod]
+        public void DP_LazyLoadedBigTextVsCache()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
                 var nearlyLongText1 = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
                 var nearlyLongText2 = new string('b', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
                 var longText = new string('c', InMemoryDataProvider2.TextAlternationSizeLimit + 10);
