@@ -89,7 +89,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Nodes */
 
-        public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
+        public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken? cancellationToken = null)
         {
             // ORIGINAL SIGNATURES:
             // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -104,7 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             //UNDONE:DB ?Implement transaction related stuff (from DataBackingStore)
             //UNDONE:DB Implement cache invalidations (from DataBackingStore)
 
-            cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken?.ThrowIfCancellationRequested();
 
             if (nodeData == null)
                 throw new ArgumentNullException(nameof(nodeData));
