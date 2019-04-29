@@ -25,6 +25,8 @@ namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider //DB:ok
     {
+        public const int TextAlternationSizeLimit = 4000;
+
         internal const int StringPageSize = 80;
         internal const int IntPageSize = 40;
         internal const int DateTimePageSize = 25;
@@ -704,7 +706,7 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override bool IsCacheableText(string text)
         {
-            return false;
+            return text?.Length < TextAlternationSizeLimit;
         }
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)

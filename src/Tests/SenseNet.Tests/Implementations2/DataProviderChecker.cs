@@ -103,9 +103,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var actualProps = (Dictionary<int, object>)(new PrivateObject(actual).GetField("dynamicData"));
 
             // Compare signatures
-            var expectedSignature = expectedProps.Keys.OrderBy(x => x).ToArray();
-            var actualSignature = actualProps.Keys.OrderBy(x => x).ToArray();
-            Assert_AreEqual(expectedSignature, actualSignature, "DynamicPropertySignature");
+            var expectedSignature = expectedProps.Keys.OrderBy(y => y).ToArray();
+            var actualSignature = actualProps.Keys.OrderBy(y => y).ToArray();
+            var expectedNames = expectedProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var actualNames = actualProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            Assert_AreEqual(expectedNames, actualNames, "DynamicPropertySignature");
 
             // Compare properties
             foreach (var key in expectedSignature)
@@ -120,7 +122,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         Assert_AreEqual((string)expectedValue, (string)actualValue, propertyType.Name);
                         break;
                     case DataType.Int:
-                        Assert_AreEqual((int?)expectedValue, (int?)actualValue, propertyType.Name);
+                        try
+                        {
+                            Assert_AreEqual((int?)expectedValue, (int?)actualValue, propertyType.Name);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            Assert_AreEqual((int)expectedValue, (int)actualValue, propertyType.Name);
+                        }
                         break;
                     case DataType.Currency:
                         Assert_AreEqual((decimal?)expectedValue, (decimal?)actualValue, propertyType.Name);
@@ -241,6 +250,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             Assert_AreEqual(expected.DeletableVersionIds, actual.DeletableVersionIds, "DeletableVersionIds");
         }
 
+        private static void Assert_AreEqual(IEnumerable<string> expected, IEnumerable<string> actual, string name)
+        {
+            var exp = string.Join(",", expected.OrderBy(x => x));
+            var act = string.Join(",", actual.OrderBy(x => x));
+            if (exp != act)
+                throw new Exception(
+                    $"Expected and actual {name} are not equal. Expected: {exp}, Actual: {act}");
+        }
         private static void Assert_AreEqual(IEnumerable<int> expected, IEnumerable<int> actual, string name)
         {
             var exp = string.Join(",", expected.OrderBy(x => x).Select(x => x.ToString()));
@@ -256,6 +273,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
         }
         private static void Assert_AreEqual(VersioningMode expected, VersioningMode actual, string name)
+        {
+            if (expected != actual)
+                throw new Exception(
+                    $"Expected and actual {name} are not equal. Expected: {expected}, Actual: {actual}");
+        }
+        private static void Assert_AreEqual(int expected, int actual, string name)
         {
             if (expected != actual)
                 throw new Exception(

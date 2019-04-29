@@ -23,62 +23,10 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
-        //[TestMethod]
-        public void InitialData_LoadStream()
-        {
-            DPTest(() =>
-            {
-                // see FileSystemReaderBlobProvider.GetStreamForRead and ParseData
-
-                DataStore.Enabled = true;
-
-                var node = Node.LoadNode("/Root/System/Settings/Logging.settings");
-                string fileContent;
-                using (var stream = node.GetBinary("Binary").GetStream())
-                using (var reader = new StreamReader(stream))
-                    fileContent = reader.ReadToEnd();
-                Assert.IsTrue(fileContent.Length > 0);
-            });
-        }
-
-
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
 
-        //[TestMethod]
-        //public void DP_AB_Schema_Save()
-        //{
-        //    DPTest(() =>
-        //    {
-        //        var storedSchema = GetStoredSchema();
-        //        Assert.AreEqual(0L, storedSchema.Timestamp);
-        //        Assert.IsNull(storedSchema.PropertyTypes);
-        //        Assert.IsNull(storedSchema.NodeTypes);
-        //        Assert.IsNull(storedSchema.ContentListTypes);
 
-        //        var ed = new SchemaEditor();
-        //        ed.Load();
-        //        var xml = new XmlDocument();
-        //        xml.LoadXml(ed.ToXml());
-
-        //        DataStore.Enabled = true;
-        //        var ed2 = new SchemaEditor();
-        //        ed2.Load(xml);
-        //        ed2.Register();
-
-        //        storedSchema = GetStoredSchema();
-
-        //        Assert.IsTrue(0L < storedSchema.Timestamp);
-        //        Assert.AreEqual(ActiveSchema.PropertyTypes.Count, storedSchema.PropertyTypes.Count);
-        //        Assert.AreEqual(ActiveSchema.NodeTypes.Count, storedSchema.NodeTypes.Count);
-        //        Assert.AreEqual(ActiveSchema.ContentListTypes.Count, storedSchema.ContentListTypes.Count);
-        //        //UNDONE:DB ----Deep check: storedSchema
-        //    });
-        //}
-        //private RepositorySchemaData GetStoredSchema()
-        //{
-        //    return ((InMemoryDataProvider2) Providers.Instance.DataProvider2).DB.Schema;
-        //}
 
         [TestMethod]
         public void DP_AB_Create()
@@ -88,19 +36,18 @@ namespace SenseNet.ContentRepository.Tests
             DPTest(() =>
             {
                 // ACTION-A
-                DataStore.SnapshotsEnabled = true;
                 var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                var nodeDataBeforeA = folderA.Data.Clone();
                 folderA.Save();
-                
+                var nodeDataAfterA = folderA.Data.Clone();
+
                 // ACTION-B
                 DataStore.Enabled = true;
                 var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                var nodeDataBeforeB = folderB.Data.Clone();
                 folderB.Save();
+                var nodeDataAfterB = folderB.Data.Clone();
 
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
                 CheckDynamicDataByVersionId(folderA.VersionId);
@@ -116,21 +63,20 @@ namespace SenseNet.ContentRepository.Tests
                 var description = "text property value.";
 
                 // ACTION-A
-                DataStore.SnapshotsEnabled = true;
                 var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderA.Description = description;
+                var nodeDataBeforeA = folderA.Data.Clone();
                 folderA.Save();
+                var nodeDataAfterA = folderA.Data.Clone();
 
                 // ACTION-B
                 DataStore.Enabled = true;
                 var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderB.Description = description;
+                var nodeDataBeforeB = folderB.Data.Clone();
                 folderB.Save();
+                var nodeDataAfterB = folderB.Data.Clone();
 
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
                 CheckDynamicDataByVersionId(folderA.VersionId);
@@ -146,38 +92,32 @@ namespace SenseNet.ContentRepository.Tests
                 var filecontent = "File content.";
 
                 // ACTION-A
-                DataStore.SnapshotsEnabled = false;
                 var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderA.Save();
                 var fileA = new File(folderA) { Name = "File1" };
                 fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
                 var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
 
                 // ACTION-B
                 DataStore.Enabled = true;
-                DataStore.SnapshotsEnabled = false;
                 var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folderB.Save();
                 var fileB = new File(folderB) { Name = "File1" };
                 fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent));
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.Save();
+                var nodeDataAfterB = fileB.Data.Clone();
                 var fileBId = fileB.Id;
-                DataStore.SnapshotsEnabled = false;
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileBId);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
 
@@ -200,9 +140,9 @@ namespace SenseNet.ContentRepository.Tests
                 folderA.Save();
                 folderA = Node.Load<SystemFolder>(folderA.Id);
                 folderA.Index++;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = folderA.Data.Clone();
                 folderA.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = folderA.Data.Clone();
 
                 // PROVIDER-B
                 DataStore.Enabled = true;
@@ -211,16 +151,11 @@ namespace SenseNet.ContentRepository.Tests
                 folderB.Save();
                 folderB = Node.Load<SystemFolder>(folderB.Id);
                 folderB.Index++;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = folderB.Data.Clone();
                 folderB.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterB = folderB.Data.Clone();
 
                 // Check
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
-
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
                 Assert.IsTrue(nodeDataBeforeB.NodeTimestamp < nodeDataAfterB.NodeTimestamp);
@@ -248,9 +183,9 @@ namespace SenseNet.ContentRepository.Tests
                 var binaryA = fileA.Binary;
                 binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileA.Binary = binaryA;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
                 var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
@@ -266,18 +201,14 @@ namespace SenseNet.ContentRepository.Tests
                 var binaryB = fileB.Binary;
                 binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileB.Binary = binaryB;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
 
@@ -305,9 +236,9 @@ namespace SenseNet.ContentRepository.Tests
                 var binaryA = fileA.Binary;
                 binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileA.Binary = binaryA;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
                 var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
@@ -323,18 +254,14 @@ namespace SenseNet.ContentRepository.Tests
                 var binaryB = fileB.Binary;
                 binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileB.Binary = binaryB;
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.Save();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
 
@@ -364,9 +291,9 @@ namespace SenseNet.ContentRepository.Tests
                 binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileA.Binary = binaryA;
                 fileA.Save();
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.CheckIn();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
                 var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
@@ -384,18 +311,14 @@ namespace SenseNet.ContentRepository.Tests
                 binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileB.Binary = binaryB;
                 fileB.Save();
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.CheckIn();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
 
@@ -425,9 +348,9 @@ namespace SenseNet.ContentRepository.Tests
                 binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileA.Binary = binaryA;
                 fileA.Save();
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.UndoCheckOut();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
                 var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
@@ -445,18 +368,14 @@ namespace SenseNet.ContentRepository.Tests
                 binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
                 fileB.Binary = binaryB;
                 fileB.Save();
-                DataStore.SnapshotsEnabled = true;
+                var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.UndoCheckOut();
-                DataStore.SnapshotsEnabled = false;
+                var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
                 var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
                 // ASSERT
-                var nodeDataBeforeA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && !x.IsDp2).Snapshot;
-                var nodeDataBeforeB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeBefore" && x.IsDp2).Snapshot;
-                var nodeDataAfterA = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && !x.IsDp2).Snapshot;
-                var nodeDataAfterB = (NodeData)DataStore.Snapshots.First(x => x.Name == "SaveNodeAfter" && x.IsDp2).Snapshot;
                 DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
                 DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
 
@@ -1319,9 +1238,6 @@ namespace SenseNet.ContentRepository.Tests
 
         private void CheckDynamicDataByVersionId(int versionId)
         {
-            DataStore.SnapshotsEnabled = false;
-            DataStore.Snapshots.Clear();
-
             DataStore.Enabled = false;
             DistributedApplication.Cache.Reset();
             var nodeA = Node.LoadNodeByVersionId(versionId);
@@ -1338,7 +1254,6 @@ namespace SenseNet.ContentRepository.Tests
         private void DPTest(Action callback)
         {
             DataStore.Enabled = false;
-            DataStore.SnapshotsEnabled = false;
 
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
@@ -1352,7 +1267,7 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(builder))
             {
-
+                new SnMaintenance().Shutdown();
                 using (new SystemAccount())
                     callback();
             }

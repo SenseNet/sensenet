@@ -584,7 +584,6 @@ namespace SenseNet.ContentRepository.Storage
 
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
-                    DataStore.AddSnapshot("SaveNodeBefore", data.Clone());
                     if (DataStore.Enabled)
                     {
                         DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Wait();
@@ -597,7 +596,6 @@ namespace SenseNet.ContentRepository.Storage
                         settings.LastMajorVersionIdAfter = lastMajorVersionId;
                         settings.LastMinorVersionIdAfter = lastMinorVersionId;
                     }
-                    DataStore.AddSnapshot("SaveNodeAfter", data.Clone());
 
                     // here we re-create the node head to insert it into the cache and refresh the version info);
                     if (lastMajorVersionId > 0 || lastMinorVersionId > 0)

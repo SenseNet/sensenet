@@ -22,19 +22,6 @@ using SenseNet.Search.Querying;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    [DebuggerDisplay("{" + nameof(ToString) + "()}")]
-    public class SnapshotItem //UNDONE:DB -------Remove SnapshotItem class
-    {
-        public string Name;
-        public bool IsDp2;
-        public object Snapshot;
-
-        public override string ToString()
-        {
-            return $"{Name} DP{(IsDp2 ? 2 : 0)} {Snapshot.GetType().Name}";
-        }
-    }
-
     public static class DataStore
     {
         // ReSharper disable once InconsistentNaming
@@ -49,12 +36,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 BlobStorageComponents.DataStoreEnabled = value;
             }
         }
-
-        //UNDONE:DB -------Remove DataStore.SnapshotsEnabled
-        public static bool SnapshotsEnabled { get; set; }
-
-        public static List<SnapshotItem> Snapshots { get; } = new List<SnapshotItem>();//UNDONE:DB -------Remove DataStore.Snapshots
-
 
         public static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
 
@@ -519,20 +500,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
             DistributedApplication.Cache.Insert(cacheKey, nodeData, dependency);
-        }
-
-        //UNDONE:DB -------Remove DataStore.AddSnapshot
-        public static void AddSnapshot(string name, object snapshot)
-        {
-            if (!SnapshotsEnabled)
-                return;
-
-            Snapshots.Add(new SnapshotItem
-            {
-                Name = name,
-                IsDp2 = Enabled,
-                Snapshot = snapshot
-            });
         }
     }
 }
