@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public bool IsSystem;
         public int OwnerId;
         public ContentSavingState SavingState;
-        public long Timestamp;
+        public virtual long Timestamp { get; set; }
 
         public void SetProperty(string name, string value)
         {

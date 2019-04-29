@@ -1126,8 +1126,189 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        //UNDONE:DB TEST: DP_AB_Create and Rollback
-        //UNDONE:DB TEST: DP_AB_Update and Rollback
+        /* ================================================================================================== Transaction */
+
+        /// <summary>
+        /// Designed for testing the Rollback opration of the transactionality.
+        /// An instance of this class is almost like a NodeHeadData but throws an exception
+        /// when the setter of the Timestamp property is called. This call probably is always after all database operation
+        /// so using this object helps the testing of the full rolling-back operation.
+        /// </summary>
+        private class ErrorGenNodeHeadData : NodeHeadData
+        {
+            private long _timestamp;
+            public override long Timestamp
+            {
+                get => _timestamp;
+                set => throw new Exception("Something went wrong.");
+            }
+
+            public static NodeHeadData Create(NodeHeadData src)
+            {
+                return new ErrorGenNodeHeadData
+                {
+                    NodeId = src.NodeId,
+                    NodeTypeId = src.NodeTypeId,
+                    ContentListTypeId = src.ContentListTypeId,
+                    ContentListId = src.ContentListId,
+                    CreatingInProgress = src.CreatingInProgress,
+                    IsDeleted = src.IsDeleted,
+                    ParentNodeId = src.ParentNodeId,
+                    Name = src.Name,
+                    DisplayName = src.DisplayName,
+                    Path = src.Path,
+                    Index = src.Index,
+                    Locked = src.Locked,
+                    LockedById = src.LockedById,
+                    ETag = src.ETag,
+                    LockType = src.LockType,
+                    LockTimeout = src.LockTimeout,
+                    LockDate = src.LockDate,
+                    LockToken = src.LockToken,
+                    LastLockUpdate = src.LastLockUpdate,
+                    LastMinorVersionId = src.LastMinorVersionId,
+                    LastMajorVersionId = src.LastMajorVersionId,
+                    CreationDate = src.CreationDate,
+                    CreatedById = src.CreatedById,
+                    ModificationDate = src.ModificationDate,
+                    ModifiedById = src.ModifiedById,
+                    IsSystem = src.IsSystem,
+                    OwnerId = src.OwnerId,
+                    SavingState = src.SavingState,
+                    _timestamp = src.Timestamp
+                };
+            }
+        }
+
+        [TestMethod]
+        public void DP_Transaction_InsertNode()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+
+                // ACTION
+                try
+                {
+                    var newNode =
+                        new SystemFolder(Repository.Root) {Name = "Folder1", Description = "Description-1", Index = 42};
+                    var nodeData = newNode.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    // Call low level API
+                    DataStore.DataProvider.InsertNodeAsync(hackedNodeHeadData, versionData, dynamicData).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+
+                Assert.AreEqual(countsBefore, countsAfter);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_UpdateNode()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var nodeTimeStampBefore = newNode.NodeTimestamp;
+                var versionTimeStampBefore = newNode.VersionTimestamp;
+
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    node.Description = "Description-MODIFIED";
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+                    // Call low level API
+                    DataStore.DataProvider
+                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                DistributedApplication.Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                var nodeTimeStampAfter = reloaded.NodeTimestamp;
+                var versionTimeStampAfter = reloaded.VersionTimestamp;
+                Assert.AreEqual(nodeTimeStampBefore, nodeTimeStampAfter);
+                Assert.AreEqual(versionTimeStampBefore, versionTimeStampAfter);
+                Assert.AreEqual(42, reloaded.Index);
+                Assert.AreEqual("Description-1", reloaded.Description);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_CopyAndUpdateNode()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var version1 = newNode.Version.ToString();
+                var versionId1 = newNode.VersionId;
+                newNode.CheckOut();
+                var version2 = newNode.Version.ToString();
+                var versionId2 = newNode.VersionId;
+                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+
+                // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    node.Description = "Description-MODIFIED";
+                    node.Version = VersionNumber.Parse(version1); // ApplySettings
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new[] {versionId2};
+                    var currentVersionId = newNode.VersionId;
+                    var expectedVersionId = versionId1;
+                    // Call low level API
+                    DataStore.DataProvider
+                        .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
+
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                DistributedApplication.Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                Assert.AreEqual(countsBefore, countsAfter);
+                Assert.AreEqual(version2, reloaded.Version);
+                Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
 
         /* ================================================================================================== */
 
