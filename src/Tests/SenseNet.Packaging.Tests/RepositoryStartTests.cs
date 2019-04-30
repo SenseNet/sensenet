@@ -286,6 +286,34 @@ namespace SenseNet.Packaging.Tests
             }
         };
     }
+    internal class TestComponentPatchInvalidAmbigous : ISnComponent
+    {
+        public string ComponentId => nameof(TestComponentPatchInvalidAmbigous);
+        public Version SupportedVersion { get; } = new Version(1, 1);
+        public bool IsComponentAllowed(Version componentVersion)
+        {
+            return true;
+        }
+        public SnPatch[] Patches { get; } =
+        {
+            new SnPatch
+            {
+                Version = new Version(1, 1),
+                MaxVersion = new Version(1, 0),
+                MinVersion = new Version(1, 0),
+                Contents = @"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <Id>" + nameof(TestComponentPatchInvalidAmbigous) + @"</Id>
+                            <ReleaseDate>2018-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Dependencies>
+                                <Dependency id='" + nameof(TestComponentPatchInvalidAmbigous) + @"' minVersion='1.0' maxVersion='1.0' />
+                            </Dependencies>
+                        </Package>",
+                Execute = pc => ExecutionResult.Successful
+            }
+        };
+    }
     #endregion
 
     internal class TestPackageLogger : IEventLogger
@@ -399,7 +427,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Packaging_InvalidVersion()
+        public void Packaging_Invalid_Version()
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
@@ -411,6 +439,20 @@ namespace SenseNet.Packaging.Tests
 
                 Assert.IsTrue(ls.Logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.5")));
                 Assert.IsTrue(ls.Logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.7")));
+            }
+        }
+        [TestMethod]
+        public void Packaging_Invalid_Ambigous()
+        {
+            using (var ls = new LoggerSwindler<TestPackageLogger>())
+            {
+                PatchAndCheck(nameof(TestComponentPatchInvalidAmbigous),
+                    new[] { new Version(1, 0) },
+                    null,
+                    null,
+                    new Version(1, 0));
+
+                Assert.IsTrue(ls.Logger.Warnings.Any(w => w.Contains("multiple patch definitions")));
             }
         }
 

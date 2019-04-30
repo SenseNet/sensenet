@@ -379,6 +379,14 @@ namespace SenseNet.Packaging
 
                         continue;
                     }
+                    if (!string.IsNullOrEmpty(patch.Contents) && patch.Execute != null)
+                    {
+                        // ambigous patch definition
+                        SnLog.WriteWarning(
+                            $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains multiple patch definitions.");
+
+                        continue;
+                    }
 
                     // check if the patch is relevant for the currently installed component version
                     if (patch.MinVersion > installedComponent.Version ||
