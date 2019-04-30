@@ -347,11 +347,12 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== 
 
-        internal static object LoadProperty(int versionId, PropertyType propertyType)
+        internal static object LoadProperty(int versionId, PropertyType propertyType) //UNDONE:DB@@@@@@ Rename because handles only DataType.Binary
         {
             if (DataStore.Enabled)
             {
                 if (propertyType.DataType == DataType.Text)
+                    //UNDONE:DB@@@@@@ Never called but very ugly
                     throw new NotImplementedException();
                 if (propertyType.DataType == DataType.Binary)
                     return DataStore.LoadBinaryPropertyValueAsync(versionId, propertyType.Id).Result;
@@ -359,11 +360,13 @@ namespace SenseNet.ContentRepository.Storage
             else
             {
                 if (propertyType.DataType == DataType.Text)
+                    //UNDONE:DB@@@@@@ Never called
                     return DataProvider.Current.LoadTextPropertyValue(versionId, propertyType.Id); //DB:ok
                 if (propertyType.DataType == DataType.Binary)
                     return DataProvider.Current.LoadBinaryPropertyValue(versionId, propertyType.Id); //DB:ok
             }
-            return propertyType.DefaultValue;
+            //UNDONE:DB@@@@@@ Move back to the caller
+            return propertyType.DefaultValue; //UNDONE:DB@@@@@@@ BUG: ALSO STORE THE DEFAULT VALUES.
         }
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
