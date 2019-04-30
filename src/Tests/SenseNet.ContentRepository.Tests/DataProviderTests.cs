@@ -1219,6 +1219,56 @@ namespace SenseNet.ContentRepository.Tests
                     // Call low level API
                     DataStore.DataProvider
                         .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                DistributedApplication.Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                Assert.AreEqual(countsBefore, countsAfter);
+                Assert.AreEqual(version2, reloaded.Version);
+                Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_UpdateNodeHead()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var version1 = newNode.Version.ToString();
+                var versionId1 = newNode.VersionId;
+                newNode.CheckOut();
+                var version2 = newNode.Version.ToString();
+                var versionId2 = newNode.VersionId;
+                newNode.Index++;
+                newNode.Description = "Description-MODIFIED";
+                newNode.Save();
+                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+
+                // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new[] { versionId2 };
+                    var currentVersionId = newNode.VersionId;
+                    var expectedVersionId = versionId1;
+                    // Call low level API
+                    DataStore.DataProvider
+                        .UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete).Wait();
 
                 }
                 catch (Exception)

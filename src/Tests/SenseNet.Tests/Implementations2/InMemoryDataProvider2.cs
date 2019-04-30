@@ -33,44 +33,52 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
-            //UNDONE:DB Transaction?
-
-            lock (DB)
+            using (var transaction = new InMemoryTransaction(DB))
             {
-                // Check unique keys.
-                if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
-                    throw new NodeAlreadyExistsException();
+                try
+                {
+                    // Check unique keys.
+                    if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
+                        throw new NodeAlreadyExistsException();
 
-                var nodeId = DB.Nodes.GetNextId();
-                nodeHeadData.NodeId = nodeId;
+                    var nodeId = DB.Nodes.GetNextId();
+                    nodeHeadData.NodeId = nodeId;
 
-                var versionId = DB.Versions.GetNextId();
-                versionData.VersionId = versionId;
-                dynamicData.VersionId = versionId;
-                versionData.NodeId = nodeId;
+                    var versionId = DB.Versions.GetNextId();
+                    versionData.VersionId = versionId;
+                    dynamicData.VersionId = versionId;
+                    versionData.NodeId = nodeId;
 
-                var versionDoc = CreateVersionDoc(versionData, dynamicData);
-                DB.Versions.Add(versionDoc);
-                versionData.Timestamp = versionDoc.Timestamp;
+                    var versionDoc = CreateVersionDoc(versionData, dynamicData);
+                    DB.Versions.Add(versionDoc);
+                    versionData.Timestamp = versionDoc.Timestamp;
 
-                // Manage LongTextProperties
-                foreach (var item in dynamicData.LongTextProperties)
-                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+                    // Manage LongTextProperties
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextProperty(versionId, item.Key.Id, item.Value, transaction);
 
-                // Manage BinaryProperties
-                foreach (var item in dynamicData.BinaryProperties)
-                    SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
+                    // Manage BinaryProperties
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, true);
 
-                // Manage last versionIds and timestamps
-                LoadLastVersionIdsSafe(nodeId, out var lastMajorVersionId, out var lastMinorVersionId);
-                nodeHeadData.LastMajorVersionId = lastMajorVersionId;
-                nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                    // Manage last versionIds and timestamps
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeId, transaction);
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
-                var nodeDoc = CreateNodeDoc(nodeHeadData);
-                nodeDoc.LastMajorVersionId = lastMajorVersionId;
-                nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                DB.Nodes.Add(nodeDoc);
-                nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    var nodeDoc = CreateNodeDoc(nodeHeadData);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Add(nodeDoc);
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }
@@ -84,129 +92,168 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-            lock (DB)
+            using (var transaction = new InMemoryTransaction(DB))
             {
-                var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
-                if (existingNodeDoc == null)
-                    throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                    throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new Exception(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
-                // Get VersionDoc and update
-                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
-                if (versionDoc == null)
-                    throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                var versionId = versionData.VersionId;
-                dynamicData.VersionId = versionData.VersionId;
-                UpdateVersionDoc(versionDoc, versionData, dynamicData);
+                    // Get VersionDoc and update
+                    var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
+                    if (versionDoc == null)
+                        throw new Exception(
+                            $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var versionId = versionData.VersionId;
+                    dynamicData.VersionId = versionData.VersionId;
+                    UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
-                // Delete unnecessary versions
-                DeleteVersionsSafe(versionIdsToDelete);
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete, transaction);
 
-                // Update NodeDoc (create a new nodeDoc instance)
-                var nodeDoc = CreateNodeDoc(nodeHeadData);
-                LoadLastVersionIdsSafe(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
-                nodeDoc.LastMajorVersionId = lastMajorVersionId;
-                nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                DB.Nodes.Remove(existingNodeDoc);
-                DB.Nodes.Add(nodeDoc);
+                    // Update NodeDoc (create a new nodeDoc instance)
+                    var nodeDoc = CreateNodeDoc(nodeHeadData);
+                    (int lastMajorVersionId, int lastMinorVersionId) =
+                        LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Add(nodeDoc);
 
-                // Manage LongTextProperties
-                foreach (var item in dynamicData.LongTextProperties)
-                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+                    // Manage LongTextProperties
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextProperty(versionId, item.Key.Id, item.Value, transaction);
 
-                // Manage BinaryProperties
-                foreach (var item in dynamicData.BinaryProperties)
-                    SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, false);
+                    // Manage BinaryProperties
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, true, false);
 
-                nodeHeadData.Timestamp = nodeDoc.Timestamp;
-                versionData.Timestamp = versionDoc.Timestamp;
-                nodeHeadData.LastMajorVersionId = lastMajorVersionId;
-                nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
+        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData,
+            DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
-            lock (DB)
+            using (var transaction = new InMemoryTransaction(DB))
             {
-                var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
-                if (existingNodeDoc == null)
-                    throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                    throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new Exception(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
-                // Get existing VersionDoc and update
-                var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
-                if (currentVersionDoc == null)
-                    throw new Exception($"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                var versionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
-                var versionDoc = CloneVersionDoc(currentVersionDoc);
-                versionDoc.VersionId = versionId;
-                versionData.VersionId = versionId;
-                dynamicData.VersionId = versionId;
-                UpdateVersionDoc(versionDoc, versionData, dynamicData);
+                    // Get existing VersionDoc and update
+                    var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
+                    if (currentVersionDoc == null)
+                        throw new Exception(
+                            $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var versionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
+                    var versionDoc = CloneVersionDoc(currentVersionDoc);
+                    versionDoc.VersionId = versionId;
+                    versionData.VersionId = versionId;
+                    dynamicData.VersionId = versionId;
+                    UpdateVersionDoc(versionDoc, versionData, dynamicData);
 
-                // Add or change updated VersionDoc
-                DB.Versions.RemoveAll(x => x.VersionId == versionId);
-                DB.Versions.Add(versionDoc);
+                    // Add or change updated VersionDoc
+                    DB.Versions.RemoveAll(x => x.VersionId == versionId);
+                    DB.Versions.Add(versionDoc);
 
-                // Manage LongTextProperties
-                CopyLongTextProperties(currentVersionId, versionId);
-                foreach (var item in dynamicData.LongTextProperties)
-                    SaveLongTextProperty(versionId, item.Key.Id, item.Value);
+                    // Manage LongTextProperties
+                    CopyLongTextProperties(currentVersionId, versionId, transaction);
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextProperty(versionId, item.Key.Id, item.Value, transaction);
 
-                // Manage BinaryProperties
-                // (copy old values is unnecessary because all binary properties were loaded before save).
-                foreach (var item in dynamicData.BinaryProperties)
-                    SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
+                    // Manage BinaryProperties
+                    // (copy old values is unnecessary because all binary properties were loaded before save).
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, true);
 
-                // Delete unnecessary versions
-                DeleteVersionsSafe(versionIdsToDelete);
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete, transaction);
 
-                // UpdateNodeDoc
-                var nodeDoc = CreateNodeDoc(nodeHeadData);
-                LoadLastVersionIdsSafe(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
-                nodeDoc.LastMajorVersionId = lastMajorVersionId;
-                nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                DB.Nodes.Remove(existingNodeDoc);
-                DB.Nodes.Add(nodeDoc);
+                    // UpdateNodeDoc
+                    var nodeDoc = CreateNodeDoc(nodeHeadData);
+                    (int lastMajorVersionId, int lastMinorVersionId) =
+                        LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Add(nodeDoc);
 
-                nodeHeadData.Timestamp = nodeDoc.Timestamp;
-                versionData.Timestamp = versionDoc.Timestamp;
-                nodeHeadData.LastMajorVersionId = lastMajorVersionId;
-                nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }
 
         public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete)
         {
-            lock (DB)
+            using (var transaction = new InMemoryTransaction(DB))
             {
-                var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
-                if (existingNodeDoc == null)
-                    throw new Exception($"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
-                    throw new NodeIsOutOfDateException($"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new Exception(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
-                // Delete unnecessary versions
-                DeleteVersionsSafe(versionIdsToDelete);
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete, transaction);
 
-                // Update NodeDoc (create a new nodeDoc instance)
-                var nodeDoc = CreateNodeDoc(nodeHeadData);
-                LoadLastVersionIdsSafe(nodeHeadData.NodeId, out var lastMajorVersionId, out var lastMinorVersionId);
-                nodeDoc.LastMajorVersionId = lastMajorVersionId;
-                nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                DB.Nodes.Remove(existingNodeDoc);
-                DB.Nodes.Add(nodeDoc);
+                    // Update NodeDoc (create a new nodeDoc instance)
+                    var nodeDoc = CreateNodeDoc(nodeHeadData);
+                    (int lastMajorVersionId, int lastMinorVersionId) =
+                        LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Add(nodeDoc);
 
-                // Update return values
-                nodeHeadData.Timestamp = nodeDoc.Timestamp;
-                nodeHeadData.LastMajorVersionId = lastMajorVersionId;
-                nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                    // Update return values
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }
@@ -1348,23 +1395,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Infrastructure */
 
-        private void LoadLastVersionIdsSafe(int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
+        private (int, int) LoadLastVersionIdsSafe(int nodeId, InMemoryTransaction transaction)
         {
             var allVersions = DB.Versions
                 .Where(v => v.NodeId == nodeId)
                 .OrderBy(v => v.Version.Major)
                 .ThenBy(v => v.Version.Minor)
                 .ThenBy(v => v.Version.Status)
+                .Union(transaction?.GetVersionsByNodeId(nodeId) ?? new VersionDoc[0])
                 .ToArray();
             var lastMinorVersion = allVersions.LastOrDefault();
-            lastMinorVersionId = lastMinorVersion?.VersionId ?? 0;
+            var lastMinorVersionId = lastMinorVersion?.VersionId ?? 0;
 
             var majorVersions = allVersions
                 .Where(v => v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
                 .ToArray();
 
             var lastMajorVersion = majorVersions.LastOrDefault();
-            lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
+            var lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
+
+            return (lastMajorVersionId, lastMinorVersionId);
         }
 
         public override Task<long> GetNodeTimestampAsync(int nodeId)
@@ -1517,7 +1567,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* ====================================================================== Tools */
 
-        private void SaveLongTextProperty(int versionId, int propertyTypeId, string value)
+        private void SaveLongTextProperty(int versionId, int propertyTypeId, string value, InMemoryTransaction transaction)
         {
             var existing = DB.LongTextProperties
                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
@@ -1544,7 +1594,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 BlobStorage.UpdateBinaryProperty(value);
         }
 
-        private void CopyLongTextProperties(int sourceVersionId, int targetVersionId)
+        private void CopyLongTextProperties(int sourceVersionId, int targetVersionId, InMemoryTransaction transaction)
         {
             DB.LongTextProperties.RemoveAll(x => x.VersionId == targetVersionId);
 
@@ -1673,7 +1723,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
         // ReSharper disable once UnusedMethodReturnValue.Local
-        private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
+        private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete, InMemoryTransaction transaction)
         {
             foreach (var versionId in versionIdsToDelete)
             {
