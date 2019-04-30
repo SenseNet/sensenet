@@ -1,5 +1,5 @@
 ﻿using System;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {

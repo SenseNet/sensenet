@@ -14,6 +14,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests.Implementations;
 using SenseNet.Tools;
+using static SenseNet.Tests.Tools;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -217,7 +218,7 @@ namespace SenseNet.Packaging.Tests
                 Version = new Version(1, 1),
                 MaxVersion = new Version(1, 0),
                 MinVersion = new Version(1, 0),
-                Execute = rss =>
+                Execute = pc =>
                 {
                     // find the GenericContent CTD file in the current db (not the prototype)
                     var proto = ((InMemoryDataProvider)DataProvider.Current).DB;
@@ -248,14 +249,40 @@ namespace SenseNet.Packaging.Tests
                 Version = new Version(1, 5),
                 MaxVersion = new Version(2, 0),
                 MinVersion = new Version(1, 0),
-                Execute = rss => throw new InvalidOperationException("This code should be unreachable.")
+                Execute = pc => throw new InvalidOperationException("This code should be unreachable.")
             },
             new SnPatch
             {
                 Version = new Version(1, 7),
                 MaxVersion = new Version(1, 0),
                 MinVersion = new Version(2, 0),
-                Execute = rss => throw new InvalidOperationException("This code should be unreachable.")
+                Execute = pc => throw new InvalidOperationException("This code should be unreachable.")
+            }
+        };
+    }
+
+    internal class TestComponentPatchCode : ISnComponent
+    {
+        public string ComponentId => nameof(TestComponentPatchCode);
+        public Version SupportedVersion { get; } = new Version(1, 1);
+        public bool IsComponentAllowed(Version componentVersion)
+        {
+            return true;
+        }
+        public SnPatch[] Patches { get; } =
+        {
+            new SnPatch
+            {
+                Version = new Version(1, 1),
+                MaxVersion = new Version(1, 0),
+                MinVersion = new Version(1, 0),
+                Execute = pc =>
+                {
+                    // this patch does not do anything special
+                    SnLog.WriteInformation("Patch executed.");
+
+                    return ExecutionResult.Successful;
+                }
             }
         };
     }
@@ -264,10 +291,13 @@ namespace SenseNet.Packaging.Tests
     internal class TestPackageLogger : IEventLogger
     {
         internal List<string> Warnings = new List<string>();
+        internal List<string> Infos = new List<string>();
 
         public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title,
             IDictionary<string, object> properties)
         {
+            if (severity == TraceEventType.Information)
+                Infos.Add((string)message);
             if (severity == TraceEventType.Warning)
                 Warnings.Add((string)message);
         }
@@ -295,13 +325,29 @@ namespace SenseNet.Packaging.Tests
                 new Version(1, 1));
         }
         [TestMethod]
-        public void Packaging_OnePatch()
+        public void Packaging_OnePatch_Manifest()
         {
+            // execute a patch that is defined as a manifest
             PatchAndCheck(nameof(TestComponentOnePatch),
                 new[] {new Version(1, 0)},
                 new[] {new Version(1, 1)},
                 null,
                 new Version(1, 1));
+        }
+        [TestMethod]
+        public void Packaging_OnePatch_Code()
+        {
+            using (var ls = new LoggerSwindler<TestPackageLogger>())
+            {
+                // execute a patch that is defined as code
+                PatchAndCheck(nameof(TestComponentPatchCode),
+                    new[] { new Version(1, 0) },
+                    new[] { new Version(1, 1) },
+                    null,
+                    new Version(1, 1));
+
+                Assert.IsTrue(ls.Logger.Infos.Any(w => w.Contains("Patch executed.")));
+            }
         }
         [TestMethod]
         public void Packaging_MultiPatch()
@@ -355,11 +401,7 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Packaging_InvalidVersion()
         {
-            var originalLogger = SnLog.Instance;
-            var logger = new TestPackageLogger();
-            SnLog.Instance = logger;
-
-            try
+            using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
                 PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
                     new[] { new Version(1, 0) },
@@ -367,12 +409,8 @@ namespace SenseNet.Packaging.Tests
                     null,
                     new Version(1, 0));
 
-                Assert.IsTrue(logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.5")));
-                Assert.IsTrue(logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.7")));
-            }
-            finally
-            {
-                SnLog.Instance = originalLogger;
+                Assert.IsTrue(ls.Logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.5")));
+                Assert.IsTrue(ls.Logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.7")));
             }
         }
 

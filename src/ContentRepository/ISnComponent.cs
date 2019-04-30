@@ -1,5 +1,5 @@
 ﻿using System;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -37,19 +37,5 @@ namespace SenseNet.ContentRepository
         bool IsComponentAllowed(Version componentVersion);
 
         SnPatch[] Patches { get; }
-    }
-
-    public class SnPatch
-    {
-        public Version Version { get; set; }
-        public Version MinVersion { get; set; }
-        public Version MaxVersion { get; set; }
-        public bool MinVersionIsExclusive { get; set; }
-        public bool MaxVersionIsExclusive { get; set; }
-
-        //UNDONE: finalize patch definition options (resource, code, Manifest object)
-        public string Contents { get; set; }
-
-        public Func<RepositoryStartSettings, ExecutionResult> Execute;
     }
 }

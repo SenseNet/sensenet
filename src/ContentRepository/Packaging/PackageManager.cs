@@ -361,9 +361,14 @@ namespace SenseNet.Packaging
             {
                 foreach (var patch in assemblyComponent.Patches)
                 {
+                    // this variable is refreshed in every cycle
+                    if (installedComponent == null)
+                        break;
+
                     if (patch.MinVersion > patch.MaxVersion ||
                         patch.MaxVersion > patch.Version)
                     {
+                        // the patch version numbers are the responsibility of the developer of the component
                         SnLog.WriteWarning(
                             $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains invalid version numbers.",
                             properties: new Dictionary<string, object>
@@ -375,6 +380,7 @@ namespace SenseNet.Packaging
                         continue;
                     }
 
+                    // check if the patch is relevant for the currently installed component version
                     if (patch.MinVersion > installedComponent.Version ||
                         patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
                         patch.MaxVersion < installedComponent.Version ||
@@ -393,11 +399,29 @@ namespace SenseNet.Packaging
                                 $"Package execution failed for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
                         }
                     }
-                    else
+                    else if (patch.Execute != null)
                     {
-                        patch.Execute?.Invoke(settings);
+                        patch.Execute(new PatchContext
+                        {
+                            Settings = settings
+                        });
 
-                        //UNDONE: save the new package info manually based on the patch version number
+                        // save the new package info manually based on the patch version number
+                        Storage.SavePackage(new Package
+                        {
+                            ComponentId = assemblyComponent.ComponentId,
+                            ComponentVersion = patch.Version,
+                            ExecutionResult = ExecutionResult.Successful,
+                            PackageType = PackageType.Patch
+                        });
+
+                        patchResults[patch.Version] = new PackagingResult
+                        {
+                            NeedRestart = false,
+                            Successful = true,
+                            Terminated = false,
+                            Errors = 0
+                        };
                     }
 
                     // reload
