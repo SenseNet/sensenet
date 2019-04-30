@@ -10,6 +10,7 @@ using System.Reflection;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Packaging
@@ -360,6 +361,20 @@ namespace SenseNet.Packaging
             {
                 foreach (var patch in assemblyComponent.Patches)
                 {
+                    if (patch.MinVersion > patch.MaxVersion ||
+                        patch.MaxVersion > patch.Version)
+                    {
+                        SnLog.WriteWarning(
+                            $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains invalid version numbers.",
+                            properties: new Dictionary<string, object>
+                            {
+                                {"MinVersion", patch.MinVersion},
+                                {"MaxVersion", patch.MaxVersion}
+                            });
+
+                        continue;
+                    }
+
                     if (patch.MinVersion > installedComponent.Version ||
                         patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
                         patch.MaxVersion < installedComponent.Version ||
@@ -381,6 +396,8 @@ namespace SenseNet.Packaging
                     else
                     {
                         patch.Execute?.Invoke(settings);
+
+                        //UNDONE: save the new package info manually based on the patch version number
                     }
 
                     // reload

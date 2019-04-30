@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +10,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests.Implementations;
 using SenseNet.Tools;
@@ -229,7 +232,46 @@ namespace SenseNet.Packaging.Tests
             }
         };
     }
+
+    internal class TestComponentPatchInvalidVersion : ISnComponent
+    {
+        public string ComponentId => nameof(TestComponentPatchInvalidVersion);
+        public Version SupportedVersion { get; } = new Version(1, 5);
+        public bool IsComponentAllowed(Version componentVersion)
+        {
+            return true;
+        }
+        public SnPatch[] Patches { get; } =
+        {
+            new SnPatch
+            {
+                Version = new Version(1, 5),
+                MaxVersion = new Version(2, 0),
+                MinVersion = new Version(1, 0),
+                Execute = rss => throw new InvalidOperationException("This code should be unreachable.")
+            },
+            new SnPatch
+            {
+                Version = new Version(1, 7),
+                MaxVersion = new Version(1, 0),
+                MinVersion = new Version(2, 0),
+                Execute = rss => throw new InvalidOperationException("This code should be unreachable.")
+            }
+        };
+    }
     #endregion
+
+    internal class TestPackageLogger : IEventLogger
+    {
+        internal List<string> Warnings = new List<string>();
+
+        public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title,
+            IDictionary<string, object> properties)
+        {
+            if (severity == TraceEventType.Warning)
+                Warnings.Add((string)message);
+        }
+    }
 
     [TestClass]
     public class RepositoryStartTests : PackagingTestBase
@@ -308,6 +350,30 @@ namespace SenseNet.Packaging.Tests
                 null,
                 null,
                 null);
+        }
+
+        [TestMethod]
+        public void Packaging_InvalidVersion()
+        {
+            var originalLogger = SnLog.Instance;
+            var logger = new TestPackageLogger();
+            SnLog.Instance = logger;
+
+            try
+            {
+                PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
+                    new[] { new Version(1, 0) },
+                    null,
+                    null,
+                    new Version(1, 0));
+
+                Assert.IsTrue(logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.5")));
+                Assert.IsTrue(logger.Warnings.Any(w => w.Contains("invalid version numbers") && w.Contains("Patch 1.7")));
+            }
+            finally
+            {
+                SnLog.Instance = originalLogger;
+            }
         }
 
         [TestMethod]
