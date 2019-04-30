@@ -635,7 +635,7 @@ namespace SenseNet.ContentRepository.Tests
                 var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-1
-                Assert.AreEqual(0, longTextProps.Count);
+                Assert.AreEqual("Description", longTextProps.Keys.First().Name);
 
                 // ACTION-2a: Update text property value over the magic limit
                 var doc = ((InMemoryDataProvider2) DataStore.DataProvider).DB.LongTextProperties
@@ -647,7 +647,15 @@ namespace SenseNet.ContentRepository.Tests
                 longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-2
-                Assert.AreEqual("Description", longTextProps.Keys.First().Name);
+                Assert.AreEqual(0, longTextProps.Count);
+
+                // ACTION-3: Load the property value
+                DistributedApplication.Cache.Reset();
+                root = Node.Load<SystemFolder>(root.Id);
+                var lazyLoadedDescription = root.Description; // Loads the property value
+
+                // ASSERT-3
+                Assert.AreEqual(longText, lazyLoadedDescription);
             });
         }
         [TestMethod]

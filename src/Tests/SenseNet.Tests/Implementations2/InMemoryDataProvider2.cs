@@ -293,7 +293,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     var longTextProps = DB.LongTextProperties
                         .Where(x => x.VersionId == versionId &&
                                     longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
-                                    x.Length >= TextAlternationSizeLimit)
+                                    x.Length < TextAlternationSizeLimit)
                         .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
                     foreach (var item in longTextProps)
                         nodeData.SetDynamicRawData(item.Key, GetClone(item.Value.Value, DataType.Text));
