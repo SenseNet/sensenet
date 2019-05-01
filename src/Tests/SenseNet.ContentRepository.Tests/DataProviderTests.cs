@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
+using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Search.Querying;
@@ -1217,6 +1218,7 @@ namespace SenseNet.ContentRepository.Tests
                     var currentVersionId = newNode.VersionId;
                     var expectedVersionId = versionId1;
                     // Call low level API
+SnTrace.Test.Write("Action start -------------------------------------------------------------");
                     DataStore.DataProvider
                         .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
                 }
@@ -1231,7 +1233,7 @@ namespace SenseNet.ContentRepository.Tests
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore, countsAfter);
-                Assert.AreEqual(version2, reloaded.Version);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
             });
         }

@@ -33,7 +33,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
         {
-            using (var transaction = new InMemoryTransaction(DB))
+            using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
@@ -50,28 +50,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     versionData.NodeId = nodeId;
 
                     var versionDoc = CreateVersionDocSafe(versionData, dynamicData);
-                    //DB.Versions.Add(versionDoc);
-                    transaction.AddInsert(DB.Versions, versionDoc);
+                    DB.Versions.Insert(versionDoc);
                     versionData.Timestamp = versionDoc.Timestamp;
 
                     // Manage LongTextProperties
                     foreach (var item in dynamicData.LongTextProperties)
-                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value, transaction);
+                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, true);
 
                     // Manage last versionIds and timestamps
-                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeId, transaction);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeId);
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
                     var nodeDoc = CreateNodeDocSafe(nodeHeadData);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                    //DB.Nodes.Add(nodeDoc);
-                    transaction.AddInsert(DB.Nodes, nodeDoc);
+                    DB.Nodes.Insert(nodeDoc);
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
 
                     transaction.Commit();
@@ -92,7 +90,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
             // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
             // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-            using (var transaction = new InMemoryTransaction(DB))
+            using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
@@ -109,16 +107,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     if (versionDoc == null)
                         throw new Exception(
                             $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var updatedVersionDoc = CloneVersionDocSafe(versionDoc);
+                    DB.Versions.Remove(versionDoc);
                     var versionId = versionData.VersionId;
                     dynamicData.VersionId = versionData.VersionId;
-                    UpdateVersionDocSafe(versionDoc, versionData, dynamicData);
+                    UpdateVersionDocSafe(updatedVersionDoc, versionData, dynamicData);
+                    DB.Versions.Insert(updatedVersionDoc);
 
                     // Delete unnecessary versions
-                    DeleteVersionsSafe(versionIdsToDelete, transaction);
+                    DeleteVersionsSafe(versionIdsToDelete);
 
                     // Update NodeDoc (create a new nodeDoc instance)
                     var nodeDoc = CreateNodeDocSafe(nodeHeadData);
-                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
                     DB.Nodes.Remove(existingNodeDoc);
@@ -126,14 +127,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     // Manage LongTextProperties
                     foreach (var item in dynamicData.LongTextProperties)
-                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value, transaction);
+                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, false);
 
-                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
@@ -151,7 +152,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData,
             DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
         {
-            using (var transaction = new InMemoryTransaction(DB))
+            using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
@@ -176,13 +177,13 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     UpdateVersionDocSafe(versionDoc, versionData, dynamicData);
 
                     // Add or change updated VersionDoc
-                    DB.Versions.RemoveAll(x => x.VersionId == versionId);
+                    DB.Versions.Remove(versionId);
                     DB.Versions.Insert(versionDoc);
 
                     // Manage LongTextProperties
-                    CopyLongTextPropertiesSafe(currentVersionId, versionId, transaction);
+                    CopyLongTextPropertiesSafe(currentVersionId, versionId);
                     foreach (var item in dynamicData.LongTextProperties)
-                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value, transaction);
+                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
                     // Manage BinaryProperties
                     // (copy old values is unnecessary because all binary properties were loaded before save).
@@ -190,18 +191,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, false, true);
 
                     // Delete unnecessary versions
-                    DeleteVersionsSafe(versionIdsToDelete, transaction);
+                    DeleteVersionsSafe(versionIdsToDelete);
 
                     // UpdateNodeDoc
                     var nodeDoc = CreateNodeDocSafe(nodeHeadData);
-                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
                     DB.Nodes.Remove(existingNodeDoc);
                     DB.Nodes.Insert(nodeDoc);
 
-                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
 
@@ -218,7 +219,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete)
         {
-            using (var transaction = new InMemoryTransaction(DB))
+            using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
@@ -231,17 +232,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                             $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
                     // Delete unnecessary versions
-                    DeleteVersionsSafe(versionIdsToDelete, transaction);
+                    DeleteVersionsSafe(versionIdsToDelete);
 
                     // Update NodeDoc (create a new nodeDoc instance)
                     var nodeDoc = CreateNodeDocSafe(nodeHeadData); 
-                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId, transaction);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
                     nodeDoc.LastMajorVersionId = lastMajorVersionId;
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
-                    //DB.Nodes.Remove(existingNodeDoc);
-                    transaction.AddDelete(DB.Nodes, existingNodeDoc);
-                    //DB.Nodes.Insert(nodeDoc);
-                    transaction.AddInsert(DB.Nodes, nodeDoc);
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Insert(nodeDoc);
 
                     // Update return values
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
@@ -381,20 +380,20 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .ToArray();
 
                 foreach (var longTextPropId in longTextPropIds)
-                    DB.LongTextProperties.RemoveAll(x => x.VersionId == longTextPropId);
+                    DB.LongTextProperties.Remove(longTextPropId);
 
                 foreach (var item in binPropAndfileIds)
                 {
-                    DB.BinaryProperties.RemoveAll(x => x.BinaryPropertyId == item.BinaryPropertyId);
+                    DB.BinaryProperties.Remove(item.BinaryPropertyId);
                     // Delete files is not necessary but if we do it here, maintenance service can be switched off.
-                    DB.Files.RemoveAll(x => x.FileId == item.FileId);
+                    DB.Files.Remove(item.FileId);
                 }
 
                 foreach (var versionId in versionIds)
-                    DB.Versions.RemoveAll(x => x.VersionId == versionId);
+                    DB.Versions.Remove(versionId);
 
                 foreach (var nId in nodeIds)
-                    DB.Nodes.RemoveAll(x => x.NodeId == nId);
+                    DB.Nodes.Remove(nId);
             }
             return STT.Task.CompletedTask;
         }
@@ -894,7 +893,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             lock (DB)
             {
                 foreach (var lockId in lockIds)
-                    DB.TreeLocks.RemoveAll(x => x.TreeLockId == lockId);
+                    DB.TreeLocks.Remove(lockId);
             }
             return STT.Task.CompletedTask;
         }
@@ -1176,7 +1175,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public override STT.Task DeleteFinishedIndexingActivitiesAsync()
         {
             lock (DB.IndexingActivities)
-                DB.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
+                foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
+                    DB.IndexingActivities.Remove(existing);
             return STT.Task.CompletedTask;
         }
 
@@ -1544,9 +1544,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* ====================================================================== Tools */
 
-        private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId, InMemoryTransaction transaction)
+        private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {
-            DB.LongTextProperties.RemoveAll(x => x.VersionId == targetVersionId);
+            foreach (var existing in DB.LongTextProperties.Where(x => x.VersionId == targetVersionId).ToArray())
+                DB.LongTextProperties.Remove(existing);
 
             foreach (var src in DB.LongTextProperties.Where(x => x.VersionId == sourceVersionId).ToArray())
             {
@@ -1560,24 +1561,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 });
             }
         }
-        private void SaveLongTextPropertySafe(int versionId, int propertyTypeId, string value, InMemoryTransaction transaction)
+        private void SaveLongTextPropertySafe(int versionId, int propertyTypeId, string value)
         {
             var existing = DB.LongTextProperties
                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
             if (existing != null)
-                //DB.LongTextProperties.Remove(existing);
-                transaction.AddDelete(DB.LongTextProperties, existing);
+                DB.LongTextProperties.Remove(existing);
             if (value == null)
                 return;
-            //DB.LongTextProperties.Add(new LongTextPropertyDoc
-            //{
-            //    LongTextPropertyId = DB.LongTextProperties.GetNextId(),
-            //    VersionId = versionId,
-            //    PropertyTypeId = propertyTypeId,
-            //    Length = value.Length,
-            //    Value = value
-            //});
-            transaction.AddInsert(DB.LongTextProperties, new LongTextPropertyDoc
+            DB.LongTextProperties.Insert(new LongTextPropertyDoc
             {
                 LongTextPropertyId = DB.LongTextProperties.GetNextId(),
                 VersionId = versionId,
@@ -1586,7 +1578,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 Value = value
             });
         }
-        //UNDONE:DB@@@@@@@@@ SaveBinaryProperty transaction
         private void SaveBinaryPropertySafe(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
         {
             if (value == null || value.IsEmpty)
@@ -1597,16 +1588,13 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 BlobStorage.UpdateBinaryProperty(value);
         }
 
-        private (int, int) LoadLastVersionIdsSafe(int nodeId, InMemoryTransaction transaction)
+        private (int, int) LoadLastVersionIdsSafe(int nodeId)
         {
             var allVersions = DB.Versions
                 .Where(v => v.NodeId == nodeId)
                 .OrderBy(v => v.Version.Major)
                 .ThenBy(v => v.Version.Minor)
                 .ThenBy(v => v.Version.Status)
-                .Union(transaction?.GetVersionAdditions(nodeId) ?? new VersionDoc[0])
-                .Union(transaction?.GetVersionModifications(nodeId) ?? new VersionDoc[0])
-                .Except(transaction?.GetVersionDeletions(nodeId) ?? new VersionDoc[0])
                 .ToArray();
             var lastMinorVersion = allVersions.LastOrDefault();
             var lastMinorVersionId = lastMinorVersion?.VersionId ?? 0;
@@ -1733,7 +1721,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
         // ReSharper disable once UnusedMethodReturnValue.Local
-        private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete, InMemoryTransaction transaction)
+        private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
         {
             foreach (var versionId in versionIdsToDelete)
             {
@@ -1742,10 +1730,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Select(x => x.BinaryPropertyId)
                     .ToArray())
                 {
-                    ////DB.BinaryProperties.RemoveAll(x => x.BinaryPropertyId == binPropId);
                     var item = DB.BinaryProperties.FirstOrDefault(x => x.BinaryPropertyId == binPropId);
-                    //DB.BinaryProperties.Remove(item);
-                    transaction.AddDelete(DB.BinaryProperties, item);
+                    DB.BinaryProperties.Remove(item);
                 }
 
                 foreach (var longTextPropId in DB.LongTextProperties
@@ -1753,15 +1739,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     .Select(x => x.LongTextPropertyId)
                     .ToArray())
                 {
-                    ////DB.LongTextProperties.RemoveAll(x => x.LongTextPropertyId == longTextPropId);
                     var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
-                    //DB.LongTextProperties.Remove(item);
-                    transaction.AddDelete(DB.LongTextProperties, item);
+                    DB.LongTextProperties.Remove(item);
                 }
-                ////DB.Versions.RemoveAll(x => x.VersionId == versionId);
                 var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
-                //DB.Versions.Remove(versionItem);
-                transaction.AddDelete(DB.Versions, versionItem);
+                DB.Versions.Remove(versionItem);
             }
         }
         private bool EmptyReferencesFilterSafe(PropertyType propertyType, object value)

@@ -7,134 +7,138 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Tests.Implementations2
 {
-    public class InMemoryTransaction : IDbTransaction
+    public partial class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
     {
-        /* ================================================================================= Participants */
+        private InMemoryTransaction _transacton;
 
-        private readonly List<IParticipant> _participants = new List<IParticipant>();
-
-        public void AddInsert<T>(DataCollection<T> collection, T item) where T : IDataDocument
+        public IDbTransaction BeginTransaction()
         {
-            _participants.Add(new Insert<T>(collection, item));
-        }
-        public void AddUpdate<T>(DataCollection<T> collection, T item) where T : IDataDocument, new()
-        {
-            _participants.Add(new Update<T>(collection, item));
-        }
-        public void AddDelete<T>(DataCollection<T> collection, T item) where T : IDataDocument
-        {
-            _participants.Add(new Delete<T>(collection, item));
+            _transacton?.Rollback();
+            _transacton = new InMemoryTransaction(this);
+            return _transacton;
         }
 
-        private interface IParticipant
+        internal void AddInsert<T>(DataCollection<T> collection, T item) where T : IDataDocument
         {
-            object Item { get; }
-            void Commit();
-            void Rollback();
+            _transacton?.AddInsert(collection, item);
         }
-        private abstract class Participant<T> : IParticipant where T : IDataDocument
+        //internal void AddUpdate<T>(DataCollection<T> collection, T item) where T : IDataDocument, new()
+        //{
+        //    _transacton?.AddUpdate(collection, item);
+        //}
+        internal void AddDelete<T>(DataCollection<T> collection, T item) where T : IDataDocument
         {
-            protected DataCollection<T> Collection { get; }
-            public T Item { get; }
-            object IParticipant.Item => Item;
-            protected Participant(DataCollection<T> collection, T item)
+            _transacton?.AddDelete(collection, item);
+        }
+
+        private class InMemoryTransaction : IDbTransaction
+        {
+            /* ================================================================================= Participants */
+
+            private readonly List<IParticipant> _participants = new List<IParticipant>();
+
+            internal void AddInsert<T>(DataCollection<T> collection, T item) where T : IDataDocument
             {
-                Collection = collection;
-                Item = item;
+                _participants.Add(new Insert<T>(collection, item));
+            }
+            //internal void AddUpdate<T>(DataCollection<T> collection, T item) where T : IDataDocument, new()
+            //{
+            //    _participants.Add(new Update<T>(collection, item));
+            //}
+            internal void AddDelete<T>(DataCollection<T> collection, T item) where T : IDataDocument
+            {
+                _participants.Add(new Delete<T>(collection, item));
             }
 
-            public virtual void Commit() { }
-            public virtual void Rollback() { }
-        }
-        private class Insert<T> : Participant<T> where T : IDataDocument
-        {
-            public Insert(DataCollection<T> collection, T item) : base(collection, item) { }
-            public override void Commit()
+            private interface IParticipant
             {
-                Collection.Insert(Item);
+                object Item { get; }
+                void Commit();
+                void Rollback();
             }
-        }
-        private class Update<T> : Participant<T> where T : IDataDocument
-        {
-            public Update(DataCollection<T> collection, T item) : base(collection, item) { }
-            public override void Commit()
+            private abstract class Participant<T> : IParticipant where T : IDataDocument
             {
-                var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
-                if (existing != null)
+                protected DataCollection<T> Collection { get; }
+                public T Item { get; }
+                object IParticipant.Item => Item;
+                protected Participant(DataCollection<T> collection, T item)
                 {
-                    Collection.Remove(existing);
-                    Collection.Insert(Item);
+                    Collection = collection;
+                    Item = item;
+                }
+
+                public virtual void Commit() { }
+                public virtual void Rollback() { }
+            }
+            private class Insert<T> : Participant<T> where T : IDataDocument
+            {
+                public Insert(DataCollection<T> collection, T item) : base(collection, item) { }
+                public override void Rollback()
+                {
+                    Collection.RemoveInternal(Item);
                 }
             }
-        }
-        private class Delete<T> : Participant<T> where T : IDataDocument
-        {
-            public Delete(DataCollection<T> collection, T item) : base(collection, item) { }
-            public override void Commit()
+            //private class Update<T> : Participant<T> where T : IDataDocument
+            //{
+            //    public Update(DataCollection<T> collection, T item) : base(collection, item) { }
+            //    public override void Commit()
+            //    {
+            //        var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
+            //        if (existing != null)
+            //        {
+            //            Collection.Remove(existing);
+            //            Collection.Insert(Item);
+            //        }
+            //    }
+            //}
+            private class Delete<T> : Participant<T> where T : IDataDocument
             {
-                var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
-                if (existing != null)
-                    Collection.Remove(existing);
+                public Delete(DataCollection<T> collection, T item) : base(collection, item) { }
+                public override void Rollback()
+                {
+                    var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
+                    if (existing == null)
+                        Collection.InsertInternal(Item);
+                }
             }
-        }
 
-        /* ================================================================================= Construction */
+            /* ================================================================================= Construction */
 
-        private readonly InMemoryDataBase2 _db;
-        // ReSharper disable once FieldCanBeMadeReadOnly.Local
-        private bool _lockWasTaken;
+            private readonly InMemoryDataBase2 _db;
+            // ReSharper disable once FieldCanBeMadeReadOnly.Local
+            private bool _lockWasTaken;
 
-        public InMemoryTransaction(InMemoryDataBase2 db)
-        {
-            _db = db;
-            Monitor.Enter(_db, ref _lockWasTaken);
-        }
+            public InMemoryTransaction(InMemoryDataBase2 db)
+            {
+                _db = db;
+                Monitor.Enter(_db, ref _lockWasTaken);
+            }
 
-        /* ================================================================================= Transaction functinality */
+            /* ================================================================================= Transaction functinality */
 
 
-        public IDbConnection Connection => null;
-        public IsolationLevel IsolationLevel => IsolationLevel.ReadCommitted;
+            public IDbConnection Connection => null;
+            public IsolationLevel IsolationLevel => IsolationLevel.ReadCommitted;
 
-        public void Dispose()
-        {
-            _participants.Clear();
-            if (_lockWasTaken)
-                Monitor.Exit(_db);
-        }
+            public void Dispose()
+            {
+                _db._transacton = null;
+                _participants.Clear();
+                if (_lockWasTaken)
+                    Monitor.Exit(_db);
+            }
 
-        public void Commit()
-        {
-            foreach (var participant in _participants)
-                participant.Commit();
-        }
+            public void Commit()
+            {
+                foreach (var participant in _participants)
+                    participant.Commit();
+            }
 
-        public void Rollback()
-        {
-            for (int i = _participants.Count - 1; i >= 0; i--)
-                _participants[i].Rollback();
-        }
-
-        public IEnumerable<VersionDoc> GetVersionAdditions(int nodeId)
-        {
-            return _participants
-                .Where(x => x is Insert<VersionDoc>)
-                .Select(x => (VersionDoc)x.Item)
-                .ToArray();
-        }
-        public IEnumerable<VersionDoc> GetVersionModifications(int nodeId)
-        {
-            return _participants
-                .Where(x => x is Update<VersionDoc>)
-                .Select(x => (VersionDoc)x.Item)
-                .ToArray();
-        }
-        public IEnumerable<VersionDoc> GetVersionDeletions(int nodeId)
-        {
-            return _participants
-                .Where(x => x is Delete<VersionDoc>)
-                .Select(x => (VersionDoc)x.Item)
-                .ToArray();
+            public void Rollback()
+            {
+                for (int i = _participants.Count - 1; i >= 0; i--)
+                    _participants[i].Rollback();
+            }
         }
     }
 }
