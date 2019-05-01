@@ -102,7 +102,7 @@ namespace SenseNet.Packaging.Tests.Implementations
             };
 
             package.Id = newId;
-            collection.Add(packageDoc);
+            collection.Insert(packageDoc);
 
             RepositoryVersionInfo.Reset();
         }

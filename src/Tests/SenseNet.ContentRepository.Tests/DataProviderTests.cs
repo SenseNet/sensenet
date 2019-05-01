@@ -1269,7 +1269,6 @@ namespace SenseNet.ContentRepository.Tests
                     // Call low level API
                     DataStore.DataProvider
                         .UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete).Wait();
-
                 }
                 catch (Exception)
                 {
@@ -1282,7 +1281,7 @@ namespace SenseNet.ContentRepository.Tests
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore, countsAfter);
-                Assert.AreEqual(version2, reloaded.Version);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
             });
         }

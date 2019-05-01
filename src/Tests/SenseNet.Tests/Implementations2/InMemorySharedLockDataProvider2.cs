@@ -36,7 +36,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             if (row == null)
             {
                 var newSharedLockId = sharedLocks.Count == 0 ? 1 : sharedLocks.Max(t => t.SharedLockId) + 1;
-                sharedLocks.Add(new SharedLockDoc
+                sharedLocks.Insert(new SharedLockDoc
                 {
                     SharedLockId = newSharedLockId,
                     ContentId = contentId,

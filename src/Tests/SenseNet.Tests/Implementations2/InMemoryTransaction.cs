@@ -11,61 +11,70 @@ namespace SenseNet.Tests.Implementations2
     {
         /* ================================================================================= Participants */
 
+        private readonly List<IParticipant> _participants = new List<IParticipant>();
+
         public void AddInsert<T>(DataCollection<T> collection, T item) where T : IDataDocument
         {
             _participants.Add(new Insert<T>(collection, item));
         }
-        public void AddUpdate<T>(DataCollection<T> collection, T item) where T : IDataDocument
+        public void AddUpdate<T>(DataCollection<T> collection, T item) where T : IDataDocument, new()
         {
             _participants.Add(new Update<T>(collection, item));
         }
-
-        private class Insert<T> : ITransactionParticipant where T : IDataDocument
+        public void AddDelete<T>(DataCollection<T> collection, T item) where T : IDataDocument
         {
-            private readonly DataCollection<T> _collection;
-            private readonly T _item;
-
-            public Insert(DataCollection<T> collection, T item)
-            {
-                _collection = collection;
-                _item = item;
-            }
-
-            public void Commit()
-            {
-                _collection.Add(_item);
-            }
-
-            public void Rollback()
-            {
-                // do nothing
-            }
-
+            _participants.Add(new Delete<T>(collection, item));
         }
-        private class Update<T> : ITransactionParticipant where T : IDataDocument
-        {
-            private readonly DataCollection<T> _collection;
-            private readonly T _item;
 
-            public Update(DataCollection<T> collection, T item)
+        private interface IParticipant
+        {
+            object Item { get; }
+            void Commit();
+            void Rollback();
+        }
+        private abstract class Participant<T> : IParticipant where T : IDataDocument
+        {
+            protected DataCollection<T> Collection { get; }
+            public T Item { get; }
+            object IParticipant.Item => Item;
+            protected Participant(DataCollection<T> collection, T item)
             {
-                _collection = collection;
-                _item = item;
+                Collection = collection;
+                Item = item;
             }
 
-            public void Commit()
+            public virtual void Commit() { }
+            public virtual void Rollback() { }
+        }
+        private class Insert<T> : Participant<T> where T : IDataDocument
+        {
+            public Insert(DataCollection<T> collection, T item) : base(collection, item) { }
+            public override void Commit()
             {
-                var existing = _collection.FirstOrDefault(x => x.Id == _item.Id);
+                Collection.Insert(Item);
+            }
+        }
+        private class Update<T> : Participant<T> where T : IDataDocument
+        {
+            public Update(DataCollection<T> collection, T item) : base(collection, item) { }
+            public override void Commit()
+            {
+                var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
                 if (existing != null)
                 {
-                    _collection.Remove(existing);
-                    _collection.Add(_item);
+                    Collection.Remove(existing);
+                    Collection.Insert(Item);
                 }
             }
-
-            public void Rollback()
+        }
+        private class Delete<T> : Participant<T> where T : IDataDocument
+        {
+            public Delete(DataCollection<T> collection, T item) : base(collection, item) { }
+            public override void Commit()
             {
-                // do nothing
+                var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
+                if (existing != null)
+                    Collection.Remove(existing);
             }
         }
 
@@ -83,7 +92,6 @@ namespace SenseNet.Tests.Implementations2
 
         /* ================================================================================= Transaction functinality */
 
-        private readonly List<ITransactionParticipant> _participants = new List<ITransactionParticipant>();
 
         public IDbConnection Connection => null;
         public IsolationLevel IsolationLevel => IsolationLevel.ReadCommitted;
@@ -107,9 +115,26 @@ namespace SenseNet.Tests.Implementations2
                 _participants[i].Rollback();
         }
 
-        public IEnumerable<VersionDoc> GetVersionsByNodeId(int nodeId)
+        public IEnumerable<VersionDoc> GetVersionAdditions(int nodeId)
         {
-            throw new NotImplementedException();
+            return _participants
+                .Where(x => x is Insert<VersionDoc>)
+                .Select(x => (VersionDoc)x.Item)
+                .ToArray();
+        }
+        public IEnumerable<VersionDoc> GetVersionModifications(int nodeId)
+        {
+            return _participants
+                .Where(x => x is Update<VersionDoc>)
+                .Select(x => (VersionDoc)x.Item)
+                .ToArray();
+        }
+        public IEnumerable<VersionDoc> GetVersionDeletions(int nodeId)
+        {
+            return _participants
+                .Where(x => x is Delete<VersionDoc>)
+                .Select(x => (VersionDoc)x.Item)
+                .ToArray();
         }
     }
 }

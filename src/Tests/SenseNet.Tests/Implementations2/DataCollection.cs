@@ -21,7 +21,7 @@ namespace SenseNet.Tests.Implementations2
             return Interlocked.Increment(ref _lastId);
         }
 
-        public void Add(T item)
+        public void Insert(T item)
         {
             _list.Add(item);
         }
