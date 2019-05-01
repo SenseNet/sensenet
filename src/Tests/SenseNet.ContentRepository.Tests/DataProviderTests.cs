@@ -351,6 +351,7 @@ namespace SenseNet.ContentRepository.Tests
                 fileA.Save();
                 var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.UndoCheckOut();
+                PreloadAllProperties(fileA);
                 var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
@@ -371,6 +372,7 @@ namespace SenseNet.ContentRepository.Tests
                 fileB.Save();
                 var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.UndoCheckOut();
+                PreloadAllProperties(fileB);
                 var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
@@ -385,6 +387,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(filecontent1, reloadedFileContentA);
                 Assert.AreEqual(filecontent1, reloadedFileContentB);
             });
+        }
+        private void PreloadAllProperties(Node node)
+        {
+            var data = node.Data;
+            var _ = node.Data.PropertyTypes.Select(p => data.GetDynamicRawData(p)).ToArray();
         }
 
         [TestMethod]

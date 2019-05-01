@@ -158,7 +158,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             Assert_AreEqual(expected.ContentType, actual.ContentType, "BinaryDataValue.ContentType");
             Assert_AreEqual(expected.Checksum, actual.Checksum, "BinaryDataValue.Checksum");
             Assert_AreEqual(expected.Timestamp, actual.Timestamp, "BinaryDataValue.Timestamp");
-            Assert_AreEqual(expected.BlobProviderName, actual.BlobProviderName, "BinaryDataValue.BlobProviderName");
+            //Assert_AreEqual(expected.BlobProviderName, actual.BlobProviderName, "BinaryDataValue.BlobProviderName");
             //Assert_AreEqual(expected.BlobProviderData, actual.BlobProviderData, "BinaryDataValue.BlobProviderData");
             Assert_AreEqual(expected.Stream, actual.Stream, "BinaryDataValue.Stream");
         }
@@ -260,6 +260,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         private static void Assert_AreEqual(IEnumerable<int> expected, IEnumerable<int> actual, string name)
         {
+            if (expected == null && actual == null)
+                return;
+
             var exp = string.Join(",", expected.OrderBy(x => x).Select(x => x.ToString()));
             var act = string.Join(",", actual.OrderBy(x => x).Select(x => x.ToString()));
             if (exp != act)
