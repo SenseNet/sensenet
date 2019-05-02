@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -410,34 +411,57 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
+        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp)
         {
-            lock (DB)
+            using (var transaction = DB.BeginTransaction())
             {
-                var sourceNode = DB.Nodes.FirstOrDefault(x => x.NodeId == sourceNodeId);
-                if (sourceNode == null)
-                    throw new DataException("Cannot move node, it does not exist.");
+                try
+                {
+                    var sourceNodeId = sourceNodeHeadData.NodeId;
+                    var sourceTimestamp = sourceNodeHeadData.Timestamp;
 
-                var targetNode = DB.Nodes.FirstOrDefault(x => x.NodeId == targetNodeId);
-                if (targetNode == null)
-                    throw new DataException("Cannot move node, target does not exist.");
+                    var sourceNode = DB.Nodes.FirstOrDefault(x => x.NodeId == sourceNodeId);
+                    if (sourceNode == null)
+                        throw new DataException("Cannot move node, it does not exist.");
 
-                if (sourceTimestamp != sourceNode.Timestamp)
-                    throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
-                                                       $"Path:{sourceNode.Path}, TargetPath: {targetNode.Path}");
+                    var targetNode = DB.Nodes.FirstOrDefault(x => x.NodeId == targetNodeId);
+                    if (targetNode == null)
+                        throw new DataException("Cannot move node, target does not exist.");
 
-                sourceNode.ParentNodeId = targetNodeId;
+                    if (sourceTimestamp != sourceNode.Timestamp)
+                        throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
+                                                           $"Path:{sourceNode.Path}, TargetPath: {targetNode.Path}");
 
-                var path = sourceNode.Path;
-                var nodes = DB.Nodes
-                    .Where(n => n.NodeId == sourceNode.NodeId ||
-                                n.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
+                    // Update subtree (do not update directly to ensure transactionality)
+                    var originalPath = sourceNode.Path;
+                    var nodes = DB.Nodes
+                        .Where(n => n.Path.StartsWith(originalPath + RepositoryPath.PathSeparator, StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+                    var originalParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
+                    foreach (var node in nodes)
+                    {
+                        var clone = node.Clone();
+                        clone.Path = clone.Path.Replace(originalParentPath, targetNode.Path);
+                        DB.Nodes.Remove(node);
+                        DB.Nodes.Insert(clone);
+                    }
 
-                var sourceParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
+                    // Update node head (do not update directly to ensure transactionality)
+                    var updatedSourceNode = sourceNode.Clone();
+                    updatedSourceNode.ParentNodeId = targetNodeId;
+                    updatedSourceNode.Path = updatedSourceNode.Path.Replace(originalParentPath, targetNode.Path);
+                    DB.Nodes.Remove(sourceNode);
+                    DB.Nodes.Insert(updatedSourceNode);
 
-                foreach (var node in nodes)
-                    node.Path = node.Path.Replace(sourceParentPath, targetNode.Path);
+                    sourceNodeHeadData.Timestamp = updatedSourceNode.Timestamp;
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }

@@ -1292,6 +1292,54 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        public void DP_Transaction_MoveNode()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    DataStore.DataProvider
+                        .MoveNodeAsync(hackedNodeHeadData, target.Id, target.NodeTimestamp).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT
+                DistributedApplication.Cache.Reset();
+                target = Node.Load<SystemFolder>(target.Id);
+                source = Node.Load<SystemFolder>(source.Id);
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual("/Root/TestRoot", root.Path);
+                Assert.AreEqual("/Root/TestRoot/Target", target.Path);
+                Assert.AreEqual("/Root/TestRoot/Source", source.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1", f1.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F2", f2.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1/F3", f3.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1/F4", f4.Path);
+            });
+        }
+        [TestMethod]
         public void DP_Transaction_RenameNode()
         {
             Test(() =>
@@ -1340,11 +1388,6 @@ namespace SenseNet.ContentRepository.Tests
         }
         [TestMethod]
         public void DP_Transaction_DeleteNode()
-        {
-            Assert.Inconclusive();
-        }
-        [TestMethod]
-        public void DP_Transaction_MoveNode()
         {
             Assert.Inconclusive();
         }

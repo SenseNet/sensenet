@@ -218,13 +218,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             await DataProvider.DeleteNodeAsync(nodeId, timestamp);
         }
-        public static async Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
+        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp)
         {
             // ORIGINAL SIGNATURES:
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
             // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
-
-            await DataProvider.MoveNodeAsync(sourceNodeId, targetNodeId, sourceTimestamp, targetTimestamp);
+            var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
+            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp);
         }
 
         public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)

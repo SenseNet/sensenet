@@ -2963,9 +2963,9 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (target == null)
                 throw new ArgumentNullException("target");
-            MoveTo(target, this.NodeTimestamp, target.NodeTimestamp);
+            MoveTo(target, target.NodeTimestamp);
         }
-        private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
+        private void MoveTo(Node target, long targetTimestamp)
         {
             this.AssertLock();
             AssertMoving(target);
@@ -3011,7 +3011,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        if (DataStore.Enabled) DataStore.MoveNodeAsync(this.Id, target.Id, sourceTimestamp, targetTimestamp).Wait(); else DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp); //DB:ok
+                        if (DataStore.Enabled) DataStore.MoveNodeAsync(this.Data, target.Id, targetTimestamp).Wait(); else DataProvider.Current.MoveNode(this.Id, target.Id, this.NodeTimestamp, targetTimestamp); //DB:ok
                     }
                     catch (DataOperationException e) // rethrow
                     {
