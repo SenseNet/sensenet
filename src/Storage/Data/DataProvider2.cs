@@ -59,19 +59,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        public abstract Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete);
+        public abstract Task UpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            string originalPath = null);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        public abstract Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0);
+        public abstract Task CopyAndUpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            int currentVersionId, int expectedVersionId = 0,
+            string originalPath = null);
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
-        // Executes these:
-        // INodeWriter: UpdateSubTreePath(string oldPath, string newPath);
-        public abstract Task UpdateSubTreePathAsync(string oldPath, string newPath);
 
         /// <summary>
         /// Returns loaded NodeData by the given versionIds

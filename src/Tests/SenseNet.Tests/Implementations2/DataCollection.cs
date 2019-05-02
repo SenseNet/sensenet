@@ -45,13 +45,11 @@ namespace SenseNet.Tests.Implementations2
 
         public void Insert(T item)
         {
-SnTrace.Test.Write("Insert {0}: {1}", typeof(T).Name, item.Id);
             _list.Add(item);
             _db.AddInsert(this, item);
         }
         internal void InsertInternal(T item)
         {
-SnTrace.Test.Write("InsertInternal {0}: {1}", typeof(T).Name, item.Id);
             _list.Add(item);
         }
         public void Remove(int id)
@@ -62,13 +60,11 @@ SnTrace.Test.Write("InsertInternal {0}: {1}", typeof(T).Name, item.Id);
         {
             if (item == null)
                 return;
-SnTrace.Test.Write("Remove {0}: {1}", typeof(T).Name, item.Id);
             _list.Remove(item);
             _db.AddDelete(this, item);
         }
         public void RemoveInternal(T item)
         {
-SnTrace.Test.Write("RemoveInternal {0}: {1}", typeof(T).Name, item.Id);
             _list.Remove(item);
         }
     }

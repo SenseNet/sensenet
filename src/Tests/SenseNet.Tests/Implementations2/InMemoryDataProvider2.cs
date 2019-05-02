@@ -83,7 +83,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete)
+        public override STT.Task UpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            string originalPath = null)
         {
             // Executes these:
             // INodeWriter: UpdateNodeRow(nodeData);
@@ -133,6 +135,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, false);
 
+                    // Update subtree if needed
+                    if(originalPath != null)
+                        UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
+
                     versionData.Timestamp = versionDoc.Timestamp;
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
@@ -149,8 +155,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData,
-            DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete, int currentVersionId, int expectedVersionId = 0)
+        public override STT.Task CopyAndUpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            int currentVersionId, int expectedVersionId = 0,
+            string originalPath = null)
         {
             using (var transaction = DB.BeginTransaction())
             {
@@ -200,6 +208,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     nodeDoc.LastMinorVersionId = lastMinorVersionId;
                     DB.Nodes.Remove(existingNodeDoc);
                     DB.Nodes.Insert(nodeDoc);
+
+                    // Update subtree if needed
+                    if (originalPath != null)
+                        UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
 
                     versionData.Timestamp = versionDoc.Timestamp;
                     nodeHeadData.Timestamp = nodeDoc.Timestamp;
@@ -256,18 +268,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateSubTreePathAsync(string oldPath, string newPath)
+        private void UpdateSubTreePathSafe(string oldPath, string newPath)
         {
-            lock (DB)
+            foreach (var nodeDoc in DB.Nodes
+                .Where(n => n.Path.StartsWith(oldPath + "/", StringComparison.OrdinalIgnoreCase))
+                .ToArray())
             {
-                foreach (var nodeDoc in DB.Nodes
-                    .Where(n => n.Path.StartsWith(oldPath + "/", StringComparison.OrdinalIgnoreCase))
-                    .ToArray())
-                {
-                    nodeDoc.Path = newPath + nodeDoc.Path.Substring(oldPath.Length);
-                }
+                // Do not update directly to ensure transactionality
+                var updated = nodeDoc.Clone();
+                updated.Path = newPath + updated.Path.Substring(oldPath.Length);
+                DB.Nodes.Remove(nodeDoc);
+                DB.Nodes.Insert(updated);
             }
-            return STT.Task.CompletedTask;
         }
 
         public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray)

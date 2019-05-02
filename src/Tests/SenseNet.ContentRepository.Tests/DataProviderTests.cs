@@ -27,8 +27,6 @@ namespace SenseNet.ContentRepository.Tests
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
 
-
-
         [TestMethod]
         public void DP_AB_Create()
         {
@@ -1225,7 +1223,6 @@ namespace SenseNet.ContentRepository.Tests
                     var currentVersionId = newNode.VersionId;
                     var expectedVersionId = versionId1;
                     // Call low level API
-SnTrace.Test.Write("Action start -------------------------------------------------------------");
                     DataStore.DataProvider
                         .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
                 }
@@ -1293,6 +1290,63 @@ SnTrace.Test.Write("Action start -----------------------------------------------
                 Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
             });
+        }
+        [TestMethod]
+        public void DP_Transaction_RenameNode()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var root = CreateFolder(Repository.Root, "F");
+                var f1 = CreateFolder(root, "F1");
+                var f11 = CreateFolder(f1, "F11");
+                var f12 = CreateFolder(f1, "F12");
+                var f2 = CreateFolder(root, "F2");
+                var f21 = CreateFolder(f2, "F21");
+                var f22 = CreateFolder(f2, "F22");
+                var expectedPaths = (new[] { f1, f11, f12, f2, f21, f22 })
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+
+                // ACTION: rename root
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var originalPath = node.Path;
+                    node.Name = "X";
+                    node.Data.Path = node.ParentPath + "/X"; // illegal operation but this test requires
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+                    // Call low level API
+                    DataStore.DataProvider
+                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, originalPath).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var paths = (new[] {f1, f11, f12, f2, f21, f22})
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+                AssertSequenceEqual(expectedPaths, paths);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_DeleteNode()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void DP_Transaction_MoveNode()
+        {
+            Assert.Inconclusive();
         }
 
         /* ================================================================================================== */

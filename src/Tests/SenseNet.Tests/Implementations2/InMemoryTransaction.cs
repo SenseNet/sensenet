@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SenseNet.ContentRepository.Storage;
@@ -70,12 +71,17 @@ namespace SenseNet.Tests.Implementations2
                 public virtual void Commit() { }
                 public virtual void Rollback() { }
             }
+            [DebuggerDisplay("{ToString()}")]
             private class Insert<T> : Participant<T> where T : IDataDocument
             {
                 public Insert(DataCollection<T> collection, T item) : base(collection, item) { }
                 public override void Rollback()
                 {
                     Collection.RemoveInternal(Item);
+                }
+                public override string ToString()
+                {
+                    return $"Insert<{typeof(T).Name}> {Item.Id}";
                 }
             }
             //private class Update<T> : Participant<T> where T : IDataDocument
@@ -91,6 +97,7 @@ namespace SenseNet.Tests.Implementations2
             //        }
             //    }
             //}
+            [DebuggerDisplay("{ToString()}")]
             private class Delete<T> : Participant<T> where T : IDataDocument
             {
                 public Delete(DataCollection<T> collection, T item) : base(collection, item) { }
@@ -99,6 +106,10 @@ namespace SenseNet.Tests.Implementations2
                     var existing = Collection.FirstOrDefault(x => x.Id == Item.Id);
                     if (existing == null)
                         Collection.InsertInternal(Item);
+                }
+                public override string ToString()
+                {
+                    return $"Delete<{typeof(T).Name}> {Item.Id}";
                 }
             }
 
