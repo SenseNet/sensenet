@@ -3576,7 +3576,7 @@ namespace SenseNet.ContentRepository.Storage
                             using (var treeLock = TreeLock.Acquire(this.Path))
                             {
                                 // main work
-                                if (DataStore.Enabled) DataStore.DeleteNodeAsync(Id, NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp); //DB:ok
+                                if (DataStore.Enabled) DataStore.DeleteNodeAsync(Data).Wait(); else DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp); //DB:ok
                             }
                             // successful
                             break;
@@ -3752,7 +3752,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     using (var treeLock = TreeLock.Acquire(nodeRef.Path))
                     {
-                        if(DataStore.Enabled) DataStore.DeleteNodeAsync(nodeRef.Id, nodeRef.NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp); //DB:ok
+                        if(DataStore.Enabled) DataStore.DeleteNodeAsync(nodeRef.Data).Wait(); else DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp); //DB:ok
                     }
                 }
                 catch (Exception e) // rethrow

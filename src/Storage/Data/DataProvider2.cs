@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds);
 
-        public abstract Task DeleteNodeAsync(int nodeId, long timestamp);
+        public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData);
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp);
 
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds);

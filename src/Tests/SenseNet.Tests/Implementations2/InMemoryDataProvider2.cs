@@ -362,51 +362,67 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override STT.Task DeleteNodeAsync(int nodeId, long timestamp)
+        public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData)
         {
-            lock (DB)
+            using (var transaction = DB.BeginTransaction())
             {
-                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
-                if (nodeDoc == null)
-                    return STT.Task.CompletedTask;
-
-                if (nodeDoc.Timestamp != timestamp)
-                    throw new NodeIsOutOfDateException($"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
-                                                       $"Path:\"{nodeDoc.Path}\"");
-
-                var path = nodeDoc.Path;
-                var nodeIds = DB.Nodes
-                    .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
-                    .Select(n => n.NodeId)
-                    .ToArray();
-                var versionIds = DB.Versions
-                    .Where(v => nodeIds.Contains(v.NodeId))
-                    .Select(v => v.VersionId)
-                    .ToArray();
-                var longTextPropIds = DB.LongTextProperties
-                    .Where(l => versionIds.Contains(l.VersionId))
-                    .Select(l => l.LongTextPropertyId)
-                    .ToArray();
-                var binPropAndfileIds = DB.BinaryProperties
-                    .Where(b => versionIds.Contains(b.VersionId))
-                    .Select(b => new { b.BinaryPropertyId, b.FileId })
-                    .ToArray();
-
-                foreach (var longTextPropId in longTextPropIds)
-                    DB.LongTextProperties.Remove(longTextPropId);
-
-                foreach (var item in binPropAndfileIds)
+                try
                 {
-                    DB.BinaryProperties.Remove(item.BinaryPropertyId);
-                    // Delete files is not necessary but if we do it here, maintenance service can be switched off.
-                    DB.Files.Remove(item.FileId);
+                    var nodeId = nodeHeadData.NodeId;
+                    var timestamp = nodeHeadData.Timestamp;
+
+                    var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                    if (nodeDoc == null)
+                        return STT.Task.CompletedTask;
+
+                    if (nodeDoc.Timestamp != timestamp)
+                        throw new NodeIsOutOfDateException($"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
+                                                           $"Path:\"{nodeDoc.Path}\"");
+
+                    var path = nodeDoc.Path;
+                    var nodeIds = DB.Nodes
+                        .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                        .Select(n => n.NodeId)
+                        .ToArray();
+                    var versionIds = DB.Versions
+                        .Where(v => nodeIds.Contains(v.NodeId))
+                        .Select(v => v.VersionId)
+                        .ToArray();
+                    var longTextPropIds = DB.LongTextProperties
+                        .Where(l => versionIds.Contains(l.VersionId))
+                        .Select(l => l.LongTextPropertyId)
+                        .ToArray();
+                    var binPropAndfileIds = DB.BinaryProperties
+                        .Where(b => versionIds.Contains(b.VersionId))
+                        .Select(b => new { b.BinaryPropertyId, b.FileId })
+                        .ToArray();
+
+                    foreach (var longTextPropId in longTextPropIds)
+                        DB.LongTextProperties.Remove(longTextPropId);
+
+                    foreach (var item in binPropAndfileIds)
+                    {
+                        DB.BinaryProperties.Remove(item.BinaryPropertyId);
+                        // Delete files is not necessary but if we do it here, maintenance service can be switched off.
+                        DB.Files.Remove(item.FileId);
+                    }
+
+                    foreach (var versionId in versionIds)
+                        DB.Versions.Remove(versionId);
+
+                    foreach (var nId in nodeIds)
+                        DB.Nodes.Remove(nId);
+
+                    // indicate invalidity and signal for the tests
+                    nodeHeadData.Timestamp = 0;
+
+                    transaction.Commit();
                 }
-
-                foreach (var versionId in versionIds)
-                    DB.Versions.Remove(versionId);
-
-                foreach (var nId in nodeIds)
-                    DB.Nodes.Remove(nId);
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
             return STT.Task.CompletedTask;
         }

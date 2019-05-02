@@ -206,7 +206,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return tokens.ToArray();
         }
-        public static async Task DeleteNodeAsync(int nodeId, long timestamp)
+        public static async Task DeleteNodeAsync(NodeData nodeData)
         {
             // ORIGINAL SIGNATURES:
             // internal void DeleteNode(int nodeId)
@@ -216,7 +216,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             // -------------------
             // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
 
-            await DataProvider.DeleteNodeAsync(nodeId, timestamp);
+            await DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData());
         }
         public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp)
         {
