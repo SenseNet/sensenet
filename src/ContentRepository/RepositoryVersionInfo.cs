@@ -127,11 +127,8 @@ namespace SenseNet.ContentRepository
 
         public static void CheckComponentVersions()
         {
-            var components = TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract)
-                .Select(t => TypeResolver.CreateInstance(t.FullName) as ISnComponent)
-                .Where(c => c != null)
-                .Select(SnComponentInfo.Create)
-                .ToArray();
+            var components = GetAssemblyComponents();
+
             CheckComponentVersions(components);
         }
         private static void CheckComponentVersions(SnComponentInfo[] components)
@@ -201,10 +198,28 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
+        /// <summary>
+        /// Loads and instantiates all available ISnComponent types and returns them 
+        /// in the same order as they were installed in the database.
+        /// </summary>
         internal static SnComponentInfo[] GetAssemblyComponents()
         {
             return TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract)
-                .Select(t => TypeResolver.CreateInstance(t.FullName) as ISnComponent)
+                .Select(t =>
+                {
+                    ISnComponent component = null;
+
+                    try
+                    {
+                        component = TypeResolver.CreateInstance(t.FullName) as ISnComponent;
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex, $"Error during instantiating the component type {t.FullName}.");
+                    }
+
+                    return component;
+                })
                 .Where(c => c != null)
                 .OrderBy(c => c.ComponentId, new SnComponentComparer())
                 .Select(SnComponentInfo.Create)
