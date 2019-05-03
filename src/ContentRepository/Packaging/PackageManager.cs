@@ -317,31 +317,41 @@ namespace SenseNet.Packaging
         /// if its min and max versions encompass the currently installed version and the
         /// supported component version in the assembly is higher than the one in the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Package execution results grouped by component id. It may contain multiple
+        /// results for a single component if there are multiple patches in the assembly for
+        /// subsequent component versions.</returns>
         public static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
-            TextWriter console = null, RepositoryStartSettings settings = null)
+            RepositoryStartSettings settings = null)
         {
-            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), console, settings);
+            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), settings);
         }
 
         internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
-            IEnumerable<SnComponentInfo> assemblyComponents,
-            TextWriter console = null, RepositoryStartSettings settings = null)
+            IEnumerable<SnComponentInfo> assemblyComponents, 
+            RepositoryStartSettings settings = null)
         {
             var results = new Dictionary<string, Dictionary<Version, PackagingResult>>();
 
             foreach (var assemblyComponent in assemblyComponents)
             {
-                var patchResults = ExecuteAssemblyPatch(assemblyComponent, console, settings);
+                try
+                {
+                    var patchResults = ExecuteAssemblyPatches(assemblyComponent, settings);
 
-                if (patchResults?.Any() ?? false)
-                    results[assemblyComponent.ComponentId] = patchResults;
+                    if (patchResults?.Any() ?? false)
+                        results[assemblyComponent.ComponentId] = patchResults;
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex,
+                        $"Error during patch execution for component {assemblyComponent.ComponentId}.");
+                }
             }
 
             return results;
         }
-        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatch(SnComponentInfo assemblyComponent,
-            TextWriter console = null, RepositoryStartSettings settings = null)
+        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatches(SnComponentInfo assemblyComponent, 
+            RepositoryStartSettings settings = null)
         {
             var patchResults = new Dictionary<Version, PackagingResult>();
 
@@ -357,58 +367,62 @@ namespace SenseNet.Packaging
 
             // Supported version in the assembly is higher than 
             // the physical version: there should be a patch.
-            if (assemblyComponent.Patches?.Any() ?? false)
+            if (!(assemblyComponent.Patches?.Any() ?? false))
             {
-                foreach (var patch in assemblyComponent.Patches)
+                throw new InvalidOperationException($"Missing patch for component {installedComponent.ComponentId}. " +
+                                                    $"Installed version is {installedComponent.Version}. " +
+                                                    $"The assembly requires at least version {assemblyComponent.SupportedVersion}.");
+            }
+            
+            foreach (var patch in assemblyComponent.Patches)
+            {
+                // this variable is refreshed in every cycle
+                if (installedComponent == null)
+                    break;
+
+                if (patch.MinVersion > patch.MaxVersion ||
+                    patch.MaxVersion > patch.Version)
                 {
-                    // this variable is refreshed in every cycle
-                    if (installedComponent == null)
-                        break;
+                    // the patch version numbers are the responsibility of the developer of the component
+                    SnLog.WriteWarning(
+                        $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains invalid version numbers.",
+                        properties: new Dictionary<string, object>
+                        {
+                            {"MinVersion", patch.MinVersion},
+                            {"MaxVersion", patch.MaxVersion}
+                        });
 
-                    if (patch.MinVersion > patch.MaxVersion ||
-                        patch.MaxVersion > patch.Version)
-                    {
-                        // the patch version numbers are the responsibility of the developer of the component
-                        SnLog.WriteWarning(
-                            $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains invalid version numbers.",
-                            properties: new Dictionary<string, object>
-                            {
-                                {"MinVersion", patch.MinVersion},
-                                {"MaxVersion", patch.MaxVersion}
-                            });
+                    continue;
+                }
 
-                        continue;
-                    }
-                    if (!string.IsNullOrEmpty(patch.Contents) && patch.Execute != null)
-                    {
-                        // ambigous patch definition
-                        SnLog.WriteWarning(
-                            $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains multiple patch definitions.");
+                if (!string.IsNullOrEmpty(patch.Contents) && patch.Execute != null)
+                {
+                    // ambigous patch definition
+                    SnLog.WriteWarning(
+                        $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains multiple patch definitions.");
 
-                        continue;
-                    }
+                    continue;
+                }
 
-                    // check if the patch is relevant for the currently installed component version
-                    if (patch.MinVersion > installedComponent.Version ||
-                        patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
-                        patch.MaxVersion < installedComponent.Version ||
-                        patch.MaxVersionIsExclusive && patch.MaxVersion == installedComponent.Version)
-                        continue;
+                // check if the patch is relevant for the currently installed component version
+                if (patch.MinVersion > installedComponent.Version ||
+                    patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
+                    patch.MaxVersion < installedComponent.Version ||
+                    patch.MaxVersionIsExclusive && patch.MaxVersion == installedComponent.Version)
+                    continue;
+                
+                PackagingResult patchResult;
 
-                    //UNDONE: handle other patch formats (resource or filesystem path)
+                try
+                {
                     if (patch.Contents?.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase) ?? false)
                     {
-                        var patchResult = ExecutePatch(patch.Contents, console, settings);
-                        patchResults[patch.Version] = patchResult;
-
-                        if (!patchResult.Successful || patchResult.Errors > 0)
-                        {
-                            throw new PackagingException(
-                                $"Package execution failed for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
-                        }
+                        // execute manifest patch
+                        patchResult = ExecutePatch(patch.Contents, settings);
                     }
                     else if (patch.Execute != null)
                     {
+                        // execute code patch
                         patch.Execute(new PatchContext
                         {
                             Settings = settings
@@ -423,7 +437,7 @@ namespace SenseNet.Packaging
                             PackageType = PackageType.Patch
                         });
 
-                        patchResults[patch.Version] = new PackagingResult
+                        patchResult = new PackagingResult
                         {
                             NeedRestart = false,
                             Successful = true,
@@ -431,37 +445,52 @@ namespace SenseNet.Packaging
                             Errors = 0
                         };
                     }
+                    else
+                    {
+                        //TODO: handle other patch formats (resource or filesystem path)
 
-                    // reload
-                    installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => c.ComponentId == assemblyComponent.ComponentId);
+                        // unknown patch format
+                        patchResult = new PackagingResult
+                        {
+                            NeedRestart = false,
+                            Successful = false,
+                            Terminated = false,
+                            Errors = 0
+                        };
+                    }
                 }
-            }
-            else
-            {
-                throw new InvalidOperationException($"Missing patch for component {installedComponent.ComponentId}. " +
-                                                    $"Installed version is {installedComponent.Version}. " +
-                                                    $"The assembly requires at least version {assemblyComponent.SupportedVersion}.");
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex,
+                        $"Error during patch execution for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
+
+                    throw;
+                }
+
+                patchResults[patch.Version] = patchResult;
+
+                // reload
+                installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => 
+                    c.ComponentId == assemblyComponent.ComponentId);
             }
 
             return patchResults;
         }
 
-        //UNDONE: check if these methods are necessary 
-        // or can be refactored to use existing methods.
-        internal static PackagingResult ExecutePatch(string manifestXml, TextWriter console = null, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePatch(string manifestXml, RepositoryStartSettings settings = null)
         {
             try
             {
                 var xml = new XmlDocument();
                 xml.LoadXml(manifestXml);
-                return ExecutePatch(xml, console, settings);
+                return ExecutePatch(xml, settings);
             }
             catch (XmlException ex)
             {
                 throw new InvalidPackageException("Invalid manifest xml.", ex);
             }
         }
-        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, TextWriter console = null, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, RepositoryStartSettings settings = null)
         {
             var phase = -1;
             var errors = 0;
@@ -469,26 +498,22 @@ namespace SenseNet.Packaging
 
             do
             {
-                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter(), settings);
+                result = ExecutePhase(manifestXml, ++phase, settings);
                 errors += result.Errors;
             } while (result.NeedRestart);
 
             result.Errors = errors;
             return result;
         }
-        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null, RepositoryStartSettings settings = null)
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, RepositoryStartSettings settings = null)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
 
-            //UNDONE: ExecutionContext: create real context
-            // Fill context with real indexing folder, repo start settings, providers and other 
-            // parameters necessary for real life steps to run.
-            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", 
+            // Fill context with indexing folder, repo start settings, providers and other 
+            // parameters necessary for on-the-fly steps to run.
+            var executionContext = ExecutionContext.Create("packagePath", "targetPath", 
                 new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, 
-                null, console ?? new StringWriter(), settings);
-
-            //UNDONE: this flag should be set by the creator method above
-            executionContext.Test = false;
+                null, null, settings);
 
             PackagingResult result; 
 
@@ -500,10 +525,8 @@ namespace SenseNet.Packaging
             {
                 if (Repository.Started())
                 {
-                    console?.WriteLine("-------------------------------------------------------------");
-                    console?.Write("Stopping repository ... ");
+                    SnTrace.System.Write("PackageManager: stopping repository ... ");
                     Repository.Shutdown();
-                    console?.WriteLine("Ok.");
                 }
             }
 

@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository
                 // do not try to execute patches again recursively.
                 settings.ExecutingPatches = true;
 
-                PackageManager.ExecuteAssemblyPatches(settings.Console, settings);
+                PackageManager.ExecuteAssemblyPatches(settings);
             }
 
             var instance = RepositoryInstance.Start(settings);

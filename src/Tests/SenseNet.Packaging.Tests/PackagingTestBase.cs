@@ -98,7 +98,7 @@ namespace SenseNet.Packaging.Tests
             PackagingResult result;
             do
             {
-                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter());
+                result = ExecutePhase(manifestXml, ++phase, console);
                 errors += result.Errors;
             } while (result.NeedRestart);
             result.Errors = errors;
@@ -107,7 +107,7 @@ namespace SenseNet.Packaging.Tests
         protected PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
-            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
+            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console);
             var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
             RepositoryVersionInfo.Reset();
             return result;

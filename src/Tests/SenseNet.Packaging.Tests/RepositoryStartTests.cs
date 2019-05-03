@@ -597,7 +597,7 @@ namespace SenseNet.Packaging.Tests
                 .Single(c => c.ComponentId == componentId);
 
             // ACTION
-            var results = PackageManager.ExecuteAssemblyPatch(assemblyComponent);
+            var results = PackageManager.ExecuteAssemblyPatches(assemblyComponent);
 
             // reload version info
             installedComponent = RepositoryVersionInfo.Instance.Components.Single(c => c.ComponentId == componentId);

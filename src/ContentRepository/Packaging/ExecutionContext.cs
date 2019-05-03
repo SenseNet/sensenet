@@ -62,7 +62,7 @@ namespace SenseNet.Packaging
             this.Manifest = manifest;
             this.CurrentPhase = currentPhase;
             this.CountOfPhases = countOfPhases;
-            this.Console = console;
+            this.Console = console ?? TextWriter.Null;
 
             if (manifest == null)
                 return;
@@ -77,12 +77,17 @@ namespace SenseNet.Packaging
                 SetVariable(name, value ?? defaultValue);
             }
         }
-        internal static ExecutionContext CreateForTest(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console, RepositoryStartSettings settings = null)
+        internal static ExecutionContext CreateForTest(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console)
+        {
+            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+            return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console) { Test = true };
+        }
+        internal static ExecutionContext Create(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console, RepositoryStartSettings settings)
         {
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console)
             {
-                Test = true, 
+                Test = false,
                 RepositoryStartSettings = settings
             };
         }
