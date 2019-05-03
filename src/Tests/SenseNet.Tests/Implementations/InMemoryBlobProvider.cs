@@ -121,7 +121,8 @@ namespace SenseNet.Tests.Implementations
             var isExternal = false;
             if (streamLength > 0)
             {
-                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
+                var ctx = new BlobStorageContext(blobProvider)
                 {
                     VersionId = 0,
                     PropertyTypeId = 0,
