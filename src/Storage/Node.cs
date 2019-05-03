@@ -2963,9 +2963,9 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (target == null)
                 throw new ArgumentNullException("target");
-            MoveTo(target, this.NodeTimestamp, target.NodeTimestamp);
+            MoveTo(target, target.NodeTimestamp);
         }
-        private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
+        private void MoveTo(Node target, long targetTimestamp)
         {
             this.AssertLock();
             AssertMoving(target);
@@ -3011,7 +3011,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        if (DataStore.Enabled) DataStore.MoveNodeAsync(this.Id, target.Id, sourceTimestamp, targetTimestamp).Wait(); else DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp); //DB:ok
+                        if (DataStore.Enabled) DataStore.MoveNodeAsync(this.Data, target.Id, targetTimestamp).Wait(); else DataProvider.Current.MoveNode(this.Id, target.Id, this.NodeTimestamp, targetTimestamp); //DB:ok
                     }
                     catch (DataOperationException e) // rethrow
                     {
@@ -3576,7 +3576,7 @@ namespace SenseNet.ContentRepository.Storage
                             using (var treeLock = TreeLock.Acquire(this.Path))
                             {
                                 // main work
-                                if (DataStore.Enabled) DataStore.DeleteNodeAsync(Id, NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp); //DB:ok
+                                if (DataStore.Enabled) DataStore.DeleteNodeAsync(Data).Wait(); else DataProvider.Current.DeleteNodePsychical(Id, NodeTimestamp); //DB:ok
                             }
                             // successful
                             break;
@@ -3752,7 +3752,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     using (var treeLock = TreeLock.Acquire(nodeRef.Path))
                     {
-                        if(DataStore.Enabled) DataStore.DeleteNodeAsync(nodeRef.Id, nodeRef.NodeTimestamp).Wait(); else DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp); //DB:ok
+                        if(DataStore.Enabled) DataStore.DeleteNodeAsync(nodeRef.Data).Wait(); else DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp); //DB:ok
                     }
                 }
                 catch (Exception e) // rethrow

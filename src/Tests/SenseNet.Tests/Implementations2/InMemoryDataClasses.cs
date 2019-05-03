@@ -8,8 +8,14 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
-    public class NodeDoc
+    public interface IDataDocument
     {
+        int Id { get; }
+    }
+    public class NodeDoc : IDataDocument
+    {
+        public int Id => NodeId;
+
         private int _nodeId;
         private int _nodeTypeId;
         private int _contentListTypeId;
@@ -363,8 +369,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class VersionDoc
+    public class VersionDoc : IDataDocument
     {
+        public int Id => VersionId;
+
         private int _versionId;
         private int _nodeId;
         private VersionNumber _version;
@@ -510,8 +518,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
     }
 
     [DebuggerDisplay("{VersionId}/{PropertyTypeId}: {Value}")]
-    public class LongTextPropertyDoc
+    public class LongTextPropertyDoc : IDataDocument
     {
+        public int Id => LongTextPropertyId;
+
         public int LongTextPropertyId { get; set; }
         public int VersionId { get; set; }
         public int PropertyTypeId { get; set; }
@@ -531,8 +541,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class BinaryPropertyDoc
+    public class BinaryPropertyDoc : IDataDocument
     {
+        public int Id => BinaryPropertyId;
+
         public int BinaryPropertyId { get; set; }
         public int VersionId { get; set; }
         public int PropertyTypeId { get; set; }
@@ -550,8 +562,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class FileDoc
+    public class FileDoc : IDataDocument
     {
+        public int Id => FileId;
+
         public int FileId { get; set; }
         public string ContentType { get; set; }
         public string Extension { get; set; }
@@ -581,8 +595,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class TreeLockDoc
+    public class TreeLockDoc : IDataDocument
     {
+        public int Id => TreeLockId;
+
         public int TreeLockId;
         public string Path;
         public DateTime LockedAt;
@@ -598,8 +614,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class LogEntryDoc
+    public class LogEntryDoc : IDataDocument
     {
+        public int Id => LogId;
+
         public int LogId;
         public int EventId;
         public string Category;
@@ -646,8 +664,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class IndexingActivityDoc
+    public class IndexingActivityDoc : IDataDocument
     {
+        public int Id => IndexingActivityId;
+
         public int IndexingActivityId;
         public IndexingActivityType ActivityType;
         public DateTime CreationDate;
@@ -675,8 +695,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class SharedLockDoc //UNDONE:DB:@@ SharedLockDoc is an extension
+    //UNDONE:DB:@@ SharedLockDoc is an extension
+    public class SharedLockDoc : IDataDocument
     {
+        public int Id => SharedLockId;
+        
         public int SharedLockId;
         public int ContentId;
         public string Lock;
@@ -694,8 +717,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class AccessTokenDoc //UNDONE:DB:@@ AccessTokenDoc is an extension
+    //UNDONE:DB:@@ AccessTokenDoc is an extension
+    public class AccessTokenDoc : IDataDocument
     {
+        public int Id => AccessTokenRowId;
+
         public int AccessTokenRowId;
         public string Value;
         public int UserId;
@@ -719,7 +745,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
     }
 
-    public class PackageDoc //UNDONE:DB:@@ PackageDoc is an extension
+    //UNDONE:DB:@@ PackageDoc is an extension
+    public class PackageDoc : IDataDocument
     {
         public int Id { get; set; }
         public string Description { get; set; }

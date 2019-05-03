@@ -71,7 +71,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
             var fileId = db.Files.GetNextId();
-            db.Files.Add(new FileDoc
+            db.Files.Insert(new FileDoc
             {
                 FileId = fileId,
                 ContentType = value.ContentType,
@@ -82,7 +82,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 BlobProviderData = value.BlobProviderData
             });
             var binaryPropertyId = db.BinaryProperties.GetNextId();
-            db.BinaryProperties.Add(new BinaryPropertyDoc
+            db.BinaryProperties.Insert(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
                 FileId = fileId,
@@ -102,7 +102,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 DeleteBinaryProperty(versionId, propertyTypeId);
 
             var binaryPropertyId = db.BinaryProperties.GetNextId();
-            db.BinaryProperties.Add(new BinaryPropertyDoc
+            db.BinaryProperties.Insert(new BinaryPropertyDoc
             {
                 BinaryPropertyId = binaryPropertyId,
                 FileId = value.FileId,
@@ -119,7 +119,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var isExternal = false;
             if (streamLength > 0)
             {
-                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
+                var ctx = new BlobStorageContext(blobProvider)
                 {
                     VersionId = 0,
                     PropertyTypeId = 0,
@@ -142,7 +143,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
             var db = DataProvider.DB;
             var fileId = db.Files.GetNextId();
-            db.Files.Add(new FileDoc
+            db.Files.Insert(new FileDoc
             {
                 FileId = fileId,
                 ContentType = value.ContentType,

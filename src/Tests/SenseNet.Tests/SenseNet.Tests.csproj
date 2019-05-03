@@ -90,6 +90,7 @@
     <Compile Include="Implementations2\DataCollection.cs" />
     <Compile Include="Implementations2\InMemoryAccessTokenDataProvider2.cs" />
     <Compile Include="Implementations2\InMemoryTestingDataProvider2.cs" />
+    <Compile Include="Implementations2\InMemoryTransaction.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

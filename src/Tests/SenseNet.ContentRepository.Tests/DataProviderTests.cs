@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
+using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Search.Querying;
@@ -25,8 +26,6 @@ namespace SenseNet.ContentRepository.Tests
     {
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
-
-
 
         [TestMethod]
         public void DP_AB_Create()
@@ -350,6 +349,7 @@ namespace SenseNet.ContentRepository.Tests
                 fileA.Save();
                 var nodeDataBeforeA = fileA.Data.Clone();
                 fileA.UndoCheckOut();
+                PreloadAllProperties(fileA);
                 var nodeDataAfterA = fileA.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileA = Node.Load<File>(fileA.Id);
@@ -370,6 +370,7 @@ namespace SenseNet.ContentRepository.Tests
                 fileB.Save();
                 var nodeDataBeforeB = fileB.Data.Clone();
                 fileB.UndoCheckOut();
+                PreloadAllProperties(fileB);
                 var nodeDataAfterB = fileB.Data.Clone();
                 DistributedApplication.Cache.Reset();
                 fileB = Node.Load<File>(fileB.Id);
@@ -384,6 +385,11 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(filecontent1, reloadedFileContentA);
                 Assert.AreEqual(filecontent1, reloadedFileContentB);
             });
+        }
+        private void PreloadAllProperties(Node node)
+        {
+            var data = node.Data;
+            var _ = node.Data.PropertyTypes.Select(p => data.GetDynamicRawData(p)).ToArray();
         }
 
         [TestMethod]
@@ -781,9 +787,9 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 Assert.IsNull(Node.Load<SystemFolder>(root.Id));
                 Assert.IsNull(Node.Load<SystemFolder>(f1.Id));
-                Assert.IsNull(Node.Load<SystemFolder>(f2.Id));
+                Assert.IsNull(Node.Load<File>(f2.Id));
                 Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
-                Assert.IsNull(Node.Load<SystemFolder>(f4.Id));
+                Assert.IsNull(Node.Load<File>(f4.Id));
                 Assert.AreEqual(nodeCount, db.Nodes.Count);
                 Assert.AreEqual(versionCount, db.Versions.Count);
                 Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
@@ -1219,7 +1225,6 @@ namespace SenseNet.ContentRepository.Tests
                     // Call low level API
                     DataStore.DataProvider
                         .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
-
                 }
                 catch (Exception)
                 {
@@ -1232,8 +1237,209 @@ namespace SenseNet.ContentRepository.Tests
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore, countsAfter);
-                Assert.AreEqual(version2, reloaded.Version);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_UpdateNodeHead()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
+                newNode.Save();
+                var version1 = newNode.Version.ToString();
+                var versionId1 = newNode.VersionId;
+                newNode.CheckOut();
+                var version2 = newNode.Version.ToString();
+                var versionId2 = newNode.VersionId;
+                newNode.Index++;
+                newNode.Description = "Description-MODIFIED";
+                newNode.Save();
+                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+
+                // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new[] { versionId2 };
+                    var currentVersionId = newNode.VersionId;
+                    var expectedVersionId = versionId1;
+                    // Call low level API
+                    DataStore.DataProvider
+                        .UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                DistributedApplication.Cache.Reset();
+                var reloaded = Node.Load<SystemFolder>(newNode.Id);
+                Assert.AreEqual(countsBefore, countsAfter);
+                Assert.AreEqual(version2, reloaded.Version.ToString());
+                Assert.AreEqual(versionId2, reloaded.VersionId);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_MoveNode()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+                var f1 = new SystemFolder(source) { Name = "F1" }; f1.Save();
+                var f2 = new SystemFolder(source) { Name = "F2" }; f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" }; f3.Save();
+                var f4 = new SystemFolder(f1) { Name = "F4" }; f4.Save();
+
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    // Call low level API
+                    DataStore.DataProvider
+                        .MoveNodeAsync(hackedNodeHeadData, target.Id, target.NodeTimestamp).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT
+                DistributedApplication.Cache.Reset();
+                target = Node.Load<SystemFolder>(target.Id);
+                source = Node.Load<SystemFolder>(source.Id);
+                f1 = Node.Load<SystemFolder>(f1.Id);
+                f2 = Node.Load<SystemFolder>(f2.Id);
+                f3 = Node.Load<SystemFolder>(f3.Id);
+                f4 = Node.Load<SystemFolder>(f4.Id);
+                Assert.AreEqual("/Root/TestRoot", root.Path);
+                Assert.AreEqual("/Root/TestRoot/Target", target.Path);
+                Assert.AreEqual("/Root/TestRoot/Source", source.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1", f1.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F2", f2.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1/F3", f3.Path);
+                Assert.AreEqual("/Root/TestRoot/Source/F1/F4", f4.Path);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_RenameNode()
+        {
+            Test(() =>
+            {
+                DataStore.Enabled = true;
+                var db = GetDb();
+                var root = CreateFolder(Repository.Root, "F");
+                var f1 = CreateFolder(root, "F1");
+                var f11 = CreateFolder(f1, "F11");
+                var f12 = CreateFolder(f1, "F12");
+                var f2 = CreateFolder(root, "F2");
+                var f21 = CreateFolder(f2, "F21");
+                var f22 = CreateFolder(f2, "F22");
+                var expectedPaths = (new[] { f1, f11, f12, f2, f21, f22 })
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+
+                // ACTION: rename root
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var originalPath = node.Path;
+                    node.Name = "X";
+                    node.Data.Path = node.ParentPath + "/X"; // illegal operation but this test requires
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+                    // Call low level API
+                    DataStore.DataProvider
+                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, originalPath).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT (all operation need to be rolled back)
+                var paths = (new[] {f1, f11, f12, f2, f21, f22})
+                    .Select(x => Node.Load<SystemFolder>(x.Id).Path.Replace("/Root/", ""))
+                    .ToArray();
+                AssertSequenceEqual(expectedPaths, paths);
+            });
+        }
+        [TestMethod]
+        public void DP_Transaction_DeleteNode()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                root.Save();
+                var f1 = new SystemFolder(root) { Name = "F1" };
+                f1.Save();
+                var f2 = new File(root) { Name = "F2" };
+                f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f2.Save();
+                var f3 = new SystemFolder(f1) { Name = "F3" };
+                f3.Save();
+                var f4 = new File(root) { Name = "F4" };
+                f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
+                f4.Save();
+
+                var db = GetDb();
+                var nodeCount = db.Nodes.Count;
+                var versionCount = db.Versions.Count;
+                var binPropCount = db.BinaryProperties.Count;
+                var fileCount = db.Files.Count;
+
+                // ACTION
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var nodeData = node.Data;
+                    var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
+                    // Call low level API
+                    DataStore.DataProvider
+                        .DeleteNodeAsync(hackedNodeHeadData).Wait();
+                }
+                catch (Exception)
+                {
+                    // ignored
+                    // hackedNodeHeadData threw an exception when Timestamp's setter was called.
+                }
+
+                // ASSERT
+                Assert.IsNotNull(Node.Load<SystemFolder>(root.Id));
+                Assert.IsNotNull(Node.Load<SystemFolder>(f1.Id));
+                Assert.IsNotNull(Node.Load<File>(f2.Id));
+                Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
+                Assert.IsNotNull(Node.Load<File>(f4.Id));
+                Assert.AreEqual(nodeCount, db.Nodes.Count);
+                Assert.AreEqual(versionCount, db.Versions.Count);
+                Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
+                Assert.AreEqual(fileCount, db.Files.Count);
             });
         }
 

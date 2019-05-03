@@ -100,6 +100,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             var nodeHeadData = nodeData.GetNodeHeadData();
             var savingAlgorithm = settings.GetSavingAlgorithm();
+            var renamed = !isNewNode && nodeData.PathChanged && nodeData.SharedData != null;
             if (settings.NeedToSaveData)
             {
                 var versionData = nodeData.GetVersionData();
@@ -114,17 +115,36 @@ namespace SenseNet.ContentRepository.Storage.Data
                         break;
                     case SavingAlgorithm.UpdateSameVersion:
                         dynamicData = nodeData.GetDynamicData(false);
-                        await DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
+                        if(renamed)
+                            await DataProvider.UpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, nodeData.SharedData.Path);
+                        else
+                            await DataProvider.UpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
                         dynamicData = nodeData.GetDynamicData(true);
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                            settings.CurrentVersionId);
+                        if (renamed)
+                            await DataProvider.CopyAndUpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                settings.CurrentVersionId, 0,
+                                nodeData.SharedData.Path);
+                        else
+                            await DataProvider.CopyAndUpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                settings.CurrentVersionId);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
                         dynamicData = nodeData.GetDynamicData(true);
-                        await DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                            settings.CurrentVersionId, settings.ExpectedVersionId);
+                        if (renamed)
+                            await DataProvider.CopyAndUpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                settings.CurrentVersionId, settings.ExpectedVersionId,
+                                nodeData.SharedData.Path);
+                        else
+                            await DataProvider.CopyAndUpdateNodeAsync(
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                settings.CurrentVersionId, settings.ExpectedVersionId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
@@ -133,8 +153,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 nodeData.VersionId = versionData.VersionId;
                 nodeData.VersionTimestamp = versionData.Timestamp;
 
-                if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
-                    await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
+                //if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
+                //    await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
             }
             else
             {
@@ -186,7 +206,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return tokens.ToArray();
         }
-        public static async Task DeleteNodeAsync(int nodeId, long timestamp)
+        public static async Task DeleteNodeAsync(NodeData nodeData)
         {
             // ORIGINAL SIGNATURES:
             // internal void DeleteNode(int nodeId)
@@ -196,15 +216,15 @@ namespace SenseNet.ContentRepository.Storage.Data
             // -------------------
             // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
 
-            await DataProvider.DeleteNodeAsync(nodeId, timestamp);
+            await DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData());
         }
-        public static async Task MoveNodeAsync(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
+        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp)
         {
             // ORIGINAL SIGNATURES:
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
             // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
-
-            await DataProvider.MoveNodeAsync(sourceNodeId, targetNodeId, sourceTimestamp, targetTimestamp);
+            var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
+            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp);
         }
 
         public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)

@@ -32,7 +32,7 @@ namespace SenseNet.Tests.Implementations2
             }
 
             var newAccessTokenRowId = accessTokens.Count == 0 ? 1 : accessTokens.Max(t => t.AccessTokenRowId) + 1;
-            accessTokens.Add(new AccessTokenDoc
+            accessTokens.Insert(new AccessTokenDoc
             {
                 AccessTokenRowId = newAccessTokenRowId,
                 Value = token.Value,

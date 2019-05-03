@@ -7,23 +7,23 @@ using SenseNet.ContentRepository.Storage.DataModel;
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
+    public partial class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
     {
         /* ================================================================================================ WELL KNOWN COLLECTIONS */
 
-        public DataCollection<NodeDoc> Nodes { get; } = new DataCollection<NodeDoc>(1247);
-        public DataCollection<VersionDoc> Versions { get; } = new DataCollection<VersionDoc>(260);
-        public DataCollection<LongTextPropertyDoc> LongTextProperties { get; } = new DataCollection<LongTextPropertyDoc>();
-        public DataCollection<BinaryPropertyDoc> BinaryProperties { get; } = new DataCollection<BinaryPropertyDoc>(112);
-        public DataCollection<FileDoc> Files { get; } = new DataCollection<FileDoc>(112);
-        public DataCollection<TreeLockDoc> TreeLocks { get; } = new DataCollection<TreeLockDoc>();
-        public DataCollection<LogEntryDoc> LogEntries { get; } = new DataCollection<LogEntryDoc>();
-        public DataCollection<IndexingActivityDoc> IndexingActivities { get; } = new DataCollection<IndexingActivityDoc>();
+        public DataCollection<NodeDoc> Nodes { get; }
+        public DataCollection<VersionDoc> Versions { get; }
+        public DataCollection<LongTextPropertyDoc> LongTextProperties { get; }
+        public DataCollection<BinaryPropertyDoc> BinaryProperties { get; }
+        public DataCollection<FileDoc> Files { get; }
+        public DataCollection<TreeLockDoc> TreeLocks { get; }
+        public DataCollection<LogEntryDoc> LogEntries { get; }
+        public DataCollection<IndexingActivityDoc> IndexingActivities { get; }
 
         /* ================================================================================================ ALL COLLECTIONS */
 
         private readonly Dictionary<Type, object> _collections;
-        public DataCollection<T> GetCollection<T>()
+        public DataCollection<T> GetCollection<T>() where T : IDataDocument
         {
             return (DataCollection<T>)_collections[typeof(T)];
         }
@@ -32,6 +32,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public InMemoryDataBase2()
         {
+            Nodes = new DataCollection<NodeDoc>(this, 1247);
+            Versions = new DataCollection<VersionDoc>(this, 260);
+            LongTextProperties = new DataCollection<LongTextPropertyDoc>(this);
+            BinaryProperties = new DataCollection<BinaryPropertyDoc>(this, 112);
+            Files = new DataCollection<FileDoc>(this, 112);
+            TreeLocks = new DataCollection<TreeLockDoc>(this);
+            LogEntries = new DataCollection<LogEntryDoc>(this);
+            IndexingActivities = new DataCollection<IndexingActivityDoc>(this);
+
             _collections = new Dictionary<Type, object>
             {
                 /* WELL KNOWN COLLECTIONS */
@@ -44,9 +53,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {typeof(LogEntryDoc), LogEntries},
                 {typeof(IndexingActivityDoc), IndexingActivities},
                 /* EXTENSIONS */
-                {typeof(SharedLockDoc), new DataCollection<SharedLockDoc>()},
-                {typeof(AccessTokenDoc), new DataCollection<AccessTokenDoc>()},
-                {typeof(PackageDoc), new DataCollection<PackageDoc>()},
+                {typeof(SharedLockDoc), new DataCollection<SharedLockDoc>(this)},
+                {typeof(AccessTokenDoc), new DataCollection<AccessTokenDoc>(this)},
+                {typeof(PackageDoc), new DataCollection<PackageDoc>(this)},
             };
         }
 

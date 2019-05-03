@@ -267,7 +267,8 @@ SELECT @FileId
             var isExternal = false;
             if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
+                var ctx = new BlobStorageContext(blobProvider)
                 {
                     VersionId = 0,
                     PropertyTypeId = 0,
