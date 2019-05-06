@@ -151,6 +151,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
+        //UNDONE:DB:[API: Are currentVersionId and versionData.VersionId equal? If yes, the parameter is deletable
         public override STT.Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             int currentVersionId, int expectedVersionId = 0,
@@ -162,7 +163,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception(
+                        throw new Exception( //UNDONE:DB[ Exception type?
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -171,7 +172,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     // Get existing VersionDoc and update
                     var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
                     if (currentVersionDoc == null)
-                        throw new Exception(
+                        throw new Exception( //UNDONE:DB[ Exception type?
                             $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var versionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
                     var versionDoc = CloneVersionDocSafe(currentVersionDoc);
@@ -233,7 +234,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception(
+                        throw new Exception( //UNDONE:DB[ Exception type?
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -1753,7 +1754,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 var dataType = propertyType.DataType;
                 if (dataType == DataType.Text || dataType == DataType.Binary)
                     // Handled by higher level
-                    throw new Exception($"This property cannot be processed here: {propertyType.Name}:{dataType}");
+                    throw new Exception($"This property cannot be processed here: {propertyType.Name}:{dataType}"); //UNDONE:DB[ Exception type?
                 var clone = GetCloneSafe(sourceItem.Value, dataType);
                 if (dataType == DataType.Reference)
                 {
