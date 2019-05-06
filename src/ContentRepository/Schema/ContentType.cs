@@ -609,7 +609,15 @@ namespace  SenseNet.ContentRepository.Schema
         {
             try
             {
-                SetFieldSlots(TypeResolver.GetType(this.HandlerName));
+                //UNDONE: typeload
+                var handlerType = TypeResolver.GetType(this.HandlerName, false);
+                if (handlerType == null)
+                {
+                    SnLog.WriteWarning($"Unknown content handler: {HandlerName}.");
+                    return;
+                }
+
+                SetFieldSlots(handlerType); 
             }
             catch (TypeNotFoundException e)
             {

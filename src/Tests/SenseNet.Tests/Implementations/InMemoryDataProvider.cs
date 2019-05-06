@@ -3032,6 +3032,38 @@ namespace SenseNet.Tests.Implementations
         }
         #endregion
 
+        public static void SetContentHandler(FileRecord fr, string handler, string contentTypeName = null, Database db = null)
+        {
+            string ctdString;
+
+            using (var xmlReaderStream = new MemoryStream(fr.Stream))
+            {
+                var gcXmlDoc = new XmlDocument();
+                gcXmlDoc.Load(xmlReaderStream);
+
+                gcXmlDoc.DocumentElement.Attributes["handler"].Value = handler;
+
+                ctdString = gcXmlDoc.OuterXml;
+            }
+
+            fr.Stream = Encoding.UTF8.GetBytes(ctdString);
+            fr.Size = fr.Stream.Length;
+
+            if (db != null)
+            {
+                var schema = db.Schema;
+                var nsmgr = new XmlNamespaceManager(schema.NameTable);
+                nsmgr.AddNamespace("x", SchemaRoot.RepositoryStorageSchemaXmlNamespace);
+
+                var classNameAttr = schema.SelectSingleNode($"/x:StorageSchema/x:NodeTypeHierarchy//x:NodeType[@name='{contentTypeName}']", 
+                    nsmgr)?.Attributes?["className"];
+
+                if (classNameAttr != null)
+                    classNameAttr.Value = handler;
+                else
+                    throw new InvalidOperationException($"NdeType not found: {contentTypeName}");
+            }
+        }
     }
 }
 

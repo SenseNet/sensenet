@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.ContentRepository.Sharing;
+using SenseNet.Storage;
 
 namespace SenseNet.ContentRepository
 {
@@ -758,7 +759,7 @@ namespace SenseNet.ContentRepository
                 var contentType = ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
                 if (contentType == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentTypeName));
-                Type type = TypeResolver.GetType(contentType.HandlerName);
+                Type type = TypeResolver.GetType(contentType.HandlerName, false) ?? typeof(UnknownContentHandler); //UNDONE: typeload
 
                 Type[] signature = new Type[args.Length + 2];
                 signature[0] = typeof(Node);
@@ -2375,6 +2376,7 @@ namespace SenseNet.ContentRepository
                         names.Add(field.Name);
             }
 
+            //UNDONE: typeload
             var dynamicContentTypes = types.Where(x => typeof(ISupportsDynamicFields).IsAssignableFrom(TypeResolver.GetType(x.HandlerName))).ToArray();
             if (dynamicContentTypes.Length > 0)
             {
