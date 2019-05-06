@@ -151,11 +151,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        //UNDONE:DB:[API: Are currentVersionId and versionData.VersionId equal? If yes, the parameter is deletable
         public override STT.Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            int currentVersionId, int expectedVersionId = 0,
-            string originalPath = null)
+            int expectedVersionId = 0, string originalPath = null)
         {
             using (var transaction = DB.BeginTransaction())
             {
@@ -170,30 +168,31 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                             $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
 
                     // Get existing VersionDoc and update
-                    var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
+                    var sourceVersionId = versionData.VersionId;
+                    var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == sourceVersionId);
                     if (currentVersionDoc == null)
                         throw new Exception( //UNDONE:DB[ Exception type?
-                            $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
-                    var versionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
+                            $"Version not found. VersionId: {sourceVersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var targetVersionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
                     var versionDoc = CloneVersionDocSafe(currentVersionDoc);
-                    versionDoc.VersionId = versionId;
-                    versionData.VersionId = versionId;
-                    dynamicData.VersionId = versionId;
+                    versionDoc.VersionId = targetVersionId;
+                    versionData.VersionId = targetVersionId;
+                    dynamicData.VersionId = targetVersionId;
                     UpdateVersionDocSafe(versionDoc, versionData, dynamicData);
 
                     // Add or change updated VersionDoc
-                    DB.Versions.Remove(versionId);
+                    DB.Versions.Remove(targetVersionId);
                     DB.Versions.Insert(versionDoc);
 
                     // Manage LongTextProperties
-                    CopyLongTextPropertiesSafe(currentVersionId, versionId);
+                    CopyLongTextPropertiesSafe(sourceVersionId, targetVersionId);
                     foreach (var item in dynamicData.LongTextProperties)
-                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
+                        SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
 
                     // Manage BinaryProperties
                     // (copy old values is unnecessary because all binary properties were loaded before save).
                     foreach (var item in dynamicData.BinaryProperties)
-                        SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, false, true);
+                        SaveBinaryPropertySafe(item.Value, targetVersionId, item.Key.Id, false, true);
 
                     // Delete unnecessary versions
                     DeleteVersionsSafe(versionIdsToDelete);

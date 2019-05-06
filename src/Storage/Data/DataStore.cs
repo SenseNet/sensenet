@@ -125,26 +125,26 @@ namespace SenseNet.ContentRepository.Storage.Data
                     case SavingAlgorithm.CopyToNewVersionAndUpdate:
                         dynamicData = nodeData.GetDynamicData(true);
                         if (renamed)
+                            // Copy to brand new version and rename
                             await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                settings.CurrentVersionId, 0,
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0,
                                 nodeData.SharedData.Path);
                         else
+                            // Copy to brand new version
                             await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                settings.CurrentVersionId);
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds);
                         break;
                     case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
                         dynamicData = nodeData.GetDynamicData(true);
                         if (renamed)
+                            // Copy to specified version and rename
                             await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                settings.CurrentVersionId, settings.ExpectedVersionId,
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, settings.ExpectedVersionId,
                                 nodeData.SharedData.Path);
                         else
+                            // Copy to specified version
                             await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                settings.CurrentVersionId, settings.ExpectedVersionId);
+                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, settings.ExpectedVersionId);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);

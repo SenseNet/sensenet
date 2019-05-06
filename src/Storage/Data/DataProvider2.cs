@@ -167,14 +167,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <param name="versionIdsToDelete">Set of versionIds that defines the versions that need to be deleted. Can be empty but never null.</param>
-        /// <param name="currentVersionId">Id of the source version</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <returns></returns>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            int currentVersionId, int expectedVersionId = 0,
-            string originalPath = null);
+            int expectedVersionId = 0, string originalPath = null);
 
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);

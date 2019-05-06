@@ -1220,11 +1220,10 @@ namespace SenseNet.ContentRepository.Tests
                     var versionData = nodeData.GetVersionData();
                     var dynamicData = nodeData.GetDynamicData(false);
                     var versionIdsToDelete = new[] {versionId2};
-                    var currentVersionId = newNode.VersionId;
                     var expectedVersionId = versionId1;
                     // Call low level API
                     DataStore.DataProvider
-                        .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, currentVersionId, expectedVersionId).Wait();
+                        .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId).Wait();
                 }
                 catch (Exception)
                 {
