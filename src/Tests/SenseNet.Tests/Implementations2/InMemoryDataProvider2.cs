@@ -97,7 +97,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new ContentNotFoundException( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException(
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -106,7 +106,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     // Get VersionDoc and update
                     var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
                     if (versionDoc == null)
-                        throw new ContentNotFoundException( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException(
                             $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var updatedVersionDoc = CloneVersionDocSafe(versionDoc);
                     var versionId = versionData.VersionId;
@@ -165,7 +165,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException(
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -175,7 +175,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     var sourceVersionId = versionData.VersionId;
                     var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == sourceVersionId);
                     if (currentVersionDoc == null)
-                        throw new Exception( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException(
                             $"Version not found. VersionId: {sourceVersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var targetVersionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
                     var versionDoc = CloneVersionDocSafe(currentVersionDoc);
@@ -239,7 +239,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException(
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -443,11 +443,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     var sourceNode = DB.Nodes.FirstOrDefault(x => x.NodeId == sourceNodeId);
                     if (sourceNode == null)
-                        throw new DataException("Cannot move node, it does not exist.");
+                        throw new ContentNotFoundException("Cannot move node, it does not exist.");
 
                     var targetNode = DB.Nodes.FirstOrDefault(x => x.NodeId == targetNodeId);
                     if (targetNode == null)
-                        throw new DataException("Cannot move node, target does not exist.");
+                        throw new ContentNotFoundException("Cannot move node, target does not exist.");
 
                     if (sourceTimestamp != sourceNode.Timestamp)
                         throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
@@ -1811,7 +1811,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 var dataType = propertyType.DataType;
                 if (dataType == DataType.Text || dataType == DataType.Binary)
                     // Handled by higher level
-                    throw new Exception($"This property cannot be processed here: {propertyType.Name}:{dataType}"); //UNDONE:DB[ Exception type?
+                    continue;
                 var clone = GetCloneSafe(sourceItem.Value, dataType);
                 if (dataType == DataType.Reference)
                 {

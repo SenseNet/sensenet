@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,6 +19,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 using SenseNet.Tests.Implementations2;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -1059,6 +1061,354 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        /* ================================================================================================== Errors */
+
+        [TestMethod]
+        public async STT.Task DP_Error_UpdateNode_Deleted()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                try
+                {
+                    var node = Node.LoadNode(Identifiers.PortalRootId);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 99999;
+                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_UpdateNode_MissingVersion()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    versionData.VersionId = 99999;
+                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_UpdateNode_OutOfDate()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode =
+                    new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Error_CopyAndUpdateNode_Deleted()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 99999;
+                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_CopyAndUpdateNode_MissingVersion()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    versionData.VersionId = 99999;
+                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_CopyAndUpdateNode_OutOfDate()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    node.Index++;
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Error_UpdateNodeHead_Deleted()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.NodeId = 999999;
+                    await DataStore.DataProvider.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_UpdateNodeHead_OutOfDate()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                newNode.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(newNode.Id);
+                    var nodeData = node.Data;
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionIdsToDelete = new int[0];
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DataStore.DataProvider.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Error_DeleteNode()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                // Create a small subtree
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                root.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(root.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DataStore.DataProvider.DeleteNodeAsync(nodeHeadData);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Error_MoveNode_MissingSource()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.NodeId = 999999;
+                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_MoveNode_MissingTarget()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, 999999, target.NodeTimestamp);
+                    Assert.Fail("ContentNotFoundException was not thrown.");
+                }
+                catch (ContentNotFoundException)
+                {
+                    // ignored
+                }
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_Error_MoveNode_OutOfDate()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                var source = new SystemFolder(root) { Name = "Source" }; source.Save();
+                var target = new SystemFolder(root) { Name = "Target" }; target.Save();
+
+                try
+                {
+                    var node = Node.Load<SystemFolder>(source.Id);
+                    var nodeHeadData = node.Data.GetNodeHeadData();
+
+                    // ACTION
+                    nodeHeadData.Timestamp++;
+                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
+                    Assert.Fail("NodeIsOutOfDateException was not thrown.");
+                }
+                catch (NodeIsOutOfDateException)
+                {
+                    // ignored
+                }
+            });
+        }
+
         /* ================================================================================================== Transaction */
 
         /// <summary>
@@ -1394,9 +1744,9 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.Enabled = true;
 
                 // Create a small subtree
-                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = "Test root"};
                 root.Save();
-                var f1 = new SystemFolder(root) { Name = "F1" };
+                var f1 = new SystemFolder(root) { Name = "F1", Description = "Folder-1" };
                 f1.Save();
                 var f2 = new File(root) { Name = "F2" };
                 f2.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));

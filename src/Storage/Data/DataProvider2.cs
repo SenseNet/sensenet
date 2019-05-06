@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// LongTextProperties: long text values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -106,8 +106,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// should be reverted to the original state by the data provider.
         /// Algorithm:
         ///  1 - Begin a new transaction
-        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
-        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an ____ exception if the version is deleted.
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
+        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an <see cref="ContentNotFoundException"/> exception if the version is deleted.
         ///  4 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
         ///      throw a <see cref="NodeIsOutOfDateException"/>.
         ///  5 - Update the stored version data by the [versionData].VersionId with the values in the [versionData] parameter.
@@ -145,6 +145,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
@@ -160,8 +161,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
         ///  1 - Begin a new transaction
-        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
-        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an ____ exception if the version is deleted.
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
+        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an <see cref="ContentNotFoundException"/> exception if the version is deleted.
         ///  4 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
         ///      throw a <see cref="NodeIsOutOfDateException"/>.
         ///  5 - Determine the target version: if [expectedVersionId] is not null, load the existing instance, 
@@ -205,6 +206,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
@@ -216,7 +218,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// should be reverted to the original state by the data provider.
         /// Algorithm:
         ///  1 - Begin a new transaction
-        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
         ///  3 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
         ///      throw a <see cref="NodeIsOutOfDateException"/>.
         ///  4 - Delete unnecessary versions listed in the [versionIdsToDelete] parameter.
@@ -234,6 +236,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
             CancellationToken cancellationToken = default(CancellationToken));
