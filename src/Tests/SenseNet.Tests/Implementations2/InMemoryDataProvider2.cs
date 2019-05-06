@@ -88,18 +88,13 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             string originalPath = null)
         {
-            // Executes these:
-            // INodeWriter: UpdateNodeRow(nodeData);
-            // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
-            // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-            // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
             using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception(
+                        throw new Exception( //UNDONE:DB[ Exception type?
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -108,7 +103,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     // Get VersionDoc and update
                     var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
                     if (versionDoc == null)
-                        throw new Exception(
+                        throw new Exception( //UNDONE:DB[ Exception type?
                             $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var updatedVersionDoc = CloneVersionDocSafe(versionDoc);
                     DB.Versions.Remove(versionDoc);

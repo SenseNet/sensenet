@@ -11,10 +11,15 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
-    /// .... Expected minimal object structure: Nodes -> Versions -> BinaryProperties -> Files
+    /// ... Recommended minimal object structure: Nodes -> Versions --> BinaryProperties -> Files
+    ///                                                         |-> LongTextProperties
+    /// ... Additional structure: TreeLocks, LogEntries, IndexingActivities
     /// </summary>
     public abstract class DataProvider2
     {
+        /// <summary>
+        /// ... (MSSQL: unique index size is 900 byte)
+        /// </summary>
         public virtual int PathMaxLength { get; } = 450;
         public virtual DateTime DateTimeMinValue { get; } = DateTime.MinValue;
         public virtual DateTime DateTimeMaxValue { get; } = DateTime.MaxValue;
@@ -44,24 +49,85 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Nodes */
 
-        // Executes these:
-        // INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        // SUMMARY
-        // Persists a brand new objects that contains all static and dynamic properties of the actual node.
-        // Write back the newly generated data to the given "nodeData":
-        //     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds.
-        // Write back the modified data into the given "settings"
-        //     LastMajorVersionId, LastMinorVersionId.
+        // Original SqlProvider executes these:
+        // - INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+        // - DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        /// <summary>
+        /// Persists a brand new objects that contains all static and dynamic properties of the actual node.
+        /// Write back the newly generated data to the given nodeHeadData and versionData parameters:
+        ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds.
+        /// Write back the modified data into the given "settings"
+        ///     LastMajorVersionId, LastMinorVersionId.
+        /// ... Need to be transactional
+        /// ... Algorithm:
+        ///  1 - Begin a new transaction
+        ///  2 - Check the [nodeHeadData].Path uniqueness. If not, throw NodeAlreadyExistsException.
+        ///  3 - Ensure the new unique NodeId and write back to the [nodeHeadData].NodeId.
+        ///  4 - Ensure the new unique VersionId and write back to the [versionData].VersionId and dynamicData.VersionId.
+        ///  5 - Store (insert) the [versionData] representation.
+        ///  6 - Ensure that the timestamp of the stored version is incremented and write back this value to the [versionData].Timestamp.
+        ///  7 - Store (insert) all representation of the dynamic property data including long texts, binary properties and files.
+        ///      Use the new versionId in these items.
+        ///  8 - Collect last versionIds (last major and last minor).
+        ///  9 - Store (insert) the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        /// 10 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
+        /// 11 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        ///      In case of error the written back data (new ids and changed timestamps)
+        ///      will be dropped so rollback these data is not necessary.
+        /// </summary>
+        /// <param name="nodeHeadData">Head data of the node. Contains identical information, place in the Big-tree and the most important
+        /// not-versioned property values.</param>
+        /// <param name="versionData">Head information of the current version.</param>
+        /// <param name="dynamicData">Metadata and blob data of the current version. Separated to some sub collections:
+        /// BinaryProperties: Contain blob information (stream and metadata)
+        /// LongTextProperties: Contain long textual values that can be lazy loaded.
+        /// DynamicProperties: All dynamic property values except the binaries and long texts.
+        /// </param>
+        /// <returns>An awaitable object.</returns>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData);
-        // Executes these:
-        // INodeWriter: UpdateNodeRow(nodeData);
-        // INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
-        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+
+        // Original SqlProvider executes these:
+        // - INodeWriter: UpdateNodeRow(nodeData);
+        // - INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
+        // - DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
+        // - DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
+        /// <summary>
+        /// ... Need to be transactional
+        /// ... Algorithm:
+        ///  1 - Begin a new transaction
+        ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
+        ///  3 - Check the version existence by [versionData].VersionId. Throw an ____ exception if the version is deleted.
+        ///  4 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
+        ///  5 - Update the stored version head data implementation by the [versionData].VersionId with the [versionData].
+        ///  6 - Ensure that the timestamp of the stored version is incremented and write back this value to the [versionData].Timestamp.
+        ///  7 - Delete version representations by the given [versionIdsToDelete]
+        ///  8 - Update all representation of the dynamic property data including long texts, binary properties and files.
+        ///      Use the new versionId in these items.
+        ///  9 - Collect last versionIds (last major and last minor).
+        /// 10 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        /// 11 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
+        /// 12 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
+        ///      1 - All path will be changed if it starts with "/Root/Folder1/" ([originalPath] + trailing slash, case insensitive).
+        ///      2 - Replace the [original path] to the new path in the [nodeHeadData].Path.
+        /// 13 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        ///      In case of error the written back data (new ids and changed timestamps)
+        ///      will be dropped so rollback these data is not necessary.
+        /// </summary>
+        /// <param name="nodeHeadData">Head data of the node. Contains identical information, place in the Big-tree and the most important
+        /// not-versioned property values.</param>
+        /// <param name="versionData">Head information of the current version.</param>
+        /// <param name="dynamicData">Metadata and blob data of the current version. Separated to some sub collections:
+        /// BinaryProperties: Contain blob information (stream and metadata)
+        /// LongTextProperties: Contain long textual values that can be lazy loaded.
+        /// DynamicProperties: All dynamic property values except the binaries and long texts.
+        /// </param>
+        /// <param name="versionIdsToDelete"></param>
+        /// <param name="originalPath"></param>
+        /// <returns></returns>
         public abstract Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             string originalPath = null);
+
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
@@ -71,6 +137,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             int currentVersionId, int expectedVersionId = 0,
             string originalPath = null);
+
         // Executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
@@ -81,9 +148,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds);
 
         public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData);
+
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp);
 
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds);
+
         public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId);
 
         public abstract Task<bool> NodeExistsAsync(string path);
