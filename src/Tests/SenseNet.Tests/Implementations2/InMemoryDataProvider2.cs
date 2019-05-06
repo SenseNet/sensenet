@@ -32,8 +32,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Nodes */
 
-        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData)
+        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
@@ -58,7 +60,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
-                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, true);
@@ -87,15 +88,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override STT.Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            string originalPath = null)
+            string originalPath = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
                 {
                     var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
                     if (existingNodeDoc == null)
-                        throw new Exception( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException( //UNDONE:DB[ Exception type?
                             $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
                         throw new NodeIsOutOfDateException(
@@ -104,13 +106,13 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     // Get VersionDoc and update
                     var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
                     if (versionDoc == null)
-                        throw new Exception( //UNDONE:DB[ Exception type?
+                        throw new ContentNotFoundException( //UNDONE:DB[ Exception type?
                             $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
                     var updatedVersionDoc = CloneVersionDocSafe(versionDoc);
-                    DB.Versions.Remove(versionDoc);
                     var versionId = versionData.VersionId;
                     dynamicData.VersionId = versionData.VersionId;
                     UpdateVersionDocSafe(updatedVersionDoc, versionData, dynamicData);
+                    DB.Versions.Remove(versionDoc);
                     DB.Versions.Insert(updatedVersionDoc);
 
                     // Delete unnecessary versions
@@ -128,13 +130,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
-                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, false);
 
                     // Update subtree if needed
-                    if(originalPath != null)
+                    if (originalPath != null)
                         UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
 
                     versionData.Timestamp = versionDoc.Timestamp;
@@ -155,8 +156,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override STT.Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            int expectedVersionId = 0, string originalPath = null)
+            int expectedVersionId = 0, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
@@ -191,7 +193,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
 
-                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     // (copy old values is unnecessary because all binary properties were loaded before save).
                     foreach (var item in dynamicData.BinaryProperties)
@@ -228,8 +229,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete)
+        public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
@@ -281,8 +284,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray)
+        public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 List<NodeData> result = new List<NodeData>();
@@ -360,8 +364,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData)
+        public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
@@ -425,8 +430,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp)
+        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             using (var transaction = DB.BeginTransaction())
             {
                 try
@@ -480,8 +487,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds)
+        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.LongTextProperties
@@ -492,8 +501,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId)
+        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 BinaryDataValue result = null;
@@ -525,8 +535,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<bool> NodeExistsAsync(string path)
+        public override Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Nodes.Any(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
@@ -536,8 +547,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== NodeHead */
 
-        public override Task<NodeHead> LoadNodeHeadAsync(string path)
+        public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 NodeHead result = null;
@@ -548,8 +560,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<NodeHead> LoadNodeHeadAsync(int nodeId)
+        public override Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 NodeHead result = null;
@@ -560,8 +573,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId)
+        public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
@@ -576,8 +590,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads)
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var headIds = heads.ToArray();
@@ -589,8 +604,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId)
+        public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Versions
@@ -603,8 +619,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var versions = DB.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
@@ -612,8 +629,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path)
+        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
@@ -648,24 +666,27 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== NodeQuery */
 
-        public override Task<int> InstanceCountAsync(int[] nodeTypeIds)
+        public override Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
                 return STT.Task.FromResult(result);
             }
         }
-        public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId)
+        public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Nodes.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
                 return STT.Task.FromResult((IEnumerable<int>)result);
             }
         }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 IEnumerable<NodeDoc> nodes = DB.Nodes;
@@ -696,9 +717,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult((IEnumerable<int>)result);
             }
         }
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
             //UNDONE:DB: Partially implemented.
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 IEnumerable<NodeDoc> nodes = DB.Nodes;
@@ -777,9 +799,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult((IEnumerable<int>)ids.ToArray());
             }
         }
-        public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds)
+        public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 if (referenceName == null)
@@ -815,7 +838,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Tree */
 
-        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId)
+        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             // /Root
             // /Root/Site1
@@ -833,6 +856,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             // Move /Root/Site1/Folder1 to /Root/Site2
             // Expected type list: Folder, Task1, DocLib1, MemoList
 
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var permeableList = new[] { "Folder", "Page" }
@@ -854,8 +878,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path)
+        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Nodes
@@ -866,8 +891,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult(result);
             }
         }
-        private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList)
+        private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 foreach (var child in DB.Nodes.Where(x => x.ParentNodeId == root.NodeId))
@@ -879,8 +905,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync()
+        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Nodes
@@ -898,8 +925,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== TreeLock */
 
-        public override Task<int> AcquireTreeLockAsync(string path)
+        public override Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var parentChain = GetParentChainSafe(path);
@@ -923,8 +951,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<bool> IsTreeLockedAsync(string path)
+        public override Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var parentChain = GetParentChainSafe(path);
@@ -938,8 +967,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override STT.Task ReleaseTreeLockAsync(int[] lockIds)
+        public override STT.Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 foreach (var lockId in lockIds)
@@ -948,8 +978,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync()
+        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
@@ -972,8 +1003,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== IndexDocument */
 
-        public override STT.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc)
+        public override STT.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == nodeData.VersionId);
@@ -987,8 +1019,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc)
+        public override STT.Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
@@ -1001,16 +1034,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = versionIds.Select(LoadIndexDocumentByVersionIdSafe).Where(i => i != null).ToArray();
                 return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
             }
         }
-        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = new List<IndexDocumentData>();
@@ -1029,8 +1064,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId)
+        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.Versions
@@ -1073,8 +1109,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== IndexingActivity */
 
-        public override Task<int> GetLastIndexingActivityIdAsync()
+        public override Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
             {
                 var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
@@ -1082,8 +1119,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
             {
@@ -1098,8 +1136,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(result.ToArray());
         }
 
-        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = new List<IIndexingActivity>();
             lock (DB.IndexingActivities)
             {
@@ -1115,8 +1154,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(result.ToArray());
         }
 
-        public override Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public override Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var output = new List<IIndexingActivity>();
             var recordsToStart = new List<IndexingActivityDoc>();
             var timeLimit = DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds);
@@ -1155,8 +1195,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(output.ToArray());
         }
 
-        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds)
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var activities = LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds).Result;
             lock (DB.IndexingActivities)
             {
@@ -1172,8 +1213,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity)
+        public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
             {
                 var newId = DB.IndexingActivities.GetNextId();
@@ -1196,8 +1238,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState)
+        public override STT.Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
             {
                 var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
@@ -1207,8 +1250,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds)
+        public override STT.Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
             {
                 var now = DateTime.UtcNow;
@@ -1222,16 +1266,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task DeleteFinishedIndexingActivitiesAsync()
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
                 foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
                     DB.IndexingActivities.Remove(existing);
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task DeleteAllIndexingActivitiesAsync()
+        public override STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB.IndexingActivities)
             {
                 DB.IndexingActivities.Clear();
@@ -1279,8 +1325,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Schema */
 
-        public override Task<RepositorySchemaData> LoadSchemaAsync()
+        public override Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
                 return STT.Task.FromResult(DB.Schema.Clone());
         }
@@ -1324,8 +1371,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Logging */
 
-        public override STT.Task WriteAuditEventAsync(AuditEventInfo auditEvent)
+        public override STT.Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var newId = DB.LogEntries.GetNextId();
@@ -1367,8 +1415,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return text?.Length < TextAlternationSizeLimit;
         }
 
-        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension)
+        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
             var existingName = DB.Nodes
                 .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
@@ -1390,8 +1439,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return order;
         }
 
-        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren)
+        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var collection = includeChildren
@@ -1411,8 +1461,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<int> GetNodeCountAsync(string path)
+        public override Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
@@ -1424,8 +1475,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<int> GetVersionCountAsync(string path)
+        public override Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
@@ -1442,8 +1494,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<long> GetNodeTimestampAsync(int nodeId)
+        public override Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
@@ -1452,8 +1505,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<long> GetVersionTimestampAsync(int versionId)
+        public override Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
@@ -1464,8 +1518,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Installation */
 
-        public override STT.Task InstallInitialDataAsync(InitialData data)
+        public override STT.Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 DB.Schema = data.Schema.Clone();

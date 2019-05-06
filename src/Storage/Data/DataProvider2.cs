@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
@@ -90,8 +91,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// LongTextProperties: long text values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
+        /// <param name="cancellationToken"></param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData);
+        public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Updates objects in the database that contain static and dynamic properties of the node.
@@ -145,7 +148,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            string originalPath = null);
+            string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Copies all objects that contain static and dynamic properties of the node (except the nodeHead representation)
@@ -205,7 +208,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            int expectedVersionId = 0, string originalPath = null);
+            int expectedVersionId = 0, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
@@ -232,80 +235,95 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
+        public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Returns loaded NodeData by the given versionIds
         /// </summary>
-        public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds);
+        public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData);
+        public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp);
+        public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
+            CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds);
+        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
+            CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId);
+        public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
+            CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<bool> NodeExistsAsync(string path);
+        public abstract Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== NodeHead */
 
-        public abstract Task<NodeHead> LoadNodeHeadAsync(string path);
-        public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId);
-        public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId);
-        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads);
-        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId);
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId);
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path);
+        public abstract Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== NodeQuery */
 
-        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds);
-        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
-        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
-        public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds);
+        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart,
+            bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart,
+            bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId,
+            int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Tree */
 
-        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId);
-        public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path);
-        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync();
+        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== TreeLock */
 
-        public abstract Task<int> AcquireTreeLockAsync(string path);
-        public abstract Task<bool> IsTreeLockedAsync(string path);
-        public abstract Task ReleaseTreeLockAsync(int[] lockIds);
-        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync();
+        public abstract Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== IndexDocument */
 
-        public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc);
-        public abstract Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc);
+        public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds);
-        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
+        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds,
+            CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes,
+            CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId);
+        public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== IndexingActivity */
 
-        public abstract Task<int> GetLastIndexingActivityIdAsync();
-        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
-        public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
-        public abstract Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds);
-        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity);
-        public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState);
-        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds);
-        public abstract Task DeleteFinishedIndexingActivitiesAsync();
-        public abstract Task DeleteAllIndexingActivitiesAsync();
+        public abstract Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count,
+            bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
+            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(
+            IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(
+            IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds,
+            CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
+            CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Schema */
 
-        public abstract Task<RepositorySchemaData> LoadSchemaAsync();
+        public abstract Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken));
         public abstract SchemaWriter CreateSchemaWriter();
 
         //UNDONE:DB ------Refactor: Move to SchemaWriter? Delete the freature and implement individually in the providers?
@@ -324,24 +342,25 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent);
+        public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Provider Tools */
 
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
-        public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension);
-        public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren);
-        public abstract Task<int> GetNodeCountAsync(string path);
-        public abstract Task<int> GetVersionCountAsync(string path);
+        public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
+            CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Infrastructure */
 
-        public abstract Task InstallInitialDataAsync(InitialData data);
+        public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Tools */
 
-        public abstract Task<long> GetNodeTimestampAsync(int nodeId);
-        public abstract Task<long> GetVersionTimestampAsync(int versionId);
+        public abstract Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
