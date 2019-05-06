@@ -62,7 +62,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  5 - Store (insert) the [versionData] representation.
         ///  6 - Ensure that the timestamp of the stored version is incremented.
         ///  7 - Store (insert) all representation of the dynamic property data including long texts, binary properties and files.
-        ///      Use the new versionId in these items.
+        ///      Use the new versionId in these items. It is strongly recommended that BinaryProperties and files be managed with
+        ///      the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
         ///  8 - Collect last versionIds (last major and last minor).
         ///  9 - Store (insert) the [nodeHeadData] reresentation. Use the last major and minor versionIds.
         /// 10 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
@@ -73,6 +74,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
+        ///        BinaryProperties or files are not managed with the BlobStorage API.
         /// 12 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
@@ -103,7 +106,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  6 - Ensure that the timestamp of the stored version is incremented.
         ///  7 - Delete unnecessary version representations by the given [versionIdsToDelete]
         ///  8 - Update all representation of the dynamic property data including long texts, binary properties and files.
-        ///      Use the new versionId in these items.
+        ///      Use the new versionId in these items. It is strongly recommended that BinaryProperties and files be managed with
+        ///      the BlobStorage API (e.g. BlobStorage.UpdateBinaryProperty method).
         ///  9 - Collect last versionIds (last major and last minor).
         /// 10 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
         /// 11 - Ensure that the timestamp of the stored nodeHead is incremented.
@@ -116,6 +120,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
+        ///        BinaryProperties or files are not managed with the BlobStorage API.
         /// 14 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
@@ -156,6 +162,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  9 - Copy the longText data representation by source versionId to the target representation and update with the
         ///      [dynamicData].LongTextProperties
         /// 10 - Save binary properties to the target version (copy old values is unnecessary because all binary properties were loaded before save).
+        ///      It is strongly recommended that BinaryProperties and files be managed with the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
         /// 11 - Delete unnecessary version representations by the given [versionIdsToDelete]
         /// 12 - Collect last versionIds (last major and last minor).
         /// 13 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
@@ -169,6 +176,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
+        ///        BinaryProperties or files are not managed with the BlobStorage API.
         /// 17 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
