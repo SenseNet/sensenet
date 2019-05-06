@@ -50,23 +50,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Nodes */
 
         /// <summary>
-        /// Persists a brand new objects that contains all static and dynamic properties of the actual node (see the algorithm).
-        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        /// Persists brand new objects that contain all static and dynamic properties of the node.
+        /// Writes back the newly generated ids and timestamps to the provided [nodeHeadData], [versionData] 
+        /// and [dynamicData] parameters:
         ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
-        /// ... Need to be transactional
-        /// ... Algorithm:
+        /// This method needs to be transactional. If an error occurs during execution, all data changes
+        /// should be reverted to the original state by the data provider.
+        /// Algorithm:
         ///  1 - Begin a new transaction
-        ///  2 - Check the [nodeHeadData].Path uniqueness. If not, throw NodeAlreadyExistsException.
-        ///  3 - Ensure the new unique NodeId and use it in the node head representation.
-        ///  4 - Ensure the new unique VersionId and use it in the version head representation and any other version related data.
+        ///  2 - Check the uniqueness of the [nodeHeadData].Path value. If that fails, throw a <see cref="NodeAlreadyExistsException"/>.
+        ///  3 - Ensure a new unique NodeId and use it in the node head representation.
+        ///  4 - Ensure a new unique VersionId and use it in the version head representation and any other version related data.
         ///  5 - Store (insert) the [versionData] representation.
         ///  6 - Ensure that the timestamp of the stored version is incremented.
-        ///  7 - Store (insert) all representation of the dynamic property data including long texts, binary properties and files.
-        ///      Use the new versionId in these items. It is strongly recommended that BinaryProperties and files be managed with
-        ///      the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
-        ///  8 - Collect last versionIds (last major and last minor).
-        ///  9 - Store (insert) the [nodeHeadData] reresentation. Use the last major and minor versionIds.
-        /// 10 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
+        ///  7 - Store (insert) dynamic property data including long texts, binary properties and files.
+        ///      Use the new versionId in these items. It is strongly recommended to manage BinaryProperties and files
+        ///      using the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
+        ///  8 - Collect last major and last minor versionIds.
+        ///  9 - Store (insert) the [nodeHeadData] value. Use the new last major and minor versionIds.
+        /// 10 - Ensure that the timestamp of the stored nodeHead is incremented.
         /// 11 - Write back the following changed values:
         ///      - new nodeId: [nodeHeadData].NodeId
         ///      - new versionId: [versionData].VersionId
@@ -74,67 +76,71 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
-        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
-        ///        BinaryProperties or files are not managed with the BlobStorage API.
-        /// 12 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
-        ///      In case of error the written back data (new ids and changed timestamps)
-        ///      will be dropped so rollback these data is not necessary.
+        ///      - If BinaryProperties or files are not managed using the BlobStorage API, update all changed 
+        ///        ids and file ids of BinaryDataValue in the [dynamicData].BinaryProperties property.
+        /// 12 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
+        ///      In case of error the data written into the parameters (new ids and changed timestamps)
+        ///      will be dropped so rolling back these values is not necessary.
         /// </summary>
-        /// <param name="nodeHeadData">Head data of the node. Contains identical information, place in the Big-tree and the most important
-        /// not-versioned property values.</param>
+        /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
+        /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
-        /// <param name="dynamicData">Metadata and blob data of the current version. Separated to some sub collections:
-        /// BinaryProperties: Contain blob information (stream and metadata)
-        /// LongTextProperties: Contain long textual values that can be lazy loaded.
+        /// <param name="dynamicData">Metadata and blob data of the current version, categorized into collections:
+        /// BinaryProperties: blob information (stream and metadata)
+        /// LongTextProperties: long text values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData);
 
         /// <summary>
-        /// Updates all objects that contains all static and dynamic properties of the actual node (see the algorithm).
-        /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
-        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        /// Updates objects in the database that contain static and dynamic properties of the node.
+        /// If the node is renamed (the Name property changed) updates the paths in the subtree.
+        /// Writes back the newly generated ids and timestamps to the given [nodeHeadData], [versionData] 
+        /// and [dynamicData] parameters:
         ///     NodeTimestamp, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
-        /// ... Need to be transactional
-        /// ... Algorithm:
+        /// This method needs to be transactional. If an error occurs during execution, all data changes
+        /// should be reverted to the original state by the data provider.
+        /// Algorithm:
         ///  1 - Begin a new transaction
-        ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
-        ///  3 - Check the version existence by [versionData].VersionId. Throw an ____ exception if the version is deleted.
-        ///  4 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
-        ///  5 - Update the stored version head data implementation by the [versionData].VersionId with the [versionData].
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
+        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an ____ exception if the version is deleted.
+        ///  4 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
+        ///      throw a <see cref="NodeIsOutOfDateException"/>.
+        ///  5 - Update the stored version data by the [versionData].VersionId with the values in the [versionData] parameter.
         ///  6 - Ensure that the timestamp of the stored version is incremented.
-        ///  7 - Delete unnecessary version representations by the given [versionIdsToDelete]
-        ///  8 - Update all representation of the dynamic property data including long texts, binary properties and files.
-        ///      Use the new versionId in these items. It is strongly recommended that BinaryProperties and files be managed with
-        ///      the BlobStorage API (e.g. BlobStorage.UpdateBinaryProperty method).
-        ///  9 - Collect last versionIds (last major and last minor).
-        /// 10 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        ///  7 - Delete unnecessary versions listed in the [versionIdsToDelete] parameter.
+        ///  8 - Update all dynamic property data including long texts, binary properties and files.
+        ///      Use the new versionId in these items. It is strongly recommended to manage BinaryProperties and files 
+        ///      using the BlobStorage API (e.g. BlobStorage.UpdateBinaryProperty method).
+        ///  9 - Collect last major and last minor versionIds.
+        /// 10 - Update the [nodeHeadData] reresentation. Use the new last major and minor versionIds.
         /// 11 - Ensure that the timestamp of the stored nodeHead is incremented.
-        /// 12 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
-        ///      1 - All path will be changed if it starts with "/Root/Folder1/" ([originalPath] + trailing slash, case insensitive).
-        ///      2 - Replace the [original path] to the new path in the [nodeHeadData].Path.
+        /// 12 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] 
+        ///      is "/Root/Folder1", all paths starting with "/Root/Folder1/" ([originalPath] + trailing slash, 
+        ///      case insensitive) will be changed: Replace [originalPath] with the new path in the 
+        ///      [nodeHeadData].Path property.
         /// 13 - Write back the following changed values:
         ///      - new versionId: [versionData].VersionId
         ///      - nodeHead timestamp: [nodeHeadData].Timestamp
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
-        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
-        ///        BinaryProperties or files are not managed with the BlobStorage API.
-        /// 14 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
-        ///      In case of error the written back data (new ids and changed timestamps)
-        ///      will be dropped so rollback these data is not necessary.
+        ///      - If BinaryProperties or files are not managed using the BlobStorage API, update all changed 
+        ///        ids and file ids of BinaryDataValue in the [dynamicData].BinaryProperties property.
+        /// 14 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
+        ///      In case of error the data written into the parameters (new ids and changed timestamps)
+        ///      will be dropped so rolling back these values is not necessary.
         /// </summary>
-        /// <param name="nodeHeadData">Head data of the node. Contains identical information, place in the Big-tree and the most important
-        /// not-versioned property values.</param>
+        /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
+        /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
-        /// <param name="dynamicData">Metadata and blob data of the current version. Separated to some sub collections:
-        /// BinaryProperties: Contain blob information (stream and metadata)
-        /// LongTextProperties: Contain long textual values that can be lazy loaded.
+        /// <param name="dynamicData">Metadata and blob data of the current version, categorized into collections:
+        /// BinaryProperties: blob information (stream and metadata)
+        /// LongTextProperties: long textual values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
-        /// <param name="versionIdsToDelete">Set of versionIds that defines the versions that need to be deleted. Can be empty but never null.</param>
+        /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeAsync(
@@ -142,55 +148,58 @@ namespace SenseNet.ContentRepository.Storage.Data
             string originalPath = null);
 
         /// <summary>
-        /// Copies all objects that contains all static and dynamic properties of the actual node (except the nodeHead representation)
-        /// and updates the copy with the given data. Source version is identified by the [versionData].VersionId. Updates the paths
+        /// Copies all objects that contain static and dynamic properties of the node (except the nodeHead representation)
+        /// and updates the copy with the provided data. Source version is identified by the [versionData].VersionId. Updates the paths
         /// in the subtree if the node is renamed (i.e. Name property changed). Target version descriptor is the [expectedVersionId]
-        /// parameter. See the algorithm below.
-        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        /// parameter.
+        /// Writes back the newly generated data to the [nodeHeadData], [versionData] and [dynamicData] parameters:
         ///     NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
-        /// ... Need to be transactional
+        /// This method needs to be transactional. If an error occurs during execution, all data changes
+        /// should be reverted to the original state by the data provider.
         ///  1 - Begin a new transaction
-        ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
-        ///  3 - Check the version existence by [versionData].VersionId. Throw an ____ exception if the version is deleted.
-        ///  4 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
-        ///  5 - Determine the target version: if [expectedVersionId] is not null, load the existing by the version head representation 
-        ///      by the [expectedVersionId] otherwise create a brand new one.
-        ///  6 - Copy the source version head data to the target representation and update with the [versionData].
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
+        ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an ____ exception if the version is deleted.
+        ///  4 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
+        ///      throw a <see cref="NodeIsOutOfDateException"/>.
+        ///  5 - Determine the target version: if [expectedVersionId] is not null, load the existing instance, 
+        ///      otherwise create a new one.
+        ///  6 - Copy the source version head data to the target representation and update it with the values in [versionData].
         ///  7 - Ensure that the timestamp of the stored version is incremented.
-        ///  8 - Copy the dynamic data representation by source versionId to the target representation and update with the
-        ///      [dynamicData].DynamicProperties
-        ///  9 - Copy the longText data representation by source versionId to the target representation and update with the
-        ///      [dynamicData].LongTextProperties
-        /// 10 - Save binary properties to the target version (copy old values is unnecessary because all binary properties were loaded before save).
-        ///      It is strongly recommended that BinaryProperties and files be managed with the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
-        /// 11 - Delete unnecessary version representations by the given [versionIdsToDelete]
-        /// 12 - Collect last versionIds (last major and last minor).
-        /// 13 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        ///  8 - Copy the dynamic data to the target and update it with the values in [dynamicData].DynamicProperties.
+        ///  9 - Copy the longText data to the target and update it with the values in [dynamicData].LongTextProperties.
+        /// 10 - Save binary properties to the target version (copying old values is unnecessary because all 
+        ///      binary properties were loaded before save).
+        ///      It is strongly recommended to manage BinaryProperties and files 
+        ///      using the BlobStorage API (e.g. BlobStorage.InsertBinaryProperty method).
+        /// 11 - Delete unnecessary versions listed in the [versionIdsToDelete] parameter.
+        /// 12 - Collect last major and last minor versionIds.
+        /// 13 - Update the [nodeHeadData] reresentation. Use the new last major and minor versionIds.
         /// 14 - Ensure that the timestamp of the stored nodeHead is incremented.
-        /// 15 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
-        ///      1 - All path will be changed if it starts with "/Root/Folder1/" ([originalPath] + trailing slash, case insensitive).
-        ///      2 - Replace the [original path] to the new path in the [nodeHeadData].Path.
+        /// 15 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] 
+        ///      is "/Root/Folder1", all paths starting with "/Root/Folder1/" ([originalPath] + trailing slash, 
+        ///      case insensitive) will be changed: Replace [originalPath] with the new path in the 
+        ///      [nodeHeadData].Path property.
         /// 16 - Write back the following changed values:
         ///      - new versionId: [versionData].VersionId
         ///      - nodeHead timestamp: [nodeHeadData].Timestamp
         ///      - version timestamp: [versionData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
-        ///      - Update all changed Id and FileId of the BinaryDataValue in the [dynamicData].BinaryProperties if the
-        ///        BinaryProperties or files are not managed with the BlobStorage API.
-        /// 17 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
-        ///      In case of error the written back data (new ids and changed timestamps)
-        ///      will be dropped so rollback these data is not necessary.
+        ///      - If BinaryProperties or files are not managed using the BlobStorage API, update all changed 
+        ///        ids and file ids of BinaryDataValue in the [dynamicData].BinaryProperties property.
+        /// 17 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
+        ///      In case of error the data written into the parameters (new ids and changed timestamps)
+        ///      will be dropped so rolling back these values is not necessary.
         /// </summary>
-        /// <param name="nodeHeadData">Head data of the node. Contains identical information, place in the Big-tree and the most important
-        /// not-versioned property values.</param>
+        /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
+        /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
-        /// <param name="dynamicData">Metadata and blob data of the current version. Separated to some sub collections:
-        /// BinaryProperties: Contain blob information (stream and metadata)
-        /// LongTextProperties: Contain long textual values that can be lazy loaded.
+        /// <param name="dynamicData">Metadata and blob data of the current version, categorized into collections:
+        /// BinaryProperties: blob information (stream and metadata)
+        /// LongTextProperties: long textual values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
-        /// <param name="versionIdsToDelete">Set of versionIds that defines the versions that need to be deleted. Can be empty but never null.</param>
+        /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
@@ -200,24 +209,28 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <summary>
         /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
-        /// ... Need to be transactional
+        /// This method needs to be transactional. If an error occurs during execution, all data changes
+        /// should be reverted to the original state by the data provider.
+        /// Algorithm:
         ///  1 - Begin a new transaction
-        ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
-        ///  3 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
-        ///  4 - Delete unnecessary version representations by the given [versionIdsToDelete]
-        ///  5 - Collect last versionIds (last major and last minor).
-        ///  6 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an ____ exception if the node is deleted.
+        ///  3 - Check concurrent updates: if the provided and stored [nodeHeadData].Timestap values are not equal, 
+        ///      throw a <see cref="NodeIsOutOfDateException"/>.
+        ///  4 - Delete unnecessary versions listed in the [versionIdsToDelete] parameter.
+        ///  5 - Collect last major and last minor versionIds.
+        ///  6 - Update the [nodeHeadData] reresentation. Use the new last major and minor versionIds.
         ///  7 - Ensure that the timestamp of the stored nodeHead is incremented.
         ///  8 - Write back the following changed values:
         ///      - nodeHead timestamp: [nodeHeadData].Timestamp
         ///      - last major version id: [nodeHeadData].LastMajorVersionId
         ///      - last minor version id: [nodeHeadData].LastMinorVersionId
-        ///  9 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
-        ///      In case of error the written back data (new ids and changed timestamps)
-        ///      will be dropped so rollback these data is not necessary.
+        ///  9 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
+        ///      In case of error the data written into the parameters (new ids and changed timestamps)
+        ///      will be dropped so rolling back these values is not necessary.
         /// </summary>
-        /// <param name="nodeHeadData"></param>
-        /// <param name="versionIdsToDelete"></param>
+        /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
+        /// content tree and the most important not-versioned property values.</param>
+        /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
 
