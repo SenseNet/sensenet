@@ -49,15 +49,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Nodes */
 
-        // Original SqlProvider executes these:
-        // - INodeWriter: void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-        // - DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         /// <summary>
-        /// Persists a brand new objects that contains all static and dynamic properties of the actual node.
-        /// Write back the newly generated data to the given nodeHeadData and versionData parameters:
-        ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds.
-        /// Write back the modified data into the given "settings"
-        ///     LastMajorVersionId, LastMinorVersionId.
+        /// Persists a brand new objects that contains all static and dynamic properties of the actual node (see the algorithm).
+        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// ... Need to be transactional
         /// ... Algorithm:
         ///  1 - Begin a new transaction
@@ -90,15 +85,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// LongTextProperties: Contain long textual values that can be lazy loaded.
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
-        /// <returns>An awaitable object.</returns>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData);
 
-        // Original SqlProvider executes these:
-        // - INodeWriter: UpdateNodeRow(nodeData);
-        // - INodeWriter: UpdateVersionRow(nodeData, out lastMajorVersionId, out lastMinorVersionId);
-        // - DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        // - DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         /// <summary>
+        /// Updates all objects that contains all static and dynamic properties of the actual node (see the algorithm).
+        /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
+        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        ///     NodeTimestamp, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// ... Need to be transactional
         /// ... Algorithm:
         ///  1 - Begin a new transaction
@@ -136,18 +130,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </param>
         /// <param name="versionIdsToDelete">Set of versionIds that defines the versions that need to be deleted. Can be empty but never null.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
-        /// <returns></returns>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             string originalPath = null);
 
-        // Original SqlProvider executes these:
-        // INodeWriter: UpdateNodeRow(nodeData);
-        // INodeWriter: CopyAndUpdateVersion(nodeData, settings.CurrentVersionId, settings.ExpectedVersionId, out lastMajorVersionId, out lastMinorVersionId);
-        // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-        // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         /// <summary>
-        /// Source version is identified by the [versionData].VersionId.
+        /// Copies all objects that contains all static and dynamic properties of the actual node (except the nodeHead representation)
+        /// and updates the copy with the given data. Source version is identified by the [versionData].VersionId. Updates the paths
+        /// in the subtree if the node is renamed (i.e. Name property changed). Target version descriptor is the [expectedVersionId]
+        /// parameter. See the algorithm below.
+        /// Writes back the newly generated data to the given [nodeHeadData], [versionData] and [dynamicData] parameters:
+        ///     NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// ... Need to be transactional
         ///  1 - Begin a new transaction
         ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
@@ -190,14 +184,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionIdsToDelete">Set of versionIds that defines the versions that need to be deleted. Can be empty but never null.</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
-        /// <returns></returns>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             int expectedVersionId = 0, string originalPath = null);
 
-        // Original SqlProvider executes these:
-        // INodeWriter: UpdateNodeRow(nodeData);
         /// <summary>
+        /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
         /// ... Need to be transactional
         ///  1 - Begin a new transaction
         ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
@@ -216,7 +209,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="nodeHeadData"></param>
         /// <param name="versionIdsToDelete"></param>
-        /// <returns></returns>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
 
         /// <summary>
