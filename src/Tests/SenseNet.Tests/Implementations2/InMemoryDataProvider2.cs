@@ -58,6 +58,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
+                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, true);
@@ -127,6 +128,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
 
+                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
                         SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, false);
@@ -189,6 +191,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     foreach (var item in dynamicData.LongTextProperties)
                         SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
 
+                    //UNDONE:DB[ new BinaryPropertyIds ???
                     // Manage BinaryProperties
                     // (copy old values is unnecessary because all binary properties were loaded before save).
                     foreach (var item in dynamicData.BinaryProperties)

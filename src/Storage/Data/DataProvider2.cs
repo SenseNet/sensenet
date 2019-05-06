@@ -62,16 +62,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// ... Algorithm:
         ///  1 - Begin a new transaction
         ///  2 - Check the [nodeHeadData].Path uniqueness. If not, throw NodeAlreadyExistsException.
-        ///  3 - Ensure the new unique NodeId and write back to the [nodeHeadData].NodeId.
-        ///  4 - Ensure the new unique VersionId and write back to the [versionData].VersionId and dynamicData.VersionId.
+        ///  3 - Ensure the new unique NodeId and use it in the node head representation.
+        ///  4 - Ensure the new unique VersionId and use it in the version head representation and any other version related data.
         ///  5 - Store (insert) the [versionData] representation.
-        ///  6 - Ensure that the timestamp of the stored version is incremented and write back this value to the [versionData].Timestamp.
+        ///  6 - Ensure that the timestamp of the stored version is incremented.
         ///  7 - Store (insert) all representation of the dynamic property data including long texts, binary properties and files.
         ///      Use the new versionId in these items.
         ///  8 - Collect last versionIds (last major and last minor).
         ///  9 - Store (insert) the [nodeHeadData] reresentation. Use the last major and minor versionIds.
         /// 10 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
-        /// 11 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        /// 11 - Write back the following changed values:
+        ///      - new nodeId: [nodeHeadData].NodeId
+        ///      - new versionId: [versionData].VersionId
+        ///      - nodeHead timestamp: [nodeHeadData].Timestamp
+        ///      - version timestamp: [versionData].Timestamp
+        ///      - last major version id: [nodeHeadData].LastMajorVersionId
+        ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        /// 12 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
         /// </summary>
@@ -99,17 +106,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  3 - Check the version existence by [versionData].VersionId. Throw an ____ exception if the version is deleted.
         ///  4 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
         ///  5 - Update the stored version head data implementation by the [versionData].VersionId with the [versionData].
-        ///  6 - Ensure that the timestamp of the stored version is incremented and write back this value to the [versionData].Timestamp.
-        ///  7 - Delete version representations by the given [versionIdsToDelete]
+        ///  6 - Ensure that the timestamp of the stored version is incremented.
+        ///  7 - Delete unnecessary version representations by the given [versionIdsToDelete]
         ///  8 - Update all representation of the dynamic property data including long texts, binary properties and files.
         ///      Use the new versionId in these items.
         ///  9 - Collect last versionIds (last major and last minor).
         /// 10 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
-        /// 11 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
+        /// 11 - Ensure that the timestamp of the stored nodeHead is incremented.
         /// 12 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
         ///      1 - All path will be changed if it starts with "/Root/Folder1/" ([originalPath] + trailing slash, case insensitive).
         ///      2 - Replace the [original path] to the new path in the [nodeHeadData].Path.
-        /// 13 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        /// 13 - Write back the following changed values:
+        ///      - new versionId: [versionData].VersionId
+        ///      - nodeHead timestamp: [nodeHeadData].Timestamp
+        ///      - version timestamp: [versionData].Timestamp
+        ///      - last major version id: [nodeHeadData].LastMajorVersionId
+        ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        /// 14 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
         /// </summary>
@@ -134,27 +147,35 @@ namespace SenseNet.ContentRepository.Storage.Data
         // DataProvider: private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         // DataProvider: protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
         /// <summary>
+        /// Source version is identified by the [versionData].VersionId.
         /// ... Need to be transactional
         ///  1 - Begin a new transaction
         ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
         ///  3 - Check the version existence by [versionData].VersionId. Throw an ____ exception if the version is deleted.
         ///  4 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
-        /// 
-        /// 
-        /// 
-        /// 
-        ///  5 - Update the stored version head data implementation by the [versionData].VersionId with the [versionData].
-        ///  6 - Ensure that the timestamp of the stored version is incremented and write back this value to the [versionData].Timestamp.
-        ///  7 - Delete version representations by the given [versionIdsToDelete]
-        ///  8 - Update all representation of the dynamic property data including long texts, binary properties and files.
-        ///      Use the new versionId in these items.
-        ///  9 - Collect last versionIds (last major and last minor).
-        /// 10 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
-        /// 11 - Ensure that the timestamp of the stored nodeHead is incremented and write back this value to the [nodeHeadData].Timestamp.
-        /// 12 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
+        ///  5 - Determine the target version: if [expectedVersionId] is not null, load the existing by the version head representation 
+        ///      by the [expectedVersionId] otherwise create a brand new one.
+        ///  6 - Copy the source version head data to the target representation and update with the [versionData].
+        ///  7 - Ensure that the timestamp of the stored version is incremented.
+        ///  8 - Copy the dynamic data representation by source versionId to the target representation and update with the
+        ///      [dynamicData].DynamicProperties
+        ///  9 - Copy the longText data representation by source versionId to the target representation and update with the
+        ///      [dynamicData].LongTextProperties
+        /// 10 - Save binary properties to the target version (copy old values is unnecessary because all binary properties were loaded before save).
+        /// 11 - Delete unnecessary version representations by the given [versionIdsToDelete]
+        /// 12 - Collect last versionIds (last major and last minor).
+        /// 13 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        /// 14 - Ensure that the timestamp of the stored nodeHead is incremented.
+        /// 15 - Update paths in the subtree if the [originalPath] is not null. For example: if the [originalPath] is "/Root/Folder1",
         ///      1 - All path will be changed if it starts with "/Root/Folder1/" ([originalPath] + trailing slash, case insensitive).
         ///      2 - Replace the [original path] to the new path in the [nodeHeadData].Path.
-        /// 13 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        /// 16 - Write back the following changed values:
+        ///      - new versionId: [versionData].VersionId
+        ///      - nodeHead timestamp: [nodeHeadData].Timestamp
+        ///      - version timestamp: [versionData].Timestamp
+        ///      - last major version id: [nodeHeadData].LastMajorVersionId
+        ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        /// 17 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
         ///      In case of error the written back data (new ids and changed timestamps)
         ///      will be dropped so rollback these data is not necessary.
         /// </summary>
@@ -174,8 +195,28 @@ namespace SenseNet.ContentRepository.Storage.Data
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             int expectedVersionId = 0, string originalPath = null);
 
-        // Executes these:
+        // Original SqlProvider executes these:
         // INodeWriter: UpdateNodeRow(nodeData);
+        /// <summary>
+        /// ... Need to be transactional
+        ///  1 - Begin a new transaction
+        ///  2 - Check the node existence by [nodeHeadData].NodeId. Throw an ____ exception if the node is deleted.
+        ///  3 - Check the concurrent update. If the [nodeHeadData].Timestap and stored not timestamp are not equal, throw a NodeIsOutOfDateException
+        ///  4 - Delete unnecessary version representations by the given [versionIdsToDelete]
+        ///  5 - Collect last versionIds (last major and last minor).
+        ///  6 - Update the [nodeHeadData] reresentation. Use the last major and minor versionIds.
+        ///  7 - Ensure that the timestamp of the stored nodeHead is incremented.
+        ///  8 - Write back the following changed values:
+        ///      - nodeHead timestamp: [nodeHeadData].Timestamp
+        ///      - last major version id: [nodeHeadData].LastMajorVersionId
+        ///      - last minor version id: [nodeHeadData].LastMinorVersionId
+        ///  9 - Commit the transaction. If there is any problem, rollback the transaction and throw/rethrow an exception.
+        ///      In case of error the written back data (new ids and changed timestamps)
+        ///      will be dropped so rollback these data is not necessary.
+        /// </summary>
+        /// <param name="nodeHeadData"></param>
+        /// <param name="versionIdsToDelete"></param>
+        /// <returns></returns>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete);
 
         /// <summary>
