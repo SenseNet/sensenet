@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,6 +20,7 @@ using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
 using SenseNet.Tests.Implementations2;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests
 {
@@ -135,16 +135,16 @@ namespace SenseNet.Tests
 
         // ==========================================================
 
-        protected T Test<T>(Func<T> callback)
+        protected STT.Task Test(Func<STT.Task> callback)
         {
             return Test(false, null, callback);
         }
-        protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        protected STT.Task Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             EnsurePrototypes();
-            return ExecuteTest<T>(useCurrentUser, initialize, callback);
+            return ExecuteTest(useCurrentUser, initialize, callback);
         }
-        private T ExecuteTest<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        private STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
@@ -267,6 +267,7 @@ DataStore.Enabled = backup;
 
         protected void RebuildIndex()
         {
+            // ReSharper disable once CollectionNeverQueried.Local
             var paths = new List<string>();
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
