@@ -127,6 +127,13 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public List<ContentType> ChildTypes { get; private set; }
 
+        private bool _unknownHandler;
+        internal bool UnknownHandler
+        {
+            get => _unknownHandler || (this.ParentType?.UnknownHandler ?? false);
+            private set => _unknownHandler = value;
+        }
+
         /// <summary>
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.
         /// </summary>
@@ -393,6 +400,8 @@ namespace  SenseNet.ContentRepository.Schema
 
             this.HandlerName = contentTypeElement.GetAttribute("handler", String.Empty);
             this.ParentTypeName = contentTypeElement.GetAttribute("parentType", String.Empty);
+
+            this.UnknownHandler = TypeResolver.GetType(this.HandlerName, false) == null;
 
             if (this.ParentTypeName.Length == 0)
                 this.ParentTypeName = null;

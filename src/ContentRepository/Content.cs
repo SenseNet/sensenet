@@ -1014,6 +1014,8 @@ namespace SenseNet.ContentRepository
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
         public void Save(bool validOnly, SavingMode mode)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1039,6 +1041,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public void FinalizeContent()
         {
+            AssertContentType();
+
             this.ContentHandler.FinalizeContent();
         }
 
@@ -1091,6 +1095,8 @@ namespace SenseNet.ContentRepository
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
         public void SaveSameVersion(bool validOnly)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1109,6 +1115,8 @@ namespace SenseNet.ContentRepository
 
         public void SaveExplicitVersion(bool validOnly = true)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1121,6 +1129,13 @@ namespace SenseNet.ContentRepository
             var template = _contentHandler.Template;
             if (template != null)
                 ContentTemplate.CopyContents(this);
+        }
+
+        private void AssertContentType()
+        {
+            if (this.ContentType.UnknownHandler)
+                throw new InvalidOperationException(
+                    $"Cannot save a content with the type {this.ContentType.Name} if its handler is missing.");
         }
 
         /// <summary>

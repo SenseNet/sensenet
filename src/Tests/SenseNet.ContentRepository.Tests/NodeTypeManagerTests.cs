@@ -33,70 +33,70 @@ namespace SenseNet.ContentRepository.Tests
         {
             EnsurePrototypes();
 
-            // find the GenericContent CTD content file
-            var proto = InMemoryDataProvider.Prototype;
-            var fileRecord = proto.Files.First(ff =>
-                ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == "Folder");
-
-            // set a fake handler
-            InMemoryDataProvider.SetContentHandler(fileRecord, "unknownhandler", "Folder", proto);
-            
-            try
+            Test(() =>
             {
-                Test(() =>
+                // allow the File type in the root because we'll need it later
+                var parent = Node.Load<GenericContent>("/Root");
+                parent.AllowChildType("File", save: true);
+
+                // create a system folder
+                var sysFolderName = Guid.NewGuid().ToString();
+                var sysFolder = Content.CreateNew("SystemFolder", parent, sysFolderName);
+                sysFolder.Save();
+                var originalFieldNames = string.Join(",", sysFolder.Fields.Keys);
+
+                // set the handler of the Folder type to an unknown value
+                var currentDb = ((InMemoryDataProvider) DataProvider.Current).DB;
+                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+
+                NodeTypeManager.Restart();
+                ContentTypeManager.Reset();
+                DistributedApplication.Cache.Reset();
+
+                // reload
+                parent = Node.Load<GenericContent>("/Root");
+
+                // try to create a content with an unknown handler
+                ExpectException(() =>
                 {
-                    var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-                    InMemoryDataProvider.SetContentHandler(fileRecord, "unknownhandler", "Folder", currentDb);
+                    var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
+                    content.Save();
+                }, typeof(InvalidOperationException));
 
-                    NodeTypeManager.Restart();
-                    ContentTypeManager.Reset();
+                // try to create a content with a known handler that has an unknown parent
+                ExpectException(() =>
+                {
+                    var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
+                    content.Save();
+                }, typeof(InvalidOperationException));
 
-                    var parent = Node.LoadNode("/Root");
+                var folderType = ContentTypeManager.Instance.GetContentTypeByName("Folder");
 
-                    // try to create a content with an unknown handler
-                    ExpectException(() =>
-                    {
-                        var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
-                        content.Save();
-                    }, typeof(InvalidOperationException));
+                // check if all related types are marked as unknown
+                foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
+                {
+                    Assert.AreEqual(string.Equals(contentType.Path, folderType.Path) ||
+                                    contentType.Path.StartsWith(folderType.Path + RepositoryPath.PathSeparator),
+                        contentType.UnknownHandler);
+                }
 
-                    // try to create a content with a known handler that has an unknown parent
-                    ExpectException(() =>
-                    {
-                        var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
-                        content.Save();
-                    }, typeof(InvalidOperationException));
+                // load a previously created system folder and iterate through its fields
+                sysFolder = Content.Load(sysFolder.Id);
+                var afterFieldNames = string.Join(",", sysFolder.Fields.Keys);
+                
+                Assert.AreEqual(originalFieldNames, afterFieldNames);
 
-                    //var thrown = false;
-                    //try
-                    //{
-                    //    content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
-                    //    content.Save();
-                    //}
-                    //catch (InvalidOperationException)
-                    //{
-                    //    thrown = true;
-                    //}
+                foreach (var field in sysFolder.Fields)
+                {
+                    // check if field values can be loaded
+                    var val = field.Value;
+                }
 
-                    //Assert.IsTrue(thrown, "Exception was not thrown.");
-
-                    //NodeTypeManager.Restart();
-
-                    //foreach (var nodeType in ActiveSchema.NodeTypes)
-                    //{
-                    //    SnTrace.Test.Write($"NodeType: {nodeType.Name} *** {nodeType.ClassName}");
-                    //}
-                    //foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
-                    //{
-                    //    SnTrace.Test.Write($"ContentType: {contentType.Name} *** {contentType.HandlerName}");
-                    //}
-                });
-            }
-            finally
-            {
-                // reset the correct handler in the prototype
-                InMemoryDataProvider.SetContentHandler(fileRecord, "SenseNet.ContentRepository.Folder");
-            }
+                // This should be allowed because the handler is known
+                // and it does not inherit from Folder.
+                var file = Content.CreateNew("File", parent, Guid.NewGuid().ToString());
+                file.Save();
+            });
         }
 
         private static void ExpectException(Action action, Type exceptionType)
