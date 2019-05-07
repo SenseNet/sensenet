@@ -742,14 +742,22 @@ namespace SenseNet.ContentRepository.Storage
             }
 
             object data;
-            if (propertyType.DataType == DataType.Text)
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (propertyType.DataType)
             {
-                PreloadTextProperties();
-                lock (_readPropertySync)
-                    return  (dynamicData.TryGetValue(propId, out data)) ? data : null;
+                case DataType.Text:
+                    PreloadTextProperties();
+                    lock (_readPropertySync)
+                        return  (dynamicData.TryGetValue(propId, out data)) ? data : null;
+                case DataType.Binary:
+                    //UNDONE:DB!!!!!!!!!! POTENTIAL BUG SOURCE: BinaryProperty loaded without blob provider information
+                    data = DataBackingStore.LoadBinaryProperty(this.VersionId, propertyType);
+                    break;
+                default:
+                    data = propertyType.DefaultValue;
+                    break;
             }
 
-            data = DataBackingStore.LoadProperty(this.VersionId, propertyType); //UNDONE:DB!!!!!!!!!! POTENTIAL BUG SOURCE: BinaryProperty loaded without blob provider information
             lock (_readPropertySync)
                 dynamicData[propId] = data;
             return data;

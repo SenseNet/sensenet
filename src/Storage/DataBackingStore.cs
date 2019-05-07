@@ -347,27 +347,13 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== 
 
-        internal static object LoadProperty(int versionId, PropertyType propertyType) //UNDONE:DB@@@@@@ Rename because handles only DataType.Binary
+        internal static object LoadBinaryProperty(int versionId, PropertyType propertyType)
         {
-            if (DataStore.Enabled)
-            {
-                if (propertyType.DataType == DataType.Text)
-                    //UNDONE:DB@@@@@@ Never called but very ugly
-                    throw new NotImplementedException();
-                if (propertyType.DataType == DataType.Binary)
-                    return DataStore.LoadBinaryPropertyValueAsync(versionId, propertyType.Id).Result;
-            }
-            else
-            {
-                if (propertyType.DataType == DataType.Text)
-                    //UNDONE:DB@@@@@@ Never called
-                    return DataProvider.Current.LoadTextPropertyValue(versionId, propertyType.Id); //DB:ok
-                if (propertyType.DataType == DataType.Binary)
-                    return DataProvider.Current.LoadBinaryPropertyValue(versionId, propertyType.Id); //DB:ok
-            }
-            //UNDONE:DB@@@@@@ Move back to the caller
-            return propertyType.DefaultValue; //UNDONE:DB@@@@@@@ BUG: ALSO STORE THE DEFAULT VALUES.
+            return DataStore.Enabled
+                ? DataStore.LoadBinaryPropertyValueAsync(versionId, propertyType.Id).Result
+                : DataProvider.Current.LoadBinaryPropertyValue(versionId, propertyType.Id); //DB:ok
         }
+
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
             BinaryCacheEntity binaryCacheEntity = null;
