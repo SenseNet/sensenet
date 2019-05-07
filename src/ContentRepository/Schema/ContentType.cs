@@ -618,7 +618,6 @@ namespace  SenseNet.ContentRepository.Schema
         {
             try
             {
-                //UNDONE: typeload
                 var handlerType = TypeResolver.GetType(this.HandlerName, false);
                 if (handlerType == null)
                 {

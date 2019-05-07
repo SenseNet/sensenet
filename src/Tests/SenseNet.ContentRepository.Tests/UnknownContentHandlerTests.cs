@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
@@ -16,7 +11,7 @@ using SenseNet.Tests.Implementations;
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
-    public class NodeTypeManagerTests : TestBase
+    public class UnknownContentHandlerTests : TestBase
     {
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
@@ -29,10 +24,8 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void NodeTypeManager_UnknownHandler()
+        public void UnknownHandler_CreateContent()
         {
-            EnsurePrototypes();
-
             Test(() =>
             {
                 // allow the File type in the root because we'll need it later
@@ -99,6 +92,45 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        [ExpectedException(typeof(RegistrationException))]
+        public void UnknownHandler_InstallUnknownContentType()
+        {
+            var unknownHandlerCTD = @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='UnknownContent' parentType='GenericContent' handler='unknown' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+</ContentType>
+";
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(unknownHandlerCTD);
+            });
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(RegistrationException))]
+        public void UnknownHandler_InstallContentType_UnknownParent()
+        {
+            var testSystemHandlerCTD = @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='TestSystemFolder' parentType='SystemFolder' handler='SenseNet.ContentRepository.Tests.TestSystemFolder' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+</ContentType>
+";
+
+            Test(() =>
+            {
+                // set the handler of the Folder type to an unknown value
+                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
+                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+
+                NodeTypeManager.Restart();
+                ContentTypeManager.Reset();
+                DistributedApplication.Cache.Reset();
+
+                // this should throw an exception: installing a content type with an unknown parent
+                ContentTypeInstaller.InstallContentType(testSystemHandlerCTD);
+            });
+        }
+
         private static void ExpectException(Action action, Type exceptionType)
         {
             var thrown = false;
@@ -114,5 +146,13 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.IsTrue(thrown, $"{exceptionType.Name} was not thrown.");
         }
+    }
+
+    [ContentHandler]
+    public class TestSystemFolder : SystemFolder
+    {
+        public TestSystemFolder(Node parent) : this(parent, null) {  }
+        public TestSystemFolder(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        protected TestSystemFolder(NodeToken nt) : base(nt) { }
     }
 }

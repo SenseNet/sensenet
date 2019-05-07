@@ -114,7 +114,7 @@
     <Compile Include="LoggerTests.cs" />
     <Compile Include="MaintenanceTests.cs" />
     <Compile Include="NodeTests.cs" />
-    <Compile Include="NodeTypeManagerTests.cs" />
+    <Compile Include="UnknownContentHandlerTests.cs" />
     <Compile Include="SharedLockTests.cs" />
     <Compile Include="SharingTests.cs" />
     <Compile Include="SharingVisitorTests.cs" />

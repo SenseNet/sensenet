@@ -338,7 +338,7 @@ namespace SenseNet.ContentRepository.Schema
         internal static void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
         {
             // Find ContentHandler
-            var handlerType = TypeResolver.GetType(contentType.HandlerName, false); //UNDONE: typeload
+            var handlerType = TypeResolver.GetType(contentType.HandlerName, false);
             if (handlerType == null)
                 throw new RegistrationException(string.Concat(
                     SR.Exceptions.Registration.Msg_ContentHandlerNotFound, ": ", contentType.HandlerName));
@@ -350,6 +350,17 @@ namespace SenseNet.ContentRepository.Schema
                 parentNodeType = editor.NodeTypes[contentType.ParentTypeName];
                 if (parentNodeType == null)
                     throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_UnknownParentContentType, contentType.Name);
+
+                // make sure that all content handlers defined on the parent chain exist
+                var parentNT = parentNodeType;
+                while (parentNT != null)
+                {
+                    var ht = TypeResolver.GetType(parentNT.ClassName, false);
+                    if (ht == null)
+                        throw new RegistrationException($"Unknown content handler: {parentNT.ClassName}");
+
+                    parentNT = parentNT.Parent;
+                }
             }
 
             // handler type
