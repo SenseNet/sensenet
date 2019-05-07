@@ -637,7 +637,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
                 if (node == null)
                     return STT.Task.FromResult((IEnumerable<VersionNumber>)new VersionNumber[0]);
-                return GetVersionNumbersAsync(node.NodeId);
+                return GetVersionNumbersAsync(node.NodeId, cancellationToken);
             }
         }
 
@@ -1647,7 +1647,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        /* ====================================================================== Tools */
+        /* =============================================================================================== Test support */
+
+        public override STT.Task SetFileStagingAsync(int fileId, bool staging)
+        {
+            lock (DB)
+            {
+                var fileDoc = DB.Files.FirstOrDefault(x => x.FileId == fileId);
+                if (fileDoc != null)
+                    fileDoc.Staging = staging;
+                return STT.Task.CompletedTask;
+            }
+        }
+        public override STT.Task DeleteFileAsync(int fileId)
+        {
+            var fileDoc = DB.Files.FirstOrDefault(x => x.FileId == fileId);
+            DB.Files.Remove(fileDoc);
+            return STT.Task.CompletedTask;
+        }
+
+        /* =============================================================================================== Tools */
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

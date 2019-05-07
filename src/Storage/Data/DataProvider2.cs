@@ -365,5 +365,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
+
+        /* =============================================================================================== Test support */
+
+        public abstract Task SetFileStagingAsync(int fileId, bool staging);
+        public abstract Task DeleteFileAsync(int fileId);
     }
 }

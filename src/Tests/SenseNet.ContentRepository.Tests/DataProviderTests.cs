@@ -646,7 +646,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Description", longTextProps.Keys.First().Name);
 
                 // ACTION-2a: Update text property value over the magic limit
-                var doc = ((InMemoryDataProvider2) DataStore.DataProvider).DB.LongTextProperties
+                var doc = ((InMemoryDataProvider2) DataStore.DataProvider).DB.LongTextProperties //UNDONE:DB@@@@ Use abstract approach
                     .First(x => x.Value == nearlyLongText);
                 doc.Value = longText;
                 doc.Length = longText.Length;
@@ -798,9 +798,29 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(fileCount, db.Files.Count);
             });
         }
+        [TestMethod]
+        public void DP_DeleteDeleted()
+        {
+            DPTest(() =>
+            {
+                DataStore.Enabled = true;
+
+                var folder = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                folder.Save();
+                folder = Node.Load<SystemFolder>(folder.Id);
+                var nodeHeadData = folder.Data.GetNodeHeadData();
+                Node.ForceDelete(folder.Path);
+
+                // ACTION
+                DataStore.DataProvider.DeleteNodeAsync(nodeHeadData);
+
+                // ASSERT
+                // Expectation: no exception was thrown
+            });
+        }
 
         [TestMethod]
-        public void DP_MoreVersions()
+        public void DP_GetVersionNumbers()
         {
             DPTest(() =>
             {
@@ -857,6 +877,59 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSequenceEqual(allVersinsA2, allVersinsB2);
             });
         }
+        [TestMethod]
+        public async STT.Task DP_GetVersionNumbers_MissingNode()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = false;
+
+                // ACTION
+                var result = await DataStore.DataProvider.GetVersionNumbersAsync("/Root/Deleted");
+
+                // ASSERT
+                Assert.IsFalse(result.Any());
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_LoadBinaryPropertyValues()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var root = CreateFolder(Repository.Root, "TestRoot");
+                var file = CreateFile(root, "File-1", "File content.");
+
+                var versionId = file.VersionId;
+                var fileId = file.Binary.FileId;
+                var propertyTypeId = file.Binary.PropertyType.Id;
+
+                // ACTION-1: Load existing
+                var result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                // ASSERT-1
+                Assert.IsNotNull(result);
+
+                // ACTION-2: Missing Binary
+                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, 999999);
+                // ASSERT-2 (not loaded and no exceptin was thrown)
+                Assert.IsNull(result);
+
+                // ACTION-3: Staging
+                await DataStore.DataProvider.SetFileStagingAsync(fileId, true);
+                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                // ASSERT-3 (not loaded and no exceptin was thrown)
+                Assert.IsNull(result);
+
+                // ACTION-4: Missing File (inconsistent but need to be handled)
+                await DataStore.DataProvider.DeleteFileAsync(fileId);
+                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                // ASSERT-4 (not loaded and no exceptin was thrown)
+                Assert.IsNull(result);
+            });
+        }
+
 
         [TestMethod]
         public void DP_NodeEnumerator()
@@ -1062,6 +1135,56 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         /* ================================================================================================== Errors */
+
+        [TestMethod]
+        public async STT.Task DP_LoadNodes()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var expected = new[] { Repository.Root.VersionId, User.Administrator.VersionId };
+                var versionIds = new[] { Repository.Root.VersionId, 999999, User.Administrator.VersionId };
+
+                // ACTION
+                var loadResult = await DataStore.DataProvider.LoadNodesAsync(versionIds);
+
+                // ASSERT
+                var actual = loadResult.Select(x => x.VersionId);
+                AssertSequenceEqual(expected, actual);
+            });
+        }
+
+        /* ================================================================================================== Errors */
+
+        [TestMethod]
+        public async STT.Task DP_Error_InsertNode_AlreadyExists()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                newNode.Save();
+
+                try
+                {
+                    var node = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                    var nodeData = node.Data;
+                    nodeData.Path = RepositoryPath.Combine(node.ParentPath, node.Name);
+                    var nodeHeadData = nodeData.GetNodeHeadData();
+                    var versionData = nodeData.GetVersionData();
+                    var dynamicData = nodeData.GetDynamicData(false);
+
+                    // ACTION
+                    await DataStore.DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+                    Assert.Fail("NodeAlreadyExistsException was not thrown.");
+                }
+                catch (NodeAlreadyExistsException)
+                {
+                    // ignored
+                }
+            });
+        }
 
         [TestMethod]
         public async STT.Task DP_Error_UpdateNode_Deleted()
