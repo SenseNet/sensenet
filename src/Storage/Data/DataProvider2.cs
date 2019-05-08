@@ -312,8 +312,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(
-            IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken));
+        //public abstract Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(
+        //    IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(
             IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds,
             CancellationToken cancellationToken = default(CancellationToken));

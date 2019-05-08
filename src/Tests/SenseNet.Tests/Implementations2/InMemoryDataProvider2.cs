@@ -580,11 +580,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
                 if (versionDoc == null)
-                    return null;
+                    return STT.Task.FromResult(default(NodeHead));
 
                 var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == versionDoc.NodeId);
                 if (nodeDoc == null)
-                    return null;
+                    return STT.Task.FromResult(default(NodeHead));
 
                 return STT.Task.FromResult(NodeDocToNodeHeadSafe(nodeDoc));
             }
@@ -1154,7 +1154,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.FromResult(result.ToArray());
         }
 
-        public override Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            lock (DB.IndexingActivities)
+            {
+                var finishedActivitiyIds = DB.IndexingActivities
+                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
+                    .Select(x => x.IndexingActivityId)
+                    .ToArray();
+                return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
+                {
+                    Activities = activities,
+                    FinishedActivitiyIds = finishedActivitiyIds
+                });
+            }
+        }
+
+        private IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory,
+            int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var output = new List<IIndexingActivity>();
@@ -1163,20 +1182,22 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             lock (DB.IndexingActivities)
             {
                 foreach (var @new in DB.IndexingActivities
-                                        .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
-                                        .OrderBy(x => x.IndexingActivityId))
+                    .Where(x => x.RunningState == IndexingActivityRunningState.Waiting ||
+                                (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
+                    .OrderBy(x => x.IndexingActivityId))
                 {
                     if (!DB.IndexingActivities.Any(old =>
-                         (old.IndexingActivityId < @new.IndexingActivityId) &&
-                         (
-                             (old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
-                             (
-                                 @new.NodeId == old.NodeId ||
-                                 (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
-                                 @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
-                                 old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
-                             )
-                         )
+                        (old.IndexingActivityId < @new.IndexingActivityId) &&
+                        (
+                            (old.RunningState == IndexingActivityRunningState.Waiting ||
+                             old.RunningState == IndexingActivityRunningState.Running) &&
+                            (
+                                @new.NodeId == old.NodeId ||
+                                (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
+                                @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
+                                old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
+                            )
+                        )
                     ))
                         recordsToStart.Add(@new);
                 }
@@ -1192,25 +1213,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 }
             }
 
-            return STT.Task.FromResult(output.ToArray());
-        }
-
-        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var activities = LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds).Result;
-            lock (DB.IndexingActivities)
-            {
-                var finishedActivitiyIds = DB.IndexingActivities
-                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x => x.IndexingActivityId)
-                    .ToArray();
-                return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
-                {
-                    Activities = activities,
-                    FinishedActivitiyIds = finishedActivitiyIds
-                });
-            }
+            return output.ToArray();
         }
 
         public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken))
@@ -1649,6 +1652,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Test support */
 
+        //UNDONE:DB@@@@@ Move to dataprovider extension
         public override STT.Task SetFileStagingAsync(int fileId, bool staging)
         {
             lock (DB)
@@ -1659,6 +1663,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.CompletedTask;
             }
         }
+        //UNDONE:DB@@@@@ Move to dataprovider extension
         public override STT.Task DeleteFileAsync(int fileId)
         {
             var fileDoc = DB.Files.FirstOrDefault(x => x.FileId == fileId);
