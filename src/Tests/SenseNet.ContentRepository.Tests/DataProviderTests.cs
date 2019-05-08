@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
@@ -1133,8 +1134,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
 
-                // /Root/R/ A,B,C / F,S / A,B
-
                 var r = new SystemFolder(Repository.Root){Name="R"}; r.Save();
                 var ra = new Folder(r) { Name = "A" }; ra.Save();
                 var raf = new Folder(ra) { Name = "F" }; raf.Save();
@@ -1204,44 +1203,16 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSequenceEqual(expected, result);
             });
         }
-
-        //[TestMethod]
-        //public async STT.Task DP_NodeQuery_QueryNodesByTypeAndPathAndProperty()
-        //{
-        //    await Test(async () =>
-        //    {
-        //        DataStore.Enabled = true;
-
-        //        var dp = DataStore.DataProvider;
-        //        var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
-
-        //        // int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
-        //        // ACTION
-        //        var result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
-
-        //        // ASSERT
-        //        AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
-        //    });
-        //}
-
-        //[TestMethod]
-        //public async STT.Task DP_NodeQuery_QueryNodesByReferenceAndType()
-        //{
-        //    await Test(async () =>
-        //    {
-        //        DataStore.Enabled = true;
-
-        //        var dp = DataStore.DataProvider;
-        //        var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
-
-        //        // string referenceName, int referredNodeId, int[] nodeTypeIds
-        //        // ACTION
-        //        var result = await dp.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
-
-        //        // ASSERT
-        //        AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
-        //    });
-        //}
+        [TestMethod]
+        public async STT.Task DP_NodeQuery_QueryNodesByTypeAndPathAndProperty()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public async STT.Task DP_NodeQuery_QueryNodesByReferenceAndType()
+        {
+            Assert.Inconclusive();
+        }
 
 
         /* ================================================================================================== TreeLock */
@@ -2576,6 +2547,71 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(versionCount, db.Versions.Count);
                 Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
                 Assert.AreEqual(fileCount, db.Files.Count);
+            });
+        }
+
+        /* ================================================================================================== Schema */
+
+        [TestMethod]
+        public async STT.Task DP_Schema_()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var dp = DataStore.DataProvider;
+                var ed = new SchemaEditor();
+                ed.Load();
+                var timestampBefore = ed.SchemaTimestamp;
+
+                // ACTION: try to start update with wrong timestamp
+                try
+                {
+                    var unused = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore - 1);
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException)
+                {
+                    // "Storage schema is out of date."
+                    // ignored
+                }
+
+                // ACTION: start update normally
+                var @lock = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+
+                // ACTION: try to start update again
+                try
+                {
+                    var unused = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException)
+                {
+                    // "Schema is locked by someone else."
+                    // ignored
+                }
+
+                // ACTION: try to finish with invalid @lock
+                try
+                {
+                    var unused = dp.FinishSchemaUpdate_EXPERIMENTAL("wrong-lock");
+                    Assert.Fail("Expected DataException was not thrown.");
+                }
+                catch (DataException)
+                {
+                    // "Schema is locked by someone else."
+                    // ignored
+                }
+
+                // ACTION: finish normally
+                var unused1 = dp.FinishSchemaUpdate_EXPERIMENTAL(@lock);
+
+                // ASSERT: start update is allowed again
+                @lock = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+                // cleanup
+                var timestampAfter = dp.FinishSchemaUpdate_EXPERIMENTAL(@lock);
+                // Bonus assert: there is no any changes
+                Assert.AreEqual(timestampBefore, timestampAfter);
             });
         }
 

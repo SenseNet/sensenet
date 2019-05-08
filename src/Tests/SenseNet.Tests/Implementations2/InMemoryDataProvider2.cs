@@ -720,6 +720,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
             //UNDONE:DB: Partially implemented.
+            //UNDONE:DB: Not tested: QueryNodesByTypeAndPathAndPropertyAsync.
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
@@ -801,7 +802,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
+            //UNDONE:DB: Not tested: QueryNodesByReferenceAndTypeAsync.
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
