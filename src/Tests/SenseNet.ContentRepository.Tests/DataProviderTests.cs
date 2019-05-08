@@ -759,6 +759,33 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("DocumentLibrary, Folder, MemoList, Task", names);
             });
         }
+        [TestMethod]
+        public async STT.Task DP_ContentListTypesInTree()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                // Precheck-1
+                Assert.AreEqual(0, ActiveSchema.ContentListTypes.Count);
+
+                // Creation
+                var root = CreateFolder(Repository.Root, "TestRoot");
+                var node = new ContentList(root) {Name = "Survey-1"};
+                node.Save();
+
+                // Precheck-2
+                Assert.AreEqual(1, ActiveSchema.ContentListTypes.Count);
+
+                // ACTION
+                var result = await DataStore.DataProvider.GetContentListTypesInTreeAsync(root.Path);
+
+                // ASSERT
+                Assert.IsNotNull(result);
+                Assert.AreEqual(1, result.Count);
+                Assert.AreEqual(ActiveSchema.ContentListTypes[0].Id, result[0].Id);
+            });
+        }
 
         [TestMethod]
         public void DP_ForceDelete()
