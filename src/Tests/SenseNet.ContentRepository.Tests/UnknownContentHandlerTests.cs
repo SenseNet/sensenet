@@ -42,27 +42,9 @@ namespace SenseNet.ContentRepository.Tests
                 var currentDb = ((InMemoryDataProvider) DataProvider.Current).DB;
                 InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
 
-                NodeTypeManager.Restart();
-                ContentTypeManager.Reset();
-                DistributedApplication.Cache.Reset();
+                ResetAndFailToCreateContent();
 
-                // reload
                 parent = Node.Load<GenericContent>("/Root");
-
-                // try to create a content with an unknown handler
-                ExpectException(() =>
-                {
-                    var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
-                    content.Save();
-                }, typeof(InvalidOperationException));
-
-                // try to create a content with a known handler that has an unknown parent
-                ExpectException(() =>
-                {
-                    var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
-                    content.Save();
-                }, typeof(InvalidOperationException));
-
                 var folderType = ContentTypeManager.Instance.GetContentTypeByName("Folder");
 
                 // check if all related types are marked as unknown
@@ -106,7 +88,6 @@ namespace SenseNet.ContentRepository.Tests
                 ContentTypeInstaller.InstallContentType(unknownHandlerCTD);
             });
         }
-
         [TestMethod]
         [ExpectedException(typeof(RegistrationException))]
         public void UnknownHandler_InstallContentType_UnknownParent()
@@ -131,6 +112,53 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void UnknownHandler_CreateContent_UnknownFieldType()
+        {
+            Test(() =>
+            {
+                // add a field with an unknown short name
+                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
+                InMemoryDataProvider.AddField(currentDb, "Folder", "TestField", "unknown");
+
+                ResetAndFailToCreateContent();
+            });
+        }
+        [TestMethod]
+        public void UnknownHandler_CreateContent_UnknownFieldHandler()
+        {
+            Test(() =>
+            {
+                // add a field with an unknown handler
+                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
+                InMemoryDataProvider.AddField(currentDb, "Folder", "TestField", null, "unknown");
+
+                ResetAndFailToCreateContent();
+            });
+        }
+
+        private static void ResetAndFailToCreateContent()
+        {
+            DistributedApplication.Cache.Reset();
+            NodeTypeManager.Restart();
+            ContentTypeManager.Reload();
+
+            var parent = Node.Load<GenericContent>("/Root");
+
+            // try to create a content with an unknown field
+            ExpectException(() =>
+            {
+                var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
+                content.Save();
+            }, typeof(InvalidOperationException));
+
+            // try to create a content with a known handler that has an unknown parent
+            ExpectException(() =>
+            {
+                var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
+                content.Save();
+            }, typeof(InvalidOperationException));
+        }
         private static void ExpectException(Action action, Type exceptionType)
         {
             var thrown = false;

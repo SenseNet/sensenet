@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
@@ -3037,21 +3038,13 @@ namespace SenseNet.Tests.Implementations
             var fileRecord = db.Files.First(ff =>
                 ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == contentTypeName);
 
-            string ctdString;
-
-            using (var xmlReaderStream = new MemoryStream(fileRecord.Stream))
+            // change handler in the blob
+            EditFileStream(fileRecord, xDoc =>
             {
-                var gcXmlDoc = new XmlDocument();
-                gcXmlDoc.Load(xmlReaderStream);
+                xDoc.DocumentElement.Attributes["handler"].Value = handler;
+            });
 
-                gcXmlDoc.DocumentElement.Attributes["handler"].Value = handler;
-
-                ctdString = gcXmlDoc.OuterXml;
-            }
-
-            fileRecord.Stream = Encoding.UTF8.GetBytes(ctdString);
-            fileRecord.Size = fileRecord.Stream.Length;
-
+            // change handler in the preloaded xml schema
             var schema = db.Schema;
             var nsmgr = new XmlNamespaceManager(schema.NameTable);
             nsmgr.AddNamespace("x", SchemaRoot.RepositoryStorageSchemaXmlNamespace);
@@ -3062,7 +3055,69 @@ namespace SenseNet.Tests.Implementations
             if (classNameAttr != null)
                 classNameAttr.Value = handler;
             else
-                throw new InvalidOperationException($"NdeType not found: {contentTypeName}");
+                throw new InvalidOperationException($"NodeType not found: {contentTypeName}");
+        }
+        public static void AddField(Database db, string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null)
+        {
+            var fileRecord = db.Files.First(ff =>
+                ff.Extension == ".ContentType" && ff.FileNameWithoutExtension == contentTypeName);
+
+            // change field in the blob
+            EditFileStream(fileRecord, xDoc =>
+            {
+                var fieldNode = xDoc.CreateElement("Field", ContentType.ContentDefinitionXmlNamespace);
+                fieldNode.SetAttribute("name", fieldName);
+
+                if (!string.IsNullOrEmpty(fieldType))
+                    fieldNode.SetAttribute("type", fieldType);
+                if (!string.IsNullOrEmpty(fieldHandler))
+                    fieldNode.SetAttribute("handler", fieldHandler);
+
+                var fields = xDoc.DocumentElement["Fields"];
+                fields.AppendChild(fieldNode);
+            });
+
+            // change field in the preloaded xml schema
+            var schema = db.Schema;
+            var nsmgr = new XmlNamespaceManager(schema.NameTable);
+            nsmgr.AddNamespace("x", SchemaRoot.RepositoryStorageSchemaXmlNamespace);
+
+            var propsNode = schema.SelectSingleNode("/x:StorageSchema/x:UsedPropertyTypes", nsmgr);
+            var propTypeId = propsNode.ChildNodes.Cast<XmlNode>().Select(pn => int.Parse(pn.Attributes["itemID"].Value))
+                                 .Max() + 1;
+
+            var propNode = schema.CreateElement("PropertyType", SchemaRoot.RepositoryStorageSchemaXmlNamespace);
+            propNode.SetAttribute("itemID", propTypeId.ToString());
+            propNode.SetAttribute("name", fieldName);
+            propNode.SetAttribute("dataType", "String");
+            propNode.SetAttribute("mapping", "100");
+
+            propsNode.AppendChild(propNode);
+
+            var typeNode = schema
+                .SelectSingleNode($"/x:StorageSchema/x:NodeTypeHierarchy//x:NodeType[@name='{contentTypeName}']",
+                    nsmgr);
+
+            propNode = schema.CreateElement("PropertyType", SchemaRoot.RepositoryStorageSchemaXmlNamespace);
+            propNode.SetAttribute("name", fieldName);
+
+            typeNode.AppendChild(propNode);
+        }
+
+        private static void EditFileStream(FileRecord fileRecord, Action<XmlDocument> action)
+        {
+            using (var xmlReaderStream = new MemoryStream(fileRecord.Stream))
+            {
+                var gcXmlDoc = new XmlDocument();
+                gcXmlDoc.Load(xmlReaderStream);
+
+                action(gcXmlDoc);
+
+                var ctdString = gcXmlDoc.OuterXml;
+
+                fileRecord.Stream = Encoding.UTF8.GetBytes(ctdString);
+                fileRecord.Size = fileRecord.Stream.Length;
+            }
         }
     }
 }

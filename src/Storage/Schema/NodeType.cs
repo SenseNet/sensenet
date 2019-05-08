@@ -229,7 +229,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 throw new ArgumentNullException(nameof(parent));
 
             if (_type == null)
-                _type = TypeResolver.GetType(_className, false); //UNDONE: typeload
+                _type = TypeResolver.GetType(_className, false);
 
             if (_type == null)
             {
@@ -262,7 +262,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         internal Node CreateInstance(NodeToken token)
         {
             if (_type == null)
-                _type = TypeResolver.GetType(_className, false); //UNDONE: typeload
+                _type = TypeResolver.GetType(_className, false);
 
             if (_type == null)
             {

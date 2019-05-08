@@ -134,6 +134,13 @@ namespace  SenseNet.ContentRepository.Schema
             private set => _unknownHandler = value;
         }
 
+        private bool _unknownField;
+        internal bool UnknownField
+        {
+            get => _unknownField || (this.ParentType?.UnknownField ?? false);
+            private set => _unknownField = value;
+        }
+
         /// <summary>
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.
         /// </summary>
@@ -497,8 +504,22 @@ namespace  SenseNet.ContentRepository.Schema
         {
             foreach (XPathNavigator fieldElement in fieldsElement.SelectChildren(XPathNodeType.Element))
             {
-                FieldDescriptor fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
-                
+                FieldDescriptor fieldDescriptor = null;
+
+                try
+                {
+                    fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
+                }
+                catch (ContentRegistrationException ex)
+                {
+                    SnLog.WriteWarning($"Unknown field type {fieldElement.GetAttribute("type", string.Empty)} " +
+                                       $"for field {ex.FieldName} in content type {this.Name}.");
+
+                    // continue building the content type without breaking the whole system
+                    this.UnknownField = true;
+                    continue;
+                }
+
                 int fieldIndex = GetFieldSettingIndexByName(fieldDescriptor.FieldName);
                 FieldSetting fieldSetting = fieldIndex < 0 ? null : this.FieldSettings[fieldIndex];
                 if (fieldSetting == null)

@@ -759,7 +759,7 @@ namespace SenseNet.ContentRepository
                 var contentType = ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
                 if (contentType == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentTypeName));
-                Type type = TypeResolver.GetType(contentType.HandlerName, false) ?? typeof(UnknownContentHandler); //UNDONE: typeload
+                Type type = TypeResolver.GetType(contentType.HandlerName, false) ?? typeof(UnknownContentHandler);
 
                 Type[] signature = new Type[args.Length + 2];
                 signature[0] = typeof(Node);
@@ -1133,9 +1133,9 @@ namespace SenseNet.ContentRepository
 
         private void AssertContentType()
         {
-            if (this.ContentType.UnknownHandler)
+            if (this.ContentType.UnknownHandler || this.ContentType.UnknownField)
                 throw new InvalidOperationException(
-                    $"Cannot save a content with the type {this.ContentType.Name} if its handler is missing.");
+                    $"Cannot save a content with the type {this.ContentType.Name}. A content handler or a field is missing.");
         }
 
         /// <summary>
