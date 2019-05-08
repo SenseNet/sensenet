@@ -935,8 +935,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                 if (DB.TreeLocks
                     .Any(t => t.LockedAt > timeMin &&
-                              (parentChain.Contains(t.Path) ||
-                               t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
+                              (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
+                               t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))))
                     return STT.Task.FromResult(0);
 
                 var newTreeLockId = DB.TreeLocks.GetNextId();
@@ -961,8 +961,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                 var result = DB.TreeLocks
                     .Any(t => t.LockedAt > timeMin &&
-                              (parentChain.Contains(t.Path) ||
-                               t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
+                              (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
+                               t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase)));
                 return STT.Task.FromResult(result);
             }
         }

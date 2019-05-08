@@ -1037,6 +1037,89 @@ namespace SenseNet.ContentRepository.Tests
             return file;
         }
 
+        /* ================================================================================================== TreeLock */
+
+        [TestMethod]
+        public void DP_LoadEntityTree()
+        {
+            DPTest(() =>
+            {
+                // ACTION
+                var treeData = DataStore.LoadEntityTreeAsync().Result;
+
+                // ASSERT check the right ordering: every node follows it's parent node.
+                var tree = new Dictionary<int, EntityTreeNodeData>();
+                foreach (var node in treeData)
+                {
+                    if (node.ParentId != 0)
+                        if(!tree.ContainsKey(node.ParentId))
+                            Assert.Fail($"The parent is not yet loaded. Id: {node.Id}, ParentId: {node.ParentId}");
+                    tree.Add(node.Id, node);
+                }
+            });
+        }
+
+        /* ================================================================================================== TreeLock */
+
+        [TestMethod]
+        public async STT.Task DP_TreeLock()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var dp = DataStore.DataProvider;
+                var path = "/Root/Folder-1";
+                var childPath = "/root/folder-1/folder-2";
+                var anotherPath = "/Root/Folder-2";
+
+                // Pre check: there is no lock
+                var tlocks = await dp.LoadAllTreeLocksAsync();
+                Assert.AreEqual(0, tlocks.Count);
+
+                // ACTION: create a lock
+                var tlockId = await dp.AcquireTreeLockAsync(path);
+
+                // Check: there is one lock ant it matches
+                tlocks = await dp.LoadAllTreeLocksAsync();
+                Assert.AreEqual(1, tlocks.Count);
+                Assert.AreEqual(tlockId, tlocks.First().Key);
+                Assert.AreEqual(path, tlocks.First().Value);
+
+                // Check: path and subpath are locked
+                Assert.IsTrue(await dp.IsTreeLockedAsync(path));
+                Assert.IsTrue(await dp.IsTreeLockedAsync(childPath));
+
+                // Check: outer path is not locked
+                Assert.IsFalse(await dp.IsTreeLockedAsync(anotherPath));
+
+                // ACTION: try to create a lock fot a subpath
+                var childLlockId = await dp.AcquireTreeLockAsync(childPath);
+
+                // Check: subPath cannot be locked
+                Assert.AreEqual(0, childLlockId);
+
+                // Check: there is still only one lock
+                tlocks = await dp.LoadAllTreeLocksAsync();
+                Assert.AreEqual(1, tlocks.Count);
+                Assert.AreEqual(tlockId, tlocks.First().Key);
+                Assert.AreEqual(path, tlocks.First().Value);
+
+                // ACTION: Release the lock
+                await dp.ReleaseTreeLockAsync(new[] {tlockId});
+
+                // Check: there is no lock
+                tlocks = await dp.LoadAllTreeLocksAsync();
+                Assert.AreEqual(0, tlocks.Count);
+
+                // Check: path and subpath are not locked
+                Assert.IsFalse(await dp.IsTreeLockedAsync(path));
+                Assert.IsFalse(await dp.IsTreeLockedAsync(childPath));
+
+            });
+        }
+
+        /* ================================================================================================== IndexDocument */
 
         [TestMethod]
         public void DP_AB_LoadIndexDocuments()
@@ -1143,26 +1226,6 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-
-        [TestMethod]
-        public void DP_LoadEntityTree()
-        {
-            DPTest(() =>
-            {
-                // ACTION
-                var treeData = DataStore.LoadEntityTreeAsync().Result;
-
-                // ASSERT check the right ordering: every node follows it's parent node.
-                var tree = new Dictionary<int, EntityTreeNodeData>();
-                foreach (var node in treeData)
-                {
-                    if (node.ParentId != 0)
-                        if(!tree.ContainsKey(node.ParentId))
-                            Assert.Fail($"The parent is not yet loaded. Id: {node.Id}, ParentId: {node.ParentId}");
-                    tree.Add(node.Id, node);
-                }
-            });
-        }
 
         /* ================================================================================================== IndexingActivities */
 
