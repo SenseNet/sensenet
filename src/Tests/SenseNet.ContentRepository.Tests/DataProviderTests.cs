@@ -765,6 +765,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
+                ActiveSchema.Reset();
 
                 // Precheck-1
                 Assert.AreEqual(0, ActiveSchema.ContentListTypes.Count);
@@ -1063,6 +1064,185 @@ namespace SenseNet.ContentRepository.Tests
             file.Save();
             return file;
         }
+
+        /* ================================================================================================== NodeQuery */
+
+        [TestMethod]
+        public async STT.Task DP_NodeQuery_InstanceCount()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var dp = DataStore.DataProvider;
+;
+                var expectedFolderCount = CreateSafeContentQuery("+Type:Folder .COUNTONLY").Execute().Count;
+                var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
+                var expectedAggregated = expectedFolderCount + expectedSystemFolderCount;
+
+                var folderTypeTypeId = ActiveSchema.NodeTypes["Folder"].Id;
+                var systemFolderTypeTypeId = ActiveSchema.NodeTypes["SystemFolder"].Id;
+
+                // ACTION-1
+                var actualFolderCount1 = await dp.InstanceCountAsync(new[] { folderTypeTypeId });
+                var actualSystemFolderCount1 = await dp.InstanceCountAsync(new[] { systemFolderTypeTypeId });
+                var actualAggregated1 = await dp.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
+
+                // ASSERT
+                Assert.AreEqual(expectedFolderCount, actualFolderCount1);
+                Assert.AreEqual(expectedSystemFolderCount, actualSystemFolderCount1);
+                Assert.AreEqual(expectedAggregated, actualAggregated1);
+
+                // add a systemFolder to check inheritance in counts
+                var folder = new SystemFolder(Repository.Root){Name ="Folder-1"};
+                folder.Save();
+
+                // ACTION-1
+                var actualFolderCount2 = await dp.InstanceCountAsync(new[] { folderTypeTypeId });
+                var actualSystemFolderCount2 = await dp.InstanceCountAsync(new[] { systemFolderTypeTypeId });
+                var actualAggregated2 = await dp.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
+
+                // ASSERT
+                Assert.AreEqual(expectedFolderCount, actualFolderCount2);
+                Assert.AreEqual(expectedSystemFolderCount + 1, actualSystemFolderCount2);
+                Assert.AreEqual(expectedAggregated + 1, actualAggregated2);
+
+            });
+        }
+        [TestMethod]
+        public async STT.Task DP_NodeQuery_ChildrenIdentfiers()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
+
+                // ACTION
+                var result = await DataStore.DataProvider.GetChildrenIdentfiersAsync(Repository.Root.Id);
+
+                // ASSERT
+                AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
+            });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_NodeQuery_QueryNodesByTypeAndPathAndName()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+
+                // /Root/R/ A,B,C / F,S / A,B
+
+                var r = new SystemFolder(Repository.Root){Name="R"}; r.Save();
+                var ra = new Folder(r) { Name = "A" }; ra.Save();
+                var raf = new Folder(ra) { Name = "F" }; raf.Save();
+                var rafa = new Folder(raf) { Name = "A" }; rafa.Save();
+                var rafb = new Folder(raf) { Name = "B" }; rafb.Save();
+                var ras = new SystemFolder(ra) { Name = "S" }; ras.Save();
+                var rasa = new SystemFolder(ras) { Name = "A" }; rasa.Save();
+                var rasb = new SystemFolder(ras) { Name = "B" }; rasb.Save();
+                var rb = new Folder(r) { Name = "B" }; rb.Save();
+                var rbf = new Folder(rb) { Name = "F" }; rbf.Save();
+                var rbfa = new Folder(rbf) { Name = "A" }; rbfa.Save();
+                var rbfb = new Folder(rbf) { Name = "B" }; rbfb.Save();
+                var rbs = new SystemFolder(rb) { Name = "S" }; rbs.Save();
+                var rbsa = new SystemFolder(rbs) { Name = "A" }; rbsa.Save();
+                var rbsb = new SystemFolder(rbs) { Name = "B" }; rbsb.Save();
+                var rc = new Folder(r) { Name = "C" }; rc.Save();
+                var rcf = new Folder(rc) { Name = "F" }; rcf.Save();
+                var rcfa = new Folder(rcf) { Name = "A" }; rcfa.Save();
+                var rcfb = new Folder(rcf) { Name = "B" }; rcfb.Save();
+                var rcs = new SystemFolder(rc) { Name = "S" }; rcs.Save();
+                var rcsa = new SystemFolder(rcs) { Name = "A" }; rcsa.Save();
+                var rcsb = new SystemFolder(rcs) { Name = "B" }; rcsb.Save();
+
+                var typeF = ActiveSchema.NodeTypes["Folder"].Id;
+                var typeS = ActiveSchema.NodeTypes["SystemFolder"].Id;
+
+                var dp = DataStore.DataProvider;
+
+                // ACTION-1 (type: 1, path: 1, name: -)
+                var nodeTypeIds = new[] { typeF };
+                var pathStart = new[] { "/Root/R/A" };
+                var result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                // ASSERT-1
+                var expected = CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/A .SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(3, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-2 (type: 2, path: 1, name: -)
+                nodeTypeIds = new[] { typeF, typeS };
+                pathStart = new[] { "/Root/R/A" };
+                result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                // ASSERT-2
+                expected = CreateSafeContentQuery("+Type:(Folder SystemFolder) +InTree:/Root/R/A .SORT:Path")
+                    .Execute().Identifiers.Skip(1).ToArray();
+                Assert.AreEqual(6, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-3 (type: 1, path: 2, name: -)
+                nodeTypeIds = new[] { typeF };
+                pathStart = new[] { "/Root/R/A", "/Root/R/B" };
+                result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                // ASSERT-3
+                expected = CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/A .SORT:Path")
+                    .Execute().Identifiers.Skip(1)
+                    .Union(CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/B .SORT:Path")
+                        .Execute().Identifiers.Skip(1)).ToArray();
+                Assert.AreEqual(6, expected.Length);
+                AssertSequenceEqual(expected, result);
+
+                // ACTION-4 (type: -, path: 1, name: A)
+                pathStart = new[] { "/Root/R" };
+                result = await dp.QueryNodesByTypeAndPathAndNameAsync(null, pathStart, true, "A");
+                // ASSERT-4
+                expected = CreateSafeContentQuery("+Name:A +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
+                Assert.AreEqual(7, expected.Length);
+                AssertSequenceEqual(expected, result);
+            });
+        }
+
+        //[TestMethod]
+        //public async STT.Task DP_NodeQuery_QueryNodesByTypeAndPathAndProperty()
+        //{
+        //    await Test(async () =>
+        //    {
+        //        DataStore.Enabled = true;
+
+        //        var dp = DataStore.DataProvider;
+        //        var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
+
+        //        // int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
+        //        // ACTION
+        //        var result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties);
+
+        //        // ASSERT
+        //        AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
+        //    });
+        //}
+
+        //[TestMethod]
+        //public async STT.Task DP_NodeQuery_QueryNodesByReferenceAndType()
+        //{
+        //    await Test(async () =>
+        //    {
+        //        DataStore.Enabled = true;
+
+        //        var dp = DataStore.DataProvider;
+        //        var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
+
+        //        // string referenceName, int referredNodeId, int[] nodeTypeIds
+        //        // ACTION
+        //        var result = await dp.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds);
+
+        //        // ASSERT
+        //        AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
+        //    });
+        //}
+
 
         /* ================================================================================================== TreeLock */
 
