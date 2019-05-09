@@ -88,14 +88,16 @@ namespace SenseNet.ContentRepository.Schema
                 var contentTypeNamesByType = new Dictionary<Type, NodeType>();
                 foreach (var nt in ActiveSchema.NodeTypes)
                 {
-                    var type = TypeResolver.GetType(nt.ClassName);
-                    NodeType prevNt;
+                    var type = TypeResolver.GetType(nt.ClassName, false);
+                    if (type == null)
+                        continue;
+
                     if (type == typeof(GenericContent))
                     {
                         if (nt.Name == "GenericContent")
                             contentTypeNamesByType.Add(type, nt);
                     }
-                    else if (!contentTypeNamesByType.TryGetValue(type, out prevNt))
+                    else if (!contentTypeNamesByType.TryGetValue(type, out var prevNt))
                         contentTypeNamesByType.Add(type, nt);
                     else
                         if (prevNt.IsInstaceOfOrDerivedFrom(nt))
@@ -103,9 +105,10 @@ namespace SenseNet.ContentRepository.Schema
                 }
                 Instance._contentTypeNamesByType = contentTypeNamesByType;
             }
-            NodeType nodeType;
-            if (Instance._contentTypeNamesByType.TryGetValue(t, out nodeType))
+
+            if (Instance._contentTypeNamesByType.TryGetValue(t, out var nodeType))
                 return nodeType.Name;
+
             return null;
         }
         #endregion
@@ -352,14 +355,14 @@ namespace SenseNet.ContentRepository.Schema
                     throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_UnknownParentContentType, contentType.Name);
 
                 // make sure that all content handlers defined on the parent chain exist
-                var parentNT = parentNodeType;
-                while (parentNT != null)
+                var pnt = parentNodeType;
+                while (pnt != null)
                 {
-                    var ht = TypeResolver.GetType(parentNT.ClassName, false);
+                    var ht = TypeResolver.GetType(pnt.ClassName, false);
                     if (ht == null)
-                        throw new RegistrationException($"Unknown content handler: {parentNT.ClassName}");
+                        throw new RegistrationException($"Unknown content handler: {pnt.ClassName}");
 
-                    parentNT = parentNT.Parent;
+                    pnt = pnt.Parent;
                 }
             }
 

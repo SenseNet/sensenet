@@ -177,8 +177,8 @@ namespace SenseNet.Portal.AppModel
         private static IHttpAction GetIHttpHandlerAction(IHttpActionFactory factory, PortalContext portalContext, NodeHead contextNode, NodeHead handlerNode)
         {
             var nodeType = handlerNode.GetNodeType();
-            Type appType = TypeResolver.GetType(nodeType.ClassName);
-            if (typeof(IHttpHandler).IsAssignableFrom(appType))
+            Type appType = TypeResolver.GetType(nodeType.ClassName, false);
+            if (appType != null && typeof(IHttpHandler).IsAssignableFrom(appType))
                 return factory.CreateRemapAction(portalContext, contextNode, null, handlerNode);
             return null;
         }

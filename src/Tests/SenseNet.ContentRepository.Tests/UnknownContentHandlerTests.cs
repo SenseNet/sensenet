@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Storage;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
@@ -72,6 +73,51 @@ namespace SenseNet.ContentRepository.Tests
                 // and it does not inherit from Folder.
                 var file = Content.CreateNew("File", parent, Guid.NewGuid().ToString());
                 file.Save();
+            });
+        }
+
+        [TestMethod]
+        public void UnknownHandler_GetNameByType()
+        {
+            Test(() =>
+            {
+                SetContentHandlerAndResetManagers(() =>
+                {
+                    // This should not throw an exception. The returned type is irrelevant: 
+                    // it will be one of the descendants of the Folder content type.
+                    var typeName = ContentTypeManager.GetContentTypeNameByType(typeof(Folder));
+                });
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(RegistrationException))]
+        public void UnknownHandler_CreateUnknownHandler()
+        {
+            Test(() =>
+            {
+                SetContentHandlerAndResetManagers(() =>
+                {
+                    var _ = new UnknownContentHandler(Node.Load<GenericContent>("/Root"));
+                });
+            });
+        }
+        [TestMethod]
+        public void UnknownHandler_GetContentTypeByHandler()
+        {
+            Test(() =>
+            {
+                SetContentHandlerAndResetManagers(() =>
+                {
+                    var parent = Node.Load<GenericContent>("/Root");
+                    var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
+
+                    Assert.IsTrue(content.ContentHandler is UnknownContentHandler);
+
+                    var contentType = ContentTypeManager.Instance.GetContentTypeByHandler(content.ContentHandler);
+
+                    // we have found the type despite the missing handler
+                    Assert.AreEqual("Folder", contentType.Name);
+                });
             });
         }
 
@@ -200,6 +246,19 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             Assert.IsTrue(thrown, $"{exceptionType.Name} was not thrown.");
+        }
+
+        private static void SetContentHandlerAndResetManagers(Action action)
+        {
+            // set the handler of the Folder type to an unknown value
+            var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
+            InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+
+            DistributedApplication.Cache.Reset();
+            NodeTypeManager.Restart();
+            ContentTypeManager.Reload();
+
+            action();
         }
     }
 
