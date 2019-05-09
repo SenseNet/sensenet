@@ -14,7 +14,36 @@ namespace SenseNet.Storage
 
         public override void Save(NodeSaveSettings settings)
         {
-            throw new InvalidOperationException("Cannot save a content with an unknown handler.");
+            ThrowException("save");
+        }
+        public override void CopyTo(Node target)
+        {
+            ThrowException("copy");
+        }
+        public override void CopyTo(Node target, string newName)
+        {
+            ThrowException("copy");
+        }
+        public override void Delete()
+        {
+            ThrowException("delete");
+        }
+        public override void FinalizeContent()
+        {
+            ThrowException("finalize");
+        }
+        public override void ForceDelete()
+        {
+            ThrowException("delete");
+        }
+        public override void MoveTo(Node target)
+        {
+            ThrowException("move");
+        }
+
+        private static void ThrowException(string operation)
+        {
+            throw new InvalidOperationException($"Cannot {operation} a content with an unknown handler.");
         }
     }
 }
