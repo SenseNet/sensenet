@@ -329,19 +329,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken));
         public abstract SchemaWriter CreateSchemaWriter();
 
-        //UNDONE:DB ------Refactor: Move to SchemaWriter? Delete the freature and implement individually in the providers?
         /// <summary>
         /// Checks the given schemaTimestamp equality. If different, throws an error: Storage schema is out of date.
         /// Checks the schemaLock existence. If there is, throws an error
         /// otherwise create a SchemaLock and return its value.
         /// </summary>
-        public abstract string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp); // original: AssertSchemaTimestampAndWriteModificationDate(long timestamp);
-        //UNDONE:DB ------Refactor: Move to SchemaWriter? Delete the freature and implement individually in the providers?
+        public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp);
         /// <summary>
         /// Checks the given schemaLock equality. If different, throws an illegal operation error.
         /// Returns a newly generated schemaTimestamp.
         /// </summary>
-        public abstract long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock);
+        public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock);
 
         /* =============================================================================================== Logging */
 

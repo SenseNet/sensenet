@@ -1349,7 +1349,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp)
+        public override Task<string> StartSchemaUpdateAsync(long schemaTimestamp)
         {
             lock (DB)
             {
@@ -1358,18 +1358,18 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 if (DB.SchemaLock != null)
                     throw new DataException("Schema is locked by someone else.");
                 DB.SchemaLock = Guid.NewGuid().ToString();
-                return DB.SchemaLock;
+                return STT.Task.FromResult(DB.SchemaLock);
             }
         }
 
-        public override long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock)
+        public override Task<long> FinishSchemaUpdateAsync(string schemaLock)
         {
             lock (DB)
             {
                 if (schemaLock != DB.SchemaLock)
                     throw new DataException("Schema is locked by someone else.");
                 DB.SchemaLock = null;
-                return DB.Schema.Timestamp;
+                return STT.Task.FromResult(DB.Schema.Timestamp);
             }
         }
 

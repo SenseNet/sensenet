@@ -22,10 +22,10 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
             if (DataStore.Enabled)
             {
-                var schemaLock = DataStore.StartSchemaUpdate_EXPERIMENTAL(this.SchemaTimestamp);
+                var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp).Result;
                 var schemaWriter = DataStore.CreateSchemaWriter();
                 RegisterSchema(origSchema, this, schemaWriter);
-                DataStore.FinishSchemaUpdate_EXPERIMENTAL(schemaLock);
+                DataStore.FinishSchemaUpdateAsync(schemaLock).Wait();
             }
             else
             {

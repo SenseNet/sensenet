@@ -2567,7 +2567,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION: try to start update with wrong timestamp
                 try
                 {
-                    var unused = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore - 1);
+                    var unused = await dp.StartSchemaUpdateAsync(timestampBefore - 1);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2577,12 +2577,12 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: start update normally
-                var @lock = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+                var @lock = await dp.StartSchemaUpdateAsync(timestampBefore);
 
                 // ACTION: try to start update again
                 try
                 {
-                    var unused = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+                    var unused = await dp.StartSchemaUpdateAsync(timestampBefore);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2594,7 +2594,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION: try to finish with invalid @lock
                 try
                 {
-                    var unused = dp.FinishSchemaUpdate_EXPERIMENTAL("wrong-lock");
+                    var unused = await dp.FinishSchemaUpdateAsync("wrong-lock");
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2604,12 +2604,12 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: finish normally
-                var unused1 = dp.FinishSchemaUpdate_EXPERIMENTAL(@lock);
+                var unused1 = await dp.FinishSchemaUpdateAsync(@lock);
 
                 // ASSERT: start update is allowed again
-                @lock = dp.StartSchemaUpdate_EXPERIMENTAL(timestampBefore);
+                @lock = await dp.StartSchemaUpdateAsync(timestampBefore);
                 // cleanup
-                var timestampAfter = dp.FinishSchemaUpdate_EXPERIMENTAL(@lock);
+                var timestampAfter = await dp.FinishSchemaUpdateAsync(@lock);
                 // Bonus assert: there is no any changes
                 Assert.AreEqual(timestampBefore, timestampAfter);
             });

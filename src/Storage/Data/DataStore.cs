@@ -424,17 +424,17 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadSchemaAsync(cancellationToken);
         }
 
-        public static string StartSchemaUpdate_EXPERIMENTAL(long schemaTimestamp)
+        public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp)
         {
-            return DataProvider.StartSchemaUpdate_EXPERIMENTAL(schemaTimestamp);
+            return DataProvider.StartSchemaUpdateAsync(schemaTimestamp);
         }
         public static SchemaWriter CreateSchemaWriter()
         {
             return DataProvider.CreateSchemaWriter();
         }
-        public static long FinishSchemaUpdate_EXPERIMENTAL(string schemaLock)
+        public static Task<long> FinishSchemaUpdateAsync(string schemaLock)
         {
-            return DataProvider.FinishSchemaUpdate_EXPERIMENTAL(schemaLock);
+            return DataProvider.FinishSchemaUpdateAsync(schemaLock);
         }
 
         #region Backward compatibility
