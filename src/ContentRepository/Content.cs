@@ -1133,7 +1133,7 @@ namespace SenseNet.ContentRepository
 
         private void AssertContentType()
         {
-            if (this.ContentType.UnknownHandler || this.ContentType.UnknownField)
+            if (this.ContentType.IsInvalid)
                 throw new InvalidOperationException(
                     $"Cannot save a content with the type {this.ContentType.Name}. A content handler or a field is missing.");
         }
@@ -2391,8 +2391,12 @@ namespace SenseNet.ContentRepository
                         names.Add(field.Name);
             }
 
-            //UNDONE: typeload
-            var dynamicContentTypes = types.Where(x => typeof(ISupportsDynamicFields).IsAssignableFrom(TypeResolver.GetType(x.HandlerName))).ToArray();
+            var dynamicContentTypes = types.Where(x =>
+            {
+                var handler = TypeResolver.GetType(x.HandlerName, false);
+                return handler != null && typeof(ISupportsDynamicFields).IsAssignableFrom(handler);
+            }).ToArray();
+
             if (dynamicContentTypes.Length > 0)
             {
                 var results = ContentQuery.Query(SafeQueries.InFolderAndTypeIs,

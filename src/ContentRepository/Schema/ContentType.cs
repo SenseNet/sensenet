@@ -128,18 +128,20 @@ namespace  SenseNet.ContentRepository.Schema
         public List<ContentType> ChildTypes { get; private set; }
 
         private bool _unknownHandler;
-        internal bool UnknownHandler
+        private bool UnknownHandler
         {
             get => _unknownHandler || (this.ParentType?.UnknownHandler ?? false);
-            private set => _unknownHandler = value;
+            set => _unknownHandler = value;
         }
 
         private bool _unknownField;
-        internal bool UnknownField
+        private bool UnknownField
         {
             get => _unknownField || (this.ParentType?.UnknownField ?? false);
-            private set => _unknownField = value;
+            set => _unknownField = value;
         }
+
+        internal bool IsInvalid => UnknownHandler || UnknownField;
 
         /// <summary>
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.

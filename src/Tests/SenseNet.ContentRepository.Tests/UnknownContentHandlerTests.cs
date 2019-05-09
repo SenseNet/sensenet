@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -52,7 +53,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     Assert.AreEqual(string.Equals(contentType.Path, folderType.Path) ||
                                     contentType.Path.StartsWith(folderType.Path + RepositoryPath.PathSeparator),
-                        contentType.UnknownHandler);
+                        contentType.IsInvalid);
                 }
 
                 // load a previously created system folder and iterate through its fields
@@ -134,6 +135,32 @@ namespace SenseNet.ContentRepository.Tests
                 InMemoryDataProvider.AddField(currentDb, "Folder", "TestField", null, "unknown");
 
                 ResetAndFailToCreateContent();
+            });
+        }
+
+        [TestMethod]
+        public void UnknownHandler_CreateContent_FieldTable()
+        {
+            // This test is necessary because the OData layer calls the field name getter method.
+            Test(() =>
+            {
+                var parent = Node.Load<GenericContent>("/Root");
+                var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
+                var fieldNamesBefore = string.Join(",", content.GetFieldNamesInParentTable().OrderBy(fn => fn));
+
+                // set the handler of the Folder type to an unknown value
+                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
+                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+
+                DistributedApplication.Cache.Reset();
+                NodeTypeManager.Restart();
+                ContentTypeManager.Reload();
+
+                parent = Node.Load<GenericContent>("/Root");
+                content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
+                var fieldNamesAfter = string.Join(",", content.GetFieldNamesInParentTable().OrderBy(fn => fn));
+
+                Assert.AreEqual(fieldNamesBefore, fieldNamesAfter);
             });
         }
 
