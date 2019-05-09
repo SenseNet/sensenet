@@ -77,10 +77,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     transaction.Commit();
                 }
-                catch
+                catch (Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;
@@ -145,10 +145,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     transaction.Commit();
                 }
-                catch
+                catch(Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;
@@ -220,10 +220,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     transaction.Commit();
                 }
-                catch
+                catch (Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;
@@ -261,10 +261,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     nodeHeadData.LastMajorVersionId = lastMajorVersionId;
                     nodeHeadData.LastMinorVersionId = lastMinorVersionId;
                 }
-                catch
+                catch (Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;
@@ -345,6 +345,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         if (dynamicProps.TryGetValue(propertyType.Name, out var value))
                             nodeData.SetDynamicRawData(propertyType, GetCloneSafe(value, propertyType.DataType));
 
+                    // Load BinaryProperties
+                    //UNDONE:DB@@@@ Load BinaryProperties in the LoadNodesAsync
+
                     // Load appropriate LongTextProperties
                     var longTextPropertyTypeIds = nodeData.PropertyTypes
                         .Where(p => p.DataType == DataType.Text)
@@ -421,10 +424,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     transaction.Commit();
                 }
-                catch
+                catch (Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;
@@ -478,10 +481,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     transaction.Commit();
                 }
-                catch
+                catch (Exception e)
                 {
                     transaction.Rollback();
-                    throw;
+                    throw GetException(e);
                 }
             }
             return STT.Task.CompletedTask;

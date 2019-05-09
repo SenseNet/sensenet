@@ -92,118 +92,129 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             var isNewNode = nodeData.Id == 0;
 
-            // SAVE DATA (head, version, dynamic metadata, binaries)
-            // Do not block any exception from the called methods.
-            // If need a catch block rethrow away the exception.
-
-            var nodeHeadData = nodeData.GetNodeHeadData();
-            var savingAlgorithm = settings.GetSavingAlgorithm();
-            var renamed = !isNewNode && nodeData.PathChanged && nodeData.SharedData != null;
-            if (settings.NeedToSaveData)
+            try
             {
-                var versionData = nodeData.GetVersionData();
-                DynamicPropertyData dynamicData;
-                switch (savingAlgorithm)
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var savingAlgorithm = settings.GetSavingAlgorithm();
+                var renamed = !isNewNode && nodeData.PathChanged && nodeData.SharedData != null;
+                if (settings.NeedToSaveData)
                 {
-                    case SavingAlgorithm.CreateNewNode:
-                        dynamicData = nodeData.GetDynamicData(false);
-                        await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData, cancellationToken);
-                        // Write back the new NodeId
-                        nodeData.Id = nodeHeadData.NodeId;
-                        break;
-                    case SavingAlgorithm.UpdateSameVersion:
-                        dynamicData = nodeData.GetDynamicData(false);
-                        if(renamed)
-                            await DataProvider.UpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, nodeData.SharedData.Path, cancellationToken);
-                        else
-                            await DataProvider.UpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, null, cancellationToken);
-                        break;
-                    case SavingAlgorithm.CopyToNewVersionAndUpdate:
-                        dynamicData = nodeData.GetDynamicData(true);
-                        if (renamed)
-                            // Copy to brand new version and rename
-                            await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0,
-                                nodeData.SharedData.Path, cancellationToken);
-                        else
-                            // Copy to brand new version
-                            await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0, null, cancellationToken);
-                        break;
-                    case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
-                        dynamicData = nodeData.GetDynamicData(true);
-                        if (renamed)
-                            // Copy to specified version and rename
-                            await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, settings.ExpectedVersionId,
-                                nodeData.SharedData.Path, cancellationToken);
-                        else
-                            // Copy to specified version
-                            await DataProvider.CopyAndUpdateNodeAsync(
-                                nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, settings.ExpectedVersionId,
-                                null, cancellationToken);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
+                    var versionData = nodeData.GetVersionData();
+                    DynamicPropertyData dynamicData;
+                    switch (savingAlgorithm)
+                    {
+                        case SavingAlgorithm.CreateNewNode:
+                            dynamicData = nodeData.GetDynamicData(false);
+                            await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData,
+                                cancellationToken);
+                            // Write back the new NodeId
+                            nodeData.Id = nodeHeadData.NodeId;
+                            break;
+                        case SavingAlgorithm.UpdateSameVersion:
+                            dynamicData = nodeData.GetDynamicData(false);
+                            if (renamed)
+                                await DataProvider.UpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                    nodeData.SharedData.Path, cancellationToken);
+                            else
+                                await DataProvider.UpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, null,
+                                    cancellationToken);
+                            break;
+                        case SavingAlgorithm.CopyToNewVersionAndUpdate:
+                            dynamicData = nodeData.GetDynamicData(true);
+                            if (renamed)
+                                // Copy to brand new version and rename
+                                await DataProvider.CopyAndUpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0,
+                                    nodeData.SharedData.Path, cancellationToken);
+                            else
+                                // Copy to brand new version
+                                await DataProvider.CopyAndUpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0, null,
+                                    cancellationToken);
+                            break;
+                        case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
+                            dynamicData = nodeData.GetDynamicData(true);
+                            if (renamed)
+                                // Copy to specified version and rename
+                                await DataProvider.CopyAndUpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                    settings.ExpectedVersionId,
+                                    nodeData.SharedData.Path, cancellationToken);
+                            else
+                                // Copy to specified version
+                                await DataProvider.CopyAndUpdateNodeAsync(
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
+                                    settings.ExpectedVersionId,
+                                    null, cancellationToken);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
+                    }
+                    // Write back the version level changed values
+                    nodeData.VersionId = versionData.VersionId;
+                    nodeData.VersionTimestamp = versionData.Timestamp;
                 }
-                // Write back the version level changed values
-                nodeData.VersionId = versionData.VersionId;
-                nodeData.VersionTimestamp = versionData.Timestamp;
-
-                //if (!isNewNode && nodeData.PathChanged && nodeData.SharedData != null)
-                //    await DataProvider.UpdateSubTreePathAsync(nodeData.SharedData.Path, nodeData.Path);
+                else
+                {
+                    await DataProvider.UpdateNodeHeadAsync(nodeHeadData, settings.DeletableVersionIds,
+                        cancellationToken);
+                }
+                // Write back NodeHead level changed values
+                settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
+                settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
+                nodeData.NodeTimestamp = nodeHeadData.Timestamp;
             }
-            else
+            catch (Exception e)
             {
-                await DataProvider.UpdateNodeHeadAsync(nodeHeadData, settings.DeletableVersionIds, cancellationToken);
+                throw GetException(e);
             }
-            // Write back NodeHead level changed values
-            settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
-            settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
-            nodeData.NodeTimestamp = nodeHeadData.Timestamp;
         }
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // ORIGINAL SIGNATURES:
-            // internal void LoadNodeData(IEnumerable<NodeToken> tokens)
-            // protected internal abstract void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId);
-
             var tokens = new List<NodeToken>();
             var tokensToLoad = new List<NodeToken>();
-            for (var i = 0; i < headArray.Length; i++)
+            try
             {
-                var head = headArray[i];
-                var versionId = versionIdArray[i];
-
-                var token = new NodeToken(head.Id, head.NodeTypeId, head.ContentListId, head.ContentListTypeId, versionId, null)
+                for (var i = 0; i < headArray.Length; i++)
                 {
-                    NodeHead = head
-                };
-                tokens.Add(token);
+                    var head = headArray[i];
+                    var versionId = versionIdArray[i];
 
-                var cacheKey = GenerateNodeDataVersionIdCacheKey(versionId);
-                if (DistributedApplication.Cache.Get(cacheKey) is NodeData nodeData)
-                    token.NodeData = nodeData;
-                else
-                    tokensToLoad.Add(token);
-            }
-            if (tokensToLoad.Count > 0)
-            {
-                var versionIds = tokensToLoad.Select(x => x.VersionId).ToArray();
-                var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken);
-                foreach (var nodeData in loadedCollection)
-                {
-                    if (nodeData != null) // lost version
+                    var token = new NodeToken(head.Id, head.NodeTypeId, head.ContentListId, head.ContentListTypeId, 
+                        versionId, null)
                     {
-                        CacheNodeData(nodeData);
-                        var token = tokensToLoad.First(x => x.VersionId == nodeData.VersionId);
+                        NodeHead = head
+                    };
+                    tokens.Add(token);
+
+                    var cacheKey = GenerateNodeDataVersionIdCacheKey(versionId);
+                    if (DistributedApplication.Cache.Get(cacheKey) is NodeData nodeData)
                         token.NodeData = nodeData;
+                    else
+                        tokensToLoad.Add(token);
+                }
+                if (tokensToLoad.Count > 0)
+                {
+                    var versionIds = tokensToLoad.Select(x => x.VersionId).ToArray();
+                    var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken);
+                    foreach (var nodeData in loadedCollection)
+                    {
+                        if (nodeData != null) // lost version
+                        {
+                            CacheNodeData(nodeData);
+                            var token = tokensToLoad.First(x => x.VersionId == nodeData.VersionId);
+                            token.NodeData = nodeData;
+                        }
                     }
                 }
+                return tokens.ToArray();
             }
-            return tokens.ToArray();
+            catch (Exception e)
+            {
+                throw GetException(e);
+            }
         }
         public static async Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -426,7 +437,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.StartSchemaUpdateAsync(schemaTimestamp, cancellationToken);
+            try
+            {
+                return DataProvider.StartSchemaUpdateAsync(schemaTimestamp, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                throw GetException(e);
+            }
         }
         public static SchemaWriter CreateSchemaWriter()
         {
@@ -434,7 +452,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public static Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.FinishSchemaUpdateAsync(schemaLock, cancellationToken);
+            try
+            {
+                return DataProvider.FinishSchemaUpdateAsync(schemaLock, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                throw GetException(e);
+            }
         }
 
         #region Backward compatibility
@@ -502,6 +527,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
+
+        internal static Exception GetException(Exception e)
+        {
+            switch (e)
+            {
+                case ContentNotFoundException _: return e;
+                case NodeAlreadyExistsException _: return e;
+                case NodeIsOutOfDateException _: return e;
+                case ArgumentNullException _: return e;
+                case ArgumentOutOfRangeException _: return e;
+                case ArgumentException _: return e;
+                case DataException _: return e;
+                case NotSupportedException _: return e;
+                case SnNotSupportedException _: return e;
+                case NotImplementedException _: return e;
+            }
+            return new DataException(
+                "A database exception occured during execution of the operation. See InnerException for details.", e);
+        }
 
         /* =============================================================================================== */
 

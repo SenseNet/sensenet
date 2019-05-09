@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -53,10 +54,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Persists brand new objects that contain all static and dynamic properties of the node.
         /// Writes back the newly generated ids and timestamps to the provided [nodeHeadData], [versionData] 
-        /// and [dynamicData] parameters:
-        ///     NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
-        /// This method needs to be transactional. If an error occurs during execution, all data changes
-        /// should be reverted to the original state by the data provider.
+        /// and [dynamicData] parameters: NodeId, NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds,
+        /// LastMajorVersionId, LastMinorVersionId. This method needs to be transactional. If an error occurs during execution,
+        /// all data changes should be reverted to the original state by the data provider.
+        /// </summary>
+        /// <remarks>
         /// Algorithm:
         ///  1 - Begin a new transaction
         ///  2 - Check the uniqueness of the [nodeHeadData].Path value. If that fails, throw a <see cref="NodeAlreadyExistsException"/>.
@@ -82,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 12 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
         ///      In case of error the data written into the parameters (new ids and changed timestamps)
         ///      will be dropped so rolling back these values is not necessary.
-        /// </summary>
+        /// </remarks>
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
@@ -93,6 +95,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="NodeAlreadyExistsException">The [nodeHeadData].Path already exists in the database.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -104,6 +109,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///     NodeTimestamp, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// </summary>
+        /// <remarks>
         /// Algorithm:
         ///  1 - Begin a new transaction
         ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
@@ -134,7 +141,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 14 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
         ///      In case of error the data written into the parameters (new ids and changed timestamps)
         ///      will be dropped so rolling back these values is not necessary.
-        /// </summary>
+        /// </remarks>
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
@@ -147,6 +154,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id or [versionData].Id is missing.</exception>
+        /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task UpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
@@ -160,6 +171,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///     NodeTimestamp, VersionId, VersionTimestamp, BinaryPropertyIds, LastMajorVersionId, LastMinorVersionId.
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// </summary>
+        /// <remarks>
+        /// Algorithm:
         ///  1 - Begin a new transaction
         ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
         ///  3 - Check if the version exists using the [versionData].VersionId value. Throw an <see cref="ContentNotFoundException"/> exception if the version is deleted.
@@ -194,7 +208,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// 17 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
         ///      In case of error the data written into the parameters (new ids and changed timestamps)
         ///      will be dropped so rolling back these values is not necessary.
-        /// </summary>
+        /// </remarks>
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionData">Head information of the current version.</param>
@@ -208,6 +222,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id or [versionData].Id is missing.</exception>
+        /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
             int expectedVersionId = 0, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
@@ -216,6 +234,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
         /// This method needs to be transactional. If an error occurs during execution, all data changes
         /// should be reverted to the original state by the data provider.
+        /// </summary>
+        /// <remarks>
         /// Algorithm:
         ///  1 - Begin a new transaction
         ///  2 - Check if the node exists using the [nodeHeadData].NodeId value. Throw an <see cref="ContentNotFoundException"/> exception if the node is deleted.
@@ -232,18 +252,42 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  9 - Commit the transaction. If there was a problem, rollback the transaction and throw an exception.
         ///      In case of error the data written into the parameters (new ids and changed timestamps)
         ///      will be dropped so rolling back these values is not necessary.
-        /// </summary>
+        /// </remarks>
         /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
         /// content tree and the most important not-versioned property values.</param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id is missing.</exception>
+        /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Returns loaded NodeData by the given versionIds
+        /// Loads node representations by the given versionId set. If a node not found by it's versionId, the item need to be skipped.
+        /// Every loaded node representation need to be transformed to a new NodeData instance. Returns filled NodeData set.
+        /// Returns empty set instead of null if no node was loaded.
         /// </summary>
+        /// <remarks>
+        /// Algorithm:
+        /// 1 - Enumerate [versionIds].
+        /// 2 - Load NodeHeadData and VersionData representations by the current versionId.
+        /// 3 - Skip further operations if any item is missing.
+        /// 4 - Create a new NodeData. The constructor parameters may be in the NodeHead representation.
+        /// 5 - Fill all properties of the new NodeData instance from the NodeHeadData and VersionData representations.
+        /// 6 - Load all dynamic properties by PropertyTypes colleciton of the new NodeData instance.
+        ///     Every property value need to be set to the NodeData instance with the NodeData.SetDynamicRawData method.
+        ///     Do not load binary properties (DataType.Binary).
+        ///     Do not load and text properties (DataType.Text) that are longer than the DataStore.TextAlternationSizeLimit.
+        /// 7 - Return the filled or empty NodeData set.
+        /// </remarks>
+        /// <param name="versionIds">Define versionIds that should to be loaded.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded NodeData set.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken));
 
         public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken));
@@ -330,15 +374,31 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract SchemaWriter CreateSchemaWriter();
 
         /// <summary>
-        /// Checks the given schemaTimestamp equality. If different, throws an error: Storage schema is out of date.
-        /// Checks the schemaLock existence. If there is, throws an error
-        /// otherwise create a SchemaLock and return its value.
+        /// Initiates a schema update and returns an exclusive lock token.
         /// </summary>
+        /// <remarks>
+        /// Algorithm:
+        /// 1 - Checks the given schemaTimestamp equality. If different, throws an error: "Storage schema is out of date."
+        /// 2 - Checks the schemaLock existence. If there is, throws an error: "Schema is locked by someone else."
+        /// 3 - Locks the schema exclusively against other modifications and return a schema lock token.
+        /// </remarks>
+        /// <param name="schemaTimestamp">Timestamp value of the last loaded <see cref="RepositorySchemaData"/>.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A string value as the schema lock token.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
         public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
-        /// Checks the given schemaLock equality. If different, throws an illegal operation error.
-        /// Returns a newly generated schemaTimestamp.
+        /// Finishes the schema update, releases the exclusive schema lock and return the new schema timestamp.
         /// </summary>
+        /// <remarks>
+        /// Algorithm:
+        /// 1 - Checks the given schemaLock equality. If different, throws an error.
+        /// 2 - Returns a newly generated schemaTimestamp.
+        /// </remarks>
+        /// <param name="schemaLock">Schema lock token</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>New schema timestamp.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
         public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Logging */
@@ -361,11 +421,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
-        public abstract Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
+        protected Exception GetException(Exception e)
+        {
+            return DataStore.GetException(e);
+        }
 
         /* =============================================================================================== Test support */
 
+        public abstract Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task SetFileStagingAsync(int fileId, bool staging);
         public abstract Task DeleteFileAsync(int fileId);
     }
