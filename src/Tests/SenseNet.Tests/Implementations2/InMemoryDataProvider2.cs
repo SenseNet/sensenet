@@ -1349,8 +1349,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<string> StartSchemaUpdateAsync(long schemaTimestamp)
+        public override Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 if (schemaTimestamp != DB.Schema.Timestamp)
@@ -1362,8 +1363,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<long> FinishSchemaUpdateAsync(string schemaLock)
+        public override Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 if (schemaLock != DB.SchemaLock)

@@ -334,12 +334,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Checks the schemaLock existence. If there is, throws an error
         /// otherwise create a SchemaLock and return its value.
         /// </summary>
-        public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp);
+        public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken));
         /// <summary>
         /// Checks the given schemaLock equality. If different, throws an illegal operation error.
         /// Returns a newly generated schemaTimestamp.
         /// </summary>
-        public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock);
+        public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Logging */
 

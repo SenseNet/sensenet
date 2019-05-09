@@ -283,23 +283,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public static Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath);
+            return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath, cancellationToken);
         }
         public static Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false);
+            return QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false, cancellationToken);
         }
         public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
         public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
         public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name);
+            return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name, cancellationToken);
         }
         public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -424,17 +424,17 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadSchemaAsync(cancellationToken);
         }
 
-        public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp)
+        public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.StartSchemaUpdateAsync(schemaTimestamp);
+            return DataProvider.StartSchemaUpdateAsync(schemaTimestamp, cancellationToken);
         }
         public static SchemaWriter CreateSchemaWriter()
         {
             return DataProvider.CreateSchemaWriter();
         }
-        public static Task<long> FinishSchemaUpdateAsync(string schemaLock)
+        public static Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.FinishSchemaUpdateAsync(schemaLock);
+            return DataProvider.FinishSchemaUpdateAsync(schemaLock, cancellationToken);
         }
 
         #region Backward compatibility
