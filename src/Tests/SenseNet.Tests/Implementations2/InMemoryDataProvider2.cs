@@ -345,8 +345,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         if (dynamicProps.TryGetValue(propertyType.Name, out var value))
                             nodeData.SetDynamicRawData(propertyType, GetCloneSafe(value, propertyType.DataType));
 
-                    // Load BinaryProperties
-                    //UNDONE:DB@@@@ Load BinaryProperties in the LoadNodesAsync
+                    // Load BinaryProperties skipped
 
                     // Load appropriate LongTextProperties
                     var longTextPropertyTypeIds = nodeData.PropertyTypes
@@ -1503,28 +1502,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
-                var result = nodeDoc?.Timestamp ?? 0L;
-                return STT.Task.FromResult(result);
-            }
-        }
-
-        public override Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
-                var result = versionDoc?.Timestamp ?? 0L;
-                return STT.Task.FromResult(result);
-            }
-        }
-
         /* =============================================================================================== Installation */
 
         public override STT.Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
@@ -1658,7 +1635,29 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Test support */
 
-        //UNDONE:DB@@@@@ Move to dataprovider extension
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                var result = nodeDoc?.Timestamp ?? 0L;
+                return STT.Task.FromResult(result);
+            }
+        }
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                var result = versionDoc?.Timestamp ?? 0L;
+                return STT.Task.FromResult(result);
+            }
+        }
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
         public override STT.Task SetFileStagingAsync(int fileId, bool staging)
         {
             lock (DB)
@@ -1669,7 +1668,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.CompletedTask;
             }
         }
-        //UNDONE:DB@@@@@ Move to dataprovider extension
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
         public override STT.Task DeleteFileAsync(int fileId)
         {
             var fileDoc = DB.Files.FirstOrDefault(x => x.FileId == fileId);

@@ -517,14 +517,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.GetVersionCountAsync(path, cancellationToken);
         }
-        public static Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return DataProvider.GetNodeTimestampAsync(nodeId, cancellationToken);
-        }
-        public static Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return DataProvider.GetVersionTimestampAsync(versionId, cancellationToken);
-        }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
