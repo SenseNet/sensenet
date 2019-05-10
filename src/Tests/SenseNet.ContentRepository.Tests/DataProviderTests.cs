@@ -35,30 +35,86 @@ namespace SenseNet.ContentRepository.Tests
         //     old in-memory DataProvider implementation and B is the new one.
 
         [TestMethod]
-        public void DP_AB_Create()
+        public async STT.Task DP_InsertNode()
         {
-            // TESTED: DataProvider2: InsertNodeAsync(NodeData nodeData, NodeSaveSettings settings);
-
-            DPTest(() =>
+            await Test(async () =>
             {
-                // ACTION-A
-                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                var nodeDataBeforeA = folderA.Data.Clone();
-                folderA.Save();
-                var nodeDataAfterA = folderA.Data.Clone();
-
-                // ACTION-B
                 DataStore.Enabled = true;
-                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                var nodeDataBeforeB = folderB.Data.Clone();
-                folderB.Save();
-                var nodeDataAfterB = folderB.Data.Clone();
+                var dp = DataStore.DataProvider;
 
-                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-                CheckDynamicDataByVersionId(folderA.VersionId);
+                var root = CreateFolder(Repository.Root, "TestRoot");
+
+                // Create a file but do not save.
+                var created = new File(root) { Name = "File1", Index = 42, Description = "File1 Description" };
+                created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
+                var nodeData = created.Data;
+                nodeData.Path = RepositoryPath.Combine(created.ParentPath, created.Name);
+                GenerateTestData(nodeData);
+
+
+                // ACTION
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData(false);
+                var binaryProperty = dynamicData.BinaryProperties.First().Value;
+                await dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+
+                // ASSERT
+                Assert.IsTrue(nodeHeadData.NodeId > 0);
+                Assert.IsTrue(nodeHeadData.Timestamp > 0);
+                Assert.IsTrue(versionData.VersionId > 0);
+                Assert.IsTrue(versionData.Timestamp > 0);
+                Assert.IsTrue(binaryProperty.Id > 0);
+                Assert.IsTrue(binaryProperty.FileId > 0);
+                Assert.IsTrue(nodeHeadData.LastMajorVersionId == versionData.VersionId);
+                Assert.IsTrue(nodeHeadData.LastMajorVersionId == nodeHeadData.LastMinorVersionId);
+
+                DistributedApplication.Cache.Reset();
+                var loaded = Node.Load<File>(nodeHeadData.NodeId);
+                Assert.IsNotNull(loaded);
+                Assert.AreEqual("File1", loaded.Name);
+                Assert.AreEqual(nodeHeadData.Path, loaded.Path);
+                Assert.AreEqual(42, loaded.Index);
+                Assert.AreEqual("File1 Content", RepositoryTools.GetStreamString(loaded.Binary.GetStream()));
+
+                foreach (var propType in loaded.Data.PropertyTypes)
+                    loaded.Data.GetDynamicRawData(propType);
+                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+
             });
         }
+        private void GenerateTestData(NodeData nodeData)
+        {
+            foreach (var propType in nodeData.PropertyTypes)
+            {
+                var data = GetTestData(propType);
+                if (data != null)
+                    nodeData.SetDynamicRawData(propType, data);
+            }
+        }
+        private object GetTestData(PropertyType propType)
+        {
+            if (propType.Name == "AspectData")
+                return "<AspectData />";
+            switch (propType.DataType)
+            {
+                case DataType.String: return "String " + Guid.NewGuid();
+                case DataType.Text: return "Text value" + Guid.NewGuid();
+                case DataType.Int: return Rng();
+                case DataType.Currency: return (decimal)Rng();
+                case DataType.DateTime: return DateTime.UtcNow;
+                case DataType.Reference: return new[] {1, 2};
+                case DataType.Binary:
+                default:
+                    return null;
+            }
+        }
+        private Random _random = new Random();
+        private int Rng()
+        {
+            return _random.Next(1, int.MaxValue);
+        }
+
         [TestMethod]
         public void DP_AB_Create_TextProperty()
         {

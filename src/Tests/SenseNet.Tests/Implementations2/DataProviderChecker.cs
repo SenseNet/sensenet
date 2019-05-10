@@ -148,6 +148,57 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 }
             }
         }
+        public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual)
+        {
+            // prepare collections
+            var expectedProps = (Dictionary<int, object>)(new PrivateObject(expected).GetField("dynamicData"));
+            var actualProps = (Dictionary<int, object>)(new PrivateObject(actual).GetField("dynamicData"));
+
+            // Compare signatures
+            var expectedSignature = expectedProps.Keys.OrderBy(y => y).ToArray();
+            var actualSignature = actualProps.Keys.OrderBy(y => y).ToArray();
+            var expectedNames = expectedProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            var actualNames = actualProps.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x).Name).OrderBy(y => y).ToArray();
+            Assert_AreEqual(expectedNames, actualNames, "DynamicPropertySignature");
+
+            // Compare properties
+            foreach (var key in expectedSignature)
+            {
+                var propertyType = NodeTypeManager.Current.PropertyTypes.GetItemById(key);
+                var expectedValue = expectedProps[key];
+                var actualValue = actualProps[key];
+                switch (propertyType.DataType)
+                {
+                    case DataType.String:
+                    case DataType.Text:
+                        Assert_AreEqual((string)expectedValue, (string)actualValue, propertyType.Name);
+                        break;
+                    case DataType.Int:
+                        try
+                        {
+                            Assert_AreEqual((int?)expectedValue, (int?)actualValue, propertyType.Name);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            Assert_AreEqual((int)expectedValue, (int)actualValue, propertyType.Name);
+                        }
+                        break;
+                    case DataType.Currency:
+                        Assert_AreEqual((decimal?)expectedValue, (decimal?)actualValue, propertyType.Name);
+                        break;
+                    case DataType.DateTime:
+                        Assert_AreEqual((DateTime?)expectedValue, (DateTime?)actualValue, propertyType.Name);
+                        break;
+                    case DataType.Binary:
+                        break;
+                    case DataType.Reference:
+                        Assert_AreEqual((IEnumerable<int>)expectedValue, (IEnumerable<int>)actualValue, $"ReferenceProperty '{propertyType.Name}'");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
         private static void Assert_AreEqual(BinaryDataValue expected, BinaryDataValue actual)
         {
