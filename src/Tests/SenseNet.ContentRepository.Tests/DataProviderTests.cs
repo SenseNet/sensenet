@@ -83,9 +83,6 @@ namespace SenseNet.ContentRepository.Tests
 
             });
         }
-
-
-
         [TestMethod]
         public async STT.Task DP_Update()
         {
@@ -131,173 +128,141 @@ namespace SenseNet.ContentRepository.Tests
                 DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
+        [TestMethod]
+        public async STT.Task DP_CopyAndUpdate_NewVersion()
+        {
+
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
+
+                var root = CreateFolder(Repository.Root, "Folder1");
+                root.Save();
+                var created = new File(root) { Name = "File1", VersioningMode = VersioningType.MajorAndMinor};
+                created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
+                created.Save();
+
+                // Update a file but do not save
+                var updated = Node.Load<File>(created.Id);
+                var binary = updated.Binary;
+                binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content UPDATED"));
+                updated.Binary = binary;
+                var nodeData = updated.Data;
+
+                // Patch version because the NodeSaveSetting logic is skipped.
+                nodeData.Version = VersionNumber.Parse("V0.2.D");
+
+                // Update dynamic properties
+                GenerateTestData(nodeData);
+                var versionIdBefore = nodeData.VersionId;
+
+                // ACTION
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData(false);
+                var versionIdsToDelete = new int[0];
+                await dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+
+                // ASSERT
+                Assert.AreNotEqual(versionIdBefore, versionData.VersionId);
+
+                DistributedApplication.Cache.Reset();
+                var loaded = Node.Load<File>(nodeHeadData.NodeId);
+                Assert.IsNotNull(loaded);
+                Assert.AreEqual("File1", loaded.Name);
+                Assert.AreEqual(nodeHeadData.Path, loaded.Path);
+                Assert.AreEqual("File1 Content UPDATED", RepositoryTools.GetStreamString(loaded.Binary.GetStream()));
+
+                foreach (var propType in loaded.Data.PropertyTypes)
+                    loaded.Data.GetDynamicRawData(propType);
+                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+            });
+        }
+
 
 
         [TestMethod]
-        public void DP_AB_UpdateFile_SameVersion()
+        public async STT.Task DP_CopyAndUpdate_ExpectedVersion()
         {
-            // TESTED: DataProvider2: UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
-
-            DPTest(() =>
+            await Test(async () =>
             {
-                var filecontent1 = "1111 File content 1.";
-                var filecontent2 = "2222 File content 2.";
-
-                //// ACTION-A
-                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderA.Save();
-                var fileA = new File(folderA) { Name = "File1" };
-                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileA.Save();
-                fileA = Node.Load<File>(fileA.Id);
-                var binaryA = fileA.Binary;
-                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileA.Binary = binaryA;
-                var nodeDataBeforeA = fileA.Data.Clone();
-                fileA.Save();
-                var nodeDataAfterA = fileA.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileA = Node.Load<File>(fileA.Id);
-                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
+                //var filecontent1 = "1111 File content 1.";
+                //var filecontent2 = "2222 File content 2.";
 
                 // ACTION-B
+                //DataStore.Enabled = true;
+                //var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                //folderB.Save();
+                //var fileB = new File(folderB) { Name = "File1" };
+                //fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
+                //fileB.Save();
+                //fileB.CheckOut();
+                //fileB = Node.Load<File>(fileB.Id);
+                //var binaryB = fileB.Binary;
+                //binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
+                //fileB.Binary = binaryB;
+                //fileB.Save();
+                //var nodeDataBeforeB = fileB.Data.Clone();
+                //fileB.CheckIn();
+                //var nodeDataAfterB = fileB.Data.Clone();
+                //DistributedApplication.Cache.Reset();
+                //fileB = Node.Load<File>(fileB.Id);
+                //var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
+                //////////////////////////////////////////////////////////////////////////////////////////
                 DataStore.Enabled = true;
-                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderB.Save();
-                var fileB = new File(folderB) { Name = "File1" };
-                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileB.Save();
-                fileB = Node.Load<File>(fileB.Id);
-                var binaryB = fileB.Binary;
-                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileB.Binary = binaryB;
-                var nodeDataBeforeB = fileB.Data.Clone();
-                fileB.Save();
-                var nodeDataAfterB = fileB.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileB = Node.Load<File>(fileB.Id);
-                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
+                var dp = DataStore.DataProvider;
+
+                var root = CreateFolder(Repository.Root, "Folder1");
+                root.Save();
+                var created = new File(root) { Name = "File1" };
+                created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
+                created.Save();
+                var versionIdBefore = created.VersionId;
+
+                created.CheckOut();
+
+                // Update a file but do not save
+                var updated = Node.Load<File>(created.Id);
+                var binary = updated.Binary;
+                binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content UPDATED"));
+                updated.Binary = binary;
+                var nodeData = updated.Data;
+
+                // Patch version because the NodeSaveSetting logic is skipped.
+                nodeData.Version = VersionNumber.Parse("V1.0.A");
+
+                // Update dynamic properties
+                GenerateTestData(nodeData);
+
+                // ACTION
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var versionData = nodeData.GetVersionData();
+                var dynamicData = nodeData.GetDynamicData(false);
+                var versionIdsToDelete = new int[] { versionData.VersionId };
+                var expectedVersionId = versionIdBefore;
+                await dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId);
 
                 // ASSERT
-                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
+                Assert.AreEqual(versionIdBefore, versionData.VersionId);
 
-                CheckDynamicDataByVersionId(fileA.VersionId);
+                DistributedApplication.Cache.Reset();
+                var loaded = Node.Load<File>(nodeHeadData.NodeId);
+                Assert.IsNotNull(loaded);
+                Assert.AreEqual("File1", loaded.Name);
+                Assert.AreEqual(nodeHeadData.Path, loaded.Path);
+                Assert.AreEqual(VersionNumber.Parse("V1.0.A"), loaded.Version);
+                Assert.AreEqual(versionIdBefore, loaded.VersionId);
+                Assert.AreEqual("File1 Content UPDATED", RepositoryTools.GetStreamString(loaded.Binary.GetStream()));
 
-                Assert.AreEqual(filecontent2, reloadedFileContentA);
-                Assert.AreEqual(filecontent2, reloadedFileContentB);
+                foreach (var propType in loaded.Data.PropertyTypes)
+                    loaded.Data.GetDynamicRawData(propType);
+                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
-        [TestMethod]
-        public void DP_AB_UpdateFile_NewVersion()
-        {
-            DPTest(() =>
-            {
-                var filecontent1 = "1111 File content 1.";
-                var filecontent2 = "2222 File content 2.";
 
-                //// ACTION-A
-                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderA.Save();
-                var fileA = new File(folderA) { Name = "File1",VersioningMode = VersioningType.MajorAndMinor };
-                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileA.Save();
-                fileA = Node.Load<File>(fileA.Id);
-                var binaryA = fileA.Binary;
-                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileA.Binary = binaryA;
-                var nodeDataBeforeA = fileA.Data.Clone();
-                fileA.Save();
-                var nodeDataAfterA = fileA.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileA = Node.Load<File>(fileA.Id);
-                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
 
-                // ACTION-B
-                DataStore.Enabled = true;
-                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderB.Save();
-                var fileB = new File(folderB) { Name = "File1", VersioningMode = VersioningType.MajorAndMinor};
-                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileB.Save();
-                fileB = Node.Load<File>(fileB.Id);
-                var binaryB = fileB.Binary;
-                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileB.Binary = binaryB;
-                var nodeDataBeforeB = fileB.Data.Clone();
-                fileB.Save();
-                var nodeDataAfterB = fileB.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileB = Node.Load<File>(fileB.Id);
-                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
 
-                // ASSERT
-                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-
-                CheckDynamicDataByVersionId(fileA.VersionId);
-
-                Assert.AreEqual(filecontent2, reloadedFileContentA);
-                Assert.AreEqual(filecontent2, reloadedFileContentB);
-            });
-        }
-        [TestMethod]
-        public void DP_AB_UpdateFile_ExpectedVersion()
-        {
-            DPTest(() =>
-            {
-                var filecontent1 = "1111 File content 1.";
-                var filecontent2 = "2222 File content 2.";
-
-                //// ACTION-A
-                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderA.Save();
-                var fileA = new File(folderA) { Name = "File1" };
-                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileA.Save();
-                fileA.CheckOut();
-                fileA = Node.Load<File>(fileA.Id);
-                var binaryA = fileA.Binary;
-                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileA.Binary = binaryA;
-                fileA.Save();
-                var nodeDataBeforeA = fileA.Data.Clone();
-                fileA.CheckIn();
-                var nodeDataAfterA = fileA.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileA = Node.Load<File>(fileA.Id);
-                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
-
-                // ACTION-B
-                DataStore.Enabled = true;
-                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderB.Save();
-                var fileB = new File(folderB) { Name = "File1" };
-                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileB.Save();
-                fileB.CheckOut();
-                fileB = Node.Load<File>(fileB.Id);
-                var binaryB = fileB.Binary;
-                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileB.Binary = binaryB;
-                fileB.Save();
-                var nodeDataBeforeB = fileB.Data.Clone();
-                fileB.CheckIn();
-                var nodeDataAfterB = fileB.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileB = Node.Load<File>(fileB.Id);
-                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
-
-                // ASSERT
-                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-
-                CheckDynamicDataByVersionId(fileA.VersionId);
-
-                Assert.AreEqual(filecontent2, reloadedFileContentA);
-                Assert.AreEqual(filecontent2, reloadedFileContentB);
-            });
-        }
         [TestMethod]
         public void DP_AB_Update_HeadOnly()
         {
