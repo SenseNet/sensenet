@@ -89,47 +89,6 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task DP_Update()
         {
-            // TESTED: DataProvider2: UpdateNodeAsync(NodeData nodeData, NodeSaveSettings settings, IEnumerable<int> versionIdsToDelete)
-            //DPTest(() =>
-            //{
-            //    // PROVIDER-A
-            //    var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-            //    folderA.Save();
-            //    folderA = Node.Load<SystemFolder>(folderA.Id);
-            //    folderA.Index++;
-            //    var nodeDataBeforeA = folderA.Data.Clone();
-            //    folderA.Save();
-            //    var nodeDataAfterA = folderA.Data.Clone();
-
-            //    // PROVIDER-B
-            //    DataStore.Enabled = true;
-            //    DistributedApplication.Cache.Reset();
-            //    var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-            //    folderB.Save();
-            //    folderB = Node.Load<SystemFolder>(folderB.Id);
-            //    folderB.Index++;
-            //    var nodeDataBeforeB = folderB.Data.Clone();
-            //    folderB.Save();
-            //    var nodeDataAfterB = folderB.Data.Clone();
-
-            //    // Check
-            //    DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-            //    DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-            //    Assert.IsTrue(nodeDataBeforeB.NodeTimestamp < nodeDataAfterB.NodeTimestamp);
-            //    Assert.IsTrue(nodeDataBeforeB.VersionTimestamp < nodeDataAfterB.VersionTimestamp);
-            //    CheckDynamicDataByVersionId(folderA.VersionId);
-            //});
-
-            //    var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-            //    folderA.Save();
-            //    folderA = Node.Load<SystemFolder>(folderA.Id);
-            //    folderA.Index++;
-            //    var nodeDataBeforeA = folderA.Data.Clone();
-            //    folderA.Save();
-            //    var nodeDataAfterA = folderA.Data.Clone();
-
-
-
             await Test(async () =>
             {
                 DataStore.Enabled = true;
@@ -170,12 +129,8 @@ namespace SenseNet.ContentRepository.Tests
                 foreach (var propType in loaded.Data.PropertyTypes)
                     loaded.Data.GetDynamicRawData(propType);
                 DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
-
             });
-
         }
-
-
 
 
         [TestMethod]
