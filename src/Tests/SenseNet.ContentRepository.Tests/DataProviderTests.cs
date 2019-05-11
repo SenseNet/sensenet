@@ -179,37 +179,11 @@ namespace SenseNet.ContentRepository.Tests
                 DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
-
-
-
         [TestMethod]
         public async STT.Task DP_CopyAndUpdate_ExpectedVersion()
         {
             await Test(async () =>
             {
-                //var filecontent1 = "1111 File content 1.";
-                //var filecontent2 = "2222 File content 2.";
-
-                // ACTION-B
-                //DataStore.Enabled = true;
-                //var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                //folderB.Save();
-                //var fileB = new File(folderB) { Name = "File1" };
-                //fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                //fileB.Save();
-                //fileB.CheckOut();
-                //fileB = Node.Load<File>(fileB.Id);
-                //var binaryB = fileB.Binary;
-                //binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                //fileB.Binary = binaryB;
-                //fileB.Save();
-                //var nodeDataBeforeB = fileB.Data.Clone();
-                //fileB.CheckIn();
-                //var nodeDataAfterB = fileB.Data.Clone();
-                //DistributedApplication.Cache.Reset();
-                //fileB = Node.Load<File>(fileB.Id);
-                //var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
-                //////////////////////////////////////////////////////////////////////////////////////////
                 DataStore.Enabled = true;
                 var dp = DataStore.DataProvider;
 
@@ -264,62 +238,67 @@ namespace SenseNet.ContentRepository.Tests
 
 
         [TestMethod]
-        public void DP_AB_Update_HeadOnly()
+        public async STT.Task DP_UpdateNodeHead()
         {
-            DPTest(() =>
+            await Test(async () =>
             {
-                var filecontent1 = "1111 File content 1.";
-                var filecontent2 = "2222 File content 2.";
-
-                // ACTION-A
-                var folderA = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderA.Save();
-                var fileA = new File(folderA) { Name = "File1" };
-                fileA.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileA.Save();
-                fileA.CheckOut();
-                fileA = Node.Load<File>(fileA.Id);
-                var binaryA = fileA.Binary;
-                binaryA.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileA.Binary = binaryA;
-                fileA.Save();
-                var nodeDataBeforeA = fileA.Data.Clone();
-                fileA.UndoCheckOut();
-                PreloadAllProperties(fileA);
-                var nodeDataAfterA = fileA.Data.Clone();
-                DistributedApplication.Cache.Reset();
-                fileA = Node.Load<File>(fileA.Id);
-                var reloadedFileContentA = RepositoryTools.GetStreamString(fileA.Binary.GetStream());
-
-                // ACTION-B
                 DataStore.Enabled = true;
-                var folderB = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                folderB.Save();
-                var fileB = new File(folderB) { Name = "File1" };
-                fileB.Binary.SetStream(RepositoryTools.GetStreamFromString(filecontent1));
-                fileB.Save();
-                fileB.CheckOut();
-                fileB = Node.Load<File>(fileB.Id);
-                var binaryB = fileB.Binary;
-                binaryB.SetStream(RepositoryTools.GetStreamFromString(filecontent2));
-                fileB.Binary = binaryB;
-                fileB.Save();
-                var nodeDataBeforeB = fileB.Data.Clone();
-                fileB.UndoCheckOut();
-                PreloadAllProperties(fileB);
-                var nodeDataAfterB = fileB.Data.Clone();
+                var dp = DataStore.DataProvider;
+
+                // Create a file under the test root
+                var root = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                root.Save();
+                var created = new File(root) { Name = "File1" };
+                created.Binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content"));
+                created.Save();
+
+                // Memorize final expectations
+                var expectedVersion = created.Version;
+                var expectedVersionId = created.VersionId;
+                var createdHead = NodeHead.Get(created.Id);
+                var expectedLastMajor = createdHead.LastMajorVersionId;
+                var expectedLastMinor = createdHead.LastMinorVersionId;
+
+                // Make a new version.
+                created.CheckOut();
+
+                // Modify the new version.
+                var checkedOut = Node.Load<File>(created.Id);
+                var binary = checkedOut.Binary;
+                binary.SetStream(RepositoryTools.GetStreamFromString("File1 Content UPDATED"));
+                checkedOut.Binary = binary;
+                checkedOut.Save();
+
+                // PREPARE THE LAST ACTION: simulate UndoCheckOut
+                var modified = Node.Load<File>(created.Id);
+                var oldTimestamp = modified.NodeTimestamp;
+                // Get the editable NodeData
+                modified.Index = modified.Index;
+                var nodeData = modified.Data;
+
+                nodeData.LastLockUpdate = dp.DateTimeMinValue;
+                nodeData.LockDate = dp.DateTimeMinValue;
+                nodeData.Locked = false;
+                nodeData.LockedById = 0;
+                nodeData.ModificationDate = DateTime.UtcNow;
+                var nodeHeadData = nodeData.GetNodeHeadData();
+                var deletedVersionId = nodeData.VersionId;
+                var versionIdsToDelete = new int[] { deletedVersionId };
+
+                // ACTION: Simulate UndoCheckOut
+                await dp.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+
+                // ASSERT: the original state is restored after the UndoCheckOut operation
+                Assert.IsTrue(oldTimestamp < nodeHeadData.Timestamp);
                 DistributedApplication.Cache.Reset();
-                fileB = Node.Load<File>(fileB.Id);
-                var reloadedFileContentB = RepositoryTools.GetStreamString(fileB.Binary.GetStream());
-
-                // ASSERT
-                DataProviderChecker.Assert_AreEqual(nodeDataBeforeA, nodeDataBeforeB);
-                DataProviderChecker.Assert_AreEqual(nodeDataAfterA, nodeDataAfterB);
-
-                CheckDynamicDataByVersionId(fileA.VersionId);
-
-                Assert.AreEqual(filecontent1, reloadedFileContentA);
-                Assert.AreEqual(filecontent1, reloadedFileContentB);
+                var reloaded = Node.Load<File>(created.Id);
+                Assert.AreEqual(expectedVersion, reloaded.Version);
+                Assert.AreEqual(expectedVersionId, reloaded.VersionId);
+                var reloadedHead = NodeHead.Get(created.Id);
+                Assert.AreEqual(expectedLastMajor, reloadedHead.LastMajorVersionId);
+                Assert.AreEqual(expectedLastMinor, reloadedHead.LastMinorVersionId);
+                Assert.AreEqual("File1 Content", RepositoryTools.GetStreamString(reloaded.Binary.GetStream()));
+                Assert.IsNull(Node.LoadNodeByVersionId(deletedVersionId));
             });
         }
         private void PreloadAllProperties(Node node)
