@@ -2518,20 +2518,6 @@ namespace SenseNet.ContentRepository.Tests
             return ((InMemoryDataProvider2)Providers.Instance.DataProvider2).DB;
         }
 
-        private void CheckDynamicDataByVersionId(int versionId)
-        {
-            DataStore.Enabled = false;
-            DistributedApplication.Cache.Reset();
-            var nodeA = Node.LoadNodeByVersionId(versionId);
-            var unused1 = nodeA.PropertyTypes.Select(p => $"{p.Name}:{nodeA[p]}").ToArray();
-
-            DataStore.Enabled = true;
-            DistributedApplication.Cache.Reset();
-            var nodeB = Node.LoadNodeByVersionId(versionId);
-            var unused2 = nodeB.PropertyTypes.Select(p => $"{p.Name}:{nodeB[p]}").ToArray();
-
-            DataProviderChecker.Assert_AreEqual(nodeA.Data, nodeB.Data);
-        }
 
         private void DPTest(Action callback)
         {
