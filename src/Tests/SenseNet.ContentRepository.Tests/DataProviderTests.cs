@@ -234,9 +234,6 @@ namespace SenseNet.ContentRepository.Tests
                 DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
-
-
-
         [TestMethod]
         public async STT.Task DP_UpdateNodeHead()
         {
@@ -919,9 +916,11 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DP_AB_TreeSize()
+        public async STT.Task DP_TreeSize()
         {
-            var fileContent = "File content.";
+            const string fileContent = "File content.";
+            const string testRootPath = "/Root/TestRoot";
+
             void CreateStructure()
             {
                 var root = CreateFolder(Repository.Root, "TestRoot");
@@ -933,31 +932,21 @@ namespace SenseNet.ContentRepository.Tests
                 file4.CheckOut();
             }
 
-            DPTest(() =>
+            await Test( async () =>
             {
-                var testRootPath = "/Root/TestRoot";
-
-                // ARRANGE-A
-                DataStore.Enabled = false;
-                CreateStructure();
-
-                // ACTION-A
-                var folderSizeA = Node.GetTreeSize(testRootPath, false);
-                var treeSizeA = Node.GetTreeSize(testRootPath, true);
-
-                // ARRANGE-B
+                // ARRANGE
                 DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
                 CreateStructure();
 
-                // ACTION-B
-                var folderSizeB = Node.GetTreeSize(testRootPath, false);
-                var treeSizeB = Node.GetTreeSize(testRootPath, true);
+                // ACTION
+                var folderSize = await dp.GetTreeSizeAsync(testRootPath, false);
+                var treeSize = await dp.GetTreeSizeAsync(testRootPath, true);
 
                 // ASSERT
-                Assert.AreEqual(2 * (fileContent.Length + 3), folderSizeA);
-                Assert.AreEqual(5 * (fileContent.Length + 3), treeSizeA);
-                Assert.AreEqual(folderSizeA, folderSizeB);
-                Assert.AreEqual(treeSizeA, treeSizeB);
+                var fileLength = fileContent.Length + 3; // + 3 byte BOM
+                Assert.AreEqual(2 * fileLength, folderSize);
+                Assert.AreEqual(5 * fileLength, treeSize);
             });
         }
         private SystemFolder CreateFolder(Node parent, string name)
@@ -1208,9 +1197,11 @@ namespace SenseNet.ContentRepository.Tests
         /* ================================================================================================== IndexDocument */
 
         [TestMethod]
-        public void DP_AB_LoadIndexDocuments()
+        public async STT.Task DP_LoadIndexDocuments()
         {
-            var fileContent = "File content.";
+            const string fileContent = "File content.";
+            const string testRootPath = "/Root/TestRoot";
+
             void CreateStructure()
             {
                 var root = CreateFolder(Repository.Root, "TestRoot");
@@ -1225,65 +1216,31 @@ namespace SenseNet.ContentRepository.Tests
                 var fileA6 = CreateFile(folder2, "File6", fileContent);
             }
 
-            DPTest(() =>
+            await Test(async () =>
             {
-                var testRootPath = "/Root/TestRoot";
-                SystemFolder testRoot;
                 var fileNodeType = ActiveSchema.NodeTypes["File"];
                 var systemFolderType = ActiveSchema.NodeTypes["SystemFolder"];
 
-                // ARRANGE-A
-                DataStore.Enabled = false;
+                // ARRANGE
+                DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
                 CreateStructure();
-                testRoot = Node.Load<SystemFolder>(testRootPath);
+                var testRoot = Node.Load<SystemFolder>(testRootPath);
                 var testRootChildren = testRoot.Children.ToArray();
 
-                // ACTION-A
-                // #1 One version
-                var indxDataA1 = SearchManager.LoadIndexDocumentByVersionId(testRoot.VersionId);
-                // #2 More versions
-                var indxDataA2 = SearchManager.LoadIndexDocumentByVersionId(testRootChildren.Select(x => x.VersionId).ToArray()).ToArray();
-                // #3 Subtree all
-                var indxDataA3 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new int[0]).ToArray();
-                // #4 Only folders
-                var indxDataA4 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { fileNodeType.Id }).ToArray();
-                // #4 Only folders
-                var indxDataA5 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { systemFolderType.Id }).ToArray();
-
-                // ARRANGE-A
-                DataStore.Enabled = true;
-                CreateStructure();
-                testRoot = Node.Load<SystemFolder>(testRootPath);
-                testRootChildren = testRoot.Children.ToArray();
-
-                // ACTION-A
-                // #1 One version
-                var indxDataB1 = SearchManager.LoadIndexDocumentByVersionId(testRoot.VersionId);
-                // #2 More versions
-                var indxDataB2 = SearchManager.LoadIndexDocumentByVersionId(testRootChildren.Select(x => x.VersionId).ToArray()).ToArray();
-                // #3 Subtree all
-                var indxDataB3 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new int[0]).ToArray();
-                // #4 Only folders
-                var indxDataB4 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { fileNodeType.Id }).ToArray();
-                // #4 Only folders
-                var indxDataB5 = SearchManager.LoadIndexDocumentsByPath(testRootPath, new[] { systemFolderType.Id }).ToArray();
+                // ACTION
+                var oneVersion = await dp.LoadIndexDocumentsAsync(new[] {testRoot.VersionId});
+                var moreVersions = (await dp.LoadIndexDocumentsAsync(testRootChildren.Select(x => x.VersionId).ToArray())).ToArray();
+                var subTreeAll = (await dp.LoadIndexDocumentsAsync(testRootPath, new int[0])).ToArray();
+                var onlyFiles = (await dp.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id })).ToArray();
+                var onlySystemFolders = (await dp.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id })).ToArray();
 
                 // ASSERT
-                // #1 One version
-                Assert.AreEqual(testRootPath, indxDataA1.Path);
-                Assert.AreEqual(indxDataA1.Path, indxDataB1.Path);
-                // #2 More versions
-                Assert.AreEqual(3, indxDataA2.Length);
-                Assert.AreEqual(indxDataA2.Length, indxDataB2.Length);
-                // #3 Subtree all
-                Assert.AreEqual(10, indxDataA3.Length);
-                Assert.AreEqual(indxDataA3.Length, indxDataB3.Length);
-                // #4 Only folders
-                Assert.AreEqual(3, indxDataA4.Length);
-                Assert.AreEqual(indxDataA4.Length, indxDataB4.Length);
-                // #4 Only files
-                Assert.AreEqual(7, indxDataA5.Length);
-                Assert.AreEqual(indxDataA5.Length, indxDataB5.Length);
+                Assert.AreEqual(testRootPath, oneVersion.First().Path);
+                Assert.AreEqual(3, moreVersions.Length);
+                Assert.AreEqual(10, subTreeAll.Length);
+                Assert.AreEqual(3, onlyFiles.Length);
+                Assert.AreEqual(7, onlySystemFolders.Length);
             });
         }
         [TestMethod]
@@ -1311,7 +1268,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("TestValue", testField.StringValue);
             });
         }
-
 
         /* ================================================================================================== IndexingActivities */
 
