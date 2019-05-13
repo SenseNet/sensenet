@@ -531,9 +531,9 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DP_LazyLoadedBigText()
+        public async STT.Task DP_LazyLoadedBigText()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var nearlyLongText = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
@@ -544,7 +544,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = nearlyLongText };
                 root.Save();
                 // ACTION-1b: Load the node
-                var loaded = DataStore.DataProvider.LoadNodesAsync(new[] {root.VersionId}).Result.First();
+                var loaded = (await DataStore.DataProvider.LoadNodesAsync(new[] {root.VersionId})).First();
                 var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-1
@@ -556,7 +556,7 @@ namespace SenseNet.ContentRepository.Tests
                 doc.Value = longText;
                 doc.Length = longText.Length;
                 // ACTION-2b: Load the node
-                loaded = DataStore.DataProvider.LoadNodesAsync(new[] { root.VersionId }).Result.First();
+                loaded = (await DataStore.DataProvider.LoadNodesAsync(new[] { root.VersionId })).First();
                 longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-2
@@ -630,9 +630,9 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DP_LoadChildTypesToAllow()
+        public async STT.Task DP_LoadChildTypesToAllow()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
 
@@ -653,7 +653,7 @@ namespace SenseNet.ContentRepository.Tests
                 var site2 = new Site(root) { Name = "Site2" }; site2.Save();
 
                 // ACTION
-                var types = DataStore.LoadChildTypesToAllowAsync(folder1.Id).Result;
+                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id);
 
                 // ASSERT
                 var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
@@ -690,14 +690,14 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DP_ForceDelete()
+        public async STT.Task DP_ForceDelete()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var dp = DataStore.DataProvider;
 
-                var countsBefore = GetDbObjectCounts(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, dp);
 
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
@@ -722,8 +722,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNull(Node.Load<File>(f2.Id));
                 Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNull(Node.Load<File>(f4.Id));
-                var countsAfter = GetDbObjectCounts(null, dp);
-                Assert.AreEqual(countsBefore, countsAfter);
+                var countsAfter = await GetDbObjectCountsAsync(null, dp);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
             });
         }
         [TestMethod]
@@ -1082,12 +1082,12 @@ namespace SenseNet.ContentRepository.Tests
         /* ================================================================================================== TreeLock */
 
         [TestMethod]
-        public void DP_LoadEntityTree()
+        public async STT.Task DP_LoadEntityTree()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 // ACTION
-                var treeData = DataStore.LoadEntityTreeAsync().Result;
+                var treeData = await DataStore.LoadEntityTreeAsync();
 
                 // ASSERT check the right ordering: every node follows it's parent node.
                 var tree = new Dictionary<int, EntityTreeNodeData>();
@@ -2052,7 +2052,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts)> GetDbObjectCounts(string path, DataProvider2 dp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts)> GetDbObjectCountsAsync(string path, DataProvider2 dp)
         {
             var nodes = await dp.GetNodeCountAsync(path);
             var versions = await dp.GetVersionCountAsync(path);
@@ -2072,7 +2072,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
                 var dp = DataStore.DataProvider;
-                var countsBefore = (await GetDbObjectCounts(null, dp)).AllCounts;
+                var countsBefore = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
 
                 // ACTION
                 try
@@ -2084,7 +2084,7 @@ namespace SenseNet.ContentRepository.Tests
                     var versionData = nodeData.GetVersionData();
                     var dynamicData = nodeData.GetDynamicData(false);
                     // Call low level API
-                    DataStore.DataProvider.InsertNodeAsync(hackedNodeHeadData, versionData, dynamicData).Wait();
+                    await DataStore.DataProvider.InsertNodeAsync(hackedNodeHeadData, versionData, dynamicData);
                 }
                 catch (Exception)
                 {
@@ -2093,15 +2093,15 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = (await GetDbObjectCounts(null, dp)).AllCounts;
+                var countsAfter = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
 
                 Assert.AreEqual(countsBefore, countsAfter);
             });
         }
         [TestMethod]
-        public void DP_Transaction_UpdateNode()
+        public async STT.Task DP_Transaction_UpdateNode()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var newNode =
@@ -2122,8 +2122,8 @@ namespace SenseNet.ContentRepository.Tests
                     var dynamicData = nodeData.GetDynamicData(false);
                     var versionIdsToDelete = new int[0];
                     // Call low level API
-                    DataStore.DataProvider
-                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete).Wait();
+                    await DataStore.DataProvider
+                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete);
                 }
                 catch (Exception)
                 {
@@ -2143,9 +2143,9 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void DP_Transaction_CopyAndUpdateNode()
+        public async STT.Task DP_Transaction_CopyAndUpdateNode()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var dp = DataStore.DataProvider;
@@ -2158,7 +2158,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.CheckOut();
                 var version2 = newNode.Version.ToString();
                 var versionId2 = newNode.VersionId;
-                var countsBefore = GetDbObjectCounts(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, dp);
 
                 // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2174,8 +2174,8 @@ namespace SenseNet.ContentRepository.Tests
                     var versionIdsToDelete = new[] {versionId2};
                     var expectedVersionId = versionId1;
                     // Call low level API
-                    DataStore.DataProvider
-                        .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId).Wait();
+                    await DataStore.DataProvider
+                        .CopyAndUpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId);
                 }
                 catch (Exception)
                 {
@@ -2184,18 +2184,18 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = GetDbObjectCounts(null, dp);
+                var countsAfter = await GetDbObjectCountsAsync(null, dp);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
-                Assert.AreEqual(countsBefore, countsAfter);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
                 Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
             });
         }
         [TestMethod]
-        public void DP_Transaction_UpdateNodeHead()
+        public async STT.Task DP_Transaction_UpdateNodeHead()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var dp = DataStore.DataProvider;
@@ -2211,7 +2211,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.Index++;
                 newNode.Description = "Description-MODIFIED";
                 newNode.Save();
-                var countsBefore = GetDbObjectCounts(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, dp);
 
                 // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2225,8 +2225,7 @@ namespace SenseNet.ContentRepository.Tests
                     var currentVersionId = newNode.VersionId;
                     var expectedVersionId = versionId1;
                     // Call low level API
-                    DataStore.DataProvider
-                        .UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete).Wait();
+                    await DataStore.DataProvider.UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete);
                 }
                 catch (Exception)
                 {
@@ -2235,10 +2234,10 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = GetDbObjectCounts(null, dp);
+                var countsAfter = await GetDbObjectCountsAsync(null, dp);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
-                Assert.AreEqual(countsBefore, countsAfter);
+                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
                 Assert.AreEqual(version2, reloaded.Version.ToString());
                 Assert.AreEqual(versionId2, reloaded.VersionId);
             });
@@ -2293,9 +2292,9 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void DP_Transaction_RenameNode()
+        public async STT.Task DP_Transaction_RenameNode()
         {
-            Test(() =>
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
                 var root = CreateFolder(Repository.Root, "F");
@@ -2322,8 +2321,8 @@ namespace SenseNet.ContentRepository.Tests
                     var dynamicData = nodeData.GetDynamicData(false);
                     var versionIdsToDelete = new int[0];
                     // Call low level API
-                    DataStore.DataProvider
-                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, originalPath).Wait();
+                    await DataStore.DataProvider
+                        .UpdateNodeAsync(hackedNodeHeadData, versionData, dynamicData, versionIdsToDelete, originalPath);
                 }
                 catch (Exception)
                 {
@@ -2360,7 +2359,7 @@ namespace SenseNet.ContentRepository.Tests
                 f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
                 f4.Save();
 
-                var countsBefore = (await GetDbObjectCounts(null, dp)).AllCounts;
+                var countsBefore = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
 
                 // ACTION
                 try
@@ -2383,7 +2382,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(Node.Load<File>(f2.Id));
                 Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNotNull(Node.Load<File>(f4.Id));
-                var countsAfter = (await GetDbObjectCounts(null, dp)).AllCounts;
+                var countsAfter = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
                 Assert.AreEqual(countsBefore, countsAfter);
             });
         }
