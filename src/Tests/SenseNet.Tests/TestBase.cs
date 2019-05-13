@@ -125,6 +125,9 @@ namespace SenseNet.Tests
 
             using (Repository.Start(builder))
             {
+                // Improve Debug experience
+                new SnMaintenance().Shutdown();
+
                 if (useCurrentUser)
                     callback();
                 else
@@ -160,6 +163,9 @@ namespace SenseNet.Tests
 
             using (Repository.Start(builder))
             {
+                // Improve Debug experience
+                new SnMaintenance().Shutdown();
+
                 if (useCurrentUser)
                     return callback();
                 using (new SystemAccount())
