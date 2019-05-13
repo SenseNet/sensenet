@@ -127,21 +127,21 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public List<ContentType> ChildTypes { get; private set; }
 
-        private bool _unknownHandler;
-        private bool UnknownHandler
+        private bool _isUnknownHandler;
+        private bool IsUnknownHandler
         {
-            get => _unknownHandler || (this.ParentType?.UnknownHandler ?? false);
-            set => _unknownHandler = value;
+            get => _isUnknownHandler || (this.ParentType?.IsUnknownHandler ?? false);
+            set => _isUnknownHandler = value;
         }
 
-        private bool _unknownField;
-        private bool UnknownField
+        private bool _hasUnknownField;
+        private bool HasUnknownField
         {
-            get => _unknownField || (this.ParentType?.UnknownField ?? false);
-            set => _unknownField = value;
+            get => _hasUnknownField || (this.ParentType?.HasUnknownField ?? false);
+            set => _hasUnknownField = value;
         }
 
-        internal bool IsInvalid => UnknownHandler || UnknownField;
+        internal bool IsInvalid => IsUnknownHandler || HasUnknownField;
 
         /// <summary>
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.
@@ -410,7 +410,7 @@ namespace  SenseNet.ContentRepository.Schema
             this.HandlerName = contentTypeElement.GetAttribute("handler", String.Empty);
             this.ParentTypeName = contentTypeElement.GetAttribute("parentType", String.Empty);
 
-            this.UnknownHandler = TypeResolver.GetType(this.HandlerName, false) == null;
+            this.IsUnknownHandler = TypeResolver.GetType(this.HandlerName, false) == null;
 
             if (this.ParentTypeName.Length == 0)
                 this.ParentTypeName = null;
@@ -518,7 +518,7 @@ namespace  SenseNet.ContentRepository.Schema
                                        $"for field {ex.FieldName} in content type {this.Name}.");
 
                     // continue building the content type without breaking the whole system
-                    this.UnknownField = true;
+                    this.HasUnknownField = true;
                     continue;
                 }
 

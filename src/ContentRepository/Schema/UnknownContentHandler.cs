@@ -43,7 +43,7 @@ namespace SenseNet.Storage
 
         private static void ThrowException(string operation)
         {
-            throw new InvalidOperationException($"Cannot {operation} a content with an unknown handler.");
+            throw new SnNotSupportedException($"Cannot {operation} a content with an unknown handler.");
         }
     }
 }

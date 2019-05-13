@@ -41,8 +41,7 @@ namespace SenseNet.ContentRepository.Tests
                 var originalFieldNames = string.Join(",", sysFolder.Fields.Keys);
 
                 // set the handler of the Folder type to an unknown value
-                var currentDb = ((InMemoryDataProvider) DataProvider.Current).DB;
-                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+                SetContentHandler("Folder", "unknownhandler");
 
                 ResetAndFailToCreateContent();
 
@@ -147,8 +146,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // set the handler of the Folder type to an unknown value
-                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+                SetContentHandler("Folder", "unknownhandler");
 
                 NodeTypeManager.Restart();
                 ContentTypeManager.Reset();
@@ -165,8 +163,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // add a field with an unknown short name
-                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-                InMemoryDataProvider.AddField(currentDb, "Folder", "TestField", "unknown");
+                AddField("Folder", "TestField", "unknown");
 
                 ResetAndFailToCreateContent();
             });
@@ -177,8 +174,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // add a field with an unknown handler
-                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-                InMemoryDataProvider.AddField(currentDb, "Folder", "TestField", null, "unknown");
+                AddField("Folder", "TestField", null, "unknown");
 
                 ResetAndFailToCreateContent();
             });
@@ -195,8 +191,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fieldNamesBefore = string.Join(",", content.GetFieldNamesInParentTable().OrderBy(fn => fn));
 
                 // set the handler of the Folder type to an unknown value
-                var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-                InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+                SetContentHandler("Folder", "unknownhandler");
 
                 DistributedApplication.Cache.Reset();
                 NodeTypeManager.Restart();
@@ -223,14 +218,14 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
                 content.Save();
-            }, typeof(InvalidOperationException));
+            }, typeof(SnNotSupportedException));
 
             // try to create a content with a known handler that has an unknown parent
             ExpectException(() =>
             {
                 var content = Content.CreateNew("SystemFolder", parent, Guid.NewGuid().ToString());
                 content.Save();
-            }, typeof(InvalidOperationException));
+            }, typeof(SnNotSupportedException));
         }
         private static void ExpectException(Action action, Type exceptionType)
         {
@@ -251,14 +246,30 @@ namespace SenseNet.ContentRepository.Tests
         private static void SetContentHandlerAndResetManagers(Action action)
         {
             // set the handler of the Folder type to an unknown value
-            var currentDb = ((InMemoryDataProvider)DataProvider.Current).DB;
-            InMemoryDataProvider.SetContentHandler(currentDb, "Folder", "unknownhandler");
+            SetContentHandler("Folder", "unknownhandler");
 
             DistributedApplication.Cache.Reset();
             NodeTypeManager.Restart();
             ContentTypeManager.Reload();
 
             action();
+        }
+
+        private static void SetContentHandler(string contentTypeName, string handler)
+        {
+            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            if (testingDataProvider == null)
+                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+
+            testingDataProvider.SetContentHandler(contentTypeName, handler);
+        }
+        private static void AddField(string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null)
+        {
+            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            if (testingDataProvider == null)
+                Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
+
+            testingDataProvider.AddField(contentTypeName, fieldName, fieldType, fieldHandler);
         }
     }
 

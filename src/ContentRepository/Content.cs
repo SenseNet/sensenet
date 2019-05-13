@@ -1134,7 +1134,7 @@ namespace SenseNet.ContentRepository
         private void AssertContentType()
         {
             if (this.ContentType.IsInvalid)
-                throw new InvalidOperationException(
+                throw new SnNotSupportedException(
                     $"Cannot save a content with the type {this.ContentType.Name}. A content handler or a field is missing.");
         }
 
