@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.UI.HtmlControls;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -521,18 +522,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 if (fileDoc.Staging)
                     return STT.Task.FromResult(result);
 
-                result = new BinaryDataValue
-                {
-                    Id = binaryDoc.BinaryPropertyId,
-                    FileId = binaryDoc.FileId,
-                    Checksum = null,
-                    FileName = new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
-                    ContentType = fileDoc.ContentType,
-                    Size = fileDoc.Size,
-                    BlobProviderName = fileDoc.BlobProvider,
-                    BlobProviderData = fileDoc.BlobProviderData,
-                    Timestamp = fileDoc.Timestamp
-                };
+                result = CreateBinaryDataValue(binaryDoc, fileDoc);
                 return STT.Task.FromResult(result);
             }
         }
@@ -1658,6 +1648,104 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
         //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override Task<int> GetBinaryPropertyCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.BinaryProperties.Count);
+
+                var result = from b in DB.BinaryProperties
+                    join v in DB.Versions on b.VersionId equals v.VersionId
+                    join n in DB.Nodes on v.NodeId equals n.NodeId
+                          where n.Path.StartsWith(
+                              path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase)
+                                  || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase)
+                          select b.BinaryPropertyId;
+
+                return STT.Task.FromResult(result.Count());
+            }
+        }
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override Task<int> GetFileCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.Files.Count);
+
+                var result = from b in DB.BinaryProperties
+                    join f in DB.Files on b.FileId equals f.FileId
+                    join v in DB.Versions on b.VersionId equals v.VersionId
+                    join n in DB.Nodes on v.NodeId equals n.NodeId
+                    where n.Path.StartsWith(
+                              path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase)
+                          || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase)
+                    select b.BinaryPropertyId;
+
+                return STT.Task.FromResult(result.Count());
+            }
+        }
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override Task<int> GetLongTextCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.LongTextProperties.Count);
+
+                var result = from l in DB.LongTextProperties
+                    join v in DB.Versions on l.VersionId equals v.VersionId
+                    join n in DB.Nodes on v.NodeId equals n.NodeId
+                    where n.Path.StartsWith(
+                              path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase)
+                          || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase)
+                    select l.LongTextPropertyId;
+
+                return STT.Task.FromResult(result.Count());
+            }
+        }
+
+        public override Task<object> GetPropertyValueAsync(int versionId, string name, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var pt = ActiveSchema.PropertyTypes[name];
+            object result = null;
+            lock (DB)
+            {
+                var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if (version != null)
+                {
+                    switch (pt.DataType)
+                    {
+                        case DataType.String:
+                        case DataType.Int:
+                        case DataType.Currency:
+                        case DataType.DateTime:
+                        case DataType.Reference:
+                            version.DynamicProperties.TryGetValue(name, out result);
+                            break;
+                        case DataType.Text:
+                            result = DB.LongTextProperties
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
+                            break;
+                        case DataType.Binary:
+                            var binProp = DB.BinaryProperties
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id);
+                            if (binProp != null)
+                                result = CreateBinaryDataValue(binProp);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+            return STT.Task.FromResult(result);
+        }
+
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
         public override STT.Task SetFileStagingAsync(int fileId, bool staging)
         {
             lock (DB)
@@ -1741,6 +1829,26 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
 
             return (lastMajorVersionId, lastMinorVersionId);
+        }
+
+        private BinaryDataValue CreateBinaryDataValue(BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
+        {
+            if (fileDoc == null)
+                fileDoc = DB.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
+
+            return new BinaryDataValue
+            {
+                Id = binaryDoc.BinaryPropertyId,
+                FileId = binaryDoc.FileId,
+                Checksum = null,
+                FileName = fileDoc == null ? null : new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
+                ContentType = fileDoc?.ContentType,
+                Size = fileDoc?.Size ?? 0L,
+                BlobProviderName = fileDoc?.BlobProvider,
+                BlobProviderData = fileDoc?.BlobProviderData,
+                Timestamp = fileDoc?.Timestamp ?? 0L
+            };
+
         }
 
         private NodeDoc CreateNodeDocSafe(NodeHeadData nodeHeadData)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -16,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Diagnostics;
+using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Portal;
 using SenseNet.Portal.OData.Metadata;
 using SenseNet.Portal.Virtualization;
@@ -305,7 +307,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void DP_HandleAllDynamicProps()
+        public async STT.Task DP_HandleAllDynamicProps()
         {
             var contentTypeName = "TestContent";
             var ctd = $"<ContentType name='{contentTypeName}' parentType='GenericContent'" + @"
@@ -321,20 +323,19 @@ namespace SenseNet.ContentRepository.Tests
   </Fields>
 </ContentType>
 ";
-            Test(() =>
+            await Test(async () =>
             {
                 Node node = null;
                 try
                 {
                     DataStore.Enabled = true;
+                    var dp = DataStore.DataProvider;
 
                     ContentTypeInstaller.InstallContentType(ctd);
                     var unused = ContentType.GetByName(contentTypeName); // preload schema
 
                     var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
                     root.Save();
-
-                    var db = GetDb();
 
                     // ACTION-1 CREATE
                     // Create all kind of dynamic properties
@@ -352,16 +353,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-1
-                    var longText1PropertyType = ActiveSchema.PropertyTypes["LongText1"];
-                    var storedProps = db.Versions.First(x => x.VersionId == node.VersionId).DynamicProperties;
-                    var storedTextProp = db.LongTextProperties.First(x => x.VersionId == node.VersionId &&
-                                                                          x.PropertyTypeId == longText1PropertyType.Id);
-                    Assert.AreEqual("ShortText value 1", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 1", storedTextProp.Value);
-                    Assert.AreEqual(42, storedProps["Integer1"]);
-                    Assert.AreEqual(42.56m, storedProps["Number1"]);
-                    Assert.AreEqual(new DateTime(1111, 11, 11), storedProps["DateTime1"]);
-                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)storedProps["Reference1"]));
+                    Assert.AreEqual("ShortText value 1", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 1", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(42, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.56m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 11), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)await dp.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-2 UPDATE-1
                     node = Node.Load<GenericContent>(node.Id);
@@ -375,15 +372,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-2
-                    storedProps = db.Versions.First(x => x.VersionId == node.VersionId).DynamicProperties;
-                    storedTextProp = db.LongTextProperties.First(x => x.VersionId == node.VersionId &&
-                                                                          x.PropertyTypeId == longText1PropertyType.Id);
-                    Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 2", storedTextProp.Value);
-                    Assert.AreEqual(43, storedProps["Integer1"]);
-                    Assert.AreEqual(42.099m, storedProps["Number1"]);
-                    Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
-                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)storedProps["Reference1"]));
+                    Assert.AreEqual("ShortText value 2", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)await dp.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-3 UPDATE-2
                     node = Node.Load<GenericContent>(node.Id);
@@ -392,15 +386,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-3
-                    storedProps = db.Versions.First(x => x.VersionId == node.VersionId).DynamicProperties;
-                    storedTextProp = db.LongTextProperties.First(x => x.VersionId == node.VersionId &&
-                                                                      x.PropertyTypeId == longText1PropertyType.Id);
-                    Assert.AreEqual("ShortText value 2", storedProps["ShortText1"]);
-                    Assert.AreEqual("LongText value 2", storedTextProp.Value);
-                    Assert.AreEqual(43, storedProps["Integer1"]);
-                    Assert.AreEqual(42.099m, storedProps["Number1"]);
-                    Assert.AreEqual(new DateTime(1111, 11, 22), storedProps["DateTime1"]);
-                    Assert.IsFalse(storedProps.ContainsKey("Reference1"));
+                    Assert.AreEqual("ShortText value 2", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.IsNull(await dp.GetPropertyValueAsync(node.VersionId, "Reference1"));
                 }
                 finally
                 {
@@ -704,12 +695,9 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
 
-                var db = GetDb();
-                var nodeCount = db.Nodes.Count;
-                var versionCount = db.Versions.Count;
-                var binPropCount = db.BinaryProperties.Count;
-                var fileCount = db.Files.Count;
+                var countsBefore = GetDbObjectCounts(null, dp);
 
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
@@ -734,10 +722,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNull(Node.Load<File>(f2.Id));
                 Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNull(Node.Load<File>(f4.Id));
-                Assert.AreEqual(nodeCount, db.Nodes.Count);
-                Assert.AreEqual(versionCount, db.Versions.Count);
-                Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
-                Assert.AreEqual(fileCount, db.Files.Count);
+                var countsAfter = GetDbObjectCounts(null, dp);
+                Assert.AreEqual(countsBefore, countsAfter);
             });
         }
         [TestMethod]
@@ -2066,14 +2052,27 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        [TestMethod]
-        public void DP_Transaction_InsertNode()
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts)> GetDbObjectCounts(string path, DataProvider2 dp)
         {
-            Test(() =>
+            var nodes = await dp.GetNodeCountAsync(path);
+            var versions = await dp.GetVersionCountAsync(path);
+            var binaries = await dp.GetBinaryPropertyCountAsync(path);
+            var files = await dp.GetFileCountAsync(path);
+            var longTexts = await dp.GetLongTextCountAsync(path);
+            var all = $"{nodes},{versions},{binaries},{files},{longTexts}";
+
+            var result =  (Nodes: nodes, Versions: versions, Binaries: binaries, Files: files, LongTexts: longTexts, AllCounts: all);
+            return await STT.Task.FromResult(result);
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Transaction_InsertNode()
+        {
+            await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var db = GetDb();
-                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var dp = DataStore.DataProvider;
+                var countsBefore = (await GetDbObjectCounts(null, dp)).AllCounts;
 
                 // ACTION
                 try
@@ -2094,7 +2093,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var countsAfter = (await GetDbObjectCounts(null, dp)).AllCounts;
 
                 Assert.AreEqual(countsBefore, countsAfter);
             });
@@ -2105,7 +2104,6 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
-                var db = GetDb();
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2150,7 +2148,8 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
-                var db = GetDb();
+                var dp = DataStore.DataProvider;
+
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2159,7 +2158,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.CheckOut();
                 var version2 = newNode.Version.ToString();
                 var versionId2 = newNode.VersionId;
-                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var countsBefore = GetDbObjectCounts(null, dp);
 
                 // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2185,7 +2184,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var countsAfter = GetDbObjectCounts(null, dp);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore, countsAfter);
@@ -2199,7 +2198,8 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
-                var db = GetDb();
+                var dp = DataStore.DataProvider;
+
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2211,7 +2211,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.Index++;
                 newNode.Description = "Description-MODIFIED";
                 newNode.Save();
-                var countsBefore = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var countsBefore = GetDbObjectCounts(null, dp);
 
                 // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2235,7 +2235,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = $"{db.Nodes.Count},{db.Versions.Count},{db.LongTextProperties.Count}";
+                var countsAfter = GetDbObjectCounts(null, dp);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore, countsAfter);
@@ -2298,7 +2298,6 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
-                var db = GetDb();
                 var root = CreateFolder(Repository.Root, "F");
                 var f1 = CreateFolder(root, "F1");
                 var f11 = CreateFolder(f1, "F11");
@@ -2345,6 +2344,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
 
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = "Test root"};
@@ -2360,11 +2360,7 @@ namespace SenseNet.ContentRepository.Tests
                 f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
                 f4.Save();
 
-                var db = GetDb();
-                var nodeCount = db.Nodes.Count;
-                var versionCount = db.Versions.Count;
-                var binPropCount = db.BinaryProperties.Count;
-                var fileCount = db.Files.Count;
+                var countsBefore = (await GetDbObjectCounts(null, dp)).AllCounts;
 
                 // ACTION
                 try
@@ -2387,10 +2383,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(Node.Load<File>(f2.Id));
                 Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNotNull(Node.Load<File>(f4.Id));
-                Assert.AreEqual(nodeCount, db.Nodes.Count);
-                Assert.AreEqual(versionCount, db.Versions.Count);
-                Assert.AreEqual(binPropCount, db.BinaryProperties.Count);
-                Assert.AreEqual(fileCount, db.Files.Count);
+                var countsAfter = (await GetDbObjectCounts(null, dp)).AllCounts;
+                Assert.AreEqual(countsBefore, countsAfter);
             });
         }
 
@@ -2492,34 +2486,5 @@ namespace SenseNet.ContentRepository.Tests
         {
             return _random.Next(1, int.MaxValue);
         }
-
-        private InMemoryDataBase2 GetDb()
-        {
-            return ((InMemoryDataProvider2)Providers.Instance.DataProvider2).DB;
-        }
-
-
-        private void DPTest(Action callback)
-        {
-            DataStore.Enabled = false;
-
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
-            var portalContextAcc = new PrivateType(typeof(PortalContext));
-            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
-
-            var builder = CreateRepositoryBuilderForTest();
-            PrepareRepository();
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            using (Repository.Start(builder))
-            {
-                new SnMaintenance().Shutdown();
-                using (new SystemAccount())
-                    callback();
-            }
-        }
-
     }
 }
