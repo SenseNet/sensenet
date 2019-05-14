@@ -711,7 +711,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //TODO: Partially implemented.
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
@@ -739,6 +738,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                             foreach (var property in properties)
                             {
                                 if (property.QueryOperator != Operator.Equal)
+                                    //TODO: Partially implemented. Only "Operator.Equal" allowed.
                                     throw new SnNotSupportedException($"NodeQuery by 'Operator.{property.QueryOperator}' property operator is not supported.");
 
                                 var pt = PropertyType.GetByName(property.PropertyName);
@@ -766,6 +766,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                                             return false;
                                         break;
                                     default:
+                                        //TODO: Partially implemented. The "Text", "Binary", "Reference" datatypes are not allowed.
                                         throw new SnNotSupportedException($"NodeQuery by 'DataType.{ pt.DataType}' property data type is not supported.");
                                 }
                             }
@@ -817,7 +818,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                             return false;
                         if (!v.DynamicProperties.TryGetValue(referenceName, out var refs))
                             return false;
-                        return ((int[])refs).Contains(referredNodeId);
+                        return ((IEnumerable<int>)refs).Contains(referredNodeId);
                     })
                     .Select(v => v.NodeId)
                     .ToArray();
@@ -830,22 +831,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // /Root
-            // /Root/Site1
-            // /Root/Site1/Folder1
-            // /Root/Site1/Folder1/Folder2
-            // /Root/Site1/Folder1/Folder3
-            // /Root/Site1/Folder1/Folder3/Task1
-            // /Root/Site1/Folder1/DocLib1
-            // /Root/Site1/Folder1/DocLib1/File1
-            // /Root/Site1/Folder1/DocLib1/SystemFolder1
-            // /Root/Site1/Folder1/DocLib1/SystemFolder1/File2
-            // /Root/Site1/Folder1/MemoList
-            // /Root/Site2
-            //
-            // Move /Root/Site1/Folder1 to /Root/Site2
-            // Expected type list: Folder, Task1, DocLib1, MemoList
-
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
@@ -1033,6 +1018,17 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
             }
         }
+        private IndexDocumentData LoadIndexDocumentByVersionIdSafe(int versionId)
+        {
+            var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
+            if (version == null)
+                return null;
+            var node = DB.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
+            if (node == null)
+                return null;
+            return CreateIndexDocumentDataSafe(node, version);
+        }
+
         public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -1053,30 +1049,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
             }
         }
-
-        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var result = DB.Versions
-                    .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
-                    .Select(v => v.NodeId)
-                    .ToArray();
-                return STT.Task.FromResult((IEnumerable<int>)result);
-            }
-        }
-
-        private IndexDocumentData LoadIndexDocumentByVersionIdSafe(int versionId)
-        {
-            var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
-            if (version == null)
-                return null;
-            var node = DB.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
-            if (node == null)
-                return null;
-            return CreateIndexDocumentDataSafe(node, version);
-        }
         private IndexDocumentData CreateIndexDocumentDataSafe(NodeDoc node, VersionDoc version)
         {
             var approved = version.Version.Status == VersionStatus.Approved;
@@ -1095,6 +1067,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 NodeTimestamp = node.Timestamp,
                 VersionTimestamp = version.Timestamp,
             };
+        }
+
+        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Versions
+                    .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
+                    .Select(v => v.NodeId)
+                    .ToArray();
+                return STT.Task.FromResult((IEnumerable<int>)result);
+            }
         }
 
         /* =============================================================================================== IndexingActivity */
@@ -1705,7 +1690,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult(result.Count());
             }
         }
-
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
         public override Task<object> GetPropertyValueAsync(int versionId, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             var pt = ActiveSchema.PropertyTypes[name];

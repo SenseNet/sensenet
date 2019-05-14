@@ -1196,10 +1196,80 @@ namespace SenseNet.ContentRepository.Tests
         }
         [TestMethod]
         public async STT.Task DP_NodeQuery_QueryNodesByReferenceAndType()
-        {
-            Assert.Inconclusive();
-        }
 
+        {
+            var contentType1 = "TestContent1";
+            var contentType2 = "TestContent2";
+            var ctd1 = $"<ContentType name='{contentType1}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Ref' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            var ctd2 = $"<ContentType name='{contentType2}' parentType='SystemFolder'" + $@"
+             handler='SenseNet.ContentRepository.SystemFolder'
+             xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
+  <Fields>
+    <Field name='Ref' type='Reference'/>
+  </Fields>
+</ContentType>
+";
+            SystemFolder root = null;
+            await Test(async () =>
+            {
+                try
+                {
+                    DataStore.Enabled = true;
+                    var dp = DataStore.DataProvider;
+
+                    ContentTypeInstaller.InstallContentType(ctd1, ctd2);
+                    var unused = ContentType.GetByName(contentType1); // preload schema
+
+                    root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
+                    var refs = new GenericContent(root, contentType1) { Name = "Refs" }; refs.Save();
+                    var ref1 = new GenericContent(refs, contentType1) { Name = "R1" }; ref1.Save();
+                    var ref2 = new GenericContent(refs, contentType2) { Name = "R2" }; ref2.Save();
+
+                    var r1 = new NodeList<Node>(new[] { ref1.Id });
+                    var r2 = new NodeList<Node>(new[] { ref2.Id });
+                    var n1 = new GenericContent(root, contentType1) { Name = "N1", ["Ref"] = r1 }; n1.Save();
+                    var n2 = new GenericContent(root, contentType1) { Name = "N2", ["Ref"] = r2 }; n2.Save();
+                    var n3 = new GenericContent(root, contentType2) { Name = "N3", ["Ref"] = r1 }; n3.Save();
+                    var n4 = new GenericContent(root, contentType2) { Name = "N4", ["Ref"] = r2 }; n4.Save();
+
+                    var type1 = ActiveSchema.NodeTypes[contentType1].Id;
+                    var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+
+                    // ACTION-1 (type: T1, ref: R1)
+                    var result = await dp.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1 });
+                    // ASSERT-1
+                    ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.Save("D:\\index-asdf.txt");
+                    var expected = CreateSafeContentQuery($"+Type:{contentType1} +Ref:{ref1.Id} .SORT:Id")
+                        .Execute().Identifiers.ToArray();
+                    Assert.AreEqual(1, expected.Length);
+                    AssertSequenceEqual(expected, result.OrderBy(x => x));
+
+                    // ACTION-2 (type: T1,T2, ref: R1)
+                    result = await dp.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1, type2 });
+                    // ASSERT-1
+                    expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +Ref:{ref1.Id} .SORT:Id")
+                        .Execute().Identifiers.ToArray();
+                    Assert.AreEqual(2, expected.Length);
+                    AssertSequenceEqual(expected, result.OrderBy(x => x));
+
+                }
+                finally
+                {
+                    root?.ForceDelete();
+                    ContentTypeInstaller.RemoveContentType(contentType1);
+                    ContentTypeInstaller.RemoveContentType(contentType2);
+                }
+            });
+        }
 
         /* ================================================================================================== TreeLock */
 
@@ -2118,6 +2188,44 @@ namespace SenseNet.ContentRepository.Tests
                     // ignored
                 }
             });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Error_QueryNodesByReferenceAndTypeAsync()
+        {
+            await Test(async () =>
+            {
+                DataStore.Enabled = true;
+                var dp = DataStore.DataProvider;
+
+                try
+                {
+                    await dp.QueryNodesByReferenceAndTypeAsync(null, 1, new[] { 1 });
+                }
+                catch (ArgumentNullException)
+                {
+                    // ignored
+                }
+
+                try
+                {
+                    await dp.QueryNodesByReferenceAndTypeAsync("", 1, new[] { 1 });
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.IsTrue(e.Message.Contains("cannot be empty"));
+                }
+
+                try
+                {
+                    await dp.QueryNodesByReferenceAndTypeAsync("PropertyNameThatCertainlyDoesNotExist", 1, new[] { 1 });
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.IsTrue(e.Message.Contains("not found"));
+                }
+            });
+
         }
 
         /* ================================================================================================== Transaction */

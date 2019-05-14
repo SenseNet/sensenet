@@ -326,6 +326,21 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
+        // /Root
+        // /Root/Site1
+        // /Root/Site1/Folder1
+        // /Root/Site1/Folder1/Folder2
+        // /Root/Site1/Folder1/Folder3
+        // /Root/Site1/Folder1/Folder3/Task1
+        // /Root/Site1/Folder1/DocLib1
+        // /Root/Site1/Folder1/DocLib1/File1
+        // /Root/Site1/Folder1/DocLib1/SystemFolder1
+        // /Root/Site1/Folder1/DocLib1/SystemFolder1/File2
+        // /Root/Site1/Folder1/MemoList
+        // /Root/Site2
+        //
+        // Move /Root/Site1/Folder1 to /Root/Site2
+        // Expected type list: Folder, Task1, DocLib1, MemoList
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
