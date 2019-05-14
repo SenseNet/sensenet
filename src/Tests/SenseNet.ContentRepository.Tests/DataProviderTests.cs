@@ -537,27 +537,27 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var nearlyLongText = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
-                var longText = new string('c', InMemoryDataProvider2.TextAlternationSizeLimit + 10);
+                var dp = DataStore.DataProvider;
+
+                var nearlyLongText = new string('a', DataStore.TextAlternationSizeLimit - 10);
+                var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
                 var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
 
                 // ACTION-1a: Creation with text that shorter than the magic limit
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = nearlyLongText };
                 root.Save();
                 // ACTION-1b: Load the node
-                var loaded = (await DataStore.DataProvider.LoadNodesAsync(new[] {root.VersionId})).First();
+                var loaded = (await dp.LoadNodesAsync(new[] {root.VersionId})).First();
                 var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
+                var longTextPropType = longTextProps.First().Key;
 
                 // ASSERT-1
-                Assert.AreEqual("Description", longTextProps.Keys.First().Name);
+                Assert.AreEqual("Description", longTextPropType.Name);
 
-                // ACTION-2a: Update text property value over the magic limit
-                var doc = ((InMemoryDataProvider2) DataStore.DataProvider).DB.LongTextProperties //UNDONE:DB@@@@ Use abstract approach
-                    .First(x => x.Value == nearlyLongText);
-                doc.Value = longText;
-                doc.Length = longText.Length;
+                // ACTION-2a: Update text property value in the database over the magic limit
+                await dp.UpdateDynamicPropertyAsync(loaded.VersionId, "Description", longText);
                 // ACTION-2b: Load the node
-                loaded = (await DataStore.DataProvider.LoadNodesAsync(new[] { root.VersionId })).First();
+                loaded = (await dp.LoadNodesAsync(new[] { root.VersionId })).First();
                 longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-2
@@ -578,9 +578,9 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 DataStore.Enabled = true;
-                var nearlyLongText1 = new string('a', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
-                var nearlyLongText2 = new string('b', InMemoryDataProvider2.TextAlternationSizeLimit - 10);
-                var longText = new string('c', InMemoryDataProvider2.TextAlternationSizeLimit + 10);
+                var nearlyLongText1 = new string('a', DataStore.TextAlternationSizeLimit - 10);
+                var nearlyLongText2 = new string('b', DataStore.TextAlternationSizeLimit - 10);
+                var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
                 var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
 
                 // ACTION-1: Creation with text that shorter than the magic limit

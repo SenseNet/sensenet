@@ -1688,6 +1688,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 return STT.Task.FromResult(result.Count());
             }
         }
+
         //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
         public override Task<object> GetPropertyValueAsync(int versionId, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -1723,6 +1724,43 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 }
             }
             return STT.Task.FromResult(result);
+        }
+        //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
+        public override STT.Task UpdateDynamicPropertyAsync(int versionId, string name, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var pt = ActiveSchema.PropertyTypes[name];
+            lock (DB)
+            {
+                var version = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if (version != null)
+                {
+                    switch (pt.DataType)
+                    {
+                        case DataType.String:
+                        case DataType.Int:
+                        case DataType.Currency:
+                        case DataType.DateTime:
+                        case DataType.Reference:
+                            version.DynamicProperties[name] = value;
+                            break;
+                        case DataType.Text:
+                            if(!(value is string stringValue))
+                                throw new ArgumentException($"The value is {value.GetType().Name}. Expected: string");
+                            var existing = DB.LongTextProperties
+                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id);
+                            if (existing == null)
+                                throw new ApplicationException($"The property does not exist: {name}.");
+                            existing.Length = stringValue.Length;
+                            existing.Value = stringValue;
+                            break;
+                        case DataType.Binary:
+                            throw new NotImplementedException();
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+            return STT.Task.CompletedTask;
         }
 
         //UNDONE:DB@@@@@ Test support. Move to test dataprovider extension
