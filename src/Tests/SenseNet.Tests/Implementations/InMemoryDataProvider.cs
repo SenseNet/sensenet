@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -3030,6 +3031,7 @@ namespace SenseNet.Tests.Implementations
             }
         }
         #endregion
+
     }
 }
 
