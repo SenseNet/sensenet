@@ -1078,7 +1078,8 @@ namespace SenseNet.ContentRepository.Tests
              xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
   <Fields>
-    <Field name='Int1' type='Integer'/>
+    <Field name='Str' type='ShortText'/>
+    <Field name='Int' type='Integer'/>
   </Fields>
 </ContentType>
 ";
@@ -1087,7 +1088,8 @@ namespace SenseNet.ContentRepository.Tests
              xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <AllowedChildTypes>Page,Folder,{contentType1},{contentType2}</AllowedChildTypes>
   <Fields>
-    <Field name='Int1' type='Integer'/>
+    <Field name='Str' type='ShortText'/>
+    <Field name='Int' type='Integer'/>
   </Fields>
 </ContentType>
 ";
@@ -1103,35 +1105,37 @@ namespace SenseNet.ContentRepository.Tests
                     var unused = ContentType.GetByName(contentType1); // preload schema
 
                     root = new SystemFolder(Repository.Root) { Name = "R" }; root.Save();
-                    var ra = new GenericContent(root, contentType1) { Name = "A", ["Int1"] = 42 }; ra.Save();
+                    var ra = new GenericContent(root, contentType1) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; ra.Save();
                     var raf = new GenericContent(ra, contentType1) { Name = "F" }; raf.Save();
-                    var rafa = new GenericContent(raf, contentType1) { Name = "A", ["Int1"] = 42 }; rafa.Save();
-                    var rafb = new GenericContent(raf, contentType1) { Name = "B", ["Int1"] = 43 }; rafb.Save();
+                    var rafa = new GenericContent(raf, contentType1) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rafa.Save();
+                    var rafb = new GenericContent(raf, contentType1) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rafb.Save();
                     var ras = new GenericContent(ra, contentType2) { Name = "S" }; ras.Save();
-                    var rasa = new GenericContent(ras, contentType2) { Name = "A", ["Int1"] = 42 }; rasa.Save();
-                    var rasb = new GenericContent(ras, contentType2) { Name = "B", ["Int1"] = 43 }; rasb.Save();
-                    var rb = new GenericContent(root, contentType1) { Name = "B", ["Int1"] = 43 }; rb.Save();
+                    var rasa = new GenericContent(ras, contentType2) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rasa.Save();
+                    var rasb = new GenericContent(ras, contentType2) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rasb.Save();
+                    var rb = new GenericContent(root, contentType1) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rb.Save();
                     var rbf = new GenericContent(rb, contentType1) { Name = "F" }; rbf.Save();
-                    var rbfa = new GenericContent(rbf, contentType1) { Name = "A", ["Int1"] = 42 }; rbfa.Save();
-                    var rbfb = new GenericContent(rbf, contentType1) { Name = "B", ["Int1"] = 43 }; rbfb.Save();
+                    var rbfa = new GenericContent(rbf, contentType1) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rbfa.Save();
+                    var rbfb = new GenericContent(rbf, contentType1) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rbfb.Save();
                     var rbs = new GenericContent(rb, contentType2) { Name = "S" }; rbs.Save();
-                    var rbsa = new GenericContent(rbs, contentType2) { Name = "A", ["Int1"] = 42 }; rbsa.Save();
-                    var rbsb = new GenericContent(rbs, contentType2) { Name = "B", ["Int1"] = 43 }; rbsb.Save();
+                    var rbsa = new GenericContent(rbs, contentType2) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rbsa.Save();
+                    var rbsb = new GenericContent(rbs, contentType2) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rbsb.Save();
                     var rc = new GenericContent(root, contentType1) { Name = "C" }; rc.Save();
                     var rcf = new GenericContent(rc, contentType1) { Name = "F" }; rcf.Save();
-                    var rcfa = new GenericContent(rcf, contentType1) { Name = "A", ["Int1"] = 42 }; rcfa.Save();
-                    var rcfb = new GenericContent(rcf, contentType1) { Name = "B", ["Int1"] = 43 }; rcfb.Save();
+                    var rcfa = new GenericContent(rcf, contentType1) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rcfa.Save();
+                    var rcfb = new GenericContent(rcf, contentType1) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rcfb.Save();
                     var rcs = new GenericContent(rc, contentType2) { Name = "S" }; rcs.Save();
-                    var rcsa = new GenericContent(rcs, contentType2) { Name = "A", ["Int1"] = 42 }; rcsa.Save();
-                    var rcsb = new GenericContent(rcs, contentType2) { Name = "B", ["Int1"] = 43 }; rcsb.Save();
+                    var rcsa = new GenericContent(rcs, contentType2) { Name = "A", ["Int"] = 42, ["Str"] = "str1" }; rcsa.Save();
+                    var rcsb = new GenericContent(rcs, contentType2) { Name = "B", ["Int"] = 43, ["Str"] = "str2" }; rcsb.Save();
 
                     var type1 = ActiveSchema.NodeTypes[contentType1].Id;
                     var type2 = ActiveSchema.NodeTypes[contentType2].Id;
+                    var property1 = new List<QueryPropertyData>
+                        {new QueryPropertyData {PropertyName = "Int", QueryOperator = Operator.Equal, Value = 42}};
+                    var property2 = new List<QueryPropertyData>
+                        {new QueryPropertyData {PropertyName = "Str", QueryOperator = Operator.Equal, Value = "str1"}};
 
-                    // ACTION-1 (type: 1, path: 1, name: -)
-                    var nodeTypeIds = new[] { type1 };
-                    var pathStart = "/Root/R/A";
-                    var result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, true, null);
+                    // ACTION-1 (type: 1, path: 1, prop: -)
+                    var result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, null);
                     // ASSERT-1
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     var expected = CreateSafeContentQuery($"+Type:{contentType1} +InTree:/Root/R/A .SORT:Path")
@@ -1139,10 +1143,8 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(3, expected.Length);
                     AssertSequenceEqual(expected, result);
 
-                    // ACTION-2 (type: 2, path: 1, name: -)
-                    nodeTypeIds = new[] { type1, type2 };
-                    pathStart = "/Root/R/A";
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, true, null);
+                    // ACTION-2 (type: 2, path: 1, prop: -)
+                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1, type2 }, "/Root/R/A", true, null);
                     // ASSERT-2
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +InTree:/Root/R/A .SORT:Path")
@@ -1150,27 +1152,37 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(6, expected.Length);
                     AssertSequenceEqual(expected, result);
 
-                    // ACTION-3 (type: 1, path: 2, name: -)
-                    nodeTypeIds = new[] { type1 };
-                    pathStart = "/Root/R/A";
-                    var property = new List<QueryPropertyData>
-                    { new QueryPropertyData {PropertyName = "Int1", QueryOperator = Operator.Equal, Value = 42} };
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, true, property);
+                    // ACTION-3 (type: 1, path: 1, prop: Int:42)
+                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property1);
                     // ASSERT-3
                     // Skip(1) because the NodeQuery does not contein the subtree root.
-                    expected = CreateSafeContentQuery($"+Int1:42 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
+                    expected = CreateSafeContentQuery($"+Int:42 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
                         .Execute().Identifiers.Skip(1).ToArray();
                     Assert.AreEqual(1, expected.Length);
                     AssertSequenceEqual(expected, result);
 
-                    // ACTION-4 (type: -, path: 1, name: A)
-                    pathStart = "/Root/R";
-                    property = new List<QueryPropertyData>
-                    { new QueryPropertyData {PropertyName = "Int1", QueryOperator = Operator.Equal, Value = 42} };
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(null, pathStart, true, property);
+                    // ACTION-4 (type: -, path: 1,  prop: Int:42)
+                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property1);
                     // ASSERT-4
                     // Skip(1) is unnecessary because the subtree root is not a query hit.
-                    expected = CreateSafeContentQuery("+Int1:42 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
+                    expected = CreateSafeContentQuery("+Int:42 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
+                    Assert.AreEqual(7, expected.Length);
+                    AssertSequenceEqual(expected, result);
+
+                    // ACTION-5 (type: 1, path: 1, prop: Str:"str1")
+                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property2);
+                    // ASSERT-5
+                    // Skip(1) because the NodeQuery does not contein the subtree root.
+                    expected = CreateSafeContentQuery($"+Str:str1 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
+                        .Execute().Identifiers.Skip(1).ToArray();
+                    Assert.AreEqual(1, expected.Length);
+                    AssertSequenceEqual(expected, result);
+
+                    // ACTION-6 (type: -, path: 1,  prop: Str:"str2")
+                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property2);
+                    // ASSERT-6
+                    // Skip(1) is unnecessary because the subtree root is not a query hit.
+                    expected = CreateSafeContentQuery("+Str:str1 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
                     Assert.AreEqual(7, expected.Length);
                     AssertSequenceEqual(expected, result);
                 }
