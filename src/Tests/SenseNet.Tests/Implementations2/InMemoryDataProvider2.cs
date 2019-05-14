@@ -711,8 +711,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB: Partially implemented.
-            //UNDONE:DB: Not tested: QueryNodesByTypeAndPathAndPropertyAsync.
+            //TODO: Partially implemented.
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
