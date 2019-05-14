@@ -24,6 +24,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public static class DataStore
     {
+        public const int TextAlternationSizeLimit = 4000;
+
         // ReSharper disable once InconsistentNaming
         //UNDONE:DB -------Remove DataStore.__enabled
         private static bool __enabled;
@@ -472,7 +474,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static IDictionary<DataType, int> ContentListMappingOffsets { get; } =
             new ReadOnlyDictionary<DataType, int>(new Dictionary<DataType, int>
-        {
+            {
             {DataType.String, StringPageSize * _contentListStartPage},
             {DataType.Int, IntPageSize * _contentListStartPage},
             {DataType.DateTime, DateTimePageSize * _contentListStartPage},
@@ -544,7 +546,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static readonly string NodeDataPrefix = "NodeData.";
         internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
         {
-            return string.Concat(NodeDataPrefix, versionId);
+            return String.Concat(NodeDataPrefix, versionId);
         }
 
         internal static void CacheNodeData(NodeData nodeData, string cacheKey = null)

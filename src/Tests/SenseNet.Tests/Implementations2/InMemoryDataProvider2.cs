@@ -26,8 +26,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
-        public const int TextAlternationSizeLimit = 4000;
-
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase2 DB { get; } = new InMemoryDataBase2();
 
@@ -356,7 +354,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     var longTextProps = DB.LongTextProperties
                         .Where(x => x.VersionId == versionId &&
                                     longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
-                                    x.Length < TextAlternationSizeLimit)
+                                    x.Length < DataStore.TextAlternationSizeLimit)
                         .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
                     foreach (var item in longTextProps)
                         nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
@@ -1392,7 +1390,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public override bool IsCacheableText(string text)
         {
-            return text?.Length < TextAlternationSizeLimit;
+            return text?.Length < DataStore.TextAlternationSizeLimit;
         }
 
         public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken = default(CancellationToken))
