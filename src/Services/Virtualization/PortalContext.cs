@@ -546,8 +546,8 @@ namespace SenseNet.Portal.Virtualization
             if (nodeType.IsInstaceOfOrDerivedFrom("Page"))
                 return true;
 
-            Type appType = TypeResolver.GetType(nodeType.ClassName);
-            return typeof(IHttpHandler).IsAssignableFrom(appType);
+            var appType = TypeResolver.GetType(nodeType.ClassName, false);
+            return appType != null && typeof(IHttpHandler).IsAssignableFrom(appType);
         }
 
         public static PortalContext Current

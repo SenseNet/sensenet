@@ -127,6 +127,22 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public List<ContentType> ChildTypes { get; private set; }
 
+        private bool _isUnknownHandler;
+        private bool IsUnknownHandler
+        {
+            get => _isUnknownHandler || (this.ParentType?.IsUnknownHandler ?? false);
+            set => _isUnknownHandler = value;
+        }
+
+        private bool _hasUnknownField;
+        private bool HasUnknownField
+        {
+            get => _hasUnknownField || (this.ParentType?.HasUnknownField ?? false);
+            set => _hasUnknownField = value;
+        }
+
+        internal bool IsInvalid => IsUnknownHandler || HasUnknownField;
+
         /// <summary>
         /// Gets the description of the ContentType. This value comes from the ContentTypeDefinition.
         /// </summary>
@@ -394,6 +410,8 @@ namespace  SenseNet.ContentRepository.Schema
             this.HandlerName = contentTypeElement.GetAttribute("handler", String.Empty);
             this.ParentTypeName = contentTypeElement.GetAttribute("parentType", String.Empty);
 
+            this.IsUnknownHandler = TypeResolver.GetType(this.HandlerName, false) == null;
+
             if (this.ParentTypeName.Length == 0)
                 this.ParentTypeName = null;
 
@@ -488,8 +506,22 @@ namespace  SenseNet.ContentRepository.Schema
         {
             foreach (XPathNavigator fieldElement in fieldsElement.SelectChildren(XPathNodeType.Element))
             {
-                FieldDescriptor fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
-                
+                FieldDescriptor fieldDescriptor = null;
+
+                try
+                {
+                    fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
+                }
+                catch (ContentRegistrationException ex)
+                {
+                    SnLog.WriteWarning($"Unknown field type {fieldElement.GetAttribute("type", string.Empty)} " +
+                                       $"for field {ex.FieldName} in content type {this.Name}.");
+
+                    // continue building the content type without breaking the whole system
+                    this.HasUnknownField = true;
+                    continue;
+                }
+
                 int fieldIndex = GetFieldSettingIndexByName(fieldDescriptor.FieldName);
                 FieldSetting fieldSetting = fieldIndex < 0 ? null : this.FieldSettings[fieldIndex];
                 if (fieldSetting == null)
@@ -609,7 +641,14 @@ namespace  SenseNet.ContentRepository.Schema
         {
             try
             {
-                SetFieldSlots(TypeResolver.GetType(this.HandlerName));
+                var handlerType = TypeResolver.GetType(this.HandlerName, false);
+                if (handlerType == null)
+                {
+                    SnLog.WriteWarning($"Unknown content handler: {HandlerName}.");
+                    return;
+                }
+
+                SetFieldSlots(handlerType); 
             }
             catch (TypeNotFoundException e)
             {

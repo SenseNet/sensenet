@@ -178,6 +178,7 @@ namespace SenseNet.Tests
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
