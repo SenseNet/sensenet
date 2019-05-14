@@ -746,30 +746,28 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                                 if (pt == null)
                                     throw new SnNotSupportedException($"NodeQuery by '{property.PropertyName}' property is not supported.");
 
-                                var pm = pt.GetDatabaseInfo();
-                                var colName = pm.ColumnName;
-                                var dt = pt.DataType;
-                                var _ = int.Parse(colName.Split('_')[1]) - 1;
-                                switch (dt)
+                                if (!v.DynamicProperties.TryGetValue(pt.Name, out var value))
+                                    return false;
+                                switch (pt.DataType)
                                 {
                                     case DataType.String:
-                                        if ((string)v.DynamicProperties[pt.Name] != (string)property.Value)
+                                        if ((string)value != (string)property.Value)
                                             return false;
                                         break;
                                     case DataType.Int:
-                                        if ((int)v.DynamicProperties[pt.Name] != (int)property.Value)
+                                        if ((int)value != (int)property.Value)
                                             return false;
                                         break;
                                     case DataType.Currency:
-                                        if ((decimal)v.DynamicProperties[pt.Name] != (decimal)property.Value)
+                                        if ((decimal)value != (decimal)property.Value)
                                             return false;
                                         break;
                                     case DataType.DateTime:
-                                        if ((DateTime)v.DynamicProperties[pt.Name] != (DateTime)property.Value)
+                                        if ((DateTime)value != (DateTime)property.Value)
                                             return false;
                                         break;
                                     default:
-                                        throw new SnNotSupportedException($"NodeQuery by 'DataType.{dt}' property data type is not supported.");
+                                        throw new SnNotSupportedException($"NodeQuery by 'DataType.{ pt.DataType}' property data type is not supported.");
                                 }
                             }
                             return true;
