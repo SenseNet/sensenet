@@ -1028,7 +1028,7 @@ namespace SenseNet.Tests.SelfTest
                 Gaps = new[] { 5, 6, 7 }
             };
 
-            var searchEngine = new InMemorySearchEngine();
+            var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
             searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
@@ -1073,7 +1073,7 @@ namespace SenseNet.Tests.SelfTest
 
         private InMemoryIndex GetTestIndex()
         {
-            return ((InMemoryIndexingEngine) IndexManager.IndexingEngine).Index;
+            return ((InMemorySearchEngine) SearchManager.SearchEngine).Index;
         }
 
         private class SearchEngineForNestedQueryTests : ISearchEngine

@@ -939,9 +939,8 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-
                 var dp = DataStore.DataProvider;
-;
+
                 var expectedFolderCount = CreateSafeContentQuery("+Type:Folder .COUNTONLY").Execute().Count;
                 var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
                 var expectedAggregated = expectedFolderCount + expectedSystemFolderCount;
@@ -1247,7 +1246,7 @@ namespace SenseNet.ContentRepository.Tests
                     // ACTION-1 (type: T1, ref: R1)
                     var result = await dp.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1 });
                     // ASSERT-1
-                    ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index.Save("D:\\index-asdf.txt");
+                    ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index.Save("D:\\index-asdf.txt");
                     var expected = CreateSafeContentQuery($"+Type:{contentType1} +Ref:{ref1.Id} .SORT:Id")
                         .Execute().Identifiers.ToArray();
                     Assert.AreEqual(1, expected.Length);

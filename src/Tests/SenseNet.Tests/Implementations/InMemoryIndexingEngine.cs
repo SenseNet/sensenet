@@ -7,11 +7,17 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndexingEngine : IIndexingEngine
     {
-        public InMemoryIndex Index { get; set; } = InMemoryIndex.Create();
+        private InMemorySearchEngine _searchEngine;
+        private InMemoryIndex Index => _searchEngine.Index;
 
         public bool Running { get; private set; }
 
         public bool IndexIsCentralized => false;
+
+        public InMemoryIndexingEngine(InMemorySearchEngine searchEngine)
+        {
+            _searchEngine = searchEngine;
+        }
 
         public void Start(TextWriter consoleOut)
         {

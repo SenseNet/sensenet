@@ -29,41 +29,6 @@ namespace SenseNet.Tests
     {
         protected static bool EnableDataStore = true;
 
-        private static volatile bool _prototypesCreated;
-        private static readonly object PrototypeSync = new object();
-        private void EnsurePrototypes()
-        {
-            if (!_prototypesCreated)
-            {
-                SnTrace.Test.Write("Wait for creating prototypes.");
-                lock (PrototypeSync)
-                {
-                    if (!_prototypesCreated)
-                    {
-                        using (var op = SnTrace.Test.StartOperation("Create prototypes."))
-                        {
-                            ExecuteTest(false, null, () =>
-                            {
-                                SnTrace.Test.Write("Create initial index.");
-                                SaveInitialIndexDocuments();
-                                RebuildIndex();
-
-                                SnTrace.Test.Write("Create snapshots.");
-                                if (Providers.Instance.DataProvider is InMemoryDataProvider inMemDataProvider)
-                                    inMemDataProvider.CreateSnapshot();
-                                if (Providers.Instance.SearchEngine is InMemorySearchEngine inMemSearchEngine)
-                                    inMemSearchEngine.CreateSnapshot();
-                            });
-                            _prototypesCreated = true;
-                            op.Successful = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // ==========================================================
-
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -101,7 +66,6 @@ namespace SenseNet.Tests
         }
         protected void Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            EnsurePrototypes();
             ExecuteTest(useCurrentUser, initialize, callback);
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
@@ -117,16 +81,12 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            if (!_prototypesCreated)
-                SnTrace.Test.Write("Start repository.");
-
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
             using (Repository.Start(builder))
             {
-                // Improve Debug experience
-                new SnMaintenance().Shutdown();
+                PrepareRepository();
 
                 if (useCurrentUser)
                     callback();
@@ -144,7 +104,6 @@ namespace SenseNet.Tests
         }
         protected STT.Task Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            EnsurePrototypes();
             return ExecuteTest(useCurrentUser, initialize, callback);
         }
         private STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
@@ -158,13 +117,9 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            if (!_prototypesCreated)
-                SnTrace.Test.Write("Start repository.");
-
             using (Repository.Start(builder))
             {
-                // Improve Debug experience
-                new SnMaintenance().Shutdown();
+                PrepareRepository();
 
                 if (useCurrentUser)
                     return callback();
@@ -204,7 +159,7 @@ DataStore.Enabled = backup;
                 .UseBlobMetaDataProvider(DataStore.Enabled ? (IBlobStorageMetaDataProvider)new InMemoryBlobStorageMetaDataProvider2(dp2) : new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UseSearchEngine(new InMemorySearchEngine())
+                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
@@ -289,10 +244,10 @@ DataStore.Enabled = backup;
         {
             var fname = Path.Combine(directoryName, fileNameWithoutExtension + ".txt");
 
-            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                indexingEngine.Index.Save(fname);
+            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                searchEngine.Index.Save(fname);
             else
-                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
+                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.GetType().FullName}. Only the InMemorySearchEngine is allowed.");
         }
 
         /// <summary>
@@ -303,8 +258,8 @@ DataStore.Enabled = backup;
         /// </summary>
         protected IDisposable SaveIndexDocuments(string directoryName)
         {
-            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                indexingEngine.Index.IndexDocumentPath = directoryName;
+            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                searchEngine.Index.IndexDocumentPath = directoryName;
             else
                 throw new NotSupportedException($"IndexDocuments cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
             return new SaveIndexDocumentsBlock();
@@ -313,8 +268,8 @@ DataStore.Enabled = backup;
         {
             public void Dispose()
             {
-                if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                    indexingEngine.Index.IndexDocumentPath = null;
+                if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                    searchEngine.Index.IndexDocumentPath = null;
             }
         }
 
@@ -373,13 +328,14 @@ DataStore.Enabled = backup;
 
         protected void PrepareRepository()
         {
+            // Improve Debug experience
             new SnMaintenance().Shutdown();
 
             // Index
-            if (!(Providers.Instance.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine))
-                throw new Exception("Only an InMemoryIndexingEngine is allowed here.");
-            indexingEngine.Index = GetInitialIndex();
-
+            if (Providers.Instance.SearchEngine is InMemorySearchEngine searchEngine)
+                if(searchEngine.Index == null)
+                    searchEngine.Index = GetInitialIndex();
+            //throw new Exception("Only an InMemorySearchEngine is allowed here.");
         }
 
         private static InitialData _initialData;

@@ -32,7 +32,7 @@ namespace SenseNet.Tests.SelfTest
                     InitialData.Save(ptw, ntw, nw, vw, dw, null,
                         () => ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
 
-                var index = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index;
+                var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");
             });
             Assert.Inconclusive();
@@ -58,7 +58,7 @@ namespace SenseNet.Tests.SelfTest
             DataStore.Enabled = false;
             Test(() =>
             {
-                var index = ((InMemoryIndexingEngine)Providers.Instance.SearchEngine.IndexingEngine).Index;
+                var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");
 
                 var loaded = new InMemoryIndex();
