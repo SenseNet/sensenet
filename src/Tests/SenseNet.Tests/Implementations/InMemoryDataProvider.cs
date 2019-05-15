@@ -1062,7 +1062,6 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds)
         {
-            //UNDONE:DB ----Not tested: QueryNodesByReferenceAndType
             if (referenceName == null)
                 throw new ArgumentNullException(nameof(referenceName));
             if (referenceName.Length == 0)

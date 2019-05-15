@@ -3,6 +3,7 @@ using System.IO;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
@@ -46,6 +47,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import",
                     path.Substring("/root/".Length).Replace("/", "\\"));
             }
+SnTrace.Write("LOACAL FS PATH: " + fsPath);
             //var fsPath = Path.Combine(@"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import", path.Substring("/root/".Length).Replace("/", "\\"));
             return new FileStream(fsPath, FileMode.Open, FileAccess.Read);
         }
