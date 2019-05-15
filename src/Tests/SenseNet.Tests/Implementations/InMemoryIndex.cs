@@ -15,20 +15,6 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndex
     {
-        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
-        private static InMemoryIndex _prototype;
-        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
-        public static InMemoryIndex Create()
-        {
-            return _prototype == null ? new InMemoryIndex() : _prototype.Clone();
-        }
-
-        [Obsolete("Delete this feature")] //UNDONE:DB: Remove InMemoryIndex prototype
-        public static void SetPrototype(InMemoryIndex prototype)
-        {
-            _prototype = prototype;
-        }
-
         /// <summary>
         /// Gets or sets the path of the local disk directory
         /// that will contain every IndexDocument for trace index modifications.
