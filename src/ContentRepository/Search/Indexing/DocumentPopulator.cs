@@ -65,19 +65,32 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         foreach (var node in Node.LoadNode(path).LoadVersions())
                         {
+                            SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
                             DataBackingStore.SaveIndexDocument(node, false, false, out _);
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                         }
 
-                        Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
-                            n =>
+                        //UNDONE:DB:@@@@@@@@@@@@@@@@ INVESTIGATE THIS BUG: User is accidentally (?) changed back to the Admin.
+                        //UNDONE:DB:@@@@@@@@@@@@@@@@ Retur to the parallel mode and investigate the bug above.
+                        //Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
+                        //    n =>
+                        //    {
+                        //        foreach (var node in n.LoadVersions())
+                        //        {
+                        //            SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
+                        //            DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        //            OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
+                        //        }
+                        //    });
+                        foreach (var n in NodeQuery.QueryNodesByPath(path, true).Nodes)
+                        {
+                            foreach (var node in n.LoadVersions())
                             {
-                                foreach (var node in n.LoadVersions())
-                                {
-                                    DataBackingStore.SaveIndexDocument(node, false, false, out _);
-                                    OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
-                                }
-                            });
+                                SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
+                                DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                                OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
+                            }
+                        }
                     }
                     op2.Successful = true;
                 }
