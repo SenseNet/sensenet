@@ -25,7 +25,7 @@ namespace SenseNet.Tests.SelfTest
     public class InitialDataTests : TestBase
     {
         //[TestMethod]
-        public void Xxxx()
+        public void InitialData_RebuildIndex()
         {
             if (SnTrace.SnTracers.Count != 2)
                 SnTrace.SnTracers.Add(new SnDebugViewTracer());
@@ -36,7 +36,7 @@ namespace SenseNet.Tests.SelfTest
                 {
                     try
                     {
-                        //UNDONE:DB:@@@@@@@@@@@@@@@@ INVESTIGATE THIS BUG: User is accidentally (?) changed back to the Admin.
+                        //UNDONE:DB:SystemAccount thread safety. INVESTIGATE THIS BUG: User is accidentally (?) changed back to the Admin.
                         SearchManager.GetIndexPopulator()
                             .RebuildIndexDirectly("/Root", IndexRebuildLevel.DatabaseAndIndex);
                     }

@@ -118,7 +118,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private static void Assert(int nodeId, string path, string message, params PermissionType[] permissionTypes)
         {
             IUser user = AccessProvider.Current.GetCurrentUser();
-SnTrace.Test.Write($"@@@ Assert {user.Id}, {path}");
+SnTrace.Test.Write($"@@@ Assert {user.Id}, {path}"); //UNDONE:DB:SystemAccount thread safety. Remove after bug investigation
             if (user.Id == -1)
                 return;
             if (HasPermission(nodeId, permissionTypes))
