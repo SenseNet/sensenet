@@ -24,7 +24,7 @@ namespace SenseNet.Tests.SelfTest
     [TestClass]
     public class InitialDataTests : TestBase
     {
-        [TestMethod]
+        //[TestMethod]
         public void Xxxx()
         {
             if (SnTrace.SnTracers.Count != 2)

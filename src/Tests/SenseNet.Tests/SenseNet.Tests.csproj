@@ -128,6 +128,7 @@
     <Compile Include="Implementations\TestPerfieldIndexingInfo.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />
     <Compile Include="InitialTestData.cs" />
+    <Compile Include="InitialTestDataFull.cs" />
     <Compile Include="InitialTestIndex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelfTest\InitialDataTests.cs" />
