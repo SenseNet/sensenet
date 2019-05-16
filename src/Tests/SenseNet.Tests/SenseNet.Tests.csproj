@@ -96,7 +96,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ContentTypeDefinitions.tt</DependentUpon>
     </Compile>
-    <Compile Include="Implementations2\ContentTypeStringBlobProvider.cs" />
+    <Compile Include="Implementations2\InitialTestDataBlobProvider.cs" />
     <Compile Include="Implementations\EmptyCache.cs" />
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
     <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />

@@ -1,13 +1,15 @@
 ﻿using System;
 using System.IO;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Schema;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
-    internal class ContentTypeStringBlobProvider : IBlobProvider
+    internal class InitialTestDataBlobProvider : IBlobProvider
     {
         public void Allocate(BlobStorageContext context)
         {
@@ -27,10 +29,19 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
         public Stream GetStreamForRead(BlobStorageContext context)
         {
-            var ctdPath = (string)context.BlobProviderData;
-            var ctdName = RepositoryPath.GetFileName(ctdPath);
-            var ctd = InitialTestData.ContentTypeDefinitions[ctdName];
-            var stream = RepositoryTools.GetStreamFromString(ctd);
+            var path = (string)context.BlobProviderData;
+            string fileContent = null;
+            if (path.StartsWith(Repository.ContentTypesFolderPath))
+            {
+                var ctdName = RepositoryPath.GetFileName(path);
+                fileContent = InitialTestData.ContentTypeDefinitions[ctdName];
+            }
+            else
+            {
+                var key = $"{ActiveSchema.PropertyTypes.GetItemById(context.PropertyTypeId).Name}:{path}";
+                InitialTestData.GeneralBlobs.TryGetValue(key, out fileContent);
+            }
+            var stream = RepositoryTools.GetStreamFromString(fileContent);
             return stream;
         }
         public Stream GetStreamForWrite(BlobStorageContext context)

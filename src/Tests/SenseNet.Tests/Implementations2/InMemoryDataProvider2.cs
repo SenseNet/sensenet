@@ -1582,9 +1582,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     if (blobProviderName == null && binProp.BlobProviderData != null
                         && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                     {
-                        blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
-                            ? typeof(ContentTypeStringBlobProvider).FullName
-                            : typeof(FileSystemReaderBlobProvider).FullName;
+                        //blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
+                        //    ? typeof(ContentTypeStringBlobProvider).FullName
+                        //    : typeof(FileSystemReaderBlobProvider).FullName;
+                        blobProviderName = typeof(InitialTestDataBlobProvider).FullName;
                     }
 
                     DB.Files.Insert(new FileDoc

@@ -6500,5 +6500,109 @@ VersionId: 260
 			#endregion
         });
         #endregion
+
+        #region internal static readonly IDictionary<string, string> GeneralBlobs
+        internal static readonly IDictionary<string, string> GeneralBlobs =
+            new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+            {
+                #region  1.Indexing .settings
+                { "Binary:/Root/System/Settings/Indexing.settings", @"{
+    ForceReopenFrequencyInSeconds: 30,
+    TextExtractors: {
+    }
+}"},
+                #endregion
+                #region  2. Logging.settings
+                { "Binary:/Root/System/Settings/Logging.settings", @"{
+    Trace: {
+		ContentOperation: false,
+		Database: false,
+		Index: false,
+		IndexQueue: false,
+		Query: false,
+		Repository: false,
+		Messaging: false,
+		Security: false,
+		SecurityQueue: false,
+		System: false,
+		Web: false,
+		Workflow: false,
+		TaskManagement: false,
+		Test: false,
+		Event: false,
+		Custom: false,
+    }
+}"},
+                #endregion
+                #region  3. MailProcessor.settings
+                { "Binary:/Root/System/Settings/MailProcessor.settings", @"{
+	MailProcessingMode: ""ExchangePull"",
+
+                        StatusPollingIntervalInMinutes: 120,
+                        PushNotificationServicePath: ""http://example.com{0}?action=ExchangeService.asmx"",
+                        ExchangeAddress: ""https://exchangeserveraddress/EWS/Exchange.asmx"",
+                        POP3: {
+
+                        Server: ""pop3.live.com"",
+                        Password: """",
+                        Port: 995,
+                        SSL: true
+                    }
+                }"},
+                #endregion
+                #region  4. OAuth.settings
+                { "Binary:/Root/System/Settings/OAuth.settings", @"{
+	UserType: ""User"",
+	Domain: ""Public""
+}"},
+                #endregion
+                #region  5. Portal.settings
+                { "Binary:/Root/System/Settings/Portal.settings", @"{
+	ClientCacheHeaders: [
+		{ ContentType: ""PreviewImage"", MaxAge: 1 },
+		{ Extension: ""jpeg"", MaxAge: 604800 },
+		{ Extension: ""gif"", MaxAge: 604800 },
+		{ Extension: ""jpg"", MaxAge: 604800 },
+		{ Extension: ""png"", MaxAge: 604800 },
+		{ Extension: ""swf"", MaxAge: 604800 },
+		{ Extension: ""css"", MaxAge: 600 },
+		{ Extension: ""js"", MaxAge: 600 }
+	],
+	UploadFileExtensions: {
+		""jpg"": ""Image"",
+		""jpeg"": ""Image"",
+		""gif"": ""Image"",
+		""png"": ""Image"",
+		""bmp"": ""Image"",
+		""svg"": ""Image"",
+		""svgz"": ""Image"",
+		""tif"": ""Image"",
+		""tiff"": ""Image"",
+		""xaml"": ""WorkflowDefinition"",
+		""DefaultContentType"": ""File""
+	},
+	BinaryHandlerClientCacheMaxAge: 600,
+	PermittedAppsWithoutOpenPermission: ""Details""
+}"},
+                #endregion
+                #region  6. Sharing.settings
+                { "Binary:/Root/System/Settings/Sharing.settings", @"{
+   ""NotificationEnabled"": false
+}"},
+                #endregion
+                #region  7. TaskManagement.settings
+                { "Binary:/Root/System/Settings/TaskManagement.settings", @"{
+    TaskManagementUrl: """",
+    TaskManagementApplicationUrl: ""http://localhost"",
+	TaskManagementAppId: ""SenseNet""
+}"},
+                #endregion
+                #region  8. UserProfile.settings
+                { "Binary:/Root/System/Settings/UserProfile.settings", @"{
+User: {ProfileType: ""UserProfile"", ProfilesTarget: ""/Root""}
+}"},
+                #endregion
+            });
+        #endregion
     }
 }

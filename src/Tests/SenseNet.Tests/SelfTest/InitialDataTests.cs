@@ -2,22 +2,65 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.Tests.SelfTest
 {
     [TestClass]
     public class InitialDataTests : TestBase
     {
+        [TestMethod]
+        public void Xxxx()
+        {
+            if (SnTrace.SnTracers.Count != 2)
+                SnTrace.SnTracers.Add(new SnDebugViewTracer());
+
+            Test(() =>
+            {
+                using (var op = SnTrace.Test.StartOperation("@@ ========= Populate"))
+                {
+                    try
+                    {
+                        //UNDONE:DB:@@@@@@@@@@@@@@@@ INVESTIGATE THIS BUG: User is accidentally (?) changed back to the Admin.
+                        SearchManager.GetIndexPopulator()
+                            .RebuildIndexDirectly("/Root", IndexRebuildLevel.DatabaseAndIndex);
+                    }
+                    catch (Exception e)
+                    {
+                        Assert.Fail();
+                    }
+                    op.Successful = true;
+                }
+
+                using (var ptw = new StreamWriter(@"D:\_InitialData\propertyTypes.txt", false, Encoding.UTF8))
+                using (var ntw = new StreamWriter(@"D:\_InitialData\nodeTypes.txt", false, Encoding.UTF8))
+                using (var nw = new StreamWriter(@"D:\_InitialData\nodes.txt", false, Encoding.UTF8))
+                using (var vw = new StreamWriter(@"D:\_InitialData\versions.txt", false, Encoding.UTF8))
+                using (var dw = new StreamWriter(@"D:\_InitialData\dynamicData.txt", false, Encoding.UTF8))
+                    InitialData.Save(ptw, ntw, nw, vw, dw, null,
+                        () => ((InMemoryDataProvider2)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId)); //DB:ok
+
+                var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
+                index.Save(@"D:\_InitialData\index.txt");
+
+            });
+        }
+
         //[TestMethod]
         public void InitialData_Create()
         {
