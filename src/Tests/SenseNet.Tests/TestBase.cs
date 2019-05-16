@@ -27,7 +27,7 @@ namespace SenseNet.Tests
 
         private static volatile bool _prototypesCreated;
         private static readonly object PrototypeSync = new object();
-        protected void EnsurePrototypes()
+        private void EnsurePrototypes()
         {
             if (!_prototypesCreated)
             {
@@ -102,6 +102,8 @@ namespace SenseNet.Tests
         {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
+            Providers.Instance.NodeTypeManeger = null;
+
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 

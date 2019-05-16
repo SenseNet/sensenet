@@ -320,7 +320,7 @@ namespace SenseNet.Packaging
         /// <returns>Package execution results grouped by component id. It may contain multiple
         /// results for a single component if there are multiple patches in the assembly for
         /// subsequent component versions.</returns>
-        public static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
+        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
             RepositoryStartSettings settings = null)
         {
             //UNDONE: make sure that patches are executed exclusively 

@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Tests
                 var originalFieldNames = string.Join(",", sysFolder.Fields.Keys);
 
                 // set the handler of the Folder type to an unknown value
-                SetContentHandler("Folder", "unknownhandler");
+                SetContentHandler("Folder", "UnknownCreateContent");
 
                 ResetAndFailToCreateContent();
 
@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                SetContentHandlerAndResetManagers(() =>
+                SetContentHandlerAndResetManagers("UnknownGetNameByType", () =>
                 {
                     // This should not throw an exception. The returned type is irrelevant: 
                     // it will be one of the descendants of the Folder content type.
@@ -94,7 +94,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                SetContentHandlerAndResetManagers(() =>
+                SetContentHandlerAndResetManagers("UnknownCreateUnknownHandler", () =>
                 {
                     var _ = new UnknownContentHandler(Node.Load<GenericContent>("/Root"));
                 });
@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                SetContentHandlerAndResetManagers(() =>
+                SetContentHandlerAndResetManagers("UnknownGetContentTypeByHandler", () =>
                 {
                     var parent = Node.Load<GenericContent>("/Root");
                     var content = Content.CreateNew("Folder", parent, Guid.NewGuid().ToString());
@@ -121,7 +121,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(RegistrationException))]
+        [ExpectedException(typeof(ContentRegistrationException))]
         public void UnknownHandler_InstallUnknownContentType()
         {
             var unknownHandlerCTD = @"<?xml version='1.0' encoding='utf-8'?>
@@ -146,7 +146,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // set the handler of the Folder type to an unknown value
-                SetContentHandler("Folder", "unknownhandler");
+                SetContentHandler("Folder", "UnknownParent");
 
                 NodeTypeManager.Restart();
                 ContentTypeManager.Reset();
@@ -191,7 +191,7 @@ namespace SenseNet.ContentRepository.Tests
                 var fieldNamesBefore = string.Join(",", content.GetFieldNamesInParentTable().OrderBy(fn => fn));
 
                 // set the handler of the Folder type to an unknown value
-                SetContentHandler("Folder", "unknownhandler");
+                SetContentHandler("Folder", "UnknownFieldTable");
 
                 DistributedApplication.Cache.Reset();
                 NodeTypeManager.Restart();
@@ -243,10 +243,10 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(thrown, $"{exceptionType.Name} was not thrown.");
         }
 
-        private static void SetContentHandlerAndResetManagers(Action action)
+        private static void SetContentHandlerAndResetManagers(string handlerName, Action action)
         {
             // set the handler of the Folder type to an unknown value
-            SetContentHandler("Folder", "unknownhandler");
+            SetContentHandler("Folder", handlerName);
 
             DistributedApplication.Cache.Reset();
             NodeTypeManager.Restart();

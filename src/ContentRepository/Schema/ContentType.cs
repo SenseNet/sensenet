@@ -411,6 +411,10 @@ namespace  SenseNet.ContentRepository.Schema
             this.ParentTypeName = contentTypeElement.GetAttribute("parentType", String.Empty);
 
             this.IsUnknownHandler = TypeResolver.GetType(this.HandlerName, false) == null;
+            if (this.IsUnknownHandler)
+            {
+                SnLog.WriteWarning($"Unknown content handler {this.HandlerName} for content type {this.Name}.");
+            }
 
             if (this.ParentTypeName.Length == 0)
                 this.ParentTypeName = null;
@@ -514,8 +518,12 @@ namespace  SenseNet.ContentRepository.Schema
                 }
                 catch (ContentRegistrationException ex)
                 {
-                    SnLog.WriteWarning($"Unknown field type {fieldElement.GetAttribute("type", string.Empty)} " +
-                                       $"for field {ex.FieldName} in content type {this.Name}.");
+                    SnLog.WriteWarning(
+                        $"Error during registration of field {ex.FieldName} in content type {this.Name}.",
+                        properties: new Dictionary<string, object>
+                        {
+                            {"FieldXml", fieldElement.OuterXml}
+                        });
 
                     // continue building the content type without breaking the whole system
                     this.HasUnknownField = true;

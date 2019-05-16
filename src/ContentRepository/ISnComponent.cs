@@ -36,6 +36,7 @@ namespace SenseNet.ContentRepository
         /// <returns>True if the assembly and component versions are compatible.</returns>
         bool IsComponentAllowed(Version componentVersion);
 
-        SnPatch[] Patches { get; }
+        //UNDONE: [auto-patch] this feature is not released yet
+        //SnPatch[] Patches { get; }
     }
 }

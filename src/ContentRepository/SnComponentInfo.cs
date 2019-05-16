@@ -24,7 +24,8 @@ namespace SenseNet.ContentRepository
                 SupportedVersion = component.SupportedVersion ?? asmVersion,
                 AssemblyVersion = asmVersion,
                 IsComponentAllowed = component.IsComponentAllowed,
-                Patches = component.Patches
+                //UNDONE: [auto-patch] this feature is not released yet
+                //Patches = component.Patches
             };
         }
     }

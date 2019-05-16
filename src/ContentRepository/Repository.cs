@@ -59,7 +59,8 @@ namespace SenseNet.ContentRepository
                 // do not try to execute patches again recursively.
                 settings.ExecutingPatches = true;
 
-                PackageManager.ExecuteAssemblyPatches(settings);
+                //UNDONE: [auto-patch] this feature is not released yet
+                //PackageManager.ExecuteAssemblyPatches(settings);
             }
 
             var instance = RepositoryInstance.Start(settings);

@@ -1406,8 +1406,6 @@ namespace SenseNet.Tests.Implementations
         }
 
         private static Database _prototype;
-        public static Database Prototype => _prototype;
-
         private readonly Database _db;
         public Database DB => _db;
 
