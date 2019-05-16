@@ -1,5 +1,4 @@
 ﻿using System;
-using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel
