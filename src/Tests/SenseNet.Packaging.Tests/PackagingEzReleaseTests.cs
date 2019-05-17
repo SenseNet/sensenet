@@ -153,6 +153,11 @@ namespace SenseNet.Packaging.Tests
         {
             public string ComponentId { get; }
             public Version SupportedVersion { get; }
+
+            public TestComponent()
+            {
+                // Default contructor is needed to support automatic instantiation.
+            }
             public TestComponent(string componentId, string supportedVersion, bool allowed = true)
             {
                 ComponentId = componentId;
@@ -165,6 +170,8 @@ namespace SenseNet.Packaging.Tests
             {
                 return _allowed;
             }
+
+            public SnPatch[] Patches { get; }
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -19,5 +19,7 @@ namespace SenseNet.ContentRepository
         {
             return true;
         }
+
+        public SnPatch[] Patches { get; } = new SnPatch[0];
     }
 }

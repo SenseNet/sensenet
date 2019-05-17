@@ -102,11 +102,12 @@ namespace SenseNet.Tests
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
             DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();            
-
+            ContentTypeManager.Reset();
+            Providers.Instance.NodeTypeManeger = null;
+            
             OnTestInitialize();
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
@@ -160,7 +161,7 @@ namespace SenseNet.Tests
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
@@ -187,6 +188,7 @@ namespace SenseNet.Tests
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -198,6 +200,11 @@ namespace SenseNet.Tests
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+        }
+
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        {
+            return CreateRepositoryBuilderForTest();
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)

@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -34,5 +35,8 @@ namespace SenseNet.ContentRepository
         /// <param name="componentVersion">The currently installed version of the component.</param>
         /// <returns>True if the assembly and component versions are compatible.</returns>
         bool IsComponentAllowed(Version componentVersion);
+
+        //UNDONE: [auto-patch] this feature is not released yet
+        //SnPatch[] Patches { get; }
     }
 }

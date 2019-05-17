@@ -44,13 +44,28 @@ namespace SenseNet.ContentRepository.Schema
             fdesc.FieldTypeName = fieldElement.GetAttribute("handler", String.Empty);
             fdesc.IsContentListField = fdesc.FieldName[0] == '#';
             if (String.IsNullOrEmpty(fdesc.FieldTypeShortName))
+            {
                 fdesc.FieldTypeShortName = FieldManager.GetShortName(fdesc.FieldTypeName);
+
+                if (string.IsNullOrEmpty(fdesc.FieldTypeShortName))
+                    throw new ContentRegistrationException($"Unknown field handler: {fdesc.FieldTypeName}", null,
+                        contentType.Name, fieldName);
+            }
 
             if (fdesc.FieldTypeName.Length == 0)
             {
                 if (fdesc.FieldTypeShortName.Length == 0)
                     throw new ContentRegistrationException("Field element's 'handler' attribute is required if 'type' attribute is not given.", contentType.Name, fdesc.FieldName);
-                fdesc.FieldTypeName = FieldManager.GetFieldHandlerName(fdesc.FieldTypeShortName);
+
+                try
+                {
+                    fdesc.FieldTypeName = FieldManager.GetFieldHandlerName(fdesc.FieldTypeShortName);
+                }
+                catch (NotSupportedException ex)
+                {
+                    throw new ContentRegistrationException($"Unknown field type: {fdesc.FieldTypeShortName}", ex,
+                        contentType.Name, fieldName);
+                }
             }
 
             fdesc.Bindings = new List<string>();

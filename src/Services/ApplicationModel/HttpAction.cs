@@ -45,8 +45,8 @@ namespace SenseNet.Portal.AppModel
 
         private bool IsApplication(NodeHead appNode)
         {
-            var type = TypeResolver.GetType(appNode.GetNodeType().ClassName);
-            return typeof(Application).IsAssignableFrom(type);
+            var type = TypeResolver.GetType(appNode.GetNodeType().ClassName, false);
+            return type != null && typeof(Application).IsAssignableFrom(type);
         }
 
         public virtual bool CheckPermission()
