@@ -2815,7 +2815,7 @@ namespace SenseNet.Tests.Implementations
                     _createdById = _createdById,
                     _modificationDate = _modificationDate,
                     _modifiedById = _modifiedById,
-                    _indexDocument = _indexDocument.ToArray(),
+                    _indexDocument = _indexDocument?.ToArray(),
                     _changedData = _changedData?.ToArray(),
                     _versionTimestamp = _versionTimestamp,
                 };

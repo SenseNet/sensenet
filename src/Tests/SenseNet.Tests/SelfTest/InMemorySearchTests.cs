@@ -473,8 +473,11 @@ namespace SenseNet.Tests.SelfTest
                 var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
-                var nodeCount = DataProvider.GetNodeCount();
-                var versionCount = DataProvider.GetVersionCount();
+                var queryResults = ContentQuery.Query(ContentRepository.SafeQueries.InTree,
+                    QuerySettings.AdminSettings, "/Root");
+
+                var nodeCount = queryResults.Nodes.Count();
+                var versionCount = queryResults.Nodes.Sum(n => n.LoadVersions().Count());
 
                 return new Tuple<IIndexingActivity[], InMemoryIndex, int, int>(activities, GetTestIndex(), nodeCount, versionCount);
             });
