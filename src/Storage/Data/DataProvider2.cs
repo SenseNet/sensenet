@@ -290,6 +290,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Deletes the specified Node and its whole subtree including all head data, all versions and any other related part of the Node.
+        /// Deletion of the related File representations can be skipped if the Files is handled separatelly.
+        /// This method needs to be transactional. If an error occurs during execution, all deleted data
+        /// should be reverted to the original state by the data provider.
+        /// </summary>
+        /// <param name="nodeHeadData">Head data of the node. Contains identity information, place in the 
+        /// content tree and the most important not-versioned property values.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="NodeIsOutOfDateException">The operation is requested on outdated data.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken));
 
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
@@ -343,7 +356,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         // Expected type list: Folder, Task1, DocLib1, MemoList
         public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== TreeLock */
 
@@ -428,9 +440,24 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 
-        /* =============================================================================================== Infrastructure */
+        /* =============================================================================================== Installation */
 
+        /// <summary>
+        /// Prepares the initial valid state of the underlying database by the given storage-model structure.
+        /// The database structure (tables, collections, indexes) are already prepared.
+        /// This method is called tipically in the installation workflow.
+        /// </summary>
+        /// <param name="data">A storage-model structure to install.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Returns the Content tree representation for building the security model.
+        /// Every node and leaf contains only the Id, ParentId and OwnerId of the node.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
+        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Tools */
 

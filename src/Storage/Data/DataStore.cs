@@ -19,10 +19,11 @@ using SenseNet.Search.Querying;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    /// <summary>
+    /// Defines methods for loading and saving <see cref="Node"/>s and further repository elements.
+    /// </summary>
     public static class DataStore
     {
-        public const int TextAlternationSizeLimit = 4000;
-
         // ReSharper disable once InconsistentNaming
         //UNDONE:DB -------Remove DataStore.__enabled
         private static bool __enabled;
@@ -36,20 +37,48 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
+        public const int TextAlternationSizeLimit = 4000;
+
+        /// <summary>
+        /// Gets the current DataProvider instance.
+        /// </summary>
         public static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
 
+        /// <summary>
+        /// Gets the allowed length of the Path of the <see cref="Node"/>.
+        /// </summary>
         public static int PathMaxLength => DataProvider.PathMaxLength;
+        /// <summary>
+        /// Gets the allowed minimum value of the <see cref="DateTime"/>.
+        /// </summary>
         public static DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;
+        /// <summary>
+        /// Gets the allowed maximum value of the <see cref="DateTime"/>.
+        /// </summary>
         public static DateTime DateTimeMaxValue => DataProvider.DateTimeMaxValue;
+        /// <summary>
+        /// Gets the allowed maximum value of the <see cref="decimal"/>.
+        /// </summary>
         public static decimal DecimalMinValue => DataProvider.DecimalMinValue;
+        /// <summary>
+        /// Gets the allowed maximum value of the <see cref="decimal"/>.
+        /// </summary>
         public static decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
-
+        /// <summary>
+        /// Returns a data provider extension instance by it's type.
+        /// The type need to be an implementation of the <see cref="IDataProviderExtension"/>
+        /// </summary>
+        /// <typeparam name="T">Type of the requested extension.</typeparam>
+        /// <returns>Requested data provider extension instance or null.</returns>
         public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
         {
             return DataProvider.GetExtensionInstance<T>();
         }
 
+        /// <summary>
+        /// Restores the underlying dataprovider to the initial state after the system start.
+        /// </summary>
         public static void Reset()
         {
             DataProvider.Reset();
@@ -57,11 +86,25 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Installation */
 
+        /// <summary>
+        /// Prepares the initial valid state of the underlying database by the given storage-model structure.
+        /// The database structure (tables, collections, indexes) are already prepared.
+        /// This method is called tipically in the installation workflow.
+        /// </summary>
+        /// <param name="data">A storage-model structure to install.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
             await DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
 
+        /// <summary>
+        /// Returns the Content tree representation for building the security model.
+        /// Every node and leaf contains only the Id, ParentId and OwnerId of the node.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
         public static Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return DataProvider.LoadEntityTreeAsync(cancellationToken);

@@ -877,24 +877,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var result = DB.Nodes
-                    .OrderBy(n => n.Path)
-                    .Select(n => new EntityTreeNodeData
-                    {
-                        Id = n.NodeId,
-                        ParentId = n.ParentNodeId,
-                        OwnerId = n.OwnerId
-                    })
-                    .ToArray();
-                return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
-            }
-        }
-
         /* =============================================================================================== TreeLock */
 
         public override Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
@@ -1600,6 +1582,24 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         BlobProviderData = binProp.BlobProviderData,
                     });
                 }
+            }
+        }
+
+        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Nodes
+                    .OrderBy(n => n.Path)
+                    .Select(n => new EntityTreeNodeData
+                    {
+                        Id = n.NodeId,
+                        ParentId = n.ParentNodeId,
+                        OwnerId = n.OwnerId
+                    })
+                    .ToArray();
+                return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
             }
         }
 
