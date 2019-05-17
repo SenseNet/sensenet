@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -59,6 +60,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         void DeleteBinaryProperty(int versionId, int propertyTypeId);
+        /// <summary>
+        /// Deletes all binary properties of the requested versions.
+        /// </summary>
+        /// <param name="versionIds">VersionId set.</param>
+        void DeleteBinaryProperties(IEnumerable<int> versionIds);
 
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or

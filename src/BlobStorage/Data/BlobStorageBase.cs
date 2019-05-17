@@ -50,6 +50,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageComponents.DataProvider.DeleteBinaryProperty(versionId, propertyTypeId);
         }
+        /// <summary>
+        /// Deletes all binary properties of the requested versions.
+        /// </summary>
+        /// <param name="versionIds">VersionId set.</param>
+        protected internal static void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        {
+            BlobStorageComponents.DataProvider.DeleteBinaryProperties(versionIds);
+        }
 
         /// <summary>
         /// Returns a context object that holds provider-specific data for blob storage operations.

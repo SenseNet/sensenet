@@ -182,6 +182,12 @@ namespace SenseNet.Tests.Implementations
                 .RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
         }
 
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        {
+            _dataProvider.DB.BinaryProperties
+                .RemoveAll(r => versionIds.Contains(r.VersionId));
+        }
+
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
             var db = _dataProvider.DB;

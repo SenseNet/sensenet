@@ -724,7 +724,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNull(Node.Load<File>(f4.Id));
                 var countsAfter = await GetDbObjectCountsAsync(null, dp);
-                Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
+                Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
             });
         }
         [TestMethod]
@@ -2281,7 +2281,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts)> GetDbObjectCountsAsync(string path, DataProvider2 dp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider2 dp)
         {
             var nodes = await dp.GetNodeCountAsync(path);
             var versions = await dp.GetVersionCountAsync(path);
@@ -2289,8 +2289,9 @@ namespace SenseNet.ContentRepository.Tests
             var files = await dp.GetFileCountAsync(path);
             var longTexts = await dp.GetLongTextCountAsync(path);
             var all = $"{nodes},{versions},{binaries},{files},{longTexts}";
+            var allExceptFiles = $"{nodes},{versions},{binaries},{longTexts}";
 
-            var result =  (Nodes: nodes, Versions: versions, Binaries: binaries, Files: files, LongTexts: longTexts, AllCounts: all);
+            var result =  (Nodes: nodes, Versions: versions, Binaries: binaries, Files: files, LongTexts: longTexts, AllCounts: all, AllCountsExceptFiles: allExceptFiles);
             return await STT.Task.FromResult(result);
         }
 

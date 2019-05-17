@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -384,6 +385,11 @@ SELECT @FileId
             {
                 cmd?.Dispose();
             }
+        }
+
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        {
+            throw new NotImplementedException(); //UNDONE:DB: Not implemented: DeleteBinaryProperties
         }
 
         #region LoadBinaryCacheentityFormatScript

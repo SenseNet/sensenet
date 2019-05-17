@@ -396,20 +396,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         .Where(l => versionIds.Contains(l.VersionId))
                         .Select(l => l.LongTextPropertyId)
                         .ToArray();
-                    var binPropAndfileIds = DB.BinaryProperties
-                        .Where(b => versionIds.Contains(b.VersionId))
-                        .Select(b => new { b.BinaryPropertyId, b.FileId })
-                        .ToArray();
+
+                    BlobStorage.DeleteBinaryProperties(versionIds);
 
                     foreach (var longTextPropId in longTextPropIds)
                         DB.LongTextProperties.Remove(longTextPropId);
 
-                    foreach (var item in binPropAndfileIds)
-                    {
-                        DB.BinaryProperties.Remove(item.BinaryPropertyId);
-                        // Delete files is not necessary but if we do it here, maintenance service can be switched off.
-                        DB.Files.Remove(item.FileId);
-                    }
 
                     foreach (var versionId in versionIds)
                         DB.Versions.Remove(versionId);

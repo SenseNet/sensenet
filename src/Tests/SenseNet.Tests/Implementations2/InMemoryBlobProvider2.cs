@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -179,6 +180,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             foreach (var item in db.BinaryProperties
                                   .Where(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId)
                                   .ToArray())
+                db.BinaryProperties.Remove(item);
+        }
+
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        {
+            var db = DataProvider.DB;
+            foreach (var item in db.BinaryProperties
+                .Where(x => versionIds.Contains(x.VersionId))
+                .ToArray())
                 db.BinaryProperties.Remove(item);
         }
 
