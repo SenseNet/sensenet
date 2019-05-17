@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.ContentRepository.Sharing;
+using SenseNet.Storage;
 
 namespace SenseNet.ContentRepository
 {
@@ -758,7 +759,7 @@ namespace SenseNet.ContentRepository
                 var contentType = ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
                 if (contentType == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentTypeName));
-                Type type = TypeResolver.GetType(contentType.HandlerName);
+                Type type = TypeResolver.GetType(contentType.HandlerName, false) ?? typeof(UnknownContentHandler);
 
                 Type[] signature = new Type[args.Length + 2];
                 signature[0] = typeof(Node);
@@ -1013,6 +1014,8 @@ namespace SenseNet.ContentRepository
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
         public void Save(bool validOnly, SavingMode mode)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1038,6 +1041,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public void FinalizeContent()
         {
+            AssertContentType();
+
             this.ContentHandler.FinalizeContent();
         }
 
@@ -1090,6 +1095,8 @@ namespace SenseNet.ContentRepository
         /// <exception cref="InvalidContentException">Thrown when <paramref name="validOnly"> is true  and<c>Content</c> is invalid.</exception>
         public void SaveSameVersion(bool validOnly)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1108,6 +1115,8 @@ namespace SenseNet.ContentRepository
 
         public void SaveExplicitVersion(bool validOnly = true)
         {
+            AssertContentType();
+
             SaveFields(validOnly);
             if (validOnly && !IsValid)
                 throw InvalidContentExceptionHelper();
@@ -1120,6 +1129,13 @@ namespace SenseNet.ContentRepository
             var template = _contentHandler.Template;
             if (template != null)
                 ContentTemplate.CopyContents(this);
+        }
+
+        private void AssertContentType()
+        {
+            if (this.ContentType.IsInvalid)
+                throw new SnNotSupportedException(
+                    $"Cannot save a content with the type {this.ContentType.Name}. A content handler or a field is missing.");
         }
 
         /// <summary>
@@ -2375,7 +2391,12 @@ namespace SenseNet.ContentRepository
                         names.Add(field.Name);
             }
 
-            var dynamicContentTypes = types.Where(x => typeof(ISupportsDynamicFields).IsAssignableFrom(TypeResolver.GetType(x.HandlerName))).ToArray();
+            var dynamicContentTypes = types.Where(x =>
+            {
+                var handler = TypeResolver.GetType(x.HandlerName, false);
+                return handler != null && typeof(ISupportsDynamicFields).IsAssignableFrom(handler);
+            }).ToArray();
+
             if (dynamicContentTypes.Length > 0)
             {
                 var results = ContentQuery.Query(SafeQueries.InFolderAndTypeIs,

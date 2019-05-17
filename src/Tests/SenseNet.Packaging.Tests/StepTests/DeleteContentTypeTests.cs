@@ -19,18 +19,8 @@ using SenseNet.Tests;
 namespace SenseNet.Packaging.Tests.StepTests
 {
     [TestClass]
-    public class DeleteContentTypeTests : TestBase
+    public class DeleteContentTypeTests : PackagingTestBase
     {
-        private static StringBuilder _log;
-        [TestInitialize]
-        public void PrepareTest()
-        {
-            // preparing logger
-            _log = new StringBuilder();
-            var loggers = new[] { new PackagingTestLogger(_log) };
-            var loggerAcc = new PrivateType(typeof(Logger));
-            loggerAcc.SetStaticField("_loggers", loggers);
-        }
         [TestCleanup]
         public void AfterTest()
         {

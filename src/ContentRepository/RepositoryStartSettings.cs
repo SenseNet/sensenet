@@ -20,6 +20,7 @@ namespace SenseNet.ContentRepository
         public class ImmutableRepositoryStartSettings : RepositoryStartSettings
         {
             public new bool IsWebContext { get; }
+            public new bool ExecutingPatches { get; internal set; }
 
             /// <summary>
             /// Gets a value that is 'true' if your tool uses the Content search and any modification features (e.g. save, move etc.). 'True' is the default.
@@ -55,6 +56,7 @@ namespace SenseNet.ContentRepository
             internal ImmutableRepositoryStartSettings(RepositoryStartSettings settings)
             {
                 IsWebContext = settings.IsWebContext;
+                ExecutingPatches = settings.ExecutingPatches;
                 StartIndexingEngine = settings.StartIndexingEngine;
                 StartWorkflowEngine = settings.StartWorkflowEngine;
                 Console = settings.Console;
@@ -68,6 +70,7 @@ namespace SenseNet.ContentRepository
         internal static readonly RepositoryStartSettings Default = new RepositoryStartSettings();
 
         public virtual bool IsWebContext { get; set; } = false;
+        public virtual bool ExecutingPatches { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value that is 'true' if your tool uses the Content search and any modification features (e.g. save, move etc.). 'True' is the default.
