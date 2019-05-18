@@ -7,8 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.UI.HtmlControls;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -1972,20 +1970,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 target[propertyType.Name] = clone;
             }
         }
-        // ReSharper disable once UnusedMethodReturnValue.Local
         private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
         {
-            foreach (var versionId in versionIdsToDelete)
-            {
-                foreach (var binPropId in DB.BinaryProperties
-                    .Where(x => x.VersionId == versionId)
-                    .Select(x => x.BinaryPropertyId)
-                    .ToArray())
-                {
-                    var item = DB.BinaryProperties.FirstOrDefault(x => x.BinaryPropertyId == binPropId);
-                    DB.BinaryProperties.Remove(item);
-                }
+            var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
 
+            BlobStorage.DeleteBinaryProperties(versionIds);
+
+            foreach (var versionId in versionIds)
+            {
                 foreach (var longTextPropId in DB.LongTextProperties
                     .Where(x => x.VersionId == versionId)
                     .Select(x => x.LongTextPropertyId)
