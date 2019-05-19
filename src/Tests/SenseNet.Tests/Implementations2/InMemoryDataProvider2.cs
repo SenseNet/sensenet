@@ -1551,7 +1551,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     {
                         FileId = binProp.FileId,
                         FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
-                        Extension = binProp.FileName.Extension,
+                        Extension = "." + binProp.FileName.Extension,
                         ContentType = binProp.ContentType,
                         Size = binProp.Size,
                         Timestamp = binProp.Timestamp,

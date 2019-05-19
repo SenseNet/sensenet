@@ -257,7 +257,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static void SetContentHandler(string contentTypeName, string handler)
         {
-            var testingDataProvider = DataStore.Enabled ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>() : DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = GetTestingDataProvider();
             if (testingDataProvider == null)
                 Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 
@@ -265,11 +265,18 @@ namespace SenseNet.ContentRepository.Tests
         }
         private static void AddField(string contentTypeName, string fieldName, string fieldType = null, string fieldHandler = null)
         {
-            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = GetTestingDataProvider();
             if (testingDataProvider == null)
                 Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 
             testingDataProvider.AddField(contentTypeName, fieldName, fieldType, fieldHandler);
+        }
+
+        private static ITestingDataProviderExtension GetTestingDataProvider()
+        {
+            return DataStore.Enabled
+                ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>()
+                : DataProvider.GetExtension<ITestingDataProviderExtension>();
         }
     }
 
