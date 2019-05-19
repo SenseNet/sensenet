@@ -392,6 +392,11 @@ SELECT @FileId
             throw new NotImplementedException(); //UNDONE:DB: Not implemented: DeleteBinaryProperties
         }
 
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        {
+            throw new NotImplementedException(); //UNDONE:DB: Not implemented: LoadBinaryProperty
+        }
+
         #region LoadBinaryCacheentityFormatScript
 
         private const string LoadBinaryCacheEntityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < {0} THEN F.Stream ELSE null END AS Stream

@@ -33,6 +33,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageBase.GetBlobStorageContext(fileId, clearStream, versionId, propertyTypeId);
         }
 
+        public new static BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        {
+            return BlobStorageBase.LoadBinaryProperty(versionId, propertyTypeId);
+        }
+
         public new static BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
             return BlobStorageBase.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);

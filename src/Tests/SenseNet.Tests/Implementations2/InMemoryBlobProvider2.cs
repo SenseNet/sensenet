@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -190,6 +191,47 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 .Where(x => versionIds.Contains(x.VersionId))
                 .ToArray())
                 db.BinaryProperties.Remove(item);
+        }
+
+        [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        {
+            var db = DataProvider.DB;
+
+            BinaryDataValue result = null;
+
+            var binaryDoc = db.BinaryProperties.FirstOrDefault(x =>
+                x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
+            if (binaryDoc == null)
+                return result;
+
+            var fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
+            if (fileDoc == null)
+                return result;
+            if (fileDoc.Staging)
+                return result;
+
+            result = CreateBinaryDataValue(db, binaryDoc, fileDoc);
+            return result;
+        }
+        private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase2 db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
+        {
+            if (fileDoc == null)
+                fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
+
+            return new BinaryDataValue
+            {
+                Id = binaryDoc.BinaryPropertyId,
+                FileId = binaryDoc.FileId,
+                Checksum = null,
+                FileName = fileDoc == null ? null : new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
+                ContentType = fileDoc?.ContentType,
+                Size = fileDoc?.Size ?? 0L,
+                BlobProviderName = fileDoc?.BlobProvider,
+                BlobProviderData = fileDoc?.BlobProviderData,
+                Timestamp = fileDoc?.Timestamp ?? 0L
+            };
+
         }
 
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)

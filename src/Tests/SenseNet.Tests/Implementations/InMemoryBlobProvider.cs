@@ -188,6 +188,11 @@ namespace SenseNet.Tests.Implementations
                 .RemoveAll(r => versionIds.Contains(r.VersionId));
         }
 
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        {
+            throw new NotImplementedException();
+        }
+
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
             var db = _dataProvider.DB;

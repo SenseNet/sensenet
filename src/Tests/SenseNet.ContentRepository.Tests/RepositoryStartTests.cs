@@ -497,6 +497,12 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NullPopulator()
         {
             var dbProvider = new InMemoryDataProvider();
+            var dbProvider2 = new InMemoryDataProvider2();
+Providers.Instance.DataProvider2 = dbProvider2; //UNDONE:DB: Remove these lines after original InMemoryDataProvider deletion.
+var backup = DataStore.Enabled;
+DataStore.Enabled = true;
+DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+DataStore.Enabled = backup;
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
@@ -504,7 +510,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSearchEngine(searchEngine)

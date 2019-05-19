@@ -491,27 +491,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
         public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             lock (DB)
             {
-                BinaryDataValue result = null;
-
-                var binaryDoc = DB.BinaryProperties.FirstOrDefault(x =>
-                    x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
-                if (binaryDoc == null)
-                    return STT.Task.FromResult(result);
-
-                var fileDoc = DB.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
-                if (fileDoc == null)
-                    return STT.Task.FromResult(result);
-                if (fileDoc.Staging)
-                    return STT.Task.FromResult(result);
-
-                result = CreateBinaryDataValue(binaryDoc, fileDoc);
-                return STT.Task.FromResult(result);
+                var result = BlobStorage.LoadBinaryProperty(versionId, propertyTypeId);
+                return Task.FromResult(result);
             }
         }
 
@@ -1703,10 +1690,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
                             break;
                         case DataType.Binary:
-                            var binProp = DB.BinaryProperties
-                                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id);
-                            if (binProp != null)
-                                result = CreateBinaryDataValue(binProp);
+                            result = BlobStorage.LoadBinaryProperty(versionId, pt.Id);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
@@ -1837,26 +1821,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             var lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
 
             return (lastMajorVersionId, lastMinorVersionId);
-        }
-
-        private BinaryDataValue CreateBinaryDataValue(BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
-        {
-            if (fileDoc == null)
-                fileDoc = DB.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
-
-            return new BinaryDataValue
-            {
-                Id = binaryDoc.BinaryPropertyId,
-                FileId = binaryDoc.FileId,
-                Checksum = null,
-                FileName = fileDoc == null ? null : new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
-                ContentType = fileDoc?.ContentType,
-                Size = fileDoc?.Size ?? 0L,
-                BlobProviderName = fileDoc?.BlobProvider,
-                BlobProviderData = fileDoc?.BlobProviderData,
-                Timestamp = fileDoc?.Timestamp ?? 0L
-            };
-
         }
 
         private NodeDoc CreateNodeDocSafe(NodeHeadData nodeHeadData)

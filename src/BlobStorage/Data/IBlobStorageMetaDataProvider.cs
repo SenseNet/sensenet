@@ -67,6 +67,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         void DeleteBinaryProperties(IEnumerable<int> versionIds);
 
         /// <summary>
+        /// Loads binary property object without the stream by the given parameters.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
+        BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId);
+        /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
         /// just the blob metadata pointing to the blob storage.
         /// </summary>
