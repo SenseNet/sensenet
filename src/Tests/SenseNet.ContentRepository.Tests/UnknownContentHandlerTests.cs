@@ -257,7 +257,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static void SetContentHandler(string contentTypeName, string handler)
         {
-            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = DataStore.Enabled ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>() : DataProvider.GetExtension<ITestingDataProviderExtension>();
             if (testingDataProvider == null)
                 Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 

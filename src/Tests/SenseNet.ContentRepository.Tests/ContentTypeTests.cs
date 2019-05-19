@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
                 var searchEngine = SearchManager.SearchEngine as InMemorySearchEngine;
                 Assert.IsNotNull(searchEngine);
 
-                /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
          handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
@@ -72,18 +72,6 @@ namespace SenseNet.ContentRepository.Tests
     </Fields>
 </ContentType>
 ");
-                    Assert.Fail("ContentRegistrationException was not thrown.");
-                }
-                catch (ContentRegistrationException e)
-                {
-                    message = e.Message;
-                }
-
-                Assert.IsNotNull(message);
-                Assert.IsTrue(message.Contains("Invalid analyzer"));
-                Assert.IsTrue(message.Contains(contentTypeName));
-                Assert.IsTrue(message.Contains(fieldName));
-                Assert.IsTrue(message.Contains(analyzerValue));
             });
         }
     }
