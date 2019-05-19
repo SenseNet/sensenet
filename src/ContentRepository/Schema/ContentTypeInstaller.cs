@@ -114,6 +114,14 @@ namespace SenseNet.ContentRepository.Schema
         {
             var contentType = ContentTypeManager.LoadOrCreateNew(ctd.Document);
 
+            if (contentType.IsInvalid)
+            {
+                // registering a content type with an invalid handler or field is not allowed
+                throw new ContentRegistrationException(
+                    $"Error during installing content type {contentType.Name}. Please check the log for " +
+                    "a registration error or warning.");
+            }
+
             // skip notification during content type install to avoid missing field errors
             contentType.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 

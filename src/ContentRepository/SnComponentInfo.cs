@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -9,6 +10,7 @@ namespace SenseNet.ContentRepository
         public Version AssemblyVersion { get; set; }
         public Version SupportedVersion { get; set; }
         public Func<Version, bool> IsComponentAllowed { get; set; }
+        public SnPatch[] Patches { get; set; }
 
         public static SnComponentInfo Create(ISnComponent component)
         {
@@ -21,7 +23,9 @@ namespace SenseNet.ContentRepository
                 ComponentId = component.ComponentId,
                 SupportedVersion = component.SupportedVersion ?? asmVersion,
                 AssemblyVersion = asmVersion,
-                IsComponentAllowed = component.IsComponentAllowed
+                IsComponentAllowed = component.IsComponentAllowed,
+                //UNDONE: [auto-patch] this feature is not released yet
+                //Patches = component.Patches
             };
         }
     }

@@ -674,8 +674,8 @@ namespace SenseNet.ContentRepository.Storage
             if (Cache.CacheContentAfterSaveMode != Cache.CacheContentAfterSaveOption.Containers)
                 return Cache.CacheContentAfterSaveMode == Cache.CacheContentAfterSaveOption.All;
             
-            var type = TypeResolver.GetType(nodeType.ClassName);
-            return typeof(IFolder).IsAssignableFrom(type);
+            var type = TypeResolver.GetType(nodeType.ClassName, false);
+            return type != null && typeof(IFolder).IsAssignableFrom(type);
         }
         private static bool IsDeadlockException(System.Data.Common.DbException e)
         {

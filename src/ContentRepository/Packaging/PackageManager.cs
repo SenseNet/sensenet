@@ -10,6 +10,7 @@ using System.Reflection;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Packaging
@@ -311,6 +312,232 @@ namespace SenseNet.Packaging
                 propertyName = rewrittenName;
             }
             return propertyName;
+        }
+
+        /// <summary>
+        /// Executes all relevant patches in all known components. A patch is relevant only
+        /// if its min and max versions encompass the currently installed version and the
+        /// supported component version in the assembly is higher than the one in the database.
+        /// </summary>
+        /// <returns>Package execution results grouped by component id. It may contain multiple
+        /// results for a single component if there are multiple patches in the assembly for
+        /// subsequent component versions.</returns>
+        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
+            RepositoryStartSettings settings = null)
+        {
+            //UNDONE: make sure that patches are executed exclusively 
+            // No other app domain should be able to start executing patches.
+
+            return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), settings);
+        }
+
+        internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
+            IEnumerable<SnComponentInfo> assemblyComponents, 
+            RepositoryStartSettings settings = null)
+        {
+            var results = new Dictionary<string, Dictionary<Version, PackagingResult>>();
+
+            foreach (var assemblyComponent in assemblyComponents)
+            {
+                try
+                {
+                    var patchResults = ExecuteAssemblyPatches(assemblyComponent, settings);
+
+                    if (patchResults?.Any() ?? false)
+                        results[assemblyComponent.ComponentId] = patchResults;
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex,
+                        $"Error during patch execution for component {assemblyComponent.ComponentId}.");
+                }
+            }
+
+            return results;
+        }
+        internal static Dictionary<Version, PackagingResult> ExecuteAssemblyPatches(SnComponentInfo assemblyComponent, 
+            RepositoryStartSettings settings = null)
+        {
+            var patchResults = new Dictionary<Version, PackagingResult>();
+
+            // If there is no installed component for this id, skip patching.
+            var installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => c.ComponentId == assemblyComponent.ComponentId);
+            if (installedComponent == null)
+                return patchResults;
+
+            // check which db version is supported by the assembly
+            if (assemblyComponent.SupportedVersion == null ||
+                assemblyComponent.SupportedVersion <= installedComponent.Version)
+                return patchResults;
+
+            // Supported version in the assembly is higher than 
+            // the physical version: there should be a patch.
+            if (!(assemblyComponent.Patches?.Any() ?? false))
+            {
+                throw new InvalidOperationException($"Missing patch for component {installedComponent.ComponentId}. " +
+                                                    $"Installed version is {installedComponent.Version}. " +
+                                                    $"The assembly requires at least version {assemblyComponent.SupportedVersion}.");
+            }
+            
+            foreach (var patch in assemblyComponent.Patches)
+            {
+                // this variable is refreshed in every cycle
+                if (installedComponent == null)
+                    break;
+
+                if (patch.MinVersion > patch.MaxVersion ||
+                    patch.MaxVersion > patch.Version)
+                {
+                    // the patch version numbers are the responsibility of the developer of the component
+                    SnLog.WriteWarning(
+                        $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains invalid version numbers.",
+                        properties: new Dictionary<string, object>
+                        {
+                            {"MinVersion", patch.MinVersion},
+                            {"MaxVersion", patch.MaxVersion}
+                        });
+
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(patch.Contents) && patch.Execute != null)
+                {
+                    // ambigous patch definition
+                    SnLog.WriteWarning(
+                        $"Patch {patch.Version} for component {assemblyComponent.ComponentId} cannot be executed because it contains multiple patch definitions.");
+
+                    continue;
+                }
+
+                // check if the patch is relevant for the currently installed component version
+                if (patch.MinVersion > installedComponent.Version ||
+                    patch.MinVersionIsExclusive && patch.MinVersion == installedComponent.Version ||
+                    patch.MaxVersion < installedComponent.Version ||
+                    patch.MaxVersionIsExclusive && patch.MaxVersion == installedComponent.Version)
+                    continue;
+                
+                PackagingResult patchResult;
+
+                try
+                {
+                    if (patch.Contents?.StartsWith("<?xml", StringComparison.InvariantCultureIgnoreCase) ?? false)
+                    {
+                        // execute manifest patch
+                        patchResult = ExecutePatch(patch.Contents, settings);
+                    }
+                    else if (patch.Execute != null)
+                    {
+                        // execute code patch
+                        patch.Execute(new PatchContext
+                        {
+                            Settings = settings
+                        });
+
+                        // save the new package info manually based on the patch version number
+                        Storage.SavePackage(new Package
+                        {
+                            ComponentId = assemblyComponent.ComponentId,
+                            ComponentVersion = patch.Version,
+                            ExecutionResult = ExecutionResult.Successful,
+                            PackageType = PackageType.Patch
+                        });
+
+                        patchResult = new PackagingResult
+                        {
+                            NeedRestart = false,
+                            Successful = true,
+                            Terminated = false,
+                            Errors = 0
+                        };
+                    }
+                    else
+                    {
+                        //TODO: handle other patch formats (resource or filesystem path)
+
+                        // unknown patch format
+                        patchResult = new PackagingResult
+                        {
+                            NeedRestart = false,
+                            Successful = false,
+                            Terminated = false,
+                            Errors = 0
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteException(ex,
+                        $"Error during patch execution for component {assemblyComponent.ComponentId}. Patch target version: {patch.Version}.");
+
+                    throw;
+                }
+
+                patchResults[patch.Version] = patchResult;
+
+                // reload
+                installedComponent = RepositoryVersionInfo.Instance.Components.FirstOrDefault(c => 
+                    c.ComponentId == assemblyComponent.ComponentId);
+            }
+
+            return patchResults;
+        }
+
+        internal static PackagingResult ExecutePatch(string manifestXml, RepositoryStartSettings settings = null)
+        {
+            try
+            {
+                var xml = new XmlDocument();
+                xml.LoadXml(manifestXml);
+                return ExecutePatch(xml, settings);
+            }
+            catch (XmlException ex)
+            {
+                throw new InvalidPackageException("Invalid manifest xml.", ex);
+            }
+        }
+        internal static PackagingResult ExecutePatch(XmlDocument manifestXml, RepositoryStartSettings settings = null)
+        {
+            var phase = -1;
+            var errors = 0;
+            PackagingResult result;
+
+            do
+            {
+                result = ExecutePhase(manifestXml, ++phase, settings);
+                errors += result.Errors;
+            } while (result.NeedRestart);
+
+            result.Errors = errors;
+            return result;
+        }
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, RepositoryStartSettings settings = null)
+        {
+            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
+
+            // Fill context with indexing folder, repo start settings, providers and other 
+            // parameters necessary for on-the-fly steps to run.
+            var executionContext = ExecutionContext.Create("packagePath", "targetPath", 
+                new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, 
+                null, null, settings);
+
+            PackagingResult result; 
+
+            try
+            {
+                result = ExecuteCurrentPhase(manifest, executionContext);
+            }
+            finally
+            {
+                if (Repository.Started())
+                {
+                    SnTrace.System.Write("PackageManager: stopping repository ... ");
+                    Repository.Shutdown();
+                }
+            }
+
+            RepositoryVersionInfo.Reset();
+
+            return result;
         }
     }
 }

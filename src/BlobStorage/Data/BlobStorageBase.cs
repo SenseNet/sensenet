@@ -379,9 +379,26 @@ namespace SenseNet.ContentRepository.Storage.Data
             Providers = TypeResolver.GetTypesByInterface(typeof(IBlobProvider))
                 .Select(t =>
                 {
-                    SnTrace.System.Write("BlobProvider found: {0}", t.FullName);
-                    return (IBlobProvider) Activator.CreateInstance(t);
+                    try
+                    {
+                        var instance = (IBlobProvider)Activator.CreateInstance(t);
+                        SnTrace.System.Write("BlobProvider found: {0}", t.FullName);
+
+                        return instance;
+                    }
+                    catch (MissingMethodException)
+                    {
+                        // no default constructor: provider must be instantiated manually
+                        SnTrace.System.Write("BlobProvider found, but must be configured manually: {0}", t.FullName);
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex, $"Error during instantiating {t.FullName}.");
+                    }
+
+                    return null;
                 })
+                .Where(instance => instance != null)
                 .ToDictionary(x => x.GetType().FullName, x => x);
 
             BuiltInProvider = new BuiltInBlobProvider();

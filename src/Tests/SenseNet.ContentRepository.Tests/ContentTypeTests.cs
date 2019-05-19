@@ -49,6 +49,7 @@ namespace SenseNet.ContentRepository.Tests
 
         [TestMethod]
         [TestCategory("ContentType")]
+        [ExpectedException(typeof(ContentRegistrationException))]
         public void ContentType_WrongAnalyzer()
         {
             var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
@@ -59,10 +60,7 @@ namespace SenseNet.ContentRepository.Tests
                 var searchEngine = SearchManager.SearchEngine as InMemorySearchEngine;
                 Assert.IsNotNull(searchEngine);
 
-                string message = null;
-                try
-                {
-                    /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
          handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>

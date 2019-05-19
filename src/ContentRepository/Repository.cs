@@ -3,6 +3,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
 using SenseNet.Tools;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -52,6 +53,16 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         public static RepositoryInstance Start(RepositoryStartSettings settings)
         {
+            if (!settings.ExecutingPatches)
+            {
+                // Switch ON this flag so that inner repository start operations
+                // do not try to execute patches again recursively.
+                settings.ExecutingPatches = true;
+
+                //UNDONE: [auto-patch] this feature is not released yet
+                //PackageManager.ExecuteAssemblyPatches(settings);
+            }
+
             var instance = RepositoryInstance.Start(settings);
             SystemAccount.Execute(() => Root);
             return instance;

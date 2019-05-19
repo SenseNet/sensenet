@@ -70,12 +70,14 @@ namespace SenseNet.Tests
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            //DistributedApplication.Cache.Reset();
-            //ContentTypeManager.Reset();
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+            Providers.Instance.NodeTypeManeger = null;
+
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
@@ -111,7 +113,7 @@ namespace SenseNet.Tests
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
-            var builder = CreateRepositoryBuilderForTest();
+            var builder = CreateRepositoryBuilderForTestInstance();
 
             initialize?.Invoke(builder);
 
@@ -155,6 +157,7 @@ DataStore.Enabled = backup;
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(DataStore.Enabled ? (IBlobStorageMetaDataProvider)new InMemoryBlobStorageMetaDataProvider2(dp2) : new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -167,6 +170,11 @@ DataStore.Enabled = backup;
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+        }
+
+        protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
+        {
+            return CreateRepositoryBuilderForTest();
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
