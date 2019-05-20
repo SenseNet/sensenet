@@ -19,7 +19,7 @@
       <dependency id="SenseNet.Security" version="4.0.0" />
       <dependency id="SenseNet.Tools" version="3.1.0" />
       <dependency id="SenseNet.Search" version="2.1.0" />
-      <dependency id="SenseNet.Services" version="7.6.0.2" />
+      <dependency id="SenseNet.ContentRepository" version="7.6.0.2" />
       <dependency id="MSTest.TestAdapter" version="1.2.0" />
       <dependency id="MSTest.TestFramework" version="1.2.0" />
     </dependencies>
