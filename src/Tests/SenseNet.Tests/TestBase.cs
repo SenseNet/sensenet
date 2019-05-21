@@ -205,51 +205,7 @@ namespace SenseNet.Tests
 
         protected virtual RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
-            try
-            {
-                //UNDONE: [remove] test line
-                // temp line to load the type and assembly
-                var st = TaskManagement.Core.ServerType.Local;
-
-                return CreateRepositoryBuilderForTest();
-            }
-            catch (FileNotFoundException ex)
-            {
-                var message = LogError(ex);
-                throw new FileNotFoundException(ex.Message + message, ex);
-            }
-        }
-
-        //UNDONE: [remove] test method
-        private static string LogError(FileNotFoundException ex)
-        {
-            var sb = new StringBuilder();
-
-            sb.Append($" Current directory: {Environment.CurrentDirectory}. ");
-            sb.Append($" Base directory: {AppDomain.CurrentDomain.BaseDirectory}. ");
-
-            var allfiles1 = Directory.GetFiles(Environment.CurrentDirectory, "SenseNet.TaskManagement.Core.dll", SearchOption.AllDirectories);
-            var allfiles2 = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "SenseNet.TaskManagement.Core.dll", SearchOption.AllDirectories);
-
-            var allFiles = allfiles1.Union(allfiles2).Distinct().ToList();
-
-            if (allFiles.Count == 0)
-                sb.Append(" TaskMan dll NOT found. ");
-            else
-            {
-                sb.Append(" TaskMan dll FOUND: ");
-                foreach (var file in allFiles)
-                {
-                    sb.Append($" {file} ");
-                }
-            }
-
-            var message = sb.ToString();
-
-            SnLog.WriteInformation(message);
-            SnTrace.Test.WriteError(message);
-
-            return message;
+            return CreateRepositoryBuilderForTest();
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
