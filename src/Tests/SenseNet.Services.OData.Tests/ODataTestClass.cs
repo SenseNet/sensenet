@@ -21,6 +21,14 @@ namespace SenseNet.Services.OData.Tests
 {
     public abstract class ODataTestClass : TestBase
     {
+        protected override void OnTestInitialize()
+        {
+            base.OnTestInitialize();
+
+            var portalContextAcc = new PrivateType(typeof(PortalContext));
+            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+        }
+
         // ReSharper disable once InconsistentNaming
         internal static T ODataGET<T>(string resource, string queryString) where T : IODataResult
         {

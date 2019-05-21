@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -12,8 +13,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Portal;
-using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -69,6 +68,9 @@ namespace SenseNet.Tests
             if (RepositoryInstance.Started())
                 RepositoryInstance.Shutdown();
 
+            // the original collector default value is a class that is not available in this context
+            Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
+
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
         }
@@ -103,9 +105,8 @@ namespace SenseNet.Tests
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
             Providers.Instance.NodeTypeManeger = null;
-
-            var portalContextAcc = new PrivateType(typeof(PortalContext));
-            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+            
+            OnTestInitialize();
 
             var builder = CreateRepositoryBuilderForTestInstance();
 
@@ -116,6 +117,8 @@ namespace SenseNet.Tests
             if (!_prototypesCreated)
                 SnTrace.Test.Write("Start repository.");
 
+            OnBeforeRepositoryStart(builder);
+
             using (Repository.Start(builder))
             {
                 if (useCurrentUser)
@@ -124,7 +127,13 @@ namespace SenseNet.Tests
                     using (new SystemAccount())
                         callback();
             }
+
+            OnAfterRepositoryShutdown();
         }
+
+        protected virtual void OnTestInitialize() { }
+        protected virtual void OnBeforeRepositoryStart(RepositoryBuilder builder) { }
+        protected virtual void OnAfterRepositoryShutdown() { }
 
         // ==========================================================
 

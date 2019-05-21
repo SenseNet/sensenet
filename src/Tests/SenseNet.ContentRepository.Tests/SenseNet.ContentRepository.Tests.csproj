@@ -178,6 +178,10 @@
       <Project>{6B711835-9172-4F07-9FC3-BA79C7DFA916}</Project>
       <Name>SenseNet.Packaging.Tests</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Tests.Hosting\SenseNet.Tests.Hosting.csproj">
+      <Project>{3fd689f9-c015-44b3-9ede-144e60e666a9}</Project>
+      <Name>SenseNet.Tests.Hosting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
       <Project>{A0909E8F-E039-4080-A259-676CFD38CCD1}</Project>
       <Name>SenseNet.Tests</Name>

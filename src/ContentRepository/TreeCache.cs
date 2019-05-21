@@ -168,8 +168,11 @@ namespace SenseNet.ContentRepository
                 if (nodeType == null)
                     return new List<TNode>();
 
-                return NodeQuery.QueryNodesByType(nodeType, false).Nodes
-                    .Select(x => new TNode { Id = x.Id, Path = x.Path.ToLowerInvariant() })
+                var queryResult = NodeQuery.QueryNodesByType(nodeType, false);
+
+                return queryResult.Identifiers
+                    .Select(NodeHead.Get)
+                    .Select(nh => new TNode {Id = nh.Id, Path = nh.Path.ToLowerInvariant()})
                     .ToList();
             }
         }
