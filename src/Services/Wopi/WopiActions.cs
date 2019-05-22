@@ -103,6 +103,16 @@ namespace SenseNet.Services.Wopi
         private static readonly ConcurrentDictionary<string, Lazy<WopiDiscovery>> Instances =
             new ConcurrentDictionary<string, Lazy<WopiDiscovery>>();
 
+        /// <summary>
+        /// For tests.
+        /// </summary>
+        internal static void AddInstance(string url, WopiDiscovery discovery)
+        {
+            Instances.AddOrUpdate(url.TrimEnd('/'), 
+                oosUrl => new Lazy<WopiDiscovery>(() => discovery),
+                (oosUrl, current) => new Lazy<WopiDiscovery>(() => discovery));
+        }
+
         internal static WopiDiscovery GetInstance(string officeOnlineUrl)
         {
             return Instances.GetOrAdd(officeOnlineUrl.TrimEnd('/'), oosUrl => new Lazy<WopiDiscovery>(() =>
