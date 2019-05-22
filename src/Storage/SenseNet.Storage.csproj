@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.6.0.1</Version>
+    <Version>7.6.0.2</Version>
     <Authors>kavics,aniko,lajos,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
-    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
@@ -16,6 +16,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Product>sensenet Storage</Product>
     <Description>Storage layer for the sensenet platform.</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +33,13 @@
     <ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj" />
     <ProjectReference Include="..\Common\SenseNet.Common.csproj" />
     <ProjectReference Include="..\Search\SenseNet.Search.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
