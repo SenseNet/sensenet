@@ -3,10 +3,10 @@ using System.Collections.ObjectModel;
 
 namespace SenseNet.Tests
 {
-    internal static class InitialTestData
+    public static class InitialTestData
     {
-        #region internal static readonly string PropertyTypes
-        internal static readonly string PropertyTypes = @"
+        #region public static readonly string PropertyTypes
+        public static readonly string PropertyTypes = @"
   Id| DataType  | Mapping| Name
 ----- ----------- -------- ---------------
    1| Binary    |       0| Binary
@@ -164,8 +164,8 @@ namespace SenseNet.Tests
 ";
         #endregion
 
-        #region internal static readonly string NodeTypes
-        internal static readonly string NodeTypes = @"
+        #region public static readonly string NodeTypes
+        public static readonly string NodeTypes = @"
   Id| Name                          | ParentName                    | ClassName                                                   | Properties
 ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------
    9| ContentType                   | <null>                        | SenseNet.ContentRepository.Schema.ContentType               | [Binary]
@@ -249,8 +249,8 @@ namespace SenseNet.Tests
 ";
         #endregion
 
-        #region internal static readonly string Nodes
-        internal static readonly string Nodes = @"
+        #region public static readonly string Nodes
+        public static readonly string Nodes = @"
 NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path
 ------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
      1|      3|      5|      0|      1|      1|    False|      1| Admin                                   | """"                                              | /Root/IMS/BuiltIn/Portal/Admin
@@ -502,8 +502,8 @@ NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name          
 ";
         #endregion
 
-        #region internal static readonly string Versions
-        internal static readonly string Versions = @"
+        #region public static readonly string Versions
+        public static readonly string Versions = @"
 VersionId| NodeId|  Version
 ---------- ------- ---------
         1|      1|  V1.0.A
@@ -755,8 +755,8 @@ VersionId| NodeId|  Version
 ";
         #endregion
 
-        #region internal static readonly string DynamicData
-        internal static readonly string DynamicData = @"VersionId: 1
+        #region public static readonly string DynamicData
+        public static readonly string DynamicData = @"VersionId: 1
     LongTextProperties
         OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:02.7522515Z</ModificationDate>      <Hash>$2a$10$PpzkmffYtUA5XV5nekcqVOKIZUpB8HUczoFcCmTkAUtCqUH5dS5Ki</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
     DynamicProperties
@@ -2114,8 +2114,8 @@ VersionId: 260
         #endregion
 
 
-        #region internal static readonly IDictionary<string, string> ContentTypeDefinitions
-        internal static readonly IDictionary<string, string> ContentTypeDefinitions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+        #region public static readonly IDictionary<string, string> ContentTypeDefinitions
+        public static readonly IDictionary<string, string> ContentTypeDefinitions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
         {
 			#region  1. Application
 			{ "Application", @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -6403,8 +6403,8 @@ VersionId: 260
         });
         #endregion
 
-        #region internal static readonly IDictionary<string, string> GeneralBlobs
-        internal static readonly IDictionary<string, string> GeneralBlobs =
+        #region public static readonly IDictionary<string, string> GeneralBlobs
+        public static readonly IDictionary<string, string> GeneralBlobs =
             new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
             {
                 #region  1.Indexing .settings

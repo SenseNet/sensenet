@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Tests
 {
-    internal static class InitialTestIndex
+    public static class InitialTestIndex
     {
-        #region internal static readonly string Index
-        internal static readonly string Index = @"{
+        #region public static readonly string Index
+        public static readonly string Index = @"{
   ""Index"": {
     ""LoginName"": [
       ""admin: 1"",
