@@ -37,13 +37,17 @@ namespace SenseNet.ContentRepository.Tests
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
 
+        // ReSharper disable once InconsistentNaming
+        private static DataProvider2 DP => DataStore.DataProvider;
+        // ReSharper disable once InconsistentNaming
+        private static ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+
         [TestMethod]
         public async STT.Task DP_InsertNode()
         {
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var root = CreateFolder(Repository.Root, "TestRoot");
 
@@ -60,7 +64,7 @@ namespace SenseNet.ContentRepository.Tests
                 var versionData = nodeData.GetVersionData();
                 var dynamicData = nodeData.GetDynamicData(false);
                 var binaryProperty = dynamicData.BinaryProperties.First().Value;
-                await dp.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+                await DP.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
 
                 // ASSERT
                 Assert.IsTrue(nodeHeadData.NodeId > 0);
@@ -92,7 +96,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var root = CreateFolder(Repository.Root, "TestRoot");
 
@@ -113,7 +116,7 @@ namespace SenseNet.ContentRepository.Tests
                 var dynamicData = nodeData.GetDynamicData(false);
                 var versionIdsToDelete = new int[0];
                 //var binaryProperty = dynamicData.BinaryProperties.First().Value;
-                await dp.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
 
                 // ASSERT
                 Assert.IsTrue(nodeHeadData.Timestamp > created.NodeTimestamp);
@@ -138,7 +141,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var root = CreateFolder(Repository.Root, "Folder1");
                 root.Save();
@@ -165,7 +167,7 @@ namespace SenseNet.ContentRepository.Tests
                 var versionData = nodeData.GetVersionData();
                 var dynamicData = nodeData.GetDynamicData(false);
                 var versionIdsToDelete = new int[0];
-                await dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
 
                 // ASSERT
                 Assert.AreNotEqual(versionIdBefore, versionData.VersionId);
@@ -188,7 +190,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var root = CreateFolder(Repository.Root, "Folder1");
                 root.Save();
@@ -218,7 +219,7 @@ namespace SenseNet.ContentRepository.Tests
                 var dynamicData = nodeData.GetDynamicData(false);
                 var versionIdsToDelete = new int[] { versionData.VersionId };
                 var expectedVersionId = versionIdBefore;
-                await dp.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId);
+                await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete, expectedVersionId);
 
                 // ASSERT
                 Assert.AreEqual(versionIdBefore, versionData.VersionId);
@@ -243,7 +244,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 // Create a file under the test root
                 var root = new SystemFolder(Repository.Root) { Name = "Folder1" };
@@ -276,8 +276,8 @@ namespace SenseNet.ContentRepository.Tests
                 modified.Index = modified.Index;
                 var nodeData = modified.Data;
 
-                nodeData.LastLockUpdate = dp.DateTimeMinValue;
-                nodeData.LockDate = dp.DateTimeMinValue;
+                nodeData.LastLockUpdate = DP.DateTimeMinValue;
+                nodeData.LockDate = DP.DateTimeMinValue;
                 nodeData.Locked = false;
                 nodeData.LockedById = 0;
                 nodeData.ModificationDate = DateTime.UtcNow;
@@ -286,7 +286,7 @@ namespace SenseNet.ContentRepository.Tests
                 var versionIdsToDelete = new int[] { deletedVersionId };
 
                 // ACTION: Simulate UndoCheckOut
-                await dp.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+                await DP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
 
                 // ASSERT: the original state is restored after the UndoCheckOut operation
                 Assert.IsTrue(oldTimestamp < nodeHeadData.Timestamp);
@@ -330,7 +330,6 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     DataStore.Enabled = true;
-                    var dp = DataStore.DataProvider;
 
                     ContentTypeInstaller.InstallContentType(ctd);
                     var unused = ContentType.GetByName(contentTypeName); // preload schema
@@ -354,12 +353,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-1
-                    Assert.AreEqual("ShortText value 1", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
-                    Assert.AreEqual("LongText value 1", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
-                    Assert.AreEqual(42, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
-                    Assert.AreEqual(42.56m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
-                    Assert.AreEqual(new DateTime(1111, 11, 11), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)await dp.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual("ShortText value 1", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 1", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(42, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.56m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 11), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{Repository.Root.Id},{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-2 UPDATE-1
                     node = Node.Load<GenericContent>(node.Id);
@@ -373,12 +372,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-2
-                    Assert.AreEqual("ShortText value 2", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
-                    Assert.AreEqual("LongText value 2", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
-                    Assert.AreEqual(43, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
-                    Assert.AreEqual(42.099m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
-                    Assert.AreEqual(new DateTime(1111, 11, 22), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)await dp.GetPropertyValueAsync(node.VersionId, "Reference1")));
+                    Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.AreEqual($"{root.Id}", ArrayToString((List<int>)await TDP.GetPropertyValueAsync(node.VersionId, "Reference1")));
 
                     // ACTION-3 UPDATE-2
                     node = Node.Load<GenericContent>(node.Id);
@@ -387,12 +386,12 @@ namespace SenseNet.ContentRepository.Tests
                     node.Save();
 
                     // ASSERT-3
-                    Assert.AreEqual("ShortText value 2", await dp.GetPropertyValueAsync(node.VersionId, "ShortText1"));
-                    Assert.AreEqual("LongText value 2", await dp.GetPropertyValueAsync(node.VersionId, "LongText1"));
-                    Assert.AreEqual(43, await dp.GetPropertyValueAsync(node.VersionId, "Integer1"));
-                    Assert.AreEqual(42.099m, await dp.GetPropertyValueAsync(node.VersionId, "Number1"));
-                    Assert.AreEqual(new DateTime(1111, 11, 22), await dp.GetPropertyValueAsync(node.VersionId, "DateTime1"));
-                    Assert.IsNull(await dp.GetPropertyValueAsync(node.VersionId, "Reference1"));
+                    Assert.AreEqual("ShortText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "ShortText1"));
+                    Assert.AreEqual("LongText value 2", await TDP.GetPropertyValueAsync(node.VersionId, "LongText1"));
+                    Assert.AreEqual(43, await TDP.GetPropertyValueAsync(node.VersionId, "Integer1"));
+                    Assert.AreEqual(42.099m, await TDP.GetPropertyValueAsync(node.VersionId, "Number1"));
+                    Assert.AreEqual(new DateTime(1111, 11, 22), await TDP.GetPropertyValueAsync(node.VersionId, "DateTime1"));
+                    Assert.IsNull(await TDP.GetPropertyValueAsync(node.VersionId, "Reference1"));
                 }
                 finally
                 {
@@ -537,7 +536,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var nearlyLongText = new string('a', DataStore.TextAlternationSizeLimit - 10);
                 var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
@@ -547,7 +545,7 @@ namespace SenseNet.ContentRepository.Tests
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = nearlyLongText };
                 root.Save();
                 // ACTION-1b: Load the node
-                var loaded = (await dp.LoadNodesAsync(new[] {root.VersionId})).First();
+                var loaded = (await DP.LoadNodesAsync(new[] {root.VersionId})).First();
                 var longTextProps = loaded.GetDynamicData(false).LongTextProperties;
                 var longTextPropType = longTextProps.First().Key;
 
@@ -555,9 +553,9 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Description", longTextPropType.Name);
 
                 // ACTION-2a: Update text property value in the database over the magic limit
-                await dp.UpdateDynamicPropertyAsync(loaded.VersionId, "Description", longText);
+                await TDP.UpdateDynamicPropertyAsync(loaded.VersionId, "Description", longText);
                 // ACTION-2b: Load the node
-                loaded = (await dp.LoadNodesAsync(new[] { root.VersionId })).First();
+                loaded = (await DP.LoadNodesAsync(new[] { root.VersionId })).First();
                 longTextProps = loaded.GetDynamicData(false).LongTextProperties;
 
                 // ASSERT-2
@@ -681,7 +679,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(1, ActiveSchema.ContentListTypes.Count);
 
                 // ACTION
-                var result = await DataStore.DataProvider.GetContentListTypesInTreeAsync(root.Path);
+                var result = await DP.GetContentListTypesInTreeAsync(root.Path);
 
                 // ASSERT
                 Assert.IsNotNull(result);
@@ -696,9 +694,8 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
-                var countsBefore = await GetDbObjectCountsAsync(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
@@ -723,7 +720,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNull(Node.Load<File>(f2.Id));
                 Assert.IsNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNull(Node.Load<File>(f4.Id));
-                var countsAfter = await GetDbObjectCountsAsync(null, dp);
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
                 Assert.AreEqual(countsBefore.AllCountsExceptFiles, countsAfter.AllCountsExceptFiles);
             });
         }
@@ -741,7 +738,7 @@ namespace SenseNet.ContentRepository.Tests
                 Node.ForceDelete(folder.Path);
 
                 // ACTION
-                DataStore.DataProvider.DeleteNodeAsync(nodeHeadData);
+                DP.DeleteNodeAsync(nodeHeadData);
 
                 // ASSERT
                 // Expectation: no exception was thrown
@@ -791,7 +788,7 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.Enabled = true;
 
                 // ACTION
-                var result = await DataStore.DataProvider.GetVersionNumbersAsync("/Root/Deleted");
+                var result = await DP.GetVersionNumbersAsync("/Root/Deleted");
 
                 // ASSERT
                 Assert.IsFalse(result.Any());
@@ -813,24 +810,25 @@ namespace SenseNet.ContentRepository.Tests
                 var propertyTypeId = file.Binary.PropertyType.Id;
 
                 // ACTION-1: Load existing
-                var result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                var result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
                 // ASSERT-1
                 Assert.IsNotNull(result);
 
                 // ACTION-2: Missing Binary
-                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, 999999);
+                result = await DP.LoadBinaryPropertyValueAsync(versionId, 999999);
                 // ASSERT-2 (not loaded and no exceptin was thrown)
                 Assert.IsNull(result);
 
                 // ACTION-3: Staging
-                await DataStore.DataProvider.SetFileStagingAsync(fileId, true);
-                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                await TDP.SetFileStagingAsync(fileId, true);
+                result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
                 // ASSERT-3 (not loaded and no exceptin was thrown)
                 Assert.IsNull(result);
 
                 // ACTION-4: Missing File (inconsistent but need to be handled)
-                await DataStore.DataProvider.DeleteFileAsync(fileId);
-                result = await DataStore.DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
+                await TDP.DeleteFileAsync(fileId);
+
+                result = await DP.LoadBinaryPropertyValueAsync(versionId, propertyTypeId);
                 // ASSERT-4 (not loaded and no exceptin was thrown)
                 Assert.IsNull(result);
             });
@@ -904,12 +902,11 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // ARRANGE
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
                 CreateStructure();
 
                 // ACTION
-                var folderSize = await dp.GetTreeSizeAsync(testRootPath, false);
-                var treeSize = await dp.GetTreeSizeAsync(testRootPath, true);
+                var folderSize = await DP.GetTreeSizeAsync(testRootPath, false);
+                var treeSize = await DP.GetTreeSizeAsync(testRootPath, true);
 
                 // ASSERT
                 var fileLength = fileContent.Length + 3; // + 3 byte BOM
@@ -939,7 +936,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var expectedFolderCount = CreateSafeContentQuery("+Type:Folder .COUNTONLY").Execute().Count;
                 var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
@@ -949,9 +945,9 @@ namespace SenseNet.ContentRepository.Tests
                 var systemFolderTypeTypeId = ActiveSchema.NodeTypes["SystemFolder"].Id;
 
                 // ACTION-1
-                var actualFolderCount1 = await dp.InstanceCountAsync(new[] { folderTypeTypeId });
-                var actualSystemFolderCount1 = await dp.InstanceCountAsync(new[] { systemFolderTypeTypeId });
-                var actualAggregated1 = await dp.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
+                var actualFolderCount1 = await DP.InstanceCountAsync(new[] { folderTypeTypeId });
+                var actualSystemFolderCount1 = await DP.InstanceCountAsync(new[] { systemFolderTypeTypeId });
+                var actualAggregated1 = await DP.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
 
                 // ASSERT
                 Assert.AreEqual(expectedFolderCount, actualFolderCount1);
@@ -963,9 +959,9 @@ namespace SenseNet.ContentRepository.Tests
                 folder.Save();
 
                 // ACTION-1
-                var actualFolderCount2 = await dp.InstanceCountAsync(new[] { folderTypeTypeId });
-                var actualSystemFolderCount2 = await dp.InstanceCountAsync(new[] { systemFolderTypeTypeId });
-                var actualAggregated2 = await dp.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
+                var actualFolderCount2 = await DP.InstanceCountAsync(new[] { folderTypeTypeId });
+                var actualSystemFolderCount2 = await DP.InstanceCountAsync(new[] { systemFolderTypeTypeId });
+                var actualAggregated2 = await DP.InstanceCountAsync(new[] { folderTypeTypeId, systemFolderTypeTypeId });
 
                 // ASSERT
                 Assert.AreEqual(expectedFolderCount, actualFolderCount2);
@@ -984,7 +980,7 @@ namespace SenseNet.ContentRepository.Tests
                 var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
 
                 // ACTION
-                var result = await DataStore.DataProvider.GetChildrenIdentfiersAsync(Repository.Root.Id);
+                var result = await DP.GetChildrenIdentfiersAsync(Repository.Root.Id);
 
                 // ASSERT
                 AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));
@@ -1024,12 +1020,10 @@ namespace SenseNet.ContentRepository.Tests
                 var typeF = ActiveSchema.NodeTypes["Folder"].Id;
                 var typeS = ActiveSchema.NodeTypes["SystemFolder"].Id;
 
-                var dp = DataStore.DataProvider;
-
                 // ACTION-1 (type: 1, path: 1, name: -)
                 var nodeTypeIds = new[] { typeF };
                 var pathStart = new[] { "/Root/R/A" };
-                var result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                var result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
                 // ASSERT-1
                 var expected = CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/A .SORT:Path")
                     .Execute().Identifiers.Skip(1).ToArray();
@@ -1039,7 +1033,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-2 (type: 2, path: 1, name: -)
                 nodeTypeIds = new[] { typeF, typeS };
                 pathStart = new[] { "/Root/R/A" };
-                result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
                 // ASSERT-2
                 expected = CreateSafeContentQuery("+Type:(Folder SystemFolder) +InTree:/Root/R/A .SORT:Path")
                     .Execute().Identifiers.Skip(1).ToArray();
@@ -1049,7 +1043,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION-3 (type: 1, path: 2, name: -)
                 nodeTypeIds = new[] { typeF };
                 pathStart = new[] { "/Root/R/A", "/Root/R/B" };
-                result = await dp.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, true, null);
                 // ASSERT-3
                 expected = CreateSafeContentQuery("+Type:Folder +InTree:/Root/R/A .SORT:Path")
                     .Execute().Identifiers.Skip(1)
@@ -1060,7 +1054,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION-4 (type: -, path: 1, name: A)
                 pathStart = new[] { "/Root/R" };
-                result = await dp.QueryNodesByTypeAndPathAndNameAsync(null, pathStart, true, "A");
+                result = await DP.QueryNodesByTypeAndPathAndNameAsync(null, pathStart, true, "A");
                 // ASSERT-4
                 expected = CreateSafeContentQuery("+Name:A +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
                 Assert.AreEqual(7, expected.Length);
@@ -1098,7 +1092,6 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     DataStore.Enabled = true;
-                    var dp = DataStore.DataProvider;
 
                     ContentTypeInstaller.InstallContentType(ctd1, ctd2);
                     var unused = ContentType.GetByName(contentType1); // preload schema
@@ -1134,7 +1127,7 @@ namespace SenseNet.ContentRepository.Tests
                         {new QueryPropertyData {PropertyName = "Str", QueryOperator = Operator.Equal, Value = "str1"}};
 
                     // ACTION-1 (type: 1, path: 1, prop: -)
-                    var result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, null);
+                    var result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, null);
                     // ASSERT-1
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     var expected = CreateSafeContentQuery($"+Type:{contentType1} +InTree:/Root/R/A .SORT:Path")
@@ -1143,7 +1136,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result);
 
                     // ACTION-2 (type: 2, path: 1, prop: -)
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1, type2 }, "/Root/R/A", true, null);
+                    result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1, type2 }, "/Root/R/A", true, null);
                     // ASSERT-2
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +InTree:/Root/R/A .SORT:Path")
@@ -1152,7 +1145,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result);
 
                     // ACTION-3 (type: 1, path: 1, prop: Int:42)
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property1);
+                    result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property1);
                     // ASSERT-3
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     expected = CreateSafeContentQuery($"+Int:42 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
@@ -1161,7 +1154,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result);
 
                     // ACTION-4 (type: -, path: 1,  prop: Int:42)
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property1);
+                    result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property1);
                     // ASSERT-4
                     // Skip(1) is unnecessary because the subtree root is not a query hit.
                     expected = CreateSafeContentQuery("+Int:42 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
@@ -1169,7 +1162,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result);
 
                     // ACTION-5 (type: 1, path: 1, prop: Str:"str1")
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property2);
+                    result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(new[] { type1 }, "/Root/R/A", true, property2);
                     // ASSERT-5
                     // Skip(1) because the NodeQuery does not contein the subtree root.
                     expected = CreateSafeContentQuery($"+Str:str1 +InTree:/Root/R/A +Type:({contentType1}).SORT:Path")
@@ -1178,7 +1171,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result);
 
                     // ACTION-6 (type: -, path: 1,  prop: Str:"str2")
-                    result = await dp.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property2);
+                    result = await DP.QueryNodesByTypeAndPathAndPropertyAsync(null, "/Root/R", true, property2);
                     // ASSERT-6
                     // Skip(1) is unnecessary because the subtree root is not a query hit.
                     expected = CreateSafeContentQuery("+Str:str1 +InTree:/Root/R .SORT:Path").Execute().Identifiers.ToArray();
@@ -1223,7 +1216,6 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     DataStore.Enabled = true;
-                    var dp = DataStore.DataProvider;
 
                     ContentTypeInstaller.InstallContentType(ctd1, ctd2);
                     var unused = ContentType.GetByName(contentType1); // preload schema
@@ -1244,7 +1236,7 @@ namespace SenseNet.ContentRepository.Tests
                     var type2 = ActiveSchema.NodeTypes[contentType2].Id;
 
                     // ACTION-1 (type: T1, ref: R1)
-                    var result = await dp.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1 });
+                    var result = await DP.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1 });
                     // ASSERT-1
                     ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index.Save("D:\\index-asdf.txt");
                     var expected = CreateSafeContentQuery($"+Type:{contentType1} +Ref:{ref1.Id} .SORT:Id")
@@ -1253,7 +1245,7 @@ namespace SenseNet.ContentRepository.Tests
                     AssertSequenceEqual(expected, result.OrderBy(x => x));
 
                     // ACTION-2 (type: T1,T2, ref: R1)
-                    result = await dp.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1, type2 });
+                    result = await DP.QueryNodesByReferenceAndTypeAsync("Ref", ref1.Id, new[] { type1, type2 });
                     // ASSERT-1
                     expected = CreateSafeContentQuery($"+Type:({contentType1} {contentType2}) +Ref:{ref1.Id} .SORT:Id")
                         .Execute().Identifiers.ToArray();
@@ -1301,53 +1293,52 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
 
-                var dp = DataStore.DataProvider;
                 var path = "/Root/Folder-1";
                 var childPath = "/root/folder-1/folder-2";
                 var anotherPath = "/Root/Folder-2";
 
                 // Pre check: there is no lock
-                var tlocks = await dp.LoadAllTreeLocksAsync();
+                var tlocks = await DP.LoadAllTreeLocksAsync();
                 Assert.AreEqual(0, tlocks.Count);
 
                 // ACTION: create a lock
-                var tlockId = await dp.AcquireTreeLockAsync(path);
+                var tlockId = await DP.AcquireTreeLockAsync(path);
 
                 // Check: there is one lock ant it matches
-                tlocks = await dp.LoadAllTreeLocksAsync();
+                tlocks = await DP.LoadAllTreeLocksAsync();
                 Assert.AreEqual(1, tlocks.Count);
                 Assert.AreEqual(tlockId, tlocks.First().Key);
                 Assert.AreEqual(path, tlocks.First().Value);
 
                 // Check: path and subpath are locked
-                Assert.IsTrue(await dp.IsTreeLockedAsync(path));
-                Assert.IsTrue(await dp.IsTreeLockedAsync(childPath));
+                Assert.IsTrue(await DP.IsTreeLockedAsync(path));
+                Assert.IsTrue(await DP.IsTreeLockedAsync(childPath));
 
                 // Check: outer path is not locked
-                Assert.IsFalse(await dp.IsTreeLockedAsync(anotherPath));
+                Assert.IsFalse(await DP.IsTreeLockedAsync(anotherPath));
 
                 // ACTION: try to create a lock fot a subpath
-                var childLlockId = await dp.AcquireTreeLockAsync(childPath);
+                var childLlockId = await DP.AcquireTreeLockAsync(childPath);
 
                 // Check: subPath cannot be locked
                 Assert.AreEqual(0, childLlockId);
 
                 // Check: there is still only one lock
-                tlocks = await dp.LoadAllTreeLocksAsync();
+                tlocks = await DP.LoadAllTreeLocksAsync();
                 Assert.AreEqual(1, tlocks.Count);
                 Assert.AreEqual(tlockId, tlocks.First().Key);
                 Assert.AreEqual(path, tlocks.First().Value);
 
                 // ACTION: Release the lock
-                await dp.ReleaseTreeLockAsync(new[] {tlockId});
+                await DP.ReleaseTreeLockAsync(new[] {tlockId});
 
                 // Check: there is no lock
-                tlocks = await dp.LoadAllTreeLocksAsync();
+                tlocks = await DP.LoadAllTreeLocksAsync();
                 Assert.AreEqual(0, tlocks.Count);
 
                 // Check: path and subpath are not locked
-                Assert.IsFalse(await dp.IsTreeLockedAsync(path));
-                Assert.IsFalse(await dp.IsTreeLockedAsync(childPath));
+                Assert.IsFalse(await DP.IsTreeLockedAsync(path));
+                Assert.IsFalse(await DP.IsTreeLockedAsync(childPath));
 
             });
         }
@@ -1381,17 +1372,16 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ARRANGE
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
                 CreateStructure();
                 var testRoot = Node.Load<SystemFolder>(testRootPath);
                 var testRootChildren = testRoot.Children.ToArray();
 
                 // ACTION
-                var oneVersion = await dp.LoadIndexDocumentsAsync(new[] {testRoot.VersionId});
-                var moreVersions = (await dp.LoadIndexDocumentsAsync(testRootChildren.Select(x => x.VersionId).ToArray())).ToArray();
-                var subTreeAll = (await dp.LoadIndexDocumentsAsync(testRootPath, new int[0])).ToArray();
-                var onlyFiles = (await dp.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id })).ToArray();
-                var onlySystemFolders = (await dp.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id })).ToArray();
+                var oneVersion = await DP.LoadIndexDocumentsAsync(new[] {testRoot.VersionId});
+                var moreVersions = (await DP.LoadIndexDocumentsAsync(testRootChildren.Select(x => x.VersionId).ToArray())).ToArray();
+                var subTreeAll = (await DP.LoadIndexDocumentsAsync(testRootPath, new int[0])).ToArray();
+                var onlyFiles = (await DP.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id })).ToArray();
+                var onlySystemFolders = (await DP.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id })).ToArray();
 
                 // ASSERT
                 Assert.AreEqual(testRootPath, oneVersion.First().Path);
@@ -1409,17 +1399,17 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.Enabled = true;
                 var node = CreateFolder(Repository.Root, "Folder-1");
                 var versionIds = new[] {node.VersionId};
-                var loadResult = await DataStore.DataProvider.LoadIndexDocumentsAsync(versionIds);
+                var loadResult = await DP.LoadIndexDocumentsAsync(versionIds);
                 var docData = loadResult.First();
 
                 // ACTION
                 docData.IndexDocument.Add(
                     new IndexField("TestField", "TestValue",
                         IndexingMode.Default, IndexStoringMode.Default, IndexTermVector.Default));
-                await DataStore.DataProvider.SaveIndexDocumentAsync(node.VersionId, docData.IndexDocument);
+                await  DP.SaveIndexDocumentAsync(node.VersionId, docData.IndexDocument);
 
                 // ASSERT (check additional field existence)
-                loadResult = await DataStore.DataProvider.LoadIndexDocumentsAsync(versionIds);
+                loadResult = await DP.LoadIndexDocumentsAsync(versionIds);
                 docData = loadResult.First();
                 var testField = docData.IndexDocument.FirstOrDefault(x => x.Name == "TestField");
                 Assert.IsNotNull(testField);
@@ -1434,7 +1424,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             await IndexingActivityTest(async (firstId, lastId) =>
             {
-                var result = await DataStore.DataProvider.GetLastIndexingActivityIdAsync();
+                var result = await DP.GetLastIndexingActivityIdAsync();
                 Assert.AreEqual(lastId, result);
             });
         }
@@ -1449,7 +1439,7 @@ namespace SenseNet.ContentRepository.Tests
                 var factory = new TestIndexingActivityFactory();
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadIndexingActivitiesAsync(from, to, count, false, factory);
+                var result = await DP.LoadIndexingActivitiesAsync(from, to, count, false, factory);
 
                 // ASSERT
                 Assert.AreEqual(5, result.Length);
@@ -1476,7 +1466,7 @@ namespace SenseNet.ContentRepository.Tests
                 var factory = new TestIndexingActivityFactory();
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadIndexingActivitiesAsync(from, to, count, true, factory);
+                var result = await DP.LoadIndexingActivitiesAsync(from, to, count, true, factory);
 
                 // ASSERT
                 Assert.AreEqual(5, result.Length);
@@ -1501,7 +1491,7 @@ namespace SenseNet.ContentRepository.Tests
                 var factory = new TestIndexingActivityFactory();
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadIndexingActivitiesAsync(gaps, false, factory);
+                var result = await DP.LoadIndexingActivitiesAsync(gaps, false, factory);
 
                 // ASSERT
                 Assert.AreEqual(3, result.Length);
@@ -1520,7 +1510,7 @@ namespace SenseNet.ContentRepository.Tests
                 var waitingActivityIds = new[] {firstId, firstId + 1, firstId + 2, firstId + 3, firstId + 4, firstId + 5 };
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadExecutableIndexingActivitiesAsync(factory, 10, timeout, waitingActivityIds);
+                var result = await DP.LoadExecutableIndexingActivitiesAsync(factory, 10, timeout, waitingActivityIds);
 
                 // ASSERT
                 Assert.AreEqual(10, result.Activities.Length);
@@ -1548,17 +1538,17 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var gaps = new[] { lastId - 10, lastId - 9, lastId - 8 };
                 var factory = new TestIndexingActivityFactory();
-                var before = await DataStore.DataProvider.LoadIndexingActivitiesAsync(gaps, false, factory);
+                var before = await DP.LoadIndexingActivitiesAsync(gaps, false, factory);
                 Assert.AreEqual(IndexingActivityRunningState.Waiting, before[0].RunningState);
                 Assert.AreEqual(IndexingActivityRunningState.Waiting, before[1].RunningState);
                 Assert.AreEqual(IndexingActivityRunningState.Waiting, before[2].RunningState);
 
                 // ACTION
-                await DataStore.DataProvider.UpdateIndexingActivityRunningStateAsync(gaps[0], IndexingActivityRunningState.Done);
-                await DataStore.DataProvider.UpdateIndexingActivityRunningStateAsync(gaps[1], IndexingActivityRunningState.Running);
+                await DP.UpdateIndexingActivityRunningStateAsync(gaps[0], IndexingActivityRunningState.Done);
+                await DP.UpdateIndexingActivityRunningStateAsync(gaps[1], IndexingActivityRunningState.Running);
 
                 // ASSERT
-                var after = await DataStore.DataProvider.LoadIndexingActivitiesAsync(gaps, false, factory);
+                var after = await DP.LoadIndexingActivitiesAsync(gaps, false, factory);
                 Assert.AreEqual(IndexingActivityRunningState.Done, after[0].RunningState);
                 Assert.AreEqual(IndexingActivityRunningState.Running, after[1].RunningState);
                 Assert.AreEqual(IndexingActivityRunningState.Waiting, after[2].RunningState);
@@ -1573,15 +1563,15 @@ namespace SenseNet.ContentRepository.Tests
 
                 var activityIds = new[] { firstId + 5, firstId + 6 };
                 var factory = new TestIndexingActivityFactory();
-                var before = await DataStore.DataProvider.LoadIndexingActivitiesAsync(activityIds, false, factory);
+                var before = await DP.LoadIndexingActivitiesAsync(activityIds, false, factory);
                 Assert.AreEqual(47, before[0].NodeId);
                 Assert.AreEqual(48, before[1].NodeId);
 
                 // ACTION
-                await DataStore.DataProvider.RefreshIndexingActivityLockTimeAsync(activityIds);
+                await DP.RefreshIndexingActivityLockTimeAsync(activityIds);
 
                 // ASSERT
-                var after = await DataStore.DataProvider.LoadIndexingActivitiesAsync(activityIds, false, factory);
+                var after = await DP.LoadIndexingActivitiesAsync(activityIds, false, factory);
                 Assert.AreEqual(47, before[0].NodeId);
                 Assert.AreEqual(48, before[1].NodeId);
                 Assert.IsTrue(after[0].LockTime >= startTime);
@@ -1594,10 +1584,10 @@ namespace SenseNet.ContentRepository.Tests
             await IndexingActivityTest(async (firstId, lastId) =>
             {
                 // ACTION
-                await DataStore.DataProvider.DeleteFinishedIndexingActivitiesAsync();
+                await DP.DeleteFinishedIndexingActivitiesAsync();
 
                 // ASSERT
-                var result = await DataStore.DataProvider.LoadIndexingActivitiesAsync(firstId, lastId, 100, false, new TestIndexingActivityFactory());
+                var result = await DP.LoadIndexingActivitiesAsync(firstId, lastId, 100, false, new TestIndexingActivityFactory());
                 Assert.AreEqual(lastId - firstId - 2, result.Length);
                 Assert.AreEqual(firstId + 3, result.First().Id);
             });
@@ -1609,11 +1599,11 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
 
-                await DataStore.DataProvider.DeleteAllIndexingActivitiesAsync();
+                await DP.DeleteAllIndexingActivitiesAsync();
                 var node = CreateFolder(Repository.Root, "Folder-1");
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadIndexingActivitiesAsync(0,1000,1000,false, new TestIndexingActivityFactory());
+                var result = await DP.LoadIndexingActivitiesAsync(0,1000,1000,false, new TestIndexingActivityFactory());
 
                 // ASSERT (IndexDocument loaded)
                 Assert.AreEqual(1, result.Length);
@@ -1663,7 +1653,7 @@ namespace SenseNet.ContentRepository.Tests
         private STT.Task<int> CreateActivityAsync(int nodeId, string path, string runningState, DateTime? lockTime = null)
         {
             var activity = new TestIndexingActivity(nodeId, path, runningState, lockTime);
-            DataStore.DataProvider.RegisterIndexingActivityAsync(activity);
+            DP.RegisterIndexingActivityAsync(activity);
             return STT.Task.FromResult(activity.Id);
         }
         private class TestIndexingActivityFactory : IIndexingActivityFactory
@@ -1754,7 +1744,7 @@ namespace SenseNet.ContentRepository.Tests
                 var versionIds = new[] { Repository.Root.VersionId, 999999, User.Administrator.VersionId };
 
                 // ACTION
-                var loadResult = await DataStore.DataProvider.LoadNodesAsync(versionIds);
+                var loadResult = await DP.LoadNodesAsync(versionIds);
 
                 // ASSERT
                 var actual = loadResult.Select(x => x.VersionId);
@@ -1770,7 +1760,7 @@ namespace SenseNet.ContentRepository.Tests
                 DataStore.Enabled = true;
 
                 // ACTION
-                var result = await DataStore.DataProvider.LoadNodeHeadByVersionIdAsync(99999);
+                var result = await DP.LoadNodeHeadByVersionIdAsync(99999);
 
                 // ASSERT (returns null instead of throw any exception)
                 Assert.IsNull(result);
@@ -1783,24 +1773,23 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 // ACTIONS
-                var allNodeCountBefore = await dp.GetNodeCountAsync(null);
-                var allVersionCountBefore = await dp.GetVersionCountAsync(null);
+                var allNodeCountBefore = await DP.GetNodeCountAsync(null);
+                var allVersionCountBefore = await DP.GetVersionCountAsync(null);
 
                 var node = CreateFolder(Repository.Root, "Folder-1");
                 var child = CreateFolder(node, "Folder-2");
                 child.CheckOut();
 
-                var nodeCount = await dp.GetNodeCountAsync(node.Path);
-                var versionCount = await dp.GetVersionCountAsync(node.Path);
-                var allNodeCountAfter = await dp.GetNodeCountAsync(null);
-                var allVersionCountAfter = await dp.GetVersionCountAsync(null);
+                var nodeCount = await DP.GetNodeCountAsync(node.Path);
+                var versionCount = await DP.GetVersionCountAsync(node.Path);
+                var allNodeCountAfter = await DP.GetNodeCountAsync(null);
+                var allVersionCountAfter = await DP.GetVersionCountAsync(null);
 
                 node = Node.Load<SystemFolder>(node.Id);
-                var nodeTimeStamp = await dp.GetNodeTimestampAsync(node.Id);
-                var versionTimeStamp = await dp.GetVersionTimestampAsync(node.VersionId);
+                var nodeTimeStamp = (await TDP.GetNodeHeadDataAsync(node.Id)).Timestamp;
+                var versionTimeStamp = (await TDP.GetVersionDataAsync(node.VersionId)).Timestamp;
 
                 // ASSERTS
                 Assert.AreEqual(allNodeCountBefore + 2, allNodeCountAfter);
@@ -1833,7 +1822,7 @@ namespace SenseNet.ContentRepository.Tests
                     var dynamicData = nodeData.GetDynamicData(false);
 
                     // ACTION
-                    await DataStore.DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
+                    await DP.InsertNodeAsync(nodeHeadData, versionData, dynamicData);
                     Assert.Fail("NodeAlreadyExistsException was not thrown.");
                 }
                 catch (NodeAlreadyExistsException)
@@ -1862,7 +1851,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.NodeId = 99999;
-                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -1893,7 +1882,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     versionData.VersionId = 99999;
-                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -1924,7 +1913,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DataStore.DataProvider.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.UpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -1955,7 +1944,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.NodeId = 99999;
-                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -1985,7 +1974,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     versionData.VersionId = 99999;
-                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2015,7 +2004,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DataStore.DataProvider.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
+                    await DP.CopyAndUpdateNodeAsync(nodeHeadData, versionData, dynamicData, versionIdsToDelete);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -2043,7 +2032,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.NodeId = 999999;
-                    await DataStore.DataProvider.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+                    await DP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2070,7 +2059,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DataStore.DataProvider.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
+                    await DP.UpdateNodeHeadAsync(nodeHeadData, versionIdsToDelete);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -2098,7 +2087,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DataStore.DataProvider.DeleteNodeAsync(nodeHeadData);
+                    await DP.DeleteNodeAsync(nodeHeadData);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -2126,7 +2115,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.NodeId = 999999;
-                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2152,7 +2141,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeHeadData = node.Data.GetNodeHeadData();
 
                     // ACTION
-                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, 999999, target.NodeTimestamp);
+                    await DP.MoveNodeAsync(nodeHeadData, 999999, target.NodeTimestamp);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2179,7 +2168,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DataStore.DataProvider.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -2195,11 +2184,10 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 try
                 {
-                    await dp.QueryNodesByReferenceAndTypeAsync(null, 1, new[] { 1 });
+                    await DP.QueryNodesByReferenceAndTypeAsync(null, 1, new[] { 1 });
                 }
                 catch (ArgumentNullException)
                 {
@@ -2208,7 +2196,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 try
                 {
-                    await dp.QueryNodesByReferenceAndTypeAsync("", 1, new[] { 1 });
+                    await DP.QueryNodesByReferenceAndTypeAsync("", 1, new[] { 1 });
                 }
                 catch (ArgumentException e)
                 {
@@ -2217,7 +2205,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 try
                 {
-                    await dp.QueryNodesByReferenceAndTypeAsync("PropertyNameThatCertainlyDoesNotExist", 1, new[] { 1 });
+                    await DP.QueryNodesByReferenceAndTypeAsync("PropertyNameThatCertainlyDoesNotExist", 1, new[] { 1 });
                 }
                 catch (ArgumentException e)
                 {
@@ -2281,13 +2269,13 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider2 dp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider2 DP, ITestingDataProviderExtension tdp)
         {
-            var nodes = await dp.GetNodeCountAsync(path);
-            var versions = await dp.GetVersionCountAsync(path);
-            var binaries = await dp.GetBinaryPropertyCountAsync(path);
-            var files = await dp.GetFileCountAsync(path);
-            var longTexts = await dp.GetLongTextCountAsync(path);
+            var nodes = await DP.GetNodeCountAsync(path);
+            var versions = await DP.GetVersionCountAsync(path);
+            var binaries = await TDP.GetBinaryPropertyCountAsync(path);
+            var files = await TDP.GetFileCountAsync(path);
+            var longTexts = await TDP.GetLongTextCountAsync(path);
             var all = $"{nodes},{versions},{binaries},{files},{longTexts}";
             var allExceptFiles = $"{nodes},{versions},{binaries},{longTexts}";
 
@@ -2301,8 +2289,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
-                var countsBefore = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
+                var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
 
                 // ACTION
                 try
@@ -2314,7 +2301,7 @@ namespace SenseNet.ContentRepository.Tests
                     var versionData = nodeData.GetVersionData();
                     var dynamicData = nodeData.GetDynamicData(false);
                     // Call low level API
-                    await DataStore.DataProvider.InsertNodeAsync(hackedNodeHeadData, versionData, dynamicData);
+                    await DP.InsertNodeAsync(hackedNodeHeadData, versionData, dynamicData);
                 }
                 catch (Exception)
                 {
@@ -2323,7 +2310,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
+                var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
 
                 Assert.AreEqual(countsBefore, countsAfter);
             });
@@ -2378,7 +2365,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
@@ -2388,7 +2374,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.CheckOut();
                 var version2 = newNode.Version.ToString();
                 var versionId2 = newNode.VersionId;
-                var countsBefore = await GetDbObjectCountsAsync(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 // ACTION: simulate a modification and CheckIn on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2414,7 +2400,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = await GetDbObjectCountsAsync(null, dp);
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
@@ -2428,7 +2414,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
@@ -2441,7 +2426,7 @@ namespace SenseNet.ContentRepository.Tests
                 newNode.Index++;
                 newNode.Description = "Description-MODIFIED";
                 newNode.Save();
-                var countsBefore = await GetDbObjectCountsAsync(null, dp);
+                var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 // ACTION: simulate a modification and UndoCheckout on a checked-out, not-versioned node (V2.0.L -> V1.0.A).
                 try
@@ -2455,7 +2440,7 @@ namespace SenseNet.ContentRepository.Tests
                     var currentVersionId = newNode.VersionId;
                     var expectedVersionId = versionId1;
                     // Call low level API
-                    await DataStore.DataProvider.UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete);
+                    await DP.UpdateNodeHeadAsync(hackedNodeHeadData, versionIdsToDelete);
                 }
                 catch (Exception)
                 {
@@ -2464,7 +2449,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                var countsAfter = await GetDbObjectCountsAsync(null, dp);
+                var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
                 DistributedApplication.Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
@@ -2573,7 +2558,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 DataStore.Enabled = true;
-                var dp = DataStore.DataProvider;
 
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = "Test root"};
@@ -2589,7 +2573,7 @@ namespace SenseNet.ContentRepository.Tests
                 f4.Binary.SetStream(RepositoryTools.GetStreamFromString("filecontent"));
                 f4.Save();
 
-                var countsBefore = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
+                var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
 
                 // ACTION
                 try
@@ -2598,7 +2582,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeData = node.Data;
                     var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
                     // Call low level API
-                    await DataStore.DataProvider.DeleteNodeAsync(hackedNodeHeadData);
+                    await DP.DeleteNodeAsync(hackedNodeHeadData);
                 }
                 catch (Exception)
                 {
@@ -2612,7 +2596,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(Node.Load<File>(f2.Id));
                 Assert.IsNotNull(Node.Load<SystemFolder>(f3.Id));
                 Assert.IsNotNull(Node.Load<File>(f4.Id));
-                var countsAfter = (await GetDbObjectCountsAsync(null, dp)).AllCounts;
+                var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
                 Assert.AreEqual(countsBefore, countsAfter);
             });
         }
@@ -2626,7 +2610,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
 
-                var dp = DataStore.DataProvider;
                 var ed = new SchemaEditor();
                 ed.Load();
                 var timestampBefore = ed.SchemaTimestamp;
@@ -2634,7 +2617,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION: try to start update with wrong timestamp
                 try
                 {
-                    var unused = await dp.StartSchemaUpdateAsync(timestampBefore - 1);
+                    var unused = await DP.StartSchemaUpdateAsync(timestampBefore - 1);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2644,12 +2627,12 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: start update normally
-                var @lock = await dp.StartSchemaUpdateAsync(timestampBefore);
+                var @lock = await DP.StartSchemaUpdateAsync(timestampBefore);
 
                 // ACTION: try to start update again
                 try
                 {
-                    var unused = await dp.StartSchemaUpdateAsync(timestampBefore);
+                    var unused = await DP.StartSchemaUpdateAsync(timestampBefore);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2661,7 +2644,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION: try to finish with invalid @lock
                 try
                 {
-                    var unused = await dp.FinishSchemaUpdateAsync("wrong-lock");
+                    var unused = await DP.FinishSchemaUpdateAsync("wrong-lock");
                     Assert.Fail("Expected DataException was not thrown.");
                 }
                 catch (DataException)
@@ -2671,12 +2654,12 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ACTION: finish normally
-                var unused1 = await dp.FinishSchemaUpdateAsync(@lock);
+                var unused1 = await DP.FinishSchemaUpdateAsync(@lock);
 
                 // ASSERT: start update is allowed again
-                @lock = await dp.StartSchemaUpdateAsync(timestampBefore);
+                @lock = await DP.StartSchemaUpdateAsync(timestampBefore);
                 // cleanup
-                var timestampAfter = await dp.FinishSchemaUpdateAsync(@lock);
+                var timestampAfter = await DP.FinishSchemaUpdateAsync(@lock);
                 // Bonus assert: there is no any changes
                 Assert.AreEqual(timestampBefore, timestampAfter);
             });

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 
@@ -381,7 +382,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         private DateTime _modificationDate;
         private int _modifiedById;
         private string _indexDocument; //UNDONE:DB ---Do not store IndexDocument in the VersionDoc
-        private IEnumerable<ChangedData> _changedData;
+        private string _changedData;
         Dictionary<string, object> _dynamicProperties;
         private long _timestamp;
 
@@ -467,10 +468,14 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         public IEnumerable<ChangedData> ChangedData
         {
-            get => _changedData;
+            get
+            {
+                var result = (IEnumerable<ChangedData>)JsonConvert.DeserializeObject(_changedData, typeof(IEnumerable<ChangedData>));
+                return result;
+            }
             set
             {
-                _changedData = value;
+                _changedData = JsonConvert.SerializeObject(value);
                 SetTimestamp();
             }
         }
@@ -505,7 +510,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 _modificationDate = _modificationDate,
                 _modifiedById = _modifiedById,
                 _indexDocument = _indexDocument,
-                _changedData = _changedData?.ToArray(),
+                _changedData = _changedData,
                 _dynamicProperties = CloneDynamicProperties(_dynamicProperties),
                 _timestamp = _timestamp,
             };

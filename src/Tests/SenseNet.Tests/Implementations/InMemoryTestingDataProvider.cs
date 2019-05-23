@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 
@@ -150,6 +151,51 @@ namespace SenseNet.Tests.Implementations
             propNode.SetAttribute("name", fieldName);
 
             typeNode.AppendChild(propNode);
+        }
+
+        public Task<NodeHeadData> GetNodeHeadDataAsync(int nodeId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<VersionData> GetVersionDataAsync(int versionId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> GetBinaryPropertyCountAsync(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> GetFileCountAsync(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> GetLongTextCountAsync(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetPropertyValueAsync(int versionId, string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateDynamicPropertyAsync(int versionId, string name, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetFileStagingAsync(int fileId, bool staging)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteFileAsync(int fileId)
+        {
+            throw new NotImplementedException();
         }
 
         private static void EditFileStream(InMemoryDataProvider.FileRecord fileRecord, Action<XmlDocument> action)

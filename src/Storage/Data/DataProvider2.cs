@@ -466,18 +466,5 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataStore.GetException(e);
         }
 
-        /* =============================================================================================== Test support */
-
-        public abstract Task<long> GetNodeTimestampAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<long> GetVersionTimestampAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<int> GetBinaryPropertyCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<int> GetFileCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<int> GetLongTextCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-
-        public abstract Task<object> GetPropertyValueAsync(int versionId, string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task UpdateDynamicPropertyAsync(int versionId, string name, object value, CancellationToken cancellationToken = default(CancellationToken));
-
-        public abstract Task SetFileStagingAsync(int fileId, bool staging);
-        public abstract Task DeleteFileAsync(int fileId);
     }
 }
