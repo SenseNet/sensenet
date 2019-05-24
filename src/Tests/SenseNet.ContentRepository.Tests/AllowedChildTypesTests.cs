@@ -293,6 +293,98 @@ namespace SenseNet.ContentRepository.Tests
         /* ---------------------------------------------------------------------------------- */
 
         [TestMethod]
+        public void AllowedChildTypes_Workspace_NoLocalItems_Set()
+        {
+            Test(() =>
+            {
+                var ts = CreateTestStructure();
+                var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
+                var localNamesBefore = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
+                var namesToSet = new[] { "Memo" };
+
+                // this is to make sure that the test runs in a correct environment
+                Assert.IsTrue(namesBefore.Length > 0);
+                Assert.AreEqual(0, localNamesBefore.Length);
+
+                // ACTION
+                ts.Workspace1.SetAllowedChildTypes(namesToSet.Select(ContentType.GetByName), true, true, true);
+
+                // ASSERT
+                ts.Workspace1 = Node.Load<Workspace>(ts.Workspace1.Id);
+
+                var namesAfter = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x);
+                var localNamesAfter = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
+
+                Assert.AreEqual(namesToSet.Single(), localNamesAfter.Single());
+
+                // SystemFolder is added on-the-fly for admins
+                Assert.AreEqual("Memo, SystemFolder", string.Join(", ", namesAfter));
+            });
+        }
+        [TestMethod]
+        public void AllowedChildTypes_Workspace_LocalItems_Set()
+        {
+            Test(() =>
+            {
+                var ts = CreateTestStructure();
+                ts.Workspace1.AllowedChildTypes =
+                    new[] { "DocumentLibrary", "File", "Folder", "MemoList", "SystemFolder", "TaskList", "Workspace" }
+                        .Select(ContentType.GetByName).ToArray();
+                ts.Workspace1.Save();
+
+                var namesToSet = new[] { "File", "Memo" };
+
+                // ACTION
+                ts.Workspace1.SetAllowedChildTypes(namesToSet.Select(ContentType.GetByName), true, true, true);
+
+                // ASSERT
+                ts.Workspace1 = Node.Load<Workspace>(ts.Workspace1.Id);
+                var namesAfter = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
+                var localNamesAfter = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
+
+                // SystemFolder is added on-the-fly for admins
+                Assert.AreEqual("File, Memo, SystemFolder", string.Join(", ", namesAfter));
+                Assert.AreEqual("File, Memo", string.Join(", ", localNamesAfter));
+            });
+        }
+        [TestMethod]
+        public void AllowedChildTypes_Workspace_LocalItems_Clear()
+        {
+            Test(() =>
+            {
+                var ts = CreateTestStructure();
+                var setNamesOriginal = new[] {"DocumentLibrary", "File", "Folder"};
+                var setOnContentType = ts.Workspace1.ContentType.AllowedChildTypes.ToArray();
+
+                // set local type list
+                ts.Workspace1.AllowedChildTypes = setNamesOriginal.Select(ContentType.GetByName).ToArray();
+                ts.Workspace1.Save();
+
+                var namesBefore = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
+
+                // This is to make sure that the test runs in a correct environment.
+                // SystemFolder is added on-the-fly for admins.
+                Assert.AreEqual(string.Join(", ", setNamesOriginal) + ", SystemFolder", string.Join(", ", namesBefore));
+
+                // ACTION
+                ts.Workspace1.SetAllowedChildTypes(setOnContentType, true, true, true);
+
+                // ASSERT
+                ts.Workspace1 = Node.Load<Workspace>(ts.Workspace1.Id);
+
+                var namesAfter = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x);
+                var localNamesAfter = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
+                var namesOnContentType = setOnContentType.Select(ct => ct.Name).Union(new[] {"SystemFolder"}).Distinct()
+                    .OrderBy(x => x).ToArray();
+
+                Assert.AreEqual(string.Join(", ", namesOnContentType), string.Join(", ", namesAfter));
+                Assert.AreEqual(0, localNamesAfter.Length);
+            });
+        }
+
+        /* ---------------------------------------------------------------------------------- */
+
+        [TestMethod]
         public void AllowedChildTypes_Workspace_NoLocalItems_ODataActionRemove()
         {
             Test(() =>
