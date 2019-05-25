@@ -126,8 +126,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
             table.Columns.AddRange(new[]
             {
                 new DataColumn {ColumnName = "NodeTypeId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "ParentId", DataType = typeof(int), AllowDBNull = true },
                 new DataColumn {ColumnName = "Name", DataType = typeof(string), AllowDBNull = false },
-                new DataColumn {ColumnName = "ParentName", DataType = typeof(string), AllowDBNull = false },
                 new DataColumn {ColumnName = "ClassName", DataType = typeof(string), AllowDBNull = false },
                 new DataColumn {ColumnName = "Properties", DataType = typeof(string), AllowDBNull = false},
             });
@@ -235,6 +235,22 @@ namespace SenseNet.Storage.Data.MsSqlClient
         {
             var now = DateTime.UtcNow;
 
+            var propertyTypes = dataSet.Tables[TableName.PropertyTypes];
+            foreach (var propertyType in data.Schema.PropertyTypes)
+            {
+                var row = propertyTypes.NewRow();
+                SetPropertyTypeRow(row, propertyType, dataProvider);
+                propertyTypes.Rows.Add(row);
+            }
+
+            var nodeTypes = dataSet.Tables[TableName.NodeTypes];
+            foreach (var nodeType in data.Schema.NodeTypes)
+            {
+                var row = nodeTypes.NewRow();
+                SetNodeTypeRow(row, nodeType, data.Schema.NodeTypes, dataProvider);
+                nodeTypes.Rows.Add(row);
+            }
+
             var nodes = dataSet.Tables[TableName.Nodes];
             foreach (var node in data.Nodes)
             {
@@ -282,8 +298,23 @@ namespace SenseNet.Storage.Data.MsSqlClient
                 SetVersionRow(versionRow, version, props?.DynamicProperties, dataProvider);
                 versions.Rows.Add(versionRow);
             }
+        }
 
-
+        private static void SetPropertyTypeRow(DataRow row, PropertyTypeData propertyType, DataProvider2 dataProvider)
+        {
+            row["PropertyTypeId"] = propertyType.Id;
+            row["Name"] = propertyType.Name;
+            row["DataType"] = propertyType.DataType.ToString();
+            row["Mapping"] = propertyType.Mapping;
+            row["IsContentListProperty"] = propertyType.IsContentListProperty ? Yes : No;
+        }
+        private static void SetNodeTypeRow(DataRow row, NodeTypeData nodeType, List<NodeTypeData> allNodeTypes, DataProvider2 dataProvider)
+        {
+            row["NodeTypeId"] = nodeType.Id;
+            row["Name"] = nodeType.Name;
+            row["ParentId"] = (object)allNodeTypes.FirstOrDefault(x => x.Name == nodeType.ParentName)?.Id ?? DBNull.Value;
+            row["ClassName"] = nodeType.ClassName;
+            row["Properties"] = string.Join(" ", nodeType.Properties);
         }
         private static void SetNodeRow(DataRow row, NodeHeadData node, DataProvider2 dataProvider)
         {
@@ -417,7 +448,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
-
+            await BulkInsertAsync(dataSet, TableName.PropertyTypes, connectionString);
+            await BulkInsertAsync(dataSet, TableName.NodeTypes, connectionString);
             await BulkInsertAsync(dataSet, TableName.Nodes, connectionString);
             await BulkInsertAsync(dataSet, TableName.Versions, connectionString);
             await BulkInsertAsync(dataSet, TableName.LongTextProperties, connectionString);
