@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -14,6 +16,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
 {
     public class MsSqlDataProvider : DataProvider2
     {
+        public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
+
         public override Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -303,9 +307,9 @@ namespace SenseNet.Storage.Data.MsSqlClient
             throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
+            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
         }
 
         public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))

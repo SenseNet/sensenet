@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
@@ -35,6 +37,21 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /// Gets or sets the new or modified dynamic property values by VersionId
         /// </summary>
         public IEnumerable<DynamicPropertyData> DynamicProperties { get; set; }
+
+        //UNDONE:DB: Load-save the initial ContentTypeDefinitions is not implemented.
+        /// <summary>
+        /// Gets or sets key-value storage of the ContentTypeDefinitions when the key is the name of the ContentTypeDefinitions
+        /// and value is the xml data.
+        /// </summary>
+        public IDictionary<string, string> ContentTypeDefinitions { get; set; }
+
+        //UNDONE:DB: Load-save the initial Blobs is not implemented.
+        /// <summary>
+        /// Gets or sets key-value storage of the used blobs.
+        /// Key format: [PropertyType.Name]:[Path]. For example: "Binary:/Root/System/Settings/Logging.settings".
+        /// Value is the blob as textual data.
+        /// </summary>
+        public IDictionary<string, string> Blobs { get; set; }
 
         /* ===================================================================================== SAVE */
 
@@ -383,5 +400,34 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             return new ApplicationException(
                 $"Cannot parse the dynamic properties because the line {lineNumber} is invalid: " + line);
         }
+
+        /* ===================================================================================== TOOLS */
+
+        public byte[] GetBlobBytes(string repositoryPath, string propertyTypeName = null)
+        {
+            string fileContent = null;
+            if (repositoryPath.StartsWith("/Root/System/Schema/ContentTypes/", StringComparison.OrdinalIgnoreCase))
+            {
+                var ctdName = RepositoryPath.GetFileName(repositoryPath);
+                ContentTypeDefinitions.TryGetValue(ctdName, out fileContent);
+            }
+            else
+            {
+                var key = $"{propertyTypeName}:{repositoryPath}";
+                Blobs.TryGetValue(key, out fileContent);
+            }
+            if (fileContent == null)
+                return new byte[0];
+
+            var byteCount = Encoding.UTF8.GetByteCount(fileContent);
+            var bom = Encoding.UTF8.GetPreamble();
+            var bytes = new byte[bom.Length + byteCount];
+
+            bom.CopyTo(bytes, 0);
+            Encoding.UTF8.GetBytes(fileContent, 0, fileContent.Length, bytes, bom.Length);
+
+            return bytes;
+        }
+
     }
 }
