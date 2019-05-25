@@ -23,6 +23,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         private static class TableName
         {
+            public static readonly string PropertyTypes = "PropertyTypes";
+            public static readonly string NodeTypes = "NodeTypes";
             public static readonly string Nodes = "Nodes";
             public static readonly string Versions = "Versions";
             public static readonly string LongTextProperties = "LongTextProperties";
@@ -95,6 +97,9 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         private static void CreateTableStructure(DataSet dataSet)
         {
+            AddNodeTypesTable(dataSet);
+            AddPropertyTypesTable(dataSet);
+            //AddContentListTypesTable(dataSet);
             AddNodesTable(dataSet);
             AddVersionsTable(dataSet);
             AddLongTextPropertiesTable(dataSet);
@@ -102,6 +107,32 @@ namespace SenseNet.Storage.Data.MsSqlClient
             AddFilesTable(dataSet);
         }
 
+        private static void AddPropertyTypesTable(DataSet dataSet)
+        {
+            var table = new DataTable(TableName.PropertyTypes);
+            table.Columns.AddRange(new[]
+            {
+                new DataColumn {ColumnName = "PropertyTypeId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "Name", DataType = typeof(string), AllowDBNull = false },
+                new DataColumn {ColumnName = "DataType", DataType = typeof(string), AllowDBNull = false },
+                new DataColumn {ColumnName = "Mapping", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "IsContentListProperty", DataType = typeof(byte), AllowDBNull = false},
+            });
+            dataSet.Tables.Add(table);
+        }
+        private static void AddNodeTypesTable(DataSet dataSet)
+        {
+            var table = new DataTable(TableName.NodeTypes);
+            table.Columns.AddRange(new[]
+            {
+                new DataColumn {ColumnName = "NodeTypeId", DataType = typeof(int), AllowDBNull = false },
+                new DataColumn {ColumnName = "Name", DataType = typeof(string), AllowDBNull = false },
+                new DataColumn {ColumnName = "ParentName", DataType = typeof(string), AllowDBNull = false },
+                new DataColumn {ColumnName = "ClassName", DataType = typeof(string), AllowDBNull = false },
+                new DataColumn {ColumnName = "Properties", DataType = typeof(string), AllowDBNull = false},
+            });
+            dataSet.Tables.Add(table);
+        }
         private static void AddNodesTable(DataSet dataSet)
         {
             var nodes = new DataTable(TableName.Nodes);
