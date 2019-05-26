@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
@@ -46,7 +50,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
+            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
         public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
@@ -79,17 +83,88 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
+            var sql = string.Format(LoadNodeHeadSkeleton,
+                $"LoadNodeHead by Path {path}",
+                "",
+                "Node.Path = @Path COLLATE Latin1_General_CI_AS");
             throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string LoadNodeHeadSkeleton = @"-- {0}
+SELECT
+    Node.NodeId,             -- 0
+    Node.Name,               -- 1
+    Node.DisplayName,        -- 2
+    Node.Path,               -- 3
+    Node.ParentNodeId,       -- 4
+    Node.NodeTypeId,         -- 5
+    Node.ContentListTypeId,  -- 6
+    Node.ContentListId,      -- 7
+    Node.CreationDate,       -- 8
+    Node.ModificationDate,   -- 9
+    Node.LastMinorVersionId, -- 10
+    Node.LastMajorVersionId, -- 11
+    Node.OwnerId,            -- 12
+    Node.CreatedById,        -- 13
+    Node.ModifiedById,       -- 14
+    Node.[Index],            -- 15
+    Node.LockedById,         -- 16
+    Node.Timestamp           -- 17
+FROM
+    Nodes Node
+    {1}
+WHERE 
+    {2}
+";
+        public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
+            var sql = string.Format(LoadNodeHeadSkeleton,
+                $"LoadNodeHead by NodeId {nodeId}",
+                "",
+                "Node.NodeId = @NodeId");
+
+            return await MsSqlProcedure.ExecuteAsync<NodeHead>(sql, cmd =>
+            {
+                cmd.Parameters.Add("@NodeId", SqlDbType.Int).Value = nodeId;
+            }, reader =>
+            {
+                if (!reader.Read())
+                    return null;
+                return GetNodeHeadFromReader(reader);
+            });
         }
 
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
+            var sql = string.Format(LoadNodeHeadSkeleton,
+                $"LoadNodeHead by VersionId {versionId}",
+                "JOIN Versions V ON V.NodeId = Node.NodeId",
+                "V.VersionId = @VersionId");
             throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
+        }
+
+        private NodeHead GetNodeHeadFromReader(SqlDataReader reader)
+        {
+            return new NodeHead(
+                reader.GetInt32(0),         // nodeId,
+                reader.GetString(1),        // name,
+                reader.GetSafeString(2),    // displayName,
+                reader.GetString(3),        // pathInDb,
+                reader.GetSafeInt32(4),     // parentNodeId,
+                reader.GetInt32(5),         // nodeTypeId,
+                reader.GetSafeInt32(6),     // contentListTypeId,
+                reader.GetSafeInt32(7),     // contentListId,
+                reader.GetDateTimeUtc(8),   // creationDate,
+                reader.GetDateTimeUtc(9),   // modificationDate,
+                reader.GetSafeInt32(10),    // lastMinorVersionId,
+                reader.GetSafeInt32(11),    // lastMajorVersionId,
+                reader.GetSafeInt32(12),    // ownerId,
+                reader.GetSafeInt32(13),    // creatorId,
+                reader.GetSafeInt32(14),    // modifierId,
+                reader.GetSafeInt32(15),    // index,
+                reader.GetSafeInt32(16),    // lockerId
+                GetLongFromBytes((byte[])reader.GetValue(17))     // timestamp
+            );
         }
 
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken))
@@ -316,5 +391,28 @@ namespace SenseNet.Storage.Data.MsSqlClient
         {
             throw new NotImplementedException(); //UNDONE:DB@ NotImplementedException
         }
+
+
+        /* ======================================================================================================= TOOLS */
+
+        internal static long GetLongFromBytes(byte[] bytes)
+        {
+            var @long = 0L;
+            for (int i = 0; i < bytes.Length; i++)
+                @long = (@long << 8) + bytes[i];
+            return @long;
+        }
+
+        internal static byte[] GetBytesFromLong(long @long)
+        {
+            var bytes = new byte[8];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[7 - i] = (byte)(@long & 0xFF);
+                @long = @long >> 8;
+            }
+            return bytes;
+        }
+
     }
 }
