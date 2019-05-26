@@ -20,5 +20,17 @@ namespace SenseNet.ContentRepository.Storage.Data
             var data = (IEnumerable<ChangedData>)JsonConvert.DeserializeObject(src, typeof(IEnumerable<ChangedData>));
             return data;
         }
+
+        /* ============================================================================= */
+
+        internal static ContentSavingState GetSavingState(this IDataReader reader, string columnName)
+        {
+            return reader.GetSavingState(reader.GetOrdinal(columnName));
+
+        }
+        internal static IEnumerable<ChangedData> GetChangedData(this IDataReader reader, string columnName)
+        {
+            return reader.GetChangedData(reader.GetOrdinal(columnName));
+        }
     }
 }

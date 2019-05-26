@@ -417,7 +417,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
             return data.GetBlobBytes(providerData, propertyTypeName);
         }
 
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings //UNDONE:DB Use a common instance
         {
             NullValueHandling = NullValueHandling.Ignore,
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -429,7 +429,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
                 return null;
             using (var writer = new StringWriter())
             {
-                JsonSerializer.Create(SerializerSettings).Serialize(writer, data);
+                JsonSerializer.Create(SerializerSettings).Serialize(writer, data.ToDictionary(x => x.Key.Name, x => x.Value));
                 var serializedDoc = writer.GetStringBuilder().ToString();
                 return serializedDoc;
             }

@@ -16,10 +16,15 @@ namespace SenseNet.Storage.Data.MsSqlClient
             //UNDONE:DB@@@@ not implemented
         }
 
-        public static async Task<T> ExecuteAsync<T>(string sql, Action<SqlProcedure> setParams, Func<SqlDataReader, T> callback)
+        public static async Task<T> ExecuteReaderAsync<T>(string sql, Func<SqlDataReader, T> callback)
+        {
+            return await ExecuteReaderAsync(sql, null, callback);
+        }
+        public static async Task<T> ExecuteReaderAsync<T>(string sql, Action<SqlProcedure> setParams, Func<SqlDataReader, T> callback)
         {
             var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text };
-            setParams(cmd);
+
+            setParams?.Invoke(cmd);
 
             SqlDataReader reader = null;
             try
@@ -32,13 +37,8 @@ namespace SenseNet.Storage.Data.MsSqlClient
                 reader?.Dispose();
                 cmd.Dispose();
             }
-
         }
 
-        private Task<SqlDataReader> ExecuteReaderAsync()
-        {
-            throw new NotImplementedException();
-        }
 
         public CommandType CommandType { get; set; }
 

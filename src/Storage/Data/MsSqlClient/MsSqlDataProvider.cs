@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -47,9 +51,135 @@ namespace SenseNet.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string LoadNodesSql = @"-- LoadNodes
+-- Transform the input to a queryable format
+DECLARE @VersionIdTable AS TABLE(Id INT)
+INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
+
+-- BaseData
+SELECT N.NodeId, N.NodeTypeId, N.ContentListTypeId, N.ContentListId, N.CreatingInProgress, N.IsDeleted, N.IsInherited, 
+    N.ParentNodeId, N.[Name], N.DisplayName, N.[Path], N.[Index], N.Locked, N.LockedById, 
+    N.ETag, N.LockType, N.LockTimeout, N.LockDate, N.LockToken, N.LastLockUpdate,
+    N.CreationDate AS NodeCreationDate, N.CreatedById AS NodeCreatedById, 
+    N.ModificationDate AS NodeModificationDate, N.ModifiedById AS NodeModifiedById,
+    N.IsSystem, N.OwnerId,
+    N.SavingState, V.ChangedData,
+    N.Timestamp AS NodeTimestamp,
+    V.VersionId, V.MajorNumber, V.MinorNumber, V.CreationDate, V.CreatedById, 
+    V.ModificationDate, V.ModifiedById, V.[Status],
+    V.Timestamp AS VersionTimestamp,
+    V.DynamicProperties
+FROM dbo.Nodes AS N 
+    INNER JOIN dbo.Versions AS V ON N.NodeId = V.NodeId
+WHERE V.VersionId IN (select Id from @VersionIdTable)
+
+-- BinaryProperties
+SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
+    F.Extension, F.[Size], F.[BlobProvider], F.[BlobProviderData], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp]
+FROM dbo.BinaryProperties B
+    JOIN dbo.Files F ON B.FileId = F.FileId
+WHERE VersionId IN (select Id from @VersionIdTable) AND Staging IS NULL
+
+    -- ReferenceProperties
+    --SELECT VersionId, PropertyTypeId, ReferredNodeId
+    --FROM dbo.ReferenceProperties
+    --WHERE VersionId IN (select Id from @VersionIdTable)
+
+-- LongTextProperties
+SELECT VersionId, PropertyTypeId, [Length], [Value]
+FROM dbo.LongTextProperties
+WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSize
+";
+        public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var ids = string.Join(",", versionIds.Select(x => x.ToString()));
+            return await MsSqlProcedure.ExecuteReaderAsync(LoadNodesSql, cmd =>
+            {
+                cmd.Parameters.Add("@VersionIds", SqlDbType.VarChar, int.MaxValue).Value = ids;
+                cmd.Parameters.Add("@LongTextMaxSize", SqlDbType.Int).Value = DataStore.TextAlternationSizeLimit;
+            }, reader =>
+            {
+                var result = new Dictionary<int, NodeData>();
+
+                // Base data
+                while (reader.Read())
+                {
+                    var versionId = reader.GetInt32("VersionId");
+                    var nodeTypeId = reader.GetInt32("NodeTypeId");
+                    var contentListTypeId = reader.GetSafeInt32("ContentListTypeId");
+
+                    var nodeData = new NodeData(nodeTypeId, contentListTypeId)
+                    {
+                        Id = reader.GetInt32("NodeId"),
+                        VersionId = versionId,
+                        Version = new VersionNumber(reader.GetInt16("MajorNumber"), reader.GetInt16("MinorNumber"), (VersionStatus)reader.GetInt16("Status")),
+                        ContentListId = reader.GetSafeInt32("ContentListId"),
+                        CreatingInProgress = reader.GetSafeBooleanFromByte("CreatingInProgress"),
+                        IsDeleted = reader.GetSafeBooleanFromByte("IsDeleted"),
+                        // not used: IsInherited
+                        ParentId = reader.GetSafeInt32("ParentNodeId"),
+                        Name = reader.GetString("Name"),
+                        DisplayName = reader.GetSafeString("DisplayName"),
+                        Path = reader.GetString("Path"),
+                        Index = reader.GetInt32("Index"),
+                        Locked = reader.GetSafeBooleanFromByte("Locked"),
+                        LockedById = reader.GetSafeInt32("LockedById"),
+                        ETag = reader.GetString("ETag"),
+                        LockType = reader.GetInt32("LockType"),
+                        LockTimeout = reader.GetInt32("LockTimeout"),
+                        LockDate = reader.GetDateTimeUtc("LockDate"),
+                        LockToken = reader.GetString("LockToken"),
+                        LastLockUpdate = reader.GetDateTimeUtc("LastLockUpdate"), 
+                        CreationDate = reader.GetDateTimeUtc("NodeCreationDate"),
+                        CreatedById = reader.GetInt32("NodeCreatedById"),
+                        ModificationDate = reader.GetDateTimeUtc("NodeModificationDate"),
+                        ModifiedById = reader.GetInt32("NodeModifiedById"),
+                        IsSystem = reader.GetSafeBooleanFromByte("IsSystem"),
+                        OwnerId = reader.GetSafeInt32("OwnerId"),
+                        SavingState = reader.GetSavingState("SavingState"),
+                        ChangedData = reader.GetChangedData("ChangedData"),
+                        NodeTimestamp = reader.GetSafeLongFromBytes("NodeTimestamp"),
+                        VersionCreationDate = reader.GetDateTimeUtc("CreationDate"),
+                        VersionCreatedById = reader.GetInt32("CreatedById"),
+                        VersionModificationDate = reader.GetDateTimeUtc("ModificationDate"),
+                        VersionModifiedById = reader.GetInt32("ModifiedById"),
+                        VersionTimestamp = reader.GetSafeLongFromBytes("VersionTimestamp"),
+                    };
+
+                    IDictionary<string, object> dynamicProperties;
+                    var serializer = JsonSerializer.Create(SerializerSettings);
+                    using (var jsonReader = new JsonTextReader(new StringReader(reader.GetString("DynamicProperties"))))
+                        dynamicProperties = serializer.Deserialize<IDictionary<string, object>>(jsonReader);
+
+                    foreach (var item in dynamicProperties)
+                        nodeData.SetDynamicRawData(ActiveSchema.PropertyTypes[item.Key], item.Value);
+                }
+
+                // BinaryProperties
+                reader.NextResult();
+                while (reader.Read())
+                {
+                    var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+                }
+
+                //// ReferenceProperties
+                //reader.NextResult();
+                //while (reader.Read())
+                //{
+                //    var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                //}
+
+                // LongTextProperties
+                reader.NextResult();
+                while (reader.Read())
+                {
+                    var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+                }
+
+                return result.Values;
+            });
         }
 
         public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
@@ -82,14 +212,14 @@ namespace SenseNet.Storage.Data.MsSqlClient
 
         public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var sql = string.Format(LoadNodeHeadSkeleton,
-                $"LoadNodeHead by Path {path}",
-                "",
+            var sql = string.Format(LoadNodeHeadSkeletonSql,
+                "Path",
+                "", 
                 "Node.Path = @Path COLLATE Latin1_General_CI_AS");
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string LoadNodeHeadSkeleton = @"-- {0}
+        private static readonly string LoadNodeHeadSkeletonSql = @"-- LoadNodeHead by {0}
 SELECT
     Node.NodeId,             -- 0
     Node.Name,               -- 1
@@ -117,12 +247,12 @@ WHERE
 ";
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var sql = string.Format(LoadNodeHeadSkeleton,
-                $"LoadNodeHead by NodeId {nodeId}",
+            var sql = string.Format(LoadNodeHeadSkeletonSql,
+                "NodeId",
                 "",
                 "Node.NodeId = @NodeId");
 
-            return await MsSqlProcedure.ExecuteAsync<NodeHead>(sql, cmd =>
+            return await MsSqlProcedure.ExecuteReaderAsync<NodeHead>(sql, cmd =>
             {
                 cmd.Parameters.Add("@NodeId", SqlDbType.Int).Value = nodeId;
             }, reader =>
@@ -135,8 +265,8 @@ WHERE
 
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var sql = string.Format(LoadNodeHeadSkeleton,
-                $"LoadNodeHead by VersionId {versionId}",
+            var sql = string.Format(LoadNodeHeadSkeletonSql,
+                "VersionId",
                 "JOIN Versions V ON V.NodeId = Node.NodeId",
                 "V.VersionId = @VersionId");
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
@@ -324,9 +454,73 @@ WHERE
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string LoadSchemaSql = @"-- Load schema
+SELECT [Timestamp] FROM SchemaModification
+SELECT * FROM PropertyTypes
+SELECT * FROM NodeTypes
+--SELECT * FROM ContentListTypes
+";
+        public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return await MsSqlProcedure.ExecuteReaderAsync(LoadSchemaSql, reader =>
+            {
+                var schema = new RepositorySchemaData();
+
+                if (reader.Read())
+                    schema.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
+
+                // PropertyTypes
+                reader.NextResult();
+                var propertyTypes = new List<PropertyTypeData>();
+                schema.PropertyTypes = propertyTypes;
+                while (reader.Read())
+                {
+                    propertyTypes.Add(new PropertyTypeData
+                    {
+                        Id = reader.GetInt32("PropertyTypeId"),
+                        Name = reader.GetString("Name"),
+                        DataType = reader.GetEnumValueByName<DataType>("DataType"),
+                        Mapping = reader.GetInt32("Mapping"),
+                        IsContentListProperty = reader.GetSafeBooleanFromByte("IsContentListProperty")
+                    });
+                }
+
+                // NodeTypes
+                reader.NextResult();
+                var nodeTypes = new List<NodeTypeData>();
+                schema.NodeTypes = nodeTypes;
+                var tree = new List<(NodeTypeData Data, int ParentId)>(); // data, parentId
+                while (reader.Read())
+                {
+                    var data = new NodeTypeData
+                    {
+                        Id = reader.GetInt32("NodeTypeId"),
+                        Name = reader.GetString("Name"),
+                        ClassName = reader.GetString("ClassName"),
+                        Properties = new List<string>(
+                            reader.GetSafeString("Properties")?.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
+                    };
+                    var parentId = reader.GetSafeInt32("ParentId");
+                    tree.Add((data, parentId));
+                    nodeTypes.Add(data);
+                }
+                foreach (var item in tree)
+                {
+                    var parent = tree.FirstOrDefault(x => x.Data.Id == item.ParentId);
+                    item.Data.ParentName = parent.Data?.Name;
+                }
+
+                // ContentListTypes
+                var contentListTypes = new List<ContentListTypeData>();
+                schema.ContentListTypes = contentListTypes;
+                //UNDONE:DB: Load ContentListTypes
+                //reader.NextResult();
+                //while (reader.Read())
+                //{
+                //}
+
+                return schema;
+            });
         }
 
         public override SchemaWriter CreateSchemaWriter()
@@ -412,6 +606,13 @@ WHERE
             }
             return bytes;
         }
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings //UNDONE:DB Use a common instance
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Formatting = Formatting.Indented
+        };
 
     }
 }
