@@ -247,6 +247,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             staticDataIsModified = new bool[StaticDataSlotCount];
             staticData = new object[StaticDataSlotCount];
+            NodeTypeId = nodeType.Id;
 
             PropertyTypes = NodeTypeManager.GetDynamicSignature(nodeType.Id, contentListType == null ? 0 : contentListType.Id);
             TextPropertyIds = PropertyTypes.Where(p => p.DataType == DataType.Text).Select(p => p.Id).ToArray();

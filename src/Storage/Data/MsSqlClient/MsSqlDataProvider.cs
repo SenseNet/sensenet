@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -153,6 +154,8 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
 
                     foreach (var item in dynamicProperties)
                         nodeData.SetDynamicRawData(ActiveSchema.PropertyTypes[item.Key], item.Value);
+
+                    result.Add(versionId, nodeData);
                 }
 
                 // BinaryProperties
@@ -175,7 +178,11 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
                 while (reader.Read())
                 {
                     var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+                    var propertyTypeId = reader.GetInt32("PropertyTypeId");
+                    var value = reader.GetSafeString("Value");
+
+                    var nodeData = result[versionId];
+                    nodeData.SetDynamicRawData(propertyTypeId, value);
                 }
 
                 return result.Values;
@@ -216,7 +223,7 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
                 "Path",
                 "", 
                 "Node.Path = @Path COLLATE Latin1_General_CI_AS");
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name + " by Path"); //UNDONE:DB@ NotImplementedException
         }
 
         private static readonly string LoadNodeHeadSkeletonSql = @"-- LoadNodeHead by {0}
@@ -326,10 +333,63 @@ WHERE
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
+        public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
+            var first = true;
+
+            if (pathStart != null && pathStart.Length > 0)
+            {
+                for (int i = 0; i < pathStart.Length; i++)
+                    if (pathStart[i] != null)
+                        pathStart[i] = pathStart[i].Replace("'", "''");
+
+                sql.AppendLine("(");
+                for (int i = 0; i < pathStart.Length; i++)
+                {
+                    if (i > 0)
+                        sql.AppendLine().Append(" OR ");
+                    sql.Append(" Path LIKE N'");
+                    sql.Append(EscapeForLikeOperator(pathStart[i]));
+                    if (!pathStart[i].EndsWith(RepositoryPath.PathSeparator))
+                        sql.Append(RepositoryPath.PathSeparator);
+                    sql.Append("%' COLLATE Latin1_General_CI_AS");
+                }
+                sql.AppendLine(")");
+                first = false;
+            }
+
+            if (name != null)
+            {
+                name = name.Replace("'", "''");
+                if (!first)
+                    sql.Append(" AND");
+                sql.Append(" Name = '").Append(name).Append("'");
+                first = false;
+            }
+
+            if (nodeTypeIds != null)
+            {
+                if (!first)
+                    sql.Append(" AND");
+                sql.Append(" NodeTypeId");
+                if (nodeTypeIds.Length == 1)
+                    sql.Append(" = ").Append(nodeTypeIds[0]);
+                else
+                    sql.Append(" IN (").Append(string.Join(", ", nodeTypeIds)).Append(")");
+            }
+
+            if (orderByPath)
+                sql.AppendLine().Append("ORDER BY Path");
+
+            return await MsSqlProcedure.ExecuteReaderAsync(sql.ToString(), reader =>
+            {
+                var result = new List<int>();
+                while (reader.Read())
+                    result.Add(reader.GetSafeInt32(0));
+                return (IEnumerable<int>) result;
+            });
         }
 
         public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties,
@@ -613,6 +673,16 @@ SELECT * FROM NodeTypes
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Formatting = Formatting.Indented
         };
+
+        private static string EscapeForLikeOperator(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            text = text.Replace("[", "[[]").Replace("_", "[_]").Replace("%", "[%]");
+
+            return text;
+        }
 
     }
 }

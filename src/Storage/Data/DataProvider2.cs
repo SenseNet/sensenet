@@ -318,8 +318,35 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeHead */
 
+        /// <summary>
+        /// Loads a <see cref="NodeHead"/> instance by given path.
+        /// Returns null if the requested object does not exist in the database.
+        /// </summary>
+        /// <param name="path">Repository path of the requested object.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead"/> instance or null.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Loads a <see cref="NodeHead"/> instance by given nodeId.
+        /// Returns null if the requested object does not exist in the database.
+        /// </summary>
+        /// <param name="nodeId">Id of the requested object.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead"/> instance or null.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Loads a <see cref="NodeHead"/> instance by given versionId.
+        /// Returns null if the requested object does not exist in the database.
+        /// </summary>
+        /// <param name="versionId">VersionId of the requested object.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead"/> instance or null.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
@@ -330,6 +357,16 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Queries the <see cref="Node"/>s by the given criterias. Every criteria can be null or empty.
+        /// There are AND logical relations among the kind of criterias but OR relations among elements of the each criterion.
+        /// </summary>
+        /// <param name="nodeTypeIds">Ids of the relevant NodeTypes or null.</param>
+        /// <param name="pathStart">Case insensitive repository paths of the relevant subtrees or null.</param>
+        /// <param name="orderByPath">True if the result set need to be ordered by Path.</param>
+        /// <param name="name">Name of the relevant <see cref="Node"/>s or null.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the set of found <see cref="Node"/>s' identifiers.</returns>
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart,
             bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart,
@@ -395,6 +432,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Schema */
 
+        /// <summary>
+        /// Loads the whole schema of the repository.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="RepositorySchemaData"/> instance.</returns>
         public abstract Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken));
         public abstract SchemaWriter CreateSchemaWriter();
 
