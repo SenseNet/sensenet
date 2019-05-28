@@ -94,6 +94,7 @@
     <Compile Include="ODataChildrenTests.cs" />
     <Compile Include="ODataFilterTests.cs" />
     <Compile Include="ODataGeneralTests.cs" />
+    <Compile Include="ODataSetFieldTests.cs" />
     <Compile Include="ODataTestClass.cs" />
     <Compile Include="ODataTests_legacy.cs" />
     <Compile Include="Results\IODataResult.cs" />
