@@ -16,26 +16,17 @@ namespace SenseNet.Storage.Data.MsSqlClient
             //UNDONE:DB@@@@ not implemented
         }
 
-        public static async Task<T> ExecuteReaderAsync<T>(string sql, Func<SqlDataReader, T> callback)
+        public static Task<T> ExecuteReaderAsync<T>(string sql, Func<SqlDataReader, T> callback)
         {
-            return await ExecuteReaderAsync(sql, null, callback);
+            return ExecuteReaderAsync(sql, null, callback);
         }
         public static async Task<T> ExecuteReaderAsync<T>(string sql, Action<SqlProcedure> setParams, Func<SqlDataReader, T> callback)
         {
-            var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text };
-
-            setParams?.Invoke(cmd);
-
-            SqlDataReader reader = null;
-            try
+            using (var cmd = new SqlProcedure {CommandText = sql, CommandType = CommandType.Text})
             {
-                reader = await cmd.ExecuteReaderAsync();
-                return callback(reader);
-            }
-            finally
-            {
-                reader?.Dispose();
-                cmd.Dispose();
+                setParams?.Invoke(cmd);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                    return callback(reader);
             }
         }
 
@@ -45,21 +36,26 @@ namespace SenseNet.Storage.Data.MsSqlClient
         }
         public static async Task<T> ExecuteScalarAsync<T>(string sql, Action<SqlProcedure> setParams, Func<object, T> callback)
         {
-            var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text };
-
-            setParams?.Invoke(cmd);
-
-            try
+            using (var cmd = new SqlProcedure {CommandText = sql, CommandType = CommandType.Text})
             {
+                setParams?.Invoke(cmd);
                 var value = await cmd.ExecuteScalarAsync();
                 return callback(value);
             }
-            finally
-            {
-                cmd.Dispose();
-            }
         }
 
+        public static async Task<int> ExecuteNonQueryAsync(string sql)
+        {
+            return await ExecuteNonQueryAsync(sql, null);
+        }
+        public static async Task<int> ExecuteNonQueryAsync(string sql, Action<SqlProcedure> setParams)
+        {
+            using (var cmd = new SqlProcedure {CommandText = sql, CommandType = CommandType.Text})
+            {
+                setParams?.Invoke(cmd);
+                return await cmd.ExecuteNonQueryAsync();
+            }
+        }
 
         public CommandType CommandType { get; set; }
 

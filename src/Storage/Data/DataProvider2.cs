@@ -488,6 +488,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
+        /// <summary>
+        /// Inserts the given <see cref="AuditEventInfo"/> to the database.
+        /// </summary>
+        /// <param name="auditEvent">The <see cref="AuditEventInfo"/> object that will be saved.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== Provider Tools */

@@ -52,7 +52,7 @@ namespace SenseNet.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string LoadNodesSql = @"-- LoadNodes
+        private static readonly string LoadNodesSql = @"-- MsSqlDataProvider.LoadNodes
 -- Transform the input to a queryable format
 DECLARE @VersionIdTable AS TABLE(Id INT)
 INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
@@ -283,7 +283,7 @@ WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSiz
             });
         }
 
-        private static readonly string LoadNodeHeadSkeletonSql = @"-- {0}
+        private static readonly string LoadNodeHeadSkeletonSql = @"-- MsSqlDataProvider.{0}
 {1}
 SELECT
     Node.NodeId,             -- 0
@@ -554,7 +554,7 @@ INSERT INTO @NodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@NodeIds
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string GetLastIndexingActivityIdSql = @"-- GetLastIndexingActivityId
+        private static readonly string GetLastIndexingActivityIdSql = @"-- MsSqlDataProvider.GetLastIndexingActivityId
 SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
         public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -609,7 +609,7 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string LoadSchemaSql = @"-- Load schema
+        private static readonly string LoadSchemaSql = @"-- MsSqlDataProvider.Load schema
 SELECT [Timestamp] FROM SchemaModification
 SELECT * FROM PropertyTypes
 SELECT * FROM NodeTypes
@@ -693,9 +693,36 @@ SELECT * FROM NodeTypes
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string WriteAuditEventSql = @"-- MsSqlDataProvider.WriteAuditEvent
+INSERT INTO [dbo].[LogEntries]
+    ([EventId], [Category], [Priority], [Severity], [Title], [ContentId], [ContentPath], [UserName], [LogDate], [MachineName], [AppDomainName], [ProcessId], [ProcessName], [ThreadName], [Win32ThreadId], [Message], [FormattedMessage])
+VALUES
+    (@EventId,  @Category,  @Priority,  @Severity,  @Title,  @ContentId,  @ContentPath,  @UserName,  @LogDate,  @MachineName,  @AppDomainName,  @ProcessId,  @ProcessName,  @ThreadName,  @Win32ThreadId,  @Message,  @FormattedMessage)
+SELECT @@IDENTITY
+";
+        public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var unused = await MsSqlProcedure.ExecuteScalarAsync(WriteAuditEventSql, cmd =>
+            {
+                cmd.Parameters.Add("@EventID", SqlDbType.Int).Value = auditEvent.EventId;
+                cmd.Parameters.Add("@Category", SqlDbType.NVarChar, 50).Value = (object)auditEvent.Category ?? DBNull.Value;
+                cmd.Parameters.Add("@Priority", SqlDbType.Int).Value = auditEvent.Priority;
+                cmd.Parameters.Add("@Severity", SqlDbType.VarChar, 30).Value = auditEvent.Severity;
+                cmd.Parameters.Add("@Title", SqlDbType.NVarChar, 256).Value = (object)auditEvent.Title ?? DBNull.Value;
+                cmd.Parameters.Add("@ContentId", SqlDbType.Int).Value = auditEvent.ContentId;
+                cmd.Parameters.Add("@ContentPath", SqlDbType.NVarChar, PathMaxLength).Value = (object)auditEvent.ContentPath ?? DBNull.Value;
+                cmd.Parameters.Add("@UserName", SqlDbType.NVarChar, 450).Value = (object)auditEvent.UserName ?? DBNull.Value;
+                cmd.Parameters.Add("@LogDate", SqlDbType.DateTime).Value = auditEvent.Timestamp;
+                cmd.Parameters.Add("@MachineName", SqlDbType.VarChar, 32).Value = (object)auditEvent.MachineName ?? DBNull.Value;
+                cmd.Parameters.Add("@AppDomainName", SqlDbType.VarChar, 512).Value = (object)auditEvent.AppDomainName ?? DBNull.Value;
+                cmd.Parameters.Add("@ProcessID", SqlDbType.VarChar, 256).Value = (object)auditEvent.ProcessId ?? DBNull.Value;
+                cmd.Parameters.Add("@ProcessName", SqlDbType.VarChar, 512).Value = (object)auditEvent.ProcessName ?? DBNull.Value;
+                cmd.Parameters.Add("@ThreadName", SqlDbType.VarChar, 512).Value = (object)auditEvent.ThreadName ?? DBNull.Value;
+                cmd.Parameters.Add("@Win32ThreadId", SqlDbType.VarChar, 128).Value = (object)auditEvent.ThreadId ?? DBNull.Value;
+                cmd.Parameters.Add("@Message", SqlDbType.VarChar, 1500).Value = (object)auditEvent.Message ?? DBNull.Value;
+                cmd.Parameters.Add("@Formattedmessage", SqlDbType.NText).Value = (object)auditEvent.FormattedMessage ?? DBNull.Value;
+            },
+            value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -735,9 +762,23 @@ SELECT * FROM NodeTypes
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
         }
 
-        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string LoadEntityTreeSql = @"-- MsSqlDataProvider.LoadEntityTree
+SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
+";
+        public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return await MsSqlProcedure.ExecuteReaderAsync(LoadEntityTreeSql, reader =>
+            {
+                var result = new List<EntityTreeNodeData>();
+                while (reader.Read())
+                    result.Add(new EntityTreeNodeData
+                    {
+                        Id = reader.GetInt32("NodeId"),
+                        ParentId = reader.GetSafeInt32("ParentNodeId"),
+                        OwnerId = reader.GetSafeInt32("OwnerId")
+                    });
+                return result;
+            });
         }
 
 
