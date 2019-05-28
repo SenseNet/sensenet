@@ -39,9 +39,31 @@ namespace SenseNet.Storage.Data.MsSqlClient
             }
         }
 
+        public static async Task<T> ExecuteScalarAsync<T>(string sql, Func<object, T> callback)
+        {
+            return await ExecuteScalarAsync(sql, null, callback);
+        }
+        public static async Task<T> ExecuteScalarAsync<T>(string sql, Action<SqlProcedure> setParams, Func<object, T> callback)
+        {
+            var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text };
+
+            setParams?.Invoke(cmd);
+
+            try
+            {
+                var value = await cmd.ExecuteScalarAsync();
+                return callback(value);
+            }
+            finally
+            {
+                cmd.Dispose();
+            }
+        }
+
 
         public CommandType CommandType { get; set; }
 
         public string CommandText { get; set; }
+
     }
 }

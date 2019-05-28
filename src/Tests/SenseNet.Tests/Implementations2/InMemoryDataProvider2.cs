@@ -557,12 +557,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
-                var headIds = heads.ToArray();
+                var headIds = nodeIds.ToArray();
                 IEnumerable<NodeHead> result = DB.Nodes
                     .Where(x => headIds.Contains(x.NodeId))
                     .Select(NodeDocToNodeHeadSafe)

@@ -89,7 +89,7 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Staging IS NULL
 -- LongTextProperties
 SELECT VersionId, PropertyTypeId, [Length], [Value]
 FROM dbo.LongTextProperties
-WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSize
+WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSize
 ";
         public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -149,11 +149,14 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
 
                     IDictionary<string, object> dynamicProperties;
                     var serializer = JsonSerializer.Create(SerializerSettings);
-                    using (var jsonReader = new JsonTextReader(new StringReader(reader.GetString("DynamicProperties"))))
-                        dynamicProperties = serializer.Deserialize<IDictionary<string, object>>(jsonReader);
-
-                    foreach (var item in dynamicProperties)
-                        nodeData.SetDynamicRawData(ActiveSchema.PropertyTypes[item.Key], item.Value);
+                    var dynamicPropertySource = reader.GetSafeString("DynamicProperties");
+                    if (dynamicPropertySource != null)
+                    {
+                        using (var jsonReader = new JsonTextReader(new StringReader(dynamicPropertySource)))
+                            dynamicProperties = serializer.Deserialize<IDictionary<string, object>>(jsonReader);
+                        foreach (var item in dynamicProperties)
+                            nodeData.SetDynamicRawData(ActiveSchema.PropertyTypes[item.Key], item.Value);
+                    }
 
                     result.Add(versionId, nodeData);
                 }
@@ -163,7 +166,12 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
                 while (reader.Read())
                 {
                     var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+                    var propertyTypeId = reader.GetInt32(reader.GetOrdinal("PropertyTypeId"));
+
+                    var value = GetBinaryDataValueFromReader(reader);
+
+                    var nodeData = result[versionId];
+                    nodeData.SetDynamicRawData(propertyTypeId, value);
                 }
 
                 //// ReferenceProperties
@@ -189,6 +197,42 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
             });
         }
 
+        private BinaryDataValue GetBinaryDataValueFromReader(SqlDataReader reader)
+        {
+            //--BinaryProperties
+            /*
+                B.BinaryPropertyId,
+                B.VersionId,
+                B.PropertyTypeId,
+                F.FileId,
+                F.ContentType,
+                F.FileNameWithoutExtension,
+                F.Extension,
+                F.[Size],
+                F.[BlobProvider],
+                F.[BlobProviderData],
+                F.[Checksum],
+                NULL AS Stream, 0 AS Loaded,
+                F.[Timestamp]
+            */
+
+            return new BinaryDataValue
+            {
+                Id = reader.GetInt32("BinaryPropertyId"),
+                FileId = reader.GetInt32("FileId"),
+                ContentType = reader.GetSafeString("ContentType"),
+                FileName = new BinaryFileName(
+                    reader.GetSafeString("FileNameWithoutExtension") ?? "",
+                    reader.GetSafeString("Extension") ?? ""),
+                Size = reader.GetInt64("Size"),
+                Checksum = reader.GetSafeString("Checksum"),
+                BlobProviderName = reader.GetSafeString("BlobProvider"),
+                BlobProviderData = reader.GetSafeString("BlobProviderData"),
+                Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
+                Stream = null
+            };
+        }
+
         public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
@@ -206,10 +250,10 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
+        public override async Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return SenseNet.ContentRepository.Storage.Data.BlobStorage.LoadBinaryProperty(versionId, propertyTypeId);
         }
 
         public override Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
@@ -217,16 +261,30 @@ WHERE VersionId IN (select Id from @VersionIdTable) AND Length < @LongTextMaxSiz
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = string.Format(LoadNodeHeadSkeletonSql,
-                "Path",
-                "", 
+                // Trace
+                "LoadNodeHead by Path",
+                // Parameter transformation
+                "",
+                // Join
+                "",
+                // Where
                 "Node.Path = @Path COLLATE Latin1_General_CI_AS");
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name + " by Path"); //UNDONE:DB@ NotImplementedException
+            return await MsSqlProcedure.ExecuteReaderAsync(sql, cmd =>
+            {
+                cmd.Parameters.Add("@Path", SqlDbType.NVarChar, PathMaxLength).Value = path;
+            }, reader =>
+            {
+                if (!reader.Read())
+                    return null;
+                return GetNodeHeadFromReader(reader);
+            });
         }
 
-        private static readonly string LoadNodeHeadSkeletonSql = @"-- LoadNodeHead by {0}
+        private static readonly string LoadNodeHeadSkeletonSql = @"-- {0}
+{1}
 SELECT
     Node.NodeId,             -- 0
     Node.Name,               -- 1
@@ -248,18 +306,23 @@ SELECT
     Node.Timestamp           -- 17
 FROM
     Nodes Node
-    {1}
-WHERE 
     {2}
+WHERE 
+    {3}
 ";
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = string.Format(LoadNodeHeadSkeletonSql,
-                "NodeId",
+                // Trace
+                "LoadNodeHead by NodeId",
+                // Parameter transformation
                 "",
+                // Join
+                "",
+                // Where
                 "Node.NodeId = @NodeId");
 
-            return await MsSqlProcedure.ExecuteReaderAsync<NodeHead>(sql, cmd =>
+            return await MsSqlProcedure.ExecuteReaderAsync(sql, cmd =>
             {
                 cmd.Parameters.Add("@NodeId", SqlDbType.Int).Value = nodeId;
             }, reader =>
@@ -273,8 +336,13 @@ WHERE
         public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = string.Format(LoadNodeHeadSkeletonSql,
-                "VersionId",
+                // Trace
+                "LoadNodeHead by VersionId",
+                // Parameter transformation
+                "",
+                // Join
                 "JOIN Versions V ON V.NodeId = Node.NodeId",
+                // Where
                 "V.VersionId = @VersionId");
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
@@ -303,9 +371,33 @@ WHERE
             );
         }
 
-        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var sql = string.Format(LoadNodeHeadSkeletonSql,
+                // Trace
+                "LoadNodeHeads by NodeId set",
+                // Parameter transformation
+                @"DECLARE @NodeIdTable AS TABLE(Id INT)
+INSERT INTO @NodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@NodeIds, ','); 
+",
+                // Join
+                "",
+                // Where
+                "Node.NodeId IN (SELECT Id FROM @NodeIdTable)");
+
+            var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
+            return await MsSqlProcedure.ExecuteReaderAsync(sql, cmd =>
+            {
+                cmd.Parameters.Add("@NodeIds", SqlDbType.VarChar, int.MaxValue).Value = ids;
+            }, reader =>
+            {
+                var result = new List<NodeHead>();
+
+                while (reader.Read())
+                    result.Add(GetNodeHeadFromReader(reader));
+
+                return result;
+            });
         }
 
         public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
@@ -462,9 +554,12 @@ WHERE
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly string GetLastIndexingActivityIdSql = @"-- GetLastIndexingActivityId
+SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
+        public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return await MsSqlProcedure.ExecuteScalarAsync(
+                GetLastIndexingActivityIdSql, value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
         }
 
         public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,

@@ -307,9 +307,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
-        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.LoadNodeHeadsAsync(heads, cancellationToken);
+            return DataProvider.LoadNodeHeadsAsync(nodeIds, cancellationToken);
         }
         public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {

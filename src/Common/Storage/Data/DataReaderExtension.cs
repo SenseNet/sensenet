@@ -125,6 +125,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return reader.GetSafeInt32(reader.GetOrdinal(columnName));
         }
+        public static long GetInt64(this IDataReader reader, string columnName)
+        {
+            return reader.GetInt64(reader.GetOrdinal(columnName));
+        }
+        public static long GetSafeInt64(this IDataReader reader, string columnName)
+        {
+            return reader.GetSafeInt64(reader.GetOrdinal(columnName));
+        }
         public static bool GetSafeBooleanFromByte(this IDataReader reader, string columnName)
         {
             return reader.GetSafeBooleanFromByte(reader.GetOrdinal(columnName));

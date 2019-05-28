@@ -392,11 +392,78 @@ SELECT @FileId
             throw new NotImplementedException(); //UNDONE:DB: Not implemented: DeleteBinaryProperties
         }
 
+        private const string LoadBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.LoadBinaryProperty
+SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
+    F.Extension, F.[Size], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp], F.[BlobProvider], F.[BlobProviderData] 
+FROM dbo.BinaryProperties B
+    JOIN dbo.Files F ON B.FileId = F.FileId
+WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
+
+";
         public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
         {
-            throw new NotImplementedException(); //UNDONE:DB: Not implemented: LoadBinaryProperty
-        }
+            //return MsSqlProcedure.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
+            //{
+            //    cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
+            //    cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
+            //}, reader =>
+            //{
+            //    if (!reader.Read())
+            //        return null;
+            //    return GetBinaryDataValueFromReader(reader);
+            //});
 
+            using (var cmd = new SqlProcedure { CommandText = LoadBinaryPropertyScript })
+            {
+                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
+                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
+                cmd.CommandType = CommandType.Text;
+
+                using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                {
+                    if (!reader.HasRows || !reader.Read())
+                        return null;
+
+                    var length = reader.GetInt64(0);
+                    var binaryPropertyId = reader.GetInt32(1);
+                    var fileId = reader.GetInt32(2);
+
+                    var providerName = reader.GetSafeString(3);
+                    var providerTextData = reader.GetSafeString(4);
+
+                    var provider = BlobStorageBase.GetProvider(providerName);
+                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
+                    Stream stream = null;
+                    if (provider == BlobStorageBase.BuiltInProvider)
+                    {
+                        context.BlobProviderData = new BuiltinBlobProviderData();
+                        var streamIndex = reader.GetOrdinal("Stream");
+                        if (!reader.IsDBNull(streamIndex))
+                        {
+                            var rawData = (byte[])reader.GetValue(streamIndex);
+                            stream = new MemoryStream(rawData);
+                        }
+                    }
+
+                    return new BinaryDataValue
+                    {
+                        Id = reader.GetInt32("BinaryPropertyId"),
+                        FileId = reader.GetInt32("FileId"),
+                        ContentType = reader.GetSafeString("ContentType"),
+                        FileName = new BinaryFileName(
+                            reader.GetSafeString("FileNameWithoutExtension") ?? "",
+                            reader.GetSafeString("Extension") ?? ""),
+                        Size = reader.GetInt64("Size"),
+                        Checksum = reader.GetSafeString("Checksum"),
+                        BlobProviderName = reader.GetSafeString("BlobProvider"),
+                        BlobProviderData = reader.GetSafeString("BlobProviderData"),
+                        Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
+                        Stream = stream
+                    };
+
+                }
+            }
+        }
         #region LoadBinaryCacheentityFormatScript
 
         private const string LoadBinaryCacheEntityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < {0} THEN F.Stream ELSE null END AS Stream

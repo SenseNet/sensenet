@@ -283,7 +283,9 @@ namespace SenseNet.Storage.Data.MsSqlClient
                     foreach (var binaryPropertyData in props.BinaryProperties)
                     {
                         var binaryPropertyRow = binaryProperties.NewRow();
-                        SetBinaryPropertyRow(binaryPropertyRow, version.VersionId, binaryPropertyData.Key, binaryPropertyData.Value);
+                        var propertyTypeId =
+                            data.Schema.PropertyTypes.FirstOrDefault(x => x.Name == binaryPropertyData.Key.Name)?.Id ?? 0;
+                        SetBinaryPropertyRow(binaryPropertyRow, version.VersionId, propertyTypeId, binaryPropertyData.Value);
                         binaryProperties.Rows.Add(binaryPropertyRow);
 
                         var fileRow = files.NewRow();
@@ -372,11 +374,11 @@ namespace SenseNet.Storage.Data.MsSqlClient
             row["Length"] = value?.Length;
             row["Value"] = value;
         }
-        private static void SetBinaryPropertyRow(DataRow row, int versionId, PropertyType propertyType, BinaryDataValue data)
+        private static void SetBinaryPropertyRow(DataRow row, int versionId, int propertyTypeId, BinaryDataValue data)
         {
             row["BinaryPropertyId"] = data.Id;
             row["VersionId"] = versionId;
-            row["PropertyTypeId"] = propertyType.Id;
+            row["PropertyTypeId"] = propertyTypeId;
             row["FileId"] = data.FileId;
         }
         private static void SetFileRow(DataRow row, BinaryDataValue data, InitialData initialData, string propertyTypeName)

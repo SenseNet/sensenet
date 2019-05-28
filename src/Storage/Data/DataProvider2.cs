@@ -311,6 +311,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Loads a metadata of a single blob. Uses the BlobStorage.LoadBinaryProperty(int, int) method.
+        /// </summary>
+        /// <param name="versionId">Requested VersionId.</param>
+        /// <param name="propertyTypeId">Requested PropertyTypeId.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="BinaryDataValue"/> instance or null.</returns>
         public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -348,7 +355,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> heads, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Loads a set of <see cref="NodeHead"/> instances by given nodeIds.
+        /// </summary>
+        /// <param name="nodeIds">Requested ids.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns></returns>
+        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
@@ -415,6 +428,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== IndexingActivity */
 
+        /// <summary>
+        /// Returns the biggest IndexingActivityId. If there is not any activity, returns 0.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the biggest IndexingActivity Id ot 0.</returns>
         public abstract Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count,
             bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
