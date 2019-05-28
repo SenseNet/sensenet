@@ -609,7 +609,7 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string LoadSchemaSql = @"-- MsSqlDataProvider.Load schema
+        private static readonly string LoadSchemaSql = @"-- MsSqlDataProvider.LoadSchema
 SELECT [Timestamp] FROM SchemaModification
 SELECT * FROM PropertyTypes
 SELECT * FROM NodeTypes
@@ -741,10 +741,25 @@ SELECT @@IDENTITY
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren,
+        private static readonly string GetTreeSizeSql = @"-- MsSqlDataProvider.GetTreeSize
+SELECT SUM(F.Size) Size
+FROM Files F
+	JOIN BinaryProperties B ON B.FileId = F.FileId
+	JOIN Versions V on V.VersionId = B.VersionId
+	JOIN Nodes N on V.NodeId = N.NodeId
+WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N.[Path] + '/' LIKE REPLACE(@NodePath, '_', '[_]') + '/%'))
+";
+        public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            RepositoryPath.CheckValidPath(path);
+            return await MsSqlProcedure.ExecuteScalarAsync(GetTreeSizeSql, cmd =>
+            {
+                cmd.Parameters.Add("@IncludeChildren", SqlDbType.TinyInt).Value = includeChildren ? (byte)1 : 0;
+                cmd.Parameters.Add("@NodePath", SqlDbType.NVarChar, PathMaxLength).Value = path;
+            },
+            value => (long) value
+            );
         }
 
         public override Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))

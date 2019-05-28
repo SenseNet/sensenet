@@ -502,6 +502,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract bool IsCacheableText(string text);
         public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
             CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Returns the size of the requested node or all the whole subree.
+        /// The size of a Node is the summary of all stream lengths in all committed BinaryProperties.
+        /// The size does not contain staged streams (uplad is in progress) and orphaned (deleted) streams.
+        /// </summary>
+        /// <param name="path">Valid repository path of the requested node.</param>
+        /// <param name="includeChildren">False if only the requested node's size is relevant.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the a size of the requested subtree.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
+        /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
