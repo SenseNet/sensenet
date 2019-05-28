@@ -1236,7 +1236,9 @@ namespace SenseNet.ContentRepository
                 parent => parent.AllowChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
                 () =>
                 {
+                    // get the full effective list and extend it with the new types
                     var effectiveList = GetAllowedChildTypes().Union(contentTypes).Distinct();
+
                     SetAllowedChildTypesInternal(effectiveList, save);
                 }, 
                 setOnAncestorIfInherits, 
@@ -1260,22 +1262,7 @@ namespace SenseNet.ContentRepository
 
             SetAllowedChildTypesByType(
                 parent => parent.SetAllowedChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
-                () =>
-                {
-                    var newContentTypeList = contentTypes.ToArray();
-                    var duplicateCount = ContentType.AllowedChildTypes.Intersect(newContentTypeList).Count();
-                    var exceptCount = ContentType.AllowedChildTypes.Except(newContentTypeList).Count();
-
-                    // If the two lists are identical, the local value should be empty: 
-                    // the values from the CTD will be inherited. Otherwise set the
-                    // provided list explicitely.
-                    AllowedChildTypes = newContentTypeList.Length == duplicateCount && exceptCount == 0
-                        ? new ContentType[0]
-                        : newContentTypeList;
-
-                    if (save)
-                        Save();
-                }, 
+                () => SetAllowedChildTypesInternal(contentTypes, save), 
                 setOnAncestorIfInherits, 
                 throwOnError);
         }
@@ -1283,6 +1270,9 @@ namespace SenseNet.ContentRepository
         private void SetAllowedChildTypesByType(Action<GenericContent> parentAction, Action setAction, 
             bool setOnAncestorIfInherits = false, bool throwOnError = true)
         {
+            // This method provides the algorithm for handling special types (Folder, Page) 
+            // that are treated differenlty in case of the allowed child types feature.
+
             switch (this.NodeType.Name)
             {
                 case "Folder":
@@ -1295,6 +1285,7 @@ namespace SenseNet.ContentRepository
 
                         if (parent != null)
                         {
+                            // execute the action on the parent instead
                             parentAction(parent);
                         }
                         else
@@ -1314,29 +1305,31 @@ namespace SenseNet.ContentRepository
                         throw GetCannotAllowContentTypeException();
                     return;
                 default:
+                    // execute the action on the content itself
                     setAction();
                     return;
             }
         }
+
         private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
-            var origTypes = this.AllowedChildTypes.ToArray();
-            if (origTypes.Length == 0)
-                origTypes = this.ContentType.AllowedChildTypes.ToArray();
+            var newContentTypeList = contentTypes?.ToArray() ?? new ContentType[0];
 
-            var newTypes = contentTypes?.ToArray() ?? new ContentType[0];
+            // compare the new list with the list defined on the content type
+            var duplicateCount = ContentType.AllowedChildTypes.Intersect(newContentTypeList).Count();
+            var exceptCount = ContentType.AllowedChildTypes.Except(newContentTypeList).Count();
 
-            var addList = newTypes.Except(origTypes).ToArray();
-            var removeList = origTypes.Except(newTypes).ToArray();
-            if (addList.Length + removeList.Length == 0)
-                return;
-
-            var list = origTypes.Union(newTypes).Distinct().Except(removeList);
-            this.AllowedChildTypes = list.ToArray();
+            // If the two lists are identical, the local value should be empty: 
+            // the values from the CTD will be inherited. Otherwise set the
+            // provided list explicitely.
+            AllowedChildTypes = newContentTypeList.Length == duplicateCount && exceptCount == 0
+                ? new ContentType[0]
+                : newContentTypeList;
 
             if (save)
-                this.Save();
+                Save();
         }
+
         private Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(
