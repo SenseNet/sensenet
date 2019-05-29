@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE:DB: BlobStorage ASYNC API
     internal class BlobStorage : BlobStorageBase
     {
         public new static void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
