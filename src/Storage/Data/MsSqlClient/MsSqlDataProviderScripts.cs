@@ -7,7 +7,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlDataProvider
     {
-        private class SqlScripts
+        private static class SqlScripts
         {
             #region LoadNodes
             public static readonly string LoadNodes = @"-- MsSqlDataProvider.LoadNodes
@@ -87,6 +87,56 @@ WHERE
                     join ?? string.Empty,
                     where ?? string.Empty);
             }
+            #endregion
+
+            #region GetLastIndexingActivityId
+            public static readonly string GetLastIndexingActivityId = @"-- MsSqlDataProvider.GetLastIndexingActivityId
+SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
+            #endregion
+
+            //UNDONE:DB: LoadSchema script: ContentListTypes is commnted out
+            #region LoadSchema
+            public static readonly string LoadSchema = @"-- MsSqlDataProvider.LoadSchema
+SELECT [Timestamp] FROM SchemaModification
+SELECT * FROM PropertyTypes
+SELECT * FROM NodeTypes
+--SELECT * FROM ContentListTypes
+";
+            #endregion
+
+            #region WriteAuditEvent
+            public static readonly string WriteAuditEvent = @"-- MsSqlDataProvider.WriteAuditEvent
+INSERT INTO [dbo].[LogEntries]
+    ([EventId], [Category], [Priority], [Severity], [Title], [ContentId], [ContentPath], [UserName], [LogDate], [MachineName], [AppDomainName], [ProcessId], [ProcessName], [ThreadName], [Win32ThreadId], [Message], [FormattedMessage])
+VALUES
+    (@EventId,  @Category,  @Priority,  @Severity,  @Title,  @ContentId,  @ContentPath,  @UserName,  @LogDate,  @MachineName,  @AppDomainName,  @ProcessId,  @ProcessName,  @ThreadName,  @Win32ThreadId,  @Message,  @FormattedMessage)
+SELECT @@IDENTITY
+";
+            #endregion
+
+            #region GetTreeSize
+            public static readonly string GetTreeSize = @"-- MsSqlDataProvider.GetTreeSize
+SELECT SUM(F.Size) Size
+FROM Files F
+	JOIN BinaryProperties B ON B.FileId = F.FileId
+	JOIN Versions V on V.VersionId = B.VersionId
+	JOIN Nodes N on V.NodeId = N.NodeId
+WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N.[Path] + '/' LIKE REPLACE(@NodePath, '_', '[_]') + '/%'))
+";
+            #endregion
+
+            #region LoadEntityTree
+            public static readonly string LoadEntityTree = @"-- MsSqlDataProvider.LoadEntityTree
+SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
+";
+            #endregion
+
+
+
+            #region
+            #endregion
+
+            #region
             #endregion
         }
     }

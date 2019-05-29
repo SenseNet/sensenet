@@ -460,12 +460,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string GetLastIndexingActivityIdSql = @"-- MsSqlDataProvider.GetLastIndexingActivityId
-SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
         public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return await MsSqlProcedure.ExecuteScalarAsync(
-                GetLastIndexingActivityIdSql, value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
+                SqlScripts.GetLastIndexingActivityId, value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
         }
 
         public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
@@ -515,15 +513,9 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string LoadSchemaSql = @"-- MsSqlDataProvider.LoadSchema
-SELECT [Timestamp] FROM SchemaModification
-SELECT * FROM PropertyTypes
-SELECT * FROM NodeTypes
---SELECT * FROM ContentListTypes
-";
         public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await MsSqlProcedure.ExecuteReaderAsync(LoadSchemaSql, reader =>
+            return await MsSqlProcedure.ExecuteReaderAsync(SqlScripts.LoadSchema, reader =>
             {
                 var schema = new RepositorySchemaData();
 
@@ -599,16 +591,9 @@ SELECT * FROM NodeTypes
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string WriteAuditEventSql = @"-- MsSqlDataProvider.WriteAuditEvent
-INSERT INTO [dbo].[LogEntries]
-    ([EventId], [Category], [Priority], [Severity], [Title], [ContentId], [ContentPath], [UserName], [LogDate], [MachineName], [AppDomainName], [ProcessId], [ProcessName], [ThreadName], [Win32ThreadId], [Message], [FormattedMessage])
-VALUES
-    (@EventId,  @Category,  @Priority,  @Severity,  @Title,  @ContentId,  @ContentPath,  @UserName,  @LogDate,  @MachineName,  @AppDomainName,  @ProcessId,  @ProcessName,  @ThreadName,  @Win32ThreadId,  @Message,  @FormattedMessage)
-SELECT @@IDENTITY
-";
         public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var unused = await MsSqlProcedure.ExecuteScalarAsync(WriteAuditEventSql, cmd =>
+            var unused = await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.WriteAuditEvent, cmd =>
             {
                 cmd.Parameters.Add("@EventID", SqlDbType.Int).Value = auditEvent.EventId;
                 cmd.Parameters.Add("@Category", SqlDbType.NVarChar, 50).Value = (object)auditEvent.Category ?? DBNull.Value;
@@ -647,19 +632,11 @@ SELECT @@IDENTITY
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        private static readonly string GetTreeSizeSql = @"-- MsSqlDataProvider.GetTreeSize
-SELECT SUM(F.Size) Size
-FROM Files F
-	JOIN BinaryProperties B ON B.FileId = F.FileId
-	JOIN Versions V on V.VersionId = B.VersionId
-	JOIN Nodes N on V.NodeId = N.NodeId
-WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N.[Path] + '/' LIKE REPLACE(@NodePath, '_', '[_]') + '/%'))
-";
         public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             RepositoryPath.CheckValidPath(path);
-            return await MsSqlProcedure.ExecuteScalarAsync(GetTreeSizeSql, cmd =>
+            return await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.GetTreeSize, cmd =>
             {
                 cmd.Parameters.Add("@IncludeChildren", SqlDbType.TinyInt).Value = includeChildren ? (byte)1 : 0;
                 cmd.Parameters.Add("@NodePath", SqlDbType.NVarChar, PathMaxLength).Value = path;
@@ -683,12 +660,9 @@ WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
         }
 
-        private static readonly string LoadEntityTreeSql = @"-- MsSqlDataProvider.LoadEntityTree
-SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
-";
         public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await MsSqlProcedure.ExecuteReaderAsync(LoadEntityTreeSql, reader =>
+            return await MsSqlProcedure.ExecuteReaderAsync(SqlScripts.LoadEntityTree, reader =>
             {
                 var result = new List<EntityTreeNodeData>();
                 while (reader.Read())
@@ -740,6 +714,5 @@ SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 
             return text;
         }
-
     }
 }
