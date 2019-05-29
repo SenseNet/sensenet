@@ -1231,6 +1231,48 @@ namespace SenseNet.ContentRepository
         {
             if (contentTypes == null)
                 throw new ArgumentNullException(nameof(contentTypes));
+
+            SetAllowedChildTypesByType(
+                parent => parent.AllowChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
+                () =>
+                {
+                    // get the full effective list and extend it with the new types
+                    var effectiveList = GetAllowedChildTypes().Union(contentTypes).Distinct();
+
+                    SetAllowedChildTypesInternal(effectiveList, save);
+                }, 
+                setOnAncestorIfInherits, 
+                throwOnError);
+        }
+        /// <summary>
+        /// Set the allowed child types on this content. If the provided list is the same as on the content type,
+        /// the property will be cleared and values will be inherited from the content type from now on.
+        /// </summary>
+        /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
+        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list 
+        /// is inherited), the provided content types will be added to the parent's list.
+        /// Optional parameter. Default: false.</param>
+        /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
+        /// <param name="save">Optional parameter that is true if the Content should be saved automatically after setting the new collection.
+        /// Default: false</param>
+        public void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
+        {
+            if (contentTypes == null)
+                throw new ArgumentNullException(nameof(contentTypes));
+
+            SetAllowedChildTypesByType(
+                parent => parent.SetAllowedChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true),
+                () => SetAllowedChildTypesInternal(contentTypes, save), 
+                setOnAncestorIfInherits, 
+                throwOnError);
+        }
+
+        private void SetAllowedChildTypesByType(Action<GenericContent> parentAction, Action setAction, 
+            bool setOnAncestorIfInherits = false, bool throwOnError = true)
+        {
+            // This method provides the algorithm for handling special types (Folder, Page) 
+            // that are treated differenlty in case of the allowed child types feature.
+
             switch (this.NodeType.Name)
             {
                 case "Folder":
@@ -1243,8 +1285,8 @@ namespace SenseNet.ContentRepository
 
                         if (parent != null)
                         {
-                            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                            parent.AllowChildTypes(contentTypes, setOnAncestorIfInherits, throwOnError, true);
+                            // execute the action on the parent instead
+                            parentAction(parent);
                         }
                         else
                         {
@@ -1263,30 +1305,30 @@ namespace SenseNet.ContentRepository
                         throw GetCannotAllowContentTypeException();
                     return;
                 default:
-                    var effectiveList = GetAllowedChildTypes().Union(contentTypes).Distinct();
-                    SetAllowedChildTypes(effectiveList, save); 
+                    // execute the action on the content itself
+                    setAction();
                     return;
             }
         }
-        private void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool save = false)
+        private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
-            var origTypes = this.AllowedChildTypes.ToArray();
-            if (origTypes.Length == 0)
-                origTypes = this.ContentType.AllowedChildTypes.ToArray();
+            var newContentTypeList = contentTypes?.ToArray() ?? new ContentType[0];
 
-            var newTypes = contentTypes?.ToArray() ?? new ContentType[0];
+            // compare the new list with the list defined on the content type
+            var contentTypeExceptNewAny = ContentType.AllowedChildTypes.Except(newContentTypeList).Any();
+            var newExceptContentTypeAny = newContentTypeList.Except(ContentType.AllowedChildTypes).Any();
 
-            var addList = newTypes.Except(origTypes).ToArray();
-            var removeList = origTypes.Except(newTypes).ToArray();
-            if (addList.Length + removeList.Length == 0)
-                return;
-
-            var list = origTypes.Union(newTypes).Distinct().Except(removeList);
-            this.AllowedChildTypes = list.ToArray();
+            // If the two lists are identical, the local value should be empty: 
+            // the values from the CTD will be inherited. Otherwise set the
+            // provided list explicitely.
+            AllowedChildTypes = !newExceptContentTypeAny && !contentTypeExceptNewAny
+                ? new ContentType[0]
+                : newContentTypeList;
 
             if (save)
-                this.Save();
+                Save();
         }
+
         private Exception GetCannotAllowContentTypeException()
         {
             return new InvalidOperationException(

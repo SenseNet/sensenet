@@ -61,6 +61,25 @@ namespace SenseNet.Services.OData.Tests
             }
         }
 
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPOST<T>(string resource, string queryString, string requestData) where T : IODataResult
+        {
+            using (var requestStream = RepositoryTools.GetStreamFromString(requestData))
+                return ODataPOST<T>(resource, queryString, requestStream);
+        }
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPOST<T>(string resource, string queryString, Stream requestStream) where T : IODataResult
+        {
+            using (var output = new System.IO.StringWriter())
+            {
+                var pc = CreatePortalContext(resource, queryString, output);
+                var handler = new ODataHandler();
+                handler.ProcessRequest(pc.OwnerHttpContext, "POST", requestStream);
+                output.Flush();
+                return (T)GetResult<T>(output);
+            }
+        }
+
         internal static IODataResult GetResult<T>(System.IO.StringWriter output) where T : IODataResult
         {
             if (typeof(T) == typeof(ODataEntity))

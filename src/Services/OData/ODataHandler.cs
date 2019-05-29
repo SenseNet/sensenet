@@ -633,6 +633,26 @@ namespace SenseNet.Portal.OData
 
                                 field.SetData(list);
                             }
+                            else if (field is AllowedChildTypesField &&
+                                     field.Name == "AllowedChildTypes" &&
+                                     content.ContentHandler is GenericContent gc)
+                            {
+                                var types = avalue.Values().Select(rv =>
+                                {
+                                    switch (rv.Type)
+                                    {
+                                        case JTokenType.Integer:
+                                            return Node.LoadNode(Convert.ToInt32(rv.ToString())) as ContentType;
+                                        default:
+                                            var typeId = rv.ToString();
+                                            if (RepositoryPath.IsValidPath(typeId) == RepositoryPath.PathResult.Correct)
+                                                return Node.LoadNode(typeId) as ContentType;
+                                            return ContentType.GetByName(typeId);
+                                    }
+                                }).Where(ct => ct != null).ToArray();
+
+                                gc.SetAllowedChildTypes(types);
+                            }
 
                             continue;
                         }
