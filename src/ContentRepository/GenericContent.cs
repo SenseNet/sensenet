@@ -1310,19 +1310,18 @@ namespace SenseNet.ContentRepository
                     return;
             }
         }
-
         private void SetAllowedChildTypesInternal(IEnumerable<ContentType> contentTypes, bool save = false)
         {
             var newContentTypeList = contentTypes?.ToArray() ?? new ContentType[0];
 
             // compare the new list with the list defined on the content type
-            var duplicateCount = ContentType.AllowedChildTypes.Intersect(newContentTypeList).Count();
-            var exceptCount = ContentType.AllowedChildTypes.Except(newContentTypeList).Count();
+            var contentTypeExceptNewAny = ContentType.AllowedChildTypes.Except(newContentTypeList).Any();
+            var newExceptContentTypeAny = newContentTypeList.Except(ContentType.AllowedChildTypes).Any();
 
             // If the two lists are identical, the local value should be empty: 
             // the values from the CTD will be inherited. Otherwise set the
             // provided list explicitely.
-            AllowedChildTypes = newContentTypeList.Length == duplicateCount && exceptCount == 0
+            AllowedChildTypes = !newExceptContentTypeAny && !contentTypeExceptNewAny
                 ? new ContentType[0]
                 : newContentTypeList;
 

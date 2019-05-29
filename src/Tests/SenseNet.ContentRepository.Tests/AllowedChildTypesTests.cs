@@ -315,10 +315,10 @@ namespace SenseNet.ContentRepository.Tests
                 var namesAfter = ts.Workspace1.GetAllowedChildTypeNames().OrderBy(x => x);
                 var localNamesAfter = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
 
-                Assert.AreEqual(namesToSet.Single(), localNamesAfter.Single());
+                AssertSequenceEqual(namesToSet, localNamesAfter);
 
                 // SystemFolder is added on-the-fly for admins
-                Assert.AreEqual("Memo, SystemFolder", string.Join(", ", namesAfter));
+                AssertSequenceEqual(new [] {"Memo", "SystemFolder" }, namesAfter);
             });
         }
         [TestMethod]
@@ -343,8 +343,8 @@ namespace SenseNet.ContentRepository.Tests
                 var localNamesAfter = ts.Workspace1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
 
                 // SystemFolder is added on-the-fly for admins
-                Assert.AreEqual("File, Memo, SystemFolder", string.Join(", ", namesAfter));
-                Assert.AreEqual("File, Memo", string.Join(", ", localNamesAfter));
+                AssertSequenceEqual(new[] { "File", "Memo", "SystemFolder"}, namesAfter);
+                AssertSequenceEqual(new[] { "File", "Memo" }, localNamesAfter);
             });
         }
         [TestMethod]
@@ -364,7 +364,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // This is to make sure that the test runs in a correct environment.
                 // SystemFolder is added on-the-fly for admins.
-                Assert.AreEqual(string.Join(", ", setNamesOriginal) + ", SystemFolder", string.Join(", ", namesBefore));
+                AssertSequenceEqual(setNamesOriginal.Union(new []{ "SystemFolder" }), namesBefore);
 
                 // ACTION
                 ts.Workspace1.SetAllowedChildTypes(setOnContentType, true, true, true);
@@ -377,7 +377,7 @@ namespace SenseNet.ContentRepository.Tests
                 var namesOnContentType = setOnContentType.Select(ct => ct.Name).Union(new[] {"SystemFolder"}).Distinct()
                     .OrderBy(x => x).ToArray();
 
-                Assert.AreEqual(string.Join(", ", namesOnContentType), string.Join(", ", namesAfter));
+                AssertSequenceEqual(namesOnContentType, namesAfter);
                 Assert.AreEqual(0, localNamesAfter.Length);
             });
         }
