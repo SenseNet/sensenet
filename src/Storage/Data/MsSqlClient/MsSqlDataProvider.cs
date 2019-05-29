@@ -618,7 +618,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override DateTime RoundDateTime(DateTime d)
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return new DateTime(d.Ticks / 100000 * 100000);
         }
 
         public override bool IsCacheableText(string text)

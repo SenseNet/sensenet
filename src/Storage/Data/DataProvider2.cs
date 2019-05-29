@@ -498,6 +498,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Provider Tools */
 
+        /// <summary>
+        /// Returns a passed <see cref="DateTime"/> value with reduced precision.
+        /// </summary>
+        /// <param name="d"><see cref="DateTime"/> value to round.</param>
+        /// <returns>The rounded <see cref="DateTime"/> value.</returns>
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
         public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
