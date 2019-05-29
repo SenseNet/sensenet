@@ -382,11 +382,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.AcquireTreeLockAsync(path, cancellationToken);
+            return DataProvider.AcquireTreeLockAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
         public static Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.IsTreeLockedAsync(path, cancellationToken);
+            return DataProvider.IsTreeLockedAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
         public static Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -395,6 +395,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return DataProvider.LoadAllTreeLocksAsync(cancellationToken);
+        }
+        private static DateTime GetTreeLockTimeLimit()
+        {
+            return DateTime.UtcNow.AddHours(-8.0);
         }
 
         /* =============================================================================================== IndexDocument */

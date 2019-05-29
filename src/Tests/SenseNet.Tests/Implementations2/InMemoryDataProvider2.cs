@@ -856,16 +856,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== TreeLock */
 
-        public override Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var parentChain = GetParentChainSafe(path);
-                var timeMin = GetObsoleteLimitTimeSafe();
 
                 if (DB.TreeLocks
-                    .Any(t => t.LockedAt > timeMin &&
+                    .Any(t => t.LockedAt > timeLimit &&
                               (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
                                t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))))
                     return STT.Task.FromResult(0);
@@ -882,16 +881,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
-        public override Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var parentChain = GetParentChainSafe(path);
-                var timeMin = GetObsoleteLimitTimeSafe();
 
                 var result = DB.TreeLocks
-                    .Any(t => t.LockedAt > timeMin &&
+                    .Any(t => t.LockedAt > timeLimit &&
                               (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
                                t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase)));
                 return STT.Task.FromResult(result);
@@ -926,10 +924,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             for (int i = 1; i < paths.Length; i++)
                 paths[i] = paths[i - 1] + "/" + paths[i];
             return paths.Reverse().ToArray();
-        }
-        private DateTime GetObsoleteLimitTimeSafe()
-        {
-            return DateTime.UtcNow.AddHours(-8.0);
         }
 
         /* =============================================================================================== IndexDocument */

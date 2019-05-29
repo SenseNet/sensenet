@@ -409,9 +409,44 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== TreeLock */
 
-        public abstract Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Returns the newly created tree lock Id for the requested path.
+        /// The return value is 0 if the path is locked in the parent axis or in the subtree.
+        /// Checking tree lock existence and creating new lock is an atomic operation.
+        /// </summary>
+        /// <param name="path">The requested path.</param>
+        /// <param name="timeLimit">A <see cref="DateTime"/> value, older tree locks than that are considered to be expired.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the Id of the newly created tree lock or 0.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
+        public abstract Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Returns a boolean value that indicates whether the requested path is locked or not.
+        /// </summary>
+        /// <param name="path">The requested path.</param>
+        /// <param name="timeLimit">A <see cref="DateTime"/> value, older tree locks than that are considered to be expired.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains a boolen value as result.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
+        public abstract Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Deletes one or more tree locks by the given Id set.
+        /// </summary>
+        /// <param name="lockIds">Ids of the tree locks to delete.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Loads all existing tree locks (including expired elements) as an Id, Path dictionary.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the result as an Id, Path dictionary.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== IndexDocument */
