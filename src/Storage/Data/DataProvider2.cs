@@ -53,7 +53,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== General API */
 
-        protected async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null, Func<int, int> callback = null)
+        protected async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
             using (var connection = CreateConnection())
             using (var cmd = CreateCommand())
@@ -65,9 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 setParams?.Invoke(cmd);
 
                 connection.Open();
-                var value = await cmd.ExecuteNonQueryAsync();
-
-                return callback?.Invoke(value) ?? value;
+                return await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -92,11 +90,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        protected Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, T> callback)
+        protected Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
         }
-        protected async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, T> callback)
+        protected async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, Task<T>> callbackAsync)
         {
             using (var connection = CreateConnection())
             using (var cmd = CreateCommand())
@@ -109,7 +107,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 connection.Open();
                 var reader = await cmd.ExecuteReaderAsync();
-                return callback(reader);
+                return await callbackAsync(reader);
             }
         }
 
@@ -169,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         ///  2 - Check the uniqueness of the [nodeHeadData].Path value. If that fails, throw a <see cref="NodeAlreadyExistsException"/>.
         ///  3 - Ensure a new unique NodeId and use it in the node head representation.
         ///  4 - Ensure a new unique VersionId and use it in the version head representation and any other version related data.
-        ///  5 - Store (insert) the [versionData] representation.
+        ///  5 - Store (insert) the [versionData] representation with the new NodeId.
         ///  6 - Ensure that the timestamp of the stored version is incremented.
         ///  7 - Store (insert) dynamic property data including long texts, binary properties and files.
         ///      Use the new versionId in these items. It is strongly recommended to manage BinaryProperties and files
@@ -523,6 +521,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="timeLimit">A <see cref="DateTime"/> value, older tree locks than that are considered to be expired.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains the Id of the newly created tree lock or 0.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
+        /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken));
@@ -533,6 +533,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="timeLimit">A <see cref="DateTime"/> value, older tree locks than that are considered to be expired.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains a boolen value as result.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <c>path</c> is null.</exception>
+        /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken));
