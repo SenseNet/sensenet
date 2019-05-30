@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
@@ -24,6 +25,26 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     public partial class MsSqlDataProvider : DataProvider2
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
+
+        /* =============================================================================================== General API */
+
+        public override DbCommand CreateCommand()
+        {
+            return new SqlCommand();
+        }
+        public override DbConnection CreateConnection()
+        {
+            return new SqlConnection(ConnectionStrings.ConnectionString);
+        }
+        public override DbParameter CreateParameter()
+        {
+            return new SqlParameter();
+        }
+
+        /* =============================================================================================== General Impl */
+        public override string GetTreeSizeDemoScript => SqlScripts.GetTreeSize;
+
+        /* =============================================================================================== */
 
         public override Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken = default(CancellationToken))

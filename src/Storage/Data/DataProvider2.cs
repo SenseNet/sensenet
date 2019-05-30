@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -47,6 +48,110 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;
             return null;
+        }
+
+
+        /* =============================================================================================== General API */
+
+        protected async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null, Func<int, int> callback = null)
+        {
+            using (var connection = CreateConnection())
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = connection;
+                cmd.CommandText = script;
+                //cmd.Transaction = ????
+
+                setParams?.Invoke(cmd);
+
+                connection.Open();
+                var value = await cmd.ExecuteNonQueryAsync();
+
+                return callback?.Invoke(value) ?? value;
+            }
+        }
+
+        protected Task<T> ExecuteScalarAsync<T>(string script, Func<object, T> callback)
+        {
+            return ExecuteScalarAsync(script, null, callback);
+        }
+        protected async Task<T> ExecuteScalarAsync<T>(string script, Action<DbCommand> setParams, Func<object, T> callback)
+        {
+            using (var connection = CreateConnection())
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = connection;
+                cmd.CommandText = script;
+                //cmd.Transaction = ????
+
+                setParams?.Invoke(cmd);
+
+                connection.Open();
+                var value = await cmd.ExecuteScalarAsync();
+                return callback(value);
+            }
+        }
+
+        protected Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, T> callback)
+        {
+            return ExecuteReaderAsync(script, null, callback);
+        }
+        protected async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, T> callback)
+        {
+            using (var connection = CreateConnection())
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = connection;
+                cmd.CommandText = script;
+                //cmd.Transaction = ????
+
+                setParams?.Invoke(cmd);
+
+                connection.Open();
+                var reader = await cmd.ExecuteReaderAsync();
+                return callback(reader);
+            }
+        }
+
+        public abstract DbCommand CreateCommand();
+        public abstract DbConnection CreateConnection();
+        public abstract DbParameter CreateParameter();
+
+        protected DbParameter CreateParameter(string name, DbType dbType, object value)
+        {
+            var prm = CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Value = value;
+            return prm;
+        }
+        protected DbParameter CreateParameter(string name, DbType dbType, int size, object value)
+        {
+            var prm = CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Size = size;
+            prm.Value = value;
+            return prm;
+        }
+
+        /* =============================================================================================== General Impl */
+
+        public virtual string GetTreeSizeDemoScript => throw new NotSupportedException();
+
+        public virtual async Task<long> GetTreeSizeDemoAsync(string path, bool includeChildren)
+        {
+            RepositoryPath.CheckValidPath(path);
+
+            return await ExecuteScalarAsync(GetTreeSizeDemoScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
+                        CreateParameter("@NodePath", DbType.AnsiString, DataStore.PathMaxLength, path),
+                    });
+                }, value => (long) value
+            );
         }
 
         /* =============================================================================================== Nodes */
