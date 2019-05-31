@@ -534,8 +534,9 @@ namespace SenseNet.ContentRepository.Storage
 
             using (var op = SnTrace.Database.StartOperation(msg))
             {
-                if (isLocalTransaction)
-                    TransactionScope.Begin();
+                if (!DataStore.Enabled)
+                    if (isLocalTransaction)
+                        TransactionScope.Begin();
 
                 try
                 {
@@ -546,7 +547,8 @@ namespace SenseNet.ContentRepository.Storage
 
                     participant = new NodeDataParticipant { Data = data, Settings = settings, IsNewNode = isNewNode };
 
-                    TransactionScope.Participate(participant);
+                    if (!DataStore.Enabled)
+                        TransactionScope.Participate(participant);
 
                     if (settings.NodeHead != null)
                     {
@@ -595,10 +597,12 @@ namespace SenseNet.ContentRepository.Storage
                             // participate cache items
                             var idKey = CreateNodeHeadIdCacheKey(head.Id);
                             var participant2 = new InsertCacheParticipant { CacheKey = idKey };
-                            TransactionScope.Participate(participant2);
+                            if (!DataStore.Enabled)
+                                TransactionScope.Participate(participant2);
                             var pathKey = CreateNodeHeadPathCacheKey(head.Path);
                             var participant3 = new InsertCacheParticipant { CacheKey = pathKey };
-                            TransactionScope.Participate(participant3);
+                            if (!DataStore.Enabled)
+                                TransactionScope.Participate(participant3);
 
                             CacheNodeHead(head, idKey, pathKey);
                         }
@@ -617,8 +621,9 @@ namespace SenseNet.ContentRepository.Storage
                         }
                     }
 
-                    if (isLocalTransaction)
-                        TransactionScope.Commit();
+                    if (!DataStore.Enabled)
+                        if (isLocalTransaction)
+                            TransactionScope.Commit();
 
                     // populate index only if it is enabled on this content (e.g. preview images will be skipped)
                     using (var op2 = SnTrace.Index.StartOperation("Indexing node"))
@@ -661,8 +666,9 @@ namespace SenseNet.ContentRepository.Storage
                 }
                 finally
                 {
-                    if (isLocalTransaction && TransactionScope.IsActive)
-                        TransactionScope.Rollback();
+                    if(!DataStore.Enabled)
+                        if (isLocalTransaction && TransactionScope.IsActive)
+                            TransactionScope.Rollback();
                 }
                 op.Successful = true;
             }

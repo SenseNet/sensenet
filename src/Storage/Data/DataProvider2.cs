@@ -558,8 +558,18 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== IndexDocument */
 
-        public abstract Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken));
+        /// <summary>
+        /// Persists the given <see cref="IndexDocument"/> of the version represented by the passed versionId.
+        /// Returns the owner version's modified timestamp, if the save task updates the owner version
+        /// Returns 0L, if the index document storage is independent from the owner version.
+        /// </summary>
+        /// <param name="versionId">Id of the version</param>
+        /// <param name="indexDoc">The serailzed <see cref="IndexDocument"/> that will be saved.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the modified VersionTimestamp or 0L.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
+        public abstract Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken));
 
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds,
             CancellationToken cancellationToken = default(CancellationToken));

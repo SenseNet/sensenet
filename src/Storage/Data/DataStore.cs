@@ -405,11 +405,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.SaveIndexDocumentAsync(nodeData, indexDoc, cancellationToken);
+            var timestamp = await SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken);
+            if (timestamp != 0)
+                nodeData.VersionTimestamp = timestamp;
         }
-        public static async Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<long> SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.SaveIndexDocumentAsync(versionId, indexDoc, cancellationToken);
+            var serialized = indexDoc.Serialize();
+            return await DataProvider.SaveIndexDocumentAsync(versionId, serialized, cancellationToken);
         }
 
         public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))

@@ -945,35 +945,20 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== IndexDocument */
 
-        public override STT.Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == nodeData.VersionId);
-                if (versionDoc != null)
-                {
-                    var serializedDoc = indexDoc.Serialize();
-                    versionDoc.IndexDocument = serializedDoc;
-                    nodeData.VersionTimestamp = versionDoc.Timestamp;
-                }
-            }
-            return STT.Task.CompletedTask;
-        }
-
-        public override STT.Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+            var timestamp = 0L;
             lock (DB)
             {
                 var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
                 if (versionDoc != null)
                 {
-                    var serializedDoc = indexDoc.Serialize();
-                    versionDoc.IndexDocument = serializedDoc;
+                    versionDoc.IndexDocument = indexDoc;
+                    timestamp = versionDoc.Timestamp;
                 }
             }
-            return STT.Task.CompletedTask;
+            return STT.Task.FromResult(timestamp);
         }
 
         public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))

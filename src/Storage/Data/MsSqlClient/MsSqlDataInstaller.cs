@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -275,7 +276,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     foreach (var longTextData in props.LongTextProperties)
                     {
                         var longTextRow = longTexts.NewRow();
-                        SetLongTextPropertyRow(longTextRow, ++longTextId, version.VersionId, longTextData.Key, longTextData.Value);
+                        var propertyTypeId =
+                            data.Schema.PropertyTypes.FirstOrDefault(x => x.Name == longTextData.Key.Name)?.Id ?? 0;
+                        SetLongTextPropertyRow(longTextRow, ++longTextId, version.VersionId, propertyTypeId, longTextData.Value);
                         longTexts.Rows.Add(longTextRow);
                     }
                 }
@@ -365,13 +368,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["ModifiedById"] = version.ModifiedById;
             row["IndexDocument"] = null;
             row["ChangedData"] = null;
-            row["DynamicProperties"] = GetSerializedDynamicData(dynamicProperties);
+            row["DynamicProperties"] = dynamicProperties == null ? null : MsSqlDataProvider.SerializeDynamiProperties(dynamicProperties);
         }
-        private static void SetLongTextPropertyRow(DataRow row, int id, int versionId, PropertyType propertyType, string value)
+        private static void SetLongTextPropertyRow(DataRow row, int id, int versionId, int propertyTypeId, string value)
         {
             row["LongTextPropertyId"] = id;
             row["VersionId"] = versionId;
-            row["PropertyTypeId"] = propertyType.Id;
+            row["PropertyTypeId"] = propertyTypeId;
             row["Length"] = value?.Length;
             row["Value"] = value;
         }
@@ -418,24 +421,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private static byte[] GetBuffer(InitialData data, string providerData, string propertyTypeName)
         {
             return data.GetBlobBytes(providerData, propertyTypeName);
-        }
-
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings //UNDONE:DB Use a common instance
-        {
-            NullValueHandling = NullValueHandling.Ignore,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-            Formatting = Formatting.Indented
-        };
-        private static string GetSerializedDynamicData(IDictionary<PropertyType, object> data)
-        {
-            if (data == null)
-                return null;
-            using (var writer = new StringWriter())
-            {
-                JsonSerializer.Create(SerializerSettings).Serialize(writer, data.ToDictionary(x => x.Key.Name, x => x.Value));
-                var serializedDoc = writer.GetStringBuilder().ToString();
-                return serializedDoc;
-            }
         }
 
         private static DateTime AlignDateTime(DateTime dateTime, DataProvider2 dataProvider)

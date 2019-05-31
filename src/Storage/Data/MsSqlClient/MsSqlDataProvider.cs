@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -46,10 +47,176 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== */
 
-        public override Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+        public override async Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            try
+            {
+                // Insert new rows int Nodes and Versions tables
+                var ok = await MsSqlProcedure.ExecuteReaderAsync(SqlScripts.InsertNodeAndVersion, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                        CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                        #region CreateParameter("@ContentListId", ...
+                        CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                        CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                        CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                        CreateParameter("@IsInherited", DbType.Byte, (byte) 0),
+                        CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId),
+                        CreateParameter("@Name", DbType.AnsiString, 450, nodeHeadData.Name),
+                        CreateParameter("@DisplayName", DbType.AnsiString, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                        CreateParameter("@Path", DbType.AnsiString, DataStore.PathMaxLength, nodeHeadData.Path),
+                        CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                        CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                        CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                        CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                        CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                        CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                        CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                        CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                        CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                        CreateParameter("@NodeCreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                        CreateParameter("@NodeCreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                        CreateParameter("@NodeModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                        CreateParameter("@NodeModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                        CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                        CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                        CreateParameter("@SavingState", DbType.Int32, (int)nodeHeadData.SavingState),
+                        CreateParameter("@ChangedData", DbType.AnsiString, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                        CreateParameter("@MajorNumber", DbType.Int16, (short)versionData.Version.Major),
+                        CreateParameter("@MinorNumber", DbType.Int16, (short)versionData.Version.Minor),
+                        CreateParameter("@Status", DbType.Int16, (short)versionData.Version.Status),
+                        CreateParameter("@VersionCreationDate", DbType.DateTime2, versionData.CreationDate),
+                        CreateParameter("@VersionCreatedById", DbType.Int32, (int)nodeHeadData.CreatedById),
+                        CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                        CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
+                        #endregion
+                        CreateParameter("@DynamicProperties", DbType.AnsiString, int.MaxValue, SerializeDynamiProperties(dynamicData.DynamicProperties)),
+                    });
+                }, reader =>
+                {
+                    if (reader.Read())
+                    {
+                        nodeHeadData.NodeId = reader.GetInt32("NodeId");
+                        nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
+                        nodeHeadData.LastMajorVersionId = reader.GetInt32("LastMajorVersionId");
+                        nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
+                        versionData.VersionId = reader.GetInt32("VersionId");
+                        versionData.Timestamp = reader.GetSafeLongFromBytes("VersionTimestamp");
+                    }
+                    else
+                    {
+                        throw new DataException("Node was not saved. The InsertNodeAndVersion script returned nothing.");
+                    }
+                    return true;
+                });
+
+                var versionId = versionData.VersionId;
+
+                // Manage ReferenceProperties
+                //UNDONE:DB: Insert ReferenceProperties
+
+                // Manage LongTextProperties
+                //UNDONE:DB: Insert LongTextProperties
+                if (dynamicData.LongTextProperties.Any())
+                {
+                    var longTextSqlBuilder = new StringBuilder();
+                    var longTextSqlParameters = new List<DbParameter>();
+                    var index = 0;
+                    longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+                    foreach (var item in dynamicData.LongTextProperties)
+                    {
+                        longTextSqlBuilder.AppendFormat(SqlScripts.InsertLongtextProperties, ++index);
+                        longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                        longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
+                        longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+                    }
+                    await MsSqlProcedure.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
+                        cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
+                }
+
+                // Manage BinaryProperties
+                foreach (var item in dynamicData.BinaryProperties)
+                    BlobStorage.InsertBinaryProperty(item.Value, versionId, item.Key.Id, true);
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new DataException("Node was not saved. For more details see the inner exception.", e);
+            }
+        }
+
+        internal static string SerializeDynamiProperties(IDictionary<PropertyType, object> properties)
+        {
+            var lines = properties.Select(x => SerializeDynamicProperty(x.Key, x.Value)).ToArray();
+            return $"\r\n{string.Join("\r\n", lines)}\r\n";
+        }
+        private static string SerializeDynamicProperty(PropertyType propertyType, object propertyValue)
+        {
+            string value;
+            switch (propertyType.DataType)
+            {
+                // DataType.Text and Binary types are not used here
+                case DataType.String:
+                    value = ((string)propertyValue).Replace("\\", "\\\\").Replace("\r\n", "\\r\\n");
+                    break;
+                case DataType.DateTime:
+                    value = ((DateTime)propertyValue).ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+                    break;
+                case DataType.Reference:
+                    value = string.Join(",", ((IEnumerable<int>) propertyValue).Select(x => x.ToString()));
+                    break;
+                default:
+                    value = Convert.ToString(propertyValue, CultureInfo.InvariantCulture);
+                    break;
+            }
+            return $"{propertyType.Name}:{value}";
+        }
+
+        internal static IDictionary<PropertyType, object> DeserializeDynamiProperties(string src)
+        {
+            return src.Split(new[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => DeserializeDynamiProperty(x)).Where(x => x.PropertyType != null)
+                .ToDictionary(x => x.PropertyType, x => x.Value);
+        }
+        internal static (PropertyType PropertyType, object Value) DeserializeDynamiProperty(string src)
+        {
+            var p = src.IndexOf(':');
+            var propertyName = src.Substring(0, p);
+            var stringValue = src.Substring(p + 1);
+            var propertyType = ActiveSchema.PropertyTypes[propertyName];
+            if (propertyType == null)
+                return (null, null);
+            object value = null;
+            switch (propertyType.DataType)
+            {
+                case DataType.String:
+                    value = stringValue.Replace("\\r\\n", "\r\n").Replace("\\\\", "\\");
+                    break;
+                case DataType.Int:
+                    value = int.Parse(stringValue);
+                    break;
+                case DataType.Currency:
+                    value = decimal.Parse(stringValue, CultureInfo.InvariantCulture);
+                    break;
+                case DataType.DateTime:
+                    value = DateTime.Parse(stringValue);
+                    break;
+                case DataType.Reference:
+                    value = stringValue.Split(',').Select(x => int.Parse(x)).ToArray();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (value == null)
+                propertyType = null;
+            return (propertyType, value);
         }
 
         public override Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
@@ -128,15 +295,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         VersionTimestamp = reader.GetSafeLongFromBytes("VersionTimestamp"),
                     };
 
-                    IDictionary<string, object> dynamicProperties;
-                    var serializer = JsonSerializer.Create(SerializerSettings);
                     var dynamicPropertySource = reader.GetSafeString("DynamicProperties");
                     if (dynamicPropertySource != null)
                     {
-                        using (var jsonReader = new JsonTextReader(new StringReader(dynamicPropertySource)))
-                            dynamicProperties = serializer.Deserialize<IDictionary<string, object>>(jsonReader);
+                        var dynamicProperties = DeserializeDynamiProperties(dynamicPropertySource);
                         foreach (var item in dynamicProperties)
-                            nodeData.SetDynamicRawData(ActiveSchema.PropertyTypes[item.Key], item.Value);
+                            nodeData.SetDynamicRawData(item.Key, item.Value);
                     }
 
                     result.Add(versionId, nodeData);
@@ -438,9 +602,20 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            RepositoryPath.CheckValidPath(path);
+            var parentChain = GetParentChain(path);
+
+            var sql = string.Format(SqlScripts.IsTreeLocked,
+                string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
+
+            return await MsSqlProcedure.ExecuteScalarAsync(sql, cmd =>
+            {
+                cmd.Parameters.Add(new SqlParameter("@TimeLimit", SqlDbType.DateTime)).Value = timeLimit;
+                for (int i = 0; i < parentChain.Length; i++)
+                    cmd.Parameters.Add(new SqlParameter("@Path" + i, SqlDbType.NVarChar, 450)).Value = parentChain[i];
+            }, value => value != null && value != DBNull.Value );
         }
 
         public override Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
@@ -452,17 +627,28 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
-
-        public override Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc,
-            CancellationToken cancellationToken = default(CancellationToken))
+        private string[] GetParentChain(string path)
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var paths = path.Split(RepositoryPath.PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
+            paths[0] = "/" + paths[0];
+            for (int i = 1; i < paths.Length; i++)
+                paths[i] = paths[i - 1] + "/" + paths[i];
+            return paths.Reverse().ToArray();
         }
 
-        public override Task SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return await ExecuteScalarAsync(SqlScripts.SaveIndexDocument, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    CreateParameter("@VersionId", DbType.Int32, versionId),
+                    CreateParameter("@IndexDocument", DbType.AnsiString, int.MaxValue, indexDoc),
+                });
+            }, value =>
+            {
+                return GetLongFromBytes((byte[])value);
+            });
         }
 
         public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))

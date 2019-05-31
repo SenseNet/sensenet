@@ -421,6 +421,7 @@ namespace SenseNet.ContentRepository.Tests
                 root.Save();
 
                 // ASSERT
+                DistributedApplication.Cache.Reset();
                 f1 = Node.Load<SystemFolder>(f1.Id);
                 f2 = Node.Load<SystemFolder>(f2.Id);
                 f3 = Node.Load<SystemFolder>(f3.Id);
@@ -1407,7 +1408,7 @@ namespace SenseNet.ContentRepository.Tests
                 docData.IndexDocument.Add(
                     new IndexField("TestField", "TestValue",
                         IndexingMode.Default, IndexStoringMode.Default, IndexTermVector.Default));
-                await  DP.SaveIndexDocumentAsync(node.VersionId, docData.IndexDocument);
+                await  DP.SaveIndexDocumentAsync(node.VersionId, docData.IndexDocument.Serialize());
 
                 // ASSERT (check additional field existence)
                 loadResult = await DP.LoadIndexDocumentsAsync(versionIds);
