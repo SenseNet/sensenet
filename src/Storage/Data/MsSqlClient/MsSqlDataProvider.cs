@@ -638,17 +638,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await ExecuteScalarAsync(SqlScripts.SaveIndexDocument, cmd =>
+            var result = await ExecuteScalarAsync(SqlScripts.SaveIndexDocument, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
                     CreateParameter("@VersionId", DbType.Int32, versionId),
                     CreateParameter("@IndexDocument", DbType.AnsiString, int.MaxValue, indexDoc),
                 });
-            }, value =>
-            {
-                return GetLongFromBytes((byte[])value);
             });
+            return GetLongFromBytes((byte[])result);
         }
 
         public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))

@@ -69,11 +69,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        protected Task<T> ExecuteScalarAsync<T>(string script, Func<object, T> callback)
-        {
-            return ExecuteScalarAsync(script, null, callback);
-        }
-        protected async Task<T> ExecuteScalarAsync<T>(string script, Action<DbCommand> setParams, Func<object, T> callback)
+        protected async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
             using (var connection = CreateConnection())
             using (var cmd = CreateCommand())
@@ -85,8 +81,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 setParams?.Invoke(cmd);
 
                 connection.Open();
-                var value = await cmd.ExecuteScalarAsync();
-                return callback(value);
+                return await cmd.ExecuteScalarAsync();
             }
         }
 
@@ -141,15 +136,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             RepositoryPath.CheckValidPath(path);
 
-            return await ExecuteScalarAsync(GetTreeSizeDemoScript, cmd =>
+            var result = await ExecuteScalarAsync(GetTreeSizeDemoScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
                         CreateParameter("@NodePath", DbType.AnsiString, DataStore.PathMaxLength, path),
                     });
-                }, value => (long) value
-            );
+                });
+            return (long) result;
         }
 
         /* =============================================================================================== Nodes */
