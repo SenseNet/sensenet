@@ -136,17 +136,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             RepositoryPath.CheckValidPath(path);
 
-            var result = await ExecuteScalarAsync(GetTreeSizeDemoScript, cmd =>
+            using (var ctx = new SnDataContext(this))
+            {
+                using (var transaction = ctx.BeginTransaction())
                 {
-                    cmd.Parameters.AddRange(new[]
+                    var result = await ctx.ExecuteScalarAsync(GetTreeSizeDemoScript, cmd =>
                     {
-                        CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
-                        CreateParameter("@NodePath", DbType.AnsiString, DataStore.PathMaxLength, path),
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
+                            CreateParameter("@NodePath", DbType.AnsiString, DataStore.PathMaxLength, path),
+                        });
                     });
-                });
-            return (long) result;
+                    transaction.Commit();
+                    return (long)result;
+                }
+            }
         }
-
         /* =============================================================================================== Nodes */
 
         /// <summary>
@@ -682,13 +688,32 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken));
+
+        public virtual string LoadEntityTreeScript => throw new NotSupportedException();
         /// <summary>
         /// Returns the Content tree representation for building the security model.
         /// Every node and leaf contains only the Id, ParentId and OwnerId of the node.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
-        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public virtual async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new SnDataContext(this))
+            {
+                return await ctx.ExecuteReaderAsync(LoadEntityTreeScript, async reader =>
+                {
+                    var result = new List<EntityTreeNodeData>();
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(new EntityTreeNodeData
+                        {
+                            Id = reader.GetInt32("NodeId"),
+                            ParentId = reader.GetSafeInt32("ParentNodeId"),
+                            OwnerId = reader.GetSafeInt32("OwnerId")
+                        });
+                    return result;
+                });
+            }
+        }
 
         /* =============================================================================================== Tools */
 

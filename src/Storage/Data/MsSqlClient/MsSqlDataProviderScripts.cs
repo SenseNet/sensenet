@@ -205,23 +205,15 @@ WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N
 ";
             #endregion
 
-            /* ------------------------------------------------ Installation */
-
-            #region LoadEntityTree
-            public static readonly string LoadEntityTree = @"-- MsSqlDataProvider.LoadEntityTree
+        }
+        /* ------------------------------------------------ Installation */
+        #region LoadEntityTree
+        public override string LoadEntityTreeScript { get; } = @"-- MsSqlDataProvider.LoadEntityTree
 SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 ";
-            #endregion
+        #endregion
 
-
-            /* ------------------------------------------------ Tools */
-
-
-            #region
-            #endregion
-
-            #region
-            #endregion
-        }
+        /* ------------------------------------------------ Tools */
     }
+
 }

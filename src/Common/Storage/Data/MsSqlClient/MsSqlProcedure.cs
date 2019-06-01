@@ -13,6 +13,24 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
             //UNDONE:DB@@@@ not implemented
         }
 
+        public static async Task<int> ExecuteNonQueryAsync(string sql, Action<SqlProcedure> setParams = null)
+        {
+            using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
+            {
+                setParams?.Invoke(cmd);
+                return await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        public static async Task<object> ExecuteScalarAsync(string sql, Action<SqlProcedure> setParams = null)
+        {
+            using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
+            {
+                setParams?.Invoke(cmd);
+                return await cmd.ExecuteScalarAsync();
+            }
+        }
+
         public static Task<T> ExecuteReaderAsync<T>(string sql, Func<SqlDataReader, T> callback)
         {
             return ExecuteReaderAsync(sql, null, callback);
@@ -27,31 +45,6 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
             }
         }
 
-        public static async Task<T> ExecuteScalarAsync<T>(string sql, Func<object, T> callback)
-        {
-            return await ExecuteScalarAsync(sql, null, callback);
-        }
-        public static async Task<T> ExecuteScalarAsync<T>(string sql, Action<SqlProcedure> setParams, Func<object, T> callback)
-        {
-            using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
-            {
-                setParams?.Invoke(cmd);
-                var value = await cmd.ExecuteScalarAsync();
-                return callback(value);
-            }
-        }
 
-        public static async Task<int> ExecuteNonQueryAsync(string sql)
-        {
-            return await ExecuteNonQueryAsync(sql, null);
-        }
-        public static async Task<int> ExecuteNonQueryAsync(string sql, Action<SqlProcedure> setParams)
-        {
-            using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
-            {
-                setParams?.Invoke(cmd);
-                return await cmd.ExecuteNonQueryAsync();
-            }
-        }
     }
 }

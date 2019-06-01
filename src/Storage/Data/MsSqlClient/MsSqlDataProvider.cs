@@ -29,13 +29,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== General API */
 
-        public override DbCommand CreateCommand()
-        {
-            return new SqlCommand();
-        }
         public override DbConnection CreateConnection()
         {
             return new SqlConnection(ConnectionStrings.ConnectionString);
+        }
+        public override DbCommand CreateCommand()
+        {
+            return new SqlCommand();
         }
         public override DbParameter CreateParameter()
         {
@@ -52,6 +52,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             try
             {
+                using (var ctx = new SnDataContext(this))
+                {
+                    using (var transaction = ctx.BeginTransaction())
+                    {
+
+                        transaction.Commit();
+                    }
+                }
+
                 // Insert new rows int Nodes and Versions tables
                 var ok = await MsSqlProcedure.ExecuteReaderAsync(SqlScripts.InsertNodeAndVersion, cmd =>
                 {
@@ -610,12 +619,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = string.Format(SqlScripts.IsTreeLocked,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
-            return await MsSqlProcedure.ExecuteScalarAsync(sql, cmd =>
+            var result = await MsSqlProcedure.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.Add(new SqlParameter("@TimeLimit", SqlDbType.DateTime)).Value = timeLimit;
                 for (int i = 0; i < parentChain.Length; i++)
                     cmd.Parameters.Add(new SqlParameter("@Path" + i, SqlDbType.NVarChar, 450)).Value = parentChain[i];
-            }, value => value != null && value != DBNull.Value );
+            });
+            return result != null && result != DBNull.Value;
         }
 
         public override Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
@@ -667,8 +677,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await MsSqlProcedure.ExecuteScalarAsync(
-                SqlScripts.GetLastIndexingActivityId, value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
+            var result = await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.GetLastIndexingActivityId);
+            return result == DBNull.Value ? 0 : Convert.ToInt32(result);
         }
 
         public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
@@ -798,7 +808,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var unused = await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.WriteAuditEvent, cmd =>
+            var result = await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.WriteAuditEvent, cmd =>
             {
                 cmd.Parameters.Add("@EventID", SqlDbType.Int).Value = auditEvent.EventId;
                 cmd.Parameters.Add("@Category", SqlDbType.NVarChar, 50).Value = (object)auditEvent.Category ?? DBNull.Value;
@@ -817,8 +827,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 cmd.Parameters.Add("@Win32ThreadId", SqlDbType.VarChar, 128).Value = auditEvent.ThreadId;
                 cmd.Parameters.Add("@Message", SqlDbType.VarChar, 1500).Value = (object)auditEvent.Message ?? DBNull.Value;
                 cmd.Parameters.Add("@Formattedmessage", SqlDbType.NText).Value = (object)auditEvent.FormattedMessage ?? DBNull.Value;
-            },
-            value => value == DBNull.Value ? 0 : Convert.ToInt32(value));
+            });
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -837,17 +846,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
         {
             RepositoryPath.CheckValidPath(path);
-            return await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.GetTreeSize, cmd =>
+            var result = await MsSqlProcedure.ExecuteScalarAsync(SqlScripts.GetTreeSize, cmd =>
             {
                 cmd.Parameters.Add("@IncludeChildren", SqlDbType.TinyInt).Value = includeChildren ? (byte)1 : 0;
                 cmd.Parameters.Add("@NodePath", SqlDbType.NVarChar, PathMaxLength).Value = path;
-            },
-            value => (long) value
-            );
+            });
+            return (long)result;
         }
 
         public override Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
@@ -865,21 +872,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
         }
 
-        public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return await MsSqlProcedure.ExecuteReaderAsync(SqlScripts.LoadEntityTree, reader =>
-            {
-                var result = new List<EntityTreeNodeData>();
-                while (reader.Read())
-                    result.Add(new EntityTreeNodeData
-                    {
-                        Id = reader.GetInt32("NodeId"),
-                        ParentId = reader.GetSafeInt32("ParentNodeId"),
-                        OwnerId = reader.GetSafeInt32("OwnerId")
-                    });
-                return result;
-            });
-        }
+        //public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken)) { }
 
 
         /* ======================================================================================================= TOOLS */
