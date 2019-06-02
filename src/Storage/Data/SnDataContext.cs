@@ -108,8 +108,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                var reader = await cmd.ExecuteReaderAsync();
-                return await callbackAsync(reader);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                    return await callbackAsync(reader);
             }
         }
 

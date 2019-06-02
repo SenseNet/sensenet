@@ -1578,6 +1578,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* =============================================================================================== Tools */
 
+        protected override long ConvertTimestampToInt64(object timestamp)
+        {
+            throw new NotSupportedException();
+        }
+
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {
             foreach (var existing in DB.LongTextProperties.Where(x => x.VersionId == targetVersionId).ToArray())

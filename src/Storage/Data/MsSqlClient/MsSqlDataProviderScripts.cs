@@ -7,12 +7,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlDataProvider
     {
-        private static class SqlScripts
-        {
-            /* ------------------------------------------------ Nodes */
+        /* ------------------------------------------------ Nodes */
 
-            #region InsertNodeAndVersion
-            public static readonly string InsertNodeAndVersion = @"-- MsSqlDataProvider.InsertNodeAndVersion
+        #region InsertNodeAndVersionScript
+        public override string InsertNodeAndVersionScript => @"-- MsSqlDataProvider.InsertNodeAndVersion
 DECLARE @NodeId int, @VersionId int
 DECLARE @NodeTimestamp timestamp, @VersionTimestamp timestamp
 
@@ -41,20 +39,20 @@ BEGIN
     SELECT @NodeId NodeId, @VersionId VersionId, @NodeTimestamp NodeTimestamp, @VersionTimestamp VersionTimestamp, LastMajorVersionId, LastMinorVersionId, Path FROM Nodes WHERE NodeId = @NodeId
 END
 ";
-            #endregion
-            #region InsertLongtextPropertiesFirstLine
-            public static readonly string InsertLongtextPropertiesFirstLine = @"-- MsSqlDataProvider.InsertLongtextProperties
+        #endregion
+        #region InsertLongtextPropertiesFirstLineScript
+        public override string InsertLongtextPropertiesFirstLineScript => @"-- MsSqlDataProvider.InsertLongtextProperties
 ";
-            #endregion
-            #region InsertLongtextProperties
-            public static readonly string InsertLongtextProperties = @"INSERT INTO LongTextProperties
+        #endregion
+        #region InsertLongtextPropertiesScript
+        public override string InsertLongtextPropertiesScript => @"INSERT INTO LongTextProperties
     ([VersionId],[PropertyTypeId],[Length],[Value]) VALUES
     (@VersionId, @PropertyTypeId{0}, @Length{0}, @Value{0} )
 ";
-            #endregion
+        #endregion
 
-            #region LoadNodes
-            public static readonly string LoadNodes = @"-- MsSqlDataProvider.LoadNodes
+        #region LoadNodesScript
+        public override string LoadNodesScript => @"-- MsSqlDataProvider.LoadNodes
 -- Transform the input to a queryable format
 DECLARE @VersionIdTable AS TABLE(Id INT)
 INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
@@ -93,12 +91,12 @@ SELECT VersionId, PropertyTypeId, [Length], [Value]
 FROM dbo.LongTextProperties
 WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSize
 ";
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ NodeHead */
+        /* ------------------------------------------------ NodeHead */
 
-            #region LoadNodeHead
-            private static readonly string LoadNodeHeadSkeletonSql = @"-- MsSqlDataProvider.{0}
+        #region LoadNodeHeadScript
+        private string LoadNodeHeadSkeletonScript = @"-- MsSqlDataProvider.{0}
 {1}
 SELECT
     Node.NodeId,             -- 0
@@ -126,76 +124,84 @@ WHERE
     {3}
 ";
 
-            public static string LoadNodeHead(string trace, string scriptHead = null, string join = null, string where = null)
-            {
-                return string.Format(LoadNodeHeadSkeletonSql,
-                    trace,
-                    scriptHead ?? string.Empty,
-                    join ?? string.Empty,
-                    where ?? string.Empty);
-            }
-            #endregion
+        private string LoadNodeHeadScript(string trace, string scriptHead = null, string join = null, string where = null)
+        {
+            return string.Format(LoadNodeHeadSkeletonScript,
+                trace,
+                scriptHead ?? string.Empty,
+                join ?? string.Empty,
+                where ?? string.Empty);
+        }
 
-            /* ------------------------------------------------ NodeQuery */
+        public override string LoadNodeHeadByPathScript => LoadNodeHeadScript("LoadNodeHead by Path", where: "Node.Path = @Path COLLATE Latin1_General_CI_AS");
+        public override string LoadNodeHeadByIdScript => LoadNodeHeadScript("LoadNodeHead by NodeId", where: "Node.NodeId = @NodeId");
+        public override string LoadNodeHeadByVersionIdScript => LoadNodeHeadScript("LoadNodeHead by VersionId",
+            join: "JOIN Versions V ON V.NodeId = Node.NodeId", where: "V.VersionId = @VersionId");
+        public override string LoadNodeHeadsByIdSetScript => LoadNodeHeadScript("LoadNodeHead by NodeId set",
+            scriptHead: @"DECLARE @NodeIdTable AS TABLE(Id INT) INSERT INTO @NodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@NodeIds, ',');",
+            where: "Node.NodeId IN (SELECT Id FROM @NodeIdTable)");
+        #endregion
 
-            /* ------------------------------------------------ Tree */
+        /* ------------------------------------------------ NodeQuery */
 
-            /* ------------------------------------------------ TreeLock */
+        /* ------------------------------------------------ Tree */
 
-            #region IsTreeLocked
-            public static readonly string IsTreeLocked = @"-- MsSqlDataProvider.IsTreeLocked
+        /* ------------------------------------------------ TreeLock */
+
+        #region IsTreeLockedScript
+        public override string IsTreeLockedScript => @"-- MsSqlDataProvider.IsTreeLocked
 SELECT TreeLockId
 FROM TreeLocks
 WHERE @TimeLimit < LockedAt AND (
     [Path] LIKE (REPLACE(@Path0, '_', '[_]') + '/%') OR
     [Path] IN ( {0} ) )
 ";
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ IndexDocument */
+        /* ------------------------------------------------ IndexDocument */
 
-            #region SaveIndexDocument
-            public static readonly string SaveIndexDocument = @"-- MsSqlDataProvider.SaveIndexDocument
+        #region SaveIndexDocumentScript
+        public override string SaveIndexDocumentScript => @"-- MsSqlDataProvider.SaveIndexDocument
 UPDATE Versions SET [IndexDocument] = @IndexDocument WHERE VersionId = @VersionId
 SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
 ;
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ IndexingActivity */
+        /* ------------------------------------------------ IndexingActivity */
 
-            #region GetLastIndexingActivityId
-            public static readonly string GetLastIndexingActivityId = @"-- MsSqlDataProvider.GetLastIndexingActivityId
+        #region GetLastIndexingActivityIdScript
+        public override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId
 SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ Schema */
+        /* ------------------------------------------------ Schema */
 
-            #region LoadSchema
-            //UNDONE:DB: LoadSchema script: ContentListTypes is commnted out
-            public static readonly string LoadSchema = @"-- MsSqlDataProvider.LoadSchema
+        #region LoadSchemaScript
+        //UNDONE:DB: LoadSchema script: ContentListTypes is commnted out
+        public override string LoadSchemaScript => @"-- MsSqlDataProvider.LoadSchema
 SELECT [Timestamp] FROM SchemaModification
 SELECT * FROM PropertyTypes
 SELECT * FROM NodeTypes
 --SELECT * FROM ContentListTypes
 ";
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ Logging */
+        /* ------------------------------------------------ Logging */
 
-            #region WriteAuditEvent
-            public static readonly string WriteAuditEvent = @"-- MsSqlDataProvider.WriteAuditEvent
+        #region WriteAuditEventScript
+        public override string WriteAuditEventScript => @"-- MsSqlDataProvider.WriteAuditEvent
 INSERT INTO [dbo].[LogEntries]
     ([EventId], [Category], [Priority], [Severity], [Title], [ContentId], [ContentPath], [UserName], [LogDate], [MachineName], [AppDomainName], [ProcessId], [ProcessName], [ThreadName], [Win32ThreadId], [Message], [FormattedMessage])
 VALUES
     (@EventId,  @Category,  @Priority,  @Severity,  @Title,  @ContentId,  @ContentPath,  @UserName,  @LogDate,  @MachineName,  @AppDomainName,  @ProcessId,  @ProcessName,  @ThreadName,  @Win32ThreadId,  @Message,  @FormattedMessage)
 SELECT @@IDENTITY
 ";
-            #endregion
+        #endregion
 
-            /* ------------------------------------------------ Provider Tools */
+        /* ------------------------------------------------ Provider Tools */
 
-            #region GetTreeSize
-            public static readonly string GetTreeSize = @"-- MsSqlDataProvider.GetTreeSize
+        #region GetTreeSizeScript
+        public override string GetTreeSizeScript => @"-- MsSqlDataProvider.GetTreeSize
 SELECT SUM(F.Size) Size
 FROM Files F
     JOIN BinaryProperties B ON B.FileId = F.FileId
@@ -203,11 +209,11 @@ FROM Files F
     JOIN Nodes N on V.NodeId = N.NodeId
 WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N.[Path] + '/' LIKE REPLACE(@NodePath, '_', '[_]') + '/%'))
 ";
-            #endregion
+        #endregion
 
-        }
         /* ------------------------------------------------ Installation */
-        #region LoadEntityTree
+
+        #region LoadEntityTreeScript
         public override string LoadEntityTreeScript { get; } = @"-- MsSqlDataProvider.LoadEntityTree
 SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 ";
