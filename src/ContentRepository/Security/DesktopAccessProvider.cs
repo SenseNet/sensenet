@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Security
             {
 //UNDONE:DB:SystemAccount thread safety. Remove after bug investigation
 //SnTrace.Write("@@@@ SET CurrentUser: {0}", value.Name);
-//                Thread.CurrentPrincipal = new SystemPrincipal(value);
+                Thread.CurrentPrincipal = new SystemPrincipal(value);
             }
         }
 
