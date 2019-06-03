@@ -130,6 +130,21 @@ namespace SenseNet.ContentRepository.Storage
         {
             lock (_readPropertySync)
             {
+                if (Id > 0 && !IsShared)
+                {
+                    foreach (var refPropType in PropertyTypes.Where(x => x.DataType == DataType.Reference))
+                    {
+                        //UNDONE:DB: Not tested: GetDynamicData/Distinct references.
+                        var ids = (int[])GetDynamicRawData(refPropType);
+                        if ((ids != null && ids.Any()))
+                        {
+                            var ids1 = ids.Distinct().ToList();
+                            if (ids1.Count != ids.Length)
+                                SetDynamicRawData(refPropType, ids1);
+                        }
+                    }
+                }
+
                 var changedPropertyTypes = dynamicData.Keys.Select(x => ActiveSchema.PropertyTypes.GetItemById(x)).ToArray();
                 var binaryTypes =
                     (allBinaries ? (IEnumerable<PropertyType>) PropertyTypes : changedPropertyTypes)
