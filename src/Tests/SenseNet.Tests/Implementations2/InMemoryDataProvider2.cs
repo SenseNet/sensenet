@@ -146,7 +146,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
                     // Manage BinaryProperties
                     foreach (var item in dynamicData.BinaryProperties)
-                        SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, false);
+                        SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, false, false);
 
                     // Update subtree if needed
                     if (originalPath != null)
