@@ -1582,6 +1582,10 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             throw new NotSupportedException();
         }
+        protected override object ConvertInt64ToTimestamp(long timestamp)
+        {
+            throw new NotImplementedException();
+        }
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

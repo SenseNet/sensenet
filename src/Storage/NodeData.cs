@@ -135,12 +135,16 @@ namespace SenseNet.ContentRepository.Storage
                     foreach (var refPropType in PropertyTypes.Where(x => x.DataType == DataType.Reference))
                     {
                         //UNDONE:DB: Not tested: GetDynamicData/Distinct references.
-                        var ids = (int[])GetDynamicRawData(refPropType);
-                        if ((ids != null && ids.Any()))
+                        var ids = (IEnumerable<int>)GetDynamicRawData(refPropType);
+                        if (ids != null)
                         {
-                            var ids1 = ids.Distinct().ToList();
-                            if (ids1.Count != ids.Length)
-                                SetDynamicRawData(refPropType, ids1);
+                            var ids1 = ids as int[] ?? ids.ToArray();
+                            if (ids1.Any())
+                            {
+                                var ids2 = ids1.Distinct().ToList();
+                                if (ids2.Count != ids1.Length)
+                                    SetDynamicRawData(refPropType, ids2);
+                            }
                         }
                     }
                 }

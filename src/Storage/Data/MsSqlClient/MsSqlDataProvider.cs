@@ -37,12 +37,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Nodes */
 
-        public override Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            IEnumerable<int> versionIdsToDelete, string originalPath = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
-        }
+        //public override Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, CancellationToken cancellationToken = default(CancellationToken))
+        //public override Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken)) { }
 
         public override Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             IEnumerable<int> versionIdsToDelete, int expectedVersionId = 0, string originalPath = null,
@@ -70,11 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
-        }
+        //public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds, CancellationToken cancellationToken = default(CancellationToken)) { }
 
         public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -342,6 +334,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         protected override long ConvertTimestampToInt64(object timestamp)
         {
             return GetLongFromBytes((byte[]) timestamp);
+        }
+
+        protected override object ConvertInt64ToTimestamp(long timestamp)
+        {
+            return GetBytesFromLong(timestamp);
         }
 
         internal static long GetLongFromBytes(byte[] bytes)

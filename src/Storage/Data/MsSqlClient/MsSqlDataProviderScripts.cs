@@ -40,14 +40,104 @@ BEGIN
 END
 ";
         #endregion
-        #region InsertLongtextPropertiesFirstLineScript
-        public override string InsertLongtextPropertiesFirstLineScript => @"-- MsSqlDataProvider.InsertLongtextProperties
+        #region InsertLongtextPropertiesHeadScript
+        public override string InsertLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.InsertLongtextProperties
 ";
         #endregion
         #region InsertLongtextPropertiesScript
         public override string InsertLongtextPropertiesScript => @"INSERT INTO LongTextProperties
     ([VersionId],[PropertyTypeId],[Length],[Value]) VALUES
     (@VersionId, @PropertyTypeId{0}, @Length{0}, @Value{0} )
+";
+        #endregion
+
+        #region UpdateVersionScript
+        public override string UpdateVersionScript => @"-- MsSqlDataProvider.UpdateVersion
+UPDATE Versions SET
+	NodeId = @NodeId,
+	MajorNumber = @MajorNumber,
+	MinorNumber = @MinorNumber,
+	CreationDate = @CreationDate,
+	CreatedById = @CreatedById,
+	ModificationDate = @ModificationDate,
+	ModifiedById = @ModifiedById,
+	Status = @Status,
+	ChangedData = @ChangedData,
+    DynamicProperties = @DynamicProperties
+WHERE VersionId = @VersionId
+
+SELECT [Timestamp] FROM Versions WHERE VersionId = @VersionId
+";
+        #endregion
+        #region UpdateNodeScript
+        public override string UpdateNodeScript => @"-- MsSqlDataProvider.UpdateNode
+UPDATE Nodes SET
+	NodeTypeId = @NodeTypeId,
+	ContentListTypeId = @ContentListTypeId,
+	ContentListId = @ContentListId,
+	CreatingInProgress = @CreatingInProgress,
+	IsDeleted = @IsDeleted,
+	IsInherited = @IsInherited,
+	ParentNodeId = @ParentNodeId,
+	[Name] = @Name,
+	DisplayName = @DisplayName,
+	Path = @Path,
+	[Index] = @Index,
+	Locked = @Locked,
+	LockedById = @LockedById,
+	ETag = @ETag,
+	LockType = @LockType,
+	LockTimeout = @LockTimeout,
+	LockDate = @LockDate,
+	LockToken = @LockToken,
+	LastLockUpdate = @LastLockUpdate,
+	CreationDate = @CreationDate,
+	CreatedById = @CreatedById,
+	ModificationDate = @ModificationDate,
+	ModifiedById = @ModifiedById,
+	IsSystem = @IsSystem,
+	OwnerId = @OwnerId,
+	SavingState = @SavingState
+FROM
+	Nodes
+WHERE NodeId = @NodeId AND [Timestamp] = @NodeTimestamp
+
+IF @@ROWCOUNT = 0 BEGIN
+	DECLARE @Count int
+	SELECT @Count = COUNT(*) FROM Nodes WHERE NodeId = @NodeId
+	IF @Count = 0
+		RAISERROR (N'Cannot update a deleted Node. Id: %d, path: %s.', 12, 1, @NodeId, @Path);
+	ELSE
+		RAISERROR (N'Node is out of date Id: %d, path: %s.', 12, 1, @NodeId, @Path);
+END
+ELSE BEGIN
+	SELECT [Timestamp] FROM Nodes WHERE NodeId = @NodeId
+END
+";
+        #endregion
+        #region UpdateSubTreePathScript
+        public override string UpdateSubTreePathScript => @"-- MsSqlDataProvider.UpdateSubTreePath
+DECLARE @OldPathLen int
+SET @OldPathLen = LEN(@OldPath)
+
+UPDATE Nodes
+SET Path = @NewPath + RIGHT(Path, LEN(Path) - @OldPathLen)
+WHERE Path LIKE REPLACE(@OldPath, '_', '[_]') + '/%'
+";
+        #endregion
+        #region UpdateLongtextPropertiesHeadScript
+        public override string UpdateLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
+";
+        #endregion
+        #region UpdateLongtextPropertiesScript
+        public override string UpdateLongtextPropertiesScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
+DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId{0}
+" + InsertLongtextPropertiesScript;
+        #endregion
+
+        #region LoadTextPropertyValuesScript
+        public override string LoadTextPropertyValuesScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
+SELECT PropertyTypeId, Value FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId IN ({0})
 ";
         #endregion
 
@@ -92,6 +182,30 @@ FROM dbo.LongTextProperties
 WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSize
 ";
         #endregion
+
+        #region DeleteVersionsScript
+        public override string DeleteVersionsScript => @"-- MsSqlDataProvider.DeleteVersions
+DECLARE @VersionIdTable AS TABLE(Id INT)
+INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
+
+DELETE FROM LongTextProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+--DELETE FROM ReferenceProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+
+UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
+DELETE FROM Versions WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+
+UPDATE Nodes
+	SET LastMinorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId
+			ORDER BY MajorNumber DESC, MinorNumber DESC),
+		LastMajorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId AND MinorNumber = 0 AND Status = 1
+			ORDER BY MajorNumber DESC, MinorNumber DESC)
+WHERE NodeId = @NodeId
+
+-- Return the new timestamp and version ids
+SELECT [Timestamp] as NodeTimestamp, LastMajorVersionId, LastMinorVersionId FROM Nodes WHERE NodeId = @NodeId
+";
+        #endregion
+
 
         /* ------------------------------------------------ NodeHead */
 

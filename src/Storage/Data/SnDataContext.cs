@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using IsolationLevel = System.Data.IsolationLevel;
@@ -10,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public class SnDataContext : IDisposable
     {
-        private class TrasactionWrapper : IDbTransaction
+        private class TransactionWrapper : IDbTransaction
         {
             public DbTransaction Transaction { get; }
 
@@ -18,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
             public TransactionStatus Status { get; private set; }
 
-            public TrasactionWrapper(DbTransaction transaction)
+            public TransactionWrapper(DbTransaction transaction)
             {
                 Status = TransactionStatus.Active;
                 Transaction = transaction;
@@ -42,11 +43,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private readonly DataProvider2 _dataProvider;
         private readonly DbConnection _connection;
-        private TrasactionWrapper _transaction;
+        private TransactionWrapper _transaction;
 
-        public SnDataContext(DataProvider2 dataProvider)
+        public CancellationToken CancellationToken { get; }
+
+        public SnDataContext(DataProvider2 dataProvider, CancellationToken cancellationToken = default(CancellationToken))
         {
             _dataProvider = dataProvider;
+            CancellationToken = cancellationToken;
             _connection = _dataProvider.CreateConnection();
             _connection.Open();
         }
@@ -61,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             var transaction = _connection.BeginTransaction(isolationLevel);
-            _transaction = new TrasactionWrapper(transaction);
+            _transaction = new TransactionWrapper(transaction);
             return _transaction;
         }
 
@@ -76,7 +80,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteNonQueryAsync();
+                return await cmd.ExecuteNonQueryAsync(CancellationToken);
             }
         }
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
@@ -90,7 +94,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteScalarAsync();
+                return await cmd.ExecuteScalarAsync(CancellationToken);
             }
         }
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, Task<T>> callback)
@@ -108,7 +112,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync(CancellationToken))
                     return await callbackAsync(reader);
             }
         }

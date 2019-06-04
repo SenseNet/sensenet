@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.Common.Storage.Data.MsSqlClient;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -137,7 +138,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this))
+                using (var ctx = new SnDataContext(this, cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -208,24 +209,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                         //UNDONE:DB: Insert ReferenceProperties
 
                         // Manage LongTextProperties
-                        //UNDONE:DB: Insert LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                        {
-                            var longTextSqlBuilder = new StringBuilder();
-                            var longTextSqlParameters = new List<DbParameter>();
-                            var index = 0;
-                            longTextSqlBuilder.Append(InsertLongtextPropertiesFirstLineScript);
-                            longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
-                            foreach (var item in dynamicData.LongTextProperties)
-                            {
-                                longTextSqlBuilder.AppendFormat(InsertLongtextPropertiesScript, ++index);
-                                longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
-                                longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
-                                longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
-                            }
-                            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
-                                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
-                        }
+                            await InsertLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
@@ -245,9 +230,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException("Node was not saved. For more details see the inner exception.", e);
             }
         }
-        public virtual string InsertNodeAndVersionScript => throw new NotSupportedException();
-        public virtual string InsertLongtextPropertiesFirstLineScript => throw new NotSupportedException();
-        public virtual string InsertLongtextPropertiesScript => throw new NotSupportedException();
         public virtual string SerializeDynamiProperties(IDictionary<PropertyType, object> properties)
         {
             var lines = properties.Select(x => SerializeDynamicProperty(x.Key, x.Value)).ToArray();
@@ -274,6 +256,26 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return $"{propertyType.Name}:{value}";
         }
+        protected virtual async Task InsertLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
+        {
+            var longTextSqlBuilder = new StringBuilder();
+            var longTextSqlParameters = new List<DbParameter>();
+            var index = 0;
+            longTextSqlBuilder.Append(InsertLongtextPropertiesHeadScript);
+            longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+            foreach (var item in longTextProperties)
+            {
+                longTextSqlBuilder.AppendFormat(InsertLongtextPropertiesScript, ++index);
+                longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
+                longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+            }
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
+                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
+        }
+        public virtual string InsertNodeAndVersionScript => throw new NotSupportedException();
+        public virtual string InsertLongtextPropertiesHeadScript => throw new NotSupportedException();
+        public virtual string InsertLongtextPropertiesScript => throw new NotSupportedException();
 
         /// <summary>
         /// Updates objects in the database that contain static and dynamic properties of the node.
@@ -332,9 +334,177 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task UpdateNodeAsync(
-            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
+        public virtual async Task UpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+            IEnumerable<int> versionIdsToDelete,
+            string originalPath = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                using (var transaction = ctx.BeginTransaction())
+                {
+                    var versionId = versionData.VersionId;
+
+                    // Update version
+                    var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new []
+                        {
+                            #region CreateParameter("@NodeId", DbType.Int32, ...
+                            CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
+                            CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
+                            CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                            CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                            CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                            CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                            CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                            CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                            CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                            CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamiProperties(dynamicData.DynamicProperties)),
+                            #endregion
+                        });
+                    });
+                    versionData.Timestamp = ConvertTimestampToInt64(rawVersionTimestamp);
+
+                    // Update Node
+                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            #region CreateParameter("@NodeId", DbType.Int32, ...
+                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                            CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                            CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                            CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                            CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                            CreateParameter("@IsInherited", DbType.Byte, (byte)0),
+                            CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                            CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                            CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
+                            CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                            CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                            CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                            CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                            CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                            CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                            CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                            CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                            CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                            CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                            CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                            CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                            CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                            CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                            CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                            CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
+                            CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            #endregion
+                        });
+                    });
+                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+
+                    // Update subtree if needed
+                    if (originalPath != null)
+                        await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+
+                    // Delete versions
+                    await DeleteVersions(versionIdsToDelete, nodeHeadData, ctx);
+
+                    // Manage ReferenceProperties
+                    //UNDONE:DB: Update ReferenceProperties
+
+                    // Manage LongTextProperties
+                    if (dynamicData.LongTextProperties.Any())
+                        await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+
+                    // Manage BinaryProperties
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+
+                    transaction.Commit();
+                }
+            }
+        }
+        protected async Task UpdateSubTreePath(string originalPath, string path, SnDataContext ctx)
+        {
+            await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    CreateParameter("@OldPath", DbType.String, PathMaxLength, originalPath),
+                    CreateParameter("@NewPath", DbType.String, PathMaxLength, path),
+                });
+            });
+        }
+        protected virtual async Task DeleteVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, SnDataContext ctx)
+        {
+            if (versionIdsToDelete == null)
+                return;
+
+            var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
+            if (versionIds.Length == 0)
+                return;
+
+            //UNDONE:DB: Rewrite to async and pass ctx.
+            BlobStorage.DeleteBinaryProperties(versionIds);
+
+            await ctx.ExecuteReaderAsync(DeleteVersionsScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                    CreateParameter("@VersionIds", DbType.AnsiString, string.Join(",", versionIds.Select(x => x.ToString())))
+                });
+            }, async reader =>
+            {
+                if (await reader.ReadAsync(ctx.CancellationToken))
+                {
+                    nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
+                    nodeHeadData.LastMajorVersionId = reader.GetInt32("LastMajorVersionId");
+                    nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
+                }
+                return true;
+            });
+        }
+        protected virtual void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
+        {
+            if (value == null || value.IsEmpty)
+                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
+            else if (value.Id == 0 || isNewProperty)
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+            else
+                BlobStorage.UpdateBinaryProperty(value);
+        }
+        public virtual string UpdateVersionScript => throw new NotSupportedException();
+        public virtual string UpdateNodeScript => throw new NotSupportedException();
+        public virtual string UpdateSubTreePathScript => throw new NotSupportedException();
+        public virtual string DeleteVersionsScript => throw new NotSupportedException();
+
+        protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
+        {
+            var longTextSqlBuilder = new StringBuilder();
+            var longTextSqlParameters = new List<DbParameter>();
+            var index = 0;
+            longTextSqlBuilder.Append(UpdateLongtextPropertiesHeadScript);
+            longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+            foreach (var item in longTextProperties)
+            {
+                longTextSqlBuilder.AppendFormat(UpdateLongtextPropertiesScript, ++index);
+                longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
+                longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+            }
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
+                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
+        }
+        public virtual string UpdateLongtextPropertiesHeadScript => throw new NotSupportedException();
+        public virtual string UpdateLongtextPropertiesScript => throw new NotSupportedException();
+
+
+
 
         /// <summary>
         /// Copies all objects that contain static and dynamic properties of the node (except the nodeHead representation)
@@ -465,7 +635,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodesScript, cmd =>
                 {
@@ -650,8 +820,34 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
-            CancellationToken cancellationToken = default(CancellationToken));
+        public virtual async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var result = new Dictionary<int, string>();
+            if (notLoadedPropertyTypeIds == null || notLoadedPropertyTypeIds.Length == 0)
+                return result;
+
+            var propParamPrefix = "@Prop";
+            var sql = string.Format(LoadTextPropertyValuesScript, string.Join(", ",
+                Enumerable.Range(0, notLoadedPropertyTypeIds.Length).Select(i => propParamPrefix + i)));
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(sql, cmd =>
+                {
+                    cmd.Parameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+                    for (int i = 0; i < notLoadedPropertyTypeIds.Length; i++)
+                        cmd.Parameters.Add(CreateParameter(propParamPrefix + i, DbType.Int32, notLoadedPropertyTypeIds[i]));
+                }, async reader =>
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(reader.GetInt32("PropertyTypeId"), reader.GetSafeString("Value"));
+                    return result;
+                });
+            }
+        }
+        public virtual string LoadTextPropertyValuesScript => throw new NotSupportedException();
+
 
         /// <summary>
         /// Loads a metadata of a single blob. Uses the BlobStorage.LoadBinaryProperty(int, int) method.
@@ -678,7 +874,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public virtual async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
@@ -704,7 +900,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public virtual async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
@@ -744,7 +940,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
                 {
@@ -867,7 +1063,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(IsTreeLockedScript,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -922,7 +1118,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public virtual async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
                 {
@@ -951,7 +1147,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and contains the biggest IndexingActivity Id ot 0.</returns>
         public virtual async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript);
                 return result == DBNull.Value ? 0 : Convert.ToInt32(result);
@@ -982,7 +1178,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="RepositorySchemaData"/> instance.</returns>
         public virtual async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadSchemaScript, async reader =>
                 {
@@ -1088,7 +1284,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public virtual async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 var unused = await ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
                 {
@@ -1144,7 +1340,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual async  Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
         {
             RepositoryPath.CheckValidPath(path);
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
                 {
@@ -1181,7 +1377,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
         public virtual async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new SnDataContext(this, cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadEntityTreeScript, async reader =>
                 {
@@ -1207,5 +1403,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         protected abstract long ConvertTimestampToInt64(object timestamp);
+        protected abstract object ConvertInt64ToTimestamp(long timestamp);
     }
 }
