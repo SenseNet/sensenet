@@ -16,7 +16,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    public partial class MsSqlDataProvider : DataProvider2
+    public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
 

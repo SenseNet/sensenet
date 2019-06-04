@@ -25,22 +25,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
     public class InMemoryDataProvider2 : DataProvider2
     {
-        /* =============================================================================================== General API */
-        public override DbCommand CreateCommand()
-        {
-            throw new PlatformNotSupportedException();
-        }
-        public override DbConnection CreateConnection()
-        {
-            throw new PlatformNotSupportedException();
-        }
-        public override DbParameter CreateParameter()
-        {
-            throw new PlatformNotSupportedException();
-        }
-
-        /* =============================================================================================== */
-
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase2 DB { get; } = new InMemoryDataBase2();
 
@@ -1577,15 +1561,6 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
 
         /* =============================================================================================== Tools */
-
-        protected override long ConvertTimestampToInt64(object timestamp)
-        {
-            throw new NotSupportedException();
-        }
-        protected override object ConvertInt64ToTimestamp(long timestamp)
-        {
-            throw new NotImplementedException();
-        }
 
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {

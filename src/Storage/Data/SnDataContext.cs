@@ -41,13 +41,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        private readonly DataProvider2 _dataProvider;
+        private readonly RelationalDataProviderBase _dataProvider;
         private readonly DbConnection _connection;
         private TransactionWrapper _transaction;
 
         public CancellationToken CancellationToken { get; }
 
-        public SnDataContext(DataProvider2 dataProvider, CancellationToken cancellationToken = default(CancellationToken))
+        public SnDataContext(RelationalDataProviderBase dataProvider, CancellationToken cancellationToken = default(CancellationToken))
         {
             _dataProvider = dataProvider;
             CancellationToken = cancellationToken;

@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /* ------------------------------------------------ Nodes */
 
         #region InsertNodeAndVersionScript
-        public override string InsertNodeAndVersionScript => @"-- MsSqlDataProvider.InsertNodeAndVersion
+        protected override string InsertNodeAndVersionScript => @"-- MsSqlDataProvider.InsertNodeAndVersion
 DECLARE @NodeId int, @VersionId int
 DECLARE @NodeTimestamp timestamp, @VersionTimestamp timestamp
 
@@ -41,18 +41,18 @@ END
 ";
         #endregion
         #region InsertLongtextPropertiesHeadScript
-        public override string InsertLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.InsertLongtextProperties
+        protected override string InsertLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.InsertLongtextProperties
 ";
         #endregion
         #region InsertLongtextPropertiesScript
-        public override string InsertLongtextPropertiesScript => @"INSERT INTO LongTextProperties
+        protected override string InsertLongtextPropertiesScript => @"INSERT INTO LongTextProperties
     ([VersionId],[PropertyTypeId],[Length],[Value]) VALUES
     (@VersionId, @PropertyTypeId{0}, @Length{0}, @Value{0} )
 ";
         #endregion
 
         #region UpdateVersionScript
-        public override string UpdateVersionScript => @"-- MsSqlDataProvider.UpdateVersion
+        protected override string UpdateVersionScript => @"-- MsSqlDataProvider.UpdateVersion
 UPDATE Versions SET
 	NodeId = @NodeId,
 	MajorNumber = @MajorNumber,
@@ -70,7 +70,7 @@ SELECT [Timestamp] FROM Versions WHERE VersionId = @VersionId
 ";
         #endregion
         #region UpdateNodeScript
-        public override string UpdateNodeScript => @"-- MsSqlDataProvider.UpdateNode
+        protected override string UpdateNodeScript => @"-- MsSqlDataProvider.UpdateNode
 UPDATE Nodes SET
 	NodeTypeId = @NodeTypeId,
 	ContentListTypeId = @ContentListTypeId,
@@ -116,7 +116,7 @@ END
 ";
         #endregion
         #region UpdateSubTreePathScript
-        public override string UpdateSubTreePathScript => @"-- MsSqlDataProvider.UpdateSubTreePath
+        protected override string UpdateSubTreePathScript => @"-- MsSqlDataProvider.UpdateSubTreePath
 DECLARE @OldPathLen int
 SET @OldPathLen = LEN(@OldPath)
 
@@ -126,23 +126,23 @@ WHERE Path LIKE REPLACE(@OldPath, '_', '[_]') + '/%'
 ";
         #endregion
         #region UpdateLongtextPropertiesHeadScript
-        public override string UpdateLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
+        protected override string UpdateLongtextPropertiesHeadScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
 ";
         #endregion
         #region UpdateLongtextPropertiesScript
-        public override string UpdateLongtextPropertiesScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
+        protected override string UpdateLongtextPropertiesScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
 DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId{0}
 " + InsertLongtextPropertiesScript;
         #endregion
 
         #region LoadTextPropertyValuesScript
-        public override string LoadTextPropertyValuesScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
+        protected override string LoadTextPropertyValuesScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
 SELECT PropertyTypeId, Value FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId IN ({0})
 ";
         #endregion
 
         #region LoadNodesScript
-        public override string LoadNodesScript => @"-- MsSqlDataProvider.LoadNodes
+        protected override string LoadNodesScript => @"-- MsSqlDataProvider.LoadNodes
 -- Transform the input to a queryable format
 DECLARE @VersionIdTable AS TABLE(Id INT)
 INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
@@ -184,7 +184,7 @@ WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSiz
         #endregion
 
         #region DeleteVersionsScript
-        public override string DeleteVersionsScript => @"-- MsSqlDataProvider.DeleteVersions
+        protected override string DeleteVersionsScript => @"-- MsSqlDataProvider.DeleteVersions
 DECLARE @VersionIdTable AS TABLE(Id INT)
 INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
 
@@ -247,11 +247,11 @@ WHERE
                 where ?? string.Empty);
         }
 
-        public override string LoadNodeHeadByPathScript => LoadNodeHeadScript("LoadNodeHead by Path", where: "Node.Path = @Path COLLATE Latin1_General_CI_AS");
-        public override string LoadNodeHeadByIdScript => LoadNodeHeadScript("LoadNodeHead by NodeId", where: "Node.NodeId = @NodeId");
-        public override string LoadNodeHeadByVersionIdScript => LoadNodeHeadScript("LoadNodeHead by VersionId",
+        protected override string LoadNodeHeadByPathScript => LoadNodeHeadScript("LoadNodeHead by Path", where: "Node.Path = @Path COLLATE Latin1_General_CI_AS");
+        protected override string LoadNodeHeadByIdScript => LoadNodeHeadScript("LoadNodeHead by NodeId", where: "Node.NodeId = @NodeId");
+        protected override string LoadNodeHeadByVersionIdScript => LoadNodeHeadScript("LoadNodeHead by VersionId",
             join: "JOIN Versions V ON V.NodeId = Node.NodeId", where: "V.VersionId = @VersionId");
-        public override string LoadNodeHeadsByIdSetScript => LoadNodeHeadScript("LoadNodeHead by NodeId set",
+        protected override string LoadNodeHeadsByIdSetScript => LoadNodeHeadScript("LoadNodeHead by NodeId set",
             scriptHead: @"DECLARE @NodeIdTable AS TABLE(Id INT) INSERT INTO @NodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@NodeIds, ',');",
             where: "Node.NodeId IN (SELECT Id FROM @NodeIdTable)");
         #endregion
@@ -263,7 +263,7 @@ WHERE
         /* ------------------------------------------------ TreeLock */
 
         #region IsTreeLockedScript
-        public override string IsTreeLockedScript => @"-- MsSqlDataProvider.IsTreeLocked
+        protected override string IsTreeLockedScript => @"-- MsSqlDataProvider.IsTreeLocked
 SELECT TreeLockId
 FROM TreeLocks
 WHERE @TimeLimit < LockedAt AND (
@@ -275,7 +275,7 @@ WHERE @TimeLimit < LockedAt AND (
         /* ------------------------------------------------ IndexDocument */
 
         #region SaveIndexDocumentScript
-        public override string SaveIndexDocumentScript => @"-- MsSqlDataProvider.SaveIndexDocument
+        protected override string SaveIndexDocumentScript => @"-- MsSqlDataProvider.SaveIndexDocument
 UPDATE Versions SET [IndexDocument] = @IndexDocument WHERE VersionId = @VersionId
 SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
 ;
@@ -284,7 +284,7 @@ SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
         /* ------------------------------------------------ IndexingActivity */
 
         #region GetLastIndexingActivityIdScript
-        public override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId
+        protected override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId
 SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
         #endregion
 
@@ -292,7 +292,7 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
 
         #region LoadSchemaScript
         //UNDONE:DB: LoadSchema script: ContentListTypes is commnted out
-        public override string LoadSchemaScript => @"-- MsSqlDataProvider.LoadSchema
+        protected override string LoadSchemaScript => @"-- MsSqlDataProvider.LoadSchema
 SELECT [Timestamp] FROM SchemaModification
 SELECT * FROM PropertyTypes
 SELECT * FROM NodeTypes
@@ -303,7 +303,7 @@ SELECT * FROM NodeTypes
         /* ------------------------------------------------ Logging */
 
         #region WriteAuditEventScript
-        public override string WriteAuditEventScript => @"-- MsSqlDataProvider.WriteAuditEvent
+        protected override string WriteAuditEventScript => @"-- MsSqlDataProvider.WriteAuditEvent
 INSERT INTO [dbo].[LogEntries]
     ([EventId], [Category], [Priority], [Severity], [Title], [ContentId], [ContentPath], [UserName], [LogDate], [MachineName], [AppDomainName], [ProcessId], [ProcessName], [ThreadName], [Win32ThreadId], [Message], [FormattedMessage])
 VALUES
@@ -315,7 +315,7 @@ SELECT @@IDENTITY
         /* ------------------------------------------------ Provider Tools */
 
         #region GetTreeSizeScript
-        public override string GetTreeSizeScript => @"-- MsSqlDataProvider.GetTreeSize
+        protected override string GetTreeSizeScript => @"-- MsSqlDataProvider.GetTreeSize
 SELECT SUM(F.Size) Size
 FROM Files F
     JOIN BinaryProperties B ON B.FileId = F.FileId
@@ -328,7 +328,7 @@ WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N
         /* ------------------------------------------------ Installation */
 
         #region LoadEntityTreeScript
-        public override string LoadEntityTreeScript { get; } = @"-- MsSqlDataProvider.LoadEntityTree
+        protected override string LoadEntityTreeScript { get; } = @"-- MsSqlDataProvider.LoadEntityTree
 SELECT NodeId, ParentNodeId, OwnerId FROM Nodes ORDER BY Path
 ";
         #endregion

@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         //    },
         //};
 
-        public static async Task InstallInitialDataAsync(InitialData data, DataProvider2 dataProvider, string connectionString)
+        public static async Task InstallInitialDataAsync(InitialData data, MsSqlDataProvider dataProvider, string connectionString)
         {
             var dataSet = new DataSet();
 
@@ -233,7 +233,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* ==================================================================================================== Fill Data */
 
-        private static void CreateData(DataSet dataSet, InitialData data, DataProvider2 dataProvider)
+        private static void CreateData(DataSet dataSet, InitialData data, MsSqlDataProvider dataProvider)
         {
             var now = DateTime.UtcNow;
 
@@ -306,7 +306,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        private static void SetPropertyTypeRow(DataRow row, PropertyTypeData propertyType, DataProvider2 dataProvider)
+        private static void SetPropertyTypeRow(DataRow row, PropertyTypeData propertyType, MsSqlDataProvider dataProvider)
         {
             row["PropertyTypeId"] = propertyType.Id;
             row["Name"] = propertyType.Name;
@@ -314,7 +314,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["Mapping"] = propertyType.Mapping;
             row["IsContentListProperty"] = propertyType.IsContentListProperty ? Yes : No;
         }
-        private static void SetNodeTypeRow(DataRow row, NodeTypeData nodeType, List<NodeTypeData> allNodeTypes, DataProvider2 dataProvider)
+        private static void SetNodeTypeRow(DataRow row, NodeTypeData nodeType, List<NodeTypeData> allNodeTypes, MsSqlDataProvider dataProvider)
         {
             row["NodeTypeId"] = nodeType.Id;
             row["Name"] = nodeType.Name;
@@ -322,7 +322,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["ClassName"] = nodeType.ClassName;
             row["Properties"] = string.Join(" ", nodeType.Properties);
         }
-        private static void SetNodeRow(DataRow row, NodeHeadData node, DataProvider2 dataProvider)
+        private static void SetNodeRow(DataRow row, NodeHeadData node, MsSqlDataProvider dataProvider)
         {
             row["NodeId"] = node.NodeId;
             row["NodeTypeId"] = node.NodeTypeId;
@@ -355,7 +355,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["OwnerId"] = node.OwnerId;
             row["SavingState"] = node.SavingState;
         }
-        private static void SetVersionRow(DataRow row, VersionData version, IDictionary<PropertyType, object> dynamicProperties, DataProvider2 dataProvider)
+        private static void SetVersionRow(DataRow row, VersionData version, IDictionary<PropertyType, object> dynamicProperties, MsSqlDataProvider dataProvider)
         {
             row["VersionId"] = version.VersionId;
             row["NodeId"] = version.NodeId;
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return data.GetBlobBytes(providerData, propertyTypeName);
         }
 
-        private static DateTime AlignDateTime(DateTime dateTime, DataProvider2 dataProvider)
+        private static DateTime AlignDateTime(DateTime dateTime, MsSqlDataProvider dataProvider)
         {
             if (dateTime > dataProvider.DateTimeMaxValue)
                 dateTime = dataProvider.DateTimeMaxValue;
