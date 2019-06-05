@@ -662,10 +662,32 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadNodeHeadsByIdSetScript { get; }
 
-        public override Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        /// <inheritdoc />
+        public override async Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
+                {
+                    cmd.Parameters.Add(CreateParameter("@NodeId", DbType.Int32, nodeId));
+                }, async reader =>
+                {
+                    var result = new List<NodeHead.NodeVersion>();
+
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(new NodeHead.NodeVersion(
+                            new VersionNumber(
+                                reader.GetInt16("MajorNumber"),
+                                reader.GetInt16("MinorNumber"),
+                                (VersionStatus)reader.GetInt16("Status")),
+                            reader.GetInt32("VersionId")));
+
+                    return result.ToArray();
+                });
+            }
         }
+        protected abstract string GetNodeVersionsScript { get; }
+
         public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException

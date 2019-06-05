@@ -318,6 +318,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Returns a Dictionary&lt;int, string&gt; instance that contains LongTextProperty values 
+        /// by the given PropertyTypeIds of the requested version.
+        /// </summary>
+        /// <param name="versionId">Id of the requested version.</param>
+        /// <param name="notLoadedPropertyTypeIds">Id set of the requested <see cref="PropertyType"/> set.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded Dictionary&lt;int, string&gt; instance.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
             int[] notLoadedPropertyTypeIds,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -381,6 +391,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Returns an array of <see cref="NodeHead.NodeVersion"/> that contains all version representation of the requested <see cref="Node"/>.
+        /// The result is sorted first by MajorNumber and then by MinorNumber.
+        /// </summary>
+        /// <param name="nodeId">Id of the Requested <see cref="Node"/>.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead.NodeVersion"/> array.</returns>
+        /// <exception cref="DataException">The operation causes any database-related error.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));

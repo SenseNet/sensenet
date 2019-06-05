@@ -256,6 +256,15 @@ WHERE
             where: "Node.NodeId IN (SELECT Id FROM @NodeIdTable)");
         #endregion
 
+        #region GetNodeVersionsScript
+        protected override string GetNodeVersionsScript => @"-- MsSqlDataProvider.GetNodeVersions
+SELECT VersionId, MajorNumber, MinorNumber, Status
+FROM Versions
+WHERE NodeId = @NodeId
+ORDER BY MajorNumber, MinorNumber
+";
+        #endregion
+
         /* ------------------------------------------------ NodeQuery */
 
         /* ------------------------------------------------ Tree */
