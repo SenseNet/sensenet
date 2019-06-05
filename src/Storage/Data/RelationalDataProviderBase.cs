@@ -21,6 +21,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public abstract class RelationalDataProviderBase : DataProvider2
     {
+        //UNDONE:DB: check CancellationToken usage in this class.
+
         /* =============================================================================================== Factory methods */
 
         public abstract DbCommand CreateCommand();
@@ -171,6 +173,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                 case DataType.Reference:
                     value = string.Join(",", ((IEnumerable<int>)propertyValue).Select(x => x.ToString()));
                     break;
+                case DataType.Int: // because of enums
+                    value = Convert.ToString((int)propertyValue, CultureInfo.InvariantCulture);
+                    break;
                 default:
                     value = Convert.ToString(propertyValue, CultureInfo.InvariantCulture);
                     break;
@@ -274,8 +279,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     if (originalPath != null)
                         await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
 
-                    // Delete versions
-                    await DeleteVersions(versionIdsToDelete, nodeHeadData, ctx);
+                    // Delete unnecessary versions and update last versions
+                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
                     // Manage ReferenceProperties
                     //UNDONE:DB: Update ReferenceProperties
@@ -303,31 +308,34 @@ namespace SenseNet.ContentRepository.Storage.Data
                 });
             });
         }
-        protected virtual async Task DeleteVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, SnDataContext ctx)
+        protected virtual async Task ManageLastVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, SnDataContext ctx)
         {
-            if (versionIdsToDelete == null)
-                return;
+            var versionIdsParam = (object)DBNull.Value;
+            if (versionIdsToDelete != null)
+            {
+                var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
+                if (versionIds.Length > 0)
+                {
+                    //UNDONE:DB@@@@@ Rewrite to async and pass ctx.
+                    BlobStorage.DeleteBinaryProperties(versionIds);
 
-            var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
-            if (versionIds.Length == 0)
-                return;
+                    versionIdsParam = string.Join(",", versionIds.Select(x => x.ToString()));
+                }
+            }
 
-            //UNDONE:DB: Rewrite to async and pass ctx.
-            BlobStorage.DeleteBinaryProperties(versionIds);
-
-            await ctx.ExecuteReaderAsync(DeleteVersionsScript, cmd =>
+            await ctx.ExecuteReaderAsync(ManageLastVersionsScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
                     CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                    CreateParameter("@VersionIds", DbType.AnsiString, string.Join(",", versionIds.Select(x => x.ToString())))
+                    CreateParameter("@VersionIds", DbType.AnsiString, versionIdsParam)
                 });
             }, async reader =>
             {
                 if (await reader.ReadAsync(ctx.CancellationToken))
                 {
                     nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
-                    nodeHeadData.LastMajorVersionId = reader.GetInt32("LastMajorVersionId");
+                    nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                     nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                 }
                 return true;
@@ -345,7 +353,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateVersionScript { get; }
         protected abstract string UpdateNodeScript { get; }
         protected abstract string UpdateSubTreePathScript { get; }
-        protected abstract string DeleteVersionsScript { get; }
+        protected abstract string ManageLastVersionsScript { get; }
         protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
@@ -366,12 +374,123 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateLongtextPropertiesHeadScript { get; }
         protected abstract string UpdateLongtextPropertiesScript { get; }
 
-        public override Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+        /// <inheritdoc />
+        public override async Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             IEnumerable<int> versionIdsToDelete, int expectedVersionId = 0, string originalPath = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                using (var transaction = ctx.BeginTransaction())
+                {
+                    //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+
+                    // Copy and update version
+                    var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new []
+                        {
+                            #region CreateParameter("@....
+                            CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
+                            CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
+                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                            CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                            CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                            CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                            CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                            CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                            CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                            CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                            #endregion
+                        });
+                    }, async reader =>
+                    {
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            versionData.VersionId = reader.GetInt32("VersionId");
+                            versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
+                        }
+                        //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+                        if (await reader.NextResultAsync(cancellationToken))
+                        {
+                            while (await reader.ReadAsync(cancellationToken))
+                            {
+                                var binId = reader.GetInt32("BinaryPropertyId");
+                                var propId = reader.GetInt32("PropertyTypeId");
+                                var propertyType = ActiveSchema.PropertyTypes.GetItemById(propId);
+                                if(propertyType!=null)
+                                    if (dynamicData.BinaryProperties.TryGetValue(propertyType, out var binaryData))
+                                        binaryData.Id = binId;
+                            }
+                        }
+                        return versionData.VersionId;
+                    });
+
+                    // Update Node
+                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            #region CreateParameter("@NodeId", DbType.Int32, ...
+                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                            CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                            CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                            CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                            CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                            CreateParameter("@IsInherited", DbType.Byte, (byte)0),
+                            CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                            CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                            CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
+                            CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                            CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                            CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                            CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                            CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                            CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                            CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                            CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                            CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                            CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                            CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                            CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                            CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                            CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                            CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                            CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
+                            CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            #endregion
+                        });
+                    });
+                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+
+                    // Update subtree if needed
+                    if (originalPath != null)
+                        await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+
+                    // Delete unnecessary versions and update last versions
+                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+
+                    // Manage ReferenceProperties
+                    //UNDONE:DB: Update ReferenceProperties
+
+                    // Manage LongTextProperties
+                    if (dynamicData.LongTextProperties.Any())
+                        await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+
+                    transaction.Commit();
+
+                    // Manage BinaryProperties
+                    //UNDONE:DB@@@@@ Move into the transaction after BlobStorage refactor.
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                }
+            }
         }
+        protected abstract string CopyVersionAndUpdateScript { get; }
 
         public override Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -455,7 +574,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     // BinaryProperties
-                    reader.NextResult();
+                    await reader.NextResultAsync(cancellationToken);
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
@@ -468,14 +587,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     //// ReferenceProperties
-                    //reader.NextResult();
+                    //await reader.NextResultAsync(cancellationToken);
                     //while (await reader.ReadAsync(cancellationToken))
                     //{
                     //    var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
                     //}
 
                     // LongTextProperties
-                    reader.NextResult();
+                    await reader.NextResultAsync(cancellationToken);
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
@@ -521,7 +640,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                     value = DateTime.Parse(stringValue);
                     break;
                 case DataType.Reference:
-                    value = stringValue.Split(',').Select(x => int.Parse(x)).ToArray();
+                    value = stringValue.Length > 0
+                        ? stringValue.Split(',').Select(x => int.Parse(x)).ToArray()
+                        : new int[0];
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -930,7 +1051,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         schema.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
 
                     // PropertyTypes
-                    reader.NextResult();
+                    await reader.NextResultAsync(cancellationToken);
                     var propertyTypes = new List<PropertyTypeData>();
                     schema.PropertyTypes = propertyTypes;
                     while (await reader.ReadAsync(cancellationToken))
@@ -946,7 +1067,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     // NodeTypes
-                    reader.NextResult();
+                    await reader.NextResultAsync(cancellationToken);
                     var nodeTypes = new List<NodeTypeData>();
                     schema.NodeTypes = nodeTypes;
                     var tree = new List<(NodeTypeData Data, int ParentId)>(); // data, parentId
@@ -975,7 +1096,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var contentListTypes = new List<ContentListTypeData>();
                     schema.ContentListTypes = contentListTypes;
                     //UNDONE:DB: Load ContentListTypes
-                    //reader.NextResult();
+                    //await reader.NextResultAsync(cancellationToken);
                     //while (await reader.ReadAsync(cancellationToken))
                     //{
                     //}

@@ -54,15 +54,15 @@ END
         #region UpdateVersionScript
         protected override string UpdateVersionScript => @"-- MsSqlDataProvider.UpdateVersion
 UPDATE Versions SET
-	NodeId = @NodeId,
-	MajorNumber = @MajorNumber,
-	MinorNumber = @MinorNumber,
-	CreationDate = @CreationDate,
-	CreatedById = @CreatedById,
-	ModificationDate = @ModificationDate,
-	ModifiedById = @ModifiedById,
-	Status = @Status,
-	ChangedData = @ChangedData,
+    NodeId = @NodeId,
+    MajorNumber = @MajorNumber,
+    MinorNumber = @MinorNumber,
+    CreationDate = @CreationDate,
+    CreatedById = @CreatedById,
+    ModificationDate = @ModificationDate,
+    ModifiedById = @ModifiedById,
+    Status = @Status,
+    ChangedData = @ChangedData,
     DynamicProperties = @DynamicProperties
 WHERE VersionId = @VersionId
 
@@ -72,46 +72,46 @@ SELECT [Timestamp] FROM Versions WHERE VersionId = @VersionId
         #region UpdateNodeScript
         protected override string UpdateNodeScript => @"-- MsSqlDataProvider.UpdateNode
 UPDATE Nodes SET
-	NodeTypeId = @NodeTypeId,
-	ContentListTypeId = @ContentListTypeId,
-	ContentListId = @ContentListId,
-	CreatingInProgress = @CreatingInProgress,
-	IsDeleted = @IsDeleted,
-	IsInherited = @IsInherited,
-	ParentNodeId = @ParentNodeId,
-	[Name] = @Name,
-	DisplayName = @DisplayName,
-	Path = @Path,
-	[Index] = @Index,
-	Locked = @Locked,
-	LockedById = @LockedById,
-	ETag = @ETag,
-	LockType = @LockType,
-	LockTimeout = @LockTimeout,
-	LockDate = @LockDate,
-	LockToken = @LockToken,
-	LastLockUpdate = @LastLockUpdate,
-	CreationDate = @CreationDate,
-	CreatedById = @CreatedById,
-	ModificationDate = @ModificationDate,
-	ModifiedById = @ModifiedById,
-	IsSystem = @IsSystem,
-	OwnerId = @OwnerId,
-	SavingState = @SavingState
+    NodeTypeId = @NodeTypeId,
+    ContentListTypeId = @ContentListTypeId,
+    ContentListId = @ContentListId,
+    CreatingInProgress = @CreatingInProgress,
+    IsDeleted = @IsDeleted,
+    IsInherited = @IsInherited,
+    ParentNodeId = @ParentNodeId,
+    [Name] = @Name,
+    DisplayName = @DisplayName,
+    Path = @Path,
+    [Index] = @Index,
+    Locked = @Locked,
+    LockedById = @LockedById,
+    ETag = @ETag,
+    LockType = @LockType,
+    LockTimeout = @LockTimeout,
+    LockDate = @LockDate,
+    LockToken = @LockToken,
+    LastLockUpdate = @LastLockUpdate,
+    CreationDate = @CreationDate,
+    CreatedById = @CreatedById,
+    ModificationDate = @ModificationDate,
+    ModifiedById = @ModifiedById,
+    IsSystem = @IsSystem,
+    OwnerId = @OwnerId,
+    SavingState = @SavingState
 FROM
-	Nodes
+    Nodes
 WHERE NodeId = @NodeId AND [Timestamp] = @NodeTimestamp
 
 IF @@ROWCOUNT = 0 BEGIN
-	DECLARE @Count int
-	SELECT @Count = COUNT(*) FROM Nodes WHERE NodeId = @NodeId
-	IF @Count = 0
-		RAISERROR (N'Cannot update a deleted Node. Id: %d, path: %s.', 12, 1, @NodeId, @Path);
-	ELSE
-		RAISERROR (N'Node is out of date Id: %d, path: %s.', 12, 1, @NodeId, @Path);
+    DECLARE @Count int
+    SELECT @Count = COUNT(*) FROM Nodes WHERE NodeId = @NodeId
+    IF @Count = 0
+        RAISERROR (N'Cannot update a deleted Node. Id: %d, path: %s.', 12, 1, @NodeId, @Path);
+    ELSE
+        RAISERROR (N'Node is out of date Id: %d, path: %s.', 12, 1, @NodeId, @Path);
 END
 ELSE BEGIN
-	SELECT [Timestamp] FROM Nodes WHERE NodeId = @NodeId
+    SELECT [Timestamp] FROM Nodes WHERE NodeId = @NodeId
 END
 ";
         #endregion
@@ -133,6 +133,62 @@ WHERE Path LIKE REPLACE(@OldPath, '_', '[_]') + '/%'
         protected override string UpdateLongtextPropertiesScript => @"-- MsSqlDataProvider.UpdateLongtextProperties
 DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId{0}
 " + InsertLongtextPropertiesScript;
+        #endregion
+
+        #region CopyVersionAndUpdateScript
+        //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
+        protected override string CopyVersionAndUpdateScript => @"-- MsSqlDataProvider.CopyVersionAndUpdate
+DECLARE @NewVersionId int
+    
+-- Before inserting set versioning status code from ""Locked"" to ""Draft"" on all older versions
+UPDATE Versions SET Status = 4 WHERE NodeId = @NodeId AND Status = 2
+
+IF @DestinationVersionId IS NULL
+BEGIN
+    -- Insert version row
+    INSERT INTO Versions
+        ( NodeId, MajorNumber, MinorNumber, CreationDate, CreatedById, ModificationDate, ModifiedById, Status, ChangedData, DynamicProperties)
+        VALUES
+        (@NodeId,@MajorNumber,@MinorNumber,@CreationDate,@CreatedById,@ModificationDate,@ModifiedById,@Status,@ChangedData,@DynamicProperties)
+    SELECT @NewVersionId = @@IDENTITY
+END
+ELSE
+BEGIN
+    -- Update existing version
+    SET @NewVersionId = @DestinationVersionId;
+
+    UPDATE Versions SET
+        NodeId = @NodeId,
+        MajorNumber = @MajorNumber,
+        MinorNumber = @MinorNumber,
+        CreationDate = @CreationDate,
+        CreatedById = @CreatedById,
+        ModificationDate = @ModificationDate,
+        ModifiedById = @ModifiedById,
+        Status = @Status,
+        ChangedData = @ChangedData,
+        DynamicProperties = @DynamicProperties
+    WHERE VersionId = @NewVersionId
+
+    -- Delete previous property values
+    DELETE FROM BinaryProperties WHERE VersionId = @NewVersionId;
+    DELETE FROM LongTextProperties WHERE VersionId = @NewVersionId;
+END    
+
+-- Copy properties
+INSERT INTO BinaryProperties ([VersionId],[PropertyTypeId],[FileId])
+    SELECT @NewVersionId,[PropertyTypeId],[FileId] FROM BinaryProperties WHERE VersionId = @PreviousVersionId
+INSERT INTO LongTextProperties
+    ([VersionId],[PropertyTypeId],[Length],[Value])
+    SELECT @NewVersionId,[PropertyTypeId],[Length],[Value]
+    FROM LongTextProperties WHERE VersionId = @PreviousVersionId
+
+-- Return
+SELECT VersionId, [Timestamp] FROM Versions WHERE VersionId = @NewVersionId
+
+SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F ON B.FileId = F.FileId
+    WHERE B.VersionId = @NewVersionId AND Staging IS NULL
+";
         #endregion
 
         #region LoadTextPropertyValuesScript
@@ -184,21 +240,23 @@ WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Length < @LongTextMaxSiz
         #endregion
 
         #region DeleteVersionsScript
-        protected override string DeleteVersionsScript => @"-- MsSqlDataProvider.DeleteVersions
-DECLARE @VersionIdTable AS TABLE(Id INT)
-INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
+        protected override string ManageLastVersionsScript => @"-- MsSqlDataProvider.DeleteVersions
+IF @VersionIds IS NOT NULL BEGIN
+    DECLARE @VersionIdTable AS TABLE(Id INT)
+    INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
 
-DELETE FROM LongTextProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
---DELETE FROM ReferenceProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+    DELETE FROM LongTextProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+    --DELETE FROM ReferenceProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
 
-UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
-DELETE FROM Versions WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+    UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
+    DELETE FROM Versions WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+END
 
 UPDATE Nodes
-	SET LastMinorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId
-			ORDER BY MajorNumber DESC, MinorNumber DESC),
-		LastMajorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId AND MinorNumber = 0 AND Status = 1
-			ORDER BY MajorNumber DESC, MinorNumber DESC)
+    SET LastMinorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId
+            ORDER BY MajorNumber DESC, MinorNumber DESC),
+        LastMajorVersionId = (SELECT TOP (1) VersionId FROM Versions WHERE NodeId = @NodeId AND MinorNumber = 0 AND Status = 1
+            ORDER BY MajorNumber DESC, MinorNumber DESC)
 WHERE NodeId = @NodeId
 
 -- Return the new timestamp and version ids

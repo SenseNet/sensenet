@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     foreach (var refPropType in PropertyTypes.Where(x => x.DataType == DataType.Reference))
                     {
-                        //UNDONE:DB: Not tested: GetDynamicData/Distinct references.
+                        //UNDONE:DB: Move to Node.Add/Set reference(s): GetDynamicData/Distinct references.
                         var ids = (IEnumerable<int>)GetDynamicRawData(refPropType);
                         if (ids != null)
                         {
