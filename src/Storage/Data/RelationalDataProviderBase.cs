@@ -97,7 +97,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 CreateParameter("@VersionCreatedById", DbType.Int32, (int)nodeHeadData.CreatedById),
                                 CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
                                 CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
-                                CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamiProperties(dynamicData.DynamicProperties)),
+                                CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                                 #endregion
                             });
                         }, async reader =>
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             {
                                 nodeHeadData.NodeId = reader.GetInt32("NodeId");
                                 nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
-                                nodeHeadData.LastMajorVersionId = reader.GetInt32("LastMajorVersionId");
+                                nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                                 nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                                 versionData.VersionId = reader.GetInt32("VersionId");
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("VersionTimestamp");
@@ -145,13 +145,19 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException("Node was not saved. For more details see the inner exception.", e);
             }
         }
-        public virtual string SerializeDynamiProperties(IDictionary<PropertyType, object> properties)
+        public virtual string SerializeDynamicProperties(IDictionary<PropertyType, object> properties)
         {
-            var lines = properties.Select(x => SerializeDynamicProperty(x.Key, x.Value)).ToArray();
+            var lines = properties
+                .Select(x => SerializeDynamicProperty(x.Key, x.Value))
+                .Where(x => x != null)
+                .ToArray();
             return $"\r\n{string.Join("\r\n", lines)}\r\n";
         }
         protected virtual string SerializeDynamicProperty(PropertyType propertyType, object propertyValue)
         {
+            if (propertyValue == null)
+                return null;
+
             string value;
             switch (propertyType.DataType)
             {
@@ -219,7 +225,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
                             CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
                             CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamiProperties(dynamicData.DynamicProperties)),
+                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                             #endregion
                         });
                     });
@@ -1038,7 +1044,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override bool IsCacheableText(string text)
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            //UNDONE:DB: Test this feature: unchanged longtextproperties are not preloaded before Update Node
+
+            return text?.Length < DataStore.TextAlternationSizeLimit;
         }
 
         public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,

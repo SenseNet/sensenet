@@ -368,7 +368,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             row["ModifiedById"] = version.ModifiedById;
             row["IndexDocument"] = null;
             row["ChangedData"] = null;
-            row["DynamicProperties"] = dynamicProperties == null ? null : dataProvider.SerializeDynamiProperties(dynamicProperties);
+            row["DynamicProperties"] = dynamicProperties == null ? null : dataProvider.SerializeDynamicProperties(dynamicProperties);
         }
         private static void SetLongTextPropertyRow(DataRow row, int id, int versionId, int propertyTypeId, string value)
         {
