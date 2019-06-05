@@ -157,9 +157,9 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     VersionId = VersionId,
                     PropertyTypes = PropertyTypes.ToList(),
-                    DynamicProperties = changedPropertyTypes
+                    DynamicProperties = PropertyTypes
                         .Where(pt => pt.DataType != DataType.Binary && pt.DataType != DataType.Text)
-                        .ToDictionary(pt => pt, pt => dynamicData[pt.Id] ?? pt.DefaultValue),
+                        .ToDictionary(pt => pt, pt => GetDynamicPropertyValueSafe(pt) ?? pt.DefaultValue),
                     BinaryProperties = binaryTypes
                         .ToDictionary(pt => pt, pt => (BinaryDataValue)GetDynamicRawData(pt)),
                     LongTextProperties = changedPropertyTypes
@@ -538,6 +538,29 @@ namespace SenseNet.ContentRepository.Storage
         internal bool VersionModifiedByIdChanged { get; set; }
 
         // =========================================================== Dynamic raw data accessors
+
+        private object GetDynamicPropertyValueSafe(PropertyType propertyType)
+        {
+            var id = propertyType.Id;
+            object value;
+
+            // if modified
+            if (dynamicData.TryGetValue(id, out value))
+                return value;
+
+            if (SharedData != null)
+            {
+                // if loaded
+                if (SharedData.dynamicData.TryGetValue(id, out value))
+                    return value;
+                return SharedData.LoadProperty(propertyType);
+            }
+
+            if (this.IsShared)
+                return LoadProperty(propertyType);
+
+            return null;
+        }
 
         internal object GetDynamicRawData(int propertyTypeId)
         {
