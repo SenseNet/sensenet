@@ -118,5 +118,23 @@ namespace SenseNet.Common.Storage.Data
             }
         }
 
+        public DbParameter CreateParameter(string name, DbType dbType, object value)
+        {
+            var prm = _commandFactory.CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Value = value;
+            return prm;
+        }
+        public DbParameter CreateParameter(string name, DbType dbType, int size, object value)
+        {
+            var prm = _commandFactory.CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Size = size;
+            prm.Value = value;
+            return prm;
+        }
+
     }
 }
