@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using IsolationLevel = System.Data.IsolationLevel;
 
-// ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Storage.Data
+namespace SenseNet.Common.Storage.Data
 {
     public class SnDataContext : IDisposable
     {
@@ -41,23 +42,23 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        private readonly RelationalDataProviderBase _dataProvider;
+        private readonly IDbCommandFactory _commandFactory;
         private readonly DbConnection _connection;
         private TransactionWrapper _transaction;
 
         public CancellationToken CancellationToken { get; }
 
-        public SnDataContext(RelationalDataProviderBase dataProvider, CancellationToken cancellationToken = default(CancellationToken))
+        public SnDataContext(IDbCommandFactory commandFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
-            _dataProvider = dataProvider;
+            _commandFactory = commandFactory;
             CancellationToken = cancellationToken;
-            _connection = _dataProvider.CreateConnection();
+            _connection = _commandFactory.CreateConnection();
             _connection.Open();
         }
 
         public void Dispose()
         {
-            if(_transaction?.Status == TransactionStatus.Active)
+            if (_transaction?.Status == TransactionStatus.Active)
                 _transaction.Rollback();
             _connection.Dispose();
         }
@@ -71,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = _dataProvider.CreateCommand())
+            using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
@@ -85,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = _dataProvider.CreateCommand())
+            using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
@@ -103,7 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, Task<T>> callbackAsync)
         {
-            using (var cmd = _dataProvider.CreateCommand())
+            using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
