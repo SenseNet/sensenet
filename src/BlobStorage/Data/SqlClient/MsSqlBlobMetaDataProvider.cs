@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.Tools;
 
@@ -13,8 +16,23 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// Contains the MS SQL-specific implementation of the IBlobStorageMetaDataProvider interface that
     /// is responsible for binary-related operations in the main metadata database.
     /// </summary>
-    public class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
+    public class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider, IDbCommandFactory
     {
+        public DbConnection CreateConnection()
+        {
+            return new SqlConnection(ConnectionStrings.ConnectionString); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateConnection()
+        }
+        public DbCommand CreateCommand()
+        {
+            return new SqlCommand(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateCommand()
+        }
+        public DbParameter CreateParameter()
+        {
+            return new SqlParameter(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateParameter()
+        }
+
+        /* ======================================================================================= IBlobStorageMetaDataProvider */
+
         private static string ValidateExtension(string originalExtension)
         {
             return originalExtension.Length == 0
@@ -387,9 +405,20 @@ SELECT @FileId
             }
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        private const string DeleteBinaryPropertiesScript = @"-- MsSqlBlobMetaDataProvider.DeleteBinaryProperties
+DECLARE @VersionIdTable AS TABLE(Id INT)
+INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
+DELETE FROM BinaryProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
+";
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
-            throw new NotImplementedException(); //UNDONE:DB: Not implemented: DeleteBinaryProperties
+            var ctx = dataContext ?? new SnDataContext(this);
+            var idsParam = string.Join(",", versionIds.Select(x => x.ToString()));
+            ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
+            {
+                cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
+            })
+            .Wait();
         }
 
         private const string LoadBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.LoadBinaryProperty
@@ -803,5 +832,6 @@ WHERE IsDeleted = 1";
                 }
             }
         }
+
     }
 }

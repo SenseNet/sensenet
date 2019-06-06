@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -182,7 +183,7 @@ namespace SenseNet.Tests.Implementations
                 .RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
             _dataProvider.DB.BinaryProperties
                 .RemoveAll(r => versionIds.Contains(r.VersionId));

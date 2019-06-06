@@ -1,6 +1,7 @@
 ﻿
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -64,7 +65,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        void DeleteBinaryProperties(IEnumerable<int> versionIds);
+        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
+        void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null);
 
         /// <summary>
         /// Loads binary property object without the stream by the given parameters.

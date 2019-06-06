@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using SenseNet.Common.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -24,9 +25,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             BlobStorageBase.DeleteBinaryProperty(versionId, propertyTypeId);
         }
 
-        public new static void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        public new static void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
-            BlobStorageBase.DeleteBinaryProperties(versionIds);
+            BlobStorageBase.DeleteBinaryProperties(versionIds, dataContext);
         }
 
         public new static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)

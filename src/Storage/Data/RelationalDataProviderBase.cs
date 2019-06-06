@@ -15,7 +15,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing;
+// ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
@@ -29,24 +29,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DbCommand CreateCommand();
         public abstract DbConnection CreateConnection();
         public abstract DbParameter CreateParameter();
-
-        protected DbParameter CreateParameter(string name, DbType dbType, object value)
-        {
-            var prm = CreateParameter();
-            prm.ParameterName = name;
-            prm.DbType = dbType;
-            prm.Value = value;
-            return prm;
-        }
-        protected DbParameter CreateParameter(string name, DbType dbType, int size, object value)
-        {
-            var prm = CreateParameter();
-            prm.ParameterName = name;
-            prm.DbType = dbType;
-            prm.Size = size;
-            prm.Value = value;
-            return prm;
-        }
 
         /* =============================================================================================== Nodes */
 
@@ -65,42 +47,42 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cmd.Parameters.AddRange(new[]
                             {
-                                #region CreateParameter("@NodeTypeId", DbType.Int32, ...
-                                CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
-                                CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
-                                CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
-                                CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
-                                CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
-                                CreateParameter("@IsInherited", DbType.Byte, (byte) 0),
-                                CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId),
-                                CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
-                                CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
-                                CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, nodeHeadData.Path),
-                                CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
-                                CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
-                                CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
-                                CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
-                                CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
-                                CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
-                                CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
-                                CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
-                                CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
-                                CreateParameter("@NodeCreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
-                                CreateParameter("@NodeCreatedById", DbType.Int32, nodeHeadData.CreatedById),
-                                CreateParameter("@NodeModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
-                                CreateParameter("@NodeModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
-                                CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
-                                CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
-                                CreateParameter("@SavingState", DbType.Int32, (int)nodeHeadData.SavingState),
-                                CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                                CreateParameter("@MajorNumber", DbType.Int16, (short)versionData.Version.Major),
-                                CreateParameter("@MinorNumber", DbType.Int16, (short)versionData.Version.Minor),
-                                CreateParameter("@Status", DbType.Int16, (short)versionData.Version.Status),
-                                CreateParameter("@VersionCreationDate", DbType.DateTime2, versionData.CreationDate),
-                                CreateParameter("@VersionCreatedById", DbType.Int32, (int)nodeHeadData.CreatedById),
-                                CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                                CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
-                                CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                                #region ctx.CreateParameter("@NodeTypeId", DbType.Int32, ...
+                                ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                                ctx.CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                                ctx.CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                                ctx.CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                                ctx.CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                                ctx.CreateParameter("@IsInherited", DbType.Byte, (byte) 0),
+                                ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId),
+                                ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                                ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                                ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, nodeHeadData.Path),
+                                ctx.CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                                ctx.CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                                ctx.CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                                ctx.CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                                ctx.CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                                ctx.CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                                ctx.CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                                ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                                ctx.CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                                ctx.CreateParameter("@NodeCreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                                ctx.CreateParameter("@NodeCreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                                ctx.CreateParameter("@NodeModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                                ctx.CreateParameter("@NodeModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                                ctx.CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                                ctx.CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                                ctx.CreateParameter("@SavingState", DbType.Int32, (int)nodeHeadData.SavingState),
+                                ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                                ctx.CreateParameter("@MajorNumber", DbType.Int16, (short)versionData.Version.Major),
+                                ctx.CreateParameter("@MinorNumber", DbType.Int16, (short)versionData.Version.Minor),
+                                ctx.CreateParameter("@Status", DbType.Int16, (short)versionData.Version.Status),
+                                ctx.CreateParameter("@VersionCreationDate", DbType.DateTime2, versionData.CreationDate),
+                                ctx.CreateParameter("@VersionCreatedById", DbType.Int32, (int)nodeHeadData.CreatedById),
+                                ctx.CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                                ctx.CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
+                                ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                                 #endregion
                             });
                         }, async reader =>
@@ -189,13 +171,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             var longTextSqlParameters = new List<DbParameter>();
             var index = 0;
             longTextSqlBuilder.Append(InsertLongtextPropertiesHeadScript);
-            longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+            longTextSqlParameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
             foreach (var item in longTextProperties)
             {
                 longTextSqlBuilder.AppendFormat(InsertLongtextPropertiesScript, ++index);
-                longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
-                longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
-                longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+                longTextSqlParameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
@@ -220,18 +202,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cmd.Parameters.AddRange(new[]
                         {
-                            #region CreateParameter("@NodeId", DbType.Int32, ...
-                            CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
-                            CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
-                            CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
-                            CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
-                            CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
-                            CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
-                            CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
-                            CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                            CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
-                            CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                            #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
+                            ctx.CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
+                            ctx.CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
+                            ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                            ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                            ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                            ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                            ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                            ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                            ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                             #endregion
                         });
                     });
@@ -242,35 +224,35 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cmd.Parameters.AddRange(new[]
                         {
-                            #region CreateParameter("@NodeId", DbType.Int32, ...
-                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                            CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
-                            CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
-                            CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
-                            CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
-                            CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
-                            CreateParameter("@IsInherited", DbType.Byte, (byte)0),
-                            CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
-                            CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
-                            CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
-                            CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
-                            CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
-                            CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
-                            CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
-                            CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
-                            CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
-                            CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
-                            CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
-                            CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
-                            CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
-                            CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
-                            CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
-                            CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
-                            CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
-                            CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
-                            CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
-                            CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
-                            CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                            ctx.CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                            ctx.CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                            ctx.CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsInherited", DbType.Byte, (byte)0),
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                            ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                            ctx.CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
+                            ctx.CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                            ctx.CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                            ctx.CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                            ctx.CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                            ctx.CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                            ctx.CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                            ctx.CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                            ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                            ctx.CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                            ctx.CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                            ctx.CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                            ctx.CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                            ctx.CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                            ctx.CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
+                            ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
                     });
@@ -304,8 +286,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 cmd.Parameters.AddRange(new[]
                 {
-                    CreateParameter("@OldPath", DbType.String, PathMaxLength, originalPath),
-                    CreateParameter("@NewPath", DbType.String, PathMaxLength, path),
+                    ctx.CreateParameter("@OldPath", DbType.String, PathMaxLength, originalPath),
+                    ctx.CreateParameter("@NewPath", DbType.String, PathMaxLength, path),
                 });
             });
         }
@@ -318,7 +300,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (versionIds.Length > 0)
                 {
                     //UNDONE:DB@@@@@ Rewrite to async and pass ctx.
-                    BlobStorage.DeleteBinaryProperties(versionIds);
+                    BlobStorage.DeleteBinaryProperties(versionIds, ctx);
 
                     versionIdsParam = string.Join(",", versionIds.Select(x => x.ToString()));
                 }
@@ -328,8 +310,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 cmd.Parameters.AddRange(new[]
                 {
-                    CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                    CreateParameter("@VersionIds", DbType.AnsiString, versionIdsParam)
+                    ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                    ctx.CreateParameter("@VersionIds", DbType.AnsiString, versionIdsParam)
                 });
             }, async reader =>
             {
@@ -361,13 +343,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             var longTextSqlParameters = new List<DbParameter>();
             var index = 0;
             longTextSqlBuilder.Append(UpdateLongtextPropertiesHeadScript);
-            longTextSqlParameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+            longTextSqlParameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
             foreach (var item in longTextProperties)
             {
                 longTextSqlBuilder.AppendFormat(UpdateLongtextPropertiesScript, ++index);
-                longTextSqlParameters.Add(CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
-                longTextSqlParameters.Add(CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
-                longTextSqlParameters.Add(CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
+                longTextSqlParameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
+                longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
@@ -391,19 +373,19 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cmd.Parameters.AddRange(new []
                         {
-                            #region CreateParameter("@....
-                            CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
-                            CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
-                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                            CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
-                            CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
-                            CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
-                            CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
-                            CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
-                            CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                            CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
-                            CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                            CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                            #region ctx.CreateParameter("@....
+                            ctx.CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
+                            ctx.CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                            ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                            ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                            ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                            ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                            ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                            ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                             #endregion
                         });
                     }, async reader =>
@@ -434,35 +416,35 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cmd.Parameters.AddRange(new[]
                         {
-                            #region CreateParameter("@NodeId", DbType.Int32, ...
-                            CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                            CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
-                            CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
-                            CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
-                            CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
-                            CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
-                            CreateParameter("@IsInherited", DbType.Byte, (byte)0),
-                            CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
-                            CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
-                            CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
-                            CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
-                            CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
-                            CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
-                            CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
-                            CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
-                            CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
-                            CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
-                            CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
-                            CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
-                            CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
-                            CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
-                            CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
-                            CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
-                            CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
-                            CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
-                            CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
-                            CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
-                            CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                            ctx.CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                            ctx.CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                            ctx.CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsInherited", DbType.Byte, (byte)0),
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                            ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                            ctx.CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
+                            ctx.CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                            ctx.CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                            ctx.CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                            ctx.CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                            ctx.CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                            ctx.CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                            ctx.CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                            ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                            ctx.CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                            ctx.CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                            ctx.CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                            ctx.CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                            ctx.CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                            ctx.CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
+                            ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
                     });
@@ -509,8 +491,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     cmd.Parameters.AddRange(new[]
                         {
-                            CreateParameter("@VersionIds", DbType.AnsiString, int.MaxValue, ids),
-                            CreateParameter("@LongTextMaxSize", DbType.Int32, DataStore.TextAlternationSizeLimit)
+                            ctx.CreateParameter("@VersionIds", DbType.AnsiString, int.MaxValue, ids),
+                            ctx.CreateParameter("@LongTextMaxSize", DbType.Int32, DataStore.TextAlternationSizeLimit)
 
                         });
                 }, async reader =>
@@ -698,9 +680,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@VersionId", DbType.Int32, versionId));
+                    cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
                     for (int i = 0; i < notLoadedPropertyTypeIds.Length; i++)
-                        cmd.Parameters.Add(CreateParameter(propParamPrefix + i, DbType.Int32, notLoadedPropertyTypeIds[i]));
+                        cmd.Parameters.Add(ctx.CreateParameter(propParamPrefix + i, DbType.Int32, notLoadedPropertyTypeIds[i]));
                 }, async reader =>
                 {
                     while (await reader.ReadAsync(cancellationToken))
@@ -731,7 +713,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@Path", DbType.String, PathMaxLength, path));
+                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
                 }, async reader =>
                 {
                     if (!await reader.ReadAsync(cancellationToken))
@@ -749,7 +731,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@NodeId", DbType.Int32, nodeId));
+                    cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async reader =>
                 {
                     if (!await reader.ReadAsync(cancellationToken))
@@ -776,7 +758,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@NodeIds", DbType.AnsiString, int.MaxValue, ids));
+                    cmd.Parameters.Add(ctx.CreateParameter("@NodeIds", DbType.AnsiString, int.MaxValue, ids));
                 }, async reader =>
                 {
                     var result = new List<NodeHead>();
@@ -797,7 +779,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 return await ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@NodeId", DbType.Int32, nodeId));
+                    cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async reader =>
                 {
                     var result = new List<NodeHead.NodeVersion>();
@@ -912,9 +894,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
-                    cmd.Parameters.Add(CreateParameter("@TimeLimit", DbType.DateTime, timeLimit));
+                    cmd.Parameters.Add(ctx.CreateParameter("@TimeLimit", DbType.DateTime, timeLimit));
                     for (int i = 0; i < parentChain.Length; i++)
-                        cmd.Parameters.Add(CreateParameter("@Path" + i, DbType.String, 450, parentChain[i]));
+                        cmd.Parameters.Add(ctx.CreateParameter("@Path" + i, DbType.String, 450, parentChain[i]));
                 });
                 return result != null && result != DBNull.Value;
             }
@@ -951,8 +933,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     cmd.Parameters.AddRange(new[]
                     {
-                        CreateParameter("@VersionId", DbType.Int32, versionId),
-                        CreateParameter("@IndexDocument", DbType.String, int.MaxValue, indexDoc),
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@IndexDocument", DbType.String, int.MaxValue, indexDoc),
                     });
                 });
                 return ConvertTimestampToInt64(result);
@@ -1134,23 +1116,23 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     cmd.Parameters.AddRange(new[]
                     {
-                        CreateParameter("@EventID", DbType.Int32, auditEvent.EventId),
-                        CreateParameter("@Category", DbType.String, 50, (object)auditEvent.Category ?? DBNull.Value),
-                        CreateParameter("@Priority", DbType.Int32, auditEvent.Priority),
-                        CreateParameter("@Severity", DbType.AnsiString, 30, auditEvent.Severity),
-                        CreateParameter("@Title", DbType.String, 256, (object)auditEvent.Title ?? DBNull.Value),
-                        CreateParameter("@ContentId", DbType.Int32, auditEvent.ContentId),
-                        CreateParameter("@ContentPath", DbType.String, PathMaxLength, (object)auditEvent.ContentPath ?? DBNull.Value),
-                        CreateParameter("@UserName", DbType.String, 450, (object)auditEvent.UserName ?? DBNull.Value),
-                        CreateParameter("@LogDate", DbType.DateTime, auditEvent.Timestamp),
-                        CreateParameter("@MachineName", DbType.AnsiString, 32, (object)auditEvent.MachineName ?? DBNull.Value),
-                        CreateParameter("@AppDomainName", DbType.AnsiString, 512, (object)auditEvent.AppDomainName ?? DBNull.Value),
-                        CreateParameter("@ProcessID", DbType.AnsiString, 256, auditEvent.ProcessId),
-                        CreateParameter("@ProcessName", DbType.AnsiString, 512, (object)auditEvent.ProcessName ?? DBNull.Value),
-                        CreateParameter("@ThreadName", DbType.AnsiString, 512, (object)auditEvent.ThreadName ?? DBNull.Value),
-                        CreateParameter("@Win32ThreadId", DbType.AnsiString, 128, auditEvent.ThreadId),
-                        CreateParameter("@Message", DbType.String, 1500, (object)auditEvent.Message ?? DBNull.Value),
-                        CreateParameter("@Formattedmessage", DbType.String, int.MaxValue, (object)auditEvent.FormattedMessage ?? DBNull.Value),
+                        ctx.CreateParameter("@EventID", DbType.Int32, auditEvent.EventId),
+                        ctx.CreateParameter("@Category", DbType.String, 50, (object)auditEvent.Category ?? DBNull.Value),
+                        ctx.CreateParameter("@Priority", DbType.Int32, auditEvent.Priority),
+                        ctx.CreateParameter("@Severity", DbType.AnsiString, 30, auditEvent.Severity),
+                        ctx.CreateParameter("@Title", DbType.String, 256, (object)auditEvent.Title ?? DBNull.Value),
+                        ctx.CreateParameter("@ContentId", DbType.Int32, auditEvent.ContentId),
+                        ctx.CreateParameter("@ContentPath", DbType.String, PathMaxLength, (object)auditEvent.ContentPath ?? DBNull.Value),
+                        ctx.CreateParameter("@UserName", DbType.String, 450, (object)auditEvent.UserName ?? DBNull.Value),
+                        ctx.CreateParameter("@LogDate", DbType.DateTime, auditEvent.Timestamp),
+                        ctx.CreateParameter("@MachineName", DbType.AnsiString, 32, (object)auditEvent.MachineName ?? DBNull.Value),
+                        ctx.CreateParameter("@AppDomainName", DbType.AnsiString, 512, (object)auditEvent.AppDomainName ?? DBNull.Value),
+                        ctx.CreateParameter("@ProcessID", DbType.AnsiString, 256, auditEvent.ProcessId),
+                        ctx.CreateParameter("@ProcessName", DbType.AnsiString, 512, (object)auditEvent.ProcessName ?? DBNull.Value),
+                        ctx.CreateParameter("@ThreadName", DbType.AnsiString, 512, (object)auditEvent.ThreadName ?? DBNull.Value),
+                        ctx.CreateParameter("@Win32ThreadId", DbType.AnsiString, 128, auditEvent.ThreadId),
+                        ctx.CreateParameter("@Message", DbType.String, 1500, (object)auditEvent.Message ?? DBNull.Value),
+                        ctx.CreateParameter("@Formattedmessage", DbType.String, int.MaxValue, (object)auditEvent.FormattedMessage ?? DBNull.Value),
                     });
                 });
             }
@@ -1187,8 +1169,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     cmd.Parameters.AddRange(new[]
                     {
-                        CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
-                        CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
+                        ctx.CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
+                        ctx.CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
                     });
                 });
             }

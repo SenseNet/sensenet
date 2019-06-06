@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Diagnostics;
@@ -54,9 +55,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        protected internal static void DeleteBinaryProperties(IEnumerable<int> versionIds)
+        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
+        protected internal static void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
-            BlobStorageComponents.DataProvider.DeleteBinaryProperties(versionIds);
+            BlobStorageComponents.DataProvider.DeleteBinaryProperties(versionIds, dataContext);
         }
 
         /// <summary>
