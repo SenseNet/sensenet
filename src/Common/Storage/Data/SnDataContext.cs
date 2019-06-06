@@ -70,6 +70,7 @@ namespace SenseNet.Common.Storage.Data
             return _transaction;
         }
 
+        //UNDONE:DB: Handle Command/Connection/Transaction Timeout
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
             using (var cmd = _commandFactory.CreateCommand())
