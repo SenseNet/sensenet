@@ -475,10 +475,59 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string CopyVersionAndUpdateScript { get; }
 
-        public override Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
+        /// <inheritdoc />
+        public override async Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                using (var transaction = ctx.BeginTransaction())
+                {
+                    // Update Node
+                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
+                            ctx.CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
+                            ctx.CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
+                            ctx.CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
+                            ctx.CreateParameter("@IsInherited", DbType.Byte, (byte)0),
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
+                            ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
+                            ctx.CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
+                            ctx.CreateParameter("@Index", DbType.Int32, nodeHeadData.Index),
+                            ctx.CreateParameter("@Locked", DbType.Byte, nodeHeadData.Locked ? (byte) 1 : 0),
+                            ctx.CreateParameter("@LockedById", DbType.Int32, nodeHeadData.LockedById > 0 ? (object) nodeHeadData.LockedById : DBNull.Value),
+                            ctx.CreateParameter("@ETag", DbType.AnsiString, 50, nodeHeadData.ETag ?? string.Empty),
+                            ctx.CreateParameter("@LockType", DbType.Int32, nodeHeadData.LockType),
+                            ctx.CreateParameter("@LockTimeout", DbType.Int32, nodeHeadData.LockTimeout),
+                            ctx.CreateParameter("@LockDate", DbType.DateTime2, nodeHeadData.LockDate),
+                            ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, nodeHeadData.LockToken ?? string.Empty),
+                            ctx.CreateParameter("@LastLockUpdate", DbType.DateTime2, nodeHeadData.LastLockUpdate),
+                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, nodeHeadData.CreationDate),
+                            ctx.CreateParameter("@CreatedById", DbType.Int32, nodeHeadData.CreatedById),
+                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, nodeHeadData.ModificationDate),
+                            ctx.CreateParameter("@ModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
+                            ctx.CreateParameter("@IsSystem", DbType.Byte, nodeHeadData.IsSystem ? (byte) 1 : 0),
+                            ctx.CreateParameter("@OwnerId", DbType.Int32, nodeHeadData.OwnerId),
+                            ctx.CreateParameter("@SavingState", DbType.Int32, (int) nodeHeadData.SavingState),
+                            ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            #endregion
+                        });
+                    });
+                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+
+                    // Delete unnecessary versions and update last versions
+                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+
+                    transaction.Commit();
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -745,8 +794,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var sql = LoadNodeHeadByVersionIdScript;
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadNodeHeadByVersionIdScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
+                }, async reader =>
+                {
+                    if (!await reader.ReadAsync(cancellationToken))
+                        return null;
+                    return GetNodeHeadFromReader(reader);
+                });
+            }
         }
         protected abstract string LoadNodeHeadByVersionIdScript { get; }
 
