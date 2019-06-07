@@ -1,13 +1,21 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.DataModel;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Schema
 {
     public abstract class SchemaWriter
     {
         protected const int NodeTypeSchemaId = 1;
         protected const int ContentListTypeSchemaId = 2;
+
+        public virtual bool CanWriteDifferences => true;
+
+        public virtual Task WriteSchemaAsync(RepositorySchemaData schema) //UNDONE:DB@@@@@ Rewrite to abstract?
+        {
+            throw new NotSupportedException();
+        }
 
         public abstract void Open();
         public abstract void Close();

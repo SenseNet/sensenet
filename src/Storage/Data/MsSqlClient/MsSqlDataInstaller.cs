@@ -2,18 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -34,51 +26,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             public static readonly string Files = "Files";
         }
 
-        private static Dictionary<string, string[]> ColumnNames;
-        //private static Dictionary<string, string[]> ColumnNames = new Dictionary<string, string[]>
-        //{
-        //    {
-        //        TableName.Nodes, new[]
-        //        {
-        //            "NodeId", "NodeTypeId", "CreatingInProgress", "IsDeleted", "IsInherited", "ParentNodeId",
-        //            "Name", "Path", "Index", "Locked", "ETag", "LockType", "LockTimeout", "LockDate", "LockToken", "LastLockUpdate",
-        //            "LastMinorVersionId", "LastMajorVersionId", "CreationDate", "CreatedById", "ModificationDate", "ModifiedById",
-        //            "IsSystem", "OwnerId", "SavingState"
-        //        }
-        //    },
-        //    {
-        //        TableName.Versions, new[]
-        //        {
-        //            "VersionId", "NodeId", "MajorNumber", "MinorNumber",
-        //            "CreationDate", "CreatedById", "ModificationDate", "ModifiedById", "Status"
-        //        }
-        //    },
-        //    {
-        //        TableName.FlatProperties, new[]
-        //        {
-        //            "Id", "VersionId", "Page", "int_1", "int_2", "int_3", "int_4", "int_5", "int_6", "int_7", "int_8",
-        //            "int_9", "int_10", "int_19", "money_1"
-        //        }
-        //    },
-        //    {
-        //        TableName.BinaryProperties, new[]
-        //        {
-        //            "BinaryPropertyId", "VersionId", "PropertyTypeId", "FileId"
-        //        }
-        //    },
-        //    {
-        //        TableName.Files, new[]
-        //        {
-        //            "FileId", "ContentType", "FileNameWithoutExtension", "Extension", "Size", "Stream", "CreationDate"
-        //        }
-        //    },
-        //    {
-        //        TableName.Entities, new[]
-        //        {
-        //            "Id", "OwnerId", "ParentId", "IsInherited"
-        //        }
-        //    },
-        //};
+        private static Dictionary<string, string[]> _columnNames;
 
         public static async Task InstallInitialDataAsync(InitialData data, MsSqlDataProvider dataProvider, string connectionString)
         {
@@ -86,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             CreateTableStructure(dataSet);
 
-            ColumnNames = dataSet.Tables.Cast<DataTable>().ToDictionary(
+            _columnNames = dataSet.Tables.Cast<DataTable>().ToDictionary(
                 table => table.TableName,
                 table => table.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToArray());
 
@@ -469,7 +417,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                     var table = dataSet.Tables[tableName];
 
-                    foreach (var name in ColumnNames[tableName])
+                    foreach (var name in _columnNames[tableName])
                         bulkCopy.ColumnMappings.Add(name, name);
 
                     await bulkCopy.WriteToServerAsync(table);
