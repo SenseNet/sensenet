@@ -12,19 +12,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
-        private DataProvider _mainProvider; //DB:ok but rewrite in the SqlSharedLockDataProvider2
-        private DataProvider MainProvider_OLD => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok but rewrite in the SqlSharedLockDataProvider2
-
-
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         public void DeleteAllSharedLocks()
         {
-            using (var proc = MainProvider_OLD.CreateDataProcedure("TRUNCATE TABLE [dbo].[SharedLocks]"))
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").Wait(ctx.CancellationToken);
             }
         }
 
@@ -51,13 +47,19 @@ SELECT @Result
 ";
 
             string existingLock;
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId)
-                .AddParameter("@Lock", @lock)
-                .AddParameter("@TimeLimit", timeLimit))
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                var result = proc.ExecuteScalar();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                        ctx.CreateParameter("@Lock", DbType.String, @lock),
+                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                    });
+                }).Result;
+
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
 
@@ -78,13 +80,19 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId)
-                .AddParameter("@Lock", @lock)
-                .AddParameter("@TimeLimit", timeLimit))
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                var result = proc.ExecuteScalar();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                        ctx.CreateParameter("@Lock", DbType.String, @lock),
+                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                    });
+                }).Result;
+
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
 
@@ -109,14 +117,20 @@ IF @Result = @OldLock
 SELECT @Result
 ";
             string existingLock;
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId)
-                .AddParameter("@OldLock", @lock)
-                .AddParameter("@NewLock", newLock)
-                .AddParameter("@TimeLimit", timeLimit))
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                var result = proc.ExecuteScalar();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                        ctx.CreateParameter("@OldLock", DbType.String, @lock),
+                        ctx.CreateParameter("@NewLock", DbType.String, newLock),
+                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                    });
+                }).Result;
+
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
 
@@ -134,6 +148,7 @@ SELECT @Result
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
             using (var ctx = new SnDataContext(MainProvider))
             {
+                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
@@ -159,13 +174,19 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId)
-                .AddParameter("@Lock", @lock)
-                .AddParameter("@TimeLimit", timeLimit))
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                var result = proc.ExecuteScalar();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                        ctx.CreateParameter("@Lock", DbType.String, @lock),
+                        ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
+                    });
+                }).Result;
+
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
 
@@ -180,11 +201,17 @@ SELECT @Result
         public void CleanupSharedLocks()
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@TimeoutInMinutes", Convert.ToInt32(SharedLockTimeout.TotalMinutes)))
+
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
+                    });
+                }).Result;
             }
         }
 
@@ -204,23 +231,35 @@ SELECT @Result
         public DateTime GetCreationDate(int contentId)
         {
             const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId))
+
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                var result = proc.ExecuteScalar();
-                return result == DBNull.Value ? DateTime.MinValue : (DateTime) result;
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId)
+                    });
+                }).Result;
+                return result == DBNull.Value ? DateTime.MinValue : (DateTime)result;
             }
         }
         public void SetCreationDate(int contentId, DateTime value)
         {
             const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
-            using (var proc = MainProvider_OLD.CreateDataProcedure(sql)
-                .AddParameter("@ContentId", contentId)
-                .AddParameter("@CreationDate", value))
+
+            using (var ctx = new SnDataContext(MainProvider))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                //UNDONE: SQLSharedLock: async API + CancellationToken
+                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
+                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, value)
+                    });
+                }).Result;
             }
         }
     }
