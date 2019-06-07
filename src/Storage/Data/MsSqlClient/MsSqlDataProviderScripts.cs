@@ -367,6 +367,30 @@ SELECT * FROM NodeTypes
 ";
         #endregion
 
+        #region StartSchemaUpdateScript
+        protected override string StartSchemaUpdateScript => @"-- MsSqlDataProvider.StartSchemaUpdate
+DECLARE @Result INT
+SET @Result = 0
+
+IF NOT EXISTS (SELECT TOP 1 SchemaModificationId FROM SchemaModification)
+    INSERT INTO SchemaModification (ModificationDate, LockToken) VALUES (GETUTCDATE(), @LockToken)
+ELSE
+BEGIN
+    UPDATE [SchemaModification] SET [ModificationDate] = GETUTCDATE(), LockToken = @LockToken
+        WHERE Timestamp = @Timestamp AND (LockToken IS NULL OR LockToken = @LockToken)
+
+    IF @@ROWCOUNT = 0 BEGIN
+        IF EXISTS (SELECT TOP 1 SchemaModificationId FROM SchemaModification WHERE LockToken IS NULL OR LockToken = @Locktoken)
+            SET @Result = -1 -- Out of date
+        ELSE
+            SET @Result = -2 -- Locked by another
+	END
+END
+
+SELECT TOP 1 @Result [Result], [Timestamp] FROM SchemaModification
+";
+        #endregion
+
         /* ------------------------------------------------ Logging */
 
         #region WriteAuditEventScript

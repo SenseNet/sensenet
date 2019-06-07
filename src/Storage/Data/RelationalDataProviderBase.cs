@@ -15,6 +15,8 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Storage.Data.MsSqlClient;
+
 // ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
@@ -1151,13 +1153,33 @@ namespace SenseNet.ContentRepository.Storage.Data
         
         public override SchemaWriter CreateSchemaWriter()
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return new MsSqlSchemaWriter();
         }
 
-        public override Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
+        /// <inheritdoc />
+        public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var lockToken = Guid.NewGuid().ToString();
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(schemaTimestamp)),
+                        ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, lockToken)
+                    });
+                });
+                var resultCode = result == DBNull.Value ? 0 : (int)result;
+
+                if (resultCode == -1)
+                    throw new DataException("Storage schema is out of date.");
+                if (resultCode == -2)
+                    throw new DataException("Schema is locked by someone else.");
+            }
+            return lockToken;
         }
+        protected abstract string StartSchemaUpdateScript { get; }
 
         public override Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {

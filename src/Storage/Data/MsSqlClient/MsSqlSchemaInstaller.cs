@@ -149,41 +149,44 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
-            await BulkInsertAsync(dataSet, TableName.PropertyTypes, connectionString);
-            await BulkInsertAsync(dataSet, TableName.NodeTypes, connectionString);
-            await BulkInsertAsync(dataSet, TableName.ContentListTypes, connectionString);
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    await BulkInsertAsync(dataSet, TableName.PropertyTypes, connection, transaction);
+                    await BulkInsertAsync(dataSet, TableName.NodeTypes, connection, transaction);
+                    await BulkInsertAsync(dataSet, TableName.ContentListTypes, connection, transaction);
+                    transaction.Commit();
+                }
+            }
         }
 
-        private static async Task BulkInsertAsync(DataSet dataSet, string tableName, string connectionString)
+        private static async Task BulkInsertAsync(DataSet dataSet, string tableName, SqlConnection connection, SqlTransaction transaction)
         {
-            using (var connection = new SqlConnection(connectionString))
+            //using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand())
             {
                 command.Connection = connection;
+                command.Transaction = transaction;
                 command.CommandType = CommandType.Text;
                 command.CommandText = "DELETE " + tableName;
-                connection.Open();
                 command.ExecuteNonQuery();
             }
-            using (var connection = new SqlConnection(connectionString))
+
+            var options = SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.KeepIdentity;
+
+            using (var bulkCopy = new SqlBulkCopy(connection, options, transaction))
             {
-                var options = SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.KeepIdentity |
-                              SqlBulkCopyOptions.UseInternalTransaction;
+                bulkCopy.DestinationTableName = tableName;
+                bulkCopy.BulkCopyTimeout = 60 * 30;
 
-                connection.Open();
-                using (var bulkCopy = new SqlBulkCopy(connection, options, null))
-                {
-                    bulkCopy.DestinationTableName = tableName;
-                    bulkCopy.BulkCopyTimeout = 60 * 30;
+                var table = dataSet.Tables[tableName];
 
-                    var table = dataSet.Tables[tableName];
+                foreach (var name in _columnNames[tableName])
+                    bulkCopy.ColumnMappings.Add(name, name);
 
-                    foreach (var name in _columnNames[tableName])
-                        bulkCopy.ColumnMappings.Add(name, name);
-
-                    await bulkCopy.WriteToServerAsync(table);
-                }
-                connection.Close();
+                await bulkCopy.WriteToServerAsync(table);
             }
         }
     }
