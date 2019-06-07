@@ -643,7 +643,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string LoadNodesScript { get; }
-        protected virtual IDictionary<PropertyType, object> DeserializeDynamiProperties(string src)
+        public virtual IDictionary<PropertyType, object> DeserializeDynamiProperties(string src)
         {
             return src.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(DeserializeDynamiProperty).Where(x => x.PropertyType != null)
