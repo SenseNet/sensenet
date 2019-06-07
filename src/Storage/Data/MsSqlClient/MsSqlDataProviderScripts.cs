@@ -391,6 +391,15 @@ SELECT TOP 1 @Result [Result], [Timestamp] FROM SchemaModification
 ";
         #endregion
 
+        #region FinishSchemaUpdateScript
+        protected override string FinishSchemaUpdateScript => @"-- MsSqlDataProvider.StartSchemaUpdate
+DECLARE @Timestamp [timestamp]
+UPDATE [SchemaModification] SET [ModificationDate] = GETUTCDATE(), LockToken = NULL,  @Timestamp = [Timestamp]
+    WHERE LockToken = @LockToken
+SELECT @Timestamp [Timestamp]
+";
+        #endregion
+
         /* ------------------------------------------------ Logging */
 
         #region WriteAuditEventScript

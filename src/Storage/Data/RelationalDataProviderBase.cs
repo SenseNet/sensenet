@@ -15,7 +15,6 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Storage.Data.MsSqlClient;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -1150,12 +1149,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string LoadSchemaScript { get; }
-        
-        public override SchemaWriter CreateSchemaWriter()
-        {
-            return new MsSqlSchemaWriter();
-        }
-
+       
         /// <inheritdoc />
         public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -1181,10 +1175,24 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string StartSchemaUpdateScript { get; }
 
-        public override Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
+        /// <inheritdoc />
+        public override async Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, schemaLock)); 
+                });
+
+                var timestamp = ConvertTimestampToInt64(result);
+                if(timestamp == 0L)
+                    throw new DataException("Schema is locked by someone else.");
+
+                return timestamp;
+            }
         }
+        protected abstract string FinishSchemaUpdateScript { get; }
 
         /* =============================================================================================== Logging */
 

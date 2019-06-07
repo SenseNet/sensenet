@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -99,6 +100,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             text = text.Replace("[", "[[]").Replace("_", "[_]").Replace("%", "[%]");
 
             return text;
+        }
+
+        public override SchemaWriter CreateSchemaWriter()
+        {
+            return new MsSqlSchemaWriter();
         }
 
         public override DateTime RoundDateTime(DateTime d)

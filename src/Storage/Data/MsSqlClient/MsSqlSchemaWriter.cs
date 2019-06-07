@@ -6,7 +6,8 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 
-namespace SenseNet.Storage.Data.MsSqlClient
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public class MsSqlSchemaWriter : SchemaWriter
     {
