@@ -329,6 +329,29 @@ ORDER BY MajorNumber, MinorNumber
 
         /* ------------------------------------------------ TreeLock */
 
+        #region GetContentListTypesInTreeScript
+        protected override string GetContentListTypesInTreeScript => @"-- MsSqlDataProvider.GetContentListTypesInTree
+SELECT ContentListTypeId FROM Nodes 
+WHERE ContentListId IS NULL AND 
+      ContentListTypeId IS NOT NULL AND Path LIKE REPLACE(@Path, '_', '[_]') + '/%' COLLATE Latin1_General_CI_AS
+";
+        #endregion
+
+        #region AcquireTreeLockScript
+        protected override string AcquireTreeLockScript => @"-- MsSqlDataProvider.GetContentListTypesInTree
+BEGIN TRAN
+IF NOT EXISTS (
+	    SELECT TreeLockId FROM TreeLocks
+	    WHERE @TimeMin < LockedAt AND (
+			[Path] LIKE (REPLACE(@Path0, '_', '[_]') + '/%') OR
+			[Path] IN ( {0} ) ) )
+    INSERT INTO TreeLocks ([Path] ,[LockedAt])
+	    OUTPUT INSERTED.TreeLockId
+	    VALUES (@Path0, GETDATE())
+COMMIT
+";
+        #endregion
+
         #region IsTreeLockedScript
         protected override string IsTreeLockedScript => @"-- MsSqlDataProvider.IsTreeLocked
 SELECT TreeLockId
@@ -336,6 +359,18 @@ FROM TreeLocks
 WHERE @TimeLimit < LockedAt AND (
     [Path] LIKE (REPLACE(@Path0, '_', '[_]') + '/%') OR
     [Path] IN ( {0} ) )
+";
+        #endregion
+
+        #region ReleaseTreeLockScript
+        protected override string ReleaseTreeLockScript => @"-- MsSqlDataProvider.ReleaseTreeLock
+DELETE FROM TreeLocks WHERE TreeLockId IN ({0})
+";
+        #endregion
+
+        #region DeleteUnusedLocksScript
+        protected override string DeleteUnusedLocksScript => @"-- MsSqlDataProvider.DeleteUnusedLocks
+DELETE FROM TreeLocks WHERE LockedAt < @TimeMin
 ";
         #endregion
 
@@ -423,6 +458,20 @@ FROM Files F
     JOIN Nodes N on V.NodeId = N.NodeId
 WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N.[Path] + '/' LIKE REPLACE(@NodePath, '_', '[_]') + '/%'))
 ";
+        #endregion
+
+        #region GetNodeCountScript
+        protected override string GetNodeCountScript => @"-- MsSqlDataProvider.GetNodeCount
+SELECT COUNT (1) FROM Nodes NOLOCK
+";
+
+        #endregion
+
+        #region GetVersionCountScript
+        protected override string GetVersionCountScript => @"-- MsSqlDataProvider.GetVersionCount
+SELECT COUNT (1) FROM Versions NOLOCK
+";
+
         #endregion
 
         /* ------------------------------------------------ Installation */

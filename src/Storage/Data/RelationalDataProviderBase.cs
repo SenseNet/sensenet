@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -156,6 +157,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     break;
                 case DataType.Reference:
                     value = string.Join(",", ((IEnumerable<int>)propertyValue).Select(x => x.ToString()));
+                    if (value.Length == 0)
+                        return null; // Do not provide empty value.
                     break;
                 case DataType.Int: // because of enums
                     value = Convert.ToString((int)propertyValue, CultureInfo.InvariantCulture);
@@ -928,18 +931,51 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                    },
+                    async reader =>
+                    {
+                        var result = new List<ContentListType>();
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            var id = reader.GetInt32(0);
+                            var t = NodeTypeManager.Current.ContentListTypes.GetItemById(id);
+                            result.Add(t);
+                        }
+                        return result;
+                    });
+            }
         }
+        protected abstract string GetContentListTypesInTreeScript { get; }
 
         /* =============================================================================================== TreeLock */
 
-        public override Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit,
+        public override async Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var parentChain =  GetParentChain(path);
+            var sql = string.Format(AcquireTreeLockScript,
+                string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
+                    for (var i = 0; i < parentChain.Length; i++)
+                        cmd.Parameters.Add(
+                            ctx.CreateParameter("@Path" + i, DbType.String, DataStore.PathMaxLength, parentChain[i]));
+                });
+                return (result == null || result == DBNull.Value) ? 0 : (int)result;
+            }
         }
+        protected abstract string AcquireTreeLockScript { get; }
 
         /// <inheritdoc />
         public override async Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
@@ -963,15 +999,40 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string IsTreeLockedScript { get; }
 
-        public override Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var sql = string.Format(ReleaseTreeLockScript,
+                string.Join(", ", Enumerable.Range(0, lockIds.Length).Select(i => "@Id" + i)));
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                await ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    var index = 0;
+                    cmd.Parameters.AddRange(lockIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
+                });
+            }
+
+            await DeleteUnusedLocksAsync(cancellationToken);
         }
+        protected abstract string ReleaseTreeLockScript { get; }
 
         public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
+
+        protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                await ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
+                });
+            }
+        }
+        protected abstract string DeleteUnusedLocksScript { get; }
 
         protected string[] GetParentChain(string path)
         {
@@ -980,6 +1041,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             for (int i = 1; i < paths.Length; i++)
                 paths[i] = paths[i - 1] + "/" + paths[i];
             return paths.Reverse().ToArray();
+        }
+        protected DateTime GetObsoleteLimitTime()
+        {
+            return DateTime.Now.AddHours(-8.0);
         }
 
         /* =============================================================================================== IndexDocument */
@@ -1266,15 +1331,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetTreeSizeScript { get; }
 
-        public override Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+                return (int)await ctx.ExecuteScalarAsync(GetNodeCountScript, cmd => {});
         }
+        protected abstract string GetNodeCountScript { get; }
 
-        public override Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+                return (int)await ctx.ExecuteScalarAsync(GetVersionCountScript, cmd => { });
         }
+        protected abstract string GetVersionCountScript { get; }
 
         /* =============================================================================================== Installation */
 
