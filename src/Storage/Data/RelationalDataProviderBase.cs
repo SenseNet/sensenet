@@ -709,8 +709,27 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            return DeleteNodeAsync(nodeHeadData, 500, cancellationToken);
         }
+        public virtual async Task DeleteNodeAsync(NodeHeadData nodeHeadData, int partitionSize, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var transaction = ctx.BeginTransaction())
+            {
+                await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                        ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                        ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
+
+                    });
+                });
+                transaction.Commit();
+            }
+        }
+        protected abstract string DeleteNodeScript { get; }
 
         public override Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -896,10 +915,21 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeQuery */
 
-        public override Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var sql = string.Format(InstanceCountScript,
+                string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return (int)await ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    var index = 0;
+                    cmd.Parameters.AddRange(nodeTypeIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
+                });
+            }
         }
+        protected abstract string InstanceCountScript { get; }
 
         public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
         {

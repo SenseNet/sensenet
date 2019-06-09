@@ -191,6 +191,71 @@ SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F
 ";
         #endregion
 
+        #region DeleteNodeScript
+        protected override string DeleteNodeScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
+DECLARE @Path NVARCHAR(450)
+IF (EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @NodeId)) BEGIN
+    IF @Timestamp IS NOT NULL AND (NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @NodeId and @Timestamp = [Timestamp])) BEGIN
+	    SELECT @Path = [Path] FROM Nodes WHERE NodeId = @NodeId
+	    RAISERROR (N'Node is out of date. Id: %d, path: %s.', 12, 1, @NodeId, @Path);
+    END
+    ELSE BEGIN
+	    DECLARE @startpath nvarchar(450)
+	    SELECT @startpath = REPLACE(REPLACE(Path, '[', '\['), ']', '\]') FROM Nodes WHERE NodeId = @NodeId
+
+	    DECLARE @NIDall TABLE (Id INT IDENTITY(1, 1), NodeId INT)
+	    DECLARE @NIDpartition TABLE (Id INT IDENTITY(1, 1), NodeId INT)
+	    DECLARE @VID TABLE (Id INT IDENTITY(1, 1), VersionId INT)
+
+	    INSERT INTO @NIDall 
+		    SELECT NodeId FROM Nodes 
+		    WHERE Path = @startpath OR Path LIKE REPLACE(@startpath, '_', '[_]') + '/%'
+		    ORDER BY Path DESC
+
+	    DECLARE @nodeCount INT
+	    SELECT @nodeCount = COUNT(1) FROM @NIDall
+
+	    WHILE @nodeCount > 0 BEGIN
+		    BEGIN TRY
+			    DELETE FROM @NIDpartition
+			    INSERT INTO @NIDpartition
+				    SELECT TOP(@PartitionSize) NodeId FROM @NIDall ORDER BY Id
+
+			    DELETE FROM @VID
+			    INSERT INTO @VID
+				    SELECT VersionId FROM Versions WHERE NodeId IN (SELECT NodeId FROM @NIDpartition)
+
+			    --=============================================================
+
+			    DELETE BinaryProperties WHERE VersionId IN (SELECT VersionId FROM @VID)
+			    DELETE LongTextProperties WHERE VersionId IN (SELECT VersionId FROM @VID)
+			    --DELETE ReferenceProperties WHERE (VersionId IN (SELECT VersionId FROM @VID)) OR
+			    --									(ReferredNodeId IN (SELECT NodeId FROM @NIDpartition))
+
+			    DELETE Versions WHERE NodeId IN (SELECT NodeId FROM @NIDpartition)
+			    DELETE Nodes WHERE NodeId IN (SELECT NodeId FROM @NIDpartition)
+
+			    --=============================================================
+
+			    DELETE FROM @NIDall WHERE NodeId IN (SELECT NodeId FROM @NIDpartition)
+			    SELECT @nodeCount = COUNT(1) FROM @NIDall
+								
+			    print convert(varchar(10), @nodeCount) + ' nodes left'
+		    END TRY
+		    BEGIN CATCH
+			    DECLARE @ErrMsg nvarchar(4000), @ErrSeverity int
+			    SELECT 
+				    @ErrMsg = ERROR_MESSAGE(),
+				    @ErrSeverity = ERROR_SEVERITY()
+			    RAISERROR(@ErrMsg, @ErrSeverity, 1)
+			    RETURN
+		    END CATCH
+	    END -- WHILE
+    END -- ELSE
+END -- IF EXISTS
+";
+        #endregion
+
         #region LoadTextPropertyValuesScript
         protected override string LoadTextPropertyValuesScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
 SELECT PropertyTypeId, Value FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId IN ({0})
@@ -320,6 +385,12 @@ SELECT VersionId, MajorNumber, MinorNumber, Status
 FROM Versions
 WHERE NodeId = @NodeId
 ORDER BY MajorNumber, MinorNumber
+";
+        #endregion
+
+        #region InstanceCountScript
+        protected override string InstanceCountScript => @"-- MsSqlDataProvider.InstanceCount
+SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
 ";
         #endregion
 
