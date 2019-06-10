@@ -394,6 +394,12 @@ SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
 ";
         #endregion
 
+        #region GetChildrenIdentfiersScript
+        protected override string GetChildrenIdentfiersScript => @"-- MsSqlDataProvider.GetChildrenIdentfiers
+SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
+";
+        #endregion
+
         /* ------------------------------------------------ NodeQuery */
 
         /* ------------------------------------------------ Tree */

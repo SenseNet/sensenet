@@ -935,7 +935,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new SnDataContext(this))
                 return await ctx.ExecuteReaderAsync(
-                    "SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId",
+                    /*"SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId"*/ GetChildrenIdentfiersScript,
                     cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@ParentNodeId", DbType.Int32, parentId));
@@ -948,6 +948,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         return result.ToArray();
                     });
         }
+        protected abstract string GetChildrenIdentfiersScript { get; }
 
         //public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
         //    CancellationToken cancellationToken = default(CancellationToken))
