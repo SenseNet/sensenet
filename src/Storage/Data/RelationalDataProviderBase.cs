@@ -935,7 +935,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new SnDataContext(this))
                 return await ctx.ExecuteReaderAsync(
-                    /*"SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId"*/ GetChildrenIdentfiersScript,
+                    GetChildrenIdentfiersScript,
                     cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@ParentNodeId", DbType.Int32, parentId));
