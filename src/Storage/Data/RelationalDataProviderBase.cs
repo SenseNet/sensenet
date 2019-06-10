@@ -931,9 +931,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string InstanceCountScript { get; }
 
-        public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this))
+                return await ctx.ExecuteReaderAsync(
+                    "SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId",
+                    cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@ParentNodeId", DbType.Int32, parentId));
+                    },
+                    async reader =>
+                    {
+                        var result = new List<int>();
+                        while (await reader.ReadAsync(cancellationToken))
+                            result.Add(reader.GetInt32(0));
+                        return result.ToArray();
+                    });
         }
 
         //public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
