@@ -256,6 +256,293 @@ END -- IF EXISTS
 ";
         #endregion
 
+        //UNDONE:DB: Need to refactor MoveNodeScript
+        #region MoveNodeScript
+        protected override string MoveNodeScript => @"-- MsSqlDataProvider.MoveNode
+DECLARE @Path nvarchar(450)
+DECLARE @HasTrans INT
+SET @HasTrans = @@TRANCOUNT
+
+-----------------------------------------------------------------------  Existence checks
+
+IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @TargetNodeId)
+	RAISERROR (N'Cannot move under a deleted node. Id: %d', 12, 1, @TargetNodeId);
+
+IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @SourceNodeId)
+	RAISERROR (N'Cannot move a deleted node.Id: %d', 12, 1, @SourceNodeId);
+
+IF @SourceTimestamp IS NOT NULL BEGIN
+	IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @SourceNodeId and @SourceTimestamp = [Timestamp]) BEGIN
+		SELECT @Path = [Path] FROM Nodes WHERE NodeId = @SourceNodeId
+		RAISERROR (N'Source node is out of date. Id: %d, path: %s.', 12, 1, @SourceNodeId, @Path);
+	END
+END
+
+BEGIN TRY
+
+	-----------------------------------------------------------------------  Ensure transactionalitality
+
+	IF @HasTrans < 1
+	BEGIN
+		BEGIN TRAN TRNSP
+	END
+
+	-----------------------------------------------------------------------  Declare and Initialize variables and temp table variables
+
+	DECLARE @AffectedSubtreeIds table (NodeId int);
+	DECLARE @SourcePath nvarchar(450);
+	DECLARE @SourcePathUnderscoreEscaped nvarchar(450);
+
+
+	-- Get Source Path
+	SELECT
+		@SourcePath = [Path]
+	FROM
+		Nodes
+	WHERE
+		NodeId = @SourceNodeId
+
+	SET @SourcePathUnderscoreEscaped = REPLACE(@SourcePath, '_', '[_]')
+
+	-- Collect the Ids of the affected entries
+	-- (the source node and all nodes under that)
+	INSERT INTO
+		@AffectedSubtreeIds
+	SELECT
+		NodeId
+	FROM
+		Nodes
+	WHERE
+		Path = @SourcePath
+		OR
+		Path LIKE @SourcePathUnderscoreEscaped + '/%'
+
+	-- source and target system flags
+	DECLARE @SourceIsSystem tinyint
+	DECLARE @SourceType int
+	SELECT @SourceIsSystem = IsSystem, @SourceType = NodeTypeId FROM Nodes WHERE NodeId = @SourceNodeId
+	DECLARE @TargetIsSystem tinyint
+	DECLARE @TargetType int
+	SELECT @TargetIsSystem = IsSystem, @TargetType = NodeTypeId FROM Nodes WHERE NodeId = @TargetNodeId
+
+	-- system folder types
+	DECLARE @SystemFolderIds TABLE (NodeTypeId int)
+	;WITH TypeSubtree (Id)
+	AS
+	(
+		SELECT NodeTypeId Id FROM NodeTypes WHERE NodeTypeId IN (SELECT TOP 1 NodeTypeId FROM NodeTypes WHERE [Name] = 'SystemFolder')
+		UNION ALL
+		SELECT p.NodeTypeId Id FROM NodeTypes AS p INNER JOIN TypeSubtree AS t ON p.ParentId = t.Id
+	)
+	INSERT @SystemFolderIds SELECT Id FROM TypeSubtree
+
+	-- determine whether source is system folders
+	DECLARE @SourceIsSystemFolder tinyint
+	IF EXISTS (SELECT NodeTypeId FROM @SystemFolderIds WHERE NodeTypeId = @SourceType)
+		SET @SourceIsSystemFolder = 1
+	ELSE
+		SET @SourceIsSystemFolder = 0
+
+	-- determine whether source is system folders
+	DECLARE @TargetIsSystemFolder tinyint
+	IF EXISTS (SELECT NodeTypeId FROM @SystemFolderIds WHERE NodeTypeId = @TargetType)
+		SET @TargetIsSystemFolder = 1
+	ELSE
+		SET @TargetIsSystemFolder = 0
+
+	DECLARE @SystemFlagUpdatingStrategy varchar(9)
+	IF @SourceIsSystem = 0 AND @TargetIsSystem = 0 SET @SystemFlagUpdatingStrategy = 'NoChange'
+	IF @SourceIsSystem = 0 AND @TargetIsSystem = 1 SET @SystemFlagUpdatingStrategy = 'AllSystem'
+	IF @SourceIsSystem = 1 AND @TargetIsSystem = 0 SET @SystemFlagUpdatingStrategy = 'Recompute'
+	IF @SourceIsSystem = 1 AND @TargetIsSystem = 1 SET @SystemFlagUpdatingStrategy = 'NoChange'
+	
+	-----------------------------------------------------------------------  ContentList functionality: pre-check
+
+	DECLARE @SourceTreeContentListCount int
+	
+	SELECT
+		@SourceTreeContentListCount = COUNT(*)
+	FROM
+		Nodes
+	WHERE
+		NodeId IN (SELECT NodeId FROM @AffectedSubtreeIds)
+		AND
+		ContentListTypeId IS NOT NULL
+		AND
+		ContentListId IS NULL
+	
+	-- Must not move contentlists under another list(s)
+	IF @SourceTreeContentListCount > 0 AND (SELECT ContentListTypeId FROM Nodes WHERE NodeId = @TargetNodeId) IS NOT NULL
+	BEGIN
+		RAISERROR('Invalid operation: moving a contentlist / a subtree that contains a contentlist under an another contentlist', 18, 2)
+	END
+
+----------------------------------------------------------------------- Move
+
+	DECLARE @TargetPath nvarchar(450)
+	DECLARE @OldPath nvarchar(450)
+	DECLARE @OldPathUnderscoreEscaped nvarchar(450)
+	DECLARE @SourceParentPath nvarchar(450)
+	DECLARE @TargetTypePath nvarchar(450)
+	DECLARE @TrashBagTypePath nvarchar(450)
+
+	SELECT @TargetPath = Path FROM Nodes WHERE Nodes.NodeId = @TargetNodeId
+	SELECT @OldPath = Path FROM Nodes WHERE Nodes.NodeId = @SourceNodeId
+	SELECT @OldPathUnderscoreEscaped = REPLACE(@OldPath,'_','[_]')
+	SELECT @SourceParentPath = Path FROM Nodes WHERE Nodes.NodeId = (SELECT ParentNodeId FROM Nodes WHERE Nodes.NodeId = @SourceNodeId)
+	SELECT @TrashBagTypePath = Path FROM Nodes WHERE (Path LIKE '/Root/System/Schema/ContentTypes/%' AND Name = 'TrashBag')
+	SELECT @TargetTypePath = Path FROM Nodes WHERE (Path LIKE '/Root/System/Schema/ContentTypes/%' AND Name = 
+			(SELECT Name FROM NodeTypes WHERE NodeTypeId = (SELECT NodeTypeId FROM Nodes WHERE NodeId = @TargetNodeId)))
+
+	DECLARE @OldPathLen int
+	SET @OldPathLen = LEN(@SourceParentPath)
+
+
+	DECLARE @SourceContentListTypeId int
+	DECLARE @SourceContentListId int
+	DECLARE @TargetContentListTypeId int
+	DECLARE @TargetContentListId int
+
+	SELECT  @SourceContentListTypeId = ContentListTypeId, @SourceContentListId = ContentListId
+	FROM Nodes
+	WHERE NodeId = @SourceNodeId
+
+	SELECT  @TargetContentListTypeId = ContentListTypeId, @TargetContentListId = ContentListId
+	FROM Nodes
+	WHERE NodeId = @TargetNodeId
+	
+	
+	-- If the source is under a ContentList (is a ContentListFolder or a ContentListItem)
+	-- then the old contentlist properties have to be dropped.
+	-- (except when we are moving into the trash)
+	IF (@SourceContentListTypeId IS NOT NULL AND @SourceContentListId IS NOT NULL 
+		AND (@TargetContentListTypeId IS NULL OR @TargetContentListTypeId <> @SourceContentListTypeId) 
+		AND @TargetTypePath+ '/' NOT LIKE REPLACE(@TrashBagTypePath,'_','[_]') + '/%' )
+	BEGIN
+		-- Get the VersionIds of the nodes to be moved.
+		DECLARE @VersionsTemp table (VersionId int)
+		INSERT INTO @VersionsTemp
+			SELECT VersionId FROM Versions WHERE NodeId IN (SELECT NodeId FROM @AffectedSubtreeIds)
+		
+		-- Get the PropertyTypeIds of the contentlist properties
+		DECLARE @ContentListPropertyTypesTemp table (PropertyTypeId int)
+		INSERT INTO @ContentListPropertyTypesTemp
+			SELECT PropertyTypeId FROM PropertyTypes WHERE IsContentListProperty = 1
+
+		-- drop binary contentlist properties
+		DELETE BinaryProperties
+		WHERE
+			VersionId IN (SELECT VersionId FROM @VersionsTemp)
+			AND
+			PropertyTypeId IN (SELECT PropertyTypeId FROM @ContentListPropertyTypesTemp)
+		
+		-- drop LongTextProperty contentlist properties
+		DELETE LongTextProperties
+		WHERE
+			VersionId IN (SELECT VersionId FROM @VersionsTemp)
+			AND
+			PropertyTypeId IN (SELECT PropertyTypeId FROM @ContentListPropertyTypesTemp)
+
+---- drop flat contentlist properties
+--DELETE FlatProperties WHERE VersionId IN (SELECT VersionId FROM @VersionsTemp) AND Page >= 10000000
+
+		---- The target is NOT a ContentList nor a ContentListFolder.
+		---- ContentListTypeId, ContentListId should be updated to null.
+		---- (except if it is the trash)
+		UPDATE Nodes
+		SET ContentListTypeId = null, ContentListId = null
+		WHERE NodeId IN (SELECT NodeId FROM @AffectedSubtreeIds)
+	END
+	
+	-- If the target is a ContentList or a ContentListFolder
+	-- then the ContentListTypeId and ContentListId should be updated to the new ContentListTypeId and ContentListId. 
+	-- (except if the source node already has a ContentListTypeId)
+	IF (@TargetContentListTypeId IS NOT NULL)
+	BEGIN
+		IF @TargetContentListId IS NULL
+			-- In this case the ContentListId is null, because the ContentListId is the NodeId.
+			SET @TargetContentListId = @TargetNodeId
+
+		UPDATE Nodes
+		SET ContentListTypeId = @TargetContentListTypeId, ContentListId = @TargetContentListId
+		WHERE NodeId IN (SELECT NodeId FROM @AffectedSubtreeIds)
+	END
+	
+	--==== Updating subtree by strategy (@SystemFlagUpdatingStrategy: 'NoChange' | 'AllSystem' | 'Recompute'
+	IF @SystemFlagUpdatingStrategy = 'NoChange' BEGIN
+		--	subtree root
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen), ParentNodeId = @TargetNodeId
+		WHERE Nodes.NodeId = @SourceNodeId
+		--	subtree elements
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen)
+		WHERE Path LIKE @OldPathUnderscoreEscaped + '/%'
+	END
+	ELSE IF @SystemFlagUpdatingStrategy = 'AllSystem' BEGIN
+		--	subtree root
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen), ParentNodeId = @TargetNodeId, IsSystem = 1
+		WHERE Nodes.NodeId = @SourceNodeId
+		--	subtree elements
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen), IsSystem = 1
+		WHERE Path LIKE @OldPathUnderscoreEscaped + '/%'
+	END
+	ELSE IF @SystemFlagUpdatingStrategy = 'Recompute' BEGIN
+		--	subtree root
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen), ParentNodeId = @TargetNodeId, IsSystem = @SourceIsSystemFolder
+		WHERE Nodes.NodeId = @SourceNodeId
+		--	reset subtree elements
+		UPDATE Nodes
+		SET Path = @TargetPath + RIGHT(Path, LEN(Path) - @OldPathLen), IsSystem = 0
+		WHERE Path LIKE @OldPathUnderscoreEscaped + '/%'
+
+		-- set IsSystem flag on all nodes that have SystemFolder ancestor in this subtree
+		DECLARE @currentPath nvarchar(450)
+		DECLARE sysfolder_cursor CURSOR FOR  
+			SELECT [Path] FROM Nodes WHERE [Path] LIKE  REPLACE(@TargetPath,'_','[_]') + '/%' AND NodeTypeId IN (SELECT NodeTypeId FROM @SystemFolderIds)
+		OPEN sysfolder_cursor   
+		FETCH NEXT FROM sysfolder_cursor INTO @currentPath   
+		WHILE @@FETCH_STATUS = 0   
+		BEGIN   
+			UPDATE Nodes SET IsSystem = 1 WHERE NodeId IN (
+				SELECT NodeId FROM Nodes WHERE Path = @currentPath OR Path LIKE REPLACE(@currentPath,'_','[_]') + '/%'
+			)
+			FETCH NEXT FROM sysfolder_cursor INTO @currentPath   
+		END   
+		CLOSE sysfolder_cursor   
+		DEALLOCATE sysfolder_cursor
+	END
+
+	-- commit
+	IF @HasTrans < 1
+	BEGIN
+		COMMIT TRAN TRNSP
+	END
+END TRY
+BEGIN CATCH
+
+  -- there was an error
+  	IF @HasTrans < 1
+	BEGIN
+		ROLLBACK TRAN TRNSP
+	END
+
+  DECLARE @ErrMsg nvarchar(4000), @ErrSeverity int, @ErrState int
+  SELECT 
+	@ErrMsg = ERROR_MESSAGE(),
+    @ErrSeverity = ERROR_SEVERITY(),
+    @ErrState = ERROR_STATE();
+  IF @ErrSeverity >= 18 
+	SET @ErrSeverity = 12
+  RAISERROR(@ErrMsg, @ErrSeverity, @ErrState)
+
+END CATCH
+";
+        #endregion
+
         #region LoadTextPropertyValuesScript
         protected override string LoadTextPropertyValuesScript => @"-- MsSqlDataProvider.LoadTextPropertyValues
 SELECT PropertyTypeId, Value FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId IN ({0})

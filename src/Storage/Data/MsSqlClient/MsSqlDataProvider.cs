@@ -34,6 +34,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =========================================================================================== Platform specific implementations */
 
+        /* =============================================================================================== Nodes */
+        /* =============================================================================================== NodeHead */
+        /* =============================================================================================== NodeQuery */
+
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -102,20 +106,33 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return text;
         }
 
+        /* =============================================================================================== Tree */
+        /* =============================================================================================== TreeLock */
+        /* =============================================================================================== IndexDocument */
+        /* =============================================================================================== IndexingActivity */
+        /* =============================================================================================== Schema */
+
         public override SchemaWriter CreateSchemaWriter()
         {
             return new MsSqlSchemaWriter();
         }
+
+        /* =============================================================================================== Logging */
+        /* =============================================================================================== Provider Tools */
 
         public override DateTime RoundDateTime(DateTime d)
         {
             return new DateTime(d.Ticks / 100000 * 100000);
         }
 
+        /* =============================================================================================== Installation */
+
         public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
         }
+
+        /* =============================================================================================== Tools */
 
         protected override long ConvertTimestampToInt64(object timestamp)
         {

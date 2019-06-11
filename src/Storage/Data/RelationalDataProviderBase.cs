@@ -731,11 +731,45 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string DeleteNodeScript { get; }
 
-        public override Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
+        public override async Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                using (var transaction = ctx.BeginTransaction())
+                {
+                    try
+                    {
+                        await ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
+                        {
+                            cmd.Parameters.AddRange(new[]
+                            {
+                                ctx.CreateParameter("@SourceNodeId", DbType.Int32, sourceNodeHeadData.NodeId),
+                                ctx.CreateParameter("@TargetNodeId", DbType.Int32, targetNodeId),
+                                ctx.CreateParameter("@SourceTimestamp", DbType.Binary,
+                                    ConvertInt64ToTimestamp(sourceNodeHeadData.Timestamp)),
+                                ctx.CreateParameter("@TargetTimestamp", DbType.Binary,
+                                    ConvertInt64ToTimestamp(targetTimestamp)),
+                            });
+                        });
+                    }
+                    catch(DbException e)
+                    {
+                        if (e.Message.StartsWith("Source node is out of date"))
+                        {
+                            StorageContext.L2Cache.Clear();
+                            throw new NodeIsOutOfDateException(e.Message, e);
+                        }
+
+                        throw new DataException("Node cannot be moved. See ineer exception for details.", e);
+                    }
+
+                    transaction.Commit();
+                }
+            }
+
         }
+        protected abstract string MoveNodeScript { get; }
 
         public override async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
             CancellationToken cancellationToken = default(CancellationToken))
