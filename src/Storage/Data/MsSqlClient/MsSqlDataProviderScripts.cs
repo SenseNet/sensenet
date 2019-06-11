@@ -675,19 +675,36 @@ ORDER BY MajorNumber, MinorNumber
 ";
         #endregion
 
+        #region GetVersionNumbersByNodeIdScript
+        protected override string GetVersionNumbersByNodeIdScript => @"-- MsSqlDataProvider.GetVersionNumbersByNodeId
+SELECT MajorNumber, MinorNumber, [Status] FROM Versions
+WHERE NodeId = @NodeId
+ORDER BY MajorNumber, MinorNumber
+";
+        #endregion
+
+        #region GetVersionNumbersByPathScript
+        protected override string GetVersionNumbersByPathScript => @"-- MsSqlDataProvider.GetVersionNumbersByPath
+SELECT v.MajorNumber, v.MinorNumber, v.[Status] FROM Versions v
+	INNER JOIN Nodes n ON n.NodeId = v.NodeId
+WHERE n.[Path] = @Path
+ORDER BY v.MajorNumber, v.MinorNumber
+";
+        #endregion
+
         #region InstanceCountScript
         protected override string InstanceCountScript => @"-- MsSqlDataProvider.InstanceCount
 SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
 ";
         #endregion
 
+        /* ------------------------------------------------ NodeQuery */
+
         #region GetChildrenIdentfiersScript
         protected override string GetChildrenIdentfiersScript => @"-- MsSqlDataProvider.GetChildrenIdentfiers
-SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
+SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId
 ";
         #endregion
-
-        /* ------------------------------------------------ NodeQuery */
 
         /* ------------------------------------------------ Tree */
 

@@ -914,14 +914,49 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetNodeVersionsScript { get; }
 
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                }, async reader =>
+                {
+                    var result = new List<VersionNumber>();
+
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(new VersionNumber(
+                                reader.GetInt16("MajorNumber"),
+                                reader.GetInt16("MinorNumber"),
+                                (VersionStatus)reader.GetInt16("Status")));
+                    return result.ToArray();
+                });
+            }
         }
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        protected abstract string GetVersionNumbersByNodeIdScript { get; }
+
+        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                }, async reader =>
+                {
+                    var result = new List<VersionNumber>();
+
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(new VersionNumber(
+                            reader.GetInt16("MajorNumber"),
+                            reader.GetInt16("MinorNumber"),
+                            (VersionStatus)reader.GetInt16("Status")));
+                    return result.ToArray();
+                });
+            }
         }
+        protected abstract string GetVersionNumbersByPathScript { get; }
 
         protected virtual NodeHead GetNodeHeadFromReader(DbDataReader reader)
         {
