@@ -1031,11 +1031,53 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds,
+        public override async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            if (referenceName == null)
+                throw new ArgumentNullException(nameof(referenceName));
+            if (referenceName.Length == 0)
+                throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
+            var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+            if (referenceProperty == null)
+                throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
+            var referencePropertyId = referenceProperty.Id;
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                string sql;
+                var parameters = new List<DbParameter>
+                {
+                    ctx.CreateParameter("@PropertyTypeId", DbType.Int32, referencePropertyId),
+                    ctx.CreateParameter("@ReferredNodeId", DbType.Int32, referredNodeId)
+                };
+
+                if (nodeTypeIds == null || nodeTypeIds.Length == 0)
+                {
+                    sql = QueryNodesByReferenceScript;
+                }
+                else
+                {
+                    const string prefix = "@NtId";
+                    sql = string.Format(QueryNodesByReferenceAndTypeScript, string.Join(",",
+                        Enumerable.Range(0, nodeTypeIds.Length).Select(i => prefix + i)));
+                    for (var i = 0; i < nodeTypeIds.Length; i++)
+                        parameters.Add(ctx.CreateParameter(prefix + i, DbType.Int32, nodeTypeIds[i]));
+                }
+
+                return await ctx.ExecuteReaderAsync(sql, cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
+                    async reader =>
+                    {
+                        var result = new List<int>();
+                        while (await reader.ReadAsync(cancellationToken))
+                            result.Add(reader.GetInt32(0));
+                        return result.ToArray();
+                    });
+            }
+
         }
+        protected abstract string QueryNodesByReferenceScript { get; }
+        protected abstract string QueryNodesByReferenceAndTypeScript { get; }
 
         /* =============================================================================================== Tree */
 
@@ -1228,11 +1270,31 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task RegisterIndexingActivityAsync(IIndexingActivity activity,
+        public override async Task RegisterIndexingActivityAsync(IIndexingActivity activity,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                activity.CreationDate = DateTime.UtcNow;
+                var rawActivityId = await ctx.ExecuteScalarAsync(RegisterIndexingActivityScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ActivityType", DbType.String, 50, activity.ActivityType.ToString()),
+                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, activity.CreationDate),
+                        ctx.CreateParameter("@RunningState", DbType.AnsiString, 10, activity.RunningState.ToString()),
+                        ctx.CreateParameter("@LockTime", DbType.DateTime2, (object)activity.LockTime ?? DBNull.Value),
+                        ctx.CreateParameter("@NodeId", DbType.Int32, activity.NodeId),
+                        ctx.CreateParameter("@VersionId", DbType.Int32, activity.VersionId),
+                        ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, (object)activity.Path ?? DBNull.Value),
+                        ctx.CreateParameter("@VersionTimestamp", DbType.Int64, (object)activity.VersionTimestamp ?? DBNull.Value),
+                        ctx.CreateParameter("@Extension", DbType.String, int.MaxValue, (object)activity.Extension ?? DBNull.Value),
+                    });
+                });
+                activity.Id = Convert.ToInt32(rawActivityId);
+            }
         }
+        protected abstract string RegisterIndexingActivityScript { get; }
 
         public override Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
             CancellationToken cancellationToken = default(CancellationToken))

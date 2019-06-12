@@ -706,6 +706,23 @@ SELECT NodeId FROM Nodes WHERE ParentNodeId = @ParentNodeId
 ";
         #endregion
 
+        #region QueryNodesByReferenceScript
+        protected override string QueryNodesByReferenceScript => @"-- MsSqlDataProvider.QueryNodesByReference
+SELECT V.NodeId FROM ReferenceProperties R
+	JOIN Versions V ON R.VersionId = V.VersionId
+	JOIN Nodes N ON V.VersionId = N.LastMinorVersionId
+WHERE R.PropertyTypeId = @PropertyTypeId AND R.ReferredNodeId = @ReferredNodeId
+";
+        #endregion
+        #region QueryNodesByReferenceAndTypeScript
+        protected override string QueryNodesByReferenceAndTypeScript => @"-- MsSqlDataProvider.QueryNodesByReferenceAndType
+SELECT N.NodeId FROM ReferenceProperties R
+	JOIN Versions V ON R.VersionId = V.VersionId
+	JOIN Nodes N ON V.VersionId = N.LastMinorVersionId
+WHERE R.PropertyTypeId = @PropertyTypeId AND R.ReferredNodeId = @ReferredNodeId AND N.NodeTypeId IN ({0})
+";
+        #endregion
+
         /* ------------------------------------------------ Tree */
 
         /* ------------------------------------------------ TreeLock */
@@ -768,7 +785,16 @@ SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
 
         #region GetLastIndexingActivityIdScript
         protected override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId
-SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'";
+SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'
+";
+        #endregion
+
+        #region RegisterIndexingActivityScript
+        protected override string RegisterIndexingActivityScript => @"-- MsSqlDataProvider.RegisterIndexingActivity
+INSERT INTO [IndexingActivities]
+    ([ActivityType],[CreationDate],[RunningState],[LockTime],[NodeId],[VersionId],[Path],[VersionTimestamp],[Extension]) VALUES
+    (@ActivityType, @CreationDate, @RunningState, @LockTime, @NodeId, @VersionId, @Path, @VersionTimestamp, @Extension)
+SELECT @@IDENTITY";
         #endregion
 
         /* ------------------------------------------------ Schema */
