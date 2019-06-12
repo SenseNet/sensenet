@@ -8,7 +8,6 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
-    //UNDONE: AccessToken: async API + CancellationToken
     public class SqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
@@ -35,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             return _accessTokenValueCollationName;
         }
 
-        private AccessToken GetAccessTokenFromReader(IDataReader reader)
+        private static AccessToken GetAccessTokenFromReader(IDataReader reader)
         {
             return new AccessToken
             {
