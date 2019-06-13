@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
-            return DataStore.Enabled ? DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes).Result :  DataProvider.LoadIndexDocument(path, excludedNodeTypes); //DB:ok
+            return DataStore.Enabled ? DataStore.LoadIndexDocumentsAsync(path, excludedNodeTypes) :  DataProvider.LoadIndexDocument(path, excludedNodeTypes); //DB:ok
         }
 
         /// <summary>

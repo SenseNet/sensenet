@@ -616,6 +616,14 @@ SELECT [Timestamp] as NodeTimestamp, LastMajorVersionId, LastMinorVersionId FROM
 ";
         #endregion
 
+        #region NodeExistsScript
+        protected override string NodeExistsScript => @"-- MsSqlDataProvider.NodeExists
+IF EXISTS (SELECT * FROM Nodes WHERE [Path] = @Path COLLATE Latin1_General_CI_AS)
+	SELECT 1
+ELSE
+	SELECT 0
+";
+        #endregion
 
         /* ------------------------------------------------ NodeHead */
 
@@ -656,7 +664,6 @@ WHERE
                 join ?? string.Empty,
                 where ?? string.Empty);
         }
-
         protected override string LoadNodeHeadByPathScript => LoadNodeHeadScript("LoadNodeHead by Path", where: "Node.Path = @Path COLLATE Latin1_General_CI_AS");
         protected override string LoadNodeHeadByIdScript => LoadNodeHeadScript("LoadNodeHead by NodeId", where: "Node.NodeId = @NodeId");
         protected override string LoadNodeHeadByVersionIdScript => LoadNodeHeadScript("LoadNodeHead by VersionId",
@@ -725,6 +732,27 @@ WHERE R.PropertyTypeId = @PropertyTypeId AND R.ReferredNodeId = @ReferredNodeId 
 
         /* ------------------------------------------------ Tree */
 
+        #region LoadChildTypesToAllowScript
+        protected override string LoadChildTypesToAllowScript => @"-- MsSqlDataProvider.LoadChildTypesToAllow
+DECLARE @FolderNodeTypeId int
+SELECT @FolderNodeTypeId = NodeTypeId FROM NodeTypes WHERE Name = 'Folder'
+DECLARE @PageNodeTypeId int
+SELECT @PageNodeTypeId = NodeTypeId FROM NodeTypes WHERE Name = 'Page'
+
+;WITH Tree(Id, ParentId, TypeId) AS
+(
+	SELECT NodeId, ParentNodeId, NodeTypeId FROM Nodes WHERE NodeId = @NodeId
+	UNION ALL
+	SELECT NodeId, ParentNodeId, NodeTypeId FROM Nodes
+		JOIN Tree ON Tree.Id = Nodes.ParentNodeId
+	WHERE Tree.TypeId IN (@FolderNodeTypeId, @PageNodeTypeId)
+)
+SELECT DISTINCT S.Name FROM NodeTypes S
+	JOIN Nodes N ON N.NodeTypeId = S.NodeTypeId
+	JOIN Tree ON N.NodeId = Tree.Id
+";
+        #endregion
+
         /* ------------------------------------------------ TreeLock */
 
         #region GetContentListTypesInTreeScript
@@ -782,6 +810,20 @@ SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
         #endregion
 
         /* ------------------------------------------------ IndexingActivity */
+
+        #region LoadIndexDocumentCollectionBlockByPathScript
+        protected override string LoadIndexDocumentCollectionBlockByPathScript => @"-- MsSqlDataProvider.LoadIndexDocumentCollectionBlockByPath
+;WITH IndexDocumentsRanked AS (
+    SELECT N.NodeTypeId, V.VersionId, V.NodeId, N.ParentNodeId, N.Path, N.IsSystem, N.LastMinorVersionId, N.LastMajorVersionId,
+        V.Status,V.IndexDocument,N.Timestamp AS NodeTimeStamp, V.Timestamp AS VersionTimeStamp,
+        ROW_NUMBER() OVER ( ORDER BY Path ) AS RowNum
+    FROM Nodes N INNER JOIN Versions V ON N.NodeId = V.NodeId
+    WHERE N.NodeTypeId NOT IN ({0})
+        AND (Path = @Path COLLATE Latin1_General_CI_AS OR Path LIKE REPLACE(@Path, '_', '[_]') + '/%' COLLATE Latin1_General_CI_AS)
+)
+SELECT * FROM IndexDocumentsRanked WHERE RowNum BETWEEN @Offset + 1 AND @Offset + @Count
+";
+        #endregion
 
         #region GetLastIndexingActivityIdScript
         protected override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId

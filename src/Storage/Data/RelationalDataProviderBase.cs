@@ -26,6 +26,8 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         //UNDONE:DB: check CancellationToken usage in this class.
 
+        protected int IndexBlockSize = 100;
+
         /* =============================================================================================== Factory methods */
 
         public abstract DbCommand CreateCommand();
@@ -176,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var index = 0;
             longTextSqlBuilder.Append(InsertLongtextPropertiesHeadScript);
             longTextSqlParameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
-            foreach (var item in longTextProperties)
+            foreach (var item in longTextProperties.Where(x => x.Value != null))
             {
                 longTextSqlBuilder.AppendFormat(InsertLongtextPropertiesScript, ++index);
                 longTextSqlParameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
@@ -805,10 +807,18 @@ namespace SenseNet.ContentRepository.Storage.Data
             return Task.FromResult(BlobStorage.LoadBinaryProperty(versionId, propertyTypeId));
         }
 
-        public override Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
+                });
+                return result != 0;
+            }
         }
+        protected abstract string NodeExistsScript { get; }
 
         /* =============================================================================================== NodeHead */
 
@@ -1081,10 +1091,28 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
-        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this))
+                return await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                    },
+                    async reader =>
+                    {
+                        var result = new List<NodeType>();
+
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            var name = (string) reader[0];
+                            var nt = ActiveSchema.NodeTypes[name];
+                            if (nt != null)
+                                result.Add(nt);
+                        }
+                        return result;
+                    });
         }
+        protected abstract string LoadChildTypesToAllowScript { get; }
 
         public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -1227,11 +1255,72 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         }
 
-        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            var offset = 0;
+            var blockSize = IndexBlockSize;
+
+            while (LoadNextIndexDocumentBlock(offset, blockSize, path, excludedNodeTypes, out var buffer))
+            {
+                foreach (var indexDocData in buffer)
+                    yield return indexDocData;
+                offset += blockSize;
+            }
         }
+        private bool LoadNextIndexDocumentBlock(int offset, int blockSize, string path, int[] excludedNodeTypes, out List<IndexDocumentData> buffer)
+        {
+            var sql = string.Format(LoadIndexDocumentCollectionBlockByPathScript, string.Join(", ", excludedNodeTypes));
+            using (var ctx = new SnDataContext(this))
+            {
+                try
+                {
+                    buffer = ctx.ExecuteReaderAsync(sql, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path),
+                            ctx.CreateParameter("@Offset", DbType.Int32, DataStore.PathMaxLength, offset),
+                            ctx.CreateParameter("@Count", DbType.Int32, DataStore.PathMaxLength, blockSize),
+                        });
+                    }, reader =>
+                    {
+                        var block = new List<IndexDocumentData>(blockSize);
+                        if (reader.HasRows)
+                            while (reader.Read())
+                                block.Add(GetIndexDocumentDataFromReader(reader));
+                        return Task.FromResult(block);
+                    }).Result;
+                    return buffer.Count > 0;
+                }
+                catch (Exception ex) // logged, rethrown
+                {
+                    SnLog.WriteException(ex, $"Loading index document block failed. Offset: {offset}, Path: {path}");
+                    throw;
+                }
+            }
+        }
+        protected IndexDocumentData GetIndexDocumentDataFromReader(DbDataReader reader)
+        {
+            var versionId = reader.GetSafeInt32("VersionId");
+            var approved = Convert.ToInt32(reader.GetInt16("Status")) == (int)VersionStatus.Approved;
+            var isLastMajor = reader.GetSafeInt32("LastMajorVersionId") == versionId;
+
+            var stringData = reader.GetSafeString("IndexDocument");
+            return new IndexDocumentData(null, stringData)
+            {
+                NodeTypeId = reader.GetSafeInt32("NodeTypeId"),
+                VersionId = versionId,
+                NodeId = reader.GetSafeInt32("NodeId"),
+                ParentId = reader.GetSafeInt32("ParentNodeId"),
+                Path = reader.GetSafeString("Path"),
+                IsSystem = reader.GetSafeBooleanFromByte("IsSystem"),
+                IsLastDraft = reader.GetSafeInt32("LastMinorVersionId") == versionId,
+                IsLastPublic = approved && isLastMajor,
+                NodeTimestamp = ConvertTimestampToInt64(reader.GetSafeByteArray("NodeTimestamp")),
+                VersionTimestamp = ConvertTimestampToInt64(reader.GetSafeByteArray("VersionTimestamp")),
+            };
+        }
+        protected abstract string LoadIndexDocumentCollectionBlockByPathScript { get; }
 
         public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
         {

@@ -424,9 +424,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.LoadIndexDocumentsAsync(versionIds, cancellationToken);
         }
-        public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes, CancellationToken cancellationToken = default(CancellationToken))
+        public static IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            return DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes, cancellationToken);
+            return DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
         public static Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))

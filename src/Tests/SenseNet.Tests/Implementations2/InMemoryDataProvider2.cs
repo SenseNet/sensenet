@@ -965,9 +965,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return CreateIndexDocumentDataSafe(node, version);
         }
 
-        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes, CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = new List<IndexDocumentData>();
@@ -982,7 +981,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
                     result.Add(CreateIndexDocumentDataSafe(node, version));
 
-                return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
+                return result;
             }
         }
         private IndexDocumentData CreateIndexDocumentDataSafe(NodeDoc node, VersionDoc version)

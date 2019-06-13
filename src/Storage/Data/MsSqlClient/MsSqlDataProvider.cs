@@ -136,6 +136,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         protected override long ConvertTimestampToInt64(object timestamp)
         {
+            if (timestamp == null)
+                return 0L;
             var bytes = (byte[]) timestamp;
             var @long = 0L;
             for (int i = 0; i < bytes.Length; i++)

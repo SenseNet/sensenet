@@ -99,6 +99,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         }
 
+        public static byte[] GetSafeByteArray(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? null : (byte[])reader.GetValue(index);
+        }
+
         /* ============================================================================= */
 
         public static byte GetByte(this IDataReader reader, string columnName)
@@ -150,15 +155,19 @@ namespace SenseNet.ContentRepository.Storage.Data
             return reader.GetSafeLongFromBytes(reader.GetOrdinal(columnName));
         }
 
-        public static DateTime GetDateTimeUtc(this IDataReader reader, string name)
+        public static DateTime GetDateTimeUtc(this IDataReader reader, string columnName)
         {
-            int ordinal = reader.GetOrdinal(name);
+            int ordinal = reader.GetOrdinal(columnName);
             return reader.GetDateTimeUtc(ordinal);
         }
-
-        public static T GetEnumValueByName<T>(this IDataReader reader, string name)
+        public static byte[] GetSafeByteArray(this IDataReader reader, string columnName)
         {
-            var value = reader.GetString(name);
+            return reader.GetSafeByteArray(reader.GetOrdinal(columnName));
+        }
+
+        public static T GetEnumValueByName<T>(this IDataReader reader, string columnName)
+        {
+            var value = reader.GetString(columnName);
             return (T)Enum.Parse(typeof(T), value, true);
         }
     }

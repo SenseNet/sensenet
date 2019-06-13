@@ -1381,9 +1381,9 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION
                 var oneVersion = await DP.LoadIndexDocumentsAsync(new[] {testRoot.VersionId});
                 var moreVersions = (await DP.LoadIndexDocumentsAsync(testRootChildren.Select(x => x.VersionId).ToArray())).ToArray();
-                var subTreeAll = (await DP.LoadIndexDocumentsAsync(testRootPath, new int[0])).ToArray();
-                var onlyFiles = (await DP.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id })).ToArray();
-                var onlySystemFolders = (await DP.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id })).ToArray();
+                var subTreeAll = DP.LoadIndexDocumentsAsync(testRootPath, new int[0]).ToArray();
+                var onlyFiles = DP.LoadIndexDocumentsAsync(testRootPath, new[] { fileNodeType.Id }).ToArray();
+                var onlySystemFolders = DP.LoadIndexDocumentsAsync(testRootPath, new[] { systemFolderType.Id }).ToArray();
 
                 // ASSERT
                 Assert.AreEqual(testRootPath, oneVersion.First().Path);
