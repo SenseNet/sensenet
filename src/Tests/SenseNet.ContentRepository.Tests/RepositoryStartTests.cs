@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
@@ -93,52 +95,54 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestAccessTokenDataProvider : IAccessTokenDataProviderExtension
         {
-            public void DeleteAllAccessTokens()
+            public System.Threading.Tasks.Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void SaveAccessToken(AccessToken token)
+            public System.Threading.Tasks.Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public AccessToken LoadAccessTokenById(int accessTokenId)
+            public Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
+            public Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public AccessToken[] LoadAccessTokens(int userId)
+            public Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
+            public System.Threading.Tasks.Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void DeleteAccessToken(string tokenValue)
+            public System.Threading.Tasks.Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void DeleteAccessTokensByUser(int userId)
+            public System.Threading.Tasks.Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void DeleteAccessTokensByContent(int contentId)
+            public System.Threading.Tasks.Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void CleanupAccessTokens()
+            public System.Threading.Tasks.Task CleanupAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }

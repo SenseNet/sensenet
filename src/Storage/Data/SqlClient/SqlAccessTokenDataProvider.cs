@@ -1,39 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     public class SqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
-        private DataProvider _mainProvider; //DB:ok but rewrite in the SqlAccessTokenDataProvider2
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok but rewrite in the SqlAccessTokenDataProvider2
+        private RelationalDataProviderBase _dataProvider;
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         private string _accessTokenValueCollationName;
-        private string AccessTokenValueCollationName
+        private async Task<string> GetAccessTokenValueCollationNameAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            get
-            {
-                if (_accessTokenValueCollationName == null)
-                {
-                    using (var proc = MainProvider.CreateDataProcedure("SELECT c.collation_name, c.* " +
-                                                                           "FROM sys.columns c " +
-                                                                           "  JOIN sys.tables t ON t.object_id = c.object_id " +
-                                                                           "WHERE t.name = 'AccessTokens' AND c.name = N'Value'"))
-                    {
-                        proc.CommandType = CommandType.Text;
+            const string sql = "SELECT c.collation_name, c.* " +
+                               "FROM sys.columns c " +
+                               "  JOIN sys.tables t ON t.object_id = c.object_id " +
+                               "WHERE t.name = 'AccessTokens' AND c.name = N'Value'";
 
-                        var result = proc.ExecuteScalar();
-                        var originalCollation = Convert.ToString(result);
-                        _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
-                    }
+            if (_accessTokenValueCollationName == null)
+            {
+                using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+                {
+                    var result = await ctx.ExecuteScalarAsync(sql);
+                    var originalCollation = Convert.ToString(result);
+                    _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
                 }
-                return _accessTokenValueCollationName;
             }
+
+            return _accessTokenValueCollationName;
         }
 
-        private AccessToken GetAccessTokenFromReader(IDataReader reader)
+        private static AccessToken GetAccessTokenFromReader(IDataReader reader)
         {
             return new AccessToken
             {
@@ -47,139 +48,149 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             };
         }
 
-        public void DeleteAllAccessTokens()
+        public async Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("TRUNCATE TABLE AccessTokens"))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
             }
         }
 
-        public void SaveAccessToken(AccessToken token)
+        public async Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure(
-                "INSERT INTO [dbo].[AccessTokens] " +
-                "([Value],[UserId],[ContentId],[Feature],[CreationDate],[ExpirationDate]) VALUES " +
-                "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
-                "SELECT @@IDENTITY")
-                .AddParameter("@Value", token.Value, DbType.String, 1000)
-                .AddParameter("@UserId", token.UserId)
-                .AddParameter("@ContentId", token.ContentId != 0 ? (object)token.ContentId : DBNull.Value, DbType.Int32)
-                .AddParameter("@Feature", token.Feature != null ? (object)token.Feature : DBNull.Value, DbType.String, 1000)
-                .AddParameter("@CreationDate", token.CreationDate)
-                .AddParameter("@ExpirationDate", token.ExpirationDate))
-            {
-                proc.CommandType = CommandType.Text;
+            const string sql = "INSERT INTO [dbo].[AccessTokens] " +
+                               "([Value],[UserId],[ContentId],[Feature],[CreationDate],[ExpirationDate]) VALUES " +
+                               "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
+                               "SELECT @@IDENTITY";
 
-                var result = proc.ExecuteScalar();
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Value", DbType.String, token.Value),
+                        ctx.CreateParameter("@UserId", DbType.Int32, token.UserId),
+                        ctx.CreateParameter("@ContentId", DbType.Int32, token.ContentId != 0 ? (object)token.ContentId : DBNull.Value),
+                        ctx.CreateParameter("@Feature", DbType.String, token.Feature != null ? (object)token.Feature : DBNull.Value),
+                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, token.CreationDate),
+                        ctx.CreateParameter("@ExpirationDate", DbType.DateTime2, token.ExpirationDate)
+                    });
+                });
+
                 token.Id = Convert.ToInt32(result);
             }
         }
 
-        public AccessToken LoadAccessTokenById(int accessTokenId)
+        public async Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("SELECT TOP 1 * FROM [dbo].[AccessTokens] WHERE [AccessTokenId] = @Id")
-                .AddParameter("@Id", accessTokenId))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-
-                using (var reader = proc.ExecuteReader())
-                    return reader.Read() ? GetAccessTokenFromReader(reader) : null;
+                return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
+                    async reader => await reader.ReadAsync(ctx.CancellationToken)
+                        ? GetAccessTokenFromReader(reader)
+                        : null);
             }
         }
 
-        public AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
+        public async Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = "SELECT TOP 1 * FROM [dbo].[AccessTokens] " +
-                      $"WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > GETUTCDATE() AND " +
+                      $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE() AND " +
                       (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
                       (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
-            using (var proc = MainProvider.CreateDataProcedure(sql)
-                .AddParameter("@Value", tokenValue))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-
-                using (var reader = proc.ExecuteReader())
-                    return reader.Read() ? GetAccessTokenFromReader(reader) : null;
+                return await ctx.ExecuteReaderAsync(sql,
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
+                    async reader => await reader.ReadAsync(ctx.CancellationToken) ? GetAccessTokenFromReader(reader) : null);
             }
         }
 
-        public AccessToken[] LoadAccessTokens(int userId)
+        public async Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("SELECT * FROM [dbo].[AccessTokens] " +
-                                                                   "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()")
-                .AddParameter("@UserId", userId))
+            const string sql = "SELECT * FROM [dbo].[AccessTokens] " +
+                               "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()";
+
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
+                return await ctx.ExecuteReaderAsync(sql,
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
+                    async reader =>
+                    {
+                        var tokens = new List<AccessToken>();
+                        while (await reader.ReadAsync(ctx.CancellationToken))
+                            tokens.Add(GetAccessTokenFromReader(reader));
 
-                var tokens = new List<AccessToken>();
-                using (var reader = proc.ExecuteReader())
-                    while (reader.Read())
-                        tokens.Add(GetAccessTokenFromReader(reader));
-
-                return tokens.ToArray();
+                        return tokens.ToArray();
+                    }
+                );
             }
         }
 
-        public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
+        public async Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("UPDATE [AccessTokens] " +
-                                                                   "SET [ExpirationDate] = @NewExpirationDate " +
-                                                                   "   OUTPUT INSERTED.AccessTokenId" +
-                                                                   " WHERE [Value] = @Value " +
-                                                                   $" COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > GETUTCDATE()")
-                .AddParameter("@Value", tokenValue)
-                .AddParameter("@NewExpirationDate", newExpirationDate))
-            {
-                proc.CommandType = CommandType.Text;
+            var sql = "UPDATE [AccessTokens] " +
+                      "SET [ExpirationDate] = @NewExpirationDate " +
+                      "   OUTPUT INSERTED.AccessTokenId" +
+                      " WHERE [Value] = @Value " +
+                      $" COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE()";
 
-                var result = proc.ExecuteScalar();
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            {
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Value", DbType.String, tokenValue),
+                        ctx.CreateParameter("@NewExpirationDate", DbType.DateTime2, newExpirationDate)
+                    });
+                });
+
                 if (result == null || result == DBNull.Value)
                     throw new InvalidAccessTokenException("Token not found or it is expired.");
             }
-
         }
 
-        public void DeleteAccessToken(string tokenValue)
+        public async Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] " +
-                                                                   $"WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName}")
-                .AddParameter("@Value", tokenValue))
+            var sql = "DELETE FROM [dbo].[AccessTokens] " +
+                      $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)}";
+
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync(sql,
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); });
             }
         }
 
-        public void DeleteAccessTokensByUser(int userId)
+        public async Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId")
-                .AddParameter("@UserId", userId))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); });
             }
         }
 
-        public void DeleteAccessTokensByContent(int contentId)
+        public async Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var proc = MainProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId")
-                .AddParameter("@ContentId", contentId))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); });
             }
         }
 
-        public void CleanupAccessTokens()
+        public async Task CleanupAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
-            using (var proc = MainProvider.CreateDataProcedure(sql))
+            const string sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
+
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                proc.CommandType = CommandType.Text;
-                proc.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync(sql);
             }
         }
     }
