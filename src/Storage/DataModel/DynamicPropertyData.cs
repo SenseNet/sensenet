@@ -6,7 +6,6 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel
 {
-    //UNDONE:DB@@@ Separate ReferenceProperties or not
     public class DynamicPropertyData
     {
         private SchemaEditor _editor;
@@ -15,6 +14,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public List<PropertyType> PropertyTypes { get; set; } = new List<PropertyType>();
         public IDictionary<PropertyType, object> DynamicProperties { get; set; }
         public IDictionary<PropertyType, BinaryDataValue> BinaryProperties { get; set; }
+        public IDictionary<PropertyType, List<int>> ReferenceProperties { get; set; }
         public IDictionary<PropertyType, string> LongTextProperties { get; set; }
 
         public PropertyType EnsurePropertyType(string name, DataType dataType)

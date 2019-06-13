@@ -110,7 +110,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var versionId = versionData.VersionId;
 
                         // Manage ReferenceProperties
-                        //UNDONE:DB: Insert ReferenceProperties
+                        if (dynamicData.ReferenceProperties.Any())
+                            await InsertReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
@@ -171,6 +172,26 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return $"{propertyType.Name}:{value}";
         }
+        protected abstract string InsertNodeAndVersionScript { get; }
+        protected virtual async Task InsertReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
+        {
+            var parameters = new List<DbParameter> {ctx.CreateParameter("@VersionId", DbType.Int32, versionId)};
+            var sqlBuilder = new StringBuilder(InsertReferencePropertiesHeadScript);
+            var index = 0;
+            foreach (var item in referenceProperties)
+            {
+                index++;
+                sqlBuilder.AppendFormat(InsertReferencePropertiesScript, index);
+                parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
+            }
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
+            {
+                cmd.Parameters.AddRange(parameters.ToArray());
+            });
+        }
+        protected abstract string InsertReferencePropertiesHeadScript { get; }
+        protected abstract string InsertReferencePropertiesScript { get; }
         protected virtual async Task InsertLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
@@ -188,7 +209,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
         }
-        protected abstract string InsertNodeAndVersionScript { get; }
         protected abstract string InsertLongtextPropertiesHeadScript { get; }
         protected abstract string InsertLongtextPropertiesScript { get; }
 
@@ -272,7 +292,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
                     // Manage ReferenceProperties
-                    //UNDONE:DB: Update ReferenceProperties
+                    if (dynamicData.ReferenceProperties.Any())
+                        await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
 
                     // Manage LongTextProperties
                     if (dynamicData.LongTextProperties.Any())
@@ -343,6 +364,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateNodeScript { get; }
         protected abstract string UpdateSubTreePathScript { get; }
         protected abstract string ManageLastVersionsScript { get; }
+        protected virtual async Task UpdateReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
+        {
+            var parameters = new List<DbParameter> { ctx.CreateParameter("@VersionId", DbType.Int32, versionId) };
+            var sqlBuilder = new StringBuilder(UpdateReferencePropertiesHeadScript);
+            var index = 0;
+            foreach (var item in referenceProperties)
+            {
+                index++;
+                sqlBuilder.AppendFormat(UpdateReferencePropertiesScript, index);
+                parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
+                parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
+            }
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
+            {
+                cmd.Parameters.AddRange(parameters.ToArray());
+            });
+        }
+        protected abstract string UpdateReferencePropertiesHeadScript { get; }
+        protected abstract string UpdateReferencePropertiesScript { get; }
         protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
@@ -464,7 +504,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
                     // Manage ReferenceProperties
-                    //UNDONE:DB: Update ReferenceProperties
+                    if (dynamicData.LongTextProperties.Any())
+                        await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
 
                     // Manage LongTextProperties
                     if (dynamicData.LongTextProperties.Any())
@@ -554,7 +595,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     var result = new Dictionary<int, NodeData>();
 
-                    // Base data
+                    // BASE DATA
                     while (await reader.ReadAsync(cancellationToken))
                     {
                         var versionId = reader.GetInt32("VersionId");
@@ -611,7 +652,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         result.Add(versionId, nodeData);
                     }
 
-                    // BinaryProperties
+                    // BINARY PROPERTIES
                     await reader.NextResultAsync(cancellationToken);
                     while (await reader.ReadAsync(cancellationToken))
                     {
@@ -624,14 +665,33 @@ namespace SenseNet.ContentRepository.Storage.Data
                         nodeData.SetDynamicRawData(propertyTypeId, value);
                     }
 
-                    //// ReferenceProperties
-                    //await reader.NextResultAsync(cancellationToken);
-                    //while (await reader.ReadAsync(cancellationToken))
-                    //{
-                    //    var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
-                    //}
+                    // REFERENCE PROPERTIES
+                    await reader.NextResultAsync(cancellationToken);
+                    // -- collect references
+                    var referenceCollector = new Dictionary<int, Dictionary<int, List<int>>>();
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        var versionId = reader.GetInt32(reader.GetOrdinal("VersionId"));
+                        var propertyTypeId = reader.GetInt32(reader.GetOrdinal("PropertyTypeId"));
+                        var referredNodeId = reader.GetInt32(reader.GetOrdinal("ReferredNodeId"));
 
-                    // LongTextProperties
+                        if (!referenceCollector.ContainsKey(versionId))
+                            referenceCollector.Add(versionId, new Dictionary<int, List<int>>());
+                        var referenceCollectorPerVersion = referenceCollector[versionId];
+                        if (!referenceCollectorPerVersion.ContainsKey(propertyTypeId))
+                            referenceCollectorPerVersion.Add(propertyTypeId, new List<int>());
+                        referenceCollectorPerVersion[propertyTypeId].Add(referredNodeId);
+
+                    }
+                    // -- set references to NodeData
+                    foreach (var item in referenceCollector)
+                    {
+                        var nodeData = result[item.Key];
+                        foreach (var subItem in item.Value)
+                            nodeData.SetDynamicRawData(subItem.Key, subItem.Value);
+                    }
+
+                    // LONGTEXT PROPERTIES
                     await reader.NextResultAsync(cancellationToken);
                     while (await reader.ReadAsync(cancellationToken))
                     {
