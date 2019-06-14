@@ -830,6 +830,12 @@ DELETE FROM TreeLocks WHERE TreeLockId IN ({0})
 ";
         #endregion
 
+        #region LoadAllTreeLocksScript
+        protected override string LoadAllTreeLocksScript => @"-- MsSqlDataProvider.LoadAllTreeLocks
+SELECT [TreeLockId], [Path] FROM TreeLocks
+";
+        #endregion
+
         #region DeleteUnusedLocksScript
         protected override string DeleteUnusedLocksScript => @"-- MsSqlDataProvider.DeleteUnusedLocks
 DELETE FROM TreeLocks WHERE LockedAt < @TimeMin

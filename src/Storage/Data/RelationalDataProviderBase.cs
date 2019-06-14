@@ -1260,10 +1260,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string ReleaseTreeLockScript { get; }
 
-        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadAllTreeLocksScript, async reader =>
+                {
+                    var result = new Dictionary<int, string>();
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(reader.GetInt32(0), reader.GetString(1));
+                    return result;
+                });
+            }
         }
+        protected abstract string LoadAllTreeLocksScript { get; }
 
         protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
