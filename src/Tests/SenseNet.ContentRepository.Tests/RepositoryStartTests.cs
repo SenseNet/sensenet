@@ -53,42 +53,42 @@ namespace SenseNet.ContentRepository.Tests
 
         private class TestPackagingDataProvider : IPackagingDataProviderExtension
         {
-            public IEnumerable<ComponentInfo> LoadInstalledComponents()
+            public System.Threading.Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public IEnumerable<Package> LoadInstalledPackages()
+            public System.Threading.Tasks.Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void SavePackage(Package package)
+            public Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void UpdatePackage(Package package)
+            public Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public bool IsPackageExist(string componentId, PackageType packageType, Version version)
+            public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void DeletePackage(Package package)
+            public System.Threading.Tasks.Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void DeleteAllPackages()
+            public System.Threading.Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }
 
-            public void LoadManifest(Package package)
+            public System.Threading.Tasks.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
             {
                 throw new NotImplementedException();
             }

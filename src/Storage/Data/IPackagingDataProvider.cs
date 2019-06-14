@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -18,13 +20,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
     public interface IPackagingDataProviderExtension : IDataProviderExtension
     {
-        IEnumerable<ComponentInfo> LoadInstalledComponents();
-        IEnumerable<Package> LoadInstalledPackages();
-        void SavePackage(Package package);
-        void UpdatePackage(Package package);
-        bool IsPackageExist(string componentId, PackageType packageType, Version version);
-        void DeletePackage(Package package);
-        void DeleteAllPackages();
-        void LoadManifest(Package package);
+        Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
+        Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
+        Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, CancellationToken cancellationToken = default(CancellationToken));
+        Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
