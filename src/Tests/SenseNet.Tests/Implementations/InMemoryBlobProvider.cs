@@ -189,7 +189,7 @@ namespace SenseNet.Tests.Implementations
                 .RemoveAll(r => versionIds.Contains(r.VersionId));
         }
 
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
             throw new NotImplementedException();
         }

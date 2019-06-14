@@ -412,13 +412,25 @@ DELETE FROM BinaryProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
 ";
         public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
-            var ctx = dataContext ?? new SnDataContext(this);
-            var idsParam = string.Join(",", versionIds.Select(x => x.ToString()));
-            ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
+            void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, SnDataContext ctx)
             {
-                cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
-            })
-            .Wait();
+                var idsParam = string.Join(",", versionIdSet.Select(x => x.ToString()));
+                ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
+                    })
+                    .Wait();
+            }
+
+            if (dataContext == null)
+            {
+                using(var ctx = new SnDataContext(this))
+                    DeleteBinaryPropertiesLogic(versionIds, ctx);
+            }
+            else
+            {
+                DeleteBinaryPropertiesLogic(versionIds, dataContext);
+            }
         }
 
         private const string LoadBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.LoadBinaryProperty
@@ -429,39 +441,35 @@ FROM dbo.BinaryProperties B
 WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
 
 ";
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
-            //return MsSqlProcedure.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
-            //{
-            //    cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-            //    cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-            //}, reader =>
-            //{
-            //    if (!reader.Read())
-            //        return null;
-            //    return GetBinaryDataValueFromReader(reader);
-            //});
-
-            using (var cmd = new SqlProcedure { CommandText = LoadBinaryPropertyScript })
+            async Task<BinaryDataValue> LoadBinaryPropertyLogic(int vId, int ptId, SnDataContext ctx)
             {
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-                cmd.CommandType = CommandType.Text;
-
-                using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
                 {
-                    if (!reader.HasRows || !reader.Read())
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                    });
+                }, async reader =>
+                {
+                    if (!await reader.ReadAsync())
                         return null;
 
-                    var length = reader.GetInt64(0);
-                    var binaryPropertyId = reader.GetInt32(1);
-                    var fileId = reader.GetInt32(2);
-
-                    var providerName = reader.GetSafeString(3);
-                    var providerTextData = reader.GetSafeString(4);
-
+                    var size = reader.GetInt64("Size");
+                    var binaryPropertyId = reader.GetInt32("BinaryPropertyId");
+                    var fileId = reader.GetInt32("FileId");
+                    var providerName = reader.GetSafeString("BlobProvider");
+                    var providerTextData = reader.GetSafeString("BlobProviderData");
                     var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
+                    var context = new BlobStorageContext(provider, providerTextData)
+                    {
+                        VersionId = versionId,
+                        PropertyTypeId = propertyTypeId,
+                        FileId = fileId,
+                        Length = size
+                    };
                     Stream stream = null;
                     if (provider == BlobStorageBase.BuiltInProvider)
                     {
@@ -469,29 +477,33 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
                         var streamIndex = reader.GetOrdinal("Stream");
                         if (!reader.IsDBNull(streamIndex))
                         {
-                            var rawData = (byte[])reader.GetValue(streamIndex);
+                            var rawData = (byte[]) reader.GetValue(streamIndex);
                             stream = new MemoryStream(rawData);
                         }
                     }
 
                     return new BinaryDataValue
                     {
-                        Id = reader.GetInt32("BinaryPropertyId"),
-                        FileId = reader.GetInt32("FileId"),
+                        Id = binaryPropertyId,
+                        FileId = fileId,
                         ContentType = reader.GetSafeString("ContentType"),
                         FileName = new BinaryFileName(
                             reader.GetSafeString("FileNameWithoutExtension") ?? "",
                             reader.GetSafeString("Extension") ?? ""),
-                        Size = reader.GetInt64("Size"),
+                        Size = size,
                         Checksum = reader.GetSafeString("Checksum"),
-                        BlobProviderName = reader.GetSafeString("BlobProvider"),
-                        BlobProviderData = reader.GetSafeString("BlobProviderData"),
+                        BlobProviderName = providerName,
+                        BlobProviderData = providerTextData,
                         Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
                         Stream = stream
                     };
-
-                }
+                });
             }
+
+            if (dataContext == null)
+                using (var ctx = new SnDataContext(this))
+                    return LoadBinaryPropertyLogic(versionId, propertyTypeId, ctx).Result;
+            return LoadBinaryPropertyLogic(versionId, propertyTypeId, dataContext).Result;
         }
         #region LoadBinaryCacheentityFormatScript
 

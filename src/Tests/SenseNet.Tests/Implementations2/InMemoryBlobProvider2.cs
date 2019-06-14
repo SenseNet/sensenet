@@ -195,7 +195,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
             var db = DataProvider.DB;
 
