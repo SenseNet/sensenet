@@ -1679,9 +1679,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                         dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
                         break;
                     case DataType.Reference:
-                        // Do not store empty references.
-                        if (EmptyReferencesFilterSafe(propertyType, item.Value))
-                            dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
+                        // Do nothing. These properties are managed below
                         break;
                     case DataType.Binary:
                         // Do nothing. These properties are managed by the caller
@@ -1689,6 +1687,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+            }
+            foreach (var item in dynamicData.ReferenceProperties)
+            {
+                var propertyType = item.Key;
+                if (EmptyReferencesFilterSafe(propertyType, item.Value))
+                    dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
             }
 
             return new VersionDoc
@@ -1721,9 +1725,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             {
                 var propertyType = sourceItem.Key;
                 var dataType = propertyType.DataType;
-                if (dataType == DataType.Text || dataType == DataType.Binary)
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
                     // Handled by higher level
                     continue;
+                var clone = GetCloneSafe(sourceItem.Value, dataType);
+                target[propertyType.Name] = clone;
+            }
+            foreach (var sourceItem in dynamicData.ReferenceProperties)
+            {
+                var propertyType = sourceItem.Key;
+                var dataType = propertyType.DataType;
                 var clone = GetCloneSafe(sourceItem.Value, dataType);
                 if (dataType == DataType.Reference)
                 {
