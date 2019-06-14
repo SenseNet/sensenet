@@ -15,7 +15,7 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet test hosting</tags>
     <dependencies>
-      <dependency id="SenseNet.Tests" version="1.5.0.1" />
+      <dependency id="SenseNet.Tests" version="1.5.1" />
     </dependencies>
   </metadata>
   <files>
