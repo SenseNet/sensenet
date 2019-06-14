@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+using Tasks = System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -19,7 +19,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         /* ================================================================================================= IPackageStorageProvider */
 
-        public IEnumerable<ComponentInfo> LoadInstalledComponents()
+        public Tasks.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var nullVersion = new Version(0, 0);
             var componentInfos = new Dictionary<string, ComponentInfo>();
@@ -57,12 +57,12 @@ namespace SenseNet.Packaging.Tests.Implementations
                         component.Version = package.ComponentVersion;
                 }
             }
-            return componentInfos.Values.ToArray();
+            return Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 
-        public IEnumerable<Package> LoadInstalledPackages()
+        public Tasks.Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetPackages()
+            return Tasks.Task.FromResult(GetPackages()
                 //.Where(p => p.ExecutionResult != ExecutionResult.Unfinished)
                 .Select(p => new Package
                 {
@@ -77,10 +77,10 @@ namespace SenseNet.Packaging.Tests.Implementations
                     ExecutionError = p.ExecutionError,
                     //Manifest = p.Manifest, // Not loaded to increase performance.
                 })
-                .ToArray();
+                .ToArray().AsEnumerable());
         }
 
-        public void SavePackage(Package package)
+        public Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (package.Id > 0)
                 throw new InvalidOperationException("Only new package can be saved.");
@@ -105,9 +105,11 @@ namespace SenseNet.Packaging.Tests.Implementations
             collection.Insert(packageDoc);
 
             RepositoryVersionInfo.Reset();
+
+            return Tasks.Task.CompletedTask;
         }
 
-        public void UpdatePackage(Package package)
+        public Tasks.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             var existingDoc = GetPackages().FirstOrDefault(p => p.Id == package.Id);
             if (existingDoc == null)
@@ -122,31 +124,37 @@ namespace SenseNet.Packaging.Tests.Implementations
             existingDoc.ComponentVersion = package.ComponentVersion;
             existingDoc.ExecutionError = package.ExecutionError;
             // Manifest is not updated
+
+            return Tasks.Task.CompletedTask;
         }
 
-        public bool IsPackageExist(string componentId, PackageType packageType, Version version)
+        public Tasks.Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public void DeletePackage(Package package)
+        public Tasks.Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
             var storedPackage = GetPackages().FirstOrDefault(p => p.Id == package.Id);
             if (storedPackage != null)
                 GetPackages().Remove(storedPackage);
+
+            return Tasks.Task.CompletedTask;
         }
 
-        public void DeleteAllPackages()
+        public Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             GetPackages().Clear();
+            return Tasks.Task.CompletedTask;
         }
 
-        public void LoadManifest(Package package)
+        public Tasks.Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             package.Manifest = GetPackages().FirstOrDefault(p => p.Id == package.Id)?.Manifest;
+            return Tasks.Task.CompletedTask;
         }
-
     }
 }

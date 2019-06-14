@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -59,7 +60,7 @@ namespace SenseNet.Packaging.Tests
 
         /*================================================= tools */
 
-        protected void SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
+        protected Task SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
         {
             var package = new Package
             {
@@ -72,7 +73,8 @@ namespace SenseNet.Packaging.Tests
                 ExecutionResult = result,
                 PackageType = packageType,
             };
-            PackageManager.Storage.SavePackage(package);
+
+            return PackageManager.Storage.SavePackageAsync(package);
         }
 
         protected Manifest ParseManifestHead(string manifestXml)

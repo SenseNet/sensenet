@@ -28,6 +28,7 @@ namespace SenseNet.Packaging
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
+            //UNDONE: set IPackagingDataProviderExtension using the new data provider API
             if (null == DataProvider.GetExtension<IPackagingDataProviderExtension>()) //DB:??
                 DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider()); //DB:??
 
@@ -204,7 +205,9 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-            Storage.SavePackage(newPack);
+
+            //UNDONE: PackageManager async?
+            Storage.SavePackageAsync(newPack).Wait();
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
@@ -225,12 +228,16 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-                Storage.SavePackage(newPack);
+
+                //UNDONE: PackageManager async?
+                Storage.SavePackageAsync(newPack).Wait();
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-                Storage.UpdatePackage(oldPack);
+
+                //UNDONE: PackageManager async?
+                Storage.UpdatePackageAsync(oldPack).Wait();
             }
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
@@ -434,13 +441,14 @@ namespace SenseNet.Packaging
                         });
 
                         // save the new package info manually based on the patch version number
-                        Storage.SavePackage(new Package
+                        //UNDONE: PackageManager async?
+                        Storage.SavePackageAsync(new Package
                         {
                             ComponentId = assemblyComponent.ComponentId,
                             ComponentVersion = patch.Version,
                             ExecutionResult = ExecutionResult.Successful,
                             PackageType = PackageType.Patch
-                        });
+                        }).Wait();
 
                         patchResult = new PackagingResult
                         {

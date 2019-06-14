@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.Common.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     public class SqlPackagingDataProvider : IPackagingDataProviderExtension
     {
-        private DataProvider _mainProvider; //DB:ok
-        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataProvider.Instance); //DB:ok
+        private RelationalDataProviderBase _dataProvider;
+        private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         #region SQL InstalledComponentsScript
         private static readonly string InstalledComponentsScript = @"SELECT P2.Description, P1.ComponentId, P1.ComponentVersion, P1a.ComponentVersion AcceptableVersion
@@ -24,61 +26,69 @@ JOIN (SELECT Description, ComponentId FROM Packages WHERE PackageType = '" + Pac
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
 ON P1.ComponentId = P2.ComponentId";
         #endregion
-        public IEnumerable<ComponentInfo> LoadInstalledComponents()
+        public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var components = new List<ComponentInfo>();
-            using (var cmd = MainProvider.CreateDataProcedure(InstalledComponentsScript))
+
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
+                    async reader =>
                     {
-                        components.Add(new ComponentInfo
+                        while (await reader.ReadAsync(ctx.CancellationToken))
                         {
-                            ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),                                         // varchar  50   null
-                            Version = DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),                  // varchar  50   null
-                            AcceptableVersion = DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("AcceptableVersion"))), // varchar  50   null
-                            Description = reader.GetSafeString(reader.GetOrdinal("Description")),                                   // nvarchar 1000 null
-                        });
-                    }
-                }
+                            components.Add(new ComponentInfo
+                            {
+                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                                Version = DecodePackageVersion(
+                                    reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
+                                AcceptableVersion =
+                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("AcceptableVersion"))),
+                                Description = reader.GetSafeString(reader.GetOrdinal("Description"))
+                            });
+                        }
+
+                        return true;
+                    });
             }
+
             return components;
         }
-        public IEnumerable<Package> LoadInstalledPackages()
+        public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var packages = new List<Package>();
-            using (var cmd = MainProvider.CreateDataProcedure("SELECT * FROM Packages"))
+
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
+                    async reader =>
                     {
-                        packages.Add(new Package
+                        while (await reader.ReadAsync(ctx.CancellationToken))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),                                                                                  // int           not null
-                            Description = reader.GetSafeString(reader.GetOrdinal("Description")),                                                           // nvarchar 1000 null
-                            ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),                                                                       // varchar 50    null
-                            PackageType = (PackageType)Enum.Parse(typeof(PackageType), reader.GetString(reader.GetOrdinal("PackageType"))),             // varchar 50    not null
-                            ReleaseDate = reader.GetDateTimeUtc(reader.GetOrdinal("ReleaseDate")),                                                             // datetime      not null
-                            ExecutionDate = reader.GetDateTimeUtc(reader.GetOrdinal("ExecutionDate")),                                                         // datetime      not null
-                            ExecutionResult = (ExecutionResult)Enum.Parse(typeof(ExecutionResult), reader.GetString(reader.GetOrdinal("ExecutionResult"))), // varchar 50    not null
-                            ExecutionError = DeserializeExecutionError(reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
-                            ComponentVersion = DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),                                                                      // varchar 50    null
-                        });
-                    }
-                }
+                            packages.Add(new Package
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                                ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
+                                PackageType = (PackageType) Enum.Parse(typeof(PackageType),
+                                    reader.GetString(reader.GetOrdinal("PackageType"))),
+                                ReleaseDate = reader.GetDateTimeUtc(reader.GetOrdinal("ReleaseDate")),
+                                ExecutionDate = reader.GetDateTimeUtc(reader.GetOrdinal("ExecutionDate")),
+                                ExecutionResult = (ExecutionResult) Enum.Parse(typeof(ExecutionResult),
+                                    reader.GetString(reader.GetOrdinal("ExecutionResult"))),
+                                ExecutionError =
+                                    DeserializeExecutionError(
+                                        reader.GetSafeString(reader.GetOrdinal("ExecutionError"))),
+                                ComponentVersion =
+                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("ComponentVersion")))
+                            });
+                        }
+
+                        return true;
+                    });
             }
+            
             return packages;
-        }
-        private Version GetSafeVersion(SqlDataReader reader, string columnName)
-        {
-            var version = reader.GetSafeString(reader.GetOrdinal(columnName));
-            if (version == null)
-                return null;
-            return Version.Parse(version);
         }
 
         #region SQL SavePackageScript
@@ -87,23 +97,32 @@ ON P1.ComponentId = P2.ComponentId";
     ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion, @Manifest)
 SELECT @@IDENTITY";
         #endregion
-        public void SavePackage(Package package)
+        public async Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cmd = MainProvider.CreateDataProcedure(SavePackageScript))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
+                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Description", DbType.String, 1000,
+                            (object) package.Description ?? DBNull.Value),
+                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
+                            (object) package.ComponentId ?? DBNull.Value),
+                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
+                        ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
+                        ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
+                        ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString()),
+                        ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
+                            SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
+                        ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
+                            package.ComponentVersion == null
+                                ? DBNull.Value
+                                : (object) EncodePackageVersion(package.ComponentVersion)),
+                        ctx.CreateParameter("@Manifest", DbType.String, int.MaxValue, package.Manifest ?? (object) DBNull.Value)
+                    });
+                });
 
-                AddParameter(cmd, "@Description", SqlDbType.NVarChar, 1000).Value = (object)package.Description ?? DBNull.Value;
-                AddParameter(cmd, "@ComponentId", SqlDbType.VarChar, 50).Value = (object)package.ComponentId ?? DBNull.Value;
-                AddParameter(cmd, "@PackageType", SqlDbType.VarChar, 50).Value = package.PackageType.ToString();
-                AddParameter(cmd, "@ReleaseDate", SqlDbType.DateTime).Value = package.ReleaseDate;
-                AddParameter(cmd, "@ExecutionDate", SqlDbType.DateTime).Value = package.ExecutionDate;
-                AddParameter(cmd, "@ExecutionResult", SqlDbType.VarChar, 50).Value = package.ExecutionResult.ToString();
-                AddParameter(cmd, "@ExecutionError", SqlDbType.NVarChar).Value = SerializeExecutionError(package.ExecutionError) ?? (object)DBNull.Value;
-                AddParameter(cmd, "@ComponentVersion", SqlDbType.VarChar, 50).Value = package.ComponentVersion == null ? DBNull.Value : (object)EncodePackageVersion(package.ComponentVersion);
-                AddParameter(cmd, "@Manifest", SqlDbType.NVarChar).Value = package.Manifest ?? (object)DBNull.Value;
-
-                var result = cmd.ExecuteScalar();
                 package.Id = Convert.ToInt32(result);
             }
         }
@@ -121,23 +140,32 @@ SELECT @@IDENTITY";
 WHERE Id = @Id
 ";
         #endregion
-        public void UpdatePackage(Package package)
+        public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cmd = MainProvider.CreateDataProcedure(UpdatePackageScript))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
-
-                AddParameter(cmd, "@Id", SqlDbType.Int).Value = package.Id;
-                AddParameter(cmd, "@Description", SqlDbType.NVarChar, 1000).Value = (object)package.Description ?? DBNull.Value;
-                AddParameter(cmd, "@ComponentId", SqlDbType.VarChar, 50).Value = (object)package.ComponentId ?? DBNull.Value;
-                AddParameter(cmd, "@PackageType", SqlDbType.VarChar, 50).Value = package.PackageType.ToString();
-                AddParameter(cmd, "@ReleaseDate", SqlDbType.DateTime).Value = package.ReleaseDate;
-                AddParameter(cmd, "@ExecutionDate", SqlDbType.DateTime).Value = package.ExecutionDate;
-                AddParameter(cmd, "@ExecutionResult", SqlDbType.VarChar, 50).Value = package.ExecutionResult.ToString();
-                AddParameter(cmd, "@ExecutionError", SqlDbType.NVarChar).Value = SerializeExecutionError(package.ExecutionError) ?? (object)DBNull.Value;
-                AddParameter(cmd, "@ComponentVersion", SqlDbType.VarChar, 50).Value = package.ComponentVersion == null ? DBNull.Value : (object)EncodePackageVersion(package.ComponentVersion);
-
-                cmd.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Id", DbType.Int32, package.Id),
+                        ctx.CreateParameter("@Description", DbType.String, 1000,
+                            (object) package.Description ?? DBNull.Value),
+                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50,
+                            (object) package.ComponentId ?? DBNull.Value),
+                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, package.PackageType.ToString()),
+                        ctx.CreateParameter("@ReleaseDate", DbType.DateTime2, package.ReleaseDate),
+                        ctx.CreateParameter("@ExecutionDate", DbType.DateTime2, package.ExecutionDate),
+                        ctx.CreateParameter("@ExecutionResult", DbType.AnsiString, 50,
+                            package.ExecutionResult.ToString()),
+                        ctx.CreateParameter("@ExecutionError", DbType.String, int.MaxValue,
+                            SerializeExecutionError(package.ExecutionError) ?? (object) DBNull.Value),
+                        ctx.CreateParameter("@ComponentVersion", DbType.AnsiString, 50,
+                            package.ComponentVersion == null
+                                ? DBNull.Value
+                                : (object) EncodePackageVersion(package.ComponentVersion))
+                    });
+                });
             }
         }
 
@@ -146,74 +174,68 @@ WHERE Id = @Id
 WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVersion = @Version
 ";
         #endregion
-        public bool IsPackageExist(string componentId, PackageType packageType, Version version)
+        public async Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version
+            , CancellationToken cancellationToken = default(CancellationToken))
         {
             int count;
-            using (var cmd = MainProvider.CreateDataProcedure(PackageExistenceScript))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
+                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ComponentId", DbType.AnsiString, 50, (object)componentId ?? DBNull.Value),
+                        ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, packageType.ToString()),
+                        ctx.CreateParameter("@Version", DbType.AnsiString, 50, EncodePackageVersion(version))
+                    });
+                });
 
-                AddParameter(cmd, "@ComponentId", SqlDbType.VarChar, 50).Value = (object)componentId ?? DBNull.Value;
-                AddParameter(cmd, "@PackageType", SqlDbType.VarChar, 50).Value = packageType.ToString();
-                AddParameter(cmd, "@Version", SqlDbType.VarChar, 50).Value = EncodePackageVersion(version);
-                count = (int)cmd.ExecuteScalar();
+                count = (int)result;
             }
+
             return count > 0;
         }
         
-        public void DeletePackage(Package package)
+        public async Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
-            using (var cmd = MainProvider.CreateDataProcedure("DELETE FROM Packages WHERE Id = @Id"))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
-
-                AddParameter(cmd, "@Id", SqlDbType.Int).Value = package.Id;
-                cmd.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
             }
         }
 
-        public void DeleteAllPackages()
+        public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cmd = MainProvider.CreateDataProcedure("TRUNCATE TABLE Packages"))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
-                cmd.ExecuteNonQuery();
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
             }
         }
 
         #region SQL LoadManifestScript
         private static readonly string LoadManifestScript = @"SELECT Manifest FROM Packages WHERE Id = @Id";
         #endregion
-        public void LoadManifest(Package package)
+        public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cmd = MainProvider.CreateDataProcedure(LoadManifestScript))
+            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
             {
-                cmd.CommandType = CommandType.Text;
+                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Id", DbType.Int32, package.Id)
+                    });
+                });
 
-                AddParameter(cmd, "@Id", SqlDbType.Int).Value = package.Id;
-
-                var value = cmd.ExecuteScalar();
-                package.Manifest = (string)(value == DBNull.Value ? null : value);
+                package.Manifest = (string)(result == DBNull.Value ? null : result);
             }
         }
 
         /* ---------------------------------------------- */
-
-        private IDataParameter AddParameter(IDataProcedure proc, string name, SqlDbType dbType)
-        {
-            var p = new SqlParameter(name, dbType);
-            proc.Parameters.Add(p);
-            return p;
-        }
-        private IDataParameter AddParameter(IDataProcedure proc, string name, SqlDbType dbType, int size)
-        {
-            var p = new SqlParameter(name, dbType, size);
-            proc.Parameters.Add(p);
-            return p;
-        }
 
         private static string EncodePackageVersion(Version v)
         {

@@ -1,9 +1,12 @@
-﻿using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage;
+﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
@@ -36,7 +39,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         /* ================================================================================================= IPackageStorageProvider */
 
-        public IEnumerable<ComponentInfo> LoadInstalledComponents()
+        public Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var nullVersion = new Version(0, 0);
             var componentInfos = new Dictionary<string, ComponentInfo>();
@@ -74,18 +77,18 @@ namespace SenseNet.Packaging.Tests.Implementations
                         component.Version = package.ComponentVersion;
                 }
             }
-            return componentInfos.Values.ToArray();
+
+            return Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 
-        public IEnumerable<Package> LoadInstalledPackages()
+        public Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Storage
+            return Task.FromResult(Storage
                 //.Where(p => p.ExecutionResult != ExecutionResult.Unfinished)
-                .Select(p => ClonePackage(p, false))
-                .ToArray();
+                .Select(p => ClonePackage(p, false)));
         }
 
-        public void SavePackage(Package package)
+        public Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (package.Id > 0)
                 throw new InvalidOperationException("Only new package can be saved.");
@@ -94,38 +97,47 @@ namespace SenseNet.Packaging.Tests.Implementations
             Storage.Add(ClonePackage(package, true));
 
             RepositoryVersionInfo.Reset();
+
+            return Task.CompletedTask;
         }
 
-        public void UpdatePackage(Package package)
+        public Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             var existing = Storage.FirstOrDefault(p => p.Id == package.Id);
             if (existing == null)
                 throw new InvalidOperationException("Package does not exist. Id: " + package.Id);
             UpdatePackage(package, existing, false);
+
+            return Task.CompletedTask;
         }
 
-        public bool IsPackageExist(string componentId, PackageType packageType, Version version)
+        public Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public void DeletePackage(Package package)
+        public Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
             var storedPackage = Storage.FirstOrDefault(p => p.Id == package.Id);
             if (storedPackage != null)
                 Storage.Remove(storedPackage);
+
+            return Task.CompletedTask;
         }
 
-        public void DeleteAllPackages()
+        public Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             Storage.Clear();
+            return Task.CompletedTask;
         }
 
-        public void LoadManifest(Package package)
+        public Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
             package.Manifest = Storage.FirstOrDefault(p => p.Id == package.Id)?.Manifest;
+            return Task.CompletedTask;
         }
 
         // ================================================================================================= Test tools
