@@ -878,12 +878,11 @@ SELECT @@IDENTITY";
         /* ------------------------------------------------ Schema */
 
         #region LoadSchemaScript
-        //UNDONE:DB: LoadSchema script: ContentListTypes is commnted out
         protected override string LoadSchemaScript => @"-- MsSqlDataProvider.LoadSchema
 SELECT [Timestamp] FROM SchemaModification
 SELECT * FROM PropertyTypes
 SELECT * FROM NodeTypes
---SELECT * FROM ContentListTypes
+SELECT * FROM ContentListTypes
 ";
         #endregion
 
@@ -933,6 +932,20 @@ SELECT @@IDENTITY
         #endregion
 
         /* ------------------------------------------------ Provider Tools */
+
+        #region GetNameOfLastNodeWithNameBaseScript
+        protected override string GetNameOfLastNodeWithNameBaseScript => @"-- MsSqlDataProvider.GetNameOfLastNodeWithNameBase
+DECLARE @NameEscaped nvarchar(450)
+SET @NameEscaped = REPLACE(@Name, '_', '[_]')
+SELECT TOP 1 Name FROM Nodes WHERE ParentNodeId=@ParentId AND (
+	Name LIKE @NameEscaped + '([0-9])' + @Extension OR
+	Name LIKE @NameEscaped + '([0-9][0-9])' + @Extension OR
+	Name LIKE @NameEscaped + '([0-9][0-9][0-9])' + @Extension OR
+	Name LIKE @NameEscaped + '([0-9][0-9][0-9][0-9])' + @Extension
+)
+ORDER BY LEN(Name) DESC, Name DESC
+";
+        #endregion
 
         #region GetTreeSizeScript
         protected override string GetTreeSizeScript => @"-- MsSqlDataProvider.GetTreeSize

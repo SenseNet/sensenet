@@ -1527,11 +1527,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                     // ContentListTypes
                     var contentListTypes = new List<ContentListTypeData>();
                     schema.ContentListTypes = contentListTypes;
-                    //UNDONE:DB: Load ContentListTypes
-                    //await reader.NextResultAsync(cancellationToken);
-                    //while (await reader.ReadAsync(cancellationToken))
-                    //{
-                    //}
+                    await reader.NextResultAsync(cancellationToken);
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        contentListTypes.Add(new ContentListTypeData
+                        {
+                            Id=reader.GetInt32("ContentListTypeId"),
+                            Name=reader.GetString("Name"),
+                            Properties = new List<string>(
+                                reader.GetSafeString("Properties")
+                                    ?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries) ?? new string[0])
+                        });
+                    }
 
                     return schema;
                 });
@@ -1631,11 +1638,23 @@ namespace SenseNet.ContentRepository.Storage.Data
             return text?.Length < DataStore.TextAlternationSizeLimit;
         }
 
-        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
+        public override async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return (string)await ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ParentId", DbType.Int32, parentId),
+                        ctx.CreateParameter("@Name", DbType.String, namebase),
+                        ctx.CreateParameter("@Extension", DbType.String, extension),
+                    });
+                });
+            }
         }
+        protected abstract string GetNameOfLastNodeWithNameBaseScript { get; }
 
         /// <inheritdoc />
         public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
