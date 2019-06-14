@@ -645,9 +645,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
-        protected Exception GetException(Exception e)
+        protected virtual Exception GetException(Exception e)
         {
             return DataStore.GetException(e);
+        }
+        protected virtual Exception GetException(Exception e, string defaultMessage)
+        {
+            return e;
         }
     }
 }

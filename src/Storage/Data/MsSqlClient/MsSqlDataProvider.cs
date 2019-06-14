@@ -134,6 +134,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Tools */
 
+        protected override Exception GetException(Exception e, string defaultMessage)
+        {
+            if (!(e is SqlException sqlEx))
+                return null;
+
+            // https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-2017
+            if (sqlEx.Number == 2601)
+                return new NodeAlreadyExistsException(defaultMessage, e);
+
+            return null;
+        }
+
         protected override long ConvertTimestampToInt64(object timestamp)
         {
             if (timestamp == null)

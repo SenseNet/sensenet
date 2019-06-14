@@ -132,6 +132,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
+                var transformedException = GetException(e, "Node was not saved. For more details see the inner exception.");
+                if (transformedException != null)
+                    throw transformedException;
                 throw new DataException("Node was not saved. For more details see the inner exception.", e);
             }
         }
