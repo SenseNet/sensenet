@@ -10,6 +10,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
+using Tasks = System.Threading.Tasks;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -703,7 +704,7 @@ namespace SenseNet.Packaging.Tests
             ExecutePhases(manifest);
         }
         [TestMethod]
-        public void Packaging_DependencyCheck_CanInstall_SameVersion_AfterFailures()
+        public async Tasks.Task Packaging_DependencyCheck_CanInstall_SameVersion_AfterFailures()
         {
             const string packageId = "MyCompany.MyComponent";
             const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
@@ -719,9 +720,9 @@ namespace SenseNet.Packaging.Tests
             ExecutePhases(manifest);
 
             // add a few failure lines
-            SavePackage(packageId, "1.1", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
-            SavePackage(packageId, "1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Unfinished);
+            await SavePackage(packageId, "1.1", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage(packageId, "1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Unfinished);
 
             // execute the original package to 'repair' the component
             ExecutePhases(manifest);
@@ -1476,9 +1477,9 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(0, packages.Length);
         }
         [TestMethod]
-        public void Packaging_VersionInfo_OnlyUnfinished()
+        public async Tasks.Task Packaging_VersionInfo_OnlyUnfinished()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
+            await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1490,9 +1491,9 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, packages.Length);
         }
         [TestMethod]
-        public void Packaging_VersionInfo_OnlyFaulty()
+        public async Tasks.Task Packaging_VersionInfo_OnlyFaulty()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1504,17 +1505,17 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, packages.Length);
         }
         [TestMethod]
-        public void Packaging_VersionInfo_Complex()
+        public async Tasks.Task Packaging_VersionInfo_Complex()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.2", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
-            SavePackage("C2", "1.1", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
-            SavePackage("C2", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
-            SavePackage("C3", "1.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
-            SavePackage("C3", "2.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.2", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("C2", "1.1", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
+            await SavePackage("C2", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
+            await SavePackage("C3", "1.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage("C3", "2.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1530,15 +1531,15 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(9, verInfo.InstalledPackages.Count());
         }
         [TestMethod]
-        public void Packaging_VersionInfo_MultipleInstall()
+        public async Tasks.Task Packaging_VersionInfo_MultipleInstall()
         {
             const string packageId = "C1";
-            SavePackage(packageId, "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage(packageId, "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
-            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Install, ExecutionResult.Faulty);
-            SavePackage(packageId, "1.2", "04:00", "2016-01-04", PackageType.Install, ExecutionResult.Faulty);
-            SavePackage("C2", "1.0", "05:00", "2016-01-05", PackageType.Install, ExecutionResult.Successful);
-            SavePackage(packageId, "1.0", "06:00", "2016-01-06", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage(packageId, "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage(packageId, "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage(packageId, "1.2", "04:00", "2016-01-04", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage("C2", "1.0", "05:00", "2016-01-05", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage(packageId, "1.0", "06:00", "2016-01-06", PackageType.Install, ExecutionResult.Successful);
 
             var verInfo = RepositoryVersionInfo.Instance;
 
@@ -1561,7 +1562,7 @@ namespace SenseNet.Packaging.Tests
         #region // ========================================= Storing manifest
 
         [TestMethod]
-        public void Packaging_Manifest_StoredButNotLoaded()
+        public async Tasks.Task Packaging_Manifest_StoredButNotLoaded()
         {
             var manifest = @"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
@@ -1583,7 +1584,8 @@ namespace SenseNet.Packaging.Tests
             var package = verInfo.InstalledPackages.FirstOrDefault();
             Assert.IsNull(package?.Manifest);
 
-            PackageManager.Storage.LoadManifest(package);
+            await PackageManager.Storage.LoadManifestAsync(package);
+
             var actual = package?.Manifest;
 
             Assert.AreEqual(expected, actual);
@@ -1594,25 +1596,26 @@ namespace SenseNet.Packaging.Tests
         #region // ========================================= Package deletion
 
         [TestMethod]
-        public void Packaging_DeleteOne()
+        public async Tasks.Task Packaging_DeleteOne()
         {
-            SavePackage("C1", "1.0", "00:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
-            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
-            SavePackage("C1", "1.2", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
-            SavePackage("C1", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
-            SavePackage("C1", "1.2", "08:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.2", "09:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("C1", "1.0", "00:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
+            await SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("C1", "1.2", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
+            await SavePackage("C1", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
+            await SavePackage("C1", "1.2", "08:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.2", "09:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            await SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
 
             // action: delete all faulty and unfinished
             var packs = RepositoryVersionInfo.Instance.InstalledPackages
                 .Where(p => p.ExecutionResult != ExecutionResult.Successful);
             foreach (var package in packs)
-                PackageManager.Storage.DeletePackage(package);
+                await PackageManager.Storage.DeletePackageAsync(package);
+
             RepositoryVersionInfo.Reset();
 
             // check
@@ -1624,14 +1627,14 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expected, actual);
         }
         [TestMethod]
-        public void Packaging_DeleteAll()
+        public async Tasks.Task Packaging_DeleteAll()
         {
-            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
-            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
 
             // action
-            PackageManager.Storage.DeleteAllPackages();
+            await PackageManager.Storage.DeleteAllPackagesAsync();
 
             // check
             Assert.IsFalse(RepositoryVersionInfo.Instance.InstalledPackages.Any());
