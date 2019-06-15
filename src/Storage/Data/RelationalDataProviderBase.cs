@@ -249,7 +249,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                             #endregion
                         });
                         });
-                        versionData.Timestamp = ConvertTimestampToInt64(rawVersionTimestamp);
+                        var versionTimestamp = ConvertTimestampToInt64(rawVersionTimestamp);
+                        if(versionTimestamp == 0L)
+                            throw new ContentNotFoundException(
+                                $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                        versionData.Timestamp = versionTimestamp;
 
                         // Update Node
                         var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>

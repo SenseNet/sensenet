@@ -136,6 +136,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         protected override Exception GetException(Exception e, string defaultMessage)
         {
+            if (e is ContentNotFoundException)
+                return e;
+            if (e is NodeIsOutOfDateException)
+                return e;
+
             if (!(e is SqlException sqlEx))
                 return null;
 
