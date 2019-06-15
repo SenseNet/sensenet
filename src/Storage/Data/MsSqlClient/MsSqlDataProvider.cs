@@ -148,8 +148,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (sqlEx.Number == 2601)
                 return new NodeAlreadyExistsException(defaultMessage, sqlEx);
 
-            if(sqlEx.Message.StartsWith("Cannot update a deleted Node."))
+            if (sqlEx.Message.StartsWith("Cannot update a deleted Node"))
                 return new ContentNotFoundException(defaultMessage, sqlEx);
+            if (sqlEx.Message.StartsWith("Node is out of date"))
+                return new NodeIsOutOfDateException(defaultMessage, sqlEx);
 
             return null;
         }
