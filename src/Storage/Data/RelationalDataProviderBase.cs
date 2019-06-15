@@ -132,10 +132,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                var transformedException = GetException(e, "Node was not saved. For more details see the inner exception.");
+                var msg = "Node was not saved. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
                 if (transformedException != null)
                     throw transformedException;
-                throw new DataException("Node was not saved. For more details see the inner exception.", e);
+                throw new DataException(msg, e);
             }
         }
         public virtual string SerializeDynamicProperties(IDictionary<PropertyType, object> properties)
@@ -220,17 +221,19 @@ namespace SenseNet.ContentRepository.Storage.Data
             IEnumerable<int> versionIdsToDelete,
             string originalPath = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            try
             {
-                using (var transaction = ctx.BeginTransaction())
+                using (var ctx = new SnDataContext(this, cancellationToken))
                 {
-                    var versionId = versionData.VersionId;
-
-                    // Update version
-                    var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
+                    using (var transaction = ctx.BeginTransaction())
                     {
-                        cmd.Parameters.AddRange(new[]
+                        var versionId = versionData.VersionId;
+
+                        // Update version
+                        var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
                         {
+                            cmd.Parameters.AddRange(new[]
+                            {
                             #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
                             ctx.CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
                             ctx.CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
@@ -245,14 +248,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                             #endregion
                         });
-                    });
-                    versionData.Timestamp = ConvertTimestampToInt64(rawVersionTimestamp);
+                        });
+                        versionData.Timestamp = ConvertTimestampToInt64(rawVersionTimestamp);
 
-                    // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
-                    {
-                        cmd.Parameters.AddRange(new[]
+                        // Update Node
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
+                            cmd.Parameters.AddRange(new[]
+                            {
                             #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
                             ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
                             ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
@@ -284,30 +287,43 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                    });
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                        });
+                        nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
-                    // Update subtree if needed
-                    if (originalPath != null)
-                        await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+                        // Update subtree if needed
+                        if (originalPath != null)
+                            await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
 
-                    // Delete unnecessary versions and update last versions
-                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        // Delete unnecessary versions and update last versions
+                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
-                    // Manage ReferenceProperties
-                    if (dynamicData.ReferenceProperties.Any())
-                        await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
+                        // Manage ReferenceProperties
+                        if (dynamicData.ReferenceProperties.Any())
+                            await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
 
-                    // Manage LongTextProperties
-                    if (dynamicData.LongTextProperties.Any())
-                        await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+                        // Manage LongTextProperties
+                        if (dynamicData.LongTextProperties.Any())
+                            await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
 
-                    // Manage BinaryProperties
-                    foreach (var item in dynamicData.BinaryProperties)
-                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                        // Manage BinaryProperties
+                        foreach (var item in dynamicData.BinaryProperties)
+                            SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
 
-                    transaction.Commit();
+                        transaction.Commit();
+                    }
                 }
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Node was not updated. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
             }
         }
         protected async Task UpdateSubTreePath(string originalPath, string path, SnDataContext ctx)

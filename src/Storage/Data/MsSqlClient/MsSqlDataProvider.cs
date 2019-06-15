@@ -141,7 +141,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             // https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-2017
             if (sqlEx.Number == 2601)
-                return new NodeAlreadyExistsException(defaultMessage, e);
+                return new NodeAlreadyExistsException(defaultMessage, sqlEx);
+
+            if(sqlEx.Message.StartsWith("Cannot update a deleted Node."))
+                return new ContentNotFoundException(defaultMessage, sqlEx);
 
             return null;
         }
