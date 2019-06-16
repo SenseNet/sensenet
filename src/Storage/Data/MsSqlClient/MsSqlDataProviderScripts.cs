@@ -606,19 +606,19 @@ SELECT N.NodeId, N.NodeTypeId, N.ContentListTypeId, N.ContentListId, N.CreatingI
     V.DynamicProperties
 FROM dbo.Nodes AS N 
     INNER JOIN dbo.Versions AS V ON N.NodeId = V.NodeId
-WHERE V.VersionId IN (select Id from @VersionIdTable)
+WHERE V.VersionId IN (SELECT Id FROM @VersionIdTable)
 
 -- BinaryProperties
 SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
     F.Extension, F.[Size], F.[BlobProvider], F.[BlobProviderData], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp]
 FROM dbo.BinaryProperties B
     JOIN dbo.Files F ON B.FileId = F.FileId
-WHERE VersionId IN (select Id from @VersionIdTable) AND Staging IS NULL
+WHERE VersionId IN (SELECT Id FROM @VersionIdTable) AND Staging IS NULL
 
 -- ReferenceProperties
 SELECT VersionId, PropertyTypeId, ReferredNodeId
 FROM dbo.ReferenceProperties
-WHERE VersionId IN (select Id from @VersionIdTable)
+WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
 
 -- LongTextProperties
 SELECT VersionId, PropertyTypeId, [Length], [Value]
@@ -851,10 +851,37 @@ SELECT Timestamp FROM Versions WHERE VersionId = @VersionId"
 ;
         #endregion
 
+        #region LoadIndexDocumentsHeadScript
+        private string LoadIndexDocumentsCommonScript => @"SELECT N.NodeTypeId, V.VersionId, V.NodeId, N.ParentNodeId, N.Path, N.IsSystem,
+    N.LastMinorVersionId, N.LastMajorVersionId, V.Status, V.IndexDocument, N.Timestamp NodeTimestamp, V.Timestamp VersionTimestamp
+FROM Nodes N INNER JOIN Versions V ON N.NodeId = V.NodeId
+";
+        #endregion
+
+        #region LoadIndexDocumentsByVersionIdScript
+        protected override string LoadIndexDocumentsByVersionIdScript => @"-- MsSqlDataProvider.LoadIndexDocumentsByVersionId
+DECLARE @VersionIdTable AS TABLE(Id INT)
+INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
+" + LoadIndexDocumentsCommonScript + @"WHERE V.VersionId IN (SELECT Id FROM @VersionIdTable)
+";
+        #endregion
+
         /* ------------------------------------------------ IndexingActivity */
 
         #region LoadIndexDocumentCollectionBlockByPathScript
         protected override string LoadIndexDocumentCollectionBlockByPathScript => @"-- MsSqlDataProvider.LoadIndexDocumentCollectionBlockByPath
+;WITH IndexDocumentsRanked AS (
+    SELECT N.NodeTypeId, V.VersionId, V.NodeId, N.ParentNodeId, N.Path, N.IsSystem, N.LastMinorVersionId, N.LastMajorVersionId,
+        V.Status,V.IndexDocument,N.Timestamp AS NodeTimeStamp, V.Timestamp AS VersionTimeStamp,
+        ROW_NUMBER() OVER ( ORDER BY Path ) AS RowNum
+    FROM Nodes N INNER JOIN Versions V ON N.NodeId = V.NodeId
+    WHERE Path = @Path COLLATE Latin1_General_CI_AS OR Path LIKE REPLACE(@Path, '_', '[_]') + '/%' COLLATE Latin1_General_CI_AS
+)
+SELECT * FROM IndexDocumentsRanked WHERE RowNum BETWEEN @Offset + 1 AND @Offset + @Count
+";
+        #endregion
+        #region LoadIndexDocumentCollectionBlockByPathAndTypeScript
+        protected override string LoadIndexDocumentCollectionBlockByPathAndTypeScript => @"-- MsSqlDataProvider.LoadIndexDocumentCollectionBlockByPathAndType
 ;WITH IndexDocumentsRanked AS (
     SELECT N.NodeTypeId, V.VersionId, V.NodeId, N.ParentNodeId, N.Path, N.IsSystem, N.LastMinorVersionId, N.LastMajorVersionId,
         V.Status,V.IndexDocument,N.Timestamp AS NodeTimeStamp, V.Timestamp AS VersionTimeStamp,

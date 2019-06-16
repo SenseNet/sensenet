@@ -1343,10 +1343,24 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string SaveIndexDocumentScript { get; }
 
-        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, string.Join(",", versionIds.Select(x => x.ToString()))));
+                    },
+                    async reader =>
+                    {
+                        var result = new List<IndexDocumentData>();
+                        while (await reader.ReadAsync(cancellationToken))
+                            result.Add(GetIndexDocumentDataFromReader(reader));
+                        return result;
+                    });
+            }
         }
+        protected abstract string LoadIndexDocumentsByVersionIdScript { get; }
 
         public override IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
         {
@@ -1362,7 +1376,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         private bool LoadNextIndexDocumentBlock(int offset, int blockSize, string path, int[] excludedNodeTypes, out List<IndexDocumentData> buffer)
         {
-            var sql = string.Format(LoadIndexDocumentCollectionBlockByPathScript, string.Join(", ", excludedNodeTypes));
+            var sql = excludedNodeTypes.Any()
+                ? string.Format(LoadIndexDocumentCollectionBlockByPathAndTypeScript, string.Join(", ", excludedNodeTypes))
+                : LoadIndexDocumentCollectionBlockByPathScript;
             using (var ctx = new SnDataContext(this))
             {
                 try
@@ -1414,6 +1430,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             };
         }
         protected abstract string LoadIndexDocumentCollectionBlockByPathScript { get; }
+        protected abstract string LoadIndexDocumentCollectionBlockByPathAndTypeScript { get; }
 
         public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
         {
