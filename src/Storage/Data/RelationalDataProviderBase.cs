@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
 using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
@@ -1450,24 +1451,111 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetLastIndexingActivityIdScript { get; }
 
-        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
+        public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadIndexingActivitiesPageScript,
+                    cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@From", DbType.Int32, fromId),
+                            ctx.CreateParameter("@To", DbType.Int32, toId),
+                            ctx.CreateParameter("@Top", DbType.Int32, count)
+                        });
+                    },
+                    async reader =>
+                        await GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancellationToken));
+            }
         }
+        protected abstract string LoadIndexingActivitiesPageScript { get; }
 
-        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
+        public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript,
+                    cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@Gaps", DbType.String, string.Join(",", gaps)),
+                            ctx.CreateParameter("@Top", DbType.Int32, gaps.Length),
+                        });
+                    },
+                    async reader =>
+                        await GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancellationToken));
+            }
         }
+        protected abstract string LoadIndexingActivitiyGapsScript { get; }
 
-        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount,
+        public override async Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount,
             int runningTimeoutInSeconds, int[] waitingActivityIds,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            //if (waitingActivityIds == null || waitingActivityIds.Length == 0)
+            //    return await LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
+            string waitingActivityIdParam = null;
+            if (waitingActivityIds != null && waitingActivityIds.Length > 0)
+                waitingActivityIdParam = string.Join(",", waitingActivityIds.Select(x => x.ToString()));
+
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(
+                    waitingActivityIdParam == null
+                        ? LoadExecutableIndexingActivitiesScript
+                        : LoadExecutableAndFinishedIndexingActivitiesScript, cmd =>
+                    {
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@Top", DbType.Int32, maxCount),
+                            ctx.CreateParameter("@TimeLimit", DbType.DateTime2,
+                                DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds))
+                        });
+                        if (waitingActivityIdParam != null)
+                            cmd.Parameters.Add(ctx.CreateParameter("@WaitingIds", DbType.String, waitingActivityIdParam));
+                    }, async reader =>
+                    {
+                        var activities = await GetIndexingActivitiesFromReaderAsync(
+                            reader, false, activityFactory, cancellationToken);
+
+                        var finishedIds = new List<int>();
+                        if (waitingActivityIdParam != null)
+                        {
+                            await reader.NextResultAsync(cancellationToken);
+                            while (await reader.ReadAsync(cancellationToken))
+                                finishedIds.Add(reader.GetInt32(0));
+                        }
+
+                        return new ExecutableIndexingActivitiesResult
+                        {
+                            Activities = activities,
+                            FinishedActivitiyIds = finishedIds.ToArray()
+                        };
+                    });
+            }
+
+            /*
+            var ids = string.Join(", ", waitingActivityIds.Select(x => x.ToString()).ToArray());
+
+            var sql = $"{StartIndexingActivitiesScript}\r\nSELECT IndexingActivityId FROM IndexingActivities" +
+                      $" WHERE RunningState = 'Done' AND IndexingActivityId IN ({ids})";
+            using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
+            {
+                cmd.Parameters.Add("@Top", SqlDbType.Int).Value = maxCount;
+                cmd.Parameters.Add("@TimeLimit", SqlDbType.DateTime).Value = DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds);
+                var result = LoadIndexingActivitiesAndWaitingStates(cmd, false, activityFactory);
+                finishedActivitiyIds = result.Item2;
+                return result.Item1;
+            }
+            */
         }
+        protected abstract string LoadExecutableIndexingActivitiesScript { get; }
+        protected abstract string LoadExecutableAndFinishedIndexingActivitiesScript { get; }
+
 
         public override async Task RegisterIndexingActivityAsync(IIndexingActivity activity,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -1495,28 +1583,124 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string RegisterIndexingActivityScript { get; }
 
-        public override Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
+        public override async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+                await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@IndexingActivityId", DbType.Int32, indexingActivityId),
+                        ctx.CreateParameter("@RunningState", DbType.AnsiString, runningState.ToString())
+                    });
+                });
         }
+        protected abstract string UpdateIndexingActivityRunningStateScript { get; }
 
-        public override Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds,
+        public override async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    ctx.CreateParameter("@Ids", DbType.String, string.Join(",", waitingIds.Select(x => x.ToString()))),
+                    ctx.CreateParameter("@LockTime", DbType.DateTime2, DateTime.UtcNow)
+                });
+            });
         }
+        protected abstract string RefreshIndexingActivityLockTimeScript { get; }
 
-        public override Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript);
         }
+        protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
 
-        public override Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this))
+                await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript);
         }
+        protected abstract string DeleteAllIndexingActivitiesScript { get; }
 
+        private async Task<IIndexingActivity[]> GetIndexingActivitiesFromReaderAsync(DbDataReader reader, bool executingUnprocessedActivities,
+            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var result = new List<IIndexingActivity>();
+
+            var indexingActivityIdColumn = reader.GetOrdinal("IndexingActivityId");
+            var activityTypeColumn = reader.GetOrdinal("ActivityType");
+            var creationDateColumn = reader.GetOrdinal("CreationDate");
+            var stateColumn = reader.GetOrdinal("RunningState");
+            var startDateDateColumn = reader.GetOrdinal("LockTime");
+            var nodeIdColumn = reader.GetOrdinal("NodeId");
+            var versionIdColumn = reader.GetOrdinal("VersionId");
+            var pathColumn = reader.GetOrdinal("Path");
+            var versionTimestampColumn = reader.GetOrdinal("VersionTimestamp");
+            var indexDocumentColumn = reader.GetOrdinal("IndexDocument");
+            var nodeTypeIdColumn = reader.GetOrdinal("NodeTypeId");
+            var parentNodeIdColumn = reader.GetOrdinal("ParentNodeId");
+            var isSystemColumn = reader.GetOrdinal("IsSystem");
+            var lastMinorVersionIdColumn = reader.GetOrdinal("LastMinorVersionId");
+            var lastMajorVersionIdColumn = reader.GetOrdinal("LastMajorVersionId");
+            var statusColumn = reader.GetOrdinal("Status");
+            var nodeTimestampColumn = reader.GetOrdinal("NodeTimestamp");
+            var extensionColumn = reader.GetOrdinal("Extension");
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var type = (IndexingActivityType)Enum.Parse(typeof(IndexingActivityType), reader.GetSafeString(activityTypeColumn));
+                var activity = activityFactory.CreateActivity(type);
+                activity.Id = reader.GetSafeInt32(indexingActivityIdColumn);
+                activity.ActivityType = type;
+                activity.CreationDate = reader.GetDateTime(creationDateColumn);
+                activity.RunningState = (IndexingActivityRunningState)Enum.Parse(typeof(IndexingActivityRunningState), reader.GetSafeString(stateColumn) ?? "Wait");
+                activity.LockTime = reader.GetSafeDateTime(startDateDateColumn);
+                activity.NodeId = reader.GetSafeInt32(nodeIdColumn);
+                activity.VersionId = reader.GetSafeInt32(versionIdColumn);
+                activity.Path = reader.GetSafeString(pathColumn) as string;
+                activity.FromDatabase = true;
+                activity.IsUnprocessedActivity = executingUnprocessedActivities;
+                activity.Extension = reader.GetSafeString(extensionColumn);
+
+                var nodeTypeId = reader.GetSafeInt32(nodeTypeIdColumn);
+                var parentNodeId = reader.GetSafeInt32(parentNodeIdColumn);
+                var isSystem = reader.GetSafeBooleanFromByte(isSystemColumn);
+                var lastMinorVersionId = reader.GetSafeInt32(lastMinorVersionIdColumn);
+                var lastMajorVersionId = reader.GetSafeInt32(lastMajorVersionIdColumn);
+                var status = reader.GetSafeInt16(statusColumn);
+                var nodeTimeStamp = reader.GetSafeLongFromBytes(nodeTimestampColumn);
+                var versionTimestamp = reader.GetSafeLongFromBytes(versionTimestampColumn);
+
+                var approved = status == (int)VersionStatus.Approved;
+                var isLastMajor = lastMajorVersionId == activity.VersionId;
+
+                var stringData = reader.GetSafeString(indexDocumentColumn);
+                //var stringData = Encoding.ASCII.GetString(indexDocumentBytes);
+                if (stringData != null)
+                {
+                    activity.IndexDocumentData = new IndexDocumentData(null, stringData)
+                    {
+                        NodeTypeId = nodeTypeId,
+                        VersionId = activity.VersionId,
+                        NodeId = activity.NodeId,
+                        ParentId = parentNodeId,
+                        Path = activity.Path,
+                        IsSystem = isSystem,
+                        IsLastDraft = lastMinorVersionId == activity.VersionId,
+                        IsLastPublic = approved && isLastMajor,
+                        NodeTimestamp = nodeTimeStamp,
+                        VersionTimestamp = versionTimestamp,
+                    };
+                }
+                result.Add(activity);
+            }
+            return result.ToArray();
+        }
 
         /* =============================================================================================== Schema */
 
