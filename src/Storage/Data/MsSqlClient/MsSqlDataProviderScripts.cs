@@ -946,9 +946,12 @@ SELECT TOP 1 @Result [Result], [Timestamp] FROM SchemaModification
         #region FinishSchemaUpdateScript
         protected override string FinishSchemaUpdateScript => @"-- MsSqlDataProvider.StartSchemaUpdate
 DECLARE @Timestamp [timestamp]
-UPDATE [SchemaModification] SET [ModificationDate] = GETUTCDATE(), LockToken = NULL,  @Timestamp = [Timestamp]
+UPDATE [SchemaModification] SET [ModificationDate] = GETUTCDATE(), LockToken = NULL
     WHERE LockToken = @LockToken
-SELECT @Timestamp [Timestamp]
+IF @@ROWCOUNT = 1
+    SELECT TOP 1 [Timestamp] FROM [SchemaModification]
+ELSE
+    SELECT @Timestamp [Timestamp]
 ";
         #endregion
 

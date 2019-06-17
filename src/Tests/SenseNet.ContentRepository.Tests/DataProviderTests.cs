@@ -2606,7 +2606,7 @@ namespace SenseNet.ContentRepository.Tests
         /* ================================================================================================== Schema */
 
         [TestMethod]
-        public async STT.Task DP_Schema_()
+        public async STT.Task DP_Schema_ExclusiveUpdate()
         {
             await Test(async () =>
             {
@@ -2622,10 +2622,9 @@ namespace SenseNet.ContentRepository.Tests
                     var unused = await DP.StartSchemaUpdateAsync(timestampBefore - 1);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
-                catch (DataException)
+                catch (DataException e)
                 {
-                    // "Storage schema is out of date."
-                    // ignored
+                    Assert.AreEqual("Storage schema is out of date.", e.Message);
                 }
 
                 // ACTION: start update normally
@@ -2637,10 +2636,9 @@ namespace SenseNet.ContentRepository.Tests
                     var unused = await DP.StartSchemaUpdateAsync(timestampBefore);
                     Assert.Fail("Expected DataException was not thrown.");
                 }
-                catch (DataException)
+                catch (DataException e)
                 {
-                    // "Schema is locked by someone else."
-                    // ignored
+                    Assert.AreEqual("Schema is locked by someone else.", e.Message);
                 }
 
                 // ACTION: try to finish with invalid @lock
@@ -2649,20 +2647,19 @@ namespace SenseNet.ContentRepository.Tests
                     var unused = await DP.FinishSchemaUpdateAsync("wrong-lock");
                     Assert.Fail("Expected DataException was not thrown.");
                 }
-                catch (DataException)
+                catch (DataException e)
                 {
-                    // "Schema is locked by someone else."
-                    // ignored
+                    Assert.AreEqual("Schema is locked by someone else.", e.Message);
                 }
 
-                // ACTION: finish normally
+                // ACTION: finish normally (clears the record)
                 var unused1 = await DP.FinishSchemaUpdateAsync(@lock);
 
                 // ASSERT: start update is allowed again
                 @lock = await DP.StartSchemaUpdateAsync(timestampBefore);
                 // cleanup
                 var timestampAfter = await DP.FinishSchemaUpdateAsync(@lock);
-                // Bonus assert: there is no any changes
+                // Bonus assert: there is no any changes (deleting record does not change the timestamp)
                 Assert.AreEqual(timestampBefore, timestampAfter);
             });
         }

@@ -198,6 +198,11 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        public Task EnsureOneUnlockedSchemaLockAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         private static void EditFileStream(InMemoryDataProvider.FileRecord fileRecord, Action<XmlDocument> action)
         {
             using (var xmlReaderStream = new MemoryStream(fileRecord.Stream))

@@ -33,5 +33,6 @@ namespace SenseNet.Tests.Implementations
         Task SetFileStagingAsync(int fileId, bool staging);
         Task DeleteFileAsync(int fileId);
 
+        Task EnsureOneUnlockedSchemaLockAsync();
     }
 }

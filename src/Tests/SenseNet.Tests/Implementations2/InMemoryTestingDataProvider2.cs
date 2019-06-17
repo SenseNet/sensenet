@@ -382,6 +382,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return Task.CompletedTask;
         }
 
+        public Task EnsureOneUnlockedSchemaLockAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual string TestMethodThatIsNotInterfaceMember(string input)
         {
             return input + input;
