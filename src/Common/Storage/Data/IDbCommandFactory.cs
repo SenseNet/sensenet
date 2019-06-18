@@ -8,5 +8,6 @@ namespace SenseNet.Common.Storage.Data
         DbConnection CreateConnection();
         DbCommand CreateCommand();
         DbParameter CreateParameter();
+        TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction);
     }
 }

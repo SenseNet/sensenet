@@ -34,6 +34,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DbCommand CreateCommand();
         public abstract DbConnection CreateConnection();
         public abstract DbParameter CreateParameter();
+        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
+        {
+            return null;
+        }
 
         /* =============================================================================================== Nodes */
 

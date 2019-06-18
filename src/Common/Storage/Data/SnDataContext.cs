@@ -10,38 +10,39 @@ using IsolationLevel = System.Data.IsolationLevel;
 
 namespace SenseNet.Common.Storage.Data
 {
-    public class SnDataContext : IDisposable
+    //UNDONE_DB: Refactor: separate to independent files.
+    public class TransactionWrapper : IDbTransaction
     {
-        private class TransactionWrapper : IDbTransaction
+        public DbTransaction Transaction { get; }
+
+        public IDbConnection Connection => Transaction.Connection;
+        public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
+        public TransactionStatus Status { get; private set; }
+
+        public TransactionWrapper(DbTransaction transaction)
         {
-            public DbTransaction Transaction { get; }
-
-            public IDbConnection Connection => Transaction.Connection;
-            public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
-            public TransactionStatus Status { get; private set; }
-
-            public TransactionWrapper(DbTransaction transaction)
-            {
-                Status = TransactionStatus.Active;
-                Transaction = transaction;
-            }
-
-            public void Dispose()
-            {
-                Transaction.Dispose();
-            }
-            public void Commit()
-            {
-                Transaction.Commit();
-                Status = TransactionStatus.Committed;
-            }
-            public void Rollback()
-            {
-                Transaction.Rollback();
-                Status = TransactionStatus.Aborted;
-            }
+            Status = TransactionStatus.Active;
+            Transaction = transaction;
         }
 
+        public virtual void Dispose()
+        {
+            Transaction.Dispose();
+        }
+        public virtual void Commit()
+        {
+            Transaction.Commit();
+            Status = TransactionStatus.Committed;
+        }
+        public virtual void Rollback()
+        {
+            Transaction.Rollback();
+            Status = TransactionStatus.Aborted;
+        }
+    }
+
+    public class SnDataContext : IDisposable
+    {
         private readonly IDbCommandFactory _commandFactory;
         private readonly DbConnection _connection;
         private TransactionWrapper _transaction;
@@ -66,7 +67,7 @@ namespace SenseNet.Common.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             var transaction = _connection.BeginTransaction(isolationLevel);
-            _transaction = new TransactionWrapper(transaction);
+            _transaction = _commandFactory.WrapTransaction(transaction) ?? new TransactionWrapper(transaction);
             return _transaction;
         }
 

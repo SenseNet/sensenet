@@ -30,6 +30,11 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         {
             return new SqlParameter(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateParameter()
         }
+        public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
+        {
+            return null;
+        }
+
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */
 
