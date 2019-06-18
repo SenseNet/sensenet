@@ -829,20 +829,35 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public virtual async Task DeleteNodeAsync(NodeHeadData nodeHeadData, int partitionSize, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
-            using (var transaction = ctx.BeginTransaction())
+            try
             {
-                await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
+                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var transaction = ctx.BeginTransaction())
                 {
-                    cmd.Parameters.AddRange(new[]
+                    await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
                     {
-                        ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                        ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
-                        ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                            ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
+                            ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
 
+                        });
                     });
-                });
-                transaction.Commit();
+                    transaction.Commit();
+                }
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Node was not updated. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
             }
         }
         protected abstract string DeleteNodeScript { get; }
