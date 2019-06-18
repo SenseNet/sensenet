@@ -1911,16 +1911,30 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new SnDataContext(this, cancellationToken))
-                return (int)await ctx.ExecuteScalarAsync(GetNodeCountScript, cmd => {});
+                return (int)await ctx.ExecuteScalarAsync(
+                    path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
+                    cmd =>
+                    {
+                        if (path != null)
+                            cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
+                    });
         }
         protected abstract string GetNodeCountScript { get; }
+        protected abstract string GetNodeCountInSubtreeScript { get; }
 
         public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new SnDataContext(this, cancellationToken))
-                return (int)await ctx.ExecuteScalarAsync(GetVersionCountScript, cmd => { });
+                return (int)await ctx.ExecuteScalarAsync(
+                    path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
+                    cmd =>
+                    {
+                        if (path != null)
+                            cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
+                    });
         }
         protected abstract string GetVersionCountScript { get; }
+        protected abstract string GetVersionCountInSubtreeScript { get; }
 
         /* =============================================================================================== Installation */
 

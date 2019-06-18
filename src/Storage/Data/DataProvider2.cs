@@ -645,6 +645,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
+        //UNDONE:DB: Delete GetException(Exception e). Use the GetException(Exception e, string defaultMessage)
         protected virtual Exception GetException(Exception e)
         {
             return DataStore.GetException(e);

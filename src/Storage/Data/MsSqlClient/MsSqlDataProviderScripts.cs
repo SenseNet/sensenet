@@ -51,7 +51,7 @@ IF DATALENGTH(@ReferredNodeIds{0}) > 0 BEGIN
     DELETE FROM @ReferredNodeIdTable
     INSERT INTO @ReferredNodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@ReferredNodeIds{0}, ',');
     INSERT INTO ReferenceProperties (VersionId, PropertyTypeId, ReferredNodeId)
-	    SELECT	@VersionId AS VersionId, @PropertyTypeId{0} AS PropertyTypeId, Id AS ReferredNodeId FROM @ReferredNodeIdTable
+        SELECT @VersionId AS VersionId, @PropertyTypeId{0} AS PropertyTypeId, Id AS ReferredNodeId FROM @ReferredNodeIdTable
 END
 ";
         #endregion
@@ -152,7 +152,7 @@ IF DATALENGTH(@ReferredNodeIds{0}) > 0 BEGIN
     DELETE FROM @ReferredNodeIdTable
     INSERT INTO @ReferredNodeIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@ReferredNodeIds{0}, ',');
     INSERT INTO ReferenceProperties (VersionId, PropertyTypeId, ReferredNodeId)
-	    SELECT	@VersionId AS VersionId, @PropertyTypeId{0} AS PropertyTypeId, Id AS ReferredNodeId FROM @ReferredNodeIdTable
+        SELECT @VersionId AS VersionId, @PropertyTypeId{0} AS PropertyTypeId, Id AS ReferredNodeId FROM @ReferredNodeIdTable
 END
 ";
         #endregion
@@ -905,10 +905,10 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
 {1}SELECT TOP(@Top)
     I.IndexingActivityId, I.ActivityType, I.CreationDate, I.RunningState, I.LockTime, I.NodeId, I.VersionId,
     I.[Path] COLLATE Latin1_General_CI_AS AS Path, [Extension], V.IndexDocument, N.NodeTypeId, N.ParentNodeId, N.IsSystem,
-	N.LastMinorVersionId, N.LastMajorVersionId, V.Status, N.Timestamp NodeTimestamp, V.Timestamp VersionTimestamp
+    N.LastMinorVersionId, N.LastMajorVersionId, V.Status, N.Timestamp NodeTimestamp, V.Timestamp VersionTimestamp
 FROM IndexingActivities I
-	LEFT OUTER JOIN Versions V ON V.VersionId = I.VersionId
-	LEFT OUTER JOIN Nodes N on N.NodeId = V.NodeId
+    LEFT OUTER JOIN Versions V ON V.VersionId = I.VersionId
+    LEFT OUTER JOIN Nodes N on N.NodeId = V.NodeId
 {2}
 ORDER BY IndexingActivityId
 ";
@@ -932,36 +932,34 @@ INSERT INTO @GapTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Gaps, ',')
         private string LoadExecutableIndexingActivitiesCommonScript => @"-- MsSqlDataProvider.{0}
 UPDATE IndexingActivities WITH (TABLOCK) SET RunningState = 'Running', LockTime = GETUTCDATE()
 OUTPUT INSERTED.IndexingActivityId, INSERTED.ActivityType, INSERTED.CreationDate, INSERTED.RunningState, INSERTED.LockTime,
-	INSERTED.NodeId, INSERTED.VersionId, INSERTED.Path, INSERTED.Extension,
-	V.IndexDocument, N.NodeTypeId, N.ParentNodeId, N.IsSystem,
-	N.LastMinorVersionId, N.LastMajorVersionId, V.Status, N.Timestamp NodeTimestamp, V.Timestamp VersionTimestamp
-	FROM IndexingActivities I
-		LEFT OUTER JOIN Versions V ON V.VersionId = I.VersionId
-		LEFT OUTER JOIN Nodes N on N.NodeId = I.NodeId
+    INSERTED.NodeId, INSERTED.VersionId, INSERTED.Path, INSERTED.Extension,
+    V.IndexDocument, N.NodeTypeId, N.ParentNodeId, N.IsSystem,
+    N.LastMinorVersionId, N.LastMajorVersionId, V.Status, N.Timestamp NodeTimestamp, V.Timestamp VersionTimestamp
+    FROM IndexingActivities I
+        LEFT OUTER JOIN Versions V ON V.VersionId = I.VersionId
+        LEFT OUTER JOIN Nodes N on N.NodeId = I.NodeId
 WHERE IndexingActivityId IN (
-	SELECT TOP (@Top) NEW.IndexingActivityId FROM IndexingActivities NEW
-	WHERE 
-		(NEW.RunningState = 'Waiting' OR ((NEW.RunningState = 'Running' AND NEW.LockTime < @TimeLimit))) AND
-		NOT EXISTS (
-			SELECT IndexingActivityId FROM IndexingActivities OLD
-			WHERE (OLD.IndexingActivityId < NEW.IndexingActivityId) AND
-				  (
-					  (OLD.RunningState = 'Waiting' OR OLD.RunningState = 'Running') AND
-					  (
-							NEW.NodeId = OLD.NodeId OR
-							(NEW.VersionId != 0 AND NEW.VersionId = OLD.VersionId) OR
-							NEW.[Path] LIKE OLD.[Path] + '/%' OR
-							OLD.[Path] LIKE NEW.[Path] + '/%'
-					  )
-				  )
-		)
-	ORDER BY NEW.IndexingActivityId
+    SELECT TOP (@Top) NEW.IndexingActivityId FROM IndexingActivities NEW
+    WHERE 
+        (NEW.RunningState = 'Waiting' OR ((NEW.RunningState = 'Running' AND NEW.LockTime < @TimeLimit))) AND
+        NOT EXISTS (
+            SELECT IndexingActivityId FROM IndexingActivities OLD
+            WHERE (OLD.IndexingActivityId < NEW.IndexingActivityId) AND (
+                (OLD.RunningState = 'Waiting' OR OLD.RunningState = 'Running') AND (
+                    NEW.NodeId = OLD.NodeId OR
+                    (NEW.VersionId != 0 AND NEW.VersionId = OLD.VersionId) OR
+                    NEW.[Path] LIKE OLD.[Path] + '/%' OR
+                    OLD.[Path] LIKE NEW.[Path] + '/%'
+                )
+            )
+        )
+    ORDER BY NEW.IndexingActivityId
 )
 {1}";
         #endregion
         #region LoadExecutableIndexingActivitiesScript
         protected override string LoadExecutableIndexingActivitiesScript => string.Format(LoadExecutableIndexingActivitiesCommonScript,
-            "LoadExecutableIndexingActivitiesScript");
+            "LoadExecutableIndexingActivitiesScript", "");
         #endregion
         #region LoadExecutableAndFinishedIndexingActivitiesScript
         protected override string LoadExecutableAndFinishedIndexingActivitiesScript => string.Format(LoadExecutableIndexingActivitiesCommonScript,
@@ -1076,10 +1074,10 @@ SELECT @@IDENTITY
 DECLARE @NameEscaped nvarchar(450)
 SET @NameEscaped = REPLACE(@Name, '_', '[_]')
 SELECT TOP 1 Name FROM Nodes WHERE ParentNodeId=@ParentId AND (
-	Name LIKE @NameEscaped + '([0-9])' + @Extension OR
-	Name LIKE @NameEscaped + '([0-9][0-9])' + @Extension OR
-	Name LIKE @NameEscaped + '([0-9][0-9][0-9])' + @Extension OR
-	Name LIKE @NameEscaped + '([0-9][0-9][0-9][0-9])' + @Extension
+    Name LIKE @NameEscaped + '([0-9])' + @Extension OR
+    Name LIKE @NameEscaped + '([0-9][0-9])' + @Extension OR
+    Name LIKE @NameEscaped + '([0-9][0-9][0-9])' + @Extension OR
+    Name LIKE @NameEscaped + '([0-9][0-9][0-9][0-9])' + @Extension
 )
 ORDER BY LEN(Name) DESC, Name DESC
 ";
@@ -1098,16 +1096,27 @@ WHERE F.Staging IS NULL AND (N.[Path] = @NodePath OR (@IncludeChildren = 1 AND N
 
         #region GetNodeCountScript
         protected override string GetNodeCountScript => @"-- MsSqlDataProvider.GetNodeCount
-SELECT COUNT (1) FROM Nodes NOLOCK
+SELECT COUNT (1) FROM Nodes
 ";
-
+        #endregion
+        #region GetNodeCountInSubtreeScript
+        protected override string GetNodeCountInSubtreeScript => @"-- MsSqlDataProvider.GetNodeCountInSubtree
+SELECT COUNT (1) FROM Nodes
+WHERE [Path] = @Path OR [Path] LIKE REPLACE(@Path, '_', '[_]') + '/%'
+";
         #endregion
 
         #region GetVersionCountScript
         protected override string GetVersionCountScript => @"-- MsSqlDataProvider.GetVersionCount
-SELECT COUNT (1) FROM Versions NOLOCK
+SELECT COUNT (1) FROM Versions
 ";
-
+        #endregion
+        #region GetVersionCountInSubtreeScript
+        protected override string GetVersionCountInSubtreeScript => @"-- MsSqlDataProvider.GetNodeCountInSubtree
+SELECT COUNT (1) FROM Versions v
+    JOIN Nodes n ON n.NodeId = v.NodeId
+WHERE [Path] = @Path OR [Path] LIKE REPLACE(@Path, '_', '[_]') + '/%'
+";
         #endregion
 
         /* ------------------------------------------------ Installation */
