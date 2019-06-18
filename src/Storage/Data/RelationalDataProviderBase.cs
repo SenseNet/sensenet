@@ -565,15 +565,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            try
             {
-                using (var transaction = ctx.BeginTransaction())
+                using (var ctx = new SnDataContext(this, cancellationToken))
                 {
-                    // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                    using (var transaction = ctx.BeginTransaction())
                     {
-                        cmd.Parameters.AddRange(new[]
+                        // Update Node
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
+                            cmd.Parameters.AddRange(new[]
+                            {
                             #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
                             ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
                             ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
@@ -605,14 +607,27 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                    });
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                        });
+                        nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
-                    // Delete unnecessary versions and update last versions
-                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        // Delete unnecessary versions and update last versions
+                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
-                    transaction.Commit();
+                        transaction.Commit();
+                    }
                 }
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "NodeHead was not updated. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
             }
         }
 
