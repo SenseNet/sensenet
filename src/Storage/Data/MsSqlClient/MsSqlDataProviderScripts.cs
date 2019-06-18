@@ -169,6 +169,9 @@ DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId =
         #region CopyVersionAndUpdateScript
         //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
         protected override string CopyVersionAndUpdateScript => @"-- MsSqlDataProvider.CopyVersionAndUpdate
+IF(NOT EXISTS (SELECT NodeId FROM Versions WHERE VersionId = @PreviousVersionId))
+    RAISERROR (N'Cannot copy a deleted Version. @VersionId: %d.', 12, 1, @PreviousVersionId);
+
 DECLARE @NewVersionId int
     
 -- Before inserting set versioning status code from ""Locked"" to ""Draft"" on all older versions

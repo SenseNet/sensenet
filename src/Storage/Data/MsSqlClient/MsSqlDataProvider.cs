@@ -150,6 +150,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             if (sqlEx.Message.StartsWith("Cannot update a deleted Node"))
                 return new ContentNotFoundException(defaultMessage, sqlEx);
+            if (sqlEx.Message.StartsWith("Cannot copy a deleted Version"))
+                return new ContentNotFoundException(defaultMessage, sqlEx);
             if (sqlEx.Message.StartsWith("Node is out of date"))
                 return new NodeIsOutOfDateException(defaultMessage, sqlEx);
 
