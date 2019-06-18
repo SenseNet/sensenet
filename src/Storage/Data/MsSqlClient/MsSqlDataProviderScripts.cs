@@ -304,16 +304,21 @@ SET @HasTrans = @@TRANCOUNT
 
 -----------------------------------------------------------------------  Existence checks
 
-IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @TargetNodeId)
+IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @TargetNodeId) BEGIN
     RAISERROR (N'Cannot move under a deleted node. Id: %d', 12, 1, @TargetNodeId);
+    RETURN
+END
 
-IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @SourceNodeId)
-    RAISERROR (N'Cannot move a deleted node.Id: %d', 12, 1, @SourceNodeId);
+IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @SourceNodeId) BEGIN
+    RAISERROR (N'Cannot move a deleted node. Id: %d', 12, 1, @SourceNodeId);
+    RETURN
+END
 
 IF @SourceTimestamp IS NOT NULL BEGIN
     IF NOT EXISTS (SELECT NodeId FROM Nodes WHERE NodeId = @SourceNodeId and @SourceTimestamp = [Timestamp]) BEGIN
         SELECT @Path = [Path] FROM Nodes WHERE NodeId = @SourceNodeId
         RAISERROR (N'Source node is out of date. Id: %d, path: %s.', 12, 1, @SourceNodeId, @Path);
+        RETURN
     END
 END
 

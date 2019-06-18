@@ -865,11 +865,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            try
             {
-                using (var transaction = ctx.BeginTransaction())
+                using (var ctx = new SnDataContext(this, cancellationToken))
                 {
-                    try
+                    using (var transaction = ctx.BeginTransaction())
                     {
                         await ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
                         {
@@ -883,20 +883,22 @@ namespace SenseNet.ContentRepository.Storage.Data
                                     ConvertInt64ToTimestamp(targetTimestamp)),
                             });
                         });
-                    }
-                    catch(DbException e)
-                    {
-                        if (e.Message.StartsWith("Source node is out of date"))
-                        {
-                            StorageContext.L2Cache.Clear();
-                            throw new NodeIsOutOfDateException(e.Message, e);
-                        }
 
-                        throw new DataException("Node cannot be moved. See ineer exception for details.", e);
+                        transaction.Commit();
                     }
-
-                    transaction.Commit();
                 }
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Node cannot be moved. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
             }
 
         }

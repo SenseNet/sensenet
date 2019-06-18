@@ -152,7 +152,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 return new ContentNotFoundException(defaultMessage, sqlEx);
             if (sqlEx.Message.StartsWith("Cannot copy a deleted Version"))
                 return new ContentNotFoundException(defaultMessage, sqlEx);
+            if (sqlEx.Message.StartsWith("Cannot move a deleted node"))
+                return new ContentNotFoundException(defaultMessage, sqlEx);
+            if (sqlEx.Message.StartsWith("Cannot move under a deleted node"))
+                return new ContentNotFoundException(defaultMessage, sqlEx);
             if (sqlEx.Message.StartsWith("Node is out of date"))
+                return new NodeIsOutOfDateException(defaultMessage, sqlEx);
+            if (sqlEx.Message.StartsWith("Source node is out of date"))
                 return new NodeIsOutOfDateException(defaultMessage, sqlEx);
 
             return null;
