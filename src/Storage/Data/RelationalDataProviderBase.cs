@@ -432,17 +432,19 @@ namespace SenseNet.ContentRepository.Storage.Data
             IEnumerable<int> versionIdsToDelete, int expectedVersionId = 0, string originalPath = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            try
             {
-                using (var transaction = ctx.BeginTransaction())
+                using (var ctx = new SnDataContext(this, cancellationToken))
                 {
-                    //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
-
-                    // Copy and update version
-                    var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
+                    using (var transaction = ctx.BeginTransaction())
                     {
-                        cmd.Parameters.AddRange(new []
+                        //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+
+                        // Copy and update version
+                        var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
                         {
+                            cmd.Parameters.AddRange(new[]
+                            {
                             #region ctx.CreateParameter("@....
                             ctx.CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
                             ctx.CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
@@ -458,34 +460,34 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                             #endregion
                         });
-                    }, async reader =>
-                    {
-                        while (await reader.ReadAsync(cancellationToken))
-                        {
-                            versionData.VersionId = reader.GetInt32("VersionId");
-                            versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
-                        }
-                        //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
-                        if (await reader.NextResultAsync(cancellationToken))
+                        }, async reader =>
                         {
                             while (await reader.ReadAsync(cancellationToken))
                             {
-                                var binId = reader.GetInt32("BinaryPropertyId");
-                                var propId = reader.GetInt32("PropertyTypeId");
-                                var propertyType = ActiveSchema.PropertyTypes.GetItemById(propId);
-                                if(propertyType!=null)
-                                    if (dynamicData.BinaryProperties.TryGetValue(propertyType, out var binaryData))
-                                        binaryData.Id = binId;
+                                versionData.VersionId = reader.GetInt32("VersionId");
+                                versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
                             }
-                        }
-                        return versionData.VersionId;
-                    });
+                            //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+                            if (await reader.NextResultAsync(cancellationToken))
+                            {
+                                while (await reader.ReadAsync(cancellationToken))
+                                {
+                                    var binId = reader.GetInt32("BinaryPropertyId");
+                                    var propId = reader.GetInt32("PropertyTypeId");
+                                    var propertyType = ActiveSchema.PropertyTypes.GetItemById(propId);
+                                    if (propertyType != null)
+                                        if (dynamicData.BinaryProperties.TryGetValue(propertyType, out var binaryData))
+                                            binaryData.Id = binId;
+                                }
+                            }
+                            return versionData.VersionId;
+                        });
 
-                    // Update Node
-                    var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
-                    {
-                        cmd.Parameters.AddRange(new[]
+                        // Update Node
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
+                            cmd.Parameters.AddRange(new[]
+                            {
                             #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
                             ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
                             ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
@@ -517,31 +519,44 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                    });
-                    nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
+                        });
+                        nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
-                    // Update subtree if needed
-                    if (originalPath != null)
-                        await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+                        // Update subtree if needed
+                        if (originalPath != null)
+                            await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
 
-                    // Delete unnecessary versions and update last versions
-                    await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        // Delete unnecessary versions and update last versions
+                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
 
-                    // Manage ReferenceProperties
-                    if (dynamicData.LongTextProperties.Any())
-                        await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
+                        // Manage ReferenceProperties
+                        if (dynamicData.LongTextProperties.Any())
+                            await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
 
-                    // Manage LongTextProperties
-                    if (dynamicData.LongTextProperties.Any())
-                        await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+                        // Manage LongTextProperties
+                        if (dynamicData.LongTextProperties.Any())
+                            await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
 
-                    transaction.Commit();
+                        transaction.Commit();
 
-                    // Manage BinaryProperties
-                    //UNDONE:DB@@@@@ Move into the transaction after BlobStorage refactor.
-                    foreach (var item in dynamicData.BinaryProperties)
-                        SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                        // Manage BinaryProperties
+                        //UNDONE:DB@@@@@ Move into the transaction after BlobStorage refactor.
+                        foreach (var item in dynamicData.BinaryProperties)
+                            SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                    }
                 }
+            }
+            catch (DataException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Node was not updated. For more details see the inner exception.";
+                var transformedException = GetException(e, msg);
+                if (transformedException != null)
+                    throw transformedException;
+                throw new DataException(msg, e);
             }
         }
         protected abstract string CopyVersionAndUpdateScript { get; }
