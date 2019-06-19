@@ -1170,10 +1170,68 @@ namespace SenseNet.ContentRepository.Storage.Data
         //    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
         //}
 
-        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties,
-            CancellationToken cancellationToken = default(CancellationToken))
+        //public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
+        //    List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+        //}
+
+        private (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value) GetPropertyMappingForQuery(QueryPropertyData property)
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            bool isNodeTable;
+            string column = null;
+            var isColumn = true;
+            DbType dataType;
+
+            switch (property.PropertyName)
+            {
+                case "NodeId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "NodeTypeId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "ContentListTypeId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "ContentListId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "CreatingInProgress": isNodeTable = true; dataType = DbType.Byte; break;
+                case "IsDeleted": isNodeTable = true; dataType = DbType.Byte; break;
+                case "IsInherited": isNodeTable = true; dataType = DbType.Byte; break;
+                case "ParentNodeId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "Name": isNodeTable = true; dataType = DbType.String; break;
+                case "Path": isNodeTable = true; dataType = DbType.String; break;
+                case "Index": isNodeTable = true; dataType = DbType.Int32; break;
+                case "Locked": isNodeTable = true; dataType = DbType.Byte; break;
+                case "LockedById": isNodeTable = true; dataType = DbType.Int32; break;
+                case "ETag": isNodeTable = true; dataType = DbType.AnsiString; break;
+                case "LockType": isNodeTable = true; dataType = DbType.Int32; break;
+                case "LockTimeout": isNodeTable = true; dataType = DbType.Int32; break;
+                case "LockDate": isNodeTable = true; dataType = DbType.DateTime2; break;
+                case "LockToken": isNodeTable = true; dataType = DbType.AnsiString; break;
+                case "LastLockUpdate": isNodeTable = true; dataType = DbType.DateTime2; break;
+                case "LastMinorVersionId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "LastMajorVersionId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "NodeCreationDate": isNodeTable = true; column = "CreationDate"; dataType = DbType.DateTime2; break;
+                case "NodeCreatedById": isNodeTable = true; column = "CreatedById"; dataType = DbType.Int32; break;
+                case "NodeModificationDate": isNodeTable = true; column = "ModificationDate"; dataType = DbType.DateTime2; break;
+                case "NodeModifiedById": isNodeTable = true; column = "ModifiedById"; dataType = DbType.Int32; break;
+                case "DisplayName": isNodeTable = true; dataType = DbType.String; break;
+                case "IsSystem": isNodeTable = true; dataType = DbType.Byte; break;
+                case "OwnerId": isNodeTable = true; dataType = DbType.Int32; break;
+                case "SavingState": isNodeTable = true; dataType = DbType.Int32; break;
+                case "VersionId":  isNodeTable = false; dataType = DbType.Int32; break;
+                case "MajorNumber":  isNodeTable = false; dataType = DbType.Int16; break;
+                case "MinorNumber":  isNodeTable = false; dataType = DbType.Int16; break;
+                case "VersionCreationDate":  isNodeTable = false; column = "CreationDate"; dataType = DbType.DateTime2; break;
+                case "VersionCreatedById":  isNodeTable = false; column = "CreatedById"; dataType = DbType.Int32; break;
+                case "VersionModificationDate":  isNodeTable = false; column = "ModificationDate"; dataType = DbType.DateTime2; break;
+                case "VersionModifiedById":  isNodeTable = false; column = "ModifiedById"; dataType = DbType.Int32; break;
+                case "Status":  isNodeTable = false; dataType = DbType.Int32; break;
+                default:  isNodeTable = false; isColumn = false; dataType = DbType.String; break;
+            }
+            if (isColumn && column == null)
+                column = property.PropertyName;
+
+            var propertyValue = isColumn
+                ? property.Value
+                : $"\r\n{property.PropertyName}:{property.Value}\r\n";
+
+            return (isNodeTable, isColumn, column, dataType, propertyValue);
         }
 
         public override async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds,
