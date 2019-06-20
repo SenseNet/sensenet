@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations2
 {
-    internal class InMemoryAccessTokenDataProvider2 : IAccessTokenDataProviderExtension
+    public class InMemoryAccessTokenDataProvider2 : IAccessTokenDataProviderExtension
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()
         {
