@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
@@ -376,6 +377,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         protected internal static Dictionary<string, IBlobProvider> Providers { get; set; }
 
+        private class BlobProviderComparer : IEqualityComparer<IBlobProvider>
+        {
+            public bool Equals(IBlobProvider x, IBlobProvider y)
+            {
+                var ax = x.GetType().Assembly;
+                var ay = y.GetType().Assembly;
+                if (ax.FullName != ay.FullName)
+                    return false;
+                return ax.GetName().Version == ay.GetName().Version;
+            }
+
+            public int GetHashCode(IBlobProvider obj)
+            {
+                var n = obj.GetType().Assembly.GetName();
+                return n.FullName.GetHashCode() ^ n.Version.GetHashCode();
+            }
+        }
         static BlobStorageBase()
         {
             Providers = TypeResolver.GetTypesByInterface(typeof(IBlobProvider))
@@ -384,7 +402,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     try
                     {
                         var instance = (IBlobProvider)Activator.CreateInstance(t);
-                        SnTrace.System.Write("BlobProvider found: {0}", t.FullName);
+                        SnTrace.System.Write("BlobProvider found: {0} ({1}) from: {2}", t.FullName, t.Assembly.GetName().Version, t.Assembly.CodeBase);
 
                         return instance;
                     }
@@ -401,6 +419,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     return null;
                 })
                 .Where(instance => instance != null)
+                //UNDONE:DB: revise this method and use more sophisticated distinction.
+                .Distinct(new BlobProviderComparer())
                 .ToDictionary(x => x.GetType().FullName, x => x);
 
             BuiltInProvider = new BuiltInBlobProvider();
