@@ -911,7 +911,7 @@ SELECT * FROM IndexDocumentsRanked WHERE RowNum BETWEEN @Offset + 1 AND @Offset 
 //WHERE IndexDocument IS NULL
 //";
         protected override string LoadNotIndexedNodeIdsScript => @"-- MsSqlDataProvider.LoadNotIndexedNodeIds
-SELECT NodeId FROM Versions (NOLOCK) WHERE NodeId >= 0 AND NodeId <= 11 AND IndexDocument IS NULL
+SELECT NodeId FROM Versions (NOLOCK) WHERE NodeId >= @FromId AND NodeId <= @ToId AND IndexDocument IS NULL
 ";
         #endregion
 
