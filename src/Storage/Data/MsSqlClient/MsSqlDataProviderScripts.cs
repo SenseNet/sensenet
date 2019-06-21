@@ -874,8 +874,6 @@ INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Vers
 ";
         #endregion
 
-        /* ------------------------------------------------ IndexingActivity */
-
         #region LoadIndexDocumentCollectionBlockByPathScript
         protected override string LoadIndexDocumentCollectionBlockByPathScript => @"-- MsSqlDataProvider.LoadIndexDocumentCollectionBlockByPath
 ;WITH IndexDocumentsRanked AS (
@@ -901,6 +899,23 @@ SELECT * FROM IndexDocumentsRanked WHERE RowNum BETWEEN @Offset + 1 AND @Offset 
 SELECT * FROM IndexDocumentsRanked WHERE RowNum BETWEEN @Offset + 1 AND @Offset + @Count
 ";
         #endregion
+
+        #region LoadNotIndexedNodeIdsScript
+//        protected override string LoadNotIndexedNodeIdsScript => @"-- MsSqlDataProvider.LoadNotIndexedNodeIds
+//DECLARE @temp table (NodeId int, IndexDocument nvarchar(MAX))
+//INSERT @temp (NodeId, IndexDocument) 
+//SELECT NodeId, IndexDocument
+//FROM Versions (NOLOCK) WHERE NodeId >= @FromId AND NodeId <= @ToId
+
+//SELECT NodeId FROM @temp
+//WHERE IndexDocument IS NULL
+//";
+        protected override string LoadNotIndexedNodeIdsScript => @"-- MsSqlDataProvider.LoadNotIndexedNodeIds
+SELECT NodeId FROM Versions (NOLOCK) WHERE NodeId >= 0 AND NodeId <= 11 AND IndexDocument IS NULL
+";
+        #endregion
+
+        /* ------------------------------------------------ IndexingActivity */
 
         #region GetLastIndexingActivityIdScript
         protected override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId

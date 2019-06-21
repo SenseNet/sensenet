@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1472,10 +1473,28 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadIndexDocumentCollectionBlockByPathScript { get; }
         protected abstract string LoadIndexDocumentCollectionBlockByPathAndTypeScript { get; }
 
-        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(new StackTrace().GetFrame(0).GetMethod().Name); //UNDONE:DB@ NotImplementedException
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadNotIndexedNodeIdsScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@FromId", DbType.Int32, fromId),
+                        ctx.CreateParameter("@ToId", DbType.Int32, toId),
+                    });
+                }, async reader =>
+                {
+                    var idSet = new List<int>();
+                    while (await reader.ReadAsync(cancellationToken))
+                        idSet.Add(reader.GetSafeInt32(0));
+
+                    return idSet;
+                });
+            }
         }
+        protected abstract string LoadNotIndexedNodeIdsScript { get; }
 
         /* =============================================================================================== IndexingActivity */
 
@@ -1898,11 +1917,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string WriteAuditEventScript { get; }
 
         /* =============================================================================================== Provider Tools */
-
-        //public override DateTime RoundDateTime(DateTime d)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
         public override bool IsCacheableText(string text)
         {
