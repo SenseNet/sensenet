@@ -381,8 +381,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             public bool Equals(IBlobProvider x, IBlobProvider y)
             {
-                var ax = x.GetType().Assembly;
-                var ay = y.GetType().Assembly;
+                var tx = x.GetType();
+                var ty = y.GetType();
+                if (tx.FullName != ty.FullName)
+                    return false;
+                var ax = tx.Assembly;
+                var ay = ty.Assembly;
                 if (ax.FullName != ay.FullName)
                     return false;
                 return ax.GetName().Version == ay.GetName().Version;
