@@ -667,6 +667,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             VersionId = versionId,
                             Version = new VersionNumber(reader.GetInt16("MajorNumber"), reader.GetInt16("MinorNumber"),
                                 (VersionStatus)reader.GetInt16("Status")),
+                            ContentListTypeId = contentListTypeId,
                             ContentListId = reader.GetSafeInt32("ContentListId"),
                             CreatingInProgress = reader.GetSafeBooleanFromByte("CreatingInProgress"),
                             IsDeleted = reader.GetSafeBooleanFromByte("IsDeleted"),
