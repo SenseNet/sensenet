@@ -73,9 +73,9 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             throw new NotImplementedException();
         }
 
-        public int GetLastNodeId()
+        public Task<int> GetLastNodeIdAsync()
         {
-            return DB.Nodes.Count == 0 ? 0 : DB.Nodes.Max(n => n.NodeId);
+            return Task.FromResult(DB.Nodes.Count == 0 ? 0 : DB.Nodes.Max(n => n.NodeId));
         }
 
         public void SetContentHandler(string contentTypeName, string handler)
