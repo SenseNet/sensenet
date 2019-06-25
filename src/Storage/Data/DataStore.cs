@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Nodes */
 
-        public static async Task SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken = default(CancellationToken))
         {
             // ORIGINAL SIGNATURES:
             // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -204,19 +204,45 @@ namespace SenseNet.ContentRepository.Storage.Data
                         cancellationToken);
                 }
                 // Write back NodeHead level changed values
-                settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
-                settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
+                var lastMajorVersionId = nodeHeadData.LastMajorVersionId;
+                var lastMinorVersionId = nodeHeadData.LastMinorVersionId;
+                settings.LastMajorVersionIdAfter = lastMajorVersionId;
+                settings.LastMinorVersionIdAfter = lastMinorVersionId;
                 nodeData.NodeTimestamp = nodeHeadData.Timestamp;
 
+                // Cache manipulations
                 //UNDONE:DB@@@@@@@ Remove NodeDataParticipant feature.
                 var participant = new NodeDataParticipant { Data = nodeData, Settings = settings, IsNewNode = isNewNode };
                 DataBackingStore.RemoveFromCache(participant);
+
+                // here we re-create the node head to insert it into the cache and refresh the version info);
+                //if (lastMajorVersionId > 0 || lastMinorVersionId > 0) //UNDONE:DB ? When can both variables 0 be?
+                //{
+                    var head = NodeHead.CreateFromNode(nodeData, lastMinorVersionId, lastMajorVersionId);
+                    if (MustCache(head.NodeTypeId))
+                    {
+                        var idKey = CreateNodeHeadIdCacheKey(head.Id);
+                        var pathKey = CreateNodeHeadPathCacheKey(head.Path);
+                        CacheNodeHead(head, idKey, pathKey);
+                    }
+
+                    //node.RefreshVersionInfo(head);
+                //}
+                return head;
             }
             catch (Exception e)
             {
                 throw GetException(e);
             }
         }
+        private static bool MustCache(int nodeTypeId)
+        {
+            var nodeType = ActiveSchema.NodeTypes.GetItemById(nodeTypeId);
+            if (Cache.CacheContentAfterSaveMode != Cache.CacheContentAfterSaveOption.Containers)
+                return Cache.CacheContentAfterSaveMode == Cache.CacheContentAfterSaveOption.All;
+            return nodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("Folder"));
+        }
+
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
             var tokens = new List<NodeToken>();
@@ -594,12 +620,35 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== */
 
+        private static readonly string NodeHeadPrefix = "NodeHeadCache.";
         private static readonly string NodeDataPrefix = "NodeData.";
+        internal static string CreateNodeHeadPathCacheKey(string path)
+        {
+            return string.Concat(NodeHeadPrefix, path.ToLowerInvariant());
+        }
+        internal static string CreateNodeHeadIdCacheKey(int nodeId)
+        {
+            return string.Concat(NodeHeadPrefix, nodeId);
+        }
         internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
         {
-            return String.Concat(NodeDataPrefix, versionId);
+            return string.Concat(NodeDataPrefix, versionId);
         }
 
+        internal static void CacheNodeHead(NodeHead nodeHead)
+        {
+            var idKey = CreateNodeHeadIdCacheKey(nodeHead.Id);
+            if (null != DistributedApplication.Cache.Get(idKey))
+                return; //UNDONE:DB ?Force delete by id (and path) is better.
+            CacheNodeHead(nodeHead, idKey, CreateNodeHeadPathCacheKey(nodeHead.Path));
+        }
+        internal static void CacheNodeHead(NodeHead head, string idKey, string pathKey)
+        {
+            var dependencyForPathKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
+            var dependencyForIdKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
+            DistributedApplication.Cache.Insert(idKey, head, dependencyForIdKey);
+            DistributedApplication.Cache.Insert(pathKey, head, dependencyForPathKey);
+        }
         internal static void CacheNodeData(NodeData nodeData, string cacheKey = null)
         {
             if (nodeData == null)

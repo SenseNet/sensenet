@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Storage
 
             LoadDate = DateTime.UtcNow;
         }
-        internal static NodeHead CreateFromNode(Node node, int lastMinorVersionId, int lastMajorVersionId)
+        internal static NodeHead CreateFromNode(NodeData node, int lastMinorVersionId, int lastMajorVersionId)
         {
             return new NodeHead
             {

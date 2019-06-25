@@ -575,11 +575,13 @@ namespace SenseNet.ContentRepository.Storage
 
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
+                    NodeHead head;
                     if (DataStore.Enabled)
                     {
-                        DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Wait();
+                        head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Result;
                         lastMajorVersionId = settings.LastMajorVersionIdAfter;
                         lastMinorVersionId = settings.LastMinorVersionIdAfter;
+                        node.RefreshVersionInfo(head);
                     }
                     else
                     {
@@ -591,23 +593,25 @@ namespace SenseNet.ContentRepository.Storage
                     // here we re-create the node head to insert it into the cache and refresh the version info);
                     if (lastMajorVersionId > 0 || lastMinorVersionId > 0)
                     {
-                        var head = NodeHead.CreateFromNode(node, lastMinorVersionId, lastMajorVersionId);
-                        if (MustCache(node.NodeType))
+                        if (!DataStore.Enabled)
                         {
-                            // participate cache items
-                            var idKey = CreateNodeHeadIdCacheKey(head.Id);
-                            var participant2 = new InsertCacheParticipant { CacheKey = idKey };
-                            if (!DataStore.Enabled)
-                                TransactionScope.Participate(participant2);
-                            var pathKey = CreateNodeHeadPathCacheKey(head.Path);
-                            var participant3 = new InsertCacheParticipant { CacheKey = pathKey };
-                            if (!DataStore.Enabled)
-                                TransactionScope.Participate(participant3);
+                            head = NodeHead.CreateFromNode(node.Data, lastMinorVersionId, lastMajorVersionId);
+                            if (MustCache(node.NodeType))
+                            {
+                                // participate cache items
+                                var idKey = CreateNodeHeadIdCacheKey(head.Id);
+                                var participant2 = new InsertCacheParticipant { CacheKey = idKey };
+                                if (!DataStore.Enabled)
+                                    TransactionScope.Participate(participant2);
+                                var pathKey = CreateNodeHeadPathCacheKey(head.Path);
+                                var participant3 = new InsertCacheParticipant { CacheKey = pathKey };
+                                if (!DataStore.Enabled)
+                                    TransactionScope.Participate(participant3);
 
-                            CacheNodeHead(head, idKey, pathKey);
+                                CacheNodeHead(head, idKey, pathKey);
+                            }
+                            node.RefreshVersionInfo(head);
                         }
-
-                        node.RefreshVersionInfo(head);
 
                         if (!settings.DeletableVersionIds.Contains(node.VersionId))
                         {
