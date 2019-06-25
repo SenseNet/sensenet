@@ -1469,6 +1469,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 SavingState = nData.SavingState
             });
 
+            var dynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value)
+                ?? new Dictionary<string, object>();
+            if(dData?.ContentListProperties != null)
+                foreach (var contentListProperty in dData.ContentListProperties)
+                    dynamicProperties.Add(contentListProperty.Key.Name, contentListProperty.Value);
+
             DB.Versions.Insert(new VersionDoc
             {
                 VersionId = vData.VersionId,
@@ -1480,7 +1486,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
                 ModifiedById = vData.ModifiedById == 0 ? 1 : vData.ModifiedById,
                 IndexDocument = null,
                 ChangedData = vData.ChangedData,
-                DynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value) ?? new Dictionary<string, object>()
+                DynamicProperties = dynamicProperties
             });
 
             if (dData?.LongTextProperties != null)
@@ -1669,25 +1675,22 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             foreach (var item in dynamicData.DynamicProperties)
             {
                 var propertyType = item.Key;
-                switch (propertyType.DataType)
-                {
-                    case DataType.String:
-                    //case DataType.Text:
-                    case DataType.Int:
-                    case DataType.Currency:
-                    case DataType.DateTime:
-                        dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
-                        break;
-                    case DataType.Reference:
-                        // Do nothing. These properties are managed below
-                        break;
-                    case DataType.Binary:
-                        // Do nothing. These properties are managed by the caller
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
             }
+            foreach (var item in dynamicData.ContentListProperties)
+            {
+                var propertyType = item.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
+            }
+
             foreach (var item in dynamicData.ReferenceProperties)
             {
                 var propertyType = item.Key;
@@ -1722,6 +1725,16 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
             var target = versionDoc.DynamicProperties;
             foreach (var sourceItem in dynamicData.DynamicProperties)
+            {
+                var propertyType = sourceItem.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                var clone = GetCloneSafe(sourceItem.Value, dataType);
+                target[propertyType.Name] = clone;
+            }
+            foreach (var sourceItem in dynamicData.ContentListProperties)
             {
                 var propertyType = sourceItem.Key;
                 var dataType = propertyType.DataType;

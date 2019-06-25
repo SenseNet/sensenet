@@ -57,7 +57,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cmd.Parameters.AddRange(new[]
                             {
-                                #region ctx.CreateParameter("@NodeTypeId", DbType.Int32, ...
                                 ctx.CreateParameter("@NodeTypeId", DbType.Int32, nodeHeadData.NodeTypeId),
                                 ctx.CreateParameter("@ContentListTypeId", DbType.Int32, nodeHeadData.ContentListTypeId > 0 ? (object) nodeHeadData.ContentListTypeId : DBNull.Value),
                                 ctx.CreateParameter("@ContentListId", DbType.Int32, nodeHeadData.ContentListId > 0 ? (object) nodeHeadData.ContentListId : DBNull.Value),
@@ -93,7 +92,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
                                 ctx.CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
                                 ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
-                                #endregion
+                                ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.ContentListProperties)),
                             });
                         }, async reader =>
                         {
@@ -240,20 +239,21 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cmd.Parameters.AddRange(new[]
                             {
-                            #region ctx.CreateParameter("@NodeId", DbType.Int32, ...
-                            ctx.CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
-                            ctx.CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
-                            ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
-                            ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
-                            ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
-                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
-                            ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
-                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                            ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
-                            ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                            ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
-                            #endregion
-                        });
+                                ctx.CreateParameter("@VersionId", DbType.Int32, versionData.VersionId),
+                                ctx.CreateParameter("@NodeId", DbType.Int32, versionData.NodeId),
+                                ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                                ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                                ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                                ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                                ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                                ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                                ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                                ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                                ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue,
+                                    SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                                ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue,
+                                    SerializeDynamicProperties(dynamicData.ContentListProperties)),
+                            });
                         });
                         var versionTimestamp = ConvertTimestampToInt64(rawVersionTimestamp);
                         if(versionTimestamp == 0L)
@@ -450,21 +450,22 @@ namespace SenseNet.ContentRepository.Storage.Data
                         {
                             cmd.Parameters.AddRange(new[]
                             {
-                            #region ctx.CreateParameter("@....
-                            ctx.CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
-                            ctx.CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
-                            ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
-                            ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
-                            ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
-                            ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
-                            ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
-                            ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
-                            ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                            ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
-                            ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
-                            ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
-                            #endregion
-                        });
+                                ctx.CreateParameter("@PreviousVersionId", DbType.Int32, versionData.VersionId),
+                                ctx.CreateParameter("@DestinationVersionId", DbType.Int32, (expectedVersionId != 0) ? (object)expectedVersionId : DBNull.Value),
+                                ctx.CreateParameter("@NodeId", DbType.Int32, nodeHeadData.NodeId),
+                                ctx.CreateParameter("@MajorNumber", DbType.Int16, versionData.Version.Major),
+                                ctx.CreateParameter("@MinorNumber", DbType.Int16, versionData.Version.Minor),
+                                ctx.CreateParameter("@Status", DbType.Int16, versionData.Version.Status),
+                                ctx.CreateParameter("@CreationDate", DbType.DateTime2, versionData.CreationDate),
+                                ctx.CreateParameter("@CreatedById", DbType.Int32, versionData.CreatedById),
+                                ctx.CreateParameter("@ModificationDate", DbType.DateTime2, versionData.ModificationDate),
+                                ctx.CreateParameter("@ModifiedById", DbType.Int32, versionData.ModifiedById),
+                                ctx.CreateParameter("@ChangedData", DbType.String, int.MaxValue, JsonConvert.SerializeObject(versionData.ChangedData)),
+                                ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue,
+                                    SerializeDynamicProperties(dynamicData.DynamicProperties)),
+                                ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue,
+                                    SerializeDynamicProperties(dynamicData.ContentListProperties)),
+                            });
                         }, async reader =>
                         {
                             while (await reader.ReadAsync(cancellationToken))
@@ -703,11 +704,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         var dynamicPropertySource = reader.GetSafeString("DynamicProperties");
                         if (dynamicPropertySource != null)
-                        {
-                            var dynamicProperties = DeserializeDynamiProperties(dynamicPropertySource);
-                            foreach (var item in dynamicProperties)
+                            foreach (var item in DeserializeDynamicProperties(dynamicPropertySource))
                                 nodeData.SetDynamicRawData(item.Key, item.Value);
-                        }
+                        var contentListPropertySource = reader.GetSafeString("ContentListProperties");
+                        if (contentListPropertySource != null)
+                            foreach (var item in DeserializeDynamicProperties(contentListPropertySource))
+                                nodeData.SetDynamicRawData(item.Key, item.Value);
 
                         result.Add(versionId, nodeData);
                     }
@@ -768,7 +770,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string LoadNodesScript { get; }
-        public virtual IDictionary<PropertyType, object> DeserializeDynamiProperties(string src)
+        public virtual IDictionary<PropertyType, object> DeserializeDynamicProperties(string src)
         {
             return src.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(DeserializeDynamiProperty).Where(x => x.PropertyType != null)

@@ -13,6 +13,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public int VersionId { get; set; }
         public List<PropertyType> PropertyTypes { get; set; } = new List<PropertyType>();
         public IDictionary<PropertyType, object> DynamicProperties { get; set; }
+        public IDictionary<PropertyType, object> ContentListProperties { get; set; }
         public IDictionary<PropertyType, BinaryDataValue> BinaryProperties { get; set; }
         public IDictionary<PropertyType, List<int>> ReferenceProperties { get; set; }
         public IDictionary<PropertyType, string> LongTextProperties { get; set; }

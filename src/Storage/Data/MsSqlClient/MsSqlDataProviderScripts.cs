@@ -24,8 +24,8 @@ SELECT @NodeId = @@IDENTITY
 IF (@NodeId is NOT NULL)
 BEGIN
     INSERT INTO Versions 
-        ([NodeId],[MajorNumber],[MinorNumber],       [CreationDate],       [CreatedById],       [ModificationDate],       [ModifiedById],[Status],[ChangedData],[DynamicProperties]) VALUES
-        (@NodeId, @MajorNumber, @MinorNumber, @VersionCreationDate, @VersionCreatedById, @VersionModificationDate, @VersionModifiedById, @Status, @ChangedData, @DynamicProperties )
+        ([NodeId],[MajorNumber],[MinorNumber],       [CreationDate],       [CreatedById],       [ModificationDate],       [ModifiedById],[Status],[ChangedData],[DynamicProperties],[ContentListProperties]) VALUES
+        (@NodeId, @MajorNumber, @MinorNumber, @VersionCreationDate, @VersionCreatedById, @VersionModificationDate, @VersionModifiedById, @Status, @ChangedData, @DynamicProperties, @ContentListProperties )
 
     SELECT @VersionId = @@IDENTITY
     SELECT @VersionTimestamp = [Timestamp] FROM Versions WHERE VersionId = @VersionId
@@ -78,7 +78,8 @@ UPDATE Versions SET
     ModifiedById = @ModifiedById,
     Status = @Status,
     ChangedData = @ChangedData,
-    DynamicProperties = @DynamicProperties
+    DynamicProperties = @DynamicProperties,
+    ContentListProperties = @ContentListProperties
 WHERE VersionId = @VersionId
 
 SELECT [Timestamp] FROM Versions WHERE VersionId = @VersionId
@@ -181,9 +182,9 @@ IF @DestinationVersionId IS NULL
 BEGIN
     -- Insert version row
     INSERT INTO Versions
-        ( NodeId, MajorNumber, MinorNumber, CreationDate, CreatedById, ModificationDate, ModifiedById, Status, ChangedData, DynamicProperties)
+        ( NodeId, MajorNumber, MinorNumber, CreationDate, CreatedById, ModificationDate, ModifiedById, Status, ChangedData, DynamicProperties, ContentListProperties)
         VALUES
-        (@NodeId,@MajorNumber,@MinorNumber,@CreationDate,@CreatedById,@ModificationDate,@ModifiedById,@Status,@ChangedData,@DynamicProperties)
+        (@NodeId,@MajorNumber,@MinorNumber,@CreationDate,@CreatedById,@ModificationDate,@ModifiedById,@Status,@ChangedData,@DynamicProperties,@ContentListProperties)
     SELECT @NewVersionId = @@IDENTITY
 END
 ELSE
@@ -201,7 +202,8 @@ BEGIN
         ModifiedById = @ModifiedById,
         Status = @Status,
         ChangedData = @ChangedData,
-        DynamicProperties = @DynamicProperties
+        DynamicProperties = @DynamicProperties,
+        ContentListProperties = @ContentListProperties
     WHERE VersionId = @NewVersionId
 
     -- Delete previous property values
@@ -473,22 +475,29 @@ BEGIN TRY
         INSERT INTO @ContentListPropertyTypesTemp
             SELECT PropertyTypeId FROM PropertyTypes WHERE IsContentListProperty = 1
 
-        -- drop binary contentlist properties
+        -- Drop binary contentlist properties
         DELETE BinaryProperties
         WHERE
             VersionId IN (SELECT VersionId FROM @VersionsTemp)
             AND
             PropertyTypeId IN (SELECT PropertyTypeId FROM @ContentListPropertyTypesTemp)
         
-        -- drop LongTextProperty contentlist properties
+        -- Drop LongTextProperty contentlist properties
         DELETE LongTextProperties
         WHERE
             VersionId IN (SELECT VersionId FROM @VersionsTemp)
             AND
             PropertyTypeId IN (SELECT PropertyTypeId FROM @ContentListPropertyTypesTemp)
 
----- drop flat contentlist properties
---DELETE FlatProperties WHERE VersionId IN (SELECT VersionId FROM @VersionsTemp) AND Page >= 10000000
+        -- Drop Reference contentlist properties
+        DELETE ReferenceProperties
+        WHERE
+            VersionId IN (SELECT VersionId FROM @VersionsTemp)
+            AND
+            PropertyTypeId IN (SELECT PropertyTypeId FROM @ContentListPropertyTypesTemp)
+
+        ---- Reset contentlist properties
+        UPDATE Versions SET ContentListProperties = NULL WHERE VersionId IN (SELECT VersionId FROM @VersionsTemp)
 
         ---- The target is NOT a ContentList nor a ContentListFolder.
         ---- ContentListTypeId, ContentListId should be updated to null.
@@ -611,7 +620,7 @@ SELECT N.NodeId, N.NodeTypeId, N.ContentListTypeId, N.ContentListId, N.CreatingI
     V.VersionId, V.MajorNumber, V.MinorNumber, V.CreationDate, V.CreatedById, 
     V.ModificationDate, V.ModifiedById, V.[Status],
     V.Timestamp AS VersionTimestamp,
-    V.DynamicProperties
+    V.DynamicProperties, V.ContentListProperties
 FROM dbo.Nodes AS N 
     INNER JOIN dbo.Versions AS V ON N.NodeId = V.NodeId
 WHERE V.VersionId IN (SELECT Id FROM @VersionIdTable)
