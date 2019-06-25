@@ -207,6 +207,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                 settings.LastMajorVersionIdAfter = nodeHeadData.LastMajorVersionId;
                 settings.LastMinorVersionIdAfter = nodeHeadData.LastMinorVersionId;
                 nodeData.NodeTimestamp = nodeHeadData.Timestamp;
+
+                //UNDONE:DB@@@@@@@ Remove NodeDataParticipant feature.
+                var participant = new NodeDataParticipant { Data = nodeData, Settings = settings, IsNewNode = isNewNode };
+                DataBackingStore.RemoveFromCache(participant);
             }
             catch (Exception e)
             {
