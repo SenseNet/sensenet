@@ -10,10 +10,15 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 {
     public class DataProviderChecker
     {
-        public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual)
+        public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual, params string[] excludedProperties)
         {
             // prepare collections
             var expectedProps = (Dictionary<int, object>)(new PrivateObject(expected).GetField("dynamicData"));
+            foreach (var propName in excludedProperties)
+            {
+                var pt = PropertyType.GetByName(propName);
+                expectedProps.Add(pt.Id, expected.GetDynamicRawData(pt));
+            }
             var actualProps = (Dictionary<int, object>)(new PrivateObject(actual).GetField("dynamicData"));
 
             // Compare signatures
