@@ -211,9 +211,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 nodeData.NodeTimestamp = nodeHeadData.Timestamp;
 
                 // Cache manipulations
-                //UNDONE:DB@@@@@@@ Remove NodeDataParticipant feature.
-                var participant = new NodeDataParticipant { Data = nodeData, Settings = settings, IsNewNode = isNewNode };
-                DataBackingStore.RemoveFromCache(participant);
+                if (!isNewNode)
+                    RemoveFromCache(nodeData);
 
                 // here we re-create the node head to insert it into the cache and refresh the version info);
                 //if (lastMajorVersionId > 0 || lastMinorVersionId > 0) //UNDONE:DB ? When can both variables 0 be?
@@ -657,6 +656,27 @@ namespace SenseNet.ContentRepository.Storage.Data
                 cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
             DistributedApplication.Cache.Insert(cacheKey, nodeData, dependency);
+        }
+
+        internal static void RemoveFromCache(NodeData data)
+        {
+            // Remove items from Cache by the OriginalPath, before getting an update
+            // of a - occassionally differring - path from the database
+            if (data.PathChanged)
+            {
+                PathDependency.FireChanged(data.OriginalPath);
+            }
+
+            if (data.ContentListTypeId != 0 && data.ContentListId == 0)
+            {
+                // If list, invalidate full subtree
+                PathDependency.FireChanged(data.Path);
+            }
+            else
+            {
+                // If not a list, invalidate item
+                NodeIdDependency.FireChanged(data.Id);
+            }
         }
     }
 }
