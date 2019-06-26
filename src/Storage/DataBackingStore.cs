@@ -148,6 +148,9 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static bool NodeExists(string path)
         {
+            if (DataStore.Enabled)
+                return DataStore.NodeExistsAsync(path).Result;
+
             if (path == null)
                 throw new ArgumentNullException("path");
 
@@ -160,28 +163,16 @@ namespace SenseNet.ContentRepository.Storage
                 return true;
 
             // If it wasn't in the cache, check the database
-            return DataStore.Enabled ? DataStore.NodeExistsAsync(path).Result : DataProvider.NodeExists(path); //DB:ok
+            return DataProvider.NodeExists(path); //DB:ok
         }
 
         internal static bool CanExistInDatabase(int id)
         {
-            return id > 0;
+            return DataStore.CanExistInDatabase(id);
         }
         internal static bool CanExistInDatabase(string path)
         {
-            if (String.IsNullOrEmpty(path))
-                return false;
-
-            if (!path.StartsWith("/root", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            if (path.EndsWith("/$count", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            if (path.EndsWith("signalr/send", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            return true;
+            return DataStore.CanExistInDatabase(path);
         }
 
         // ====================================================================== Get Versions
@@ -195,6 +186,9 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static NodeToken GetNodeData(NodeHead head, int versionId)
         {
+            if (DataStore.Enabled)
+                return DataStore.LoadNodeAsync(head, versionId).Result;
+
             int listId = head.ContentListId;
             int listTypeId = head.ContentListTypeId;
 

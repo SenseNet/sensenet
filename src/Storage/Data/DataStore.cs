@@ -242,6 +242,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             return nodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("Folder"));
         }
 
+        public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken)).FirstOrDefault();
+        }
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
             var tokens = new List<NodeToken>();
@@ -317,9 +321,20 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, cancellationToken);
         }
 
-        public static Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.NodeExistsAsync(path, cancellationToken);
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (!CanExistInDatabase(path))
+                return false;
+
+            // Look at the cache first
+            var pathKey = DataBackingStore.CreateNodeHeadPathCacheKey(path);
+            if (DistributedApplication.Cache.Get(pathKey) is NodeHead)
+                return true;
+
+            return await DataProvider.NodeExistsAsync(path, cancellationToken);
         }
 
         /* =============================================================================================== NodeHead */
@@ -594,6 +609,27 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static Task<int> GetVersionCountAsync(string path = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return DataProvider.GetVersionCountAsync(path, cancellationToken);
+        }
+
+        internal static bool CanExistInDatabase(int id)
+        {
+            return id > 0;
+        }
+        internal static bool CanExistInDatabase(string path)
+        {
+            if (String.IsNullOrEmpty(path))
+                return false;
+
+            if (!path.StartsWith("/root", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (path.EndsWith("/$count", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (path.EndsWith("signalr/send", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
         }
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
