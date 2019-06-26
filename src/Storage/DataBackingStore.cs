@@ -51,6 +51,9 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static NodeHead GetNodeHead(int nodeId)
         {
+            if (DataStore.Enabled)
+                return DataStore.LoadNodeHeadAsync(nodeId).Result;
+
             if (!CanExistInDatabase(nodeId))
                 return null;
 
@@ -59,7 +62,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (item == null)
             {
-                item = DataStore.Enabled ? DataStore.LoadNodeHeadAsync(nodeId).Result : DataProvider.Current.LoadNodeHead(nodeId); //DB:ok
+                item = DataProvider.Current.LoadNodeHead(nodeId); //DB:ok
 
                 if (item != null)
                     CacheNodeHead(item, idKey, CreateNodeHeadPathCacheKey(item.Path));
@@ -69,6 +72,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         internal static NodeHead GetNodeHead(string path)
         {
+            if (DataStore.Enabled)
+                return DataStore.LoadNodeHeadAsync(path).Result;
+
             if (!CanExistInDatabase(path))
                 return null;
 
@@ -79,7 +85,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 Debug.WriteLine("#GetNodeHead from db: " + path);
 
-                item = DataStore.Enabled ? DataStore.LoadNodeHeadAsync(path).Result : DataProvider.Current.LoadNodeHead(path); //DB:ok
+                item = DataProvider.Current.LoadNodeHead(path); //DB:ok
 
                 if (item != null)
                     CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);
@@ -88,6 +94,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         internal static IEnumerable<NodeHead> GetNodeHeads(IEnumerable<int> idArray)
         {
+            if (DataStore.Enabled)
+                return DataStore.LoadNodeHeadsAsync(idArray).Result;
+
             var nodeHeads = new List<NodeHead>();
             var unloadHeads = new List<int>();
             foreach (var id in idArray)
@@ -102,7 +111,7 @@ namespace SenseNet.ContentRepository.Storage
 
             if (unloadHeads.Count > 0)
             {
-                var heads = DataStore.Enabled ? DataStore.LoadNodeHeadsAsync(unloadHeads).Result : DataProvider.Current.LoadNodeHeads(unloadHeads); //DB:ok
+                var heads = DataProvider.Current.LoadNodeHeads(unloadHeads); //DB:ok
 
                 foreach (var head in heads)
                 {

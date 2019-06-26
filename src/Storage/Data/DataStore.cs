@@ -339,21 +339,76 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeHead */
 
-        public static Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.LoadNodeHeadAsync(path, cancellationToken);
+            if (!CanExistInDatabase(path))
+                return null;
+
+            var pathKey = CreateNodeHeadPathCacheKey(path);
+            var item = (NodeHead)DistributedApplication.Cache.Get(pathKey);
+            if (item == null)
+            {
+                item = await DataProvider.LoadNodeHeadAsync(path, cancellationToken);
+                if (item != null)
+                    CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);
+            }
+
+            return item;
         }
-        public static Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.LoadNodeHeadAsync(nodeId, cancellationToken);
+            if (!CanExistInDatabase(nodeId))
+                return null;
+
+            var idKey = CreateNodeHeadIdCacheKey(nodeId);
+            var item = (NodeHead)DistributedApplication.Cache.Get(idKey);
+            if (item == null)
+            {
+                item = await DataProvider.LoadNodeHeadAsync(nodeId, cancellationToken);
+                if (item != null)
+                    CacheNodeHead(item, idKey, CreateNodeHeadPathCacheKey(item.Path));
+            }
+
+            return item;
         }
         public static Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
             return DataProvider.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
-        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.LoadNodeHeadsAsync(nodeIds, cancellationToken);
+            var nodeHeads = new List<NodeHead>();
+            var unloadHeads = new List<int>();
+            var nodeIdArray = nodeIds as int[] ?? nodeIds.ToArray();
+            foreach (var id in nodeIdArray)
+            {
+                string idKey = CreateNodeHeadIdCacheKey(id);
+                var item = (NodeHead)DistributedApplication.Cache.Get(idKey);
+                if (item == null)
+                    unloadHeads.Add(id);
+                else
+                    nodeHeads.Add(item);
+            }
+
+            if (unloadHeads.Count > 0)
+            {
+                var heads = await DataProvider.LoadNodeHeadsAsync(nodeIdArray, cancellationToken);
+
+                foreach (var head in heads)
+                {
+                    if (head != null)
+                        CacheNodeHead(head, CreateNodeHeadIdCacheKey(head.Id), CreateNodeHeadPathCacheKey(head.Path));
+                    nodeHeads.Add(head);
+                }
+
+                // sort the node heads aligned with the original list
+                nodeHeads = (from id in nodeIdArray
+                             join head in nodeHeads.Where(h => h != null)
+                                on id equals head.Id
+                             where head != null
+                             select head).ToList();
+            }
+            return nodeHeads;
         }
         public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
