@@ -378,21 +378,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             var nodeHeads = new List<NodeHead>();
-            var unloadHeads = new List<int>();
+            var headIdsToLoad = new List<int>();
             var nodeIdArray = nodeIds as int[] ?? nodeIds.ToArray();
             foreach (var id in nodeIdArray)
             {
                 string idKey = CreateNodeHeadIdCacheKey(id);
                 var item = (NodeHead)DistributedApplication.Cache.Get(idKey);
                 if (item == null)
-                    unloadHeads.Add(id);
+                    headIdsToLoad.Add(id);
                 else
                     nodeHeads.Add(item);
             }
 
-            if (unloadHeads.Count > 0)
+            if (headIdsToLoad.Count > 0)
             {
-                var heads = await DataProvider.LoadNodeHeadsAsync(nodeIdArray, cancellationToken);
+                var heads = await DataProvider.LoadNodeHeadsAsync(headIdsToLoad, cancellationToken);
 
                 foreach (var head in heads)
                 {
