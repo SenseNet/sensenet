@@ -592,6 +592,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        public abstract Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
+            CancellationToken cancellationToken = default(CancellationToken));
+
         /* =============================================================================================== Provider Tools */
 
         /// <summary>

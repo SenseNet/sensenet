@@ -1318,6 +1318,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             return STT.Task.CompletedTask;
         }
 
+        public override Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
         /* =============================================================================================== Provider Tools */
 
         public override DateTime RoundDateTime(DateTime d)

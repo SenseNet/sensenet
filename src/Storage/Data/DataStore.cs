@@ -629,6 +629,12 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.WriteAuditEventAsync(auditEvent, cancellationToken);
         }
 
+        public static async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await DataProvider.LoadLastAuditEventsAsync(count, cancellationToken);
+        }
+
         /* =============================================================================================== Tools */
 
         public static DateTime RoundDateTime(DateTime d)

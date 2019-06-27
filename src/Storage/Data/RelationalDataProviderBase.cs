@@ -1919,6 +1919,35 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string WriteAuditEventScript { get; }
 
+        public override async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(LoadLastAuditEventsScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@Top", DbType.Int32, count));
+                }, async reader =>
+                {
+                    var result = new List<AuditLogEntry>();
+                    while (await reader.ReadAsync(cancellationToken))
+                        result.Add(new AuditLogEntry
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("LogId")),
+                            EventId = reader.GetSafeInt32(reader.GetOrdinal("EventId")),
+                            Title = reader.GetSafeString(reader.GetOrdinal("Title")),
+                            ContentId = reader.GetSafeInt32(reader.GetOrdinal("ContentId")),
+                            ContentPath = reader.GetSafeString(reader.GetOrdinal("ContentPath")),
+                            UserName = reader.GetSafeString(reader.GetOrdinal("UserName")),
+                            LogDate = reader.GetDateTime(reader.GetOrdinal("LogDate")),
+                            Message = reader.GetSafeString(reader.GetOrdinal("Message")),
+                            FormattedMessage = reader.GetSafeString(reader.GetOrdinal("FormattedMessage")),
+                        });
+                    return result;
+                });
+            }
+        }
+        protected abstract string LoadLastAuditEventsScript { get; }
+
         /* =============================================================================================== Provider Tools */
 
         public override bool IsCacheableText(string text)

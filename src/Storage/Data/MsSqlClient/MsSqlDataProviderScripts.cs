@@ -1099,6 +1099,12 @@ SELECT @@IDENTITY
 ";
         #endregion
 
+        #region LoadLastAuditEventsScript
+        protected override string LoadLastAuditEventsScript => @"-- MsSqlDataProvider.LoadLastAuditEvents
+SELECT TOP(@Top) * FROM LogEntries ORDER BY LogId DESC
+";
+        #endregion
+
         /* ------------------------------------------------ Provider Tools */
 
         #region GetNameOfLastNodeWithNameBaseScript
