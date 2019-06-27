@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(nodeHeadData.LastMajorVersionId == versionData.VersionId);
                 Assert.IsTrue(nodeHeadData.LastMajorVersionId == nodeHeadData.LastMinorVersionId);
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loaded = Node.Load<File>(nodeHeadData.NodeId);
                 Assert.IsNotNull(loaded);
                 Assert.AreEqual("File1", loaded.Name);
@@ -121,7 +121,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 Assert.IsTrue(nodeHeadData.Timestamp > created.NodeTimestamp);
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loaded = Node.Load<File>(nodeHeadData.NodeId);
                 Assert.IsNotNull(loaded);
                 Assert.AreEqual("File1", loaded.Name);
@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 Assert.AreNotEqual(versionIdBefore, versionData.VersionId);
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loaded = Node.Load<File>(nodeHeadData.NodeId);
                 Assert.IsNotNull(loaded);
                 Assert.AreEqual("File1", loaded.Name);
@@ -224,7 +224,7 @@ namespace SenseNet.ContentRepository.Tests
                 // ASSERT
                 Assert.AreEqual(versionIdBefore, versionData.VersionId);
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loaded = Node.Load<File>(nodeHeadData.NodeId);
                 Assert.IsNotNull(loaded);
                 Assert.AreEqual("File1", loaded.Name);
@@ -290,7 +290,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT: the original state is restored after the UndoCheckOut operation
                 Assert.IsTrue(oldTimestamp < nodeHeadData.Timestamp);
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var reloaded = Node.Load<File>(created.Id);
                 Assert.AreEqual(expectedVersion, reloaded.Version);
                 Assert.AreEqual(expectedVersionId, reloaded.VersionId);
@@ -421,7 +421,7 @@ namespace SenseNet.ContentRepository.Tests
                 root.Save();
 
                 // ASSERT
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 f1 = Node.Load<SystemFolder>(f1.Id);
                 f2 = Node.Load<SystemFolder>(f2.Id);
                 f3 = Node.Load<SystemFolder>(f3.Id);
@@ -441,10 +441,10 @@ namespace SenseNet.ContentRepository.Tests
             {
                 DataStore.Enabled = true;
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loadedA = Repository.Root.Children.Select(x=>x.Id.ToString()).ToArray();
                 DataStore.Enabled = true;
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var loadedB = Repository.Root.Children.Select(x => x.Id.ToString()).ToArray();
 
                 Assert.AreEqual(string.Join(",", loadedA), string.Join(",", loadedB));
@@ -503,7 +503,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT-1: NodeData is in cache after creation
                 var cacheKey1 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
-                var item1 = DistributedApplication.Cache[cacheKey1];
+                var item1 = Cache.Get(cacheKey1);
                 Assert.IsNotNull(item1);
                 var cachedNodeData1 = item1 as NodeData;
                 Assert.IsNotNull(cachedNodeData1);
@@ -522,7 +522,7 @@ namespace SenseNet.ContentRepository.Tests
                 var cacheKey2 = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
                 if (cacheKey1 != cacheKey2)
                     Assert.Inconclusive("The test is invalid because the cache keys are not equal.");
-                var item2 = DistributedApplication.Cache[cacheKey2];
+                var item2 = Cache.Get(cacheKey2);
                 Assert.IsNotNull(item2);
                 var cachedNodeData2 = item2 as NodeData;
                 Assert.IsNotNull(cachedNodeData2);
@@ -563,7 +563,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(0, longTextProps.Count);
 
                 // ACTION-3: Load the property value
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 root = Node.Load<SystemFolder>(root.Id);
                 var lazyLoadedDescription = root.Description; // Loads the property value
 
@@ -588,7 +588,7 @@ namespace SenseNet.ContentRepository.Tests
                 var cacheKey = DataStore.GenerateNodeDataVersionIdCacheKey(root.VersionId);
 
                 // ASSERT-1: text property is in cache
-                var cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                var cachedNodeData = (NodeData)Cache.Get(cacheKey);
                 Assert.IsTrue(cachedNodeData.IsShared);
                 var longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
                 Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
@@ -600,7 +600,7 @@ namespace SenseNet.ContentRepository.Tests
                 root.Save();
 
                 // ASSERT-2: text property is in cache
-                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                cachedNodeData = (NodeData)Cache.Get(cacheKey);
                 Assert.IsTrue(cachedNodeData.IsShared);
                 longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
                 Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
@@ -612,7 +612,7 @@ namespace SenseNet.ContentRepository.Tests
                 root.Save();
 
                 // ASSERT-3: text property is not in the cache
-                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                cachedNodeData = (NodeData)Cache.Get(cacheKey);
                 Assert.IsTrue(cachedNodeData.IsShared);
                 longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
                 Assert.IsFalse(longTextProperties.ContainsKey(descriptionPropertyType));
@@ -622,7 +622,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT-4: Property is loaded and is in cache
                 Assert.AreEqual(longText, loadedValue);
-                cachedNodeData = (NodeData)DistributedApplication.Cache[cacheKey];
+                cachedNodeData = (NodeData)Cache.Get(cacheKey);
                 Assert.IsTrue(cachedNodeData.IsShared);
                 longTextProperties = cachedNodeData.GetDynamicData(false).LongTextProperties;
                 Assert.IsTrue(longTextProperties.ContainsKey(descriptionPropertyType));
@@ -1727,7 +1727,7 @@ namespace SenseNet.ContentRepository.Tests
                         expectedVersionId, originalPath);
 
                 // ASSERT
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(node.Id);
                 Assert.AreEqual("Folder1-RENAMED", reloaded.Name);
                 reloaded = Node.Load<SystemFolder>(childNode.Id);
@@ -2351,7 +2351,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT (all operation need to be rolled back)
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 var nodeTimeStampAfter = reloaded.NodeTimestamp;
                 var versionTimeStampAfter = reloaded.VersionTimestamp;
@@ -2403,7 +2403,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT (all operation need to be rolled back)
                 var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
                 Assert.AreEqual(version2, reloaded.Version.ToString());
@@ -2452,7 +2452,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ASSERT (all operation need to be rolled back)
                 var countsAfter = await GetDbObjectCountsAsync(null, DP, TDP);
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 var reloaded = Node.Load<SystemFolder>(newNode.Id);
                 Assert.AreEqual(countsBefore.AllCounts, countsAfter.AllCounts);
                 Assert.AreEqual(version2, reloaded.Version.ToString());
@@ -2492,7 +2492,7 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 // ASSERT
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 target = Node.Load<SystemFolder>(target.Id);
                 source = Node.Load<SystemFolder>(source.Id);
                 f1 = Node.Load<SystemFolder>(f1.Id);
