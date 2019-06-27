@@ -502,11 +502,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             var dbProvider = new InMemoryDataProvider();
             var dbProvider2 = new InMemoryDataProvider2();
-Providers.Instance.DataProvider2 = dbProvider2; //UNDONE:DB: Remove these lines after original InMemoryDataProvider deletion.
-var backup = DataStore.Enabled;
-DataStore.Enabled = true;
-DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
-DataStore.Enabled = backup;
+            Providers.Instance.DataProvider2 = dbProvider2; //UNDONE:DB: Remove these lines after original InMemoryDataProvider deletion.
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();

@@ -64,7 +64,6 @@ namespace SenseNet.Tests.SelfTest
         //[TestMethod]
         public void InitialData_Create()
         {
-            DataStore.Enabled = false;
             Test(() =>
             {
                 using (var ptw = new StreamWriter(@"D:\propertyTypes.txt", false))
@@ -98,7 +97,6 @@ namespace SenseNet.Tests.SelfTest
         //[TestMethod]
         public void InitialData_LoadIndex()
         {
-            DataStore.Enabled = false;
             Test(() =>
             {
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
@@ -124,8 +122,6 @@ namespace SenseNet.Tests.SelfTest
         }
         private void InitialDataTest(Action callback)
         {
-            DataStore.Enabled = EnableDataStore;
-
             Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));

@@ -24,18 +24,8 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public static class DataStore
     {
-        // ReSharper disable once InconsistentNaming
-        //UNDONE:DB -------Remove DataStore.__enabled
-        private static bool __enabled;
-        public static bool Enabled
-        {
-            get => __enabled;
-            set
-            {
-                __enabled = value;
-                BlobStorageComponents.DataStoreEnabled = value;
-            }
-        }
+        //UNDONE:DB -------Remove DataStore.Enabled
+        public static bool Enabled => true;
 
         public const int TextAlternationSizeLimit = 4000;
 

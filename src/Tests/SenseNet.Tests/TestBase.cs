@@ -27,8 +27,6 @@ namespace SenseNet.Tests
     [TestClass]
     public class TestBase
     {
-        protected static bool EnableDataStore = true;
-
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -40,8 +38,6 @@ namespace SenseNet.Tests
 
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("START test: {0}", TestContext.TestName);
-
-            DataStore.Enabled = EnableDataStore;
         }
 
         [TestCleanup]
@@ -136,10 +132,7 @@ namespace SenseNet.Tests
             //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
             var dp2 = new InMemoryDataProvider2();
             Providers.Instance.DataProvider2 = dp2;
-var backup = DataStore.Enabled;
-DataStore.Enabled = true;
-DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
-DataStore.Enabled = backup;
+            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
 
             //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2

@@ -654,8 +654,6 @@ namespace SenseNet.ContentRepository.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            DataStore.Enabled = EnableDataStore;
-
             Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));

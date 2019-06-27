@@ -13,12 +13,6 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// For test purposes only
         /// </summary>
-        //UNDONE:DB -------Remove BlobStorageComponents.DataStoreEnabled
-        public static bool DataStoreEnabled { get; set; }
-
-        /// <summary>
-        /// For test purposes only
-        /// </summary>
         //UNDONE:DB -------Remove BlobStorageComponents.SetMetadataProvider
         public static void SetMetadataProvider2(IBlobStorageMetaDataProvider dataProvider2)
         {
@@ -34,13 +28,8 @@ namespace SenseNet.ContentRepository.Storage
 
         public static IBlobStorageMetaDataProvider DataProvider
         {
-            get
-            {
-                if (DataStoreEnabled)
-                    return _dataProvider2;
-                return _dataProvider;
-            }
-            set => _dataProvider = value;
+            get => _dataProvider2;
+            set => _dataProvider2 = value;
         }
 
         /// <summary>

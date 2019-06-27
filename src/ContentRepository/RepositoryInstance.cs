@@ -317,17 +317,6 @@ namespace SenseNet.ContentRepository
         private static void InitializeDataProviderExtensions()
         {
             // set default value of well-known data provider extensions
-
-var backup = DataStore.Enabled;
-DataStore.Enabled = false;
-            if (DataProvider.GetExtension<IPackagingDataProviderExtension>() == null) //DB:ok
-                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider()); //DB:ok
-            if (DataProvider.GetExtension<IAccessTokenDataProviderExtension>() == null) //DB:ok
-                DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider()); //DB:ok
-            if (DataProvider.GetExtension<ISharedLockDataProviderExtension>() == null) //DB:ok
-                DataProvider.Instance.SetExtension(typeof(ISharedLockDataProviderExtension), new SqlSharedLockDataProvider()); //DB:ok
-DataStore.Enabled = backup;
-
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
                 DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider()); //UNDONE:DB:@@ Set valid instance for the default platform.
             if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())

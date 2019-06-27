@@ -47,8 +47,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = CreateFolder(Repository.Root, "TestRoot");
 
                 // Create a file but do not save.
@@ -95,8 +93,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = CreateFolder(Repository.Root, "TestRoot");
 
                 var created = new File(root) { Name = "File1", Index = 42 };
@@ -140,8 +136,6 @@ namespace SenseNet.ContentRepository.Tests
 
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = CreateFolder(Repository.Root, "Folder1");
                 root.Save();
                 var created = new File(root) { Name = "File1", VersioningMode = VersioningType.MajorAndMinor};
@@ -189,8 +183,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = CreateFolder(Repository.Root, "Folder1");
                 root.Save();
                 var created = new File(root) { Name = "File1" };
@@ -243,8 +235,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // Create a file under the test root
                 var root = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 root.Save();
@@ -329,8 +319,6 @@ namespace SenseNet.ContentRepository.Tests
                 Node node = null;
                 try
                 {
-                    DataStore.Enabled = true;
-
                     ContentTypeInstaller.InstallContentType(ctd);
                     var unused = ContentType.GetByName(contentTypeName); // preload schema
 
@@ -406,8 +394,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
@@ -439,11 +425,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 Cache.Reset();
                 var loadedA = Repository.Root.Children.Select(x=>x.Id.ToString()).ToArray();
-                DataStore.Enabled = true;
                 Cache.Reset();
                 var loadedB = Repository.Root.Children.Select(x => x.Id.ToString()).ToArray();
 
@@ -456,8 +439,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var source = new SystemFolder(root) { Name = "Source" }; source.Save();
@@ -492,8 +473,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
 
                 // ACTION-1: Create
@@ -536,8 +515,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var nearlyLongText = new string('a', DataStore.TextAlternationSizeLimit - 10);
                 var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
                 var descriptionPropertyType = ActiveSchema.PropertyTypes["Description"];
@@ -576,7 +553,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
                 var nearlyLongText1 = new string('a', DataStore.TextAlternationSizeLimit - 10);
                 var nearlyLongText2 = new string('b', DataStore.TextAlternationSizeLimit - 10);
                 var longText = new string('c', DataStore.TextAlternationSizeLimit + 10);
@@ -634,8 +610,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var site1 = new Site(root) { Name = "Site1" }; site1.Save();
@@ -665,7 +639,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 ActiveSchema.Reset();
 
                 // Precheck-1
@@ -694,8 +667,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var countsBefore = await GetDbObjectCountsAsync(null, DP, TDP);
 
                 // Create a small subtree
@@ -730,8 +701,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 var folder = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 folder.Save();
                 folder = Node.Load<SystemFolder>(folder.Id);
@@ -751,8 +720,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 var folderB = new SystemFolder(Repository.Root)
                 {
                     Name = "Folder1",
@@ -786,8 +753,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // ACTION
                 var result = await DP.GetVersionNumbersAsync("/Root/Deleted");
 
@@ -801,8 +766,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = CreateFolder(Repository.Root, "TestRoot");
                 var file = CreateFile(root, "File-1", "File content.");
 
@@ -841,8 +804,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var f1 = new SystemFolder(root) { Name = "F1" }; f1.Save();
@@ -868,8 +829,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var f1 = new SystemFolder(root) { Name = "folder(42)" }; f1.Save();
@@ -902,7 +861,6 @@ namespace SenseNet.ContentRepository.Tests
             await Test( async () =>
             {
                 // ARRANGE
-                DataStore.Enabled = true;
                 CreateStructure();
 
                 // ACTION
@@ -936,8 +894,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var expectedFolderCount = CreateSafeContentQuery("+Type:Folder .COUNTONLY").Execute().Count;
                 var expectedSystemFolderCount = CreateSafeContentQuery("+Type:SystemFolder .COUNTONLY").Execute().Count;
                 var expectedAggregated = expectedFolderCount + expectedSystemFolderCount;
@@ -976,8 +932,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
 
                 // ACTION
@@ -993,8 +947,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var r = new SystemFolder(Repository.Root){Name="R"}; r.Save();
                 var ra = new Folder(r) { Name = "A" }; ra.Save();
                 var raf = new Folder(ra) { Name = "F" }; raf.Save();
@@ -1092,8 +1044,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 try
                 {
-                    DataStore.Enabled = true;
-
                     ContentTypeInstaller.InstallContentType(ctd1, ctd2);
                     var unused = ContentType.GetByName(contentType1); // preload schema
 
@@ -1216,8 +1166,6 @@ namespace SenseNet.ContentRepository.Tests
             {
                 try
                 {
-                    DataStore.Enabled = true;
-
                     ContentTypeInstaller.InstallContentType(ctd1, ctd2);
                     var unused = ContentType.GetByName(contentType1); // preload schema
 
@@ -1292,8 +1240,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var path = "/Root/Folder-1";
                 var childPath = "/root/folder-1/folder-2";
                 var anotherPath = "/Root/Folder-2";
@@ -1373,7 +1319,6 @@ namespace SenseNet.ContentRepository.Tests
                 var systemFolderType = ActiveSchema.NodeTypes["SystemFolder"];
 
                 // ARRANGE
-                DataStore.Enabled = true;
                 CreateStructure();
                 var testRoot = Node.Load<SystemFolder>(testRootPath);
                 var testRootChildren = testRoot.Children.ToArray();
@@ -1398,7 +1343,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test( async () =>
             {
-                DataStore.Enabled = true;
                 var node = CreateFolder(Repository.Root, "Folder-1");
                 var versionIds = new[] {node.VersionId};
                 var loadResult = await DP.LoadIndexDocumentsAsync(versionIds);
@@ -1599,8 +1543,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 await DP.DeleteAllIndexingActivitiesAsync();
                 var node = CreateFolder(Repository.Root, "Folder-1");
 
@@ -1618,8 +1560,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var now = DateTime.UtcNow;
                 var firstId = await CreateActivityAsync(42, "/R/42", "Done");                           // 1
                               await CreateActivityAsync(43, "/R/43", "Done");                           // 2
@@ -1699,7 +1639,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var node = new SystemFolder(Repository.Root) {Name = "Folder1", Index = 42};
                 node.Save();
                 var childNode = CreateFolder(node, "Folder-2");
@@ -1740,8 +1679,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var expected = new[] { Repository.Root.VersionId, User.Administrator.VersionId };
                 var versionIds = new[] { Repository.Root.VersionId, 999999, User.Administrator.VersionId };
 
@@ -1759,8 +1696,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // ACTION
                 var result = await DP.LoadNodeHeadByVersionIdAsync(99999);
 
@@ -1774,8 +1709,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // ACTIONS
                 var allNodeCountBefore = await DP.GetNodeCountAsync(null);
                 var allVersionCountBefore = await DP.GetVersionCountAsync(null);
@@ -1810,7 +1743,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 newNode.Save();
 
@@ -1839,8 +1771,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 try
                 {
                     var node = Node.LoadNode(Identifiers.PortalRootId);
@@ -1867,7 +1797,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
                 newNode.Save();
@@ -1898,7 +1827,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
                 newNode.Save();
@@ -1930,7 +1858,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
                 newNode.Save();
 
@@ -1960,7 +1887,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
                 newNode.Save();
 
@@ -1990,7 +1916,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1", Index = 42 };
                 newNode.Save();
 
@@ -2021,7 +1946,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 newNode.Save();
 
@@ -2048,7 +1972,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode = new SystemFolder(Repository.Root) { Name = "Folder1" };
                 newNode.Save();
 
@@ -2076,8 +1999,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
                 root.Save();
@@ -2104,8 +2025,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var source = new SystemFolder(root) { Name = "Source" }; source.Save();
                 var target = new SystemFolder(root) { Name = "Target" }; target.Save();
@@ -2131,8 +2050,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var source = new SystemFolder(root) { Name = "Source" }; source.Save();
                 var target = new SystemFolder(root) { Name = "Target" }; target.Save();
@@ -2157,8 +2074,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var source = new SystemFolder(root) { Name = "Source" }; source.Save();
                 var target = new SystemFolder(root) { Name = "Target" }; target.Save();
@@ -2185,8 +2100,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 try
                 {
                     await DP.QueryNodesByReferenceAndTypeAsync(null, 1, new[] { 1 });
@@ -2290,7 +2203,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
 
                 // ACTION
@@ -2322,7 +2234,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2366,8 +2277,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2415,8 +2324,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var newNode =
                     new SystemFolder(Repository.Root) { Name = "Folder1", Description = "Description-1", Index = 42 };
                 newNode.Save();
@@ -2464,8 +2371,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
                 var source = new SystemFolder(root) { Name = "Source" }; source.Save();
@@ -2513,7 +2418,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
                 var root = CreateFolder(Repository.Root, "F");
                 var f1 = CreateFolder(root, "F1");
                 var f11 = CreateFolder(f1, "F11");
@@ -2559,8 +2463,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot", Description = "Test root"};
                 root.Save();
@@ -2610,8 +2512,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             await Test(async () =>
             {
-                DataStore.Enabled = true;
-
                 var ed = new SchemaEditor();
                 ed.Load();
                 var timestampBefore = ed.SchemaTimestamp;
