@@ -2894,23 +2894,23 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private void CacheNodeAfterSave()
+        private void CacheNodeAfterSave() //UNDONE:DB: Cache: Move to DataStore
         {
             // don't insert into cache if node is a content type
             if (this.IsContentType)
                 return;
 
-            switch (Cache.CacheContentAfterSaveMode)
+            switch (CacheConfiguration.CacheContentAfterSaveMode)
             {
-                case Cache.CacheContentAfterSaveOption.None:
+                case CacheConfiguration.CacheContentAfterSaveOption.None:
                     // do nothing
                     break;
-                case Cache.CacheContentAfterSaveOption.Containers:
+                case CacheConfiguration.CacheContentAfterSaveOption.Containers:
                     // cache IFolders only
                     if (this is IFolder)
                         DataBackingStore.CacheNodeData(this._data);
                     break;
-                case Cache.CacheContentAfterSaveOption.All:
+                case CacheConfiguration.CacheContentAfterSaveOption.All:
                     // cache every node
                     DataBackingStore.CacheNodeData(this._data);
                     break;

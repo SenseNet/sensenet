@@ -279,7 +279,7 @@ namespace SenseNet.Portal.ApplicationModel
         {
             get
             {
-                var cacheFolder = Configuration.Cache.ResizedImagesCacheFolder;
+                var cacheFolder = Configuration.CacheConfiguration.ResizedImagesCacheFolder;
                 if (string.IsNullOrEmpty(cacheFolder))
                     throw new Exception("Configuration for Image Resize Application could not be found.");
 

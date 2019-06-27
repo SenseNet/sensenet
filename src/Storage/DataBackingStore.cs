@@ -684,8 +684,8 @@ namespace SenseNet.ContentRepository.Storage
 
         private static bool MustCache(NodeType nodeType)
         {
-            if (Cache.CacheContentAfterSaveMode != Cache.CacheContentAfterSaveOption.Containers)
-                return Cache.CacheContentAfterSaveMode == Cache.CacheContentAfterSaveOption.All;
+            if (CacheConfiguration.CacheContentAfterSaveMode != CacheConfiguration.CacheContentAfterSaveOption.Containers)
+                return CacheConfiguration.CacheContentAfterSaveMode == CacheConfiguration.CacheContentAfterSaveOption.All;
             
             var type = TypeResolver.GetType(nodeType.ClassName, false);
             return type != null && typeof(IFolder).IsAssignableFrom(type);

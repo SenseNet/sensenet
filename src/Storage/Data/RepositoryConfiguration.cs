@@ -124,12 +124,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: Cache MOVED
 
-        public static Cache.CacheContentAfterSaveOption CacheContentAfterSaveMode => Cache.CacheContentAfterSaveMode;
+        public static CacheConfiguration.CacheContentAfterSaveOption CacheContentAfterSaveMode => CacheConfiguration.CacheContentAfterSaveMode;
 
-        public static int NodeIdDependencyEventPartitions => Cache.NodeIdDependencyEventPartitions;
-        public static int NodeTypeDependencyEventPartitions => Cache.NodeTypeDependencyEventPartitions;
-        public static int PathDependencyEventPartitions => Cache.PathDependencyEventPartitions;
-        public static int PortletDependencyEventPartitions => Cache.PortletDependencyEventPartitions;
+        public static int NodeIdDependencyEventPartitions => CacheConfiguration.NodeIdDependencyEventPartitions;
+        public static int NodeTypeDependencyEventPartitions => CacheConfiguration.NodeTypeDependencyEventPartitions;
+        public static int PathDependencyEventPartitions => CacheConfiguration.PathDependencyEventPartitions;
+        public static int PortletDependencyEventPartitions => CacheConfiguration.PortletDependencyEventPartitions;
 
         #endregion
 

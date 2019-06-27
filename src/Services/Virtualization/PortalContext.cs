@@ -1535,7 +1535,7 @@ namespace SenseNet.Portal.Virtualization
             get
             {
                 if (!_loggedInUserCacheEnabled.HasValue)
-                    _loggedInUserCacheEnabled = !IsInAdminGroup(User.Current, Cache.AdminGroupPathsForLoggedInUserCache);
+                    _loggedInUserCacheEnabled = !IsInAdminGroup(User.Current, CacheConfiguration.AdminGroupPathsForLoggedInUserCache);
                 return _loggedInUserCacheEnabled.Value;
             }
         }

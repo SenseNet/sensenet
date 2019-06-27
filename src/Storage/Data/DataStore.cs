@@ -237,8 +237,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static bool MustCache(int nodeTypeId)
         {
             var nodeType = ActiveSchema.NodeTypes.GetItemById(nodeTypeId);
-            if (Cache.CacheContentAfterSaveMode != Cache.CacheContentAfterSaveOption.Containers)
-                return Cache.CacheContentAfterSaveMode == Cache.CacheContentAfterSaveOption.All;
+            if (CacheConfiguration.CacheContentAfterSaveMode != CacheConfiguration.CacheContentAfterSaveOption.Containers)
+                return CacheConfiguration.CacheContentAfterSaveMode == CacheConfiguration.CacheContentAfterSaveOption.All;
             return nodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("Folder"));
         }
 
