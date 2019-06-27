@@ -27,12 +27,12 @@ namespace SenseNet.ContentRepository.Storage
         {
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
 
-            var lockIds = paths.Select(p => DataStore.Enabled ? DataStore.AcquireTreeLockAsync(p).Result : DataProvider.Current.AcquireTreeLock(p)).ToArray(); //DB:ok
-            for (int i = 0; i < lockIds.Length; i++)
+            var lockIds = paths.Select(p =>  DataStore.AcquireTreeLockAsync(p).Result).ToArray();
+            for (var i = 0; i < lockIds.Length; i++)
             {
                 if (lockIds[i] == 0)
                 {
-                    if (DataStore.Enabled) DataStore.ReleaseTreeLockAsync(lockIds).Wait(); else DataProvider.Current.ReleaseTreeLock(lockIds); //DB:ok
+                    DataStore.ReleaseTreeLockAsync(lockIds).Wait();
                     var msg = "Cannot acquire a tree lock for " + paths[i];
                     SnTrace.ContentOperation.Write("TreeLock: " + msg);
                     throw new LockedTreeException(msg);
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage
 
             foreach (var path in paths)
             {
-                if (DataStore.Enabled ? DataStore.IsTreeLockedAsync(path).Result : DataProvider.Current.IsTreeLocked(path)) //DB:ok
+                if (DataStore.IsTreeLockedAsync(path).Result)
                 {
                     var msg = "Cannot perform the operation because another process is making changes on this path: " + path;
                     SnTrace.ContentOperation.Write("TreeLock: Checking {0}", String.Join(", ", paths));
@@ -65,9 +65,8 @@ namespace SenseNet.ContentRepository.Storage
 
         public void Dispose()
         {
-            if(DataStore.Enabled) DataStore.ReleaseTreeLockAsync(_lockIds).Wait(); else DataProvider.Current.ReleaseTreeLock(_lockIds); //DB:ok
-
-            if (this._logOp != null)
+            DataStore.ReleaseTreeLockAsync(_lockIds).Wait();
+            if (_logOp != null)
             {
                 _logOp.Successful = true;
                 _logOp.Dispose();
@@ -76,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static Dictionary<int, string> GetAllLocks()
         {
-            return DataStore.Enabled ? DataStore.LoadAllTreeLocksAsync().Result : DataProvider.Current.LoadAllTreeLocks(); //DB:ok
+            return DataStore.LoadAllTreeLocksAsync().Result;
         }
     }
 }

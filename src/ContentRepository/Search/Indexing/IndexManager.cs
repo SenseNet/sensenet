@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static void RegisterActivity(IndexingActivityBase activity)
         {
-            if (DataStore.Enabled) DataStore.RegisterIndexingActivityAsync(activity).Wait(); else DataProvider.Current.RegisterIndexingActivity(activity); //DB:ok
+            DataStore.RegisterIndexingActivityAsync(activity).Wait();
         }
 
         /// <summary>
@@ -148,12 +148,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataStore.Enabled ? DataStore.GetLastIndexingActivityIdAsync().Result : DataProvider.Current.GetLastIndexingActivityId(); //DB:ok
+            return DataStore.GetLastIndexingActivityIdAsync().Result;
         }
 
         internal static void DeleteAllIndexingActivities()
         {
-            if (DataStore.Enabled) DataStore.DeleteAllIndexingActivitiesAsync().Wait(); else DataProvider.Current.DeleteAllIndexingActivities(); //DB:ok
+            DataStore.DeleteAllIndexingActivitiesAsync().Wait();
         }
 
         /// <summary>

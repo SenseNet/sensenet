@@ -41,36 +41,21 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT
             Assert.AreEqual(2, actual);
         }
+
         [TestMethod]
         public void DataProviderExtension_CallingNotInterfaceMethod()
         {
             var builder = CreateRepositoryBuilderForTest();
-            if (DataStore.Enabled)
-            {
-                builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider2());
+            builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider2());
 
-                // ACTION
-                // Call a not interface method
-                var actual =
-                    ((InMemoryTestingDataProvider2) DataStore
-                        .GetDataProviderExtension<ITestingDataProviderExtension>()) 
-                    .TestMethodThatIsNotInterfaceMember("asdf");
+            // ACTION: Call a not interface method
+            var actual =
+                ((InMemoryTestingDataProvider2) DataStore
+                    .GetDataProviderExtension<ITestingDataProviderExtension>())
+                .TestMethodThatIsNotInterfaceMember("asdf");
 
-                // ASSERT
-                Assert.AreEqual("asdfasdf", actual);
-            }
-            else
-            {
-                builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider());
-
-                // ACTION
-                // Call a not interface method
-                var actual = ((InMemoryTestingDataProvider)DataProvider.GetExtension<ITestingDataProviderExtension>()) //DB:ok
-                    .TestMethodThatIsNotInterfaceMember("asdf");
-
-                // ASSERT
-                Assert.AreEqual("asdfasdf", actual);
-            }
+            // ASSERT
+            Assert.AreEqual("asdfasdf", actual);
         }
 
         [TestMethod]
