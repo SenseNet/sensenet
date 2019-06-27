@@ -21,26 +21,27 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the DataProvider dependent earliest DateTime value
         /// </summary>
-        public static DateTime DateTimeMinValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMinValue : Data.DataProvider.Current.DateTimeMinValue; //DB:ok
+        public static DateTime DateTimeMinValue => Data.DataStore.DateTimeMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent last DateTime value
         /// </summary>
-        public static DateTime DateTimeMaxValue => Data.DataStore.Enabled ? Data.DataStore.DateTimeMaxValue : Data.DataProvider.Current.DateTimeMaxValue; //DB:ok
+        public static DateTime DateTimeMaxValue => Data.DataStore.DateTimeMaxValue;
 
         /// <summary>
         /// Gets the maximum length of the short text datatype
         /// </summary>
         public static int ShortTextMaxLength { get { return 400; } }
+
         /// <summary>
         /// Gets the DataProvider dependent smallest decimal value
         /// </summary>
-        public static decimal DecimalMinValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMinValue : Data.DataProvider.Current.DecimalMinValue; //DB:ok
+        public static decimal DecimalMinValue => Data.DataStore.DecimalMinValue;
 
         /// <summary>
         /// Gets the DataProvider dependent biggest decimal value
         /// </summary>
-        public static decimal DecimalMaxValue => Data.DataStore.Enabled ? Data.DataStore.DecimalMaxValue : Data.DataProvider.Current.DecimalMaxValue; //DB:ok
+        public static decimal DecimalMaxValue => Data.DataStore.DecimalMaxValue;
 
 
         /// <summary>

@@ -45,9 +45,7 @@ namespace SenseNet.Tests.SelfTest
             Test(() =>
             {
                 var lastNodeId =
-                    DataStore.Enabled
-                        ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync().Result
-                        : DataProvider.GetExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync().Result; //DB:ok
+                    DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().GetLastNodeIdAsync().Result;
 
                 var root = Node.LoadNode(Identifiers.RootPath);
                 node = new SystemFolder(root)

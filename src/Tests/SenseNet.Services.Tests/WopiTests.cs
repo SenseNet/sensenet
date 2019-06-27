@@ -1578,9 +1578,7 @@ namespace SenseNet.Services.Tests
 
         private ISharedLockDataProviderExtension GetDataProvider()
         {
-            return DataStore.Enabled
-                ? DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>()
-                : DataProvider.GetExtension<ISharedLockDataProviderExtension>(); //DB:ok
+            return DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>();
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {

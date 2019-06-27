@@ -37,10 +37,7 @@ namespace SenseNet.Packaging.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
-            if (DataStore.Enabled)
-                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
-            else
-                builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
+            builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
 
             RepositoryVersionInfo.Reset();
         }

@@ -43,24 +43,11 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document and  last indexing activity
-                IndexDocumentData indexDoc;
-                IIndexingActivity lastActivity;
-                if (DataStore.Enabled)
-                {
-                    indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result;
-                    var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
-                    lastActivity =
-                        DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                            .Result.FirstOrDefault();
-                }
-                else
-                {
-                    indexDoc = DataProvider.Instance.LoadIndexDocumentByVersionId(node.VersionId); //DB:ok
-                    var activityId = DataProvider.Instance.GetLastIndexingActivityId();
-                    lastActivity =
-                        DataProvider.Instance.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                            .FirstOrDefault();
-                }
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result;
+                var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
+                var lastActivity =
+                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
+                        .Result.FirstOrDefault();
 
                 var index = GetTestIndex();
 
@@ -122,34 +109,12 @@ namespace SenseNet.Tests.SelfTest
                 // reload the updated.
                 node = Node.Load<SystemFolder>(node.Id);
 
-                //// load the pre-converted index document
-                //var db = DataProvider.Instance; //DB:??test??
-                //var indexDoc = db.LoadIndexDocumentByVersionId(node.VersionId);
-
-                //// load last indexing activity
-                //var activityId = db.GetLastIndexingActivityId();
-                //var lastActivity =
-                //    db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                //        .FirstOrDefault();
                 // load the pre-converted index document and  last indexing activity
-                IndexDocumentData indexDoc;
-                IIndexingActivity lastActivity;
-                if (DataStore.Enabled)
-                {
-                    indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result;
-                    var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
-                    lastActivity =
-                        DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                            .Result.FirstOrDefault();
-                }
-                else
-                {
-                    indexDoc = DataProvider.Instance.LoadIndexDocumentByVersionId(node.VersionId); //DB:ok
-                    var activityId = DataProvider.Instance.GetLastIndexingActivityId();
-                    lastActivity =
-                        DataProvider.Instance.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                            .FirstOrDefault();
-                }
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result;
+                var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
+                var lastActivity =
+                    DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
+                        .Result.FirstOrDefault();
 
                 var index = GetTestIndex();
 
@@ -226,20 +191,9 @@ namespace SenseNet.Tests.SelfTest
                 node1.ForceDelete();
 
                 // load last indexing activity
-                IIndexingActivity lastActivity;
-                if (DataStore.Enabled)
-                {
-                    var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
-                    lastActivity = DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                        .Result.FirstOrDefault();
-                }
-                else
-                {
-                    var db = DataProvider.Instance; //DB:ok
-                    var activityId = db.GetLastIndexingActivityId();
-                    lastActivity = db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                            .FirstOrDefault();
-                }
+                var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
+                var lastActivity = DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
+                    .Result.FirstOrDefault();
 
                 // ASSERT
                 var index = GetTestIndex();
@@ -443,9 +397,7 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var indexDoc = DataStore.Enabled
-                    ? DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result
-                    : DataProvider.Instance.LoadIndexDocumentByVersionId(node.VersionId);
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId).Result;
 
                 // check the index document head consistency
                 Assert.IsNotNull(indexDoc);
@@ -489,22 +441,10 @@ namespace SenseNet.Tests.SelfTest
                     SearchManager.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
-                int nodeCount, versionCount;
-                if (DataStore.Enabled)
-                {
-                    var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
-                    activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance).Result;
-                    nodeCount = DataStore.GetVersionCountAsync().Result;
-                    versionCount = DataStore.GetVersionCountAsync().Result;
-                }
-                else
-                {
-                    var db = DataProvider.Instance; //DB:ok
-                    var activityId = db.GetLastIndexingActivityId();
-                    activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
-                    nodeCount = DataProvider.GetNodeCount(); //DB:??test??
-                    versionCount = DataProvider.GetVersionCount(); //DB:??test??
-                }
+                var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
+                activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance).Result;
+                var nodeCount = DataStore.GetVersionCountAsync().Result;
+                var versionCount = DataStore.GetVersionCountAsync().Result;
 
 
                 var index = GetTestIndex();

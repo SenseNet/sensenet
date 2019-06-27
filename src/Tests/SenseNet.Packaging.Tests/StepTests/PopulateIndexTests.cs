@@ -44,11 +44,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
             Test(builder =>
             {
-                if (DataStore.Enabled)
-                    builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
-                else
-                    builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
-
+                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
             }, () =>
             {
                 // arrange

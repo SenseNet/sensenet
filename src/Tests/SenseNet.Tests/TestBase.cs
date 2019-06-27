@@ -152,12 +152,12 @@ namespace SenseNet.Tests
                 .UseDataProvider(dataProvider)
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(DataStore.Enabled ? (IBlobStorageMetaDataProvider)new InMemoryBlobStorageMetaDataProvider2(dp2) : new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dp2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(securityDataProvider)
-                .UseTestingDataProviderExtension(DataStore.Enabled ? (ITestingDataProviderExtension)new InMemoryTestingDataProvider2() : new InMemoryTestingDataProvider()) //DB:ok
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider2())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
@@ -201,7 +201,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.Enabled ? DataStore.LoadNotIndexedNodeIdsAsync(0, 11000).Result : DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000); //DB:ok
+            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000).Result; //DB:ok
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)

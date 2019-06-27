@@ -274,9 +274,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static ITestingDataProviderExtension GetTestingDataProvider()
         {
-            return DataStore.Enabled
-                ? DataStore.GetDataProviderExtension<ITestingDataProviderExtension>()
-                : DataProvider.GetExtension<ITestingDataProviderExtension>();
+            return DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
         }
     }
 

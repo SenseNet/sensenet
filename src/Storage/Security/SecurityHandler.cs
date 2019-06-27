@@ -1732,8 +1732,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             {
                 using (new SystemAccount())
                 {
-                    if(DataStore.Enabled) CreateEntities(); else DataProvider.Current.InstallDefaultSecurityStructure(); //DB:ok
-
+                    CreateEntities();
                     CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
                         .Apply();
