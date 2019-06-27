@@ -50,7 +50,7 @@ namespace SenseNet.Packaging.Steps
             }
 
             _context = context;
-            _versionCount = DataStore.Enabled ? DataStore.GetVersionCountAsync(path).Result : DataProvider.GetVersionCount(path); //DB:??
+            _versionCount = DataStore.GetVersionCountAsync(path).Result;
 
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;

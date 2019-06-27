@@ -8,7 +8,9 @@ using System.Xml;
 using SenseNet.Diagnostics;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.DataModel;
+// ReSharper disable ArrangeThisQualifier
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Schema
 {
     public abstract class SchemaRoot : ISchemaRoot
@@ -17,10 +19,10 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         private class NodeTypeInfo
         {
-            public int Id;
-            public int ParentId;
-            public string Name;
-            public string ClassName;
+            public readonly int Id;
+            public readonly int ParentId;
+            public readonly string Name;
+            public readonly string ClassName;
 
             public NodeTypeInfo(int id, int parentId, string name, string className)
             {
@@ -83,16 +85,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
             using (var op = SnTrace.Database.StartOperation("Load storage schema."))
             {
                 Clear();
-                if (DataStore.Enabled)
-                {
-                    var schemaData = DataStore.LoadSchemaAsync().Result;
-                    Load(schemaData);
-                }
-                else
-                {
-                    var dataSet = DataProvider.Current.LoadSchema(); //DB:ok
-                    Load(dataSet);
-                }
+                var schemaData = DataStore.LoadSchemaAsync().Result;
+                Load(schemaData);
                 op.Successful = true;
             }
         }
@@ -570,9 +564,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
         }
         public PropertyType CreateContentListPropertyType(DataType dataType, int ordinalNumber)
         {
-            string name = String.Concat("#", dataType, "_", ordinalNumber);
-            int mapping = ordinalNumber + 
-                (DataStore.Enabled ? DataStore.ContentListMappingOffsets[dataType] : DataProvider.Current.ContentListMappingOffsets[dataType]); //DB:ok
+            var name = string.Concat("#", dataType, "_", ordinalNumber);
+            var mapping = ordinalNumber + DataStore.ContentListMappingOffsets[dataType];
             return CreateContentListPropertyType(name, dataType, mapping);
         }
         private PropertyType CreateContentListPropertyType(string name, DataType dataType, int mapping)
@@ -581,7 +574,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         }
         private PropertyType CreatePropertyType(int id, string name, DataType dataType, int mapping, bool isContentListProperty)
         {
-            PropertyType propType = new PropertyType(this, name, id, dataType, mapping, isContentListProperty);
+            var propType = new PropertyType(this, name, id, dataType, mapping, isContentListProperty);
             this.PropertyTypes.Add(propType);
 
             return propType;

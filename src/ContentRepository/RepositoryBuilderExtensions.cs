@@ -63,10 +63,7 @@ namespace SenseNet.ContentRepository
         /// <param name="metaDataProvider">IBlobStorageMetaDataProvider instance.</param>
         public static IRepositoryBuilder UseBlobMetaDataProvider(this IRepositoryBuilder repositoryBuilder, IBlobStorageMetaDataProvider metaDataProvider)
         {
-            if(DataStore.Enabled)
-                Configuration.Providers.Instance.BlobMetaDataProvider2 = metaDataProvider;
-            else
-                Configuration.Providers.Instance.BlobMetaDataProvider = metaDataProvider;
+            Configuration.Providers.Instance.BlobMetaDataProvider2 = metaDataProvider;
 
             WriteLog("BlobMetaDataProvider", metaDataProvider);
 

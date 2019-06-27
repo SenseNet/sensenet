@@ -13,6 +13,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE:DB: Delete this class and all implementations.
     public abstract class DataProvider : ITransactionFactory //DB:ok
     {
         /// <summary>
@@ -24,8 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             get
             {
-                if (DataStore.Enabled) //UNDONE:DB ------Delete this check
-                    throw new Exception("####### INVALID DataProvider ACCESS #######");
+                throw new Exception("####### INVALID DataProvider ACCESS #######");
                 return Providers.Instance.DataProvider;
             }
         }

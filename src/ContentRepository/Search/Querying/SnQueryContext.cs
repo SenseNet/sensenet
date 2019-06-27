@@ -18,7 +18,7 @@ namespace SenseNet.Search.Querying
         /// <inheritdoc />
         public IQueryEngine QueryEngine => SearchManager.SearchEngine.QueryEngine;
         /// <inheritdoc />
-        public IMetaQueryEngine MetaQueryEngine => DataStore.Enabled ? DataStore.MetaQueryEngine : DataProvider.Current.MetaQueryEngine; //DB:ok
+        public IMetaQueryEngine MetaQueryEngine => DataStore.MetaQueryEngine;
 
         /// <summary>
         /// Initializes a new instance of the SnQueryContext.
