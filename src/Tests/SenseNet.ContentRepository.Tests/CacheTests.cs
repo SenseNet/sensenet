@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,7 +33,7 @@ namespace SenseNet.ContentRepository.Tests
                     var binaryData = file.Binary;
 
                     // reset cache
-                    DistributedApplication.Cache.Reset();
+                    Cache.Reset();
 
                     root = Node.Load<PortalRoot>(root.Id);
                     testRoot = Node.Load<SystemFolder>(testRoot.Id);
@@ -47,7 +48,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsTrue(IsInCache(fileHead));
                     Assert.IsTrue(IsInCache(binaryData));
 
-                    //var keysBefore = cache.WhatIsInTheCache();
+                    //var keysBefore = Cache.WhatIsInTheCache();
 
                     testRoot.ForceDelete();
 
@@ -67,8 +68,7 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-                    cache.Reset();
+                    Cache.Reset();
 
                     // create node1 and cache it with it own NodeIdDependency
                     var node1 = CreateTestRoot();
@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeData1 = node1.Data;
                     var key1 = "NodeData." + node1.VersionId;
                     var dependencies1 = new NodeIdDependency(node1.Id);
-                    cache.Insert(key1, nodeData1, dependencies1);
+                    Cache.Insert(key1, nodeData1, dependencies1);
 
                     // create node2 and cache it with it own NodeIdDependency
                     var node2 = CreateTestRoot();
@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeData2 = node2.Data;
                     var key2 = "NodeData." + node2.VersionId;
                     var dependencies2 = new NodeIdDependency(node2.Id);
-                    cache.Insert(key2, nodeData2, dependencies2);
+                    Cache.Insert(key2, nodeData2, dependencies2);
 
                     // pre-check: nodes are in the cache
                     Assert.IsTrue(IsInCache(key1));
@@ -102,7 +102,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // add node1 again
                     dependencies1 = new NodeIdDependency(node1.Id);
-                    cache.Insert(key1, nodeData1, dependencies1);
+                    Cache.Insert(key1, nodeData1, dependencies1);
 
                     // TEST#3: remove node1 wia NodeIdDependency
                     NodeIdDependency.FireChanged(nodeId2);
@@ -116,8 +116,7 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-                    cache.Reset();
+                    Cache.Reset();
 
                     // create node1 and cache it with a shared NodeIdDependency
                     var node1 = CreateTestRoot();
@@ -125,7 +124,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeData1 = node1.Data;
                     var key1 = "NodeData." + node1.VersionId;
                     var dependencies1 = new NodeIdDependency(nodeId1);
-                    cache.Insert(key1, nodeData1, dependencies1);
+                    Cache.Insert(key1, nodeData1, dependencies1);
 
                     // create node2 and cache it with NodeIdDependency by node1
                     var node2 = CreateTestRoot();
@@ -133,7 +132,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeData2 = node2.Data;
                     var key2 = "NodeData." + node2.VersionId;
                     var dependencies2 = new NodeIdDependency(nodeId1); // nodeId1 is the right value!
-                    cache.Insert(key2, nodeData2, dependencies2);
+                    Cache.Insert(key2, nodeData2, dependencies2);
 
                     // pre-check: nodes are in the cache
                     Assert.IsTrue(IsInCache(key1));
@@ -162,8 +161,6 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-
                     var root = CreateTestFolder(Repository.Root);
                     // create node1 and cache it with it own NodeIdDependency
                     var node1 = CreateTestFolder(root);
@@ -173,15 +170,15 @@ namespace SenseNet.ContentRepository.Tests
                     var node21 = CreateTestFolder(node2);
                     var node22 = CreateTestFolder(node2);
 
-                    cache.Reset();
+                    Cache.Reset();
 
-                    var rootKey = InsertCacheWithPathDependency(cache, root);
-                    var node1Key = InsertCacheWithPathDependency(cache, node1);
-                    var node11Key = InsertCacheWithPathDependency(cache, node11);
-                    var node12Key = InsertCacheWithPathDependency(cache, node12);
-                    var node2Key = InsertCacheWithPathDependency(cache, node2);
-                    var node21Key = InsertCacheWithPathDependency(cache, node21);
-                    var node22Key = InsertCacheWithPathDependency(cache, node22);
+                    var rootKey = InsertCacheWithPathDependency(root);
+                    var node1Key = InsertCacheWithPathDependency(node1);
+                    var node11Key = InsertCacheWithPathDependency(node11);
+                    var node12Key = InsertCacheWithPathDependency(node12);
+                    var node2Key = InsertCacheWithPathDependency(node2);
+                    var node21Key = InsertCacheWithPathDependency(node21);
+                    var node22Key = InsertCacheWithPathDependency(node22);
 
                     // pre-check: all nodes are in the cache
                     Assert.IsTrue(IsInCache(rootKey));
@@ -212,8 +209,6 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-
                     var root = CreateTestFolder(Repository.Root);
                     // create node1 and cache it with it own NodeIdDependency
                     var folder1 = CreateTestFolder(root, true);
@@ -221,13 +216,13 @@ namespace SenseNet.ContentRepository.Tests
                     var folder11 = CreateTestFolder(folder1);
                     var file111 = CreateTestFile(folder11);
 
-                    cache.Reset();
+                    Cache.Reset();
 
-                    var rootKey = InsertCacheWithTypeDependency(cache, root);
-                    var folder1Key = InsertCacheWithTypeDependency(cache, folder1);
-                    var file11Key = InsertCacheWithTypeDependency(cache, file11);
-                    var folder11Key = InsertCacheWithTypeDependency(cache, folder11);
-                    var file111Key = InsertCacheWithTypeDependency(cache, file111);
+                    var rootKey = InsertCacheWithTypeDependency(root);
+                    var folder1Key = InsertCacheWithTypeDependency(folder1);
+                    var file11Key = InsertCacheWithTypeDependency(file11);
+                    var folder11Key = InsertCacheWithTypeDependency(folder11);
+                    var file111Key = InsertCacheWithTypeDependency(file111);
 
                     // pre-check: all nodes are in the cache
                     Assert.IsTrue(IsInCache(rootKey));
@@ -237,10 +232,10 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsTrue(IsInCache(file111Key));
 
                     // TEST: Remove the folder type tree
-                    var before = WhatIsInTheCache(cache);
+                    var before = WhatIsInTheCache();
                     foreach (var nodeType in NodeType.GetByName("Folder").GetAllTypes())
                         NodeTypeDependency.FireChanged(nodeType.Id);
-                    var after = WhatIsInTheCache(cache);
+                    var after = WhatIsInTheCache();
 
                     // check: all folders are removed
                     Assert.IsFalse(IsInCache(rootKey));
@@ -257,18 +252,17 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-                    cache.Reset();
+                    Cache.Reset();
 
                     var key1 = "Key1";
                     var value1 = "CachedValue1";
                     var dependencies1 = new PortletDependency(key1);
-                    cache.Insert(key1, value1, dependencies1);
+                    Cache.Insert(key1, value1, dependencies1);
 
                     var key2 = "Key2";
                     var value2 = "CachedValue2";
                     var dependencies2 = new PortletDependency(key2);
-                    cache.Insert(key2, value2, dependencies2);
+                    Cache.Insert(key2, value2, dependencies2);
 
                     // pre-check: nodes are in the cache
                     Assert.IsTrue(IsInCache(key1));
@@ -288,22 +282,21 @@ namespace SenseNet.ContentRepository.Tests
             Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
                 () =>
                 {
-                    var cache = DistributedApplication.Cache;
-                    cache.Reset();
+                    Cache.Reset();
 
                     var idArray = CreateSafeContentQuery("InTree:/Root").Execute().Nodes
                         .Select(n => n.Id).ToArray();
 
-                    var countBefore = cache.Count;
+                    var countBefore = Cache.Count;
                     Assert.IsTrue(countBefore > idArray.Length * 2);
-                    var eventCountsBefore = cache.Events.GetCounts();
+                    var eventCountsBefore = Cache.Events.GetCounts();
                     var totalEventCountBefore = eventCountsBefore.Select(x => x.Value.Sum()).Sum();
                     Assert.IsTrue(totalEventCountBefore > countBefore * 2);
 
                     PathDependency.FireChanged("/Root/System");
 
-                    var countAfter = cache.Count;
-                    var eventCountsAfter = cache.Events.GetCounts();
+                    var countAfter = Cache.Count;
+                    var eventCountsAfter = Cache.Events.GetCounts();
                     var totalEventCountAfter = eventCountsAfter.Select(x => x.Value.Sum()).Sum();
                     Assert.IsTrue(0 < countAfter);
                     Assert.IsTrue(countAfter < countBefore);
@@ -312,8 +305,8 @@ namespace SenseNet.ContentRepository.Tests
 
                     PathDependency.FireChanged("/Root");
 
-                    var countFinal = cache.Count;
-                    var eventCountsFinal = cache.Events.GetCounts();
+                    var countFinal = Cache.Count;
+                    var eventCountsFinal = Cache.Events.GetCounts();
                     var totalEventCountFinal = eventCountsFinal.Select(x => x.Value.Sum()).Sum();
                     Assert.AreEqual(0, countFinal);
                     Assert.AreEqual(0, totalEventCountFinal);
@@ -321,20 +314,20 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         /* ================================================================================= */
-        private string InsertCacheWithPathDependency(ISnCache cache, Node node)
+        private string InsertCacheWithPathDependency(Node node)
         {
             var cacheKey = "NodeData." + node.VersionId;
 
             var dependencies = new PathDependency(node.Path);
-            cache.Insert(cacheKey, node.Data, dependencies);
+            Cache.Insert(cacheKey, node.Data, dependencies);
             return cacheKey;
         }
-        private string InsertCacheWithTypeDependency(ISnCache cache, Node node)
+        private string InsertCacheWithTypeDependency(Node node)
         {
             var cacheKey = "NodeData." + node.VersionId;
 
             var dependencies = new NodeTypeDependency(node.NodeTypeId);
-            cache.Insert(cacheKey, node.Data, dependencies);
+            Cache.Insert(cacheKey, node.Data, dependencies);
             return cacheKey;
         }
 
@@ -369,7 +362,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private bool IsInCache(string key)
         {
-            return DistributedApplication.Cache.Get(key) != null;
+            return Cache.Get(key) != null;
         }
         private string[] GetKeys(object obj)
         {
@@ -388,10 +381,10 @@ namespace SenseNet.ContentRepository.Tests
             throw new NotImplementedException($"Getting cache key for a {obj.GetType().Name} is not implemented.");
         }
 
-        private string WhatIsInTheCache(ISnCache cache)
+        private string WhatIsInTheCache()
         {
             var sb = new StringBuilder();
-            foreach (var x in cache)
+            foreach (var x in Cache.Instance)
                 sb.AppendLine(x.Key);
             return sb.ToString();
         }

@@ -12,11 +12,11 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
             if (onRemote && isFromMe)
                 return;
 
-            var cacheEntryKeys = DistributedApplication.Cache.Select(entry => entry.Key)
+            var cacheEntryKeys = Cache.Instance.Select(entry => entry.Key)
                 .Where(key => key.StartsWith("Token", StringComparison.Ordinal)).ToList();
 
             foreach (var cacheEntryKey in cacheEntryKeys)
-                DistributedApplication.Cache.Remove(cacheEntryKey);
+                Cache.Remove(cacheEntryKey);
         }
     }
 }

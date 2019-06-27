@@ -31,7 +31,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         public void Rollback()
         {
-            DistributedApplication.Cache.Remove(CacheKey);
+            Cache.Remove(CacheKey);
         }
     }
 }

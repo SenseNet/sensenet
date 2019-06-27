@@ -70,7 +70,7 @@ namespace SenseNet.Tests
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             Providers.Instance.NodeTypeManeger = null;
 
@@ -83,7 +83,7 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             using (Repository.Start(builder))
@@ -110,7 +110,7 @@ namespace SenseNet.Tests
         }
         private STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTestInstance();

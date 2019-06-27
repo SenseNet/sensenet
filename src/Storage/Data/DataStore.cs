@@ -265,7 +265,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     tokens.Add(token);
 
                     var cacheKey = GenerateNodeDataVersionIdCacheKey(versionId);
-                    if (DistributedApplication.Cache.Get(cacheKey) is NodeData nodeData)
+                    if (Cache.Get(cacheKey) is NodeData nodeData)
                         token.NodeData = nodeData;
                     else
                         tokensToLoad.Add(token);
@@ -331,7 +331,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             // Look at the cache first
             var pathKey = DataBackingStore.CreateNodeHeadPathCacheKey(path);
-            if (DistributedApplication.Cache.Get(pathKey) is NodeHead)
+            if (Cache.Get(pathKey) is NodeHead)
                 return true;
 
             return await DataProvider.NodeExistsAsync(path, cancellationToken);
@@ -345,7 +345,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return null;
 
             var pathKey = CreateNodeHeadPathCacheKey(path);
-            var item = (NodeHead)DistributedApplication.Cache.Get(pathKey);
+            var item = (NodeHead)Cache.Get(pathKey);
             if (item == null)
             {
                 item = await DataProvider.LoadNodeHeadAsync(path, cancellationToken);
@@ -361,7 +361,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return null;
 
             var idKey = CreateNodeHeadIdCacheKey(nodeId);
-            var item = (NodeHead)DistributedApplication.Cache.Get(idKey);
+            var item = (NodeHead)Cache.Get(idKey);
             if (item == null)
             {
                 item = await DataProvider.LoadNodeHeadAsync(nodeId, cancellationToken);
@@ -383,7 +383,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             foreach (var id in nodeIdArray)
             {
                 string idKey = CreateNodeHeadIdCacheKey(id);
-                var item = (NodeHead)DistributedApplication.Cache.Get(idKey);
+                var item = (NodeHead)Cache.Get(idKey);
                 if (item == null)
                     headIdsToLoad.Add(id);
                 else
@@ -728,7 +728,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         internal static void CacheNodeHead(NodeHead nodeHead)
         {
             var idKey = CreateNodeHeadIdCacheKey(nodeHead.Id);
-            if (null != DistributedApplication.Cache.Get(idKey))
+            if (null != Cache.Get(idKey))
                 return; //UNDONE:DB ?Force delete by id (and path) is better.
             CacheNodeHead(nodeHead, idKey, CreateNodeHeadPathCacheKey(nodeHead.Path));
         }
@@ -736,8 +736,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var dependencyForPathKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
             var dependencyForIdKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
-            DistributedApplication.Cache.Insert(idKey, head, dependencyForIdKey);
-            DistributedApplication.Cache.Insert(pathKey, head, dependencyForPathKey);
+            Cache.Insert(idKey, head, dependencyForIdKey);
+            Cache.Insert(pathKey, head, dependencyForPathKey);
         }
         internal static void CacheNodeData(NodeData nodeData, string cacheKey = null)
         {
@@ -746,7 +746,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (cacheKey == null)
                 cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
-            DistributedApplication.Cache.Insert(cacheKey, nodeData, dependency);
+            Cache.Insert(cacheKey, nodeData, dependency);
         }
 
         internal static void RemoveFromCache(NodeData data)

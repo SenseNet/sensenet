@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 NodeTypeManager.Restart();
                 ContentTypeManager.Reset();
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
 
                 // this should throw an exception: installing a content type with an unknown parent
                 ContentTypeInstaller.InstallContentType(testSystemHandlerCTD);
@@ -193,7 +193,7 @@ namespace SenseNet.ContentRepository.Tests
                 // set the handler of the Folder type to an unknown value
                 SetContentHandler("Folder", "UnknownFieldTable");
 
-                DistributedApplication.Cache.Reset();
+                Cache.Reset();
                 NodeTypeManager.Restart();
                 ContentTypeManager.Reload();
 
@@ -207,7 +207,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static void ResetAndFailToCreateContent()
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             NodeTypeManager.Restart();
             ContentTypeManager.Reload();
 
@@ -248,7 +248,7 @@ namespace SenseNet.ContentRepository.Tests
             // set the handler of the Folder type to an unknown value
             SetContentHandler("Folder", handlerName);
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             NodeTypeManager.Restart();
             ContentTypeManager.Reload();
 

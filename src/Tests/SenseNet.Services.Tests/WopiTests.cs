@@ -1504,7 +1504,7 @@ namespace SenseNet.Services.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());

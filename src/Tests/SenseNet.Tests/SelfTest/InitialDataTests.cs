@@ -126,7 +126,7 @@ namespace SenseNet.Tests.SelfTest
         {
             DataStore.Enabled = EnableDataStore;
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
@@ -135,7 +135,7 @@ namespace SenseNet.Tests.SelfTest
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             using (Repository.Start(builder))

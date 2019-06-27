@@ -249,7 +249,7 @@ namespace SenseNet.ContentRepository
                 BlobStorageComponents.SetMetadataProvider2(Providers.Instance.BlobMetaDataProvider2);
 
                 ConsoleWrite("Initializing cache ... ");
-                dummy = DistributedApplication.Cache.Count;
+                dummy = Cache.Count;
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting message channel ... ");

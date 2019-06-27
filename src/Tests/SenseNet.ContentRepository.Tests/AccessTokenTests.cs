@@ -470,7 +470,7 @@ namespace SenseNet.ContentRepository.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();

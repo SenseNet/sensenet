@@ -656,7 +656,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             DataStore.Enabled = EnableDataStore;
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
@@ -667,7 +667,7 @@ namespace SenseNet.ContentRepository.Tests
 
             _repository = Repository.Start(builder);
 
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             using (new SystemAccount())
