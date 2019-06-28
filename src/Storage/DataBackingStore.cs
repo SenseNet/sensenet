@@ -66,39 +66,9 @@ namespace SenseNet.ContentRepository.Storage
             return DataStore.LoadNodeHeadByVersionIdAsync(versionId).Result;
         }
 
-        internal static void CacheNodeHead(NodeHead nodeHead)
-        {
-            if (nodeHead == null)
-                throw new ArgumentNullException("nodeHead");
-
-            var idKey = CreateNodeHeadIdCacheKey(nodeHead.Id);
-            var item = (NodeHead)Cache.Get(idKey);
-
-            if (item != null)
-                return;
-
-            CacheNodeHead(nodeHead, idKey, CreateNodeHeadPathCacheKey(nodeHead.Path));
-        }
-        internal static void CacheNodeHead(NodeHead head, string idKey, string pathKey)
-        {
-            var dependencyForPathKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
-            var dependencyForIdKey = CacheDependencyFactory.CreateNodeHeadDependency(head);
-            Cache.Insert(idKey, head, dependencyForIdKey);
-            Cache.Insert(pathKey, head, dependencyForPathKey);
-        }
-
         internal static bool NodeExists(string path) //UNDONE:DB@@@@@@@@ DELETE
         {
             return DataStore.NodeExistsAsync(path).Result;
-        }
-
-        internal static bool CanExistInDatabase(int id)
-        {
-            return DataStore.CanExistInDatabase(id);
-        }
-        internal static bool CanExistInDatabase(string path)
-        {
-            return DataStore.CanExistInDatabase(path);
         }
 
         // ====================================================================== Get Versions
@@ -187,13 +157,6 @@ namespace SenseNet.ContentRepository.Storage
                 cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
             var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
             Cache.Insert(cacheKey, nodeData, dependency);
-        }
-        public static bool IsInCache(NodeData nodeData) // for tests
-        {
-            if (nodeData == null)
-                throw new ArgumentNullException("nodeData");
-            var cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
-            return Cache.Get(cacheKey) as NodeData != null;
         }
 
         public static void RemoveNodeDataFromCacheByVersionId(int versionId)
@@ -293,10 +256,6 @@ namespace SenseNet.ContentRepository.Storage
         public static string CreateNodeHeadPathCacheKey(string path)
         {
             return string.Concat(NODE_HEAD_PREFIX, path.ToLowerInvariant());
-        }
-        public static string CreateNodeHeadIdCacheKey(int nodeId)
-        {
-            return string.Concat(NODE_HEAD_PREFIX, nodeId);
         }
         internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
         {
@@ -482,14 +441,6 @@ namespace SenseNet.ContentRepository.Storage
             return null;
         }
 
-        private static bool MustCache(NodeType nodeType)
-        {
-            if (CacheConfiguration.CacheContentAfterSaveMode != CacheConfiguration.CacheContentAfterSaveOption.Containers)
-                return CacheConfiguration.CacheContentAfterSaveMode == CacheConfiguration.CacheContentAfterSaveOption.All;
-            
-            var type = TypeResolver.GetType(nodeType.ClassName, false);
-            return type != null && typeof(IFolder).IsAssignableFrom(type);
-        }
         private static bool IsDeadlockException(System.Data.Common.DbException e)
         {
             // Avoid [SqlException (0x80131904): Transaction (Process ID ??) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
