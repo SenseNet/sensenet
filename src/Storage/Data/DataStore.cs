@@ -111,9 +111,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             // Before return the LastMajorVersionIdAfter and LastMinorVersionIdAfter properties of the given "settings" need to be updated
             //    instead of use the original output values.
 
-            //UNDONE:DB ?Implement transaction related stuff (from DataBackingStore)
-            //UNDONE:DB Implement cache invalidations (from DataBackingStore)
-
             if (nodeData == null)
                 throw new ArgumentNullException(nameof(nodeData));
             if (settings == null)
@@ -718,7 +715,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var idKey = CreateNodeHeadIdCacheKey(nodeHead.Id);
             if (null != Cache.Get(idKey))
-                return; //UNDONE:DB ?Force delete by id (and path) is better.
+                return;
             CacheNodeHead(nodeHead, idKey, CreateNodeHeadPathCacheKey(nodeHead.Path));
         }
         internal static void CacheNodeHead(NodeHead head, string idKey, string pathKey)

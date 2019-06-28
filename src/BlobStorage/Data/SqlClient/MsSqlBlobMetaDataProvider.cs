@@ -20,15 +20,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     {
         public DbConnection CreateConnection()
         {
-            return new SqlConnection(ConnectionStrings.ConnectionString); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateConnection()
+            return new SqlConnection(ConnectionStrings.ConnectionString);
         }
         public DbCommand CreateCommand()
         {
-            return new SqlCommand(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateCommand()
+            return new SqlCommand();
         }
         public DbParameter CreateParameter()
         {
-            return new SqlParameter(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateParameter()
+            return new SqlParameter();
         }
         public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
         {

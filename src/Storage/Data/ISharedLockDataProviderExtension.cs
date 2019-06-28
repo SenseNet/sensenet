@@ -8,7 +8,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         public static IRepositoryBuilder UseSharedLockDataProviderExtension(this IRepositoryBuilder builder, ISharedLockDataProviderExtension provider)
         {
-            //UNDONE:DB: not tested.
             DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
             return builder;
         }
