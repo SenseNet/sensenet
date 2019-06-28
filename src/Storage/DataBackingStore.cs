@@ -49,11 +49,6 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== Get NodeData
 
-        internal static NodeToken GetNodeData(NodeHead head, int versionId) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.LoadNodeAsync(head, versionId).Result;
-        }
-        // when create new
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
         {
             var listTypeId = listType == null ? 0 : listType.Id;

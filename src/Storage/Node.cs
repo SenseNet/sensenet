@@ -1816,7 +1816,7 @@ namespace SenseNet.ContentRepository.Storage
                         if (acceptedLevel == AccessLevel.Header)
                             isHeadOnly = true;
                         var versionId = GetVersionId(head, acceptedLevel, version);
-                        token = DataBackingStore.GetNodeData(head, versionId);
+                        token =  DataStore.LoadNodeAsync(head, versionId).Result;
                     }
                 }
             }
@@ -1993,7 +1993,7 @@ namespace SenseNet.ContentRepository.Storage
                     return (Node)cachedNode;
                 // </L2Cache>
 
-                var token = DataBackingStore.GetNodeData(head, versionId);
+                var token =  DataStore.LoadNodeAsync(head, versionId).Result;
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2255,7 +2255,7 @@ namespace SenseNet.ContentRepository.Storage
 
             SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
-            var token = DataBackingStore.GetNodeData(head, versionId);
+            var token =  DataStore.LoadNodeAsync(head, versionId).Result;
 
             Node node = null;
             if (token.NodeData != null)
@@ -2273,7 +2273,7 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeHead != null)
             {
                 //  Reload by nodeHead.LastMinorVersionId
-                var token = DataBackingStore.GetNodeData(nodeHead, nodeHead.LastMinorVersionId);
+                var token =  DataStore.LoadNodeAsync(nodeHead, nodeHead.LastMinorVersionId).Result;
                 var sharedData = token.NodeData;
                 sharedData.IsShared = true;
                 SetNodeData(sharedData);
@@ -2288,7 +2288,7 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeHead == null)
                 throw new ContentNotFoundException(String.Format("Version of a content was not found. VersionId: {0}, old Path: {1}", this.VersionId, this.Path));
 
-            var token = DataBackingStore.GetNodeData(nodeHead, this.VersionId);
+            var token =  DataStore.LoadNodeAsync(nodeHead, this.VersionId).Result;
             var sharedData = token.NodeData;
             sharedData.IsShared = true;
             SetNodeData(sharedData);
@@ -3041,7 +3041,7 @@ namespace SenseNet.ContentRepository.Storage
                         var acceptedLevel = GetAcceptedLevel(userAccessLevel, VersionNumber.LastAccessible);
                         var versionId = GetVersionId(nodeHead, acceptedLevel != AccessLevel.Header ? acceptedLevel : AccessLevel.Major, VersionNumber.LastAccessible);
 
-                        var sharedData = DataBackingStore.GetNodeData(nodeHead, versionId);
+                        var sharedData =  DataStore.LoadNodeAsync(nodeHead, versionId).Result;
                         var privateData = NodeData.CreatePrivateData(sharedData.NodeData);
                         SetNodeData(privateData);
                     }

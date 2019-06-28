@@ -37,7 +37,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.CheckIn();
 
                 //-- Thread #2
-                var data = DataBackingStore.GetNodeData(head, head.LastMinorVersionId).NodeData;
+                var data = DataStore.LoadNodeAsync(head, head.LastMinorVersionId).Result.NodeData;
                 Assert.IsNull(data);
             });
         }
