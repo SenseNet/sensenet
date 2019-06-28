@@ -49,85 +49,17 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== Get NodeHead
 
-        internal static NodeHead GetNodeHead(int nodeId)
+        internal static NodeHead GetNodeHead(int nodeId) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.LoadNodeHeadAsync(nodeId).Result;
-
-            if (!CanExistInDatabase(nodeId))
-                return null;
-
-            string idKey = CreateNodeHeadIdCacheKey(nodeId);
-            NodeHead item = (NodeHead)Cache.Get(idKey);
-
-            if (item == null)
-            {
-                item = DataProvider.Current.LoadNodeHead(nodeId); //DB:ok
-
-                if (item != null)
-                    CacheNodeHead(item, idKey, CreateNodeHeadPathCacheKey(item.Path));
-            }
-
-            return item;
+            return DataStore.LoadNodeHeadAsync(nodeId).Result;
         }
-        internal static NodeHead GetNodeHead(string path)
+        internal static NodeHead GetNodeHead(string path) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.LoadNodeHeadAsync(path).Result;
-
-            if (!CanExistInDatabase(path))
-                return null;
-
-            string pathKey = CreateNodeHeadPathCacheKey(path);
-            NodeHead item = (NodeHead)Cache.Get(pathKey);
-
-            if (item == null)
-            {
-                Debug.WriteLine("#GetNodeHead from db: " + path);
-
-                item = DataProvider.Current.LoadNodeHead(path); //DB:ok
-
-                if (item != null)
-                    CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);
-            }
-            return item;
+            return DataStore.LoadNodeHeadAsync(path).Result;
         }
-        internal static IEnumerable<NodeHead> GetNodeHeads(IEnumerable<int> idArray)
+        internal static IEnumerable<NodeHead> GetNodeHeads(IEnumerable<int> idArray) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.LoadNodeHeadsAsync(idArray).Result;
-
-            var nodeHeads = new List<NodeHead>();
-            var unloadHeads = new List<int>();
-            foreach (var id in idArray)
-            {
-                string idKey = CreateNodeHeadIdCacheKey(id);
-                var item = (NodeHead)Cache.Get(idKey);
-                if (item == null)
-                    unloadHeads.Add(id);
-                else
-                    nodeHeads.Add(item);
-            }
-
-            if (unloadHeads.Count > 0)
-            {
-                var heads = DataProvider.Current.LoadNodeHeads(unloadHeads); //DB:ok
-
-                foreach (var head in heads)
-                {
-                    if (head != null)
-                        CacheNodeHead(head, CreateNodeHeadIdCacheKey(head.Id), CreateNodeHeadPathCacheKey(head.Path));
-                    nodeHeads.Add(head);
-                }
-
-                // sort the node heads aligned with the original list
-                nodeHeads = (from id in idArray
-                    join head in nodeHeads.Where(h => h != null)
-                    on id equals head.Id
-                    where head != null
-                    select head).ToList();
-            }
-            return nodeHeads;
+            return DataStore.LoadNodeHeadsAsync(idArray).Result;
         }
         internal static NodeHead GetNodeHeadByVersionId(int versionId)
         {
@@ -155,24 +87,9 @@ namespace SenseNet.ContentRepository.Storage
             Cache.Insert(pathKey, head, dependencyForPathKey);
         }
 
-        internal static bool NodeExists(string path)
+        internal static bool NodeExists(string path) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.NodeExistsAsync(path).Result;
-
-            if (path == null)
-                throw new ArgumentNullException("path");
-
-            if (!CanExistInDatabase(path))
-                return false;
-
-            // Look at the cache first
-            var pathKey = DataBackingStore.CreateNodeHeadPathCacheKey(path);
-            if (Cache.Get(pathKey) as NodeHead != null)
-                return true;
-
-            // If it wasn't in the cache, check the database
-            return DataProvider.NodeExists(path); //DB:ok
+            return DataStore.NodeExistsAsync(path).Result;
         }
 
         internal static bool CanExistInDatabase(int id)
@@ -193,50 +110,13 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== Get NodeData
 
-        internal static NodeToken GetNodeData(NodeHead head, int versionId)
+        internal static NodeToken GetNodeData(NodeHead head, int versionId) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.LoadNodeAsync(head, versionId).Result;
-            throw new NotSupportedException();
+            return DataStore.LoadNodeAsync(head, versionId).Result;
         }
-        internal static NodeToken[] GetNodeData(NodeHead[] headArray, int[] versionIdArray)
+        internal static NodeToken[] GetNodeData(NodeHead[] headArray, int[] versionIdArray) //UNDONE:DB@@@@@@@@ DELETE
         {
-            if (DataStore.Enabled)
-                return DataStore.LoadNodesAsync(headArray, versionIdArray).Result;
-
-            var tokens = new List<NodeToken>();
-            var tokensToLoad = new List<NodeToken>();
-            for (var i = 0; i < headArray.Length; i++)
-            {
-                var head = headArray[i];
-                var versionId = versionIdArray[i];
-
-                int listId = head.ContentListId;
-                int listTypeId = head.ContentListTypeId;
-
-                NodeToken token = new NodeToken(head.Id, head.NodeTypeId, listId, listTypeId, versionId, null);
-                token.NodeHead = head;
-                tokens.Add(token);
-
-                var cacheKey = GenerateNodeDataVersionIdCacheKey(versionId);
-                var nodeData = Cache.Get(cacheKey) as NodeData;
-
-                if (nodeData == null)
-                    tokensToLoad.Add(token);
-                else
-                    token.NodeData = nodeData;
-            }
-            if (tokensToLoad.Count > 0)
-            {
-                DataProvider.Current.LoadNodeData(tokensToLoad); //DB:ok
-                foreach (var token in tokensToLoad)
-                {
-                    var nodeData = token.NodeData;
-                    if (nodeData != null) // lost version
-                        CacheNodeData(nodeData);
-                }
-            }
-            return tokens.ToArray();
+            return DataStore.LoadNodesAsync(headArray, versionIdArray).Result;
         }
         // when create new
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
