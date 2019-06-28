@@ -388,10 +388,6 @@ namespace SenseNet.ContentRepository.Storage
 
             using (var op = SnTrace.Database.StartOperation(msg))
             {
-                if (!DataStore.Enabled)
-                    if (isLocalTransaction)
-                        TransactionScope.Begin();
-
                 try
                 {
                     // collect data for populator
@@ -400,9 +396,6 @@ namespace SenseNet.ContentRepository.Storage
                     data.CreateSnapshotData();
 
                     participant = new NodeDataParticipant { Data = data, Settings = settings, IsNewNode = isNewNode };
-
-                    if (!DataStore.Enabled)
-                        TransactionScope.Participate(participant);
 
                     if (settings.NodeHead != null)
                     {
@@ -429,44 +422,15 @@ namespace SenseNet.ContentRepository.Storage
 
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
-                    NodeHead head;
-                    if (DataStore.Enabled)
-                    {
-                        head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Result;
-                        lastMajorVersionId = settings.LastMajorVersionIdAfter;
-                        lastMinorVersionId = settings.LastMinorVersionIdAfter;
-                        node.RefreshVersionInfo(head);
-                    }
-                    else
-                    {
-                        DataProvider.Current.SaveNodeData(data, settings, out lastMajorVersionId, out lastMinorVersionId); //DB:ok
-                        settings.LastMajorVersionIdAfter = lastMajorVersionId;
-                        settings.LastMinorVersionIdAfter = lastMinorVersionId;
-                    }
+
+                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Result;
+                    lastMajorVersionId = settings.LastMajorVersionIdAfter;
+                    lastMinorVersionId = settings.LastMinorVersionIdAfter;
+                    node.RefreshVersionInfo(head);
 
                     // here we re-create the node head to insert it into the cache and refresh the version info);
                     if (lastMajorVersionId > 0 || lastMinorVersionId > 0)
                     {
-                        if (!DataStore.Enabled)
-                        {
-                            head = NodeHead.CreateFromNode(node.Data, lastMinorVersionId, lastMajorVersionId);
-                            if (MustCache(node.NodeType))
-                            {
-                                // participate cache items
-                                var idKey = CreateNodeHeadIdCacheKey(head.Id);
-                                var participant2 = new InsertCacheParticipant { CacheKey = idKey };
-                                if (!DataStore.Enabled)
-                                    TransactionScope.Participate(participant2);
-                                var pathKey = CreateNodeHeadPathCacheKey(head.Path);
-                                var participant3 = new InsertCacheParticipant { CacheKey = pathKey };
-                                if (!DataStore.Enabled)
-                                    TransactionScope.Participate(participant3);
-
-                                CacheNodeHead(head, idKey, pathKey);
-                            }
-                            node.RefreshVersionInfo(head);
-                        }
-
                         if (!settings.DeletableVersionIds.Contains(node.VersionId))
                         {
                             // Elevation: we need to create the index document with full
@@ -478,10 +442,6 @@ namespace SenseNet.ContentRepository.Storage
                             }
                         }
                     }
-
-                    if (!DataStore.Enabled)
-                        if (isLocalTransaction)
-                            TransactionScope.Commit();
 
                     // populate index only if it is enabled on this content (e.g. preview images will be skipped)
                     using (var op2 = SnTrace.Index.StartOperation("Indexing node"))
@@ -503,11 +463,6 @@ namespace SenseNet.ContentRepository.Storage
                         op2.Successful = true;
                     }
                 }
-                catch (NodeIsOutOfDateException)
-                {
-                    RemoveFromCache(participant);
-                    throw;
-                }
                 catch (System.Data.Common.DbException dbe)
                 {
                     if (isLocalTransaction && IsDeadlockException(dbe))
@@ -521,12 +476,6 @@ namespace SenseNet.ContentRepository.Storage
                         throw;
                     else
                         throw ee;
-                }
-                finally
-                {
-                    if(!DataStore.Enabled)
-                        if (isLocalTransaction && TransactionScope.IsActive)
-                            TransactionScope.Rollback();
                 }
                 op.Successful = true;
             }

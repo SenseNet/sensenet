@@ -24,9 +24,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     public static class DataStore
     {
-        //UNDONE:DB -------Remove DataStore.Enabled
-        public static bool Enabled => true;
-
         public const int TextAlternationSizeLimit = 4000;
 
         /// <summary>
