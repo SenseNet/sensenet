@@ -208,7 +208,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         protected virtual IEnumerable<Node> GetChildren()
         {
-            var nodeHeads = DataBackingStore.GetNodeHeads(QueryChildren().Identifiers);
+            var nodeHeads = DataStore.LoadNodeHeadsAsync(QueryChildren().Identifiers).Result;
             var user = AccessProvider.Current.GetCurrentUser();
 
             // use loop here instead of LoadNodes to check permissions
@@ -1716,7 +1716,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
         public static List<Node> LoadNodes(IEnumerable<int> idArray)
         {
-            return LoadNodes(DataBackingStore.GetNodeHeads(idArray), VersionNumber.LastAccessible);
+            return LoadNodes(DataStore.LoadNodeHeadsAsync(idArray).Result, VersionNumber.LastAccessible);
         }
         private static List<Node> LoadNodes(IEnumerable<NodeHead> heads, VersionNumber version)
         {
@@ -1768,7 +1768,7 @@ namespace SenseNet.ContentRepository.Storage
 
             // loading data
             var result = new List<Node>();
-            var tokenArray = DataBackingStore.GetNodeData(headList.ToArray(), versionIdList.ToArray());
+            var tokenArray = DataStore.LoadNodesAsync(headList.ToArray(), versionIdList.ToArray()).Result;
             for (int i = 0; i < tokenArray.Length; i++)
             {
                 var token = tokenArray[i];
@@ -1914,7 +1914,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException("path");
-            return LoadNode(DataBackingStore.GetNodeHead(path), version);
+            return LoadNode(DataStore.LoadNodeHeadAsync(path).Result, version);
         }
         /// <summary>
         /// Loads the appropiate <see cref="Node"/> by the given Id.
@@ -1943,7 +1943,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
-            return LoadNode(DataBackingStore.GetNodeHead(nodeId), version);
+            return LoadNode(DataStore.LoadNodeHeadAsync(nodeId).Result, version);
         }
         /// <summary>
         /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.
@@ -2909,11 +2909,11 @@ namespace SenseNet.ContentRepository.Storage
                 case CacheConfiguration.CacheContentAfterSaveOption.Containers:
                     // cache IFolders only
                     if (this is IFolder)
-                        DataBackingStore.CacheNodeData(this._data);
+                        DataStore.CacheNodeData(this._data);
                     break;
                 case CacheConfiguration.CacheContentAfterSaveOption.All:
                     // cache every node
-                    DataBackingStore.CacheNodeData(this._data);
+                    DataStore.CacheNodeData(this._data);
                     break;
             }
         }
@@ -4134,7 +4134,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static bool Exists(string path)
         {
-            return DataBackingStore.NodeExists(path);
+            return DataStore.NodeExistsAsync(path).Result;
         }
 
         /// <summary>

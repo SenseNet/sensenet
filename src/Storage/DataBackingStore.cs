@@ -47,46 +47,11 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        // ====================================================================== Get NodeHead
-
-        internal static NodeHead GetNodeHead(int nodeId) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.LoadNodeHeadAsync(nodeId).Result;
-        }
-        internal static NodeHead GetNodeHead(string path) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.LoadNodeHeadAsync(path).Result;
-        }
-        internal static IEnumerable<NodeHead> GetNodeHeads(IEnumerable<int> idArray) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.LoadNodeHeadsAsync(idArray).Result;
-        }
-        internal static NodeHead GetNodeHeadByVersionId(int versionId)
-        {
-            return DataStore.LoadNodeHeadByVersionIdAsync(versionId).Result;
-        }
-
-        internal static bool NodeExists(string path) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.NodeExistsAsync(path).Result;
-        }
-
-        // ====================================================================== Get Versions
-
-        internal static NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
-        {
-            return DataStore.GetNodeVersionsAsync(nodeId).Result;
-        }
-
         // ====================================================================== Get NodeData
 
         internal static NodeToken GetNodeData(NodeHead head, int versionId) //UNDONE:DB@@@@@@@@ DELETE
         {
             return DataStore.LoadNodeAsync(head, versionId).Result;
-        }
-        internal static NodeToken[] GetNodeData(NodeHead[] headArray, int[] versionIdArray) //UNDONE:DB@@@@@@@@ DELETE
-        {
-            return DataStore.LoadNodesAsync(headArray, versionIdArray).Result;
         }
         // when create new
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
@@ -149,27 +114,7 @@ namespace SenseNet.ContentRepository.Storage
             return privateData;
         }
 
-        internal static void CacheNodeData(NodeData nodeData, string cacheKey = null)
-        {
-            if (nodeData == null)
-                throw new ArgumentNullException("nodeData");
-            if (cacheKey == null)
-                cacheKey = GenerateNodeDataVersionIdCacheKey(nodeData.VersionId);
-            var dependency = CacheDependencyFactory.CreateNodeDataDependency(nodeData);
-            Cache.Insert(cacheKey, nodeData, dependency);
-        }
-
-        public static void RemoveNodeDataFromCacheByVersionId(int versionId)
-        {
-            Cache.Remove(GenerateNodeDataVersionIdCacheKey(versionId));
-        }
-
         // ====================================================================== 
-
-        internal static object LoadBinaryProperty(int versionId, PropertyType propertyType)
-        {
-            return DataStore.LoadBinaryPropertyValueAsync(versionId, propertyType.Id).Result;
-        }
 
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
@@ -209,10 +154,6 @@ namespace SenseNet.ContentRepository.Storage
                 return null;
             return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
         }
-        internal static Dictionary<int, string> LoadTextProperties(int versionId, int[] notLoadedPropertyTypeIds)
-        {
-            return DataStore.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds).Result;
-        }
 
         // ====================================================================== Transaction callback
 
@@ -246,20 +187,6 @@ namespace SenseNet.ContentRepository.Storage
         internal static void OnNodeDataRollback(NodeDataParticipant participant)
         {
             participant.Data.Rollback();
-        }
-
-        // ====================================================================== Cache Key factory
-
-        private static readonly string NODE_HEAD_PREFIX = "NodeHeadCache.";
-        private static readonly string NODE_DATA_PREFIX = "NodeData.";
-
-        public static string CreateNodeHeadPathCacheKey(string path)
-        {
-            return string.Concat(NODE_HEAD_PREFIX, path.ToLowerInvariant());
-        }
-        internal static string GenerateNodeDataVersionIdCacheKey(int versionId)
-        {
-            return string.Concat(NODE_DATA_PREFIX, versionId);
         }
 
         // ====================================================================== Save Nodedata
@@ -340,7 +267,6 @@ namespace SenseNet.ContentRepository.Storage
 
             var data = node.Data;
             var isNewNode = data.Id == 0;
-            NodeDataParticipant participant = null;
 
             var msg = "Saving Node#" + node.Id + ", " + node.ParentPath + "/" + node.Name;
             var isLocalTransaction = !TransactionScope.IsActive;
@@ -353,8 +279,6 @@ namespace SenseNet.ContentRepository.Storage
                     var populatorData = populator.BeginPopulateNode(node, settings, originalPath, newPath);
 
                     data.CreateSnapshotData();
-
-                    participant = new NodeDataParticipant { Data = data, Settings = settings, IsNewNode = isNewNode };
 
                     if (settings.NodeHead != null)
                     {

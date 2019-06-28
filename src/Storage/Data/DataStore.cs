@@ -202,18 +202,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                     RemoveFromCache(nodeData);
 
                 // here we re-create the node head to insert it into the cache and refresh the version info);
-                //if (lastMajorVersionId > 0 || lastMinorVersionId > 0) //UNDONE:DB ? When can both variables 0 be?
-                //{
-                    var head = NodeHead.CreateFromNode(nodeData, lastMinorVersionId, lastMajorVersionId);
-                    if (MustCache(head.NodeTypeId))
-                    {
-                        var idKey = CreateNodeHeadIdCacheKey(head.Id);
-                        var pathKey = CreateNodeHeadPathCacheKey(head.Path);
-                        CacheNodeHead(head, idKey, pathKey);
-                    }
+                var head = NodeHead.CreateFromNode(nodeData, lastMinorVersionId, lastMajorVersionId);
+                if (MustCache(head.NodeTypeId))
+                {
+                    var idKey = CreateNodeHeadIdCacheKey(head.Id);
+                    var pathKey = CreateNodeHeadPathCacheKey(head.Path);
+                    CacheNodeHead(head, idKey, pathKey);
+                }
 
-                    //node.RefreshVersionInfo(head);
-                //}
                 return head;
             }
             catch (Exception e)
@@ -317,7 +313,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return false;
 
             // Look at the cache first
-            var pathKey = DataBackingStore.CreateNodeHeadPathCacheKey(path);
+            var pathKey = CreateNodeHeadPathCacheKey(path);
             if (Cache.Get(pathKey) is NodeHead)
                 return true;
 
@@ -761,6 +757,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                 // If not a list, invalidate item
                 NodeIdDependency.FireChanged(data.Id);
             }
+        }
+        public static void RemoveNodeDataFromCacheByVersionId(int versionId)
+        {
+            Cache.Remove(GenerateNodeDataVersionIdCacheKey(versionId));
         }
     }
 }

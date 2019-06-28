@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -35,7 +36,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_versions == null)
                 {
-                    _versions = DataBackingStore.GetNodeVersions(this.Id);
+                    _versions = DataStore.GetNodeVersionsAsync(this.Id).Result;
                     //TODO: After GetNodeVersions: check changes
                 }
                 return _versions;
@@ -132,19 +133,19 @@ namespace SenseNet.ContentRepository.Storage
 
         public static NodeHead Get(int nodeId)
         {
-            return DataBackingStore.GetNodeHead(nodeId);
+            return DataStore.LoadNodeHeadAsync(nodeId).Result;
         }
         public static NodeHead GetByVersionId(int versionId)
         {
-            return DataBackingStore.GetNodeHeadByVersionId(versionId);
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId).Result;
         }
         public static NodeHead Get(string path)
         {
-            return DataBackingStore.GetNodeHead(path);
+            return DataStore.LoadNodeHeadAsync(path).Result;
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<int> idArray)
         {
-            return DataBackingStore.GetNodeHeads(idArray);
+            return DataStore.LoadNodeHeadsAsync(idArray).Result;
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<string> pathSet)
         {

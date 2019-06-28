@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             DataStore.SaveIndexDocumentAsync(versionId, indexDoc).Wait();
 
             // 4: distributed cache invalidation because of version timestamp.
-            DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);
+            DataStore.RemoveNodeDataFromCacheByVersionId(versionId);
 
             // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
