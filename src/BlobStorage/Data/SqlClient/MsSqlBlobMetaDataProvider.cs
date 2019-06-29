@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.Tools;
+// ReSharper disable AccessToDisposedClosure
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
@@ -20,15 +21,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     {
         public DbConnection CreateConnection()
         {
-            return new SqlConnection(ConnectionStrings.ConnectionString); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateConnection()
+            return new SqlConnection(ConnectionStrings.ConnectionString);
         }
         public DbCommand CreateCommand()
         {
-            return new SqlCommand(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateCommand()
+            return new SqlCommand();
         }
         public DbParameter CreateParameter()
         {
-            return new SqlParameter(); //UNDONE:DB: Not tested:  MsSqlBlobMetaDataProvider.CreateParameter()
+            return new SqlParameter();
         }
         public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
         {
@@ -47,10 +48,12 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         #region ClearStreamByFileIdScript, GetBlobContextDataScript
 
-        private const string GetBlobContextDataScript = @"  SELECT Size, BlobProvider, BlobProviderData
+        private const string GetBlobStorageContextScript = @"-- MsSqlBlobMetaDataProvider.GetBlobStorageContext
+SELECT Size, BlobProvider, BlobProviderData
 FROM  dbo.Files WHERE FileId = @FileId
 ";
-        private const string ClearStreamByFileIdScript = @"UPDATE Files SET Stream = NULL WHERE FileId = @FileId;
+        private const string ClearStreamByFileIdScript = @"-- MsSqlBlobMetaDataProvider.ClearStreamByFileId
+UPDATE Files SET Stream = NULL WHERE FileId = @FileId;
 ";
 
         #endregion
@@ -64,11 +67,7 @@ FROM  dbo.Files WHERE FileId = @FileId
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                if (reader.Read())
-                    return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-            return null;
+            return GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId).Result;
         }
         /// <summary>
         /// Returns a context object that holds MsSql-specific data for blob storage operations.
@@ -79,58 +78,42 @@ FROM  dbo.Files WHERE FileId = @FileId
         /// <param name="propertyTypeId">Binary property type id.</param>
         public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                if (await reader.ReadAsync())
-                    return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-            return null;
-        }
-
-        private static SqlProcedure GetBlobContextProcedure(int fileId, bool clearStream, int versionId, int propertyTypeId)
-        {
-            // this is a helper method to aid both the sync and 
-            // async version of the GetBlobContext operation
-
-            var sql = GetBlobContextDataScript;
-
-            // add clear stream prefix of necessary
+            var sql = GetBlobStorageContextScript;
             if (clearStream)
                 sql = ClearStreamByFileIdScript + sql;
 
-            var cmd = new SqlProcedure {CommandText = sql, CommandType = CommandType.Text};
-
-            cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = fileId;
-
-            // security check: the given fileid must belong to the given version id and propertytypeid
-            if (clearStream)
+            using (var ctx = new SnDataContext(this))
             {
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
+                return await ctx.ExecuteReaderAsync(sql, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@FileId", DbType.Int32, fileId));
+                    if (clearStream)
+                    {
+                        cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
+                        cmd.Parameters.Add(ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId));
+                    }
+                }, async reader =>
+                {
+                    if (!await reader.ReadAsync())
+                        return null;
+
+                    var length = reader.GetSafeInt64(0);
+                    var providerName = reader.GetSafeString(1);
+                    var providerData = reader.GetSafeString(2);
+                    var provider = BlobStorageBase.GetProvider(providerName);
+
+                    return new BlobStorageContext(provider, providerData)
+                    {
+                        VersionId = versionId,
+                        PropertyTypeId = propertyTypeId,
+                        FileId = fileId,
+                        Length = length,
+                        BlobProviderData = provider == BlobStorageBase.BuiltInProvider
+                            ? new BuiltinBlobProviderData()
+                            : provider.ParseData(providerData)
+                    };
+                });
             }
-
-            return cmd;
-        }
-        private static BlobStorageContext GetBlobStorageContextPrivate(SqlDataReader reader, int fileId, int versionId, int propertyTypeId)
-        {
-            // this is a helper method to aid both the sync and 
-            // async version of the GetBlobContext operation
-
-            var length = reader.GetSafeInt64(0);
-            var providerName = reader.GetSafeString(1);
-            var providerData = reader.GetSafeString(2);
-
-            var provider = BlobStorageBase.GetProvider(providerName);
-
-            return new BlobStorageContext(provider, providerData)
-            {
-                VersionId = versionId,
-                PropertyTypeId = propertyTypeId,
-                FileId = fileId,
-                Length = length,
-                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
-                    ? new BuiltinBlobProviderData()
-                    : provider.ParseData(providerData)
-            };
         }
 
         #region DeleteBinaryPropertyScript, InsertBinaryPropertyScript
@@ -421,15 +404,15 @@ DELETE FROM BinaryProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
             {
                 var idsParam = string.Join(",", versionIdSet.Select(x => x.ToString()));
                 ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
-                    {
-                        cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
-                    })
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
+                })
                     .Wait();
             }
 
             if (dataContext == null)
             {
-                using(var ctx = new SnDataContext(this))
+                using (var ctx = new SnDataContext(this))
                     DeleteBinaryPropertiesLogic(versionIds, ctx);
             }
             else
@@ -482,7 +465,7 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
                         var streamIndex = reader.GetOrdinal("Stream");
                         if (!reader.IsDBNull(streamIndex))
                         {
-                            var rawData = (byte[]) reader.GetValue(streamIndex);
+                            var rawData = (byte[])reader.GetValue(streamIndex);
                             stream = new MemoryStream(rawData);
                         }
                     }
