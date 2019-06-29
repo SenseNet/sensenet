@@ -72,7 +72,7 @@ namespace SenseNet.Tests.SelfTest
                 using (var vw = new StreamWriter(@"D:\versions.txt", false))
                 using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataProvider.Current).DB.Nodes.Select(x => x.NodeId)); //DB:ok
+                        () => ((InMemoryDataProvider2)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId)); //DB:ok
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");
