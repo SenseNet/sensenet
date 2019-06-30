@@ -18,8 +18,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// Contains the MS SQL-specific implementation of the IBlobStorageMetaDataProvider interface that
     /// is responsible for binary-related operations in the main metadata database.
     /// </summary>
-    public class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider, IDbCommandFactory
+    public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider, IDbCommandFactory
     {
+        /* ======================================================================================= IDbCommandFactory */
+
         public DbConnection CreateConnection()
         {
             return new SqlConnection(ConnectionStrings.ConnectionString);
@@ -37,7 +39,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             return null;
         }
 
-
         /* ======================================================================================= IBlobStorageMetaDataProvider */
 
         private static string ValidateExtension(string originalExtension)
@@ -47,17 +48,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 : string.Concat(".", originalExtension);
         }
 
-        #region ClearStreamByFileIdScript, GetBlobContextDataScript
-
-        private const string GetBlobStorageContextScript = @"-- MsSqlBlobMetaDataProvider.GetBlobStorageContext
-SELECT Size, BlobProvider, BlobProviderData
-FROM  dbo.Files WHERE FileId = @FileId
-";
-        private const string ClearStreamByFileIdScript = @"-- MsSqlBlobMetaDataProvider.ClearStreamByFileId
-UPDATE Files SET Stream = NULL WHERE FileId = @FileId;
-";
-
-        #endregion
 
         /// <summary>
         /// Returns a context object that holds MsSql-specific data for blob storage operations.
@@ -117,25 +107,6 @@ UPDATE Files SET Stream = NULL WHERE FileId = @FileId;
             }
         }
 
-        #region DeleteBinaryPropertyScript, InsertBinaryPropertyScript
-        internal const string DeleteBinaryPropertyScript =
-    @"DELETE BinaryProperties WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId
-";
-
-        private const string InsertBinaryPropertyScript = @"INSERT INTO Files" +
-@" (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum])
-VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, @BlobProvider, @BlobProviderData,
-	CASE @Size WHEN 0 THEN NULL ELSE @Checksum END);
-DECLARE @FileId int; SELECT @FileId = @@IDENTITY;
-
-INSERT INTO BinaryProperties (VersionId, PropertyTypeId, FileId) VALUES (@VersionId, @PropertyTypeId, @FileId);
-DECLARE @BinPropId int; SELECT @BinPropId = @@IDENTITY;
-
-SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
-";
-
-        private const string DeleteAndInsertBinaryPropertyScript = DeleteBinaryPropertyScript + InsertBinaryPropertyScript;
-        #endregion
 
         /// <summary>
         /// Inserts a new binary property value into the metadata database and the blob storage, 
@@ -208,14 +179,6 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
             }
         }
 
-        #region InsertBinaryPropertyWithKnownFileIdScript
-        private const string InsertBinaryPropertyWithKnownFileIdScript = @"INSERT INTO BinaryProperties
-    (VersionId, PropertyTypeId, FileId) VALUES (@VersionId, @PropertyTypeId, @FileId)
-SELECT CAST(@@IDENTITY AS int)
-";
-        private const string DeleteAndInsertBinaryPropertyWithKnownFileIdScript = DeleteBinaryPropertyScript + InsertBinaryPropertyWithKnownFileIdScript;
-        #endregion
-
         /// <summary>
         /// Inserts a new binary record into the metadata database containing an already exising file id,
         /// removing the previous record if the content is not new.
@@ -240,55 +203,6 @@ SELECT CAST(@@IDENTITY AS int)
                 }).Result;
             }
         }
-
-        #region UpdateBinarypropertyNewFilerowScript
-        private const string UpdateBinaryPropertyNewFilerowScript = @"DECLARE @FileId int
-INSERT INTO Files (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum], [Stream])
-    VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, @BlobProvider, @BlobProviderData,
-		CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
-		CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END)
-SELECT @FileId = @@IDENTITY
-UPDATE BinaryProperties SET FileId = @FileId WHERE BinaryPropertyId = @BinaryPropertyId
-SELECT @FileId
-";
-
-        private const string UpdateBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.UpdateBinaryProperty
-DECLARE @FileId int
-SELECT @FileId = FileId FROM BinaryProperties WHERE BinaryPropertyId = @BinaryPropertyId
-
-DECLARE @EnsureNewFileRow tinyint
-IF (@BlobProvider IS NULL) AND (EXISTS (SELECT FileId FROM Files WHERE @FileId = FileId AND BlobProvider IS NOT NULL))
-	SET @EnsureNewFileRow = 1
-ELSE
-	SET @EnsureNewFileRow = 0
-
-IF (@EnsureNewFileRow = 1) OR (EXISTS (SELECT FileId FROM BinaryProperties WHERE FileId = @FileId AND BinaryPropertyId != @BinaryPropertyId)) BEGIN
-	INSERT INTO Files (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum], [Stream])
-	    VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, @BlobProvider, @BlobProviderData,
-			CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
-			CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END)
-
-	SELECT @FileId = @@IDENTITY
-
-	UPDATE BinaryProperties SET FileId = @FileId WHERE BinaryPropertyId = @BinaryPropertyId
-END
-ELSE BEGIN
-	UPDATE Files
-	SET	ContentType = @ContentType,
-		FileNameWithoutExtension = @FileNameWithoutExtension,
-		Extension = @Extension,
-		[Size] = @Size,
-		[BlobProvider] = @BlobProvider,
-		[BlobProviderData] = @BlobProviderData,
-		-- [Checksum] = IIF (@Size <= 0, NULL, @Checksum)
-		-- [Stream]   = IIF (@Size <= 0, NULL, CONVERT(varbinary, '')
-		[Checksum] = CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
-		[Stream]   = CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END
-	WHERE FileId = @FileId
-END
-SELECT @FileId
-";
-        #endregion
 
         /// <summary>
         /// Updates an existing binary property value in the database and the blob storage.
@@ -408,11 +322,6 @@ SELECT @FileId
             }
         }
 
-        private const string DeleteBinaryPropertiesScript = @"-- MsSqlBlobMetaDataProvider.DeleteBinaryProperties
-DECLARE @VersionIdTable AS TABLE(Id INT)
-INSERT INTO @VersionIdTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@VersionIds, ',');
-DELETE FROM BinaryProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
-";
         public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
             void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, SnDataContext ctx)
@@ -436,14 +345,6 @@ DELETE FROM BinaryProperties WHERE VersionId IN (SELECT Id FROM @VersionIdTable)
             }
         }
 
-        private const string LoadBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.LoadBinaryProperty
-SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
-    F.Extension, F.[Size], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp], F.[BlobProvider], F.[BlobProviderData] 
-FROM dbo.BinaryProperties B
-    JOIN dbo.Files F ON B.FileId = F.FileId
-WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
-
-";
         public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
             async Task<BinaryDataValue> LoadBinaryPropertyLogic(SnDataContext ctx)
@@ -508,14 +409,6 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
                     return LoadBinaryPropertyLogic(ctx).Result;
             return LoadBinaryPropertyLogic(dataContext).Result;
         }
-        #region LoadBinaryCacheentityFormatScript
-
-        private const string LoadBinaryCacheEntityScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < @MaxSize THEN F.Stream ELSE null END AS Stream
-            FROM dbo.BinaryProperties B
-                JOIN Files F ON B.FileId = F.FileId
-            WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
-
-        #endregion
 
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
@@ -570,49 +463,6 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
                 }).Result;
             }
         }
-
-        #region InsertStagingBinaryScript
-
-        private const string InsertStagingBinaryScript = @"
-DECLARE @ContentType varchar(50);
-DECLARE @FileNameWithoutExtension varchar(450);
-DECLARE @Extension varchar(50);
-DECLARE @FileId int;
-
-BEGIN TRAN
-                
--- select existing stream metadata values
-SELECT TOP(1) @ContentType = F.ContentType, @FileNameWithoutExtension = F.FileNameWithoutExtension, @Extension = F.Extension
-FROM BinaryProperties B JOIN Files F ON B.FileId = F.FileId
-WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId;
-
--- no existing binary/file relation
-IF (@ContentType IS NULL)
-BEGIN
-    SET @ContentType = '';
-    SET @FileNameWithoutExtension = '';
-    SET @Extension = '';
-END
-
-INSERT INTO Files ([ContentType],[FileNameWithoutExtension],[Extension],[Size],[Checksum],[CreationDate], [Staging], [StagingVersionId], [StagingPropertyTypeId], [BlobProvider], [BlobProviderData])
-VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, NULL, GETUTCDATE(), 1, @VersionId, @PropertyTypeId, @BlobProvider, @BlobProviderData);            
-
-SET @FileId = @@IDENTITY;
-
--- lazy binary row creation
-IF NOT EXISTS (SELECT 1 FROM BinaryProperties WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId)
-BEGIN
-    INSERT INTO BinaryProperties ([VersionId],[PropertyTypeId], [FileId])
-    VALUES (@VersionId, @PropertyTypeId, @FileId);
-END
-
-SELECT BinaryPropertyId, @FileId
-FROM BinaryProperties
-WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId
-
-COMMIT TRAN";
-
-        #endregion
 
         /// <summary>
         /// Starts a chunked save operation on an existing content. It does not write any binary data 
@@ -688,22 +538,6 @@ COMMIT TRAN";
             }
         }
 
-        #region UpdateStreamWriteChunkSecurityCheckScript, CommitChunkScript
-        internal static readonly string UpdateStreamWriteChunkSecurityCheckScript = @"
--- security check: if the versionid in the token matches the version that this staging row belongs to
-IF NOT EXISTS (SELECT 1 FROM Files WHERE FileId = @FileId AND StagingVersionId = @VersionId AND StagingPropertyTypeId = @PropertyTypeId)
-BEGIN
-    RAISERROR (N'FileId and versionid and propertytypeid mismatch.', 12, 1);
-END
-";
-        private static readonly string CommitChunkScript = UpdateStreamWriteChunkSecurityCheckScript +
-@"UPDATE Files SET [Size] = @Size, [Checksum] = @Checksum, ContentType = @ContentType, FileNameWithoutExtension = @FileNameWithoutExtension, Extension = @Extension, Staging = NULL, StagingVersionId = NULL, StagingPropertyTypeId = NULL
-    WHERE FileId = @FileId
-
-UPDATE BinaryProperties SET FileId = @FileId
-    WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId;";
-        #endregion
-
         /// <summary>
         /// Finalizes a chunked save operation.
         /// </summary>
@@ -750,13 +584,6 @@ UPDATE BinaryProperties SET FileId = @FileId
             }
         }
 
-        #region CleanupFileSetIsdeletedScript
-        // this is supposed to be faster than using LEFT JOIN
-        private const string CleanupFileSetIsdeletedScript = @"UPDATE [Files] SET IsDeleted = 1
-WHERE [Staging] IS NULL AND CreationDate < DATEADD(minute, -30, GETUTCDATE()) AND FileId NOT IN (SELECT FileId FROM [BinaryProperties])";
-
-        #endregion
-
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
         /// </summary>
@@ -778,12 +605,6 @@ WHERE [Staging] IS NULL AND CreationDate < DATEADD(minute, -30, GETUTCDATE()) AN
                 }
             }
         }
-
-        #region CleanupFileScript
-        private const string CleanupFileScript = @"DELETE TOP(1) FROM Files
-OUTPUT DELETED.FileId, DELETED.Size, DELETED.BlobProvider, DELETED.BlobProviderData 
-WHERE IsDeleted = 1";
-        #endregion
 
         /// <summary>
         /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
