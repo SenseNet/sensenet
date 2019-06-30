@@ -177,21 +177,18 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         #endregion
         internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            var commandText = LoadBinaryFragmentScript;
-
-            byte[] result;
-
-            using (var cmd = new SqlProcedure { CommandText = commandText })
+            using (var ctx = new MsSqlDataContext())
             {
-                cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = context.FileId;
-                cmd.Parameters.Add("@Position", SqlDbType.BigInt).Value = offset + 1;
-                cmd.Parameters.Add("@Count", SqlDbType.Int).Value = count;
-                cmd.CommandType = CommandType.Text;
-
-                result = (byte[])cmd.ExecuteScalar();
+                return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
+                        ctx.CreateParameter("@Position", SqlDbType.BigInt, offset + 1),
+                        ctx.CreateParameter("@Count", SqlDbType.Int, count),
+                    });
+                }).Result;
             }
-
-            return result;
         }
 
         /// <inheritdoc />
