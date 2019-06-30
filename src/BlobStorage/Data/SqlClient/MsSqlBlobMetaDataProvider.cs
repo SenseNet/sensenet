@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider, IDbCommandFactory
     {
         /* ======================================================================================= IDbCommandFactory */
-
+        //UNDONE:DB: Generalize IDbCommandFactory implementation. Use a common helper class
         public DbConnection CreateConnection()
         {
             return new SqlConnection(ConnectionStrings.ConnectionString);

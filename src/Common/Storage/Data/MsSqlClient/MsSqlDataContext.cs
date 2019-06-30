@@ -1,59 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using SenseNet.Configuration;
 using IsolationLevel = System.Data.IsolationLevel;
 
-namespace SenseNet.Common.Storage.Data
+namespace SenseNet.Common.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: Refactor: separate to independent files.
-    public class TransactionWrapper : IDbTransaction
+    public class MsSqlDataContext : IDisposable
     {
-        public DbTransaction Transaction { get; }
-
-        public IDbConnection Connection => Transaction.Connection;
-        public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
-        public TransactionStatus Status { get; private set; }
-
-        public TransactionWrapper(DbTransaction transaction)
-        {
-            Status = TransactionStatus.Active;
-            Transaction = transaction;
-        }
-
-        public virtual void Dispose()
-        {
-            Transaction.Dispose();
-        }
-        public virtual void Commit()
-        {
-            Transaction.Commit();
-            Status = TransactionStatus.Committed;
-        }
-        public virtual void Rollback()
-        {
-            Transaction.Rollback();
-            Status = TransactionStatus.Aborted;
-        }
-    }
-
-    public class SnDataContext : IDisposable
-    {
-        private readonly IDbCommandFactory _commandFactory;
-        private readonly DbConnection _connection;
+        private readonly SqlConnection _connection;
         private TransactionWrapper _transaction;
 
         public CancellationToken CancellationToken { get; }
 
-        public SnDataContext(IDbCommandFactory commandFactory, CancellationToken cancellationToken = default(CancellationToken))
+        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
-            _commandFactory = commandFactory;
             CancellationToken = cancellationToken;
-            _connection = _commandFactory.CreateConnection();
+            _connection = new SqlConnection(ConnectionStrings.ConnectionString);
             _connection.Open();
         }
 
@@ -67,19 +34,19 @@ namespace SenseNet.Common.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             var transaction = _connection.BeginTransaction(isolationLevel);
-            _transaction = _commandFactory.WrapTransaction(transaction) ?? new TransactionWrapper(transaction);
+            _transaction = new TransactionWrapper(transaction);
             return _transaction;
         }
 
         //UNDONE:DB: Handle Command/Connection/Transaction Timeout
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = _commandFactory.CreateCommand())
+            using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
+                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
                 setParams?.Invoke(cmd);
 
@@ -88,12 +55,12 @@ namespace SenseNet.Common.Storage.Data
         }
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = _commandFactory.CreateCommand())
+            using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
+                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
                 setParams?.Invoke(cmd);
 
@@ -106,12 +73,12 @@ namespace SenseNet.Common.Storage.Data
         }
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, Task<T>> callbackAsync)
         {
-            using (var cmd = _commandFactory.CreateCommand())
+            using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
+                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
                 setParams?.Invoke(cmd);
 
@@ -120,23 +87,24 @@ namespace SenseNet.Common.Storage.Data
             }
         }
 
-        public DbParameter CreateParameter(string name, DbType dbType, object value)
+        public SqlParameter CreateParameter(string name, SqlDbType dbType, object value)
         {
-            var prm = _commandFactory.CreateParameter();
-            prm.ParameterName = name;
-            prm.DbType = dbType;
-            prm.Value = value;
-            return prm;
+            return new SqlParameter
+            {
+                ParameterName = name,
+                SqlDbType = dbType,
+                Value = value
+            };
         }
-        public DbParameter CreateParameter(string name, DbType dbType, int size, object value)
+        public SqlParameter CreateParameter(string name, SqlDbType dbType, int size, object value)
         {
-            var prm = _commandFactory.CreateParameter();
-            prm.ParameterName = name;
-            prm.DbType = dbType;
-            prm.Size = size;
-            prm.Value = value;
-            return prm;
+            return new SqlParameter
+            {
+                ParameterName = name,
+                SqlDbType = dbType,
+                Size = size,
+                Value = value
+            };
         }
-
     }
 }
