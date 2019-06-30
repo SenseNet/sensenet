@@ -637,23 +637,25 @@ COMMIT TRAN";
                 blobProviderName = blobProvider.GetType().FullName;
                 blobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
-
             try
             {
-                using (var cmd = new SqlProcedure { CommandText = InsertStagingBinaryScript, CommandType = CommandType.Text })
+                using (var dctx = new SnDataContext(this))
                 {
-                    cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                    cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-                    cmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = fullSize;
-                    cmd.Parameters.Add("@BlobProvider", SqlDbType.NVarChar, 450).Value = blobProviderName != null ? (object)blobProviderName : DBNull.Value;
-                    cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = blobProviderData != null ? (object)blobProviderData : DBNull.Value;
-
-                    int binaryPropertyId;
-                    int fileId;
-
-                    using (var reader = cmd.ExecuteReader())
+                    return dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddRange(new[]
+                        {
+                            dctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                            dctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                            dctx.CreateParameter("@Size", DbType.Int64, fullSize),
+                            dctx.CreateParameter("@BlobProvider", DbType.String, 450, blobProviderName != null ? (object)blobProviderName : DBNull.Value),
+                            dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, blobProviderData != null ? (object)blobProviderData : DBNull.Value),
+                        });
+                    }, async reader =>
+                    {
+                        int binaryPropertyId;
+                        int fileId;
+                        if (await reader.ReadAsync())
                         {
                             binaryPropertyId = reader.GetSafeInt32(0);
                             fileId = reader.GetSafeInt32(1);
@@ -662,30 +664,21 @@ COMMIT TRAN";
                         {
                             throw new DataException("File row could not be inserted.");
                         }
-                    }
+                        ctx.FileId = fileId;
 
-                    ctx.FileId = fileId;
-
-                    return new ChunkToken
-                    {
-                        VersionId = versionId,
-                        PropertyTypeId = propertyTypeId,
-                        BinaryPropertyId = binaryPropertyId,
-                        FileId = fileId
-                    }.GetToken();
+                        return  new ChunkToken
+                        {
+                            VersionId = versionId,
+                            PropertyTypeId = propertyTypeId,
+                            BinaryPropertyId = binaryPropertyId,
+                            FileId = fileId
+                        }.GetToken();
+                    }).Result;
                 }
             }
             catch (Exception ex)
             {
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Rollback();
-
                 throw new DataException("Error during saving binary chunk to SQL Server.", ex);
-            }
-            finally
-            {
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Commit();
             }
         }
 
