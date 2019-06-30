@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data;
+using SenseNet.Common.Storage.Data.MsSqlClient;
+using SenseNet.Configuration;
+// ReSharper disable AccessToDisposedClosure
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
@@ -191,19 +197,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <inheritdoc />
         public void Write(BlobStorageContext context, long offset, byte[] buffer)
         {
-            using (var cmd = GetWriteChunkToSqlProcedure(context, offset, buffer))
-            {
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
-        {
-            using (var cmd = GetWriteChunkToSqlProcedure(context, offset, buffer))
-            {
-                await cmd.ExecuteNonQueryAsync();
-            }
+            WriteAsync(context, offset, buffer).Wait();
         }
 
         #region UpdateStreamWriteChunkScript
@@ -220,21 +214,26 @@ IF @StreamLength < @Offset
 UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId = @FileId";
         #endregion
 
-        // ReSharper disable once SuggestBaseTypeForParameter
-        private static SqlProcedure GetWriteChunkToSqlProcedure(BlobStorageContext context, long offset, byte[] buffer)
+        /// <inheritdoc />
+        public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
-            // This is a helper method to aid both the sync and async version of the write chunk operation.
+            using (var ctx = new MsSqlDataContext())
+            {
+                await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@FileId", SqlDbType.Int, context.FileId),
+                        ctx.CreateParameter("@VersionId", SqlDbType.Int, context.VersionId),
+                        ctx.CreateParameter("@PropertyTypeId", SqlDbType.Int, context.PropertyTypeId),
+                        ctx.CreateParameter("@Data", SqlDbType.VarBinary, buffer),
+                        ctx.CreateParameter("@Offset", SqlDbType.BigInt, offset),
+                    });
 
-            var cmd = new SqlProcedure { CommandText = UpdateStreamWriteChunkScript, CommandType = CommandType.Text };
-
-            cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = context.FileId;
-            cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = context.VersionId;
-            cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = context.PropertyTypeId;
-            cmd.Parameters.Add("@Data", SqlDbType.VarBinary).Value = buffer;
-            cmd.Parameters.Add("@Offset", SqlDbType.BigInt).Value = offset;
-
-            return cmd;
+                });
+            }
         }
+
 
         /// <summary>
         /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
