@@ -641,39 +641,44 @@ COMMIT TRAN";
             {
                 using (var dctx = new SnDataContext(this))
                 {
-                    return dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
+                    using (var transaction = dctx.BeginTransaction())
                     {
-                        cmd.Parameters.AddRange(new[]
+                        var result = dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                         {
-                            dctx.CreateParameter("@VersionId", DbType.Int32, versionId),
-                            dctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
-                            dctx.CreateParameter("@Size", DbType.Int64, fullSize),
-                            dctx.CreateParameter("@BlobProvider", DbType.String, 450, blobProviderName != null ? (object)blobProviderName : DBNull.Value),
-                            dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, blobProviderData != null ? (object)blobProviderData : DBNull.Value),
-                        });
-                    }, async reader =>
-                    {
-                        int binaryPropertyId;
-                        int fileId;
-                        if (await reader.ReadAsync())
+                            cmd.Parameters.AddRange(new[]
+                            {
+                                dctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                                dctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                                dctx.CreateParameter("@Size", DbType.Int64, fullSize),
+                                dctx.CreateParameter("@BlobProvider", DbType.String, 450, blobProviderName != null ? (object)blobProviderName : DBNull.Value),
+                                dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, blobProviderData != null ? (object)blobProviderData : DBNull.Value),
+                            });
+                        }, async reader =>
                         {
-                            binaryPropertyId = reader.GetSafeInt32(0);
-                            fileId = reader.GetSafeInt32(1);
-                        }
-                        else
-                        {
-                            throw new DataException("File row could not be inserted.");
-                        }
-                        ctx.FileId = fileId;
+                            int binaryPropertyId;
+                            int fileId;
+                            if (await reader.ReadAsync())
+                            {
+                                binaryPropertyId = reader.GetSafeInt32(0);
+                                fileId = reader.GetSafeInt32(1);
+                            }
+                            else
+                            {
+                                throw new DataException("File row could not be inserted.");
+                            }
+                            ctx.FileId = fileId;
 
-                        return  new ChunkToken
-                        {
-                            VersionId = versionId,
-                            PropertyTypeId = propertyTypeId,
-                            BinaryPropertyId = binaryPropertyId,
-                            FileId = fileId
-                        }.GetToken();
-                    }).Result;
+                            return new ChunkToken
+                            {
+                                VersionId = versionId,
+                                PropertyTypeId = propertyTypeId,
+                                BinaryPropertyId = binaryPropertyId,
+                                FileId = fileId
+                            }.GetToken();
+                        }).Result;
+                        transaction.Commit();
+                        return result;
+                    }
                 }
             }
             catch (Exception ex)
@@ -708,47 +713,39 @@ UPDATE BinaryProperties SET FileId = @FileId
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         public void CommitChunk(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source = null)
         {
-            // start a new transaction here if needed
-            var isLocalTransaction = !TransactionScope.IsActive;
-            if (isLocalTransaction)
-                TransactionScope.Begin();
-
             try
             {
-                // commit the process: set the final full size and checksum
-                using (var cmd = new SqlProcedure { CommandText = CommitChunkScript, CommandType = CommandType.Text })
+                using (var ctx = new SnDataContext(this))
                 {
-                    cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = fileId;
-                    cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                    cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-                    cmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = fullSize;
-                    cmd.Parameters.Add("@Checksum", SqlDbType.VarChar, 200).Value = DBNull.Value;
+                    using (var transaction = ctx.BeginTransaction())
+                    {
+                        ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
+                        {
+                            cmd.Parameters.AddRange(new[]
+                            {
+                                ctx.CreateParameter("@FileId", DbType.Int32, fileId),
+                                ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                                ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                                ctx.CreateParameter("@Size", DbType.Int64, fullSize),
+                                ctx.CreateParameter("@Checksum", DbType.AnsiString, 200, DBNull.Value),
+                                ctx.CreateParameter("@ContentType", DbType.String, 50, source != null ? source.ContentType : string.Empty),
+                                ctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, source != null
+                                    ? source.FileName.FileNameWithoutExtension == null
+                                        ? DBNull.Value
+                                        : (object) source.FileName.FileNameWithoutExtension
+                                    : DBNull.Value),
 
-                    cmd.Parameters.Add("@ContentType", SqlDbType.NVarChar, 50).Value = source != null ? source.ContentType : string.Empty;
-                    cmd.Parameters.Add("@FileNameWithoutExtension", SqlDbType.NVarChar, 450).Value = source != null
-                        ? source.FileName.FileNameWithoutExtension == null
-                            ? DBNull.Value
-                            : (object)source.FileName.FileNameWithoutExtension
-                        : DBNull.Value;
-
-                    cmd.Parameters.Add("@Extension", SqlDbType.NVarChar, 50).Value = source != null ? ValidateExtension(source.FileName.Extension) : string.Empty;
-
-                    cmd.ExecuteNonQuery();
+                                ctx.CreateParameter("@Extension", DbType.String, 50,
+                                    source != null ? ValidateExtension(source.FileName.Extension) : string.Empty),
+                            });
+                        }).Wait();
+                        transaction.Commit();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // rollback the transaction if it was opened locally
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Rollback();
-
                 throw new DataException("Error during committing binary chunk to file stream.", ex);
-            }
-            finally
-            {
-                // commit the transaction if it was opened locally
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Commit();
             }
         }
 
@@ -764,31 +761,20 @@ WHERE [Staging] IS NULL AND CreationDate < DATEADD(minute, -30, GETUTCDATE()) AN
         /// </summary>
         public void CleanupFilesSetDeleteFlag()
         {
-            var isLocalTransaction = false;
-
-            if (!TransactionScope.IsActive)
+            using (var ctx = new SnDataContext(this))
             {
-                TransactionScope.Begin();
-                isLocalTransaction = true;
-            }
-
-            try
-            {
-                using (var proc = new SqlProcedure { CommandText = CleanupFileSetIsdeletedScript, CommandType = CommandType.Text })
+                using (var transaction = ctx.BeginTransaction())
                 {
-                    proc.CommandType = CommandType.Text;
-                    proc.ExecuteNonQuery();
+                    try
+                    {
+                        ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript).Wait();
+                        transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new DataException("Error during setting deleted flag on files.", e);
+                    }
                 }
-
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Commit();
-            }
-            catch (Exception ex)
-            {
-                if (isLocalTransaction && TransactionScope.IsActive)
-                    TransactionScope.Rollback();
-
-                throw new DataException("Error during setting deleted flag on files.", ex);
             }
         }
 
