@@ -509,7 +509,7 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
         }
         #region LoadBinaryCacheentityFormatScript
 
-        private const string LoadBinaryCacheEntityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < {0} THEN F.Stream ELSE null END AS Stream
+        private const string LoadBinaryCacheEntityScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < @MaxSize THEN F.Stream ELSE null END AS Stream
             FROM dbo.BinaryProperties B
                 JOIN Files F ON B.FileId = F.FileId
             WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
@@ -524,15 +524,17 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            var commandText = string.Format(LoadBinaryCacheEntityFormatScript, BlobStorage.BinaryCacheSize);
-
-            using (var cmd = new SqlProcedure { CommandText = commandText })
+            using (var ctx = new SnDataContext(this))
             {
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-                cmd.CommandType = CommandType.Text;
-
-                using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                return ctx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@MaxSize", DbType.Int32, BlobStorage.BinaryCacheSize),
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                    });
+                }, reader =>
                 {
                     if (!reader.HasRows || !reader.Read())
                         return null;
@@ -555,15 +557,16 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
                             rawData = (byte[])reader.GetValue(5);
                     }
 
-                    return new BinaryCacheEntity
+                    return Task.FromResult(new BinaryCacheEntity
                     {
                         Length = length,
                         RawData = rawData,
                         BinaryPropertyId = binaryPropertyId,
                         FileId = fileId,
                         Context = context
-                    };
-                }
+                    });
+
+                }).Result;
             }
         }
 
