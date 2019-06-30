@@ -133,7 +133,7 @@ DECLARE @BinPropId int; SELECT @BinPropId = @@IDENTITY;
 SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
 ";
 
-        private const string DeleteAndInsertBinaryProperty = DeleteBinaryPropertyScript + InsertBinaryPropertyScript;
+        private const string DeleteAndInsertBinaryPropertyScript = DeleteBinaryPropertyScript + InsertBinaryPropertyScript;
         #endregion
 
         /// <summary>
@@ -165,35 +165,33 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            SqlProcedure cmd = null;
-            try
+            using (var dctx = new SnDataContext(this))
             {
-                cmd = new SqlProcedure { CommandText = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryProperty, CommandType = CommandType.Text };
-
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId != 0 ? (object)versionId : DBNull.Value;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId != 0 ? (object)propertyTypeId : DBNull.Value;
-                cmd.Parameters.Add("@ContentType", SqlDbType.NVarChar, 450).Value = value.ContentType;
-                cmd.Parameters.Add("@FileNameWithoutExtension", SqlDbType.NVarChar, 450).Value = value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension;
-                cmd.Parameters.Add("@Extension", SqlDbType.NVarChar, 50).Value = ValidateExtension(value.FileName.Extension);
-                cmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = Math.Max(0, value.Size);
-                cmd.Parameters.Add("@BlobProvider", SqlDbType.NVarChar, 450).Value = value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value;
-                cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value;
-                cmd.Parameters.Add("@Checksum", SqlDbType.VarChar, 200).Value = value.Checksum != null ? (object)value.Checksum : DBNull.Value;
-
-                // insert binary and file rows and retrieve new ids.
-                using (var reader = cmd.ExecuteReader())
+                var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
+                dctx.ExecuteReaderAsync(sql, cmd =>
                 {
-                    reader.Read();
-
-                    value.Id = Convert.ToInt32(reader[0]);
-                    value.FileId = Convert.ToInt32(reader[1]);
-                    value.Timestamp = Utility.Convert.BytesToLong((byte[])reader.GetValue(2));
-                }
-
-            }
-            finally
-            {
-                cmd.Dispose();
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        dctx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object)versionId : DBNull.Value),
+                        dctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object)propertyTypeId : DBNull.Value),
+                        dctx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
+                        dctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
+                        dctx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
+                        dctx.CreateParameter("@Size", DbType.Int64, Math.Max(0, value.Size)),
+                        dctx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
+                        dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
+                        dctx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
+                    });
+                }, reader =>
+                {
+                    if (reader.Read())
+                    {
+                        value.Id = Convert.ToInt32(reader[0]);
+                        value.FileId = Convert.ToInt32(reader[1]);
+                        value.Timestamp = Utility.Convert.BytesToLong((byte[])reader.GetValue(2));
+                    }
+                    return Task.FromResult(true);
+                }).Wait();
             }
 
             // The BuiltIn blob provider saves the stream after the record 
