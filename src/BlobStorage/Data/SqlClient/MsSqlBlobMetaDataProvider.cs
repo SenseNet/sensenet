@@ -11,6 +11,7 @@ using SenseNet.Configuration;
 using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     /// <summary>
@@ -445,7 +446,7 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
 ";
         public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
-            async Task<BinaryDataValue> LoadBinaryPropertyLogic(int vId, int ptId, SnDataContext ctx)
+            async Task<BinaryDataValue> LoadBinaryPropertyLogic(SnDataContext ctx)
             {
                 return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
                 {
@@ -504,8 +505,8 @@ WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS
 
             if (dataContext == null)
                 using (var ctx = new SnDataContext(this))
-                    return LoadBinaryPropertyLogic(versionId, propertyTypeId, ctx).Result;
-            return LoadBinaryPropertyLogic(versionId, propertyTypeId, dataContext).Result;
+                    return LoadBinaryPropertyLogic(ctx).Result;
+            return LoadBinaryPropertyLogic(dataContext).Result;
         }
         #region LoadBinaryCacheentityFormatScript
 
@@ -790,15 +791,13 @@ WHERE IsDeleted = 1";
         /// <returns>Whether there was at least one row that was deleted.</returns>
         public bool CleanupFiles()
         {
-            using (var proc = new SqlProcedure { CommandText = CleanupFileScript, CommandType = CommandType.Text })
+            using (var dctx = new SnDataContext(this))
             {
-                proc.CommandType = CommandType.Text;
-
-                try
+                return dctx.ExecuteReaderAsync(CleanupFileScript, reader =>
                 {
-                    var deleted = false;
-                    using (var reader = proc.ExecuteReader())
+                    try
                     {
+                        var deleted = false;
                         var fileId = 0;
                         var size = 0L;
                         string providerName = null;
@@ -819,13 +818,14 @@ WHERE IsDeleted = 1";
                         var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
                         ctx.Provider.Delete(ctx);
+
+                        return Task.FromResult(deleted);
                     }
-                    return deleted;
-                }
-                catch (Exception ex)
-                {
-                    throw new DataException("Error during binary cleanup.", ex);
-                }
+                    catch (Exception ex)
+                    {
+                        throw new DataException("Error during binary cleanup.", ex);
+                    }
+                }).Result;
             }
         }
 
