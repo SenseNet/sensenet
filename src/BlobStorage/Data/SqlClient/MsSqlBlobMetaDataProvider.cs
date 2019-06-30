@@ -251,6 +251,42 @@ UPDATE BinaryProperties SET FileId = @FileId WHERE BinaryPropertyId = @BinaryPro
 SELECT @FileId
 ";
 
+        private const string UpdateBinaryPropertyScript = @"-- MsSqlBlobMetaDataProvider.UpdateBinaryProperty
+DECLARE @FileId int
+SELECT @FileId = FileId FROM BinaryProperties WHERE BinaryPropertyId = @BinaryPropertyId
+
+DECLARE @EnsureNewFileRow tinyint
+IF (@BlobProvider IS NULL) AND (EXISTS (SELECT FileId FROM Files WHERE @FileId = FileId AND BlobProvider IS NOT NULL))
+	SET @EnsureNewFileRow = 1
+ELSE
+	SET @EnsureNewFileRow = 0
+
+IF (@EnsureNewFileRow = 1) OR (EXISTS (SELECT FileId FROM BinaryProperties WHERE FileId = @FileId AND BinaryPropertyId != @BinaryPropertyId)) BEGIN
+	INSERT INTO Files (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum], [Stream])
+	    VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, @BlobProvider, @BlobProviderData,
+			CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
+			CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END)
+
+	SELECT @FileId = @@IDENTITY
+
+	UPDATE BinaryProperties SET FileId = @FileId WHERE BinaryPropertyId = @BinaryPropertyId
+END
+ELSE BEGIN
+	UPDATE Files
+	SET	ContentType = @ContentType,
+		FileNameWithoutExtension = @FileNameWithoutExtension,
+		Extension = @Extension,
+		[Size] = @Size,
+		[BlobProvider] = @BlobProvider,
+		[BlobProviderData] = @BlobProviderData,
+		-- [Checksum] = IIF (@Size <= 0, NULL, @Checksum)
+		-- [Stream]   = IIF (@Size <= 0, NULL, CONVERT(varbinary, '')
+		[Checksum] = CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
+		[Stream]   = CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END
+	WHERE FileId = @FileId
+END
+SELECT @FileId
+";
         #endregion
 
         /// <summary>
@@ -298,39 +334,28 @@ SELECT @FileId
                 // do not do any database operation if the stream is not modified
                 return;
 
-            SqlProcedure cmd = null;
-            try
+            using (var dctx = new SnDataContext(this))
             {
-                string sql;
-                CommandType commandType;
-                if (blobProvider == BlobStorageBase.BuiltInProvider)
+                var sql = blobProvider == BlobStorageBase.BuiltInProvider
+                    ? UpdateBinaryPropertyScript
+                    : UpdateBinaryPropertyNewFilerowScript;
+                var fileId = (int)dctx.ExecuteScalarAsync(sql, cmd =>
                 {
-                    commandType = CommandType.StoredProcedure;
-                    sql = "proc_BinaryProperty_Update";
-                }
-                else
-                {
-                    commandType = CommandType.Text;
-                    sql = UpdateBinaryPropertyNewFilerowScript;
-                }
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        dctx.CreateParameter("@BinaryPropertyId", DbType.Int32, value.Id),
+                        dctx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
+                        dctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
+                        dctx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
+                        dctx.CreateParameter("@Size", DbType.Int64, value.Size),
+                        dctx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
+                        dctx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
+                        dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
+                    });
+                }).Result;
 
-                cmd = new SqlProcedure { CommandText = sql, CommandType = commandType };
-                cmd.Parameters.Add("@BinaryPropertyId", SqlDbType.Int).Value = value.Id;
-                cmd.Parameters.Add("@ContentType", SqlDbType.NVarChar, 450).Value = value.ContentType;
-                cmd.Parameters.Add("@FileNameWithoutExtension", SqlDbType.NVarChar, 450).Value = value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension;
-                cmd.Parameters.Add("@Extension", SqlDbType.NVarChar, 50).Value = ValidateExtension(value.FileName.Extension);
-                cmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = value.Size;
-                cmd.Parameters.Add("@Checksum", SqlDbType.VarChar, 200).Value = value.Checksum != null ? (object)value.Checksum : DBNull.Value;
-                cmd.Parameters.Add("@BlobProvider", SqlDbType.NVarChar, 450).Value = value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value;
-                cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value;
-
-                var fileId = (int)cmd.ExecuteScalar();
                 if (fileId > 0 && fileId != value.FileId)
                     value.FileId = fileId;
-            }
-            finally
-            {
-                cmd.Dispose();
             }
 
             if (blobProvider == BlobStorageBase.BuiltInProvider)
@@ -369,17 +394,16 @@ SELECT @FileId
         /// <param name="propertyTypeId">Binary property type id.</param>
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
-            SqlProcedure cmd = null;
-            try
+            using (var ctx = new SnDataContext(this))
             {
-                cmd = new SqlProcedure { CommandText = "proc_BinaryProperty_Delete" };
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
-                cmd.ExecuteNonQuery();
-            }
-            finally
-            {
-                cmd?.Dispose();
+                ctx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                    });
+                }).Wait();
             }
         }
 
