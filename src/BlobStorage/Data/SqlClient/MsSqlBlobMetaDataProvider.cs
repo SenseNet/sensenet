@@ -212,7 +212,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
     (VersionId, PropertyTypeId, FileId) VALUES (@VersionId, @PropertyTypeId, @FileId)
 SELECT CAST(@@IDENTITY AS int)
 ";
-        private const string DeleteAndInsertBinaryPropertyWithKnownFileId = DeleteBinaryPropertyScript + InsertBinaryPropertyWithKnownFileIdScript;
+        private const string DeleteAndInsertBinaryPropertyWithKnownFileIdScript = DeleteBinaryPropertyScript + InsertBinaryPropertyWithKnownFileIdScript;
         #endregion
 
         /// <summary>
@@ -225,27 +225,19 @@ SELECT CAST(@@IDENTITY AS int)
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
-            SqlProcedure cmd = null;
-            int id;
-
-            try
+            var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
+            using (var ctx = new SnDataContext(this))
             {
-                cmd = new SqlProcedure
+                value.Id = (int) ctx.ExecuteScalarAsync(sql, cmd =>
                 {
-                    CommandText = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileId,
-                    CommandType = CommandType.Text
-                };
-                cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId != 0 ? (object)versionId : DBNull.Value;
-                cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId != 0 ? (object)propertyTypeId : DBNull.Value;
-                cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = value.FileId;
-                id = (int)cmd.ExecuteScalar();
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object) versionId : DBNull.Value),
+                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object) propertyTypeId : DBNull.Value),
+                        ctx.CreateParameter("@FileId", DbType.Int32, value.FileId),
+                    });
+                }).Result;
             }
-            finally
-            {
-                cmd?.Dispose();
-            }
-
-            value.Id = id;
         }
 
         #region UpdateBinarypropertyNewFilerowScript
