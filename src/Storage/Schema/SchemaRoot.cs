@@ -207,7 +207,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
             if (rows.Count == 0)
                 return 0;
             var row = rows[0];
-            return SenseNet.ContentRepository.Storage.Data.SqlClient.SqlProvider.GetLongFromBytes((byte[])row["Timestamp"]);
+            //return DataProvider.GetLongFromBytes((byte[])row["Timestamp"]);
+            throw new NotSupportedException();
         }
         private static Dictionary<int, DataType> BuildDataTypeHelper(DataSet dataSet)
         {
