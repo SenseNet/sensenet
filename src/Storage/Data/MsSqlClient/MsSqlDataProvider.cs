@@ -91,13 +91,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (orderByPath)
                 sql.AppendLine().Append("ORDER BY Path");
 
-            return await MsSqlProcedure.ExecuteReaderAsync(sql.ToString(), reader =>
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                var result = new List<int>();
-                while (reader.Read())
-                    result.Add(reader.GetSafeInt32(0));
-                return (IEnumerable<int>) result;
-            });
+                return await ctx.ExecuteReaderAsync(sql.ToString(), async reader =>
+                {
+                    var result = new List<int>();
+                    while (reader.Read())
+                        result.Add(reader.GetSafeInt32(0));
+                    return (IEnumerable<int>)result;
+                });
+            }
         }
 
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
