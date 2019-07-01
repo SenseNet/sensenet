@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             throw new NotSupportedException();
         }
 
-        private static readonly string AddStreamScript = @"-- BuiltInBlobProvider.AddStream
+        private static readonly string WriteStreamScript = @"-- BuiltInBlobProvider.WriteStream
 UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_WriteStream
 
         /// <summary>
@@ -43,26 +43,9 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// </summary>
         public static void AddStream(BlobStorageContext context, Stream stream)
         {
-            // We have to work with an integer since SQL does not support
-            // binary values bigger than [Int32.MaxValue].
-            var bufferSize = Convert.ToInt32(stream.Length);
-
-            // Read bytes from the source
-            var buffer = new byte[bufferSize];
-            stream.Seek(0, SeekOrigin.Begin);
-            stream.Read(buffer, 0, bufferSize);
-
-            using (var ctx = new MsSqlDataContext())
-            {
-                ctx.ExecuteNonQueryAsync(AddStreamScript, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@Id", SqlDbType.Int, context.FileId),
-                        ctx.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
-                    });
-                }).Wait();
-            }
+            if (stream == null || stream.Length == 0L)
+                return;
+            UpdateStream(context, stream);
         }
 
         /// <summary>
@@ -71,59 +54,28 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// </summary>
         public static void UpdateStream(BlobStorageContext context, Stream stream)
         {
-            var fileId = context.FileId;
+            // We have to work with an integer since SQL does not support
+            // binary values bigger than [Int32.MaxValue].
+            var bufferSize = Convert.ToInt32(stream.Length);
 
-            SqlProcedure cmd = null;
-            try
+            var buffer = new byte[bufferSize];
+            if (bufferSize > 0)
             {
-                // We have to work with an integer since SQL does not support
-                // binary values bigger than [Int32.MaxValue].
-                var streamSize = Convert.ToInt32(stream.Length);
-
-                cmd = new SqlProcedure { CommandText = "proc_BinaryProperty_WriteStream" };
-                cmd.Parameters.Add("@Id", SqlDbType.Int).Value = fileId;
-
-                var offsetParameter = cmd.Parameters.Add("@Offset", SqlDbType.Int);
-                var valueParameter = cmd.Parameters.Add("@Value", SqlDbType.VarBinary, streamSize);
-
-                var offset = 0;
-                byte[] buffer = null;
+                // Read bytes from the source
                 stream.Seek(0, SeekOrigin.Begin);
-
-                if (stream.Length == 0)
-                {
-                    offsetParameter.Value = offset;
-                    valueParameter.Value = new byte[0];
-                    cmd.ExecuteNonQuery();
-                }
-                else
-                {
-                    // The 'while' loop is misleading here, because we write the whole
-                    // stream at once. Bigger files should go to another blob provider.
-                    while (offset < streamSize)
-                    {
-                        // Buffer size may be less at the end os the stream than the limit
-                        var bufferSize = streamSize - offset;
-
-                        if (buffer == null || buffer.Length != bufferSize)
-                            buffer = new byte[bufferSize];
-
-                        // Read bytes from the source
-                        stream.Read(buffer, 0, bufferSize);
-
-                        offsetParameter.Value = offset;
-                        valueParameter.Value = buffer;
-
-                        // Write full stream
-                        cmd.ExecuteNonQuery();
-
-                        offset += bufferSize;
-                    }
-                }
+                stream.Read(buffer, 0, bufferSize);
             }
-            finally
+
+            using (var ctx = new MsSqlDataContext())
             {
-                cmd?.Dispose();
+                ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@Id", SqlDbType.Int, context.FileId),
+                        ctx.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
+                    });
+                }).Wait();
             }
         }
 
