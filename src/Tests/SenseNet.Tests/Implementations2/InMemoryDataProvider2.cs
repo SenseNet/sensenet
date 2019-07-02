@@ -609,6 +609,12 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             }
         }
 
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException(); //UNDONE:DB: Not implemented / not tested
+        }
+
         private NodeHead NodeDocToNodeHeadSafe(NodeDoc nodeDoc)
         {
             return new NodeHead(

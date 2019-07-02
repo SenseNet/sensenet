@@ -1131,6 +1131,60 @@ namespace SenseNet.ContentRepository.Storage.Data
             );
         }
 
+        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+            CancellationToken cancellationToken = default(CancellationToken)) //UNDONE:DB: not tested
+        {
+            var pathList = paths.ToList();
+            List<NodeHead> heads;
+            string sql;
+            using (var ctx = new SnDataContext(this, cancellationToken))
+            {
+                if (resolveAll)
+                {
+                    sql = GetAppModelScript(pathList, true, resolveChildren);
+                    List<NodeHead>[] resultSorter;
+                    heads = await ctx.ExecuteReaderAsync(sql, async reader =>
+                    {
+                        var result = new List<NodeHead>();
+                        resultSorter = new List<NodeHead>[pathList.Count];
+                        while (await reader.ReadAsync(cancellationToken))
+                        {
+                            var nodeHead = NodeHead.Get(reader.GetInt32(0));
+                            var searchPath = resolveChildren
+                                ? RepositoryPath.GetParentPath(nodeHead.Path)
+                                : nodeHead.Path;
+                            var index = pathList.IndexOf(searchPath);
+                            if (resultSorter[index] == null)
+                                resultSorter[index] = new List<NodeHead>();
+                            resultSorter[index].Add(nodeHead);
+                        }
+                        foreach (var list in resultSorter)
+                        {
+                            if (list != null)
+                            {
+                                list.Sort((x, y) => { return x.Path.CompareTo(y.Path); });
+                                foreach (var nodeHead in list)
+                                    result.Add(nodeHead);
+                            }
+                        }
+                        return result;
+                    });
+                }
+                else
+                {
+                    sql = GetAppModelScript(pathList, true, resolveChildren);
+                    heads = await ctx.ExecuteReaderAsync(sql, async reader => {
+                        var result = new List<NodeHead>();
+                        if (await reader.ReadAsync(cancellationToken))
+                            result.Add(NodeHead.Get(reader.GetInt32(0)));
+                        return result;
+                    });
+                }
+            }
+            return heads;
+        }
+        protected abstract string GetAppModelScript(IEnumerable<string> paths, bool resolveAll, bool resolveChildren);
+
         /* =============================================================================================== NodeQuery */
 
         public override async Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))

@@ -758,6 +758,59 @@ SELECT COUNT(*) FROM Nodes WHERE NodeTypeId IN ({0})
 ";
         #endregion
 
+
+        #region AppModel script generator constants
+        private static readonly string AppModelQ0 = @"-- MsSqlDataProvider.GetAppModelScript()
+DECLARE @availablePaths AS TABLE([Id] INT IDENTITY (1, 1), [Path] NVARCHAR(900))";
+
+        private static readonly string AppModelQ1 = "INSERT @availablePaths ([Path]) VALUES ('{0}')";
+
+        private static readonly string AppModelQ2 = @"SELECT TOP 1 N.NodeId FROM @availablePaths C
+LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+WHERE N.[Path] IS NOT NULL
+ORDER BY C.Id";
+
+        private static readonly string AppModelQ3 = @"SELECT N.NodeId FROM @availablePaths C
+LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+WHERE N.[Path] IS NOT NULL
+ORDER BY C.Id";
+
+        private static readonly string AppModelQ4 = @"SELECT N.NodeId, N.[Path] FROM Nodes N
+WHERE N.ParentNodeId IN
+(
+    SELECT N.NodeId FROM @availablePaths C
+    LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+    WHERE N.[Path] IS NOT NULL
+)";
+        #endregion
+        protected override string GetAppModelScript(IEnumerable<string> paths, bool resolveAll, bool resolveChildren)
+        {
+            var script = new StringBuilder();
+            script.AppendLine(AppModelQ0);
+            foreach (var path in paths)
+            {
+                script.AppendFormat(AppModelQ1, SecureSqlStringValue(path));
+                script.AppendLine();
+            }
+
+            if (resolveAll)
+            {
+                if (resolveChildren)
+                    script.AppendLine(AppModelQ4);
+                else
+                    script.AppendLine(AppModelQ3);
+            }
+            else
+            {
+                script.Append(AppModelQ2);
+            }
+            return script.ToString();
+        }
+        private string SecureSqlStringValue(string value)
+        {
+            return value.Replace(@"'", @"''").Replace("/*", "**").Replace("--", "**");
+        }
+
         /* ------------------------------------------------ NodeQuery */
 
         #region GetChildrenIdentfiersScript
