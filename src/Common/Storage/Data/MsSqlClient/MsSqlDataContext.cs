@@ -44,6 +44,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
             using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
@@ -58,6 +59,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
             using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
@@ -76,6 +78,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
             using (var cmd = new SqlCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = (SqlTransaction)_transaction?.Transaction;

@@ -423,7 +423,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                     return null;
                 })
                 .Where(instance => instance != null)
-                //UNDONE:DB: revise this method and use more sophisticated distinction.
                 .Distinct(new BlobProviderComparer())
                 .ToDictionary(x => x.GetType().FullName, x => x);
 

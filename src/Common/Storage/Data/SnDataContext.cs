@@ -77,6 +77,7 @@ namespace SenseNet.Common.Storage.Data
             using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
@@ -91,6 +92,7 @@ namespace SenseNet.Common.Storage.Data
             using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
@@ -109,6 +111,7 @@ namespace SenseNet.Common.Storage.Data
             using (var cmd = _commandFactory.CreateCommand())
             {
                 cmd.Connection = _connection;
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
