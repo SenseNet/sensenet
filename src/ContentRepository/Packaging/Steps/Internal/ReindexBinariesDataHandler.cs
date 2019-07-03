@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
 
 // ReSharper disable once CheckNamespace
@@ -12,25 +14,42 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             internal static void InstallTables()
             {
-                // proc CreateTable
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTables)) //DB:??
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext())
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks()
             {
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTasks)) //DB:??
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext())
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
 
-            internal static int[] AssignTasks(int taskCount, int timeoutInMinutes, out int remainingTasks)
+            internal class AssignedTaskResult
+            {
+                public int[] VersionIds;
+                public int RemainingTaskCount;
+            }
+            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes)
             {
                 var result = new List<int>();
+                int remainingTasks;
+                using (var ctx = new MsSqlDataContext())
+                {
+                    ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
+                    {
+                        cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
+                        cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
+                    }, reader =>
+                    {
+                        while (reader.Read())
+                            result.Add(reader.GetInt32(0));
+                        reader.NextResult();
+
+                        reader.Read();
+                        remainingTasks = reader.GetInt32(0);
+
+                        return Task.FromResult(0);
+                    }).Wait();
+                }
 
                 // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
                 using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks) //DB:??
@@ -49,32 +68,28 @@ namespace SenseNet.Packaging.Steps.Internal
                     }
                 }
 
-                return result.ToArray();
+                return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
             }
 
             internal static void FinishTask(int versionId)
             {
-                // proc FinishTask(@VersionId int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask) //DB:??
-                    .AddParameter("@VersionId", versionId))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext())
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    {
+                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                    }).Wait();
             }
 
             /* ========================================================================================= */
 
             public static void CreateTempTask(int versionId, int rank)
             {
-                // proc CreateTempTask(@VersionId int, @Rank int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask) //DB:??
-                    .AddParameter("@VersionId", versionId)
-                    .AddParameter("@Rank", rank))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext())
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    {
+                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                        cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
+                    }).Wait();
             }
 
             public static List<int> GetAllNodeIds()
@@ -96,27 +111,27 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void DropTables()
             {
-                // proc DropTables
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.DropTables)) //DB:??
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext())
+                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
 
             public static bool CheckFeature()
             {
                 try
                 {
-                    // proc DropTables
-                    using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CheckFeature)) //DB:??
+                    using (var ctx = new MsSqlDataContext())
                     {
-                        cmd.CommandType = CommandType.Text;
-                        var result = cmd.ExecuteScalar();
+                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
                         return Convert.ToInt32(result) != 0;
                     }
                 }
-                catch(NotSupportedException)
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerException is NotSupportedException)
+                        return false;
+                    throw;
+                }
+                catch (NotSupportedException)
                 {
                     return false;
                 }
@@ -124,11 +139,9 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static DateTime LoadTimeLimit()
             {
-                // proc GetTimeLimit
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.SelectTimeLimit)) //DB:??
+                using (var ctx = new MsSqlDataContext())
                 {
-                    cmd.CommandType = CommandType.Text;
-                    var result = cmd.ExecuteScalar();
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;

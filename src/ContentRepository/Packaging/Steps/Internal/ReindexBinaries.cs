@@ -107,6 +107,7 @@ namespace SenseNet.Packaging.Steps.Internal
         /// <returns>True if there are no more tasks.</returns>
         internal static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
         {
+            //UNDONE:DB: not tested
             if (_featureIsRunning)
             {
                 _featureIsRequested = true;
@@ -119,19 +120,19 @@ namespace SenseNet.Packaging.Steps.Internal
             do
             {
                 _featureIsRequested = false;
-
-                var versionIds = DataHandler.AssignTasks(
+                var assignedTasks = DataHandler.AssignTasks(
                     taskCount > 0 ? taskCount : 10,
-                    timeoutInMinutes > 0 ? timeoutInMinutes : 5,
-                    out var remainingTasks);
-                if (remainingTasks == 0)
+                    timeoutInMinutes > 0 ? timeoutInMinutes : 5);
+
+                var versionIds = assignedTasks.VersionIds;
+                if (assignedTasks.RemainingTaskCount == 0)
                 {
                     _featureIsRequested = false;
                     _featureIsRunning = false;
                     return true;
                 }
 
-                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {remainingTasks}");
+                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {assignedTasks.RemainingTaskCount}");
 
                 foreach (var versionId in versionIds)
                 {
