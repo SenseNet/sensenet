@@ -494,8 +494,14 @@ namespace SenseNet.Tests.SelfTest
                 {
                     var activityId = DataStore.GetLastIndexingActivityIdAsync().Result;
                     activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance).Result;
-                    nodeCount = DataStore.GetVersionCountAsync().Result;
-                    versionCount = DataStore.GetVersionCountAsync().Result;
+
+                    // We cannot call the GetNodeCount and GetVersionCount methods directly here because
+                    // there may be some nodes that cannot be loaded therefore missing from the index, which
+                    // would mean different count values.
+                    var queryResults = ContentQuery.Query(ContentRepository.SafeQueries.InTree,
+                        QuerySettings.AdminSettings, "/Root");
+                    nodeCount = queryResults.Nodes.Count();
+                    versionCount = queryResults.Nodes.Sum(n => n.LoadVersions().Count());
                 }
                 else
                 {

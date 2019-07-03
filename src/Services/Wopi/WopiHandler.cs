@@ -223,8 +223,9 @@ namespace SenseNet.Services.Wopi
             {
                 var entries = file.Security.GetEffectiveEntries();
                 var identities = new List<int> { user.Id };
-                if (user is User member)
-                    identities.AddRange(member.GetGroups());
+
+                // get all groups of the user, including Owners if necessary
+                identities.AddRange(SecurityHandler.GetGroupsWithOwnership(file.Id, user));
 
                 var allowBits = 0UL;
                 var denyBits = 0UL;

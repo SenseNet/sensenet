@@ -1432,6 +1432,64 @@ namespace SenseNet.Services.Tests
             });
         }
 
+        /* =============================================================================== Actions */
+
+        [TestMethod]
+        public void Wopi_Action_Open()
+        {
+            var parent = CreateTestContent("SystemFolder", Repository.Root).ContentHandler;
+            var wopiConfig = new WopiDiscovery
+            {
+                Zones = new WopiDiscovery.WopiZoneCollection
+                {
+                    new WopiDiscovery.WopiZone("zone1")
+                    {
+                        Apps = new WopiDiscovery.WopiAppCollection
+                        {
+                            new WopiDiscovery.WopiApp("Word", null)
+                            {
+                                Actions = new WopiDiscovery.WopiActionCollection
+                                {
+                                    new WopiDiscovery.WopiAction("view", "docx", null, null),
+                                    new WopiDiscovery.WopiAction("edit", "docx", null, null)
+                                }
+                            },
+                            new WopiDiscovery.WopiApp("Excel", null)
+                            {
+                                Actions = new WopiDiscovery.WopiActionCollection
+                                {
+                                    new WopiDiscovery.WopiAction("view", "xlsx", null, null),
+                                    new WopiDiscovery.WopiAction("edit", "xlsx", null, null)
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            WopiDiscovery.AddInstance("test", wopiConfig);
+
+            var file1 = CreateTestContent("File", parent, "File1");
+            var file2 = CreateTestContent("File", parent, "File1.txt");
+            var file3 = CreateTestContent("File", parent, "File1.docx");
+            var file4 = CreateTestContent("File", parent, "File1.xlsx");
+            var folder = CreateTestContent("Folder", parent, "Folder1");
+            
+            void CreateAndAssertWopiAction(Content content, bool visibleExpected, bool forbiddenExpected)
+            {
+                var (forbidden, visible) = WopiOpenAction.InitializeInternal(content, "test");
+
+                Assert.AreEqual(visibleExpected, visible ?? true, content.Name);
+                Assert.AreEqual(forbiddenExpected, forbidden ?? false, content.Name);
+            }
+
+            CreateAndAssertWopiAction(file1, false, true);
+            CreateAndAssertWopiAction(file2, false, true);
+            CreateAndAssertWopiAction(file3, true, false);
+            CreateAndAssertWopiAction(file4, true, false);
+            CreateAndAssertWopiAction(folder, false, true);
+        }
+
         /* ======================================================================================= */
 
         private static readonly string DefaultAccessToken = "__DefaultAccessToken__";
@@ -1476,6 +1534,16 @@ namespace SenseNet.Services.Tests
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent ?? Guid.NewGuid().ToString()));
             file.Save();
             return file;
+        }
+        private Content CreateTestContent(string contentType, Node parent, string name = null)
+        {
+            if (contentType == "File")
+                return Content.Create(CreateTestFile(parent, name ?? Guid.NewGuid().ToString(), "filecontent"));
+
+            var content = Content.CreateNew(contentType, parent, name);
+            content.Save();
+
+            return content;
         }
 
         private static PortalContext CreatePortalContext(string httpMethod, string pagePath, string queryString, System.IO.TextWriter output, string[][] headers, Stream inputStream = null)

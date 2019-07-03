@@ -367,6 +367,7 @@
     <Compile Include="Wopi\WopiActions.cs" />
     <Compile Include="Wopi\WopiHandler.cs" />
     <Compile Include="Wopi\WopiNodeOperationValidator.cs" />
+    <Compile Include="Wopi\WopiOpenAction.cs" />
     <Compile Include="Wopi\WopiRequest.cs" />
     <Compile Include="Wopi\WopiRequests.cs" />
     <Compile Include="Wopi\WopiResponse.cs" />
