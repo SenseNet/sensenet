@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using IsolationLevel = System.Data.IsolationLevel;
 
 namespace SenseNet.Common.Storage.Data.MsSqlClient
@@ -17,11 +18,57 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
 
         public CancellationToken CancellationToken { get; }
 
-        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
+        public MsSqlDataContext(string connectionString = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             CancellationToken = cancellationToken;
-            _connection = new SqlConnection(ConnectionStrings.ConnectionString);
+            _connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString);
             _connection.Open();
+        }
+        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CancellationToken = cancellationToken;
+            _connection = new SqlConnection(GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString);
+            _connection.Open();
+        }
+
+        private string GetConnectionString(ConnectionInfo connectionInfo)
+        {
+            string cnstr;
+
+            if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
+                cnstr = ConnectionStrings.ConnectionString;
+            else
+                if(!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
+                        || cnstr == null)
+                    throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
+
+            var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
+            switch (connectionInfo.InitialCatalog)
+            {
+                case InitialCatalog.Initial:
+                    break;
+                case InitialCatalog.Master:
+                    connectionBuilder.InitialCatalog = "master";
+                    break;
+                default:
+                    throw new NotSupportedException("Unknown InitialCatalog");
+            }
+
+            if (!string.IsNullOrEmpty(connectionInfo.DataSource))
+                connectionBuilder.DataSource = connectionInfo.DataSource;
+
+            if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName))
+                connectionBuilder.InitialCatalog = connectionInfo.InitialCatalogName;
+
+            if (!string.IsNullOrWhiteSpace(connectionInfo.UserName))
+            {
+                if (string.IsNullOrWhiteSpace(connectionInfo.Password))
+                    throw new NotSupportedException("Invalid credentials.");
+                connectionBuilder.UserID = connectionInfo.UserName;
+                connectionBuilder.Password = connectionInfo.Password;
+                connectionBuilder.IntegratedSecurity = false;
+            }
+            return connectionBuilder.ToString();
         }
 
         public void Dispose()
