@@ -88,16 +88,5 @@ namespace SenseNet.Packaging.Steps
             }
             return false;
         }
-
-        private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
-        {
-            return DataProvider.Instance.CreateDataProcedure(script, new ConnectionInfo //DB:??
-            {
-                DataSource = (string)context.ResolveVariable(DataSource),
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
-                UserName = (string)context.ResolveVariable(UserName),
-                Password = (string)context.ResolveVariable(Password)
-            });
-        }
     }
 }
