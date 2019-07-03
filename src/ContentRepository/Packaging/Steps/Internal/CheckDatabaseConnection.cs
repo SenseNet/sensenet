@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data;
+using System.Threading.Tasks;
+using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Steps.Internal
@@ -56,10 +58,19 @@ END
 
         private void ExecuteSql(string script, ExecutionContext context)
         {
-            using (var proc = CreateDataProcedure(script, context))
+            //UNDONE:DB: not tested
+            var connectionInfo = new ConnectionInfo
             {
-                proc.CommandType = CommandType.Text;
-                using (var reader = proc.ExecuteReader())
+                ConnectionName = null,
+                DataSource = (string)context.ResolveVariable(DataSource),
+                InitialCatalog = InitialCatalog.Initial,
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
+            };
+            using (var ctx = new MsSqlDataContext(connectionInfo))
+            {
+                ctx.ExecuteReaderAsync(script, reader =>
                 {
                     do
                     {
@@ -71,20 +82,9 @@ END
                             }
                         }
                     } while (reader.NextResult());
-                }
+                    return Task.FromResult(0);
+                }).Wait();
             }
-        }
-        private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
-        {
-            return DataProvider.Instance.CreateDataProcedure(script, new ConnectionInfo //DB:??
-            {
-                ConnectionName = null,
-                DataSource = (string)context.ResolveVariable(DataSource),
-                InitialCatalog = InitialCatalog.Initial,
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
-                UserName = (string)context.ResolveVariable(UserName),
-                Password = (string)context.ResolveVariable(Password)
-            });
         }
     }
 }
