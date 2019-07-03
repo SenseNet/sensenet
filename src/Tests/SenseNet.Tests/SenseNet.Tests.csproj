@@ -108,10 +108,8 @@
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
     <Compile Include="Implementations\InMemorySharedLockDataProvider.cs" />
-    <Compile Include="Implementations\InMemoryTestingDataProvider.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="Implementations2\DataProviderChecker.cs" />
-    <Compile Include="Implementations2\FileSystemReaderBlobProvider.cs" />
     <Compile Include="Implementations2\InMemoryBlobProvider2.cs" />
     <Compile Include="Implementations2\InMemoryDataBase2.cs" />
     <Compile Include="Implementations2\InMemoryDataClasses.cs" />
