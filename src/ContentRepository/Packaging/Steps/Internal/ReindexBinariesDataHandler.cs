@@ -14,11 +14,13 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             internal static void InstallTables()
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks()
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
@@ -31,7 +33,8 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes)
             {
                 var result = new List<int>();
-                int remainingTasks;
+                int remainingTasks = 0;
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
@@ -51,28 +54,12 @@ namespace SenseNet.Packaging.Steps.Internal
                     }).Wait();
                 }
 
-                // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks) //DB:??
-                    .AddParameter("@AssignedTaskCount", taskCount)
-                    .AddParameter("@TimeOutInMinutes", timeoutInMinutes))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                            result.Add(reader.GetInt32(0));
-                        reader.NextResult();
-
-                        reader.Read();
-                        remainingTasks = reader.GetInt32(0);
-                    }
-                }
-
                 return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
             }
 
             internal static void FinishTask(int versionId)
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
@@ -84,6 +71,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void CreateTempTask(int versionId, int rank)
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
@@ -94,23 +82,22 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static List<int> GetAllNodeIds()
             {
-                var result = new List<int>();
-
-                // proc GetAllNodeIds(@From int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.GetAllNodeIds)) //DB:??
+                //UNDONE:DB: not tested
+                using (var ctx = new MsSqlDataContext(SqlScripts.GetAllNodeIds))
                 {
-                    cmd.CommandType = CommandType.Text;
-
-                    using (var reader = cmd.ExecuteReader())
+                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, reader =>
+                    {
+                        var result = new List<int>();
                         while (reader.Read())
                             result.Add(reader.GetInt32(0));
+                        return Task.FromResult(result);
+                    }).Result;
                 }
-
-                return result;
             }
 
             public static void DropTables()
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
@@ -119,6 +106,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 try
                 {
+                    //UNDONE:DB: not tested
                     using (var ctx = new MsSqlDataContext())
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
@@ -139,6 +127,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static DateTime LoadTimeLimit()
             {
+                //UNDONE:DB: not tested
                 using (var ctx = new MsSqlDataContext())
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
