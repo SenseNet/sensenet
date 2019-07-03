@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using SenseNet.Common.Storage.Data;
+using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Steps
@@ -27,24 +29,21 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            using (var proc = DataProvider.Instance.CreateDataProcedure(script)) //DB:??
+            //UNDONE:DB: not tested
+            using (var ctx = new MsSqlDataContext())
             {
-                proc.CommandType = CommandType.Text;
-                object result;
-
                 try
                 {
-                    result = proc.ExecuteScalar();
+                    var result = ctx.ExecuteScalarAsync(script).Result;
+
+                    if (result == null || Convert.IsDBNull(result))
+                        return false;
+                    return ConvertToBool(result);
                 }
                 catch (Exception ex)
                 {
                     throw new PackagingException("Error during SQL script execution. " + ex);
                 }
-
-                if (result == null || Convert.IsDBNull(result))
-                    return false;
-
-                return ConvertToBool(result);
             }
         }
 

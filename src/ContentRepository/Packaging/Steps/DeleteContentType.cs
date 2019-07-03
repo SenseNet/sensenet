@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Xml;
+using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
+using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -204,12 +206,15 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
 
-            using (var cmd = DataProvider.Instance.CreateDataProcedure(sql)) //DB:??
+            //UNDONE:DB: not tested
+            using (var ctx = new MsSqlDataContext())
             {
-                cmd.CommandType = CommandType.Text;
-                using (var reader = cmd.ExecuteReader())
+                var _ = ctx.ExecuteReaderAsync(sql, reader =>
+                {
                     while (reader.Read())
                         result.Add(reader.GetString(0), reader.GetString(1));
+                    return Task.FromResult(0);
+                }).Result;
             }
 
             return result;

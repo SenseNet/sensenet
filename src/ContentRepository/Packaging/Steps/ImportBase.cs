@@ -501,7 +501,7 @@ namespace SenseNet.Packaging.Steps
 
             private bool SaveInitialIndexDocuments()
             {
-                var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100); //DB:??
+                var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 1100).Result;
                 var nodes = Node.LoadNodes(idSet);
                 var count = 0;
 

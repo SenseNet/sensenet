@@ -20,12 +20,14 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
 
         public MsSqlDataContext(string connectionString = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            //UNDONE:DB not tested
             CancellationToken = cancellationToken;
             _connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString);
             _connection.Open();
         }
         public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
         {
+            //UNDONE:DB not tested
             CancellationToken = cancellationToken;
             _connection = new SqlConnection(GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString);
             _connection.Open();
