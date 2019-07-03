@@ -18,7 +18,14 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
 
         public CancellationToken CancellationToken { get; }
 
-        public MsSqlDataContext(string connectionString = null, CancellationToken cancellationToken = default(CancellationToken))
+        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            //UNDONE:DB not tested
+            CancellationToken = cancellationToken;
+            _connection = new SqlConnection(ConnectionStrings.ConnectionString);
+            _connection.Open();
+        }
+        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
         {
             //UNDONE:DB not tested
             CancellationToken = cancellationToken;
@@ -88,7 +95,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
         }
 
         //UNDONE:DB: Handle Command/Connection/Transaction Timeout
-        public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
+        public async Task<int> ExecuteNonQueryAsync(string script, Action<SqlCommand> setParams = null)
         {
             using (var cmd = new SqlCommand())
             {
@@ -103,7 +110,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
                 return await cmd.ExecuteNonQueryAsync(CancellationToken);
             }
         }
-        public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
+        public async Task<object> ExecuteScalarAsync(string script, Action<SqlCommand> setParams = null)
         {
             using (var cmd = new SqlCommand())
             {
@@ -122,7 +129,7 @@ namespace SenseNet.Common.Storage.Data.MsSqlClient
         {
             return ExecuteReaderAsync(script, null, callback);
         }
-        public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams, Func<DbDataReader, Task<T>> callbackAsync)
+        public async Task<T> ExecuteReaderAsync<T>(string script, Action<SqlCommand> setParams, Func<SqlDataReader, Task<T>> callbackAsync)
         {
             using (var cmd = new SqlCommand())
             {
