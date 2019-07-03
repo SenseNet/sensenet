@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 return await ctx.ExecuteReaderAsync(sql.ToString(), async reader =>
                 {
                     var result = new List<int>();
-                    while (reader.Read())
+                    while (await reader.ReadAsync(cancellationToken))
                         result.Add(reader.GetSafeInt32(0));
                     return (IEnumerable<int>)result;
                 });
