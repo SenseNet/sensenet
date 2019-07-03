@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Steps
@@ -35,14 +36,20 @@ namespace SenseNet.Packaging.Steps
 
         private bool ExecuteSql(string script, ExecutionContext context)
         {
-            using (var proc = CreateDataProcedure(script, context))
+            //UNDONE:DB: not tested
+            var connectionInfo = new ConnectionInfo
             {
-                proc.CommandType = CommandType.Text;
+                DataSource = (string)context.ResolveVariable(DataSource),
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
+            };
+            using (var ctx = new MsSqlDataContext(connectionInfo))
+            {
                 object result;
-
                 try
                 {
-                    result = proc.ExecuteScalar();
+                    result = ctx.ExecuteScalarAsync(script).Result;
                 }
                 catch (Exception ex)
                 {
@@ -52,35 +59,33 @@ namespace SenseNet.Packaging.Steps
                 if (result == null || Convert.IsDBNull(result))
                     return false;
 
-                if (result is bool)
-                    return (bool)result;
-                if (result is byte)
-                    return (byte)result > 0;
-                if (result is decimal)
-                    return (decimal)result > 0;
-                if (result is double)
-                    return (double)result > 0;
-                if (result is float)
-                    return (float)result > 0;
-                if (result is int)
-                    return (int)result > 0;
-                if (result is long)
-                    return (long)result > 0;
-                if (result is sbyte)
-                    return (sbyte)result > 0;
-                if (result is short)
-                    return (short)result > 0;
-                if (result is uint)
-                    return (uint)result > 0;
-                if (result is ulong)
-                    return (ulong)result > 0;
-                if (result is ushort)
-                    return (ushort)result > 0;
-
-                if (result is string)
-                    return !string.IsNullOrEmpty((string) result);
+                if (result is bool @bool)
+                    return @bool;
+                if (result is byte @bybte)
+                    return @bybte > 0;
+                if (result is decimal @decimal)
+                    return @decimal > 0;
+                if (result is double @double)
+                    return @double > 0;
+                if (result is float @float)
+                    return @float > 0;
+                if (result is int @int)
+                    return @int > 0;
+                if (result is long @long)
+                    return @long > 0;
+                if (result is sbyte @sbyte)
+                    return @sbyte > 0;
+                if (result is short @short)
+                    return @short > 0;
+                if (result is uint @uint)
+                    return @uint > 0;
+                if (result is ulong @ulong)
+                    return @ulong > 0;
+                if (result is ushort @ushort)
+                    return @ushort > 0;
+                if (result is string @string)
+                    return !string.IsNullOrEmpty(@string);
             }
-
             return false;
         }
 
