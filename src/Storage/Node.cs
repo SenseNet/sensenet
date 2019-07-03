@@ -1778,7 +1778,21 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     if (token.NodeData != null)
                     {
-                        var node = CreateTargetClass(token);
+                        Node node;
+
+                        try
+                        {
+                            node = CreateTargetClass(token);
+                        }
+                        catch (ApplicationException)
+                        {
+                            // Could not create an instance of the target class.
+                            SnTrace.Repository.WriteError($"Could not create an instance of {token.NodeType.Name} " +
+                                                          $"with class {token.NodeType.ClassName}. NodeId: {token.NodeId}, " +
+                                                          $"Path: {token.NodeHead.Path}");
+                            break;
+                        }
+
                         if (isHeadOnly)
                         {
                             // if the user has Preview permissions, that means a broader access than headonly

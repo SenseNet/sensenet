@@ -2,8 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SenseNet.Services.OData.Tests")]
-
+[assembly: AssemblyTitle("SenseNet.Tests.Hosting")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
@@ -12,9 +11,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("7.6.1")]
-[assembly: AssemblyFileVersion("7.6.1")]
-[assembly: AssemblyInformationalVersion("7.6.1")]
-
 [assembly: ComVisible(false)]
-[assembly: Guid("d398f652-f091-4e52-b32b-6e73e214f946")]
+[assembly: Guid("3fd689f9-c015-44b3-9ede-144e60e666a9")]
+
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

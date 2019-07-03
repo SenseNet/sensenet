@@ -21,6 +21,14 @@ namespace SenseNet.Services.OData.Tests
 {
     public abstract class ODataTestClass : TestBase
     {
+        protected override void OnTestInitialize()
+        {
+            base.OnTestInitialize();
+
+            var portalContextAcc = new PrivateType(typeof(PortalContext));
+            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+        }
+
         // ReSharper disable once InconsistentNaming
         internal static T ODataGET<T>(string resource, string queryString) where T : IODataResult
         {
@@ -48,6 +56,25 @@ namespace SenseNet.Services.OData.Tests
                 var pc = CreatePortalContext(resource, queryString, output);
                 var handler = new ODataHandler();
                 handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", requestStream);
+                output.Flush();
+                return (T)GetResult<T>(output);
+            }
+        }
+
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPOST<T>(string resource, string queryString, string requestData) where T : IODataResult
+        {
+            using (var requestStream = RepositoryTools.GetStreamFromString(requestData))
+                return ODataPOST<T>(resource, queryString, requestStream);
+        }
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPOST<T>(string resource, string queryString, Stream requestStream) where T : IODataResult
+        {
+            using (var output = new System.IO.StringWriter())
+            {
+                var pc = CreatePortalContext(resource, queryString, output);
+                var handler = new ODataHandler();
+                handler.ProcessRequest(pc.OwnerHttpContext, "POST", requestStream);
                 output.Flush();
                 return (T)GetResult<T>(output);
             }

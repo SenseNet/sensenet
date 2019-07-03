@@ -39,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MSTest.TestFramework.1.2.0\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
     </Reference>
@@ -50,6 +51,9 @@
     </Reference>
     <Reference Include="SenseNet.Security, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Security.4.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.TaskManagement.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.TaskManagement.Core.2.0.0\lib\netstandard2.0\SenseNet.TaskManagement.Core.dll</HintPath>
     </Reference>
     <Reference Include="SenseNet.Tools, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Tools.3.1.0\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
@@ -81,7 +85,6 @@
     </Reference>
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -134,7 +137,6 @@
     <Compile Include="SelfTest\InMemorySchemaWriterTests.cs" />
     <Compile Include="SelfTest\InMemorySearchTests.cs" />
     <Compile Include="SelfTest\SafeQueries.cs" />
-    <Compile Include="SimulatedHttpRequest.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
@@ -160,10 +162,6 @@
     <ProjectReference Include="..\..\Search\SenseNet.Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>SenseNet.Search</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Services\SenseNet.Services.csproj">
-      <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
-      <Name>SenseNet.Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
