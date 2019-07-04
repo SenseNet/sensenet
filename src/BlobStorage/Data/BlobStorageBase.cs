@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
@@ -11,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
@@ -385,6 +385,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             public bool Equals(IBlobProvider x, IBlobProvider y)
             {
+                if (x == null)
+                    return y == null;
+                if (y == null)
+                    return false;
                 var tx = x.GetType();
                 var ty = y.GetType();
                 if (tx.FullName != ty.FullName)

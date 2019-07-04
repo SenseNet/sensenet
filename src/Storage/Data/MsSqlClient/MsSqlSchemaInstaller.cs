@@ -4,10 +4,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
-using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -26,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static Dictionary<string, string[]> _columnNames;
 
-        public static async Task InstallSchemaAsync(RepositorySchemaData schema, string connectionString)
+        public static async Task InstallSchemaAsync(RepositorySchemaData schema, string connectionString = null)
         {
             var dataSet = new DataSet();
 
@@ -149,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString)
         {
-            using (var connection = new SqlConnection(connectionString))
+            using (var connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString))
             {
                 connection.Open();
                 using (var transaction = connection.BeginTransaction())

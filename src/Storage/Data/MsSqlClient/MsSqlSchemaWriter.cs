@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -36,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 foreach (var contentListType in contentListTypes)
                     contentListType.Id = ++lastId;
             }
-            await MsSqlSchemaInstaller.InstallSchemaAsync(schema, ConnectionStrings.ConnectionString); //UNDONE:DB@@@@@@ Do not use connectionstring here
+            await MsSqlSchemaInstaller.InstallSchemaAsync(schema);
         }
 
         #region unused methods
