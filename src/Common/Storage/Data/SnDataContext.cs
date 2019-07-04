@@ -47,6 +47,17 @@ namespace SenseNet.Common.Storage.Data
 
         public CancellationToken CancellationToken { get; }
 
+        //TODO: Transaction timeout handling idea:
+        //CancellationToken GetTimeoutCancellationToken()
+        //{
+        //    if (_transaction == null)
+        //        return CancellationToken;
+        //    var timeoutSrc = new CancellationTokenSource(TimeSpan.FromMinutes(10)).Token;
+        //    if (CancellationToken == CancellationToken.None)
+        //        return timeoutSrc;
+        //    return CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, timeoutSrc).Token;
+        //}
+
         public SnDataContext(IDbCommandFactory commandFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
             _commandFactory = commandFactory;
