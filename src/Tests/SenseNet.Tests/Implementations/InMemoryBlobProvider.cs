@@ -52,7 +52,7 @@ namespace SenseNet.Tests.Implementations
                 FileId = fileId,
                 Length = length,
                 BlobProviderData = provider == BlobStorageBase.BuiltInProvider
-                    ? new BuiltinBlobProviderData() //UNDONE:Blob: Unwanted dependency. Null should be better.
+                    ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
         }

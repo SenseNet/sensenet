@@ -344,10 +344,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 buffer = GetBuffer(initialData, providerData, propertyTypeName);
                 providerData = null;
             }
-            else if(data.Stream != null)
-            {
-                //UNDONE: Predefined stream? (delete this condition?)
-            }
 
             row["FileId"] = data.FileId;
             row["ContentType"] = data.ContentType;
