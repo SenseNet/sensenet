@@ -155,25 +155,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-
-            using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
-            using (var transaction = dataContext.BeginTransaction())
+            try
             {
-                try
-                {
-                    var ctx = GetBlobStorageContext(tokenData.FileId);
+                var ctx = GetBlobStorageContext(tokenData.FileId);
 
-                    // must update properties because the Length contains the actual saved size but the featue needs the full size
-                    UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
+                // must update properties because the Length contains the actual saved size but the featue needs the full size
+                UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
 
-                    ctx.Provider.Write(ctx, offset, buffer);
-
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    throw new DataException("Error during saving binary chunk to stream.", ex);
-                }
+                ctx.Provider.Write(ctx, offset, buffer);
+            }
+            catch (Exception ex)
+            {
+                throw new DataException("Error during saving binary chunk to stream.", ex);
             }
         }
         /// <summary>
@@ -187,25 +180,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-
-            using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
-            using (var transaction = dataContext.BeginTransaction())
+            try
             {
-                try
-                {
-                    var ctx = await GetBlobStorageContextAsync(tokenData.FileId);
+                var ctx = await GetBlobStorageContextAsync(tokenData.FileId);
 
-                    // must update properties because the Length contains the actual saved size but the featue needs the full size
-                    UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
+                // must update properties because the Length contains the actual saved size but the featue needs the full size
+                UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
                     
-                    await ctx.Provider.WriteAsync(ctx, offset, buffer);
-
-                    transaction.Commit();
-                }
-                catch (Exception ex)
-                {
-                    throw new DataException("Error during saving binary chunk to stream.", ex);
-                }
+                await ctx.Provider.WriteAsync(ctx, offset, buffer);
+            }
+            catch (Exception ex)
+            {
+                throw new DataException("Error during saving binary chunk to stream.", ex);
             }
         }
         private static void UpdateContextProperties(BlobStorageContext context, int versionId, int propertyTypeId, long fullSize)
@@ -238,28 +224,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static void CopyFromStream(int versionId, string token, Stream input)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-
             try
             {
-                using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
-                using (var transaction = dataContext.BeginTransaction())
+                var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
+                if (context.Provider == BuiltInProvider)
                 {
-                    var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
-
-                    if (context.Provider == BuiltInProvider)
-                    {
-                        // Our built-in provider does not have a special stream for the case when
-                        // the binary should be saved into a regular SQL varbinary column.
-                        CopyFromStreamByChunks(context, input);
-                    }
-                    else
-                    {
-                        // This is the recommended way to write a stream to the binary storage.
-                        using (var targetStream = context.Provider.GetStreamForWrite(context))
-                            input.CopyTo(targetStream);
-                    }
-
-                    transaction.Commit();
+                    // Our built-in provider does not have a special stream for the case when
+                    // the binary should be saved into a regular SQL varbinary column.
+                    CopyFromStreamByChunks(context, input);
+                }
+                else
+                {
+                    // This is the recommended way to write a stream to the binary storage.
+                    using (var targetStream = context.Provider.GetStreamForWrite(context))
+                        input.CopyTo(targetStream);
                 }
             }
             catch (Exception e)
@@ -276,28 +254,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static async Task CopyFromStreamAsync(int versionId, string token, Stream input)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
-
             try
             {
-                using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
-                using (var transaction = dataContext.BeginTransaction())
+                var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
+                if (context.Provider == BuiltInProvider)
                 {
-                    var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
-
-                    if (context.Provider == BuiltInProvider)
-                    {
-                        // Our built-in provider does not have a special stream for the case when
-                        // the binary should be saved into a regular SQL varbinary column.
-                        await CopyFromStreamByChunksAsync(context, input);
-                    }
-                    else
-                    {
-                        // This is the recommended way to write a stream to the binary storage.
-                        using (var targetStream = context.Provider.GetStreamForWrite(context))
-                            await input.CopyToAsync(targetStream);
-                    }
-
-                    transaction.Commit();
+                    // Our built-in provider does not have a special stream for the case when
+                    // the binary should be saved into a regular SQL varbinary column.
+                    await CopyFromStreamByChunksAsync(context, input);
+                }
+                else
+                {
+                    // This is the recommended way to write a stream to the binary storage.
+                    using (var targetStream = context.Provider.GetStreamForWrite(context))
+                        await input.CopyToAsync(targetStream);
                 }
             }
             catch (Exception e)
