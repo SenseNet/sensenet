@@ -355,7 +355,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
                 if (versionIds.Length > 0)
                 {
-                    //UNDONE:DB@@@@@ Rewrite to async and pass ctx.
                     BlobStorage.DeleteBinaryProperties(versionIds, ctx);
 
                     versionIdsParam = string.Join(",", versionIds.Select(x => x.ToString()));
@@ -443,7 +442,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+                        //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
 
                         // Copy and update version
                         var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
@@ -473,7 +472,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 versionData.VersionId = reader.GetInt32("VersionId");
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
                             }
-                            //UNDONE:DB@@@@@ Copy BinaryProperies via BlobStorage (see the script)
+                            //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
                             if (await reader.NextResultAsync(cancellationToken))
                             {
                                 while (await reader.ReadAsync(cancellationToken))
@@ -546,7 +545,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         transaction.Commit();
 
                         // Manage BinaryProperties
-                        //UNDONE:DB@@@@@ Move into the transaction after BlobStorage refactor.
+                        //UNDONE:DB: Move into the transaction after BlobStorage refactor.
                         foreach (var item in dynamicData.BinaryProperties)
                             SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
                     }

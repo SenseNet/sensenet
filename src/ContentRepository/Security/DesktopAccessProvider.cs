@@ -32,9 +32,6 @@ namespace SenseNet.ContentRepository.Security
             {
                 if (Thread.CurrentPrincipal?.Identity is IUser user)
                     return user;
-//UNDONE:DB:SystemAccount thread safety. Remove after bug investigation
-//SnTrace.Write("@@@@ GET unknown CurrentUser: {0} ({1})",
-//    Thread.CurrentPrincipal?.Identity, Thread.CurrentPrincipal?.Identity.GetType().FullName ?? "null");
                 CurrentUser = StartupUser;
                 user = User.Administrator;
                 CurrentUser = user;
@@ -42,8 +39,6 @@ namespace SenseNet.ContentRepository.Security
             }
             set
             {
-//UNDONE:DB:SystemAccount thread safety. Remove after bug investigation
-//SnTrace.Write("@@@@ SET CurrentUser: {0}", value.Name);
                 Thread.CurrentPrincipal = new SystemPrincipal(value);
             }
         }

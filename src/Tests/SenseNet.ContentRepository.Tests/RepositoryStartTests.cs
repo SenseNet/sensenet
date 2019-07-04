@@ -161,9 +161,6 @@ namespace SenseNet.ContentRepository.Tests
             // switch this ON here for testing purposes (to check that repo start does not override it)
             SnTrace.Custom.Enabled = true;
 
-            ////UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
-            //Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dbProvider);
-
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider2(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))

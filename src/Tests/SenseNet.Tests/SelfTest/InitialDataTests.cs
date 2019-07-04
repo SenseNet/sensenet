@@ -35,7 +35,6 @@ namespace SenseNet.Tests.SelfTest
                 {
                     try
                     {
-                        //UNDONE:DB:SystemAccount thread safety. INVESTIGATE THIS BUG: User is accidentally (?) changed back to the Admin.
                         SearchManager.GetIndexPopulator()
                             .RebuildIndexDirectly("/Root", IndexRebuildLevel.DatabaseAndIndex);
                     }
