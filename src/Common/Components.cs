@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿using System;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository
 {
@@ -10,6 +11,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Factory instance responsible for creating platform-specific transactions.
         /// </summary>
+        [Obsolete("##", true)]
         public static ITransactionFactory TransactionFactory { get; set; }
     }
 }

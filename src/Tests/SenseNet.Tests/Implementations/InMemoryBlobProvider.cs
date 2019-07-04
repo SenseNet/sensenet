@@ -19,6 +19,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
+    [Obsolete("##", true)]
     public class InMemoryBlobStorageMetaDataProvider : IBlobStorageMetaDataProvider
     {
         private InMemoryDataProvider _dataProvider;

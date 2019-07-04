@@ -20,6 +20,7 @@ namespace SenseNet.ContentRepository.Storage
     /// Utility class for maintaining the current transaction. For starting and commiting 
     /// transactions please use the SnTransaction class instead in a using statement.
     /// </summary>
+    [Obsolete("##", true)]
     public static class TransactionScope
 	{
         private static bool _notSupported;

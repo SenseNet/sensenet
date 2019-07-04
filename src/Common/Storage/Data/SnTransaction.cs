@@ -8,6 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// Starts the transaction automatically (if there is no existing transaction) and rolls
     /// it back during disposing if the Commit method was not called previously.
     /// </summary>
+    [Obsolete("##", true)]
     public class SnTransaction : IDisposable
     {
         private bool _isLocalTransaction;

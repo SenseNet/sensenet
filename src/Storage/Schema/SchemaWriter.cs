@@ -17,7 +17,13 @@ namespace SenseNet.ContentRepository.Storage.Schema
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// Derived classes need to start a new transactional session.
+        /// </summary>
         public abstract void Open();
+        /// <summary>
+        /// Derived classes need to commit the transactional session.
+        /// </summary>
         public abstract void Close();
 
         // ============================ PropertySlot

@@ -10,6 +10,7 @@ using System.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     internal class FlatPropertyWriter
     {
         private int _versionId;

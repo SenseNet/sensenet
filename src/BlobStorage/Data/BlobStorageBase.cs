@@ -156,18 +156,19 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var tokenData = ChunkToken.Parse(token, versionId);
 
-            using (var tran = SnTransaction.Begin())
+            using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
+            using (var transaction = dataContext.BeginTransaction())
             {
                 try
                 {
                     var ctx = GetBlobStorageContext(tokenData.FileId);
-                    
+
                     // must update properties because the Length contains the actual saved size but the featue needs the full size
                     UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
 
                     ctx.Provider.Write(ctx, offset, buffer);
 
-                    tran.Commit();
+                    transaction.Commit();
                 }
                 catch (Exception ex)
                 {
@@ -187,7 +188,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var tokenData = ChunkToken.Parse(token, versionId);
 
-            using (var tran = SnTransaction.Begin())
+            using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
+            using (var transaction = dataContext.BeginTransaction())
             {
                 try
                 {
@@ -198,7 +200,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     
                     await ctx.Provider.WriteAsync(ctx, offset, buffer);
 
-                    tran.Commit();
+                    transaction.Commit();
                 }
                 catch (Exception ex)
                 {
@@ -239,7 +241,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             try
             {
-                using (var tran = SnTransaction.Begin())
+                using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
+                using (var transaction = dataContext.BeginTransaction())
                 {
                     var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
@@ -256,7 +259,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             input.CopyTo(targetStream);
                     }
 
-                    tran.Commit();
+                    transaction.Commit();
                 }
             }
             catch (Exception e)
@@ -276,7 +279,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             try
             {
-                using (var tran = SnTransaction.Begin())
+                using (var dataContext = new SnDataContext(null)) //UNDONE:DB@@@@@@@ delete transaction block
+                using (var transaction = dataContext.BeginTransaction())
                 {
                     var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
@@ -293,7 +297,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             await input.CopyToAsync(targetStream);
                     }
 
-                    tran.Commit();
+                    transaction.Commit();
                 }
             }
             catch (Exception e)

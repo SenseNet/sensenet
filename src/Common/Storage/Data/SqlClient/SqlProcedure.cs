@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     public class SqlProcedure : IDataProcedure
     {
         private bool _disposed;

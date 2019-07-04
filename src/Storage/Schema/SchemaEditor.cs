@@ -38,23 +38,19 @@ namespace SenseNet.ContentRepository.Storage.Schema
             {
                 using (var op = SnTrace.Database.StartOperation("Write storage schema modifications."))
                 {
-                    // Ensure transaction encapsulation
-                    bool isLocalTransaction = !TransactionScope.IsActive;
-                    if (isLocalTransaction)
-                        TransactionScope.Begin();
                     try
                     {
-                        List<PropertySet> modifiedPropertySets = new List<PropertySet>();
+                        var modifiedPropertySets = new List<PropertySet>();
+
                         schemaWriter.Open();
                         WriteSchemaModifications(origSchema, newSchema, schemaWriter, modifiedPropertySets);
-                        foreach (PropertySet modifiedPropertySet in modifiedPropertySets)
-                        {
+
+                        foreach (var modifiedPropertySet in modifiedPropertySets)
                             NodeTypeDependency.FireChanged(modifiedPropertySet.Id);
-                        }
+
                         schemaWriter.Close();
-                        if (isLocalTransaction)
-                            TransactionScope.Commit();
                         ActiveSchema.Reset();
+
                         op.Successful = true;
                     }
                     catch (Exception ex)
@@ -64,24 +60,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
                     }
                     finally
                     {
-                        IDisposable unmanagedWriter = schemaWriter as IDisposable;
-                        if (unmanagedWriter != null)
+                        if (schemaWriter is IDisposable unmanagedWriter)
                             unmanagedWriter.Dispose();
-                        try
-                        {
-                            if (isLocalTransaction && TransactionScope.IsActive)
-                                TransactionScope.Rollback();
-                        }
-                        catch (Exception ex2)
-                        {
-                            // This catch block will handle any errors that may have occurred 
-                            // on the server that would cause the rollback to fail, such as 
-                            // a closed connection (MSDN).
-                            const string msg = "Error during schema transaction rollback.";
-                            SnLog.WriteException(ex2, msg, EventId.RepositoryRuntime);
-
-                            throw new SchemaEditorCommandException(msg, ex2);
-                        }
                     }
                 }
             }

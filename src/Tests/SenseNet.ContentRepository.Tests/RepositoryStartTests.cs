@@ -320,9 +320,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NullPopulator()
         {
-            var dbProvider = new InMemoryDataProvider();
             var dbProvider2 = new InMemoryDataProvider2();
-            Providers.Instance.DataProvider2 = dbProvider2; //UNDONE:DB: Remove these lines after original InMemoryDataProvider deletion.
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
@@ -330,7 +328,7 @@ namespace SenseNet.ContentRepository.Tests
             var emvrProvider = new ElevatedModificationVisibilityRule();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider(dbProvider)
+                .UseDataProvider2(dbProvider2)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)

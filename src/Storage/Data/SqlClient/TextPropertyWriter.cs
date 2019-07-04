@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     public class TextPropertyWriter
     {
         private int _versionId;

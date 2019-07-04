@@ -113,17 +113,9 @@ namespace SenseNet.ContentRepository.Storage
 
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
         {
-            BinaryCacheEntity binaryCacheEntity = null;
-
-            if (TransactionScope.IsActive)
-            {
-                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId);
-                return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
-            }
-
             // Try to load cached binary entity
             var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
-            binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
+            var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
             if (binaryCacheEntity == null)
             {
                 // Not in cache, load it from the database
@@ -264,7 +256,6 @@ namespace SenseNet.ContentRepository.Storage
             var isNewNode = data.Id == 0;
 
             var msg = "Saving Node#" + node.Id + ", " + node.ParentPath + "/" + node.Name;
-            var isLocalTransaction = !TransactionScope.IsActive;
 
             using (var op = SnTrace.Database.StartOperation(msg))
             {
@@ -343,7 +334,7 @@ namespace SenseNet.ContentRepository.Storage
                 }
                 catch (System.Data.Common.DbException dbe)
                 {
-                    if (isLocalTransaction && IsDeadlockException(dbe))
+                    if (IsDeadlockException(dbe))
                         return dbe;
                     throw SavingExceptionHelper(data, dbe);
                 }
@@ -364,7 +355,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             // Avoid [SqlException (0x80131904): Transaction (Process ID ??) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
             // CAUTION: Using e.ErrorCode and testing for HRESULT 0x80131904 will not work! you should use e.Number not e.ErrorCode
-            var sqlEx = e as System.Data.SqlClient.SqlException;
+            var sqlEx = e as System.Data.SqlClient.SqlException; //UNDONE:DB@@@ SqlException cannot be processed in a general algorithm
             if (sqlEx == null)
                 return false;
             var sqlExNumber = sqlEx.Number;

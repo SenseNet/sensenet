@@ -330,7 +330,8 @@ namespace SenseNet.Packaging.Tests
         [TestInitialize]
         public Task InitializePackagingTest()
         {
-            DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+            //DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+            DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
 
             // make sure that every test starts with a clean slate (no existing installed components)
             return PackageManager.Storage.DeleteAllPackagesAsync();
@@ -579,7 +580,7 @@ namespace SenseNet.Packaging.Tests
 
         internal static void SetContentHandler(string contentTypeName, string handler)
         {
-            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
             if (testingDataProvider == null)
                 Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 

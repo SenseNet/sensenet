@@ -29,6 +29,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="dataProvider">DataProvider instance.</param>
+        [Obsolete("##", true)]
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider) //DB:ok
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
@@ -45,14 +46,6 @@ namespace SenseNet.ContentRepository
         public static IRepositoryBuilder UseDataProvider2(this IRepositoryBuilder repositoryBuilder, DataProvider2 dataProvider) //DB:ok
         {
             Configuration.Providers.Instance.DataProvider2 = dataProvider;
-
-            //UNDONE:DB: TransactionFactory?
-            //if (dataProvider != null)
-            //{
-            //    CommonComponents.TransactionFactory = dataProvider2;
-            //    WriteLog("TransactionFactory", dataProvider);
-            //}
-
             return repositoryBuilder;
         }
 

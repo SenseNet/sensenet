@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     public class SqlNodeWriter : INodeWriter
     {
         private FlatPropertyWriter _flatWriter;

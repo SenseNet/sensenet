@@ -10,6 +10,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     internal class SqlSchemaWriter : SchemaWriter
     {
         private List<StringBuilder> _scripts;

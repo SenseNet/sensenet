@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    [Obsolete("##", true)]
     internal class PropertyMap
     {
         private List<PropertyType> _binarySlots = new List<PropertyType>();

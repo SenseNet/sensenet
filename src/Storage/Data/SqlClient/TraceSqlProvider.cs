@@ -12,6 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// For debugging purposes. Goal: tracing all SQL accesses.
     /// In the development time it is easier to follow what is not overridden yet if the no-sql-access-methods are overridden too.
     /// </summary>
+    [Obsolete("##", true)]
     internal class TraceSqlProvider : SqlProvider, IDisposable
     {
         public void Dispose()
@@ -332,6 +333,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         }
     }
 
+    [Obsolete("##", true)]
     internal class TraceNodeWriter : INodeWriter
     {
         private SqlNodeWriter _writer = new SqlNodeWriter();
@@ -356,6 +358,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             log.Append(");");
             Debug.WriteLine(log);
         }
+        [Obsolete("##", true)]
         private string FormatValue(object value)
         {
             var intArray = value as IEnumerable<int>;

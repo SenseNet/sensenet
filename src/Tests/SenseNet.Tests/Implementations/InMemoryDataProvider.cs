@@ -23,6 +23,7 @@ using SenseNet.Security;
 
 namespace SenseNet.Tests.Implementations
 {
+    [Obsolete("##", true)]
     public partial class InMemoryDataProvider : DataProvider //DB:ok
     {
         public const int TextAlternationSizeLimit = 4000;

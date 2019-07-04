@@ -139,32 +139,19 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
-            var dp2 = new InMemoryDataProvider2();
-            Providers.Instance.DataProvider2 = dp2;
+            var dataProvider2 = new InMemoryDataProvider2();
+            Providers.Instance.DataProvider2 = dataProvider2;
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
-
-
-            //UNDONE:DB ----RepositoryBuilder and InMemorySharedLockDataProvider2
-            dp2.SetExtension(typeof(ISharedLockDataProviderExtension), new InMemorySharedLockDataProvider2());
-            //UNDONE:DB ----RepositoryBuilder and InMemoryAccessTokenDataProvider2
-            dp2.SetExtension(typeof(IAccessTokenDataProviderExtension), new InMemoryAccessTokenDataProvider2());
-
-            //UNDONE:DB ----RepositoryBuilder and InMemoryBlobStorageMetaDataProvider2
-            Providers.Instance.BlobMetaDataProvider2 = new InMemoryBlobStorageMetaDataProvider2(dp2);
-
-            var dataProvider = new InMemoryDataProvider();
-            var securityDataProvider = GetSecurityDataProvider(dataProvider);
-
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
-                .UseDataProvider(dataProvider)
-                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dp2))
+                .UseDataProvider2(dataProvider2)
+                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider2())
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dataProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider2())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(securityDataProvider)
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider2))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider2())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
@@ -178,7 +165,7 @@ namespace SenseNet.Tests
             return CreateRepositoryBuilderForTest();
         }
 
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
+        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider2 repo)
         {
             return new MemoryDataProvider(new DatabaseStorage
             {
@@ -186,7 +173,14 @@ namespace SenseNet.Tests
                 {
                     new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
                 },
-                Entities = repo.GetSecurityEntities().ToDictionary(e => e.Id, e => e),
+                Entities = repo.LoadEntityTreeAsync().Result.ToDictionary(x => x.Id, x => new StoredSecurityEntity
+                {
+                    Id = x.Id,
+                    OwnerId = x.OwnerId,
+                    ParentId = x.ParentId,
+                    IsInherited = true,
+                    HasExplicitEntry = x.Id == 2
+                }),
                 Memberships = new List<Membership>
                 {
                     new Membership

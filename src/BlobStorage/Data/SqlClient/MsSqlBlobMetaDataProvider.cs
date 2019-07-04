@@ -475,10 +475,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
         public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)
         {
-            var isLocalTransaction = !TransactionScope.IsActive;
-            if (isLocalTransaction)
-                TransactionScope.Begin();
-
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;
             string blobProviderData = null;

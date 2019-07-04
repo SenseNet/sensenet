@@ -14,6 +14,7 @@ using SenseNet.Search.Querying;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     //UNDONE:DB: Delete this class and all implementations.
+    [Obsolete("##", true)]
     public abstract class DataProvider : ITransactionFactory //DB:ok
     {
         /// <summary>
