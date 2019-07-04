@@ -9,12 +9,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -2215,6 +2217,11 @@ namespace SenseNet.Tests.Implementations
                 _schemaXml = schemaXml;
                 _nsmgr = new XmlNamespaceManager(_schemaXml.NameTable);
                 _nsmgr.AddNamespace("x", _xmlNamespace);
+            }
+
+            public override Task WriteSchemaAsync(RepositorySchemaData schema)
+            {
+                throw new NotSupportedException();
             }
 
             public override void Open()

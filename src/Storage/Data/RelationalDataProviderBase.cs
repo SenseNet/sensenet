@@ -2006,8 +2006,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override bool IsCacheableText(string text)
         {
-            //UNDONE:DB: Test this feature: unchanged longtextproperties are not preloaded before Update Node
-
             return text?.Length < DataStore.TextAlternationSizeLimit;
         }
 

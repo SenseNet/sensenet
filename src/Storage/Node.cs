@@ -2909,7 +2909,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private void CacheNodeAfterSave() //UNDONE:DB: Cache: Move to DataStore
+        private void CacheNodeAfterSave()
         {
             // don't insert into cache if node is a content type
             if (this.IsContentType)

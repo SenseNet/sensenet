@@ -6,6 +6,8 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
@@ -18,6 +20,11 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         private Dictionary<string, List<string>> _slotsToReset; // key: "{NodeTypeId}.{PageIndex}", value: "{slotName list}", e.g.: "123.0", "nvarchar_12"
 
         public SqlSchemaWriter() { }
+
+        public override Task WriteSchemaAsync(RepositorySchemaData schema)
+        {
+            throw new NotSupportedException();
+        }
 
         public override void Open()
         {

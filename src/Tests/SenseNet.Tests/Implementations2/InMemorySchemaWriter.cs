@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 
@@ -16,6 +17,11 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         {
             _schema = originalSchema;
             _finishedCallback = finishedCallback;
+        }
+
+        public override Task WriteSchemaAsync(RepositorySchemaData schema)
+        {
+            throw new NotSupportedException();
         }
 
         public override void Open()

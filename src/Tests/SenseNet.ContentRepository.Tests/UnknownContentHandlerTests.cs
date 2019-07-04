@@ -17,8 +17,6 @@ namespace SenseNet.ContentRepository.Tests
     {
         protected override RepositoryBuilder CreateRepositoryBuilderForTestInstance()
         {
-            //UNDONE: temp reference to the SenseNet.Packaging.Tests 
-            // because of the packaging storage provider below.
             var builder = base.CreateRepositoryBuilderForTestInstance();
             builder.UsePackagingDataProviderExtension(new TestPackageStorageProvider());
 

@@ -12,10 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         public virtual bool CanWriteDifferences => true;
 
-        public virtual Task WriteSchemaAsync(RepositorySchemaData schema) //UNDONE:DB@@@@@ Rewrite to abstract?
-        {
-            throw new NotSupportedException();
-        }
+        public abstract Task WriteSchemaAsync(RepositorySchemaData schema);
 
         /// <summary>
         /// Derived classes need to start a new transactional session.

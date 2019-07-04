@@ -515,7 +515,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken));
 
-        //UNDONE:DB: Make async version if the .NET framework allows the async enumerable with "yield return".
+        //TODO: Make async version if the .NET framework allows the async enumerable with "yield return".
         public abstract IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
 
         public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken));
