@@ -91,7 +91,7 @@
     <Compile Include="Accessor.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Implementations\DataCollection.cs" />
-    <Compile Include="Implementations2\InMemoryAccessTokenDataProvider2.cs" />
+    <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />
     <Compile Include="Implementations\InMemoryTestingDataProvider2.cs" />
     <Compile Include="Implementations\InMemoryDataBase_Transaction.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -18,7 +17,6 @@ using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests
@@ -149,7 +147,7 @@ namespace SenseNet.Tests
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider2())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())

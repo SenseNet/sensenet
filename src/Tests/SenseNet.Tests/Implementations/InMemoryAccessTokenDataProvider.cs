@@ -4,11 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests.Implementations2
+namespace SenseNet.Tests.Implementations
 {
-    public class InMemoryAccessTokenDataProvider2 : IAccessTokenDataProviderExtension
+    public class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()
         {
