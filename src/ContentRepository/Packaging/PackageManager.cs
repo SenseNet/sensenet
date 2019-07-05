@@ -9,7 +9,7 @@ using SenseNet.ContentRepository;
 using System.Reflection;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
@@ -27,7 +27,7 @@ namespace SenseNet.Packaging
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
 
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters

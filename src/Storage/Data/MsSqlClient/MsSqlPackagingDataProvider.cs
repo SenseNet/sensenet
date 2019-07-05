@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.Common.Storage.Data;
 
-namespace SenseNet.ContentRepository.Storage.Data.SqlClient
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    public class SqlPackagingDataProvider : IPackagingDataProviderExtension
+    public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);

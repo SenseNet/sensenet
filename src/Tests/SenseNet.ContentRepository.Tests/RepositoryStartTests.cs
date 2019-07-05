@@ -11,7 +11,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -410,8 +410,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(SqlPackagingDataProvider), DataStore.DataProvider.GetExtensionInstance<IPackagingDataProviderExtension>().GetType()); //DB:??test??
-                Assert.AreEqual(typeof(SqlAccessTokenDataProvider), DataStore.DataProvider.GetExtensionInstance<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), DataStore.DataProvider.GetExtensionInstance<IPackagingDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), DataStore.DataProvider.GetExtensionInstance<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
             }
         }
 

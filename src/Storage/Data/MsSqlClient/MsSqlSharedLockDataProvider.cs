@@ -5,10 +5,9 @@ using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Storage.Data.SqlClient
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: Rename to MsSql... or Relational...
-    public class SqlSharedLockDataProvider : ISharedLockDataProviderExtension
+    public class MsSqlSharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 

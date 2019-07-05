@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace SenseNet.ContentRepository.Storage.Data.SqlClient
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    public class SqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
+    public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);

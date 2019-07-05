@@ -20,7 +20,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -316,11 +316,11 @@ namespace SenseNet.ContentRepository
         {
             // set default value of well-known data provider extensions
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
             if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider());
+                DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), new MsSqlAccessTokenDataProvider());
             if (null == DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), new SqlSharedLockDataProvider());
+                DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), new MsSqlSharedLockDataProvider());
         }
 
         private static void InitializeOAuthProviders()
