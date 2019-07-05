@@ -102,13 +102,11 @@
     <Compile Include="Implementations2\InitialTestDataBlobProvider.cs" />
     <Compile Include="Implementations\EmptyCache.cs" />
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
-    <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />
     <Compile Include="Implementations\InMemoryBlobProvider.cs" />
     <Compile Include="Implementations\InMemoryIndex.cs" />
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
-    <Compile Include="Implementations\InMemorySharedLockDataProvider.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="Implementations2\DataProviderChecker.cs" />
     <Compile Include="Implementations2\InMemoryBlobProvider2.cs" />
