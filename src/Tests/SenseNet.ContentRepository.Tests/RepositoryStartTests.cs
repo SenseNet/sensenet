@@ -163,7 +163,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSearchEngine(searchEngine)
@@ -204,7 +204,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
@@ -231,7 +231,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
@@ -260,7 +260,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
@@ -290,7 +290,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
@@ -326,7 +326,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider2)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider2))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSearchEngine(searchEngine)
@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSearchEngine(searchEngine)
@@ -433,7 +433,7 @@ namespace SenseNet.ContentRepository.Tests
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)

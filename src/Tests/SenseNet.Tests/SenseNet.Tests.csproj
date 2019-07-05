@@ -109,7 +109,7 @@
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="NodeDataChecker.cs" />
-    <Compile Include="Implementations2\InMemoryBlobProvider2.cs" />
+    <Compile Include="Implementations\InMemoryBlobStorageMetaDataProvider.cs" />
     <Compile Include="Implementations\InMemoryDataBase.cs" />
     <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />

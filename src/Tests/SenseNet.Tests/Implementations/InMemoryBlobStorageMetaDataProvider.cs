@@ -8,19 +8,18 @@ using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
-using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
-    public class InMemoryBlobStorageMetaDataProvider2 : IBlobStorageMetaDataProvider
+    public class InMemoryBlobStorageMetaDataProvider : IBlobStorageMetaDataProvider
     {
         public InMemoryDataProvider DataProvider { get; set; }
 
-        public InMemoryBlobStorageMetaDataProvider2()
+        public InMemoryBlobStorageMetaDataProvider()
         {
             
         }
-        public InMemoryBlobStorageMetaDataProvider2(InMemoryDataProvider dataProvider)
+        public InMemoryBlobStorageMetaDataProvider(InMemoryDataProvider dataProvider)
         {
             DataProvider = dataProvider;
         }
