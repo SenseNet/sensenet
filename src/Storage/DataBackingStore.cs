@@ -142,40 +142,6 @@ namespace SenseNet.ContentRepository.Storage
             return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
         }
 
-        // ====================================================================== Transaction callback
-
-        internal static void RemoveFromCache(NodeDataParticipant participant) // orig name: OnNodeDataCommit
-        {
-            // Do not fire any events if the node is new: 
-            // it cannot effect any other content
-            if (participant.IsNewNode)
-                return;
-
-            var data = participant.Data;
-
-            // Remove items from Cache by the OriginalPath, before getting an update
-            // of a - occassionally differring - path from the database
-            if (data.PathChanged)
-            {
-                PathDependency.FireChanged(data.OriginalPath);
-            }
-
-            if (data.ContentListTypeId != 0 && data.ContentListId == 0)
-            {
-                // If list, invalidate full subtree
-                PathDependency.FireChanged(data.Path);
-            }
-            else
-            {
-                // If not a list, invalidate item
-                NodeIdDependency.FireChanged(data.Id);
-            }
-        }
-        internal static void OnNodeDataRollback(NodeDataParticipant participant)
-        {
-            participant.Data.Rollback();
-        }
-
         // ====================================================================== Save Nodedata
 
         private const int maxDeadlockIterations = 3;
@@ -263,8 +229,6 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     // collect data for populator
                     var populatorData = populator.BeginPopulateNode(node, settings, originalPath, newPath);
-
-                    data.CreateSnapshotData();
 
                     if (settings.NodeHead != null)
                     {

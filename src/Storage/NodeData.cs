@@ -941,54 +941,7 @@ namespace SenseNet.ContentRepository.Storage
             return new ApplicationException(String.Concat("Unknown property. Id: ", propType.Id, ", Name: ", propType.Name));
         }
 
-        // ---------------------------------------------------------- transaction
-
-        private SnapshotData _snapshotData;
-        internal void CreateSnapshotData()
-        {
-            var binIds = new Dictionary<int, Tuple<int, int>>();
-            foreach (var propType in PropertyTypes)
-            {
-                if (propType.DataType == DataType.Binary)
-                {
-                    var binValue = GetDynamicRawData(propType) as BinaryDataValue;
-                    if (binValue != null)
-                        binIds.Add(propType.Id, new Tuple<int, int>(binValue.Id, binValue.FileId));
-                }
-            }
-            _snapshotData = new SnapshotData
-            {
-                Id = this.Id,
-                Path = this.Path,
-                NodeTimestamp = this.NodeTimestamp,
-                VersionId = this.VersionId,
-                Version = this.Version,
-                VersionTimestamp = this.VersionTimestamp,
-                BinaryIds = binIds
-            };
-        }
-        internal void Rollback()
-        {
-            if (IsShared)
-                throw Exception_SharedIsReadOnly();
-
-            this.Id = _snapshotData.Id;
-            this.Path = _snapshotData.Path;
-            this.NodeTimestamp = _snapshotData.NodeTimestamp;
-            this.VersionId = _snapshotData.VersionId;
-            this.Version = _snapshotData.Version;
-            this.VersionTimestamp = _snapshotData.VersionTimestamp;
-            foreach (var propTypeId in _snapshotData.BinaryIds.Keys)
-            {
-                var binValue = GetDynamicRawData(propTypeId) as BinaryDataValue;
-                if (binValue != null)
-                {
-                    var item = _snapshotData.BinaryIds[propTypeId];
-                    binValue.Id = item.Item1;
-                    binValue.FileId = item.Item2;
-                }
-            }
-        }
+        // ---------------------------------------------------------- differences
 
         internal IEnumerable<ChangedData> GetChangedValues()
         {
