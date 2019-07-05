@@ -5,7 +5,7 @@ using SenseNet.Client;
 
 namespace SenseNet.RestTester
 {
-    internal class BasicOperations : TestBase
+    internal class BasicOperations : RestTestBase
     {
         [TestMethod]
         public void LoadRoot()

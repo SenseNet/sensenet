@@ -5,7 +5,7 @@ using SenseNet.Client;
 
 namespace SenseNet.RestTester
 {
-    internal class TestBase
+    internal class RestTestBase
     {
         public static ServerContext[] Servers { get; private set; }
 
