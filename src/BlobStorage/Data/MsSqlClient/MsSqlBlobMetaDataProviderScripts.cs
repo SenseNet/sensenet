@@ -1,5 +1,5 @@
 ﻿// ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Storage.Data.SqlClient
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public partial class MsSqlBlobMetaDataProvider
     {
