@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.ContentRepository.Tests
 {

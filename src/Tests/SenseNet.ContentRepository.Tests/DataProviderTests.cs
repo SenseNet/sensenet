@@ -26,7 +26,6 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests

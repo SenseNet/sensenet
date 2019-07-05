@@ -21,7 +21,6 @@ using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Tests

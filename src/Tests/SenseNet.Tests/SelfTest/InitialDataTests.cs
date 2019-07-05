@@ -16,7 +16,6 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.Tests.SelfTest
 {

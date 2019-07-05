@@ -113,7 +113,7 @@
     <Compile Include="Implementations\InMemoryDataBase.cs" />
     <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
-    <Compile Include="Implementations2\InMemorySchemaWriter.cs" />
+    <Compile Include="Implementations\InMemorySchemaWriter.cs" />
     <Compile Include="Implementations\InMemorySharedLockDataProvider2.cs" />
     <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
@@ -178,6 +178,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ResourceXmls.cs</LastGenOutput>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementations2\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

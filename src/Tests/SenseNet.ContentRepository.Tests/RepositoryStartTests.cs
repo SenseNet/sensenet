@@ -19,7 +19,6 @@ using SenseNet.Search;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
 
 namespace SenseNet.ContentRepository.Tests
 {
