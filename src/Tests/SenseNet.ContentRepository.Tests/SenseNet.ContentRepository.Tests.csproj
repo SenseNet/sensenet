@@ -133,7 +133,6 @@
     <Compile Include="SqlSchemaWriterTests.cs" />
     <Compile Include="TemplateReplacerTests.cs" />
     <Compile Include="TimestampTests.cs" />
-    <Compile Include="TransactionScopeTests.cs" />
     <Compile Include="TreeLockTests.cs" />
     <Compile Include="TypeCollectionTests.cs" />
     <Compile Include="VersionExistenceTests.cs" />

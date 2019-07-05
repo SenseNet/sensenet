@@ -104,8 +104,6 @@
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
     <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />
     <Compile Include="Implementations\InMemoryBlobProvider.cs" />
-    <Compile Include="Implementations\InMemoryDataProvider.cs" />
-    <Compile Include="Implementations\InMemoryDataProviderData.cs" />
     <Compile Include="Implementations\InMemoryIndex.cs" />
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />

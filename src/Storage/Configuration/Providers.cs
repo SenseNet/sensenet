@@ -32,8 +32,6 @@ namespace SenseNet.Configuration
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
             "SenseNet.Diagnostics.ContextEventPropertyCollector");
-        [Obsolete("##", true)]
-        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string DataProvider2ClassName { get; internal set; } = GetProvider("DataProvider2", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
@@ -109,23 +107,6 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
-        [Obsolete("##", true)]
-        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() => //DB:ok
-        {
-            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider"); //DB:ok
-
-            CommonComponents.TransactionFactory = dbp;
-
-            return dbp;
-        });
-        [Obsolete("##", true)]
-        public virtual DataProvider DataProvider //DB:ok
-        {
-            get { return _dataProvider.Value; }
-            set { _dataProvider = new Lazy<DataProvider>(() => value); } //DB:ok
-        }
-        #endregion
         #region private Lazy<DataProvider> _dataProvider2 = new Lazy<DataProvider2>
         private Lazy<DataProvider2> _dataProvider2 = new Lazy<DataProvider2>(() =>
         {
