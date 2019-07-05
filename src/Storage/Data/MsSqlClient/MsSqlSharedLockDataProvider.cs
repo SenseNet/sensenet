@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable AccessToDisposedClosure
 

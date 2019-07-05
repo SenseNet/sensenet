@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using SenseNet.Common.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {

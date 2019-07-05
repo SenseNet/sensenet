@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.Packaging.Steps.Internal
 {

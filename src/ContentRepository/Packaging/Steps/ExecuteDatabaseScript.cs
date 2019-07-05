@@ -4,7 +4,7 @@ using System.Data;
 using SenseNet.ContentRepository.Storage.Data;
 using System.IO;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.Packaging.Steps
 {

@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;

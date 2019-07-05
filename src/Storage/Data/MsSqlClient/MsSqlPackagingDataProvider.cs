@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SenseNet.Common.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {

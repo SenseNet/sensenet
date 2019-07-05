@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal

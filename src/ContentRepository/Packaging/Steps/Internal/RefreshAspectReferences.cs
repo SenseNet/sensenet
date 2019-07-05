@@ -1,7 +1,7 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using System.Linq;
-using SenseNet.Common.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable once ArrangeThisQualifier

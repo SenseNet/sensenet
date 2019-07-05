@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient

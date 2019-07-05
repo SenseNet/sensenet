@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
-using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;

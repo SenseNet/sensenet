@@ -6,7 +6,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data;
 using SenseNet.Configuration;
 using SenseNet.Tools;
 // ReSharper disable AccessToDisposedClosure

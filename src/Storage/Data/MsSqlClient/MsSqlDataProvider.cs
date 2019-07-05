@@ -7,8 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Common.Storage.Data;
-using SenseNet.Common.Storage.Data.MsSqlClient;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
