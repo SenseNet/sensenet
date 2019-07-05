@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 foreach (var propType in loaded.Data.PropertyTypes)
                     loaded.Data.GetDynamicRawData(propType);
-                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+                NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
 
             });
         }
@@ -127,7 +127,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 foreach (var propType in loaded.Data.PropertyTypes)
                     loaded.Data.GetDynamicRawData(propType);
-                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+                NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
         [TestMethod]
@@ -175,7 +175,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 foreach (var propType in loaded.Data.PropertyTypes)
                     loaded.Data.GetDynamicRawData(propType);
-                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+                NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
         [TestMethod]
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 foreach (var propType in loaded.Data.PropertyTypes)
                     loaded.Data.GetDynamicRawData(propType);
-                DataProviderChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
+                NodeDataChecker.Assert_DynamicPropertiesAreEqualExceptBinaries(nodeData, loaded.Data);
             });
         }
         [TestMethod]

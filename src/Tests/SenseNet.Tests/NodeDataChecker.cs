@@ -6,9 +6,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests
 {
-    public class DataProviderChecker
+    public class NodeDataChecker
     {
         public static void Assert_DynamicPropertiesAreEqualExceptBinaries(NodeData expected, NodeData actual, params string[] excludedProperties)
         {
