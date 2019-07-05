@@ -53,31 +53,8 @@ namespace SenseNet.ContentRepository.Storage
             CallContext.SetData(identifier, value);
         }
 
-		private const string TransactionIdent = "SnCr.Transaction";
-		private const string TransactionQueueIdent = "SnCr.TransactionQueue";
-
-        internal static ITransactionProvider GetTransaction()
-        {
-            return (ITransactionProvider)GetObject(TransactionIdent);
-        }
-        internal static void SetTransaction(ITransactionProvider transaction)
-        {
-            SetObject(TransactionIdent, transaction);
-        }
-
-		internal static TransactionQueue GetTransactionQueue()
-        {
-			return (TransactionQueue)GetObject(TransactionQueueIdent);
-        }
-		internal static void SetTransactionQueue(TransactionQueue queue)
-        {
-			SetObject(TransactionQueueIdent, queue);
-        }
-
         public static void Reset()
         {
-            SetObject(TransactionIdent, null);
-            SetObject(TransactionQueueIdent, null);
         }
     }
 }
