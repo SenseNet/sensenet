@@ -8,18 +8,19 @@ using SenseNet.Common.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     public class InMemoryBlobStorageMetaDataProvider2 : IBlobStorageMetaDataProvider
     {
-        public InMemoryDataProvider2 DataProvider { get; set; }
+        public InMemoryDataProvider DataProvider { get; set; }
 
         public InMemoryBlobStorageMetaDataProvider2()
         {
             
         }
-        public InMemoryBlobStorageMetaDataProvider2(InMemoryDataProvider2 dataProvider)
+        public InMemoryBlobStorageMetaDataProvider2(InMemoryDataProvider dataProvider)
         {
             DataProvider = dataProvider;
         }
@@ -215,7 +216,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
             result = CreateBinaryDataValue(db, binaryDoc, fileDoc);
             return result;
         }
-        private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase2 db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
+        private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
         {
             if (fileDoc == null)
                 fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);

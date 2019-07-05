@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using SenseNet.Diagnostics;
 
-namespace SenseNet.Tests.Implementations2
+namespace SenseNet.Tests.Implementations
 {
     public class DataCollection<T> : IEnumerable<T> where T : IDataDocument
     {
-        private readonly InMemoryDataBase2 _db;
+        private readonly InMemoryDataBase _db;
         private readonly List<T> _list = new List<T>();
         public int Count => _list.Count;
 
-        public DataCollection(InMemoryDataBase2 db, int lastId = 0)
+        public DataCollection(InMemoryDataBase db, int lastId = 0)
         {
             _db = db;
             _lastId = lastId;

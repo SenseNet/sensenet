@@ -139,7 +139,7 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
-            var dataProvider = new InMemoryDataProvider2();
+            var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
@@ -165,7 +165,7 @@ namespace SenseNet.Tests
             return CreateRepositoryBuilderForTest();
         }
 
-        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider2 repo)
+        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
         {
             return new MemoryDataProvider(new DatabaseStorage
             {

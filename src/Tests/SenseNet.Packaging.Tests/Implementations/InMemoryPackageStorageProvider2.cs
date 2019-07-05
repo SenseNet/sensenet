@@ -6,7 +6,7 @@ using Tasks = System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Tests.Implementations2;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
@@ -14,7 +14,7 @@ namespace SenseNet.Packaging.Tests.Implementations
     {
         public DataCollection<PackageDoc> GetPackages()
         {
-            return ((InMemoryDataProvider2)DataStore.DataProvider).DB.GetCollection<PackageDoc>();
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<PackageDoc>();
         }
 
         /* ================================================================================================= IPackageStorageProvider */

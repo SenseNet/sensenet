@@ -20,7 +20,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
         public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider); //DB:ok
 
         // ReSharper disable once InconsistentNaming
-        public InMemoryDataBase2 DB => ((InMemoryDataProvider2)MainProvider).DB;
+        public InMemoryDataBase DB => ((InMemoryDataProvider)MainProvider).DB;
 
         public void InitializeForTests()
         {

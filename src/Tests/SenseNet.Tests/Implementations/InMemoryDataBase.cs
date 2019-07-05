@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using SenseNet.ContentRepository.Storage.DataModel;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public partial class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
+    public partial class InMemoryDataBase
     {
         /* ================================================================================================ WELL KNOWN COLLECTIONS */
 
@@ -30,7 +29,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 
         /* ================================================================================================ CONSTRUCTION */
 
-        public InMemoryDataBase2()
+        public InMemoryDataBase()
         {
             Nodes = new DataCollection<NodeDoc>(this, 1247);
             Versions = new DataCollection<VersionDoc>(this, 260);

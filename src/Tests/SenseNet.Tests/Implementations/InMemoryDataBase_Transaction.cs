@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Tests.Implementations2
+namespace SenseNet.Tests.Implementations
 {
-    public partial class InMemoryDataBase2 //UNDONE:DB -------Rename to InMemoryDataBase
+    public partial class InMemoryDataBase
     {
         private InMemoryTransaction _transacton;
 
@@ -115,11 +113,11 @@ namespace SenseNet.Tests.Implementations2
 
             /* ================================================================================= Construction */
 
-            private readonly InMemoryDataBase2 _db;
+            private readonly InMemoryDataBase _db;
             // ReSharper disable once FieldCanBeMadeReadOnly.Local
             private bool _lockWasTaken;
 
-            public InMemoryTransaction(InMemoryDataBase2 db)
+            public InMemoryTransaction(InMemoryDataBase db)
             {
                 _db = db;
                 Monitor.Enter(_db, ref _lockWasTaken);

@@ -16,7 +16,8 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tests.Implementations2;
+// ReSharper disable UnusedVariable
+// ReSharper disable UnusedMember.Local
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -451,6 +452,7 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
+        // ReSharper disable once InconsistentNaming
         private class TestEventLoggerForIndexing_ExecuteUnprocessed_FaultTolerance : IEventLogger
         {
             public List<string> Events { get; } = new List<string>();
@@ -465,7 +467,7 @@ namespace SenseNet.ContentRepository.Tests
         public void Indexing_ExecuteUnprocessed_FaultTolerance()
         {
             // Temporary storages for manage repository's restart.
-            InMemoryDataProvider2 dataProvider = null;
+            InMemoryDataProvider dataProvider = null;
             InMemorySearchEngine searchProvider = null;
 
             // Storage for new contents' ids and version ids
@@ -475,7 +477,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // Memorize instances.
-                dataProvider = (InMemoryDataProvider2)DataStore.DataProvider; //DB:??test??
+                dataProvider = (InMemoryDataProvider)DataStore.DataProvider; //DB:??test??
                 searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
 
                 // Create 8 activities.

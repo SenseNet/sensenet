@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
@@ -11,7 +11,7 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
     {
         public DataCollection<SharedLockDoc> GetSharedLocks()
         {
-            return ((InMemoryDataProvider2)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
         }
 
 

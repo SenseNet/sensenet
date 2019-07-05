@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.Implementations2
 {
@@ -11,7 +12,7 @@ namespace SenseNet.Tests.Implementations2
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()
         {
-            return ((InMemoryDataProvider2)DataStore.DataProvider).DB.GetCollection<AccessTokenDoc>();
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<AccessTokenDoc>();
         }
         
         public Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))

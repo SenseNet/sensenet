@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Tests.Implementations2;
+using SenseNet.Tests.Implementations;
+// ReSharper disable UnusedVariable
+// ReSharper disable UnusedMember.Local
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -377,14 +372,14 @@ namespace SenseNet.Tests.SelfTest
             public SchemaItemAccessor(SchemaItem target) : base(target) { }
             public int Id
             {
-                get { return ((SchemaItem)_target).Id; }
-                set { SetPrivateField("_id", value); }
+                get => ((SchemaItem)_target).Id;
+                set => SetPrivateField("_id", value);
             }
         }
 
         private (RepositorySchemaData, SchemaWriter) CreateEmptySchemaAndWriter()
         {
-            var dp = new InMemoryDataProvider2();
+            var dp = new InMemoryDataProvider();
             var writer = dp.CreateSchemaWriter();
 
             var writerAcc = new PrivateObject(writer);
@@ -397,18 +392,10 @@ namespace SenseNet.Tests.SelfTest
             return (schema, writer);
         }
 
-        //        private bool ScriptsAreEqual(string striptA, string scriptB)
-        //        {
-        //            return striptA.Replace("\r\n", "").Replace("\t", "").Replace("    ", "") == scriptB.Replace("\r\n", "").Replace("\t", "").Replace("    ", "");
-        //        }
-
         private void SetSchemaItemId(SchemaItem item, int id)
         {
             SchemaItemAccessor slotAcc = new SchemaItemAccessor(item);
             slotAcc.Id = id;
-
-            //var acc = new PrivateObject(item);
-            //acc.SetField("_id", id);
         }
         private NodeType CreateNodeType(SchemaEditor editor, NodeType parent, string name, string className, int id)
         {
@@ -434,46 +421,5 @@ namespace SenseNet.Tests.SelfTest
             SetSchemaItemId(pt, id);
             return pt;
         }
-
-        //        private Content CreateTestNodeForRemovePropertyType()
-        //        {
-        //            ContentTypeInstaller.InstallContentType(@"<?xml version='1.0' encoding='utf-8'?>
-        //				<ContentType name='TestNodeForRemovePropertyType' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
-        //					<Fields>
-        //						<Field name='Int1' type='Integer' />
-        //						<Field name='Int2' type='Integer' />
-        //						<Field name='String1' type='ShortText' />
-        //						<Field name='String2' type='ShortText' />
-        //						<Field name='String3' type='ShortText' />
-        //						<Field name='String4' type='ShortText' />
-        //						<Field name='Text1' type='LongText' />
-        //						<Field name='Text2' type='LongText' />
-        //						<Field name='Text3' type='LongText' />
-        //						<Field name='Text4' type='LongText' />
-        //					</Fields>
-        //				</ContentType>");
-        //            Content content = Content.CreateNew("TestNodeForRemovePropertyType", Repository.Root, "TestNodeForRemovePropertyType");
-
-        //            StringBuilder sb = new StringBuilder();
-        //            string shortString = "Short string";
-        //            for (int i = 0; i < 50; i++)
-        //                sb.Append("|ten char|");
-        //            string midString = sb.ToString(); //length = 500
-        //            sb.Length = 0;
-        //            for (int i = 0; i < 500; i++)
-        //                sb.Append("|ten char|");
-        //            string longString = sb.ToString(); //length = 5000
-
-        //            content["Int2"] = 1234;
-        //            content["String2"] = shortString;
-        //            content["String3"] = midString;
-        //            content["String4"] = longString;
-        //            content["Text2"] = shortString;
-        //            content["Text3"] = midString;
-        //            content["Text4"] = longString;
-
-        //            content.Save();
-        //            return content;
-        //        }
     }
 }

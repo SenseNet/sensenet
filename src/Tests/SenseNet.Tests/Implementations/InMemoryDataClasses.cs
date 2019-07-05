@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public interface IDataDocument
     {

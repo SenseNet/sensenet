@@ -90,10 +90,10 @@
   <ItemGroup>
     <Compile Include="Accessor.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Implementations2\DataCollection.cs" />
+    <Compile Include="Implementations\DataCollection.cs" />
     <Compile Include="Implementations2\InMemoryAccessTokenDataProvider2.cs" />
     <Compile Include="Implementations2\InMemoryTestingDataProvider2.cs" />
-    <Compile Include="Implementations2\InMemoryTransaction.cs" />
+    <Compile Include="Implementations\InMemoryDataBase_Transaction.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -110,9 +110,9 @@
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="NodeDataChecker.cs" />
     <Compile Include="Implementations2\InMemoryBlobProvider2.cs" />
-    <Compile Include="Implementations2\InMemoryDataBase2.cs" />
-    <Compile Include="Implementations2\InMemoryDataClasses.cs" />
-    <Compile Include="Implementations2\InMemoryDataProvider2.cs" />
+    <Compile Include="Implementations\InMemoryDataBase.cs" />
+    <Compile Include="Implementations\InMemoryDataClasses.cs" />
+    <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations2\InMemorySchemaWriter.cs" />
     <Compile Include="Implementations2\InMemorySharedLockDataProvider2.cs" />
     <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,17 +14,16 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing;
+using SenseNet.Tests.Implementations2;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
-    //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
-    public class InMemoryDataProvider2 : DataProvider
+    public class InMemoryDataProvider : DataProvider
     {
         // ReSharper disable once InconsistentNaming
-        public InMemoryDataBase2 DB { get; } = new InMemoryDataBase2();
+        public InMemoryDataBase DB { get; } = new InMemoryDataBase();
 
         /* =============================================================================================== Nodes */
 

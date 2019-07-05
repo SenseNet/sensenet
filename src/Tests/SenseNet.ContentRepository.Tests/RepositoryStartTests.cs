@@ -152,7 +152,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NamedProviders()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
@@ -200,7 +200,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableAll()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableOne()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_EnableMore()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
@@ -286,7 +286,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NodeObservers_DisableOne()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
@@ -317,7 +317,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_NullPopulator()
         {
-            var dbProvider2 = new InMemoryDataProvider2();
+            var dbProvider2 = new InMemoryDataProvider();
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
@@ -386,7 +386,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_Default()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
@@ -419,7 +419,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void RepositoryStart_DataProviderExtensions_OverrideDefault()
         {
-            var dbProvider = new InMemoryDataProvider2();
+            var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
