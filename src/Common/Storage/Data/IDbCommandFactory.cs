@@ -1,7 +1,7 @@
-﻿using System.Data;
-using System.Data.Common;
+﻿using System.Data.Common;
 
-namespace SenseNet.Common.Storage.Data
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Storage.Data
 {
     public interface IDbCommandFactory
     {

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.Transactions;
 using IsolationLevel = System.Data.IsolationLevel;
 
-namespace SenseNet.Common.Storage.Data
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Storage.Data
 {
     //UNDONE:DB: Refactor: separate to independent files.
     public class TransactionWrapper : IDbTransaction

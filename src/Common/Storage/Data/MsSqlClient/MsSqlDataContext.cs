@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using IsolationLevel = System.Data.IsolationLevel;
 
-namespace SenseNet.Common.Storage.Data.MsSqlClient
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public class MsSqlDataContext : IDisposable
     {
