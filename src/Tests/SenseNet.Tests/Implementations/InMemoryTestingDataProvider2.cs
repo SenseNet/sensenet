@@ -10,11 +10,10 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
-    public class InMemoryTestingDataProvider2 : ITestingDataProviderExtension
+    public class InMemoryTestingDataProvider : ITestingDataProviderExtension
     {
         private DataProvider _mainProvider; //DB:ok
         public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider); //DB:ok

@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DataProviderExtension_CallingInterfaceMethod()
         {
-            var dp = new InMemoryTestingDataProvider2();
+            var dp = new InMemoryTestingDataProvider();
             var builder = CreateRepositoryBuilderForTest();
             builder.UseTestingDataProviderExtension(dp);
             dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-2.1d)});
@@ -39,10 +39,10 @@ namespace SenseNet.ContentRepository.Tests
         public void DataProviderExtension_CallingNotInterfaceMethod()
         {
             var builder = CreateRepositoryBuilderForTest();
-            builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider2());
+            builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider());
 
             // ACTION: Call a not interface method
-            var actual = ((InMemoryTestingDataProvider2) DataStore
+            var actual = ((InMemoryTestingDataProvider) DataStore
                     .GetDataProviderExtension<ITestingDataProviderExtension>())
                 .TestMethodThatIsNotInterfaceMember("asdf");
 

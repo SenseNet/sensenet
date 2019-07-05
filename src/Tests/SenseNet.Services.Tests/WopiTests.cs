@@ -1580,7 +1580,7 @@ namespace SenseNet.Services.Tests
 
             var builder = CreateRepositoryBuilderForTest();
 
-            builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider2());
+            builder.UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider());
 
             Indexing.IsOuterSearchEngineEnabled = true;
 

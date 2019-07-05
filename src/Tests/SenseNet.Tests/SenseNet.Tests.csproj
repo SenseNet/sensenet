@@ -92,7 +92,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Implementations\DataCollection.cs" />
     <Compile Include="Implementations2\InMemoryAccessTokenDataProvider2.cs" />
-    <Compile Include="Implementations2\InMemoryTestingDataProvider2.cs" />
+    <Compile Include="Implementations\InMemoryTestingDataProvider2.cs" />
     <Compile Include="Implementations\InMemoryDataBase_Transaction.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">
       <AutoGen>True</AutoGen>
@@ -114,7 +114,7 @@
     <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations2\InMemorySchemaWriter.cs" />
-    <Compile Include="Implementations2\InMemorySharedLockDataProvider2.cs" />
+    <Compile Include="Implementations\InMemorySharedLockDataProvider2.cs" />
     <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
       <AutoGen>True</AutoGen>

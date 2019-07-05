@@ -3,11 +3,10 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
-    public class InMemorySharedLockDataProvider2 : ISharedLockDataProviderExtension
+    public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public DataCollection<SharedLockDoc> GetSharedLocks()
         {
