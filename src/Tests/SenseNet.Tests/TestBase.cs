@@ -139,19 +139,19 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
-            var dataProvider2 = new InMemoryDataProvider2();
-            Providers.Instance.DataProvider2 = dataProvider2;
+            var dataProvider = new InMemoryDataProvider2();
+            Providers.Instance.DataProvider = dataProvider;
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
-                .UseDataProvider2(dataProvider2)
+                .UseDataProvider(dataProvider)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider2())
-                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dataProvider2))
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider2())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider2))
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseTestingDataProviderExtension(new InMemoryTestingDataProvider2())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)

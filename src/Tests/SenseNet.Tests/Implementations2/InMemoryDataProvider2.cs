@@ -23,7 +23,7 @@ using STT = System.Threading.Tasks;
 namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
 {
     //UNDONE:DB -------Delete original InMemoryDataProvider and use this. Move to the Tests project
-    public class InMemoryDataProvider2 : DataProvider2
+    public class InMemoryDataProvider2 : DataProvider
     {
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase2 DB { get; } = new InMemoryDataBase2();

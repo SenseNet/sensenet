@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: Providers MOVED
 
-        public static string DataProviderClassName => Providers.DataProvider2ClassName;
+        public static string DataProviderClassName => Providers.DataProviderClassName;
         public static string AccessProviderClassName => Providers.AccessProviderClassName;
         public static string ContentNamingProviderClassName => Providers.ContentNamingProviderClassName;
         public static string TaskManagerClassName => Providers.TaskManagerClassName;

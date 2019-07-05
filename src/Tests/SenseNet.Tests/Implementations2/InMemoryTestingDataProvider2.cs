@@ -16,8 +16,8 @@ namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to Se
 {
     public class InMemoryTestingDataProvider2 : ITestingDataProviderExtension
     {
-        private DataProvider2 _mainProvider; //DB:ok
-        public DataProvider2 MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider); //DB:ok
+        private DataProvider _mainProvider; //DB:ok
+        public DataProvider MainProvider => _mainProvider ?? (_mainProvider = DataStore.DataProvider); //DB:ok
 
         // ReSharper disable once InconsistentNaming
         public InMemoryDataBase2 DB => ((InMemoryDataProvider2)MainProvider).DB;

@@ -29,9 +29,9 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="dataProvider">DataProvider instance.</param>
-        public static IRepositoryBuilder UseDataProvider2(this IRepositoryBuilder repositoryBuilder, DataProvider2 dataProvider) //DB:ok
+        public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider) //DB:ok
         {
-            Configuration.Providers.Instance.DataProvider2 = dataProvider;
+            Configuration.Providers.Instance.DataProvider = dataProvider;
             return repositoryBuilder;
         }
 
@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository
         /// <param name="metaDataProvider">IBlobStorageMetaDataProvider instance.</param>
         public static IRepositoryBuilder UseBlobMetaDataProvider(this IRepositoryBuilder repositoryBuilder, IBlobStorageMetaDataProvider metaDataProvider)
         {
-            Configuration.Providers.Instance.BlobMetaDataProvider2 = metaDataProvider;
+            Configuration.Providers.Instance.BlobMetaDataProvider = metaDataProvider;
 
             WriteLog("BlobMetaDataProvider", metaDataProvider);
 

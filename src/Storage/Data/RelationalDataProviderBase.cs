@@ -24,7 +24,7 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public abstract class RelationalDataProviderBase : DataProvider2, IDbCommandFactory
+    public abstract class RelationalDataProviderBase : DataProvider, IDbCommandFactory
     {
         //UNDONE:DB: check CancellationToken usage in this class.
 

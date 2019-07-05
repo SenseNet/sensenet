@@ -512,7 +512,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     builder
                         .UseLogger(logger)
-                        .UseDataProvider2(dataProvider)
+                        .UseDataProvider(dataProvider)
                         .UseSearchEngine(searchProvider);
                 }, () =>
                 {

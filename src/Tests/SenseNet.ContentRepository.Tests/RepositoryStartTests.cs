@@ -162,7 +162,7 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider2();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -230,7 +230,7 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider2();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -259,7 +259,7 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider2();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -289,7 +289,7 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider2();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -325,7 +325,7 @@ namespace SenseNet.ContentRepository.Tests
             var emvrProvider = new ElevatedModificationVisibilityRule();
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider2)
+                .UseDataProvider(dbProvider2)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -396,7 +396,7 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -432,7 +432,7 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider2(dbProvider)
+                .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider2(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider

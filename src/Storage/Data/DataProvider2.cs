@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     ///                                                         |-> LongTextProperties
     /// ... Additional structure: TreeLocks, LogEntries, IndexingActivities
     /// </summary>
-    public abstract class DataProvider2
+    public abstract class DataProvider
     {
         /// <summary>
         /// ... (MSSQL: unique index size is 900 byte)

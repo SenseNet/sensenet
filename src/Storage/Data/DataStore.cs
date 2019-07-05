@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the current DataProvider instance.
         /// </summary>
-        public static DataProvider2 DataProvider => Providers.Instance.DataProvider2;
+        public static DataProvider DataProvider => Providers.Instance.DataProvider;
 
         /// <summary>
         /// Gets the allowed length of the Path of the <see cref="Node"/>.

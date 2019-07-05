@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Tests
         //     old in-memory DataProvider implementation and B is the new one.
 
         // ReSharper disable once InconsistentNaming
-        private static DataProvider2 DP => DataStore.DataProvider;
+        private static DataProvider DP => DataStore.DataProvider;
         // ReSharper disable once InconsistentNaming
         private static ITestingDataProviderExtension TDP => DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
 
@@ -2184,7 +2184,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider2 DP, ITestingDataProviderExtension tdp)
+        private async STT.Task<(int Nodes, int Versions, int Binaries, int Files, int LongTexts, string AllCounts, string AllCountsExceptFiles)> GetDbObjectCountsAsync(string path, DataProvider DP, ITestingDataProviderExtension tdp)
         {
             var nodes = await DP.GetNodeCountAsync(path);
             var versions = await DP.GetVersionCountAsync(path);

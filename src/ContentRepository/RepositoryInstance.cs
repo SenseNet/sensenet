@@ -245,8 +245,6 @@ namespace SenseNet.ContentRepository
             {
                 BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
                 BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
-                //UNDONE:DB -------Remove setting BlobMetaDataProvider instance
-                BlobStorageComponents.SetMetadataProvider2(Providers.Instance.BlobMetaDataProvider2);
 
                 ConsoleWrite("Initializing cache ... ");
                 dummy = Cache.Count;

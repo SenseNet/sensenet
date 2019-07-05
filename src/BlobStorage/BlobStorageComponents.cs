@@ -8,29 +8,10 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public class BlobStorageComponents
     {
-        private static IBlobStorageMetaDataProvider _dataProvider2;
-
         /// <summary>
-        /// For test purposes only
+        /// Gets or sets the blob storage metadata provider instance used by the blob storage component.
         /// </summary>
-        //UNDONE:DB -------Remove BlobStorageComponents.SetMetadataProvider
-        public static void SetMetadataProvider2(IBlobStorageMetaDataProvider dataProvider2)
-        {
-            _dataProvider2 = dataProvider2;
-        }
-
-        ///// <summary>
-        ///// Gets or sets the blob storage metadata provider instance used by the blob storage component.
-        ///// </summary>
-        //public static IBlobStorageMetaDataProvider DataProvider { get; set; } = new MsSqlBlobMetaDataProvider();
-
-        private static IBlobStorageMetaDataProvider _dataProvider = new MsSqlBlobMetaDataProvider();
-
-        public static IBlobStorageMetaDataProvider DataProvider
-        {
-            get => _dataProvider2;
-            set => _dataProvider2 = value;
-        }
+        public static IBlobStorageMetaDataProvider DataProvider { get; set; } = new MsSqlBlobMetaDataProvider();
 
         /// <summary>
         /// Gets or sets the globally used IBlobProviderSelector instance.

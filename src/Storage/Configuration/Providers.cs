@@ -32,7 +32,7 @@ namespace SenseNet.Configuration
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
             "SenseNet.Diagnostics.ContextEventPropertyCollector");
-        public static string DataProvider2ClassName { get; internal set; } = GetProvider("DataProvider2", typeof(MsSqlDataProvider).FullName);
+        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -107,16 +107,16 @@ namespace SenseNet.Configuration
         }
         #endregion
 
-        #region private Lazy<DataProvider> _dataProvider2 = new Lazy<DataProvider2>
-        private Lazy<DataProvider2> _dataProvider2 = new Lazy<DataProvider2>(() =>
+        #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
+        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
         {
-            var dbp = CreateProviderInstance<DataProvider2>(DataProvider2ClassName, "DataProvider2");
+            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
             return dbp;
         });
-        public virtual DataProvider2 DataProvider2 //DB:ok
+        public virtual DataProvider DataProvider
         {
-            get { return _dataProvider2.Value; }
-            set { _dataProvider2 = new Lazy<DataProvider2>(() => value); } //DB:ok
+            get { return _dataProvider.Value; }
+            set { _dataProvider = new Lazy<DataProvider>(() => value); }
         }
         #endregion
 
@@ -135,8 +135,6 @@ namespace SenseNet.Configuration
             set { _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>(() => value); }
         }
         #endregion
-        //UNDONE:DB ------Implement well Providers.BlobMetaDataProvider2
-        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider2 { get; set; }
 
         #region private Lazy<IBlobProviderSelector> _blobProviderSelector = new Lazy<IBlobProviderSelector>
         private Lazy<IBlobProviderSelector> _blobProviderSelector =
