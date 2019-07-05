@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Schema;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.Tests.Implementations2 //UNDONE:DB -------CLEANUP: move to SenseNet.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {
