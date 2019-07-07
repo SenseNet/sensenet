@@ -11,6 +11,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     public class MsSqlDataContext : IDisposable
     {
         private readonly SqlConnection _connection;
@@ -20,21 +21,21 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB not tested
+            //UNDONE:DB: TEST: not tested (packaging)
             CancellationToken = cancellationToken;
             _connection = new SqlConnection(ConnectionStrings.ConnectionString);
             _connection.Open();
         }
         public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB not tested
+            //UNDONE:DB: TEST: not tested (packaging)
             CancellationToken = cancellationToken;
             _connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString);
             _connection.Open();
         }
         public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB not tested
+            //UNDONE:DB: TEST: not tested (packaging)
             CancellationToken = cancellationToken;
             _connection = new SqlConnection(GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString);
             _connection.Open();
@@ -94,7 +95,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return _transaction;
         }
 
-        //UNDONE:DB: Handle Command/Connection/Transaction Timeout
+        //UNDONE:DB@@@@ Handle Command/Connection/Transaction Timeout
         public async Task<int> ExecuteNonQueryAsync(string script, Action<SqlCommand> setParams = null)
         {
             using (var cmd = new SqlCommand())

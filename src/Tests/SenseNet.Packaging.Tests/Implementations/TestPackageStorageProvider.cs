@@ -10,6 +10,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     public class TestPackageStorageProvider : IPackagingDataProviderExtension
     {
         private int _id;

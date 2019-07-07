@@ -9,7 +9,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE:DB: Refactor: separate to independent files.
+    //UNDONE:DB: REFACTOR: separate to independent files.
     public class TransactionWrapper : IDbTransaction
     {
         public DbTransaction Transaction { get; }
@@ -40,6 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
     }
 
+    //UNDONE:DB: CancellationToken is not used in this class.
     public class SnDataContext : IDisposable
     {
         private readonly IDbCommandFactory _commandFactory;
@@ -48,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public CancellationToken CancellationToken { get; }
 
-        //TODO: Transaction timeout handling idea:
+        //UNDONE:DB: ? Transaction timeout handling idea:
         //CancellationToken GetTimeoutCancellationToken()
         //{
         //    if (_transaction == null)
@@ -81,7 +82,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return _transaction;
         }
 
-        //UNDONE:DB: Handle Command/Connection/Transaction Timeout
+        //UNDONE:DB@@@@ Handle Command/Connection/Transaction Timeout
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
             using (var cmd = _commandFactory.CreateCommand())

@@ -38,14 +38,14 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /// </summary>
         public IEnumerable<DynamicPropertyData> DynamicProperties { get; set; }
 
-        //UNDONE:DB: Load-save the initial ContentTypeDefinitions is not implemented.
+        //UNDONE:DB: NOT IMPLEMENTED: - Load-save the initial ContentTypeDefinitions
         /// <summary>
         /// Gets or sets key-value storage of the ContentTypeDefinitions when the key is the name of the ContentTypeDefinitions
         /// and value is the xml data.
         /// </summary>
         public IDictionary<string, string> ContentTypeDefinitions { get; set; }
 
-        //UNDONE:DB: Load-save the initial Blobs is not implemented.
+        //UNDONE:DB: NOT IMPLEMENTED: - Load-save the initial Blobs
         /// <summary>
         /// Gets or sets key-value storage of the used blobs.
         /// Key format: [PropertyType.Name]:[Path]. For example: "Binary:/Root/System/Settings/Logging.settings".

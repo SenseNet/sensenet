@@ -19,6 +19,7 @@ using SenseNet.Search.Querying;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     /// <summary>
     /// Defines methods for loading and saving <see cref="Node"/>s and further repository elements.
     /// </summary>

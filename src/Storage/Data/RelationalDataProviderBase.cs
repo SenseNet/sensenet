@@ -23,10 +23,9 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     public abstract class RelationalDataProviderBase : DataProvider, IDbCommandFactory
     {
-        //UNDONE:DB: check CancellationToken usage in this class.
-
         protected int IndexBlockSize = 100;
 
         /* =============================================================================================== Factory methods */
@@ -1130,7 +1129,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
-            CancellationToken cancellationToken = default(CancellationToken)) //UNDONE:DB: not tested
+            CancellationToken cancellationToken = default(CancellationToken)) //UNDONE:DB: TEST: not tested
         {
             var pathList = paths.ToList();
             List<NodeHead> heads;

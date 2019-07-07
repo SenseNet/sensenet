@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    //UNDONE:DB: ASYNC API + CancellationToken: Missing in this class
     public class MsSqlSharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
@@ -17,7 +18,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").Wait(ctx.CancellationToken);
             }
         }
@@ -47,7 +47,6 @@ SELECT @Result
             string existingLock;
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -80,7 +79,6 @@ SELECT @Result
             string existingLock;
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -117,7 +115,6 @@ SELECT @Result
             string existingLock;
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -146,7 +143,6 @@ SELECT @Result
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
@@ -174,7 +170,6 @@ SELECT @Result
             string existingLock;
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -202,7 +197,6 @@ SELECT @Result
 
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -216,12 +210,12 @@ SELECT @Result
         /// <inheritdoc/>
         public void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            throw new NotImplementedException(); //UNDONE:DB: SQLIMPL SetSharedLockCreationDate
+            throw new NotImplementedException(); //UNDONE:DB: NOT IMPLEMENTED: SetSharedLockCreationDate
         }
         /// <inheritdoc/>
         public DateTime GetSharedLockCreationDate(int nodeId)
         {
-            throw new NotImplementedException(); //UNDONE:DB: SQLIMPL GetSharedLockCreationDate
+            throw new NotImplementedException(); //UNDONE:DB: NOT IMPLEMENTED: GetSharedLockCreationDate
         }
 
         /* ============================================================= For tests */
@@ -232,7 +226,6 @@ SELECT @Result
 
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -249,7 +242,6 @@ SELECT @Result
 
             using (var ctx = new SnDataContext(MainProvider))
             {
-                //UNDONE: SQLSharedLock: async API + CancellationToken
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]

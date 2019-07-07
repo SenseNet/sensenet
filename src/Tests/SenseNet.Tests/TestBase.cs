@@ -136,7 +136,6 @@ namespace SenseNet.Tests
 
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
-            //UNDONE:DB ----RepositoryBuilder and InMemoryDataProvider2
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
             DataStore.InstallInitialDataAsync(GetInitialData()).Wait();

@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository
             var storage = PackageManager.Storage;
             try
             {
-                //UNDONE: PackageManager async?
+                //UNDONE: Use PackageManager async
                 return Create(
                     storage.LoadInstalledComponentsAsync().Result,
                     storage.LoadInstalledPackagesAsync().Result);

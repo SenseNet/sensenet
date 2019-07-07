@@ -58,7 +58,7 @@ END
 
         private void ExecuteSql(string script, ExecutionContext context)
         {
-            //UNDONE:DB: not tested
+            //UNDONE:DB: TEST: not tested (packaging)
             var connectionInfo = new ConnectionInfo
             {
                 ConnectionName = null,

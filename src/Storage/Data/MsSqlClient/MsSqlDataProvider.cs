@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     public partial class MsSqlDataProvider : RelationalDataProviderBase
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);

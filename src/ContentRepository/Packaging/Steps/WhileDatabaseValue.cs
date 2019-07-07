@@ -28,7 +28,7 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            //UNDONE:DB: not tested
+            //UNDONE:DB: TEST: not tested (packaging)
             using (var ctx = new MsSqlDataContext())
             {
                 try

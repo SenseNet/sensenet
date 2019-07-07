@@ -8,6 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     /// <summary>
     /// Supports AccessToken operations. Developers may use this API for securing access to a feature.
     /// Token storage is handled through a configurable dataprovider extension that implements

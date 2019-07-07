@@ -381,7 +381,7 @@ namespace SenseNet.Tests.Implementations
         private int _createdById;
         private DateTime _modificationDate;
         private int _modifiedById;
-        private string _indexDocument; //UNDONE:DB ---Do not store IndexDocument in the VersionDoc
+        private string _indexDocument; //UNDONE:DB: Do not store IndexDocument in the VersionDoc
         private string _changedData;
         Dictionary<string, object> _dynamicProperties;
         private long _timestamp;
@@ -580,7 +580,7 @@ namespace SenseNet.Tests.Implementations
         public string BlobProvider { get; set; }
         public string BlobProviderData { get; set; }
         public byte[] Buffer { get; set; }
-        public long Timestamp { get; set; } //UNDONE:DB ---FileDoc.Timestamp always 0L
+        public long Timestamp { get; set; }
 
         public FileDoc Clone()
         {
@@ -700,7 +700,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB:@@ SharedLockDoc is an extension
+    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class SharedLockDoc : IDataDocument
     {
         public int Id => SharedLockId;
@@ -722,7 +722,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB:@@ AccessTokenDoc is an extension
+    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class AccessTokenDoc : IDataDocument
     {
         public int Id => AccessTokenRowId;
@@ -750,7 +750,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB:@@ PackageDoc is an extension
+    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class PackageDoc : IDataDocument
     {
         public int Id { get; set; }

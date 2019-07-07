@@ -19,6 +19,7 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests.Implementations
 {
+    //UNDONE:DB: CancellationToken is not used in this class.
     public class InMemoryDataProvider : DataProvider
     {
         // ReSharper disable once InconsistentNaming
@@ -608,7 +609,9 @@ namespace SenseNet.Tests.Implementations
         public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException(); //UNDONE:DB: Not implemented / not tested
+            //UNDONE:DB: NOT IMPLEMENTED: LoadNodeHeadsFromPredefinedSubTeesAsync
+            //UNDONE:DB: TEST: not tested (packaging)
+            throw new NotImplementedException();
         }
 
         private NodeHead NodeDocToNodeHeadSafe(NodeDoc nodeDoc)
@@ -1714,7 +1717,7 @@ namespace SenseNet.Tests.Implementations
                 CreatedById = versionData.CreatedById,
                 ModificationDate = versionData.ModificationDate,
                 ModifiedById = versionData.ModifiedById,
-                ChangedData = null, //UNDONE:DB -------Set clone of original or delete this property
+                ChangedData = null, //TODO: Set clone of original
                 DynamicProperties = dynamicProperties,
                 // IndexDocument will be set later.
                 // Timestamp handled by the new instance itself.
@@ -1728,7 +1731,7 @@ namespace SenseNet.Tests.Implementations
             versionDoc.CreatedById = versionData.CreatedById;
             versionDoc.ModificationDate = versionData.ModificationDate;
             versionDoc.ModifiedById = versionData.ModifiedById;
-            versionDoc.ChangedData = null; //UNDONE:DB -------Set clone of original or delete this property
+            versionDoc.ChangedData = null; //TODO: Set clone of original
 
             var target = versionDoc.DynamicProperties;
             foreach (var sourceItem in dynamicData.DynamicProperties)

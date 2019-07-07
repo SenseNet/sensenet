@@ -10,6 +10,8 @@ using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
+    //UNDONE:DB@@@@@ Rename InMemoryPackageStorageProvider2
+    //UNDONE:DB: CancellationToken is not used in this class.
     public class InMemoryPackageStorageProvider2 : IPackagingDataProviderExtension
     {
         public DataCollection<PackageDoc> GetPackages()
