@@ -650,14 +650,19 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tools */
 
-        //UNDONE:DB: Delete GetException(Exception e). Use the GetException(Exception e, string defaultMessage)
-        protected virtual Exception GetException(Exception e)
+        /// <summary>
+        /// If overridden in a derived class transforms or wraps any exception into a DataException if the
+        /// type of the passed exception is not one of the followings:
+        ///   ContentNotFoundException, NodeAlreadyExistsException, NodeIsOutOfDateException
+        ///   ArgumentNullException, ArgumentOutOfRangeException, ArgumentException
+        ///   NotSupportedException, SnNotSupportedException, NotImplementedException
+        /// </summary>
+        /// <param name="innerException">Original exception</param>
+        /// <param name="message">Optional message if the original exception will be transformed.</param>
+        /// <returns>Transformed or wrapped exception.</returns>
+        protected virtual Exception GetException(Exception innerException, string message = null)
         {
-            return DataStore.GetException(e);
-        }
-        protected virtual Exception GetException(Exception e, string defaultMessage)
-        {
-            return e;
+            return DataStore.GetException(innerException, message);
         }
     }
 }

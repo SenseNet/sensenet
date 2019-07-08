@@ -681,7 +681,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
-        internal static Exception GetException(Exception e)
+        internal static Exception GetException(Exception e, string message = null)
         {
             switch (e)
             {
@@ -696,8 +696,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                 case SnNotSupportedException _: return e;
                 case NotImplementedException _: return e;
             }
-            return new DataException(
-                "A database exception occured during execution of the operation. See InnerException for details.", e);
+            return new DataException(message ??
+                "A database exception occured during execution of the operation." +
+                " See InnerException for details.", e);
         }
 
         /* =============================================================================================== */

@@ -292,32 +292,36 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Tools */
 
-        protected override Exception GetException(Exception e, string defaultMessage)
+        protected override Exception GetException(Exception innerException, string message = null)
         {
-            if (e is ContentNotFoundException)
-                return e;
-            if (e is NodeIsOutOfDateException)
-                return e;
+            if (innerException is ContentNotFoundException)
+                return innerException;
+            if (innerException is NodeIsOutOfDateException)
+                return innerException;
 
-            if (!(e is SqlException sqlEx))
+            if (!(innerException is SqlException sqlEx))
                 return null;
+
+            if (message == null)
+                message = "A database exception occured during execution of the operation." +
+                          " See InnerException for details.";
 
             // https://docs.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors?view=sql-server-2017
             if (sqlEx.Number == 2601)
-                return new NodeAlreadyExistsException(defaultMessage, sqlEx);
+                return new NodeAlreadyExistsException(message, sqlEx);
 
             if (sqlEx.Message.StartsWith("Cannot update a deleted Node"))
-                return new ContentNotFoundException(defaultMessage, sqlEx);
+                return new ContentNotFoundException(message, sqlEx);
             if (sqlEx.Message.StartsWith("Cannot copy a deleted Version"))
-                return new ContentNotFoundException(defaultMessage, sqlEx);
+                return new ContentNotFoundException(message, sqlEx);
             if (sqlEx.Message.StartsWith("Cannot move a deleted node"))
-                return new ContentNotFoundException(defaultMessage, sqlEx);
+                return new ContentNotFoundException(message, sqlEx);
             if (sqlEx.Message.StartsWith("Cannot move under a deleted node"))
-                return new ContentNotFoundException(defaultMessage, sqlEx);
+                return new ContentNotFoundException(message, sqlEx);
             if (sqlEx.Message.StartsWith("Node is out of date"))
-                return new NodeIsOutOfDateException(defaultMessage, sqlEx);
+                return new NodeIsOutOfDateException(message, sqlEx);
             if (sqlEx.Message.StartsWith("Source node is out of date"))
-                return new NodeIsOutOfDateException(defaultMessage, sqlEx);
+                return new NodeIsOutOfDateException(message, sqlEx);
 
             return null;
         }
