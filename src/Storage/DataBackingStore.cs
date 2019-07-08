@@ -153,7 +153,9 @@ namespace SenseNet.ContentRepository.Storage
                             // from the current users permissions).
                             using (new SystemAccount())
                             {
-                                indexDocument = DataStore.SaveIndexDocument(node, true, isNewNode, out hasBinary);
+                                var result = DataStore.SaveIndexDocumentAsync(node, true, isNewNode).Result;
+                                indexDocument = result.IndexDocumentData;
+                                hasBinary = result.HasBinary;
                             }
                         }
                     }
@@ -171,7 +173,7 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             using (new SystemAccount())
                             {
-                                indexDocument = DataStore.SaveIndexDocument(node, indexDocument);
+                                indexDocument = DataStore.SaveIndexDocumentAsync(node, indexDocument).Result;
                                 populator.FinalizeTextExtracting(populatorData, indexDocument);
                             }
                         }

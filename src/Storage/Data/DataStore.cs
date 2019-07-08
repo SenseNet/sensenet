@@ -585,21 +585,27 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private static IIndexDocumentProvider IndexDocumentProvider => Providers.Instance.IndexDocumentProvider;
 
-        public static IndexDocumentData SaveIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
+        public static async Task<SavingIndexDocumentDataResult> SaveIndexDocumentAsync(Node node, bool skipBinaries, bool isNew,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (node.Id == 0)
                 throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
 
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
-            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
+            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out var hasBinary);
             var serializedIndexDocument = doc.Serialize();
 
-            SaveIndexDocumentAsync(node.Data, doc).Wait();
+            await SaveIndexDocumentAsync(node.Data, doc, cancellationToken);
 
-            return CreateIndexDocumentData(node, doc, serializedIndexDocument);
+            return new SavingIndexDocumentDataResult
+            {
+                IndexDocumentData = CreateIndexDocumentData(node, doc, serializedIndexDocument),
+                HasBinary = hasBinary
+            };
         }
-        public static IndexDocumentData SaveIndexDocument(Node node, IndexDocumentData indexDocumentData)
+        public static async Task<IndexDocumentData> SaveIndexDocumentAsync(Node node, IndexDocumentData indexDocumentData,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (node.Id == 0)
                 throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
@@ -609,7 +615,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
             var serializedIndexDocument = completedDocument.Serialize();
 
-            SaveIndexDocumentAsync(node.Data, completedDocument).Wait();
+            await SaveIndexDocumentAsync(node.Data, completedDocument, cancellationToken);
 
             return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
         }

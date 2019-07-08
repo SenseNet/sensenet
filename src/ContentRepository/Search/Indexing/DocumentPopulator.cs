@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         foreach (var node in Node.LoadNode(path).LoadVersions())
                         {
                             SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                            DataStore.SaveIndexDocument(node, false, false, out _);
+                            DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                         }
 
@@ -76,7 +76,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                                 foreach (var node in n.LoadVersions())
                                 {
                                     SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                                    DataStore.SaveIndexDocument(node, false, false, out _);
+                                    DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
                                     OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
                             });
@@ -236,7 +236,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (databaseAndIndex)
             {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    DataStore.SaveIndexDocument(version, false, false, out _);
+                    DataStore.SaveIndexDocumentAsync(version, false, false).Wait();
             }
 
             var versioningInfo = new VersioningInfo
@@ -257,10 +257,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
                 {
-                    DataStore.SaveIndexDocument(node, false, false, out _);
+                    DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
 
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { DataStore.SaveIndexDocument(n, false, false, out _); });
+                        n => { DataStore.SaveIndexDocumentAsync(node, false, false).Wait(); });
                 }
 
                 AddTree(node.Path, node.Id);

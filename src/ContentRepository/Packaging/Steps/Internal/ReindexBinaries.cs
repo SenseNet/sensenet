@@ -78,8 +78,9 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void ReindexNode(Node node)
         {
-            var indx = DataStore.SaveIndexDocument(node, true, false, out var hasBinary);
-            if (hasBinary)
+            var result = DataStore.SaveIndexDocumentAsync(node, true, false).Result;
+            var indx = result.IndexDocumentData;
+            if (result.HasBinary)
                 CreateBinaryReindexTask(node,
                     indx.IsLastPublic ? 1 : indx.IsLastDraft ? 2 : 3);
             _reindexMetadataProgress++;
@@ -164,7 +165,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                        DataStore.SaveIndexDocument(node, indx);
+                        DataStore.SaveIndexDocumentAsync(node, indx).Wait();
                     });
                     Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;
