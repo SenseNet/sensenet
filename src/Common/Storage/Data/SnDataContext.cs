@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
     }
 
-    //UNDONE:DB: CancellationToken is not used in this class.
+    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class SnDataContext : IDisposable
     {
         private readonly IDbCommandFactory _commandFactory;

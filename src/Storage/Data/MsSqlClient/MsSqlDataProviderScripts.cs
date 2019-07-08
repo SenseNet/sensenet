@@ -168,7 +168,7 @@ DELETE FROM LongTextProperties WHERE VersionId = @VersionId AND PropertyTypeId =
         #endregion
 
         #region CopyVersionAndUpdateScript
-        //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
+        //UNDONE:DB: BLOB-STORAGE: Copy BinaryProperies via BlobStorage
         protected override string CopyVersionAndUpdateScript => @"-- MsSqlDataProvider.CopyVersionAndUpdate
 IF(NOT EXISTS (SELECT NodeId FROM Versions WHERE VersionId = @PreviousVersionId))
     RAISERROR (N'Cannot copy a deleted Version. @VersionId: %d.', 12, 1, @PreviousVersionId);

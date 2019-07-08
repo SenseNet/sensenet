@@ -11,7 +11,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: CancellationToken is not used in this class.
+    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class MsSqlDataContext : IDisposable
     {
         private readonly SqlConnection _connection;

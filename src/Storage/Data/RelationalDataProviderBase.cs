@@ -23,7 +23,7 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE:DB: CancellationToken is not used in this class.
+    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public abstract class RelationalDataProviderBase : DataProvider, IDbCommandFactory
     {
         protected int IndexBlockSize = 100;
@@ -440,7 +440,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
+                        //UNDONE:DB: BLOB-STORAGE: Copy BinaryProperies via BlobStorage (see the script)
 
                         // Copy and update version
                         var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
@@ -470,7 +470,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 versionData.VersionId = reader.GetInt32("VersionId");
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
                             }
-                            //UNDONE:DB: Copy BinaryProperies via BlobStorage (see the script)
+                            //UNDONE:DB: BLOB-STORAGE: Copy BinaryProperies via BlobStorage (see the script)
                             if (await reader.NextResultAsync(cancellationToken))
                             {
                                 while (await reader.ReadAsync(cancellationToken))
@@ -543,7 +543,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         transaction.Commit();
 
                         // Manage BinaryProperties
-                        //UNDONE:DB: Move into the transaction after BlobStorage refactor.
+                        //UNDONE:DB: BLOB-STORAGE: Use BlobStorage.
                         foreach (var item in dynamicData.BinaryProperties)
                             SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
                     }

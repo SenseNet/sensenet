@@ -44,7 +44,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
             Test(builder =>
             {
-                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider2());
+                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider());
             }, () =>
             {
                 // arrange

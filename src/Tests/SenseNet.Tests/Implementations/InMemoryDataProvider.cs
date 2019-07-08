@@ -19,7 +19,7 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests.Implementations
 {
-    //UNDONE:DB: CancellationToken is not used in this class.
+    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class InMemoryDataProvider : DataProvider
     {
         // ReSharper disable once InconsistentNaming

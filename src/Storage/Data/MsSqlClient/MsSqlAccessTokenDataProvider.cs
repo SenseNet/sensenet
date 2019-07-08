@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: CancellationToken is not used in this class.
+    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
