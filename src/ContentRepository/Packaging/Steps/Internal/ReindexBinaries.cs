@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using Retrier = SenseNet.Tools.Retrier;
@@ -77,7 +78,7 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void ReindexNode(Node node)
         {
-            var indx = DataBackingStore.SaveIndexDocument(node, true, false, out var hasBinary);
+            var indx = DataStore.SaveIndexDocument(node, true, false, out var hasBinary);
             if (hasBinary)
                 CreateBinaryReindexTask(node,
                     indx.IsLastPublic ? 1 : indx.IsLastDraft ? 2 : 3);
@@ -163,7 +164,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                        DataBackingStore.SaveIndexDocument(node, indx);
+                        DataStore.SaveIndexDocument(node, indx);
                     });
                     Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;

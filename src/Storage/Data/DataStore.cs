@@ -583,6 +583,53 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== IndexDocument */
 
+        private static IIndexDocumentProvider IndexDocumentProvider => Providers.Instance.IndexDocumentProvider;
+
+        public static IndexDocumentData SaveIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
+        {
+            if (node.Id == 0)
+                throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
+
+            node.MakePrivateData(); // this is important because version timestamp will be changed.
+
+            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
+            var serializedIndexDocument = doc.Serialize();
+
+            SaveIndexDocumentAsync(node.Data, doc).Wait();
+
+            return CreateIndexDocumentData(node, doc, serializedIndexDocument);
+        }
+        public static IndexDocumentData SaveIndexDocument(Node node, IndexDocumentData indexDocumentData)
+        {
+            if (node.Id == 0)
+                throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
+
+            node.MakePrivateData(); // this is important because version timestamp will be changed.
+
+            var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
+            var serializedIndexDocument = completedDocument.Serialize();
+
+            SaveIndexDocumentAsync(node.Data, completedDocument).Wait();
+
+            return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
+        }
+        private static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, string serializedIndexDocument)
+        {
+            return new IndexDocumentData(indexDocument, serializedIndexDocument)
+            {
+                NodeTypeId = node.NodeTypeId,
+                VersionId = node.VersionId,
+                NodeId = node.Id,
+                ParentId = node.ParentId,
+                Path = node.Path,
+                IsSystem = node.IsSystem,
+                IsLastDraft = node.IsLatestVersion,
+                IsLastPublic = node.IsLastPublicVersion,
+                NodeTimestamp = node.NodeTimestamp,
+                VersionTimestamp = node.VersionTimestamp
+            };
+        }
+
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timestamp = await SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken);
@@ -594,6 +641,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             var serialized = indexDoc.Serialize();
             return await DataProvider.SaveIndexDocumentAsync(versionId, serialized, cancellationToken);
         }
+
+        /* ----------------------------------------------------------------------------------------------- Load IndexDocument */
 
         public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {

@@ -513,7 +513,7 @@ namespace SenseNet.Packaging.Steps
                 foreach (var node in nodes)
                 {
                     bool hasBinary;
-                    DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+                    DataStore.SaveIndexDocument(node, false, false, out hasBinary);
                     Log(ImportLogLevel.Verbose, "  " + node.Path);
                     count++;
                 }

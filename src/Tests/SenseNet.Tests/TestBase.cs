@@ -209,7 +209,7 @@ namespace SenseNet.Tests
             foreach (var node in nodes)
             {
                 // ReSharper disable once UnusedVariable
-                DataBackingStore.SaveIndexDocument(node, false, false, out var hasBinary);
+                DataStore.SaveIndexDocument(node, false, false, out var hasBinary);
             }
         }
 

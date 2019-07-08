@@ -24,8 +24,6 @@ namespace SenseNet.ContentRepository.Storage
 {
     public static class DataBackingStore
     {
-        private static IIndexDocumentProvider IndexDocumentProvider => Providers.Instance.IndexDocumentProvider;
-
         // ====================================================================== Save Nodedata
 
         private const int maxDeadlockIterations = 3;
@@ -155,7 +153,7 @@ namespace SenseNet.ContentRepository.Storage
                             // from the current users permissions).
                             using (new SystemAccount())
                             {
-                                indexDocument = SaveIndexDocument(node, true, isNewNode, out hasBinary);
+                                indexDocument = DataStore.SaveIndexDocument(node, true, isNewNode, out hasBinary);
                             }
                         }
                     }
@@ -173,7 +171,7 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             using (new SystemAccount())
                             {
-                                indexDocument = SaveIndexDocument(node, indexDocument);
+                                indexDocument = DataStore.SaveIndexDocument(node, indexDocument);
                                 populator.FinalizeTextExtracting(populatorData, indexDocument);
                             }
                         }
@@ -242,54 +240,6 @@ namespace SenseNet.ContentRepository.Storage
                 return appExc;
             }
             return catchedEx;
-        }
-
-        // ====================================================================== Index document save / load operations
-
-        public static IndexDocumentData SaveIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
-        {
-            if (node.Id == 0)
-                throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
-
-            node.MakePrivateData(); // this is important because version timestamp will be changed.
-
-            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
-            var serializedIndexDocument = doc.Serialize();
-
-            DataStore.SaveIndexDocumentAsync(node.Data, doc).Wait();
-
-            return CreateIndexDocumentData(node, doc, serializedIndexDocument);
-        }
-        public static IndexDocumentData SaveIndexDocument(Node node, IndexDocumentData indexDocumentData)
-        {
-            if (node.Id == 0)
-                throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
-
-            node.MakePrivateData(); // this is important because version timestamp will be changed.
-
-            var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
-            var serializedIndexDocument = completedDocument.Serialize();
-
-            DataStore.SaveIndexDocumentAsync(node.Data, completedDocument).Wait();
-
-            return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
-        }
-
-        internal static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, string serializedIndexDocument)
-        {
-            return new IndexDocumentData(indexDocument, serializedIndexDocument)
-            {
-                NodeTypeId = node.NodeTypeId,
-                VersionId = node.VersionId,
-                NodeId = node.Id,
-                ParentId = node.ParentId,
-                Path = node.Path,
-                IsSystem = node.IsSystem,
-                IsLastDraft = node.IsLatestVersion,
-                IsLastPublic = node.IsLastPublicVersion,
-                NodeTimestamp = node.NodeTimestamp,
-                VersionTimestamp = node.VersionTimestamp
-            };
         }
     }
 }

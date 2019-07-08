@@ -44,13 +44,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         using (TreeLock.Acquire(node.Path))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataBackingStore.SaveIndexDocument(n, false, false, out _);
+                                DataStore.SaveIndexDocument(n, false, false, out _);
                         }
                     }
                     else
                     {
                         TreeLock.AssertFree(node.Path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        DataStore.SaveIndexDocument(node, false, false, out _);
                     }
                 }
                 op.Successful = true;
