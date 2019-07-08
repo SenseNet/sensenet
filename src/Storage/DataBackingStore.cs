@@ -47,68 +47,6 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        // ====================================================================== Get NodeData
-
-        internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
-        {
-            var listTypeId = listType == null ? 0 : listType.Id;
-            var parentId = parent == null ? 0 : parent.Id;
-            var userId = AccessProvider.Current.GetOriginalUser().Id;
-            var now = DataStore.RoundDateTime(DateTime.UtcNow);
-            var name = String.Concat(nodeType.Name, "-", now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
-            var path = (parent == null) ? "/" + name : RepositoryPath.Combine(parent.Path, name);
-            var versionNumber = new VersionNumber(1, 0, VersionStatus.Approved);
-
-            var privateData = new NodeData(nodeType, listType)
-            {
-                IsShared = false,
-                SharedData = null,
-
-                Id = 0,
-                NodeTypeId = nodeType.Id,
-                ContentListTypeId = listTypeId,
-                ContentListId = listId,
-
-                ParentId = parentId,
-                Name = name,
-                Path = path,
-                Index = 0,
-                IsDeleted = false,
-
-                CreationDate = now,
-                ModificationDate = now,
-                CreatedById = userId,
-                ModifiedById = userId,
-                OwnerId = userId,
-
-                VersionId = 0,
-                Version = versionNumber,
-                VersionCreationDate = now,
-                VersionModificationDate = now,
-                VersionCreatedById = userId,
-                VersionModifiedById = userId,
-
-                Locked = false,
-                LockedById = 0,
-                ETag = null,
-                LockType = 0,
-                LockTimeout = 0,
-                LockDate = DataStore.DateTimeMinValue,
-                LockToken = null,
-                LastLockUpdate = DataStore.DateTimeMinValue,
-
-                //TODO: IsSystem
-
-                SavingState = default(ContentSavingState),
-                ChangedData = null
-            };
-            privateData.VersionModificationDateChanged = false;
-            privateData.VersionModifiedByIdChanged = false;
-            privateData.ModificationDateChanged = false;
-            privateData.ModifiedByIdChanged = false;
-            return privateData;
-        }
-
         // ====================================================================== 
 
         internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)

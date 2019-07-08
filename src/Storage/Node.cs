@@ -1657,7 +1657,7 @@ namespace SenseNet.ContentRepository.Storage
                 throw new ApplicationException("Cannot create a ContentList under another ContentList");
             }
 
-            var data = DataBackingStore.CreateNewNodeData(parent, nodeType, listType, listId);
+            var data = DataStore.CreateNewNodeData(parent, nodeType, listType, listId);
             SetNodeData(data);
 
         }
