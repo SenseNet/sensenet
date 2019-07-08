@@ -11,6 +11,7 @@
     <Parameter name="@dbUserName" description="User name to access the server by the installed software."></Parameter>
     <Parameter name="@dbPassword" description="Password to access the server by the installed software."></Parameter>
     <Parameter name="@recreateDbIfExists">false</Parameter>    
+    <Parameter name="@importOldServices">true</Parameter>    
   </Parameters>
   <Steps>
     <Phase>
@@ -75,6 +76,13 @@
     <Phase>
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
       <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="import" />
+
+      <If condition="@importOldServices">
+        <Then>
+          <Import target="/Root" LogLevel="Verbose" source="importServicesOld" />
+        </Then>
+      </If>
+      
     </Phase>
     <Phase>
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
