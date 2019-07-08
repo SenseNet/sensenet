@@ -14,6 +14,7 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -57,6 +58,9 @@ namespace SenseNet.Configuration
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
         public static string CacheClassName { get; internal set; } = GetProvider("Cache",
             typeof(SnMemoryCache).FullName);
+
+        public static string IndexDocumentProviderClassName { get; internal set; } = "SenseNet.ContentRepository.Search.Indexing.IndexDocumentProvider";
+
         public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
@@ -349,6 +353,17 @@ namespace SenseNet.Configuration
             get { return _nodeObservers.Value; }
             set { _nodeObservers = new Lazy<NodeObserver[]>(() => value); }
         }
+        #endregion
+
+        #region private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>
+        private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() =>
+            CreateProviderInstance<IIndexDocumentProvider>(IndexDocumentProviderClassName, "IndexDocumentProvider"));
+        public virtual IIndexDocumentProvider IndexDocumentProvider
+        {
+            get { return _indexDocumentProvider.Value; }
+            set { _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() => value); }
+        }
+
         #endregion
 
         internal NodeTypeManager NodeTypeManeger { get; set; }

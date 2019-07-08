@@ -24,28 +24,7 @@ namespace SenseNet.ContentRepository.Storage
 {
     public static class DataBackingStore
     {
-        private static object _indexDocumentProvider_Sync = new object();
-        private static IIndexDocumentProvider __indexDocumentProvider;
-        private static IIndexDocumentProvider IndexDocumentProvider
-        {
-            get
-            {
-                if (__indexDocumentProvider == null)
-                {
-                    lock (_indexDocumentProvider_Sync)
-                    {
-                        if (__indexDocumentProvider == null)
-                        {
-                            var types = TypeResolver.GetTypesByInterface(typeof(IIndexDocumentProvider));
-                            if (types.Length != 1)
-                                throw new ApplicationException("More than one IIndexDocumentProvider");
-                            __indexDocumentProvider = Activator.CreateInstance(types[0]) as IIndexDocumentProvider;
-                        }
-                    }
-                }
-                return __indexDocumentProvider;
-            }
-        }
+        private static IIndexDocumentProvider IndexDocumentProvider => Providers.Instance.IndexDocumentProvider;
 
         // ====================================================================== Save Nodedata
 
