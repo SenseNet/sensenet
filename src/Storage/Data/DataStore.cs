@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -378,6 +379,38 @@ namespace SenseNet.ContentRepository.Storage.Data
             privateData.ModificationDateChanged = false;
             privateData.ModifiedByIdChanged = false;
             return privateData;
+        }
+
+        /* ----------------------------------------------------------------------------------------------- */
+
+        internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
+        {
+            // Try to load cached binary entity
+            var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
+            var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
+            if (binaryCacheEntity == null)
+            {
+                // Not in cache, load it from the database
+                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId);
+
+                // insert the binary cache entity into the 
+                // cache only if we know the node id
+                if (binaryCacheEntity != null && nodeId != 0)
+                {
+                    if (!RepositoryEnvironment.WorkingMode.Populating)
+                    {
+                        var head = NodeHead.Get(nodeId);
+                        Cache.Insert(cacheKey, binaryCacheEntity,
+                            CacheDependencyFactory.CreateBinaryDataDependency(nodeId, head.Path, head.NodeTypeId));
+                    }
+                }
+            }
+
+            // Not found even in the database
+            if (binaryCacheEntity == null || binaryCacheEntity.Length == -1)
+                return null;
+
+            return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
         }
 
         /* =============================================================================================== NodeHead */

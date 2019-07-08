@@ -47,39 +47,6 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        // ====================================================================== 
-
-        internal static Stream GetBinaryStream(int nodeId, int versionId, int propertyTypeId)
-        {
-            // Try to load cached binary entity
-            var cacheKey = BinaryCacheEntity.GetCacheKey(versionId, propertyTypeId);
-            var binaryCacheEntity = (BinaryCacheEntity)Cache.Get(cacheKey);
-            if (binaryCacheEntity == null)
-            {
-                // Not in cache, load it from the database
-                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId);
-
-                // insert the binary cache entity into the 
-                // cache only if we know the node id
-                if (binaryCacheEntity != null && nodeId != 0)
-                {
-                    if (!RepositoryEnvironment.WorkingMode.Populating)
-                    {
-                        var head = NodeHead.Get(nodeId);
-                        Cache.Insert(cacheKey, binaryCacheEntity,
-                            CacheDependencyFactory.CreateBinaryDataDependency(nodeId, head.Path, head.NodeTypeId));
-                    }
-                }
-            }
-
-            // Not found even in the database
-            if (binaryCacheEntity == null)
-                return null;
-            if (binaryCacheEntity.Length == -1)
-                return null;
-            return new SnStream(binaryCacheEntity.Context, binaryCacheEntity.RawData);
-        }
-
         // ====================================================================== Save Nodedata
 
         private const int maxDeadlockIterations = 3;
