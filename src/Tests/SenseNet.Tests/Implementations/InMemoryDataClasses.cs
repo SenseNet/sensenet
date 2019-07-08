@@ -700,7 +700,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
+    //TODO:  Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class SharedLockDoc : IDataDocument
     {
         public int Id => SharedLockId;
@@ -722,7 +722,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
+    //TODO:  Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class AccessTokenDoc : IDataDocument
     {
         public int Id => AccessTokenRowId;
@@ -750,7 +750,7 @@ namespace SenseNet.Tests.Implementations
         }
     }
 
-    //UNDONE:DB: ? Remove from well known collections. Define in the extension and install it in the  boot sequence
+    //TODO:  Remove from well known collections. Define in the extension and install it in the  boot sequence
     public class PackageDoc : IDataDocument
     {
         public int Id { get; set; }

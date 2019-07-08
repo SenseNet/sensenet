@@ -52,7 +52,7 @@ namespace SenseNet.Tests.Implementations
                 {typeof(LogEntryDoc), LogEntries},
                 {typeof(IndexingActivityDoc), IndexingActivities},
                 /* EXTENSIONS */
-                //UNDONE:DB: ? Remove from well known collections and install these in the boot sequence
+                //TODO: Remove from well known collections and install these in the boot sequence
                 {typeof(SharedLockDoc), new DataCollection<SharedLockDoc>(this)},
                 {typeof(AccessTokenDoc), new DataCollection<AccessTokenDoc>(this)},
                 {typeof(PackageDoc), new DataCollection<PackageDoc>(this)},
