@@ -25,14 +25,6 @@ namespace SenseNet.ContentRepository.Tests
     public class LoggerTests : TestBase
     {
         [TestMethod]
-        public void Provider_Logger_Default()
-        {
-            Test(() =>
-            {
-                Assert.IsTrue(SnLog.Instance is SnEventLogger);
-            });
-        }
-        [TestMethod]
         public void Provider_Logger_Configured()
         {
             var loggerTypeName = typeof(TestLogger).FullName;
@@ -46,7 +38,11 @@ namespace SenseNet.ContentRepository.Tests
 
             try
             {
-                Test(() =>
+                Test(builder =>
+                {
+                    builder.UseLogger(new TestLogger());
+                },
+                () =>
                 {
                     Assert.AreEqual(loggerTypeName, SnLog.Instance.GetType().FullName);
                 });
