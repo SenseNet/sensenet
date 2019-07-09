@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -2427,7 +2429,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
+                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2676,7 +2678,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
+                        SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -2777,7 +2779,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
+                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2932,6 +2934,200 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        #region /* ------------------------------------------------------------------------- SaveNodeData */
+        private const int maxDeadlockIterations = 3;
+        private const int sleepIfDeadlock = 1000;
+
+        private static void SaveNodeData(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        {
+            var isNewNode = node.Id == 0;
+            var isOwnerChanged = node.Data.IsPropertyChanged("OwnerId");
+            if (!isNewNode && isOwnerChanged)
+                node.Security.Assert(PermissionType.TakeOwnership);
+
+            var data = node.Data;
+            var attempt = 0;
+
+            using (var op = SnTrace.Database.StartOperation("SaveNodeData"))
+            {
+                while (true)
+                {
+                    attempt++;
+
+                    var deadlockException = SaveNodeDataAttempt(node, settings, populator, originalPath, newPath);
+                    if (deadlockException == null)
+                        break;
+
+                    SnTrace.Database.Write("DEADLOCK detected. Attempt: {0}/{1}, NodeId:{2}, Version:{3}, Path:{4}",
+                        attempt, maxDeadlockIterations, node.Id, node.Version, node.Path);
+
+                    if (attempt >= maxDeadlockIterations)
+                        throw new DataException(string.Format("Error saving node. Id: {0}, Path: {1}", node.Id, node.Path), deadlockException);
+
+                    SnLog.WriteWarning("Deadlock detected in SaveNodeData", properties:
+                        new Dictionary<string, object>
+                        {
+                            {"Id: ", node.Id},
+                            {"Path: ", node.Path},
+                            {"Version: ", node.Version},
+                            {"Attempt: ", attempt}
+                        });
+
+                    System.Threading.Thread.Sleep(sleepIfDeadlock);
+                }
+                op.Successful = true;
+            }
+
+            try
+            {
+                if (isNewNode)
+                {
+                    SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
+                }
+                else if (isOwnerChanged)
+                {
+                    SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
+                }
+            }
+            catch (EntityNotFoundException e)
+            {
+                SnLog.WriteException(e, $"Error during creating or modifying security entity: {node.Id}. Original message: {e}",
+                    EventId.Security);
+            }
+            catch (SecurityStructureException) // suppressed
+            {
+                // no need to log this: somebody else already created or modified this security entity
+            }
+
+            if (isNewNode)
+                SnTrace.ContentOperation.Write("Node created. Id:{0}, Path:{1}", data.Id, data.Path);
+            else
+                SnTrace.ContentOperation.Write("Node updated. Id:{0}, Path:{1}", data.Id, data.Path);
+        }
+        private static Exception SaveNodeDataAttempt(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        {
+            IndexDocumentData indexDocument = null;
+            bool hasBinary = false;
+
+            var data = node.Data;
+            var isNewNode = data.Id == 0;
+
+            var msg = "Saving Node#" + node.Id + ", " + node.ParentPath + "/" + node.Name;
+
+            using (var op = SnTrace.Database.StartOperation(msg))
+            {
+                try
+                {
+                    // collect data for populator
+                    var populatorData = populator.BeginPopulateNode(node, settings, originalPath, newPath);
+
+                    if (settings.NodeHead != null)
+                    {
+                        settings.LastMajorVersionIdBefore = settings.NodeHead.LastMajorVersionId;
+                        settings.LastMinorVersionIdBefore = settings.NodeHead.LastMinorVersionId;
+                    }
+
+                    // Finalize path
+                    string path;
+
+                    if (data.Id != Identifiers.PortalRootId)
+                    {
+                        var parent = NodeHead.Get(data.ParentId);
+                        if (parent == null)
+                            throw new ContentNotFoundException(data.ParentId.ToString());
+                        path = RepositoryPath.Combine(parent.Path, data.Name);
+                    }
+                    else
+                    {
+                        path = Identifiers.RootPath;
+                    }
+                    Node.AssertPath(path);
+                    data.Path = path;
+
+                    // Store in the database
+                    int lastMajorVersionId, lastMinorVersionId;
+
+                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Result;
+                    lastMajorVersionId = settings.LastMajorVersionIdAfter;
+                    lastMinorVersionId = settings.LastMinorVersionIdAfter;
+                    node.RefreshVersionInfo(head);
+
+                    // here we re-create the node head to insert it into the cache and refresh the version info);
+                    if (lastMajorVersionId > 0 || lastMinorVersionId > 0)
+                    {
+                        if (!settings.DeletableVersionIds.Contains(node.VersionId))
+                        {
+                            // Elevation: we need to create the index document with full
+                            // control to avoid field access errors (indexing must be independent
+                            // from the current users permissions).
+                            using (new SystemAccount())
+                            {
+                                var result = DataStore.SaveIndexDocumentAsync(node, true, isNewNode).Result;
+                                indexDocument = result.IndexDocumentData;
+                                hasBinary = result.HasBinary;
+                            }
+                        }
+                    }
+
+                    // populate index only if it is enabled on this content (e.g. preview images will be skipped)
+                    using (var op2 = SnTrace.Index.StartOperation("Indexing node"))
+                    {
+                        if (node.IsIndexingEnabled)
+                        {
+                            using (new SystemAccount())
+                                populator.CommitPopulateNode(populatorData, indexDocument);
+                        }
+
+                        if (indexDocument != null && hasBinary)
+                        {
+                            using (new SystemAccount())
+                            {
+                                indexDocument = DataStore.SaveIndexDocumentAsync(node, indexDocument).Result;
+                                populator.FinalizeTextExtracting(populatorData, indexDocument);
+                            }
+                        }
+                        op2.Successful = true;
+                    }
+                }
+                catch (TransactionDeadlockedException tde)
+                {
+                    return tde;
+                }
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerException is TransactionDeadlockedException)
+                        return ae.InnerException;
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    var ee = SavingExceptionHelper(data, e);
+                    if (ee == e)
+                        throw;
+                    throw ee;
+                }
+                op.Successful = true;
+            }
+            return null;
+        }
+        private static Exception SavingExceptionHelper(NodeData data, Exception catchedEx)
+        {
+            var message = "The content cannot be saved.";
+            if (catchedEx.Message.StartsWith("Cannot insert duplicate key"))
+            {
+                message += " A content with the name you specified already exists.";
+
+                var appExc = new NodeAlreadyExistsException(message, catchedEx); // new ApplicationException(message, catchedEx);
+                appExc.Data.Add("NodeId", data.Id);
+                appExc.Data.Add("Path", data.Path);
+                appExc.Data.Add("OriginalPath", data.OriginalPath);
+
+                appExc.Data.Add("ErrorCode", "ExistingNode");
+                return appExc;
+            }
+            return catchedEx;
+        }
+        #endregion
 
         #region // ================================================================================================= Move methods
 
