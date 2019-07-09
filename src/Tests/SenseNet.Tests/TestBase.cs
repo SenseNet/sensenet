@@ -107,6 +107,14 @@ namespace SenseNet.Tests
         {
             return Test(false, null, callback);
         }
+        protected STT.Task Test(bool useCurrentUser, Func<STT.Task> callback)
+        {
+            return ExecuteTest(useCurrentUser, null, callback);
+        }
+        protected STT.Task Test(Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        {
+            return ExecuteTest(false, initialize, callback);
+        }
         protected STT.Task Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             return ExecuteTest(useCurrentUser, initialize, callback);
