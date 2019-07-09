@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -45,7 +46,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     attempt++;
 
-                    var deadlockException = SaveNodeDataTransactional(node, settings, populator, originalPath, newPath);
+                    var deadlockException = SaveNodeDataAttempt(node, settings, populator, originalPath, newPath);
                     if (deadlockException == null)
                         break;
 
@@ -53,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage
                         attempt, maxDeadlockIterations, node.Id, node.Version, node.Path);
 
                     if (attempt >= maxDeadlockIterations)
-                        throw new Exception(string.Format("Error saving node. Id: {0}, Path: {1}", node.Id, node.Path), deadlockException);
+                        throw new DataException(string.Format("Error saving node. Id: {0}, Path: {1}", node.Id, node.Path), deadlockException);
 
                     SnLog.WriteWarning("Deadlock detected in SaveNodeData", properties:
                         new Dictionary<string, object>
@@ -95,7 +96,7 @@ namespace SenseNet.ContentRepository.Storage
             else
                 SnTrace.ContentOperation.Write("Node updated. Id:{0}, Path:{1}", data.Id, data.Path);
         }
-        private static Exception SaveNodeDataTransactional(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        private static Exception SaveNodeDataAttempt(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
         {
             IndexDocumentData indexDocument = null;
             bool hasBinary = false;
@@ -180,52 +181,28 @@ namespace SenseNet.ContentRepository.Storage
                         op2.Successful = true;
                     }
                 }
-                catch (System.Data.Common.DbException dbe)
+                catch (TransactionDeadlockedException tde)
                 {
-                    if (IsDeadlockException(dbe))
-                        return dbe;
-                    throw SavingExceptionHelper(data, dbe);
+                    return tde;
+                }
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerException is TransactionDeadlockedException)
+                        return ae.InnerException;
+                    throw;
                 }
                 catch (Exception e)
                 {
                     var ee = SavingExceptionHelper(data, e);
                     if (ee == e)
                         throw;
-                    else
-                        throw ee;
+                    throw ee;
                 }
                 op.Successful = true;
             }
             return null;
         }
 
-        private static bool IsDeadlockException(System.Data.Common.DbException e)
-        {
-            // Avoid [SqlException (0x80131904): Transaction (Process ID ??) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
-            // CAUTION: Using e.ErrorCode and testing for HRESULT 0x80131904 will not work! you should use e.Number not e.ErrorCode
-            var sqlEx = e as System.Data.SqlClient.SqlException; //UNDONE:DB@@@ SqlException cannot be processed in a general algorithm
-            if (sqlEx == null)
-                return false;
-            var sqlExNumber = sqlEx.Number;
-            var sqlExErrorCode = sqlEx.ErrorCode;
-            var isDeadLock = sqlExNumber == 1205;
-            // assert
-            var messageParts = new[]
-                                   {
-                                       "was deadlocked on lock",
-                                       "resources with another process and has been chosen as the deadlock victim. rerun the transaction"
-                                   };
-            var currentMessage = e.Message.ToLower();
-            var isMessageDeadlock = !messageParts.Where(msgPart => !currentMessage.Contains(msgPart)).Any();
-
-            if (sqlEx != null && isMessageDeadlock != isDeadLock)
-                throw new Exception(String.Concat("Incorrect deadlock analysis",
-                    ". Number: ", sqlExNumber,
-                    ". ErrorCode: ", sqlExErrorCode,
-                    ". Errors.Count: ", sqlEx.Errors.Count,
-                    ". Original message: ", e.Message), e);
-            return isDeadLock;
-        }
         private static Exception SavingExceptionHelper(NodeData data, Exception catchedEx)
         {
             var message = "The content cannot be saved.";

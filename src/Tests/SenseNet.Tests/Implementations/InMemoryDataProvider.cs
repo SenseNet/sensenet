@@ -1577,6 +1577,11 @@ namespace SenseNet.Tests.Implementations
 
         /* =============================================================================================== Tools */
 
+        public override bool IsDeadlockException(Exception exception)
+        {
+            return exception.Message == "Transaction was deadlocked.";
+        }
+
         private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
         {
             foreach (var existing in DB.LongTextProperties.Where(x => x.VersionId == targetVersionId).ToArray())

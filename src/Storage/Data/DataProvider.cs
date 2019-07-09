@@ -664,5 +664,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataStore.GetException(innerException, message);
         }
+
+        /// <summary>
+        /// Returns true if the given exception refers to transaction deadlock.
+        /// </summary>
+        /// <param name="exception">The tested exception instance.</param>
+        /// <returns>True or false.</returns>
+        public abstract bool IsDeadlockException(Exception exception);
     }
 }

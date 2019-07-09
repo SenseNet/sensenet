@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,31 @@ namespace SenseNet.ContentRepository.Tests
     {
         // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
         //     old in-memory DataProvider implementation and B is the new one.
+
+        private class TestLogger : IEventLogger
+        {
+            public List<string> Errors { get; } = new List<string>();
+            public List<string> Warnings { get; } = new List<string>();
+            public List<string> Infos { get; } = new List<string>();
+
+            public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title,
+                IDictionary<string, object> properties)
+            {
+                switch (severity)
+                {
+                    case TraceEventType.Information: 
+                        Infos.Add((string)message);
+                        break;
+                    case TraceEventType.Warning:
+                        Warnings.Add((string)message);
+                        break;
+                    case TraceEventType.Critical:
+                    case TraceEventType.Error:
+                        Errors.Add((string)message);
+                        break;
+                }
+            }
+        }
 
         // ReSharper disable once InconsistentNaming
         private static DataProvider DP => DataStore.DataProvider;
@@ -2139,17 +2165,21 @@ namespace SenseNet.ContentRepository.Tests
         /// </summary>
         private class ErrorGenNodeHeadData : NodeHeadData
         {
+            private bool _isDeadlockSimulation;
             private long _timestamp;
             public override long Timestamp
             {
                 get => _timestamp;
-                set => throw new Exception("Something went wrong.");
+                set => throw new Exception(_isDeadlockSimulation
+                    ? "Transaction was deadlocked."
+                    : "Something went wrong.");
             }
 
-            public static NodeHeadData Create(NodeHeadData src)
+            public static NodeHeadData Create(NodeHeadData src, bool isDeadlockSimulation = false)
             {
                 return new ErrorGenNodeHeadData
                 {
+                    _isDeadlockSimulation = isDeadlockSimulation,
                     NodeId = src.NodeId,
                     NodeTypeId = src.NodeTypeId,
                     ContentListTypeId = src.ContentListTypeId,
@@ -2502,6 +2532,66 @@ namespace SenseNet.ContentRepository.Tests
                 var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
                 Assert.AreEqual(countsBefore, countsAfter);
             });
+        }
+
+        [TestMethod]
+        public async STT.Task DP_Transaction_Deadlock()
+        {
+            var testLogger = new TestLogger();
+            await Test(builder =>
+            {
+                builder.UseLogger(testLogger);
+            }, async () =>
+            {
+                var testNode = new SystemFolder(Repository.Root) { Name = "TestNode" };
+
+                // Prepare for this test
+                var flags = BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance;
+                var nodeAcc = new PrivateObject((Node)testNode, new PrivateType(typeof(Node)));
+                nodeAcc.SetField("_data", flags, new NodeDataForDeadlockTest(testNode.Data));
+
+                var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                testLogger.Warnings.Clear();
+
+                // ACTION
+                try
+                {
+                    testNode.Save();
+                    Assert.Fail("Teh expected exception was not thrown.");
+                }
+                catch (AggregateException ae)
+                {
+                    if (!(ae.InnerException is TransactionDeadlockedException))
+                        throw;
+                    // ignored
+                }
+                catch (DataException de)
+                {
+                    if (!(de.InnerException is TransactionDeadlockedException))
+                        throw;
+                    // ignored
+                }
+
+                // ASSERT
+                Assert.IsTrue(testLogger.Warnings.Count >= 2);
+                Assert.IsTrue(testLogger.Warnings[0].ToLowerInvariant().Contains("deadlock"));
+                Assert.IsTrue(testLogger.Warnings[1].ToLowerInvariant().Contains("deadlock"));
+                var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
+                Assert.AreEqual(countsBefore, countsAfter);
+            });
+        }
+
+        private class NodeDataForDeadlockTest : NodeData
+        {
+            public NodeDataForDeadlockTest(NodeData data) : base(data.NodeTypeId, data.ContentListTypeId)
+            {
+                data.CopyData(this);
+            }
+
+            internal override NodeHeadData GetNodeHeadData()
+            {
+                return ErrorGenNodeHeadData.Create(base.GetNodeHeadData(), true);
+            }
         }
 
         /* ================================================================================================== Schema */

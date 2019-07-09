@@ -833,6 +833,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         internal static Exception GetException(Exception e, string message = null)
         {
+            if (DataProvider.IsDeadlockException(e))
+                return new TransactionDeadlockedException("Transaction was deadlocked.", e);
+
             switch (e)
             {
                 case ContentNotFoundException _: return e;

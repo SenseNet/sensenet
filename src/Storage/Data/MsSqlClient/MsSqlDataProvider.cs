@@ -326,6 +326,35 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return null;
         }
 
+        public override bool IsDeadlockException(Exception exception)
+        {
+            // Avoid [SqlException (0x80131904): Transaction (Process ID ??) was deadlocked on lock resources with another process and has been chosen as the deadlock victim. Rerun the transaction.
+            // CAUTION: Using e.ErrorCode and testing for HRESULT 0x80131904 will not work! you should use e.Number not e.ErrorCode
+            if (!(exception is SqlException sqlEx))
+                return false;
+            var sqlExNumber = sqlEx.Number;
+            var sqlExErrorCode = sqlEx.ErrorCode;
+            var isDeadLock = sqlExNumber == 1205;
+
+            // assert
+            var messageParts = new[]
+            {
+                "was deadlocked on lock",
+                "resources with another process and has been chosen as the deadlock victim. rerun the transaction"
+            };
+            var currentMessage = exception.Message.ToLower();
+            var isMessageDeadlock = messageParts.All(msgPart => currentMessage.Contains(msgPart));
+
+            if (sqlEx != null && isMessageDeadlock != isDeadLock)
+                throw new DataException(string.Concat("Incorrect deadlock analysis",
+                    ". Number: ", sqlExNumber,
+                    ". ErrorCode: ", sqlExErrorCode,
+                    ". Errors.Count: ", sqlEx.Errors.Count,
+                    ". Original message: ", exception.Message), exception);
+
+            return isDeadLock;
+        }
+
         protected override long ConvertTimestampToInt64(object timestamp)
         {
             if (timestamp == null)

@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository.Storage
 
         // ----------------------------------------------------------- Storage models
 
-        internal NodeHeadData GetNodeHeadData()
+        internal virtual NodeHeadData GetNodeHeadData()
         {
             var nodeHead = NodeHead.Get(Id);
             
@@ -1339,6 +1339,19 @@ namespace SenseNet.ContentRepository.Storage
         protected virtual void PropertyChanged(string propertyName)
         {
             PropertyChangedCallback?.Invoke(propertyName);
+        }
+
+        /// <summary>
+        /// Use only test purposes.
+        /// </summary>
+        /// <param name="target"></param>
+        internal void CopyData(NodeData target)
+        {
+            target._isShared = _isShared;
+            target._sharedData = _sharedData;
+            target.staticData = staticData;
+            target.staticDataIsModified = staticDataIsModified;
+            target.dynamicData = dynamicData;
         }
     }
 }
