@@ -2688,7 +2688,33 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public async STT.Task DP_Transaction_Timeout()
         {
-            Assert.Inconclusive();
+            async STT.Task<TransactionStatus> TestTimeout(double timeoutInSeconds)
+            {
+                TransactionWrapper transactionWrapper;
+                using (var ctx = new SnDataContext(new TestDbCommandFactory()))
+                {
+                    using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
+                    {
+                        var ctxAcc = new PrivateObject(ctx);
+                        transactionWrapper = (TransactionWrapper)ctxAcc.GetField("_transaction");
+
+                        try
+                        {
+                            await ctx.ExecuteNonQueryAsync(" :) ");
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                    }
+                }
+                return transactionWrapper.Status;
+            }
+
+            Assert.AreEqual(TransactionStatus.Committed, await TestTimeout(2.5));
+            Assert.AreEqual(TransactionStatus.Aborted, await TestTimeout(0.5));
+
         }
 
         private class NodeDataForDeadlockTest : NodeData

@@ -18,17 +18,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public CancellationToken CancellationToken { get; }
 
-        //UNDONE:DB: ? Transaction timeout handling idea:
-        //CancellationToken GetTimeoutCancellationToken()
-        //{
-        //    if (_transaction == null)
-        //        return CancellationToken;
-        //    var timeoutSrc = new CancellationTokenSource(TimeSpan.FromMinutes(10)).Token;
-        //    if (CancellationToken == CancellationToken.None)
-        //        return timeoutSrc;
-        //    return CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, timeoutSrc).Token;
-        //}
-
         public SnDataContext(IDbCommandFactory commandFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
             _commandFactory = commandFactory;
@@ -53,7 +42,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             return _transaction;
         }
 
-        //UNDONE:DB@@@@ Handle Command/Connection/Transaction Timeout
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
             using (var cmd = _commandFactory.CreateCommand())
@@ -66,7 +54,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteNonQueryAsync(CancellationToken);
+                var cancellationToken = GetCancellationToken();
+                var result =  await cmd.ExecuteNonQueryAsync(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
+                return result;
             }
         }
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
@@ -81,7 +73,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteScalarAsync(CancellationToken);
+                var cancellationToken = GetCancellationToken();
+                var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
+                return result;
             }
         }
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, Task<T>> callback)
@@ -100,9 +96,24 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                using (var reader = await cmd.ExecuteReaderAsync(CancellationToken))
+                //UNDONE:DB@@@@@ Transaction timeout in ExecuteReaderAsync
+                using (var reader = await cmd.ExecuteReaderAsync(GetCancellationToken()))
                     return await callbackAsync(reader);
             }
+        }
+
+        private CancellationToken GetCancellationToken()
+        {
+            if (_transaction == null)
+                return CancellationToken;
+
+            if (_transaction.Timeout == default(TimeSpan))
+                return CancellationToken;
+
+            var timeoutSrc = new CancellationTokenSource(_transaction.Timeout).Token;
+            if (CancellationToken == CancellationToken.None)
+                return timeoutSrc;
+            return CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, timeoutSrc).Token;
         }
 
         public DbParameter CreateParameter(string name, DbType dbType, object value)
