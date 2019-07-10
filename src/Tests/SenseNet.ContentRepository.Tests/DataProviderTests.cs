@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Transactions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -27,6 +30,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
+using IsolationLevel = System.Data.IsolationLevel;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
@@ -2579,6 +2583,112 @@ namespace SenseNet.ContentRepository.Tests
                 var countsAfter = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
                 Assert.AreEqual(countsBefore, countsAfter);
             });
+        }
+
+        #region Infrastructure for DP_Transaction_Timeout
+        private class TestCommand : DbCommand
+        {
+            public override void Prepare()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string CommandText { get; set; }
+            public override int CommandTimeout { get; set; }
+            public override CommandType CommandType { get; set; }
+            public override UpdateRowSource UpdatedRowSource { get; set; }
+            protected override DbConnection DbConnection { get; set; }
+            protected override DbParameterCollection DbParameterCollection { get; }
+            protected override DbTransaction DbTransaction { get; set; }
+            public override bool DesignTimeVisible { get; set; }
+
+            private bool _cancelled;
+            public override void Cancel()
+            {
+                _cancelled = true;
+            }
+
+            protected override DbParameter CreateDbParameter()
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int ExecuteNonQuery()
+            {
+                for (var i = 0; i < 1000; i++)
+                {
+                    if (_cancelled)
+                        return -1;
+                    System.Threading.Thread.Sleep(1);
+                }
+                return 0;
+            }
+
+            public override object ExecuteScalar()
+            {
+                throw new NotImplementedException();
+            }
+        }
+        private class TestTransaction : DbTransaction
+        {
+            public override void Commit() { }
+            public override void Rollback() { }
+            protected override DbConnection DbConnection { get; }
+            public override IsolationLevel IsolationLevel { get; }
+        }
+        private class TestConnection : DbConnection
+        {
+            protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+            {
+                return new TestTransaction();
+            }
+            public override void Close()
+            {
+                throw new NotImplementedException();
+            }
+            public override void ChangeDatabase(string databaseName)
+            {
+                throw new NotImplementedException();
+            }
+            public override void Open()
+            {
+            }
+            public override string ConnectionString { get; set; }
+            public override string Database { get; }
+            public override ConnectionState State { get; }
+            public override string DataSource { get; }
+            public override string ServerVersion { get; }
+
+            protected override DbCommand CreateDbCommand()
+            {
+                throw new NotImplementedException();
+            }
+        }
+        private class TestDbCommandFactory : IDbCommandFactory
+        {
+            public DbConnection CreateConnection()
+            {
+                return new TestConnection();
+            }
+
+            public DbCommand CreateCommand()
+            {
+                return new TestCommand();
+            }
+            public DbParameter CreateParameter(){throw new NotImplementedException();}
+            public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+                TimeSpan timeout = default(TimeSpan)){return null;}
+        }
+        #endregion
+        [TestMethod]
+        public async STT.Task DP_Transaction_Timeout()
+        {
+            Assert.Inconclusive();
         }
 
         private class NodeDataForDeadlockTest : NodeData

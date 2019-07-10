@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.Common;
 using System.Transactions;
 using IsolationLevel = System.Data.IsolationLevel;
@@ -9,15 +10,17 @@ namespace SenseNet.ContentRepository.Storage.Data
     public class TransactionWrapper : IDbTransaction
     {
         public DbTransaction Transaction { get; }
+        public TimeSpan Timeout { get; }
 
         public IDbConnection Connection => Transaction.Connection;
         public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
         public TransactionStatus Status { get; private set; }
 
-        public TransactionWrapper(DbTransaction transaction)
+        public TransactionWrapper(DbTransaction transaction, TimeSpan timeout = default(TimeSpan))
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
+            Timeout = timeout;
         }
 
         public virtual void Dispose()

@@ -44,10 +44,12 @@ namespace SenseNet.ContentRepository.Storage.Data
             _connection.Dispose();
         }
 
-        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+            TimeSpan timeout = default(TimeSpan))
         {
             var transaction = _connection.BeginTransaction(isolationLevel);
-            _transaction = _commandFactory.WrapTransaction(transaction) ?? new TransactionWrapper(transaction);
+            _transaction = _commandFactory.WrapTransaction(transaction, timeout)
+                ?? new TransactionWrapper(transaction, timeout);
             return _transaction;
         }
 

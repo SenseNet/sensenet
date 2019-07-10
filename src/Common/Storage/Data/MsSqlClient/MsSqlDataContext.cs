@@ -88,7 +88,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _connection.Dispose();
         }
 
-        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+            TimeSpan timeout = default(TimeSpan))
         {
             var transaction = _connection.BeginTransaction(isolationLevel);
             _transaction = new TransactionWrapper(transaction);

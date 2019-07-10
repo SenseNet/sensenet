@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             return new SqlParameter();
         }
-        public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
+        public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
         {
             return null;
         }

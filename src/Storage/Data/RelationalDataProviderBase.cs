@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DbCommand CreateCommand();
         public abstract DbConnection CreateConnection();
         public abstract DbParameter CreateParameter();
-        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction)
+        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
         {
             return null;
         }
