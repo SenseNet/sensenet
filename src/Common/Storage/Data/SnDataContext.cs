@@ -10,6 +10,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
+    [Obsolete("##", true)]
     public class SnDataContext : IDisposable
     {
         private readonly IDbCommandFactory _commandFactory;

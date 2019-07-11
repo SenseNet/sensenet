@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             if (_accessTokenValueCollationName == null)
             {
-                using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
                 {
                     var result = await ctx.ExecuteScalarAsync(sql);
                     var originalCollation = Convert.ToString(result);
@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
             }
@@ -63,7 +63,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                                "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
                                "SELECT @@IDENTITY";
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
@@ -101,7 +101,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
                       (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             const string sql = "SELECT * FROM [dbo].[AccessTokens] " +
                                "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()";
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       " WHERE [Value] = @Value " +
                       $" COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE()";
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = "DELETE FROM [dbo].[AccessTokens] " +
                       $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)}";
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); });
@@ -168,7 +168,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); });
@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); });
@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             const string sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(sql);
             }

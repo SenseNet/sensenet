@@ -38,6 +38,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return null;
         }
 
+        public IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
+        {
+            return new MsSqlDctx();
+        }
+
         /* ======================================================================================= IBlobStorageMetaDataProvider */
 
         private static string ValidateExtension(string originalExtension)
@@ -72,7 +77,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (clearStream)
                 sql = ClearStreamByFileIdScript + sql;
 
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
@@ -136,7 +141,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            using (var dctx = new SnDataContext(this))
+            using (var dctx = new RelationalDbDataContext(GetPlatform()))
             {
                 var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
                 dctx.ExecuteReaderAsync(sql, cmd =>
@@ -189,7 +194,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 value.Id = (int) ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -248,7 +253,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 // do not do any database operation if the stream is not modified
                 return;
 
-            using (var dctx = new SnDataContext(this))
+            using (var dctx = new RelationalDbDataContext(GetPlatform()))
             {
                 var sql = blobProvider == BlobStorageBase.BuiltInProvider
                     ? UpdateBinaryPropertyScript
@@ -308,7 +313,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="propertyTypeId">Binary property type id.</param>
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 ctx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
                 {
@@ -321,9 +326,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null)
         {
-            void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, SnDataContext ctx)
+            void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, RelationalDbDataContext ctx)
             {
                 var idsParam = string.Join(",", versionIdSet.Select(x => x.ToString()));
                 ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
@@ -335,7 +340,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             if (dataContext == null)
             {
-                using (var ctx = new SnDataContext(this))
+                using (var ctx = new RelationalDbDataContext(GetPlatform()))
                     DeleteBinaryPropertiesLogic(versionIds, ctx);
             }
             else
@@ -344,9 +349,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null)
         {
-            async Task<BinaryDataValue> LoadBinaryPropertyLogic(SnDataContext ctx)
+            async Task<BinaryDataValue> LoadBinaryPropertyLogic(RelationalDbDataContext ctx)
             {
                 return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
                 {
@@ -404,7 +409,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
 
             if (dataContext == null)
-                using (var ctx = new SnDataContext(this))
+                using (var ctx = new RelationalDbDataContext(GetPlatform()))
                     return LoadBinaryPropertyLogic(ctx).Result;
             return LoadBinaryPropertyLogic(dataContext).Result;
         }
@@ -417,7 +422,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 return ctx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
                 {
@@ -485,7 +490,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
-                using (var dctx = new SnDataContext(this))
+                using (var dctx = new RelationalDbDataContext(GetPlatform()))
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
@@ -545,7 +550,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             try
             {
-                using (var ctx = new SnDataContext(this))
+                using (var ctx = new RelationalDbDataContext(GetPlatform()))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -584,7 +589,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// </summary>
         public void CleanupFilesSetDeleteFlag()
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 using (var transaction = ctx.BeginTransaction())
                 {
@@ -607,7 +612,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>Whether there was at least one row that was deleted.</returns>
         public bool CleanupFiles()
         {
-            using (var dctx = new SnDataContext(this))
+            using (var dctx = new RelationalDbDataContext(GetPlatform()))
             {
                 return dctx.ExecuteReaderAsync(CleanupFileScript, reader =>
                 {

@@ -184,7 +184,7 @@ namespace SenseNet.Tests.Implementations
                 db.BinaryProperties.Remove(item);
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
@@ -194,7 +194,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null)
         {
             var db = DataProvider.DB;
 

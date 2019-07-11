@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public void DeleteAllSharedLocks()
         {
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").Wait(ctx.CancellationToken);
             }
@@ -45,7 +45,7 @@ SELECT @Result
 ";
 
             string existingLock;
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -77,7 +77,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -113,7 +113,7 @@ IF @Result = @OldLock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -141,7 +141,7 @@ SELECT @Result
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -168,7 +168,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -195,7 +195,7 @@ SELECT @Result
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
@@ -224,7 +224,7 @@ SELECT @Result
         {
             const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
 
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -240,7 +240,7 @@ SELECT @Result
         {
             const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
 
-            using (var ctx = new SnDataContext(MainProvider))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {

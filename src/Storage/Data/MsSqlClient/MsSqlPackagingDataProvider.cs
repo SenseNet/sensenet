@@ -29,7 +29,7 @@ ON P1.ComponentId = P2.ComponentId";
         {
             var components = new List<ComponentInfo>();
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteReaderAsync(InstalledComponentsScript,
                     async reader =>
@@ -57,7 +57,7 @@ ON P1.ComponentId = P2.ComponentId";
         {
             var packages = new List<Package>();
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                     async reader =>
@@ -98,7 +98,7 @@ SELECT @@IDENTITY";
         #endregion
         public async Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
                 {
@@ -141,7 +141,7 @@ WHERE Id = @Id
         #endregion
         public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
                 {
@@ -177,7 +177,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             , CancellationToken cancellationToken = default(CancellationToken))
         {
             int count;
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
                 {
@@ -200,7 +200,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
@@ -209,7 +209,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
         public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
             }
@@ -220,7 +220,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         #endregion
         public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(MainProvider, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
                 {

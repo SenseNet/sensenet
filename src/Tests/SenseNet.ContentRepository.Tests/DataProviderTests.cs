@@ -2669,7 +2669,7 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
-        private class TestDbCommandFactory : IDbCommandFactory
+        private class TestDataPlatform : IDataPlatform<DbConnection, DbCommand, DbParameter>
         {
             public DbConnection CreateConnection()
             {
@@ -2691,7 +2691,7 @@ namespace SenseNet.ContentRepository.Tests
             async STT.Task<TransactionStatus> TestTimeout(double timeoutInSeconds)
             {
                 TransactionWrapper transactionWrapper;
-                using (var ctx = new SnDataContext(new TestDbCommandFactory()))
+                using (var ctx = new RelationalDbDataContext(new TestDataPlatform()))
                 {
                     using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
                     {

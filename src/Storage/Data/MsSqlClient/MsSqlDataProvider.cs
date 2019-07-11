@@ -34,6 +34,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return new SqlParameter();
         }
 
+        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
+        {
+            return new MsSqlDctx();
+        }
+
         /* =========================================================================================== Platform specific implementations */
 
         /* =============================================================================================== Nodes */
@@ -90,7 +95,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (orderByPath)
                 sql.AppendLine().Append("ORDER BY Path");
 
-            using (var ctx = new MsSqlDataContext(cancellationToken))
+            //using (var ctx = new MsSqlDataContext(cancellationToken))
+            using(var ctx = new MsSqlDctx(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql.ToString(), async reader =>
                 {
@@ -105,7 +111,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new MsSqlDctx(cancellationToken))
             {
                 var typeCount = nodeTypeIds?.Length ?? 0;
                 var onlyNodes = true;

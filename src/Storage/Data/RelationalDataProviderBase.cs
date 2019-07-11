@@ -38,6 +38,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             return null;
         }
 
+        public abstract IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform();
+
         /* =============================================================================================== Nodes */
 
         /// <inheritdoc />
@@ -46,7 +48,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                //using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
+                using (var ctx = new RelationalDbDataContext(this.GetPlatform(), cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -180,7 +183,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return $"{propertyType.Name}:{value}";
         }
         protected abstract string InsertNodeAndVersionScript { get; }
-        protected virtual async Task InsertReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
+        protected virtual async Task InsertReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
         {
             var parameters = new List<DbParameter> {ctx.CreateParameter("@VersionId", DbType.Int32, versionId)};
             var sqlBuilder = new StringBuilder(InsertReferencePropertiesHeadScript);
@@ -199,7 +202,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string InsertReferencePropertiesHeadScript { get; }
         protected abstract string InsertReferencePropertiesScript { get; }
-        protected virtual async Task InsertLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
+        protected virtual async Task InsertLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -226,7 +229,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -334,7 +337,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException(msg, e);
             }
         }
-        protected async Task UpdateSubTreePath(string originalPath, string path, SnDataContext ctx)
+        protected async Task UpdateSubTreePath(string originalPath, string path, RelationalDbDataContext ctx)
         {
             await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
             {
@@ -345,7 +348,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 });
             });
         }
-        protected virtual async Task ManageLastVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, SnDataContext ctx)
+        protected virtual async Task ManageLastVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, RelationalDbDataContext ctx)
         {
             var versionIdsParam = (object)DBNull.Value;
             if (versionIdsToDelete != null)
@@ -390,7 +393,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateNodeScript { get; }
         protected abstract string UpdateSubTreePathScript { get; }
         protected abstract string ManageLastVersionsScript { get; }
-        protected virtual async Task UpdateReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, SnDataContext ctx)
+        protected virtual async Task UpdateReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
         {
             var parameters = new List<DbParameter> { ctx.CreateParameter("@VersionId", DbType.Int32, versionId) };
             var sqlBuilder = new StringBuilder(UpdateReferencePropertiesHeadScript);
@@ -409,7 +412,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string UpdateReferencePropertiesHeadScript { get; }
         protected abstract string UpdateReferencePropertiesScript { get; }
-        protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, SnDataContext ctx)
+        protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -436,7 +439,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -570,7 +573,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -638,7 +641,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodesScript, cmd =>
                 {
@@ -836,7 +839,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 using (var transaction = ctx.BeginTransaction())
                 {
                     await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
@@ -872,7 +875,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                using (var ctx = new SnDataContext(this, cancellationToken))
+                using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -920,7 +923,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(LoadTextPropertyValuesScript, string.Join(", ",
                 Enumerable.Range(0, notLoadedPropertyTypeIds.Length).Select(i => propParamPrefix + i)));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
@@ -945,7 +948,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
                 {
@@ -961,7 +964,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
@@ -979,7 +982,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
@@ -997,7 +1000,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadByVersionIdScript, cmd =>
                 {
@@ -1016,7 +1019,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
         {
             var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
                 {
@@ -1037,7 +1040,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
                 {
@@ -1062,7 +1065,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
                 {
@@ -1084,7 +1087,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
                 {
@@ -1134,7 +1137,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var pathList = paths.ToList();
             List<NodeHead> heads;
             string sql;
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 if (resolveAll)
                 {
@@ -1189,7 +1192,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(InstanceCountScript,
                 string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return (int)await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -1202,7 +1205,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
                 return await ctx.ExecuteReaderAsync(
                     GetChildrenIdentfiersScript,
                     cmd =>
@@ -1231,7 +1234,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
             var referencePropertyId = referenceProperty.Id;
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 string sql;
                 var parameters = new List<DbParameter>
@@ -1271,7 +1274,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
                 return await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
@@ -1294,7 +1297,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
                     {
@@ -1324,7 +1327,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(AcquireTreeLockScript,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -1347,7 +1350,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(IsTreeLockedScript,
                 string.Join(", ", Enumerable.Range(0, parentChain.Length).Select(i => "@Path" + i)));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -1365,7 +1368,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = string.Format(ReleaseTreeLockScript,
                 string.Join(", ", Enumerable.Range(0, lockIds.Length).Select(i => "@Id" + i)));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
@@ -1380,7 +1383,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadAllTreeLocksScript, async reader =>
                 {
@@ -1395,7 +1398,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
                 {
@@ -1423,7 +1426,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
                 {
@@ -1440,7 +1443,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
                     {
@@ -1474,7 +1477,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = excludedNodeTypes.Any()
                 ? string.Format(LoadIndexDocumentCollectionBlockByPathAndTypeScript, string.Join(", ", excludedNodeTypes))
                 : LoadIndexDocumentCollectionBlockByPathScript;
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
             {
                 try
                 {
@@ -1529,7 +1532,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadNotIndexedNodeIdsScript, cmd =>
                 {
@@ -1555,7 +1558,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript);
                 return result == DBNull.Value ? 0 : Convert.ToInt32(result);
@@ -1566,7 +1569,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexingActivitiesPageScript,
                     cmd =>
@@ -1587,7 +1590,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript,
                     cmd =>
@@ -1614,7 +1617,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (waitingActivityIds != null && waitingActivityIds.Length > 0)
                 waitingActivityIdParam = string.Join(",", waitingActivityIds.Select(x => x.ToString()));
 
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(
                     waitingActivityIdParam == null
@@ -1672,7 +1675,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task RegisterIndexingActivityAsync(IIndexingActivity activity,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 activity.CreationDate = DateTime.UtcNow;
                 var rawActivityId = await ctx.ExecuteScalarAsync(RegisterIndexingActivityScript, cmd =>
@@ -1698,7 +1701,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
@@ -1713,7 +1716,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
@@ -1727,14 +1730,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript);
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
 
         public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this))
+            using (var ctx = new RelationalDbDataContext(GetPlatform()))
                 await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript);
         }
         protected abstract string DeleteAllIndexingActivitiesScript { get; }
@@ -1819,7 +1822,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadSchemaScript, async reader =>
                 {
@@ -1896,7 +1899,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
             var lockToken = Guid.NewGuid().ToString();
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
                 {
@@ -1920,7 +1923,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
                 {
@@ -1941,7 +1944,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 var unused = await ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
                 {
@@ -1972,7 +1975,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadLastAuditEventsScript, cmd =>
                 {
@@ -2009,7 +2012,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return (string)await ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
                 {
@@ -2028,7 +2031,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
         {
             RepositoryPath.CheckValidPath(path);
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
                 {
@@ -2044,7 +2047,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
                     cmd =>
@@ -2058,7 +2061,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
                     cmd =>
@@ -2075,7 +2078,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new SnDataContext(this, cancellationToken))
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(LoadEntityTreeScript, async reader =>
                 {

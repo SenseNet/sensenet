@@ -4,6 +4,7 @@ using System.Data.Common;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE:DB@@@@@@ Refactor: Delete IDbCommandFactory
     public interface IDbCommandFactory
     {
         DbConnection CreateConnection();

@@ -64,17 +64,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
-        void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null);
+        /// <param name="dataContext">Optional <see cref="RelationalDbDataContext"/>.</param>
+        void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null);
 
         /// <summary>
         /// Loads binary property object without the stream by the given parameters.
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
+        /// <param name="dataContext">Optional <see cref="RelationalDbDataContext"/>.</param>
         /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
-        BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null);
+        BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null);
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
         /// just the blob metadata pointing to the blob storage.
