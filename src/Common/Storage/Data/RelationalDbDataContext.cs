@@ -4,7 +4,7 @@ using System.Threading;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public class RelationalDbDataContext : SnDctx<DbConnection, DbCommand, DbParameter, DbDataReader, DbTransaction>
+    public class RelationalDbDataContext : SnDctx<DbConnection, DbCommand, DbParameter, DbDataReader>
     {
         private readonly IDataPlatform<DbConnection, DbCommand, DbParameter> _dataPlatform;
 

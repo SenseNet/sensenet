@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
 
 
-    public class MsSqlDctx : SnDctx<SqlConnection, SqlCommand, SqlParameter, SqlDataReader, SqlTransaction>
+    public class MsSqlDctx : SnDctx<SqlConnection, SqlCommand, SqlParameter, SqlDataReader>
     {
         private string _connectionString;
 

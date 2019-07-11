@@ -139,13 +139,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
     //UNDONE:DB@@@@@@ Refactor: Rename SnDctx to SnDataContext
-    //UNDONE:DB@@@@@@@ Generalize TTransaction to DbTransaction and remove the 5th type parameter
-    public abstract class SnDctx<TConnection, TCommand, TParameter, TReader, TTransaction> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
+    public abstract class SnDctx<TConnection, TCommand, TParameter, TReader> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
         where TConnection : DbConnection
         where TCommand : DbCommand
         where TParameter : DbParameter
         where TReader : DbDataReader
-        where TTransaction : DbTransaction
     {
         private TConnection _connection;
         private TransactionWrapper _transaction;
@@ -172,7 +170,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract TCommand CreateCommand();
         public abstract TParameter CreateParameter();
 
-        public virtual TransactionWrapper WrapTransaction(TTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
+        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
         {
             return null;
         }
@@ -191,7 +189,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             TimeSpan timeout = default(TimeSpan))
         {
 
-            var transaction = (TTransaction)OpenConnection().BeginTransaction(isolationLevel);
+            var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, timeout) ?? new TransactionWrapper(transaction, timeout);
             return _transaction;
         }
