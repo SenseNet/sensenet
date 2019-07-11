@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
         {
-            return new MsSqlDctx();
+            return new MsSqlDataContext();
         }
 
         /* ======================================================================================= IBlobStorageMetaDataProvider */

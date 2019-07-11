@@ -10,9 +10,7 @@ using IsolationLevel = System.Data.IsolationLevel;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
-
-    //UNDONE:DB@@@@@@ Refactor: Rename SnDctx to SnDataContext
-    public abstract class SnDctx<TConnection, TCommand, TParameter, TReader> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
+    public abstract class SnDataContext<TConnection, TCommand, TParameter, TReader> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
         where TConnection : DbConnection
         where TCommand : DbCommand
         where TParameter : DbParameter
@@ -26,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public CancellationToken CancellationToken { get; }
 
 
-        protected SnDctx(CancellationToken cancellationToken = default(CancellationToken))
+        protected SnDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
             CancellationToken = cancellationToken;
         }
@@ -79,8 +77,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 var cancellationToken = GetCancellationToken();
                 var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
-                if (cancellationToken.IsCancellationRequested)
-                    throw new OperationCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
                 return result;
             }
         }
@@ -98,8 +95,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 var cancellationToken = GetCancellationToken();
                 var result = await cmd.ExecuteScalarAsync(cancellationToken);
-                if (cancellationToken.IsCancellationRequested)
-                    throw new OperationCanceledException();
+                cancellationToken.ThrowIfCancellationRequested();
                 return result;
             }
         }

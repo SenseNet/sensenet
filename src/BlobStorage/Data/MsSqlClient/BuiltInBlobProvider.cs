@@ -64,7 +64,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            using (var ctx = new MsSqlDctx())
+            using (var ctx = new MsSqlDataContext())
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                 {
@@ -109,7 +109,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
             //UNDONE:DB: TEST: not tested
-            using (var ctx = new MsSqlDctx())
+            using (var ctx = new MsSqlDataContext())
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
                 {
@@ -146,7 +146,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
-            using (var ctx = new MsSqlDctx())
+            using (var ctx = new MsSqlDataContext())
             {
                 await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {

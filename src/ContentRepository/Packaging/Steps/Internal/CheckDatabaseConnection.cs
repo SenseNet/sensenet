@@ -68,7 +68,7 @@ END
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            using (var ctx = new MsSqlDctx(connectionInfo))
+            using (var ctx = new MsSqlDataContext(connectionInfo))
             {
                 ctx.ExecuteReaderAsync(script, reader =>
                 {
