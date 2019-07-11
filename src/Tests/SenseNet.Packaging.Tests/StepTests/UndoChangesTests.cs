@@ -42,7 +42,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             file = Node.Load<File>(file.Id);
 
-            Assert.IsTrue(GetLockedCount() == 0);
+            Assert.AreEqual(0, GetLockedCount());
             Assert.AreNotEqual(VersionStatus.Locked, file.Version.Status);
         });
         [TestMethod]

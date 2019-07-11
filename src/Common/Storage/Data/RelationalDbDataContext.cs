@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Threading;
 
 // ReSharper disable once CheckNamespace
@@ -26,6 +27,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override DbParameter CreateParameter()
         {
             return _dataPlatform.CreateParameter();
+        }
+        public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
+        {
+            return _dataPlatform.WrapTransaction(underlyingTransaction, timeout);
         }
     }
 }

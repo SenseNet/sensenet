@@ -242,6 +242,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             return new SqlParameter();
         }
+        public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
+        {
+            return null;
+        }
     }
 
 }

@@ -171,10 +171,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract TCommand CreateCommand();
         public abstract TParameter CreateParameter();
 
-        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
-        {
-            return null;
-        }
+        public abstract TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+            TimeSpan timeout = default(TimeSpan));
 
         private TConnection OpenConnection()
         {
