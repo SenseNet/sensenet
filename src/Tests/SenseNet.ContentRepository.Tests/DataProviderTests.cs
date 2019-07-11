@@ -2695,9 +2695,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
                     {
-                        var ctxAcc = new PrivateObject(ctx);
-                        transactionWrapper = (TransactionWrapper)ctxAcc.GetField("_transaction");
-
+                        transactionWrapper = ctx.Transaction;
                         try
                         {
                             await ctx.ExecuteNonQueryAsync(" :) ");

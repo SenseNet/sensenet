@@ -205,7 +205,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteNonQueryAsync(CancellationToken);
+                var cancellationToken = GetCancellationToken();
+                var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
+                return result;
             }
         }
         public async Task<object> ExecuteScalarAsync(string script, Action<TCommand> setParams = null)
@@ -220,7 +224,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteScalarAsync(CancellationToken);
+                var cancellationToken = GetCancellationToken();
+                var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    throw new OperationCanceledException();
+                return result;
             }
         }
         public Task<T> ExecuteReaderAsync<T>(string script, Func<TReader, Task<T>> callback)
@@ -239,9 +247,23 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                using (var reader = (TReader)await cmd.ExecuteReaderAsync(CancellationToken))
+                using (var reader = (TReader)await cmd.ExecuteReaderAsync(GetCancellationToken()))
                     return await callbackAsync(reader);
             }
+        }
+
+        private CancellationToken GetCancellationToken()
+        {
+            if (_transaction == null)
+                return CancellationToken;
+
+            if (_transaction.Timeout == default(TimeSpan))
+                return CancellationToken;
+
+            var timeoutSrc = new CancellationTokenSource(_transaction.Timeout).Token;
+            if (CancellationToken == CancellationToken.None)
+                return timeoutSrc;
+            return CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, timeoutSrc).Token;
         }
 
         public TParameter CreateParameter(string name, DbType dbType, object value)
