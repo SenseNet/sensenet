@@ -135,4 +135,135 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
     }
+
+
+
+    //UNDONE:DB@@@@@@ Refactor: Rename SnDctx to SnDataContext
+    //UNDONE:DB@@@@@@@ Generalize TTransaction to DbTransaction and remove the 5th type parameter
+    public abstract class SnDctx<TConnection, TCommand, TParameter, TReader, TTransaction> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
+        where TConnection : DbConnection
+        where TCommand : DbCommand
+        where TParameter : DbParameter
+        where TReader : DbDataReader
+        where TTransaction : DbTransaction
+    {
+        private TConnection _connection;
+        private TransactionWrapper _transaction;
+
+        public TConnection Connection => _connection;
+        public TransactionWrapper Transaction => _transaction;
+        public CancellationToken CancellationToken { get; }
+
+
+        protected SnDctx(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CancellationToken = cancellationToken;
+        }
+
+
+        public virtual void Dispose()
+        {
+            if (_transaction?.Status == TransactionStatus.Active)
+                _transaction.Rollback();
+            _connection?.Dispose();
+        }
+
+        public abstract TConnection CreateConnection();
+        public abstract TCommand CreateCommand();
+        public abstract TParameter CreateParameter();
+
+        public virtual TransactionWrapper WrapTransaction(TTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
+        {
+            return null;
+        }
+
+        private TConnection OpenConnection()
+        {
+            if (_connection == null)
+            {
+                _connection = CreateConnection();
+                _connection.Open();
+            }
+            return _connection;
+        }
+
+        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+            TimeSpan timeout = default(TimeSpan))
+        {
+
+            var transaction = (TTransaction)OpenConnection().BeginTransaction(isolationLevel);
+            _transaction = WrapTransaction(transaction, timeout) ?? new TransactionWrapper(transaction, timeout);
+            return _transaction;
+        }
+
+        public async Task<int> ExecuteNonQueryAsync(string script, Action<TCommand> setParams = null)
+        {
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = OpenConnection();
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandText = script;
+                cmd.CommandType = CommandType.Text;
+                cmd.Transaction = _transaction?.Transaction;
+
+                setParams?.Invoke(cmd);
+
+                return await cmd.ExecuteNonQueryAsync(CancellationToken);
+            }
+        }
+        public async Task<object> ExecuteScalarAsync(string script, Action<TCommand> setParams = null)
+        {
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = OpenConnection();
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandText = script;
+                cmd.CommandType = CommandType.Text;
+                cmd.Transaction = _transaction?.Transaction;
+
+                setParams?.Invoke(cmd);
+
+                return await cmd.ExecuteScalarAsync(CancellationToken);
+            }
+        }
+        public Task<T> ExecuteReaderAsync<T>(string script, Func<TReader, Task<T>> callback)
+        {
+            return ExecuteReaderAsync(script, null, callback);
+        }
+        public async Task<T> ExecuteReaderAsync<T>(string script, Action<TCommand> setParams, Func<TReader, Task<T>> callbackAsync)
+        {
+            using (var cmd = CreateCommand())
+            {
+                cmd.Connection = OpenConnection();
+                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandText = script;
+                cmd.CommandType = CommandType.Text;
+                cmd.Transaction = _transaction?.Transaction;
+
+                setParams?.Invoke(cmd);
+
+                using (var reader = (TReader)await cmd.ExecuteReaderAsync(CancellationToken))
+                    return await callbackAsync(reader);
+            }
+        }
+
+        public TParameter CreateParameter(string name, DbType dbType, object value)
+        {
+            var prm = CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Value = value;
+            return prm;
+        }
+        public DbParameter CreateParameter(string name, DbType dbType, int size, object value)
+        {
+            var prm = CreateParameter();
+            prm.ParameterName = name;
+            prm.DbType = dbType;
+            prm.Size = size;
+            prm.Value = value;
+            return prm;
+        }
+    }
+
 }

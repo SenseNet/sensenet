@@ -168,4 +168,80 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             };
         }
     }
+
+
+
+    public class MsSqlDctx : SnDctx<SqlConnection, SqlCommand, SqlParameter, SqlDataReader, SqlTransaction>
+    {
+        private string _connectionString;
+
+        public MsSqlDctx(CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken) { }
+
+        public MsSqlDctx(string connectionString, CancellationToken cancellationToken = default(CancellationToken)) :
+            base(cancellationToken)
+        {
+            //UNDONE:DB: TEST: not tested (packaging)
+            _connectionString = connectionString;
+        }
+        public MsSqlDctx(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken)) :
+            base(cancellationToken)
+        {
+            //UNDONE:DB: TEST: not tested (packaging)
+            _connectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+        }
+
+        private string GetConnectionString(ConnectionInfo connectionInfo)
+        {
+            string cnstr;
+
+            if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
+                cnstr = ConnectionStrings.ConnectionString;
+            else
+            if (!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
+                || cnstr == null)
+                throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
+
+            var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
+            switch (connectionInfo.InitialCatalog)
+            {
+                case InitialCatalog.Initial:
+                    break;
+                case InitialCatalog.Master:
+                    connectionBuilder.InitialCatalog = "master";
+                    break;
+                default:
+                    throw new NotSupportedException("Unknown InitialCatalog");
+            }
+
+            if (!string.IsNullOrEmpty(connectionInfo.DataSource))
+                connectionBuilder.DataSource = connectionInfo.DataSource;
+
+            if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName))
+                connectionBuilder.InitialCatalog = connectionInfo.InitialCatalogName;
+
+            if (!string.IsNullOrWhiteSpace(connectionInfo.UserName))
+            {
+                if (string.IsNullOrWhiteSpace(connectionInfo.Password))
+                    throw new NotSupportedException("Invalid credentials.");
+                connectionBuilder.UserID = connectionInfo.UserName;
+                connectionBuilder.Password = connectionInfo.Password;
+                connectionBuilder.IntegratedSecurity = false;
+            }
+            return connectionBuilder.ToString();
+        }
+
+        public override SqlConnection CreateConnection()
+        {
+            return new SqlConnection(ConnectionStrings.ConnectionString);
+        }
+        public override SqlCommand CreateCommand()
+        {
+            return new SqlCommand();
+        }
+        public override SqlParameter CreateParameter()
+        {
+            return new SqlParameter();
+        }
+    }
+
 }
