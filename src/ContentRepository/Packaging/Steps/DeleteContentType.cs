@@ -207,7 +207,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 ";
 
             //UNDONE:DB: TEST: not tested (packaging)
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDctx())
             {
                 var _ = ctx.ExecuteReaderAsync(sql, reader =>
                 {

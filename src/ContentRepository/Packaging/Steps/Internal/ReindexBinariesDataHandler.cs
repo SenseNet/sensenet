@@ -15,13 +15,13 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
 
@@ -35,7 +35,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
                 int remainingTasks = 0;
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
@@ -60,7 +60,7 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void FinishTask(int versionId)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -72,7 +72,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void CreateTempTask(int versionId, int rank)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -83,7 +83,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static List<int> GetAllNodeIds()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(SqlScripts.GetAllNodeIds))
+                using (var ctx = new MsSqlDctx(SqlScripts.GetAllNodeIds))
                 {
                     return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, reader =>
                     {
@@ -98,7 +98,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void DropTables()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
 
@@ -107,7 +107,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 try
                 {
                     //UNDONE:DB: TEST: not tested (packaging)
-                    using (var ctx = new MsSqlDataContext())
+                    using (var ctx = new MsSqlDctx())
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
                         return Convert.ToInt32(result) != 0;
@@ -128,7 +128,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static DateTime LoadTimeLimit()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDctx())
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();

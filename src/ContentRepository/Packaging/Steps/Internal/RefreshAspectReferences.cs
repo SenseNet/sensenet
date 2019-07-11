@@ -24,7 +24,7 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDctx())
             {
                 ctx.ExecuteReaderAsync(Script, reader =>
                 {

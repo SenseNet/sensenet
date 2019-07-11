@@ -11,172 +11,169 @@ using IsolationLevel = System.Data.IsolationLevel;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
-    public class MsSqlDataContext : IDisposable
-    {
-        private readonly SqlConnection _connection;
-        private TransactionWrapper _transaction;
+    ////UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
+    //[Obsolete("##", true)]
+    //public class MsSqlDataContext : IDisposable
+    //{
+    //    private readonly SqlConnection _connection;
+    //    private TransactionWrapper _transaction;
 
-        public CancellationToken CancellationToken { get; }
+    //    public CancellationToken CancellationToken { get; }
 
-        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            //UNDONE:DB: TEST: not tested (packaging)
-            CancellationToken = cancellationToken;
-            _connection = new SqlConnection(ConnectionStrings.ConnectionString);
-            _connection.Open();
-        }
-        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            //UNDONE:DB: TEST: not tested (packaging)
-            CancellationToken = cancellationToken;
-            _connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString);
-            _connection.Open();
-        }
-        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            //UNDONE:DB: TEST: not tested (packaging)
-            CancellationToken = cancellationToken;
-            _connection = new SqlConnection(GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString);
-            _connection.Open();
-        }
+    //    public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
+    //    {
+    //        //UNDONE:DB: TEST: not tested (packaging)
+    //        CancellationToken = cancellationToken;
+    //        _connection = new SqlConnection(ConnectionStrings.ConnectionString);
+    //        _connection.Open();
+    //    }
+    //    public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
+    //    {
+    //        //UNDONE:DB: TEST: not tested (packaging)
+    //        CancellationToken = cancellationToken;
+    //        _connection = new SqlConnection(connectionString ?? ConnectionStrings.ConnectionString);
+    //        _connection.Open();
+    //    }
+    //    public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
+    //    {
+    //        //UNDONE:DB: TEST: not tested (packaging)
+    //        CancellationToken = cancellationToken;
+    //        _connection = new SqlConnection(GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString);
+    //        _connection.Open();
+    //    }
 
-        private string GetConnectionString(ConnectionInfo connectionInfo)
-        {
-            string cnstr;
+    //    private string GetConnectionString(ConnectionInfo connectionInfo)
+    //    {
+    //        string cnstr;
 
-            if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
-                cnstr = ConnectionStrings.ConnectionString;
-            else
-                if(!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
-                        || cnstr == null)
-                    throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
+    //        if (string.IsNullOrEmpty(connectionInfo.ConnectionName))
+    //            cnstr = ConnectionStrings.ConnectionString;
+    //        else
+    //            if(!ConnectionStrings.AllConnectionStrings.TryGetValue(connectionInfo.ConnectionName, out cnstr)
+    //                    || cnstr == null)
+    //                throw new InvalidOperationException("Unknown connection name: " + connectionInfo.ConnectionName);
 
-            var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
-            switch (connectionInfo.InitialCatalog)
-            {
-                case InitialCatalog.Initial:
-                    break;
-                case InitialCatalog.Master:
-                    connectionBuilder.InitialCatalog = "master";
-                    break;
-                default:
-                    throw new NotSupportedException("Unknown InitialCatalog");
-            }
+    //        var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
+    //        switch (connectionInfo.InitialCatalog)
+    //        {
+    //            case InitialCatalog.Initial:
+    //                break;
+    //            case InitialCatalog.Master:
+    //                connectionBuilder.InitialCatalog = "master";
+    //                break;
+    //            default:
+    //                throw new NotSupportedException("Unknown InitialCatalog");
+    //        }
 
-            if (!string.IsNullOrEmpty(connectionInfo.DataSource))
-                connectionBuilder.DataSource = connectionInfo.DataSource;
+    //        if (!string.IsNullOrEmpty(connectionInfo.DataSource))
+    //            connectionBuilder.DataSource = connectionInfo.DataSource;
 
-            if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName))
-                connectionBuilder.InitialCatalog = connectionInfo.InitialCatalogName;
+    //        if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName))
+    //            connectionBuilder.InitialCatalog = connectionInfo.InitialCatalogName;
 
-            if (!string.IsNullOrWhiteSpace(connectionInfo.UserName))
-            {
-                if (string.IsNullOrWhiteSpace(connectionInfo.Password))
-                    throw new NotSupportedException("Invalid credentials.");
-                connectionBuilder.UserID = connectionInfo.UserName;
-                connectionBuilder.Password = connectionInfo.Password;
-                connectionBuilder.IntegratedSecurity = false;
-            }
-            return connectionBuilder.ToString();
-        }
+    //        if (!string.IsNullOrWhiteSpace(connectionInfo.UserName))
+    //        {
+    //            if (string.IsNullOrWhiteSpace(connectionInfo.Password))
+    //                throw new NotSupportedException("Invalid credentials.");
+    //            connectionBuilder.UserID = connectionInfo.UserName;
+    //            connectionBuilder.Password = connectionInfo.Password;
+    //            connectionBuilder.IntegratedSecurity = false;
+    //        }
+    //        return connectionBuilder.ToString();
+    //    }
 
-        public void Dispose()
-        {
-            if (_transaction?.Status == TransactionStatus.Active)
-                _transaction.Rollback();
-            _connection.Dispose();
-        }
+    //    public void Dispose()
+    //    {
+    //        if (_transaction?.Status == TransactionStatus.Active)
+    //            _transaction.Rollback();
+    //        _connection.Dispose();
+    //    }
 
-        public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
-            TimeSpan timeout = default(TimeSpan))
-        {
-            var transaction = _connection.BeginTransaction(isolationLevel);
-            _transaction = new TransactionWrapper(transaction);
-            return _transaction;
-        }
+    //    public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+    //        TimeSpan timeout = default(TimeSpan))
+    //    {
+    //        var transaction = _connection.BeginTransaction(isolationLevel);
+    //        _transaction = new TransactionWrapper(transaction);
+    //        return _transaction;
+    //    }
 
-        //UNDONE:DB@@@@ Handle Command/Connection/Transaction Timeout
-        public async Task<int> ExecuteNonQueryAsync(string script, Action<SqlCommand> setParams = null)
-        {
-            using (var cmd = new SqlCommand())
-            {
-                cmd.Connection = _connection;
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
+    //    //UNDONE:DB@@@@ Handle Command/Connection/Transaction Timeout
+    //    public async Task<int> ExecuteNonQueryAsync(string script, Action<SqlCommand> setParams = null)
+    //    {
+    //        using (var cmd = new SqlCommand())
+    //        {
+    //            cmd.Connection = _connection;
+    //            cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+    //            cmd.CommandText = script;
+    //            cmd.CommandType = CommandType.Text;
+    //            cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
-                setParams?.Invoke(cmd);
+    //            setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteNonQueryAsync(CancellationToken);
-            }
-        }
-        public async Task<object> ExecuteScalarAsync(string script, Action<SqlCommand> setParams = null)
-        {
-            using (var cmd = new SqlCommand())
-            {
-                cmd.Connection = _connection;
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
+    //            return await cmd.ExecuteNonQueryAsync(CancellationToken);
+    //        }
+    //    }
+    //    public async Task<object> ExecuteScalarAsync(string script, Action<SqlCommand> setParams = null)
+    //    {
+    //        using (var cmd = new SqlCommand())
+    //        {
+    //            cmd.Connection = _connection;
+    //            cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+    //            cmd.CommandText = script;
+    //            cmd.CommandType = CommandType.Text;
+    //            cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
-                setParams?.Invoke(cmd);
+    //            setParams?.Invoke(cmd);
 
-                return await cmd.ExecuteScalarAsync(CancellationToken);
-            }
-        }
-        public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, Task<T>> callback)
-        {
-            return ExecuteReaderAsync(script, null, callback);
-        }
-        public async Task<T> ExecuteReaderAsync<T>(string script, Action<SqlCommand> setParams, Func<SqlDataReader, Task<T>> callbackAsync)
-        {
-            using (var cmd = new SqlCommand())
-            {
-                cmd.Connection = _connection;
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
+    //            return await cmd.ExecuteScalarAsync(CancellationToken);
+    //        }
+    //    }
+    //    public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, Task<T>> callback)
+    //    {
+    //        return ExecuteReaderAsync(script, null, callback);
+    //    }
+    //    public async Task<T> ExecuteReaderAsync<T>(string script, Action<SqlCommand> setParams, Func<SqlDataReader, Task<T>> callbackAsync)
+    //    {
+    //        using (var cmd = new SqlCommand())
+    //        {
+    //            cmd.Connection = _connection;
+    //            cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+    //            cmd.CommandText = script;
+    //            cmd.CommandType = CommandType.Text;
+    //            cmd.Transaction = (SqlTransaction)_transaction?.Transaction;
 
-                setParams?.Invoke(cmd);
+    //            setParams?.Invoke(cmd);
 
-                using (var reader = await cmd.ExecuteReaderAsync(CancellationToken))
-                    return await callbackAsync(reader);
-            }
-        }
+    //            using (var reader = await cmd.ExecuteReaderAsync(CancellationToken))
+    //                return await callbackAsync(reader);
+    //        }
+    //    }
 
-        public SqlParameter CreateParameter(string name, SqlDbType dbType, object value)
-        {
-            return new SqlParameter
-            {
-                ParameterName = name,
-                SqlDbType = dbType,
-                Value = value
-            };
-        }
-        public SqlParameter CreateParameter(string name, SqlDbType dbType, int size, object value)
-        {
-            return new SqlParameter
-            {
-                ParameterName = name,
-                SqlDbType = dbType,
-                Size = size,
-                Value = value
-            };
-        }
-    }
-
-
-
+    //    public SqlParameter CreateParameter(string name, SqlDbType dbType, object value)
+    //    {
+    //        return new SqlParameter
+    //        {
+    //            ParameterName = name,
+    //            SqlDbType = dbType,
+    //            Value = value
+    //        };
+    //    }
+    //    public SqlParameter CreateParameter(string name, SqlDbType dbType, int size, object value)
+    //    {
+    //        return new SqlParameter
+    //        {
+    //            ParameterName = name,
+    //            SqlDbType = dbType,
+    //            Size = size,
+    //            Value = value
+    //        };
+    //    }
+    //}
     public class MsSqlDctx : SnDctx<SqlConnection, SqlCommand, SqlParameter, SqlDataReader>
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
         public MsSqlDctx(CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken) { }
-
         public MsSqlDctx(string connectionString, CancellationToken cancellationToken = default(CancellationToken)) :
             base(cancellationToken)
         {
@@ -187,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             base(cancellationToken)
         {
             //UNDONE:DB: TEST: not tested (packaging)
-            _connectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
+            _connectionString = GetConnectionString(connectionInfo);
         }
 
         private string GetConnectionString(ConnectionInfo connectionInfo)
@@ -232,7 +229,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override SqlConnection CreateConnection()
         {
-            return new SqlConnection(ConnectionStrings.ConnectionString);
+            return new SqlConnection(_connectionString ?? ConnectionStrings.ConnectionString);
         }
         public override SqlCommand CreateCommand()
         {
@@ -245,6 +242,26 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
         {
             return null;
+        }
+
+        public SqlParameter CreateParameter(string name, SqlDbType dbType, object value)
+        {
+            return new SqlParameter
+            {
+                ParameterName = name,
+                SqlDbType = dbType,
+                Value = value
+            };
+        }
+        public SqlParameter CreateParameter(string name, SqlDbType dbType, int size, object value)
+        {
+            return new SqlParameter
+            {
+                ParameterName = name,
+                SqlDbType = dbType,
+                Size = size,
+                Value = value
+            };
         }
     }
 
