@@ -19,21 +19,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
 
-        /* =============================================================================================== Factory methods */
-        //UNDONE:DB: Generalize IDbCommandFactory implementation. Use a common helper class
-        public override DbConnection CreateConnection()
-        {
-            return new SqlConnection(ConnectionStrings.ConnectionString);
-        }
-        public override DbCommand CreateCommand()
-        {
-            return new SqlCommand();
-        }
-        public override DbParameter CreateParameter()
-        {
-            return new SqlParameter();
-        }
-
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
         {
             return new MsSqlDataContext();

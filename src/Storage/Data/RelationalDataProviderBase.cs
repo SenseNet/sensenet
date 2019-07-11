@@ -24,19 +24,9 @@ using SenseNet.Diagnostics;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
-    public abstract class RelationalDataProviderBase : DataProvider, IDbCommandFactory
+    public abstract class RelationalDataProviderBase : DataProvider
     {
         protected int IndexBlockSize = 100;
-
-        /* =============================================================================================== Factory methods */
-
-        public abstract DbCommand CreateCommand();
-        public abstract DbConnection CreateConnection();
-        public abstract DbParameter CreateParameter();
-        public virtual TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
-        {
-            return null;
-        }
 
         public abstract IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform();
 

@@ -17,27 +17,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// Contains the MS SQL-specific implementation of the IBlobStorageMetaDataProvider interface that
     /// is responsible for binary-related operations in the main metadata database.
     /// </summary>
-    public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider, IDbCommandFactory
+    public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
-        /* ======================================================================================= IDbCommandFactory */
-        //UNDONE:DB: Generalize IDbCommandFactory implementation. Use a common helper class
-        public DbConnection CreateConnection()
-        {
-            return new SqlConnection(ConnectionStrings.ConnectionString);
-        }
-        public DbCommand CreateCommand()
-        {
-            return new SqlCommand();
-        }
-        public DbParameter CreateParameter()
-        {
-            return new SqlParameter();
-        }
-        public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
-        {
-            return null;
-        }
-
         public IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
         {
             return new MsSqlDataContext();
