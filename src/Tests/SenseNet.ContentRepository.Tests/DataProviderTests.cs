@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Transactions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -2675,14 +2676,13 @@ namespace SenseNet.ContentRepository.Tests
             {
                 return new TestConnection();
             }
-
             public DbCommand CreateCommand()
             {
                 return new TestCommand();
             }
             public DbParameter CreateParameter(){throw new NotImplementedException();}
             public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
-                TimeSpan timeout = default(TimeSpan)){return null;}
+                CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan)){return null;}
         }
         #endregion
         [TestMethod]

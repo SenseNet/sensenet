@@ -22,7 +22,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionWrapper Transaction => _transaction;
         private readonly CancellationToken _cancellationToken;
 
-
         protected SnDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
             _cancellationToken = cancellationToken;
@@ -41,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract TParameter CreateParameter();
 
         public abstract TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
-            TimeSpan timeout = default(TimeSpan));
+            CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan));
 
         private TConnection OpenConnection()
         {
@@ -56,9 +55,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbTransaction BeginTransaction(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
             TimeSpan timeout = default(TimeSpan))
         {
-
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
-            _transaction = WrapTransaction(transaction, timeout) ?? new TransactionWrapper(transaction, timeout);
+            _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
+                ?? new TransactionWrapper(transaction, _cancellationToken, timeout);
             return _transaction;
         }
 
@@ -74,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                var cancellationToken = GetCancellationToken();
+                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
                 var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 return result;
@@ -92,7 +91,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                var cancellationToken = GetCancellationToken();
+                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
                 var result = await cmd.ExecuteScalarAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 return result;
@@ -114,27 +113,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                 setParams?.Invoke(cmd);
 
-                var cancellationToken = GetCancellationToken();
+                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
                 using (var reader = (TReader) await cmd.ExecuteReaderAsync(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     return await callbackAsync(reader, cancellationToken);
                 }
             }
-        }
-
-        private CancellationToken GetCancellationToken() //UNDONE:DB@@@ Create only one!
-        {
-            if (_transaction == null)
-                return _cancellationToken;
-
-            if (_transaction.Timeout == default(TimeSpan))
-                return _cancellationToken;
-
-            var timeoutSrc = new CancellationTokenSource(_transaction.Timeout).Token;
-            if (_cancellationToken == CancellationToken.None)
-                return timeoutSrc;
-            return CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, timeoutSrc).Token;
         }
 
         public TParameter CreateParameter(string name, DbType dbType, object value)

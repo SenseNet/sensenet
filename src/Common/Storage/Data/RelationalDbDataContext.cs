@@ -28,9 +28,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return _dataPlatform.CreateParameter();
         }
-        public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan))
+        public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction
+            , CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
         {
-            return _dataPlatform.WrapTransaction(underlyingTransaction, timeout);
+            return _dataPlatform.WrapTransaction(underlyingTransaction, cancellationToken, timeout);
         }
     }
 }

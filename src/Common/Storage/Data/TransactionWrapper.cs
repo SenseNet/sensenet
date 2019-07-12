@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
 using System.Transactions;
 using IsolationLevel = System.Data.IsolationLevel;
 
@@ -15,12 +16,27 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IDbConnection Connection => Transaction.Connection;
         public IsolationLevel IsolationLevel => Transaction.IsolationLevel;
         public TransactionStatus Status { get; private set; }
+        public CancellationToken CancellationToken { get; }
 
-        public TransactionWrapper(DbTransaction transaction, TimeSpan timeout = default(TimeSpan))
+        public TransactionWrapper(DbTransaction transaction, CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
-            Timeout = timeout; //UNDONE:DB@@@ Transaction timeout from configuration
+            Timeout = timeout == default(TimeSpan)
+                ? TimeSpan.FromSeconds(Configuration.Data.TransactionTimeout)
+                : timeout;
+            CancellationToken = CombineCancellationToken(cancellationToken, timeout);
+        }
+        private CancellationToken CombineCancellationToken(CancellationToken cancellationToken, TimeSpan timeout)
+        {
+            if (timeout == default(TimeSpan))
+                return cancellationToken;
+
+            var timeoutToken = new CancellationTokenSource(timeout).Token;
+            if (cancellationToken == CancellationToken.None)
+                return timeoutToken;
+
+            return CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutToken).Token;
         }
 
         public virtual void Dispose()

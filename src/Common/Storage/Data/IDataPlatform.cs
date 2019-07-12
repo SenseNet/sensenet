@@ -16,6 +16,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         TConnection CreateConnection();
         TCommand CreateCommand();
         TParameter CreateParameter();
-        TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, TimeSpan timeout = default(TimeSpan));
+        TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction, CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan));
     }
 }
