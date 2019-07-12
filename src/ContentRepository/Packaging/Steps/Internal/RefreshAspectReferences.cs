@@ -26,7 +26,7 @@ WHERE RelType = 'Aspects' and TargetId in
 
             using (var ctx = new MsSqlDataContext())
             {
-                ctx.ExecuteReaderAsync(Script, reader =>
+                ctx.ExecuteReaderAsync(Script, async (reader, cancel) =>
                 {
                     do
                     {
@@ -35,7 +35,7 @@ WHERE RelType = 'Aspects' and TargetId in
 
                         using (new SystemAccount())
                         {
-                            while (reader.Read())
+                            while (await reader.ReadAsync(cancel))
                             {
                                 Operate(reader.GetInt32(0));
                                 count++;

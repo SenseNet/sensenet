@@ -9,7 +9,6 @@ using IsolationLevel = System.Data.IsolationLevel;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public abstract class SnDataContext<TConnection, TCommand, TParameter, TReader> : IDataPlatform<TConnection, TCommand, TParameter>, IDisposable
         where TConnection : DbConnection
         where TCommand : DbCommand
@@ -21,12 +20,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public TConnection Connection => _connection;
         public TransactionWrapper Transaction => _transaction;
-        public CancellationToken CancellationToken { get; }
+        private readonly CancellationToken _cancellationToken;
 
 
         protected SnDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
-            CancellationToken = cancellationToken;
+            _cancellationToken = cancellationToken;
         }
 
 
@@ -99,11 +98,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return result;
             }
         }
-        public Task<T> ExecuteReaderAsync<T>(string script, Func<TReader, Task<T>> callback)
+        public Task<T> ExecuteReaderAsync<T>(string script, Func<TReader, CancellationToken, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
         }
-        public async Task<T> ExecuteReaderAsync<T>(string script, Action<TCommand> setParams, Func<TReader, Task<T>> callbackAsync)
+        public async Task<T> ExecuteReaderAsync<T>(string script, Action<TCommand> setParams, Func<TReader, CancellationToken, Task<T>> callbackAsync)
         {
             using (var cmd = CreateCommand())
             {
@@ -119,24 +118,23 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var reader = (TReader) await cmd.ExecuteReaderAsync(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    //UNDONE:DB@@@@@@@@ ? Do need to use cancellationToken parameter?
-                    return await callbackAsync(reader);
+                    return await callbackAsync(reader, cancellationToken);
                 }
             }
         }
 
-        private CancellationToken GetCancellationToken()
+        private CancellationToken GetCancellationToken() //UNDONE:DB@@@ Create only one!
         {
             if (_transaction == null)
-                return CancellationToken;
+                return _cancellationToken;
 
             if (_transaction.Timeout == default(TimeSpan))
-                return CancellationToken;
+                return _cancellationToken;
 
             var timeoutSrc = new CancellationTokenSource(_transaction.Timeout).Token;
-            if (CancellationToken == CancellationToken.None)
+            if (_cancellationToken == CancellationToken.None)
                 return timeoutSrc;
-            return CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, timeoutSrc).Token;
+            return CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, timeoutSrc).Token;
         }
 
         public TParameter CreateParameter(string name, DbType dbType, object value)

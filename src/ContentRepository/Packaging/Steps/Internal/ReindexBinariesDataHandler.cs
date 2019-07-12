@@ -41,13 +41,13 @@ namespace SenseNet.Packaging.Steps.Internal
                     {
                         cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
                         cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
-                    }, reader =>
+                    }, async (reader, cancel) =>
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync(cancel))
                             result.Add(reader.GetInt32(0));
-                        reader.NextResult();
+                        await reader.NextResultAsync(cancel);
 
-                        reader.Read();
+                        await reader.ReadAsync(cancel);
                         remainingTasks = reader.GetInt32(0);
 
                         return Task.FromResult(0);
@@ -85,7 +85,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(SqlScripts.GetAllNodeIds))
                 {
-                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, reader =>
+                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
                         var result = new List<int>();
                         while (reader.Read())

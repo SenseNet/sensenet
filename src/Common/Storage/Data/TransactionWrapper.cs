@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
-            Timeout = timeout;
+            Timeout = timeout; //UNDONE:DB@@@ Transaction timeout from configuration
         }
 
         public virtual void Dispose()

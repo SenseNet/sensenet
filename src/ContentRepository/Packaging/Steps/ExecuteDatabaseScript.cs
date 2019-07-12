@@ -123,14 +123,14 @@ namespace SenseNet.Packaging.Steps
                 };
                 using (var ctx = new MsSqlDataContext(connectionInfo))
                 {
-                    ctx.ExecuteReaderAsync(script, reader =>
+                    ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                     {
                         do
                         {
                             if (reader.HasRows)
                             {
                                 var first = true;
-                                while (reader.Read())
+                                while (await reader.ReadAsync(cancel))
                                 {
                                     if (first)
                                     {
@@ -146,7 +146,7 @@ namespace SenseNet.Packaging.Steps
                                     sb.Clear();
                                 }
                             }
-                        } while (reader.NextResult());
+                        } while (await reader.NextResultAsync(cancel));
                         return Task.FromResult(0);
                     }).Wait();
                 }

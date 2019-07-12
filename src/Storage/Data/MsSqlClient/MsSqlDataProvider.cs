@@ -83,11 +83,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             //using (var ctx = new MsSqlDataContext(cancellationToken))
             using(var ctx = new MsSqlDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql.ToString(), async reader =>
+                return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
+                    cancel.ThrowIfCancellationRequested();
                     var result = new List<int>();
-                    while (await reader.ReadAsync(cancellationToken))
+                    while (await reader.ReadAsync(cancel))
+                    {
+                        cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetSafeInt32(0));
+                    }
                     return (IEnumerable<int>)result;
                 });
             }
@@ -178,11 +182,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                 return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                     cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
-                    async reader =>
+                    async (reader, cancel) =>
                     {
+                        cancel.ThrowIfCancellationRequested();
                         var result = new List<int>();
-                        while (await reader.ReadAsync(cancellationToken))
+                        while (await reader.ReadAsync(cancel))
+                        {
+                            cancel.ThrowIfCancellationRequested();
                             result.Add(reader.GetInt32(0));
+                        }
                         return result;
                     });
             }

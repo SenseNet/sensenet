@@ -68,9 +68,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
                         cmd.Parameters.Add(ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId));
                     }
-                }, async reader =>
+                }, async (reader, cancel) =>
                 {
-                    if (!await reader.ReadAsync())
+                    cancel.ThrowIfCancellationRequested();
+                    if (!await reader.ReadAsync(cancel))
                         return null;
 
                     var length = reader.GetSafeInt64(0);
@@ -139,7 +140,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
                         dctx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
                     });
-                }, reader =>
+                }, (reader, cancel) =>
                 {
                     if (reader.Read())
                     {
@@ -341,9 +342,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
                         ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
                     });
-                }, async reader =>
+                }, async (reader, cancel) =>
                 {
-                    if (!await reader.ReadAsync())
+                    cancel.ThrowIfCancellationRequested();
+                    if (!await reader.ReadAsync(cancel))
                         return null;
 
                     var size = reader.GetInt64("Size");
@@ -413,8 +415,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
                         ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
                     });
-                }, reader =>
+                }, (reader, cancel) =>
                 {
+                    cancel.ThrowIfCancellationRequested();
                     if (!reader.HasRows || !reader.Read())
                         return null;
 
@@ -485,11 +488,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                                 dctx.CreateParameter("@BlobProvider", DbType.String, 450, blobProviderName != null ? (object)blobProviderName : DBNull.Value),
                                 dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, blobProviderData != null ? (object)blobProviderData : DBNull.Value),
                             });
-                        }, async reader =>
+                        }, async (reader, cancel) =>
                         {
                             int binaryPropertyId;
                             int fileId;
-                            if (await reader.ReadAsync())
+                            cancel.ThrowIfCancellationRequested();
+                            if (await reader.ReadAsync(cancel))
                             {
                                 binaryPropertyId = reader.GetSafeInt32(0);
                                 fileId = reader.GetSafeInt32(1);
@@ -595,7 +599,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var dctx = new RelationalDbDataContext(GetPlatform()))
             {
-                return dctx.ExecuteReaderAsync(CleanupFileScript, reader =>
+                return dctx.ExecuteReaderAsync(CleanupFileScript, (reader, cancel) =>
                 {
                     try
                     {

@@ -70,13 +70,13 @@ END
             };
             using (var ctx = new MsSqlDataContext(connectionInfo))
             {
-                ctx.ExecuteReaderAsync(script, reader =>
+                ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                 {
                     do
                     {
                         if (reader.HasRows)
                         {
-                            while (reader.Read())
+                            while (await reader.ReadAsync(cancel))
                             {
                                 // empty code block, created only for checking the connection
                             }

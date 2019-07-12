@@ -32,10 +32,12 @@ ON P1.ComponentId = P2.ComponentId";
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteReaderAsync(InstalledComponentsScript,
-                    async reader =>
+                    async (reader, cancel) =>
                     {
-                        while (await reader.ReadAsync(ctx.CancellationToken))
+                        cancel.ThrowIfCancellationRequested();
+                        while (await reader.ReadAsync(cancel))
                         {
+                            cancel.ThrowIfCancellationRequested();
                             components.Add(new ComponentInfo
                             {
                                 ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
@@ -60,10 +62,12 @@ ON P1.ComponentId = P2.ComponentId";
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
                 await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
-                    async reader =>
+                    async (reader, cancel) =>
                     {
-                        while (await reader.ReadAsync(ctx.CancellationToken))
+                        cancel.ThrowIfCancellationRequested();
+                        while (await reader.ReadAsync(cancel))
                         {
+                            cancel.ThrowIfCancellationRequested();
                             packages.Add(new Package
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Id")),

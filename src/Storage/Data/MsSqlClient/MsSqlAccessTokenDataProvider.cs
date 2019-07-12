@@ -88,9 +88,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
-                    async reader => await reader.ReadAsync(ctx.CancellationToken)
-                        ? GetAccessTokenFromReader(reader)
-                        : null);
+                    async (reader, cancel) =>
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                        return await reader.ReadAsync(cancel)
+                            ? GetAccessTokenFromReader(reader)
+                            : null;
+                    });
             }
         }
 
@@ -105,7 +109,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 return await ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
-                    async reader => await reader.ReadAsync(ctx.CancellationToken) ? GetAccessTokenFromReader(reader) : null);
+                    async (reader, cancel) =>
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                        return await reader.ReadAsync(cancel)
+                            ? GetAccessTokenFromReader(reader)
+                            : null;
+                    });
             }
         }
 
@@ -118,10 +128,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 return await ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
-                    async reader =>
+                    async (reader, cancel) =>
                     {
+                        cancel.ThrowIfCancellationRequested();
                         var tokens = new List<AccessToken>();
-                        while (await reader.ReadAsync(ctx.CancellationToken))
+                        while (await reader.ReadAsync(cancel))
                             tokens.Add(GetAccessTokenFromReader(reader));
 
                         return tokens.ToArray();
