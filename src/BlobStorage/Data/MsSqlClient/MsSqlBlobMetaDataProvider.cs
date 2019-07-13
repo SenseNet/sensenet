@@ -335,7 +335,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             async Task<BinaryDataValue> LoadBinaryPropertyLogic(RelationalDbDataContext ctx)
             {
-                return await ctx.ExecuteReaderAsync/*UNDONE*/(LoadBinaryPropertyScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

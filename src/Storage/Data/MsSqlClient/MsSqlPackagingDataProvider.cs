@@ -31,7 +31,7 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteReaderAsync/*UNDONE*/(InstalledComponentsScript,
+                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
@@ -61,7 +61,7 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteReaderAsync/*UNDONE*/("SELECT * FROM Packages",
+                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();

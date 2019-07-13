@@ -211,8 +211,12 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             {
                 var _ = ctx.ExecuteReaderAsync/*UNDONE*/(sql, async (reader, cancel) =>
                 {
+                    cancel.ThrowIfCancellationRequested();
                     while (await reader.ReadAsync(cancel))
+                    {
+                        cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetString(0), reader.GetString(1));
+                    }
                     return Task.FromResult(0);
                 }).Result;
             }

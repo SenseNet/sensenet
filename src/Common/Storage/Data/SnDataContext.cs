@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public Task<T> ExecuteReaderAsync<T>(string script, Func<TReader, CancellationToken, Task<T>> callback)
         {
-            return ExecuteReaderAsync/*UNDONE*/(script, null, callback);
+            return ExecuteReaderAsync(script, null, callback);
         }
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<TCommand> setParams, Func<TReader, CancellationToken, Task<T>> callbackAsync)
         {

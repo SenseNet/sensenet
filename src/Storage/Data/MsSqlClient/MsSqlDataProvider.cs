@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             cancellationToken.ThrowIfCancellationRequested();
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync/*UNDONE*/(sql.ToString(), async (reader, cancel) =>
+                return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<int>();
@@ -181,7 +181,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await ctx.ExecuteReaderAsync/*UNDONE*/(sqlBuilder.ToString(),
+                return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                     cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                     async (reader, cancel) =>
                     {
