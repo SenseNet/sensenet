@@ -80,8 +80,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (orderByPath)
                 sql.AppendLine().Append("ORDER BY Path");
 
-            //using (var ctx = new MsSqlDataContext(cancellationToken))
-            using(var ctx = new MsSqlDataContext(cancellationToken))
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
@@ -180,6 +180,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 if (orderByPath && !string.IsNullOrEmpty(pathStart))
                     sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
+                cancellationToken.ThrowIfCancellationRequested();
                 return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                     cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                     async (reader, cancel) =>
@@ -286,7 +287,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString);
+            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken);
         }
 
         /* =============================================================================================== Tools */
