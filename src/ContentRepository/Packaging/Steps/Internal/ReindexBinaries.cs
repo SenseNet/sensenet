@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
@@ -37,6 +38,8 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public override void Execute(ExecutionContext context)
         {
+            var cancel = CancellationToken.None; //UNDONE:DB: Cancel: Get token from somewhere
+
             Tracer.Write("Phase-0: Initializing.");
             DataHandler.InstallTables();
 

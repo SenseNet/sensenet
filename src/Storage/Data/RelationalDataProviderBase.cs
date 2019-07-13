@@ -186,7 +186,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(sqlBuilder.ToString(), cmd =>
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
             });
@@ -207,7 +207,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(longTextSqlBuilder.ToString(),
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
         }
         protected abstract string InsertLongtextPropertiesHeadScript { get; }
@@ -330,7 +330,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected async Task UpdateSubTreePath(string originalPath, string path, RelationalDbDataContext ctx)
         {
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(UpdateSubTreePathScript, cmd =>
+            await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -397,7 +397,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(sqlBuilder.ToString(), cmd =>
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
             });
@@ -418,7 +418,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(longTextSqlBuilder.ToString(),
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
                 cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
         }
         protected abstract string UpdateLongtextPropertiesHeadScript { get; }
@@ -851,7 +851,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
                 using (var transaction = ctx.BeginTransaction())
                 {
-                    await ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteNodeScript, cmd =>
+                    await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -888,7 +888,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        await ctx.ExecuteNonQueryAsync/*UNDONE*/(MoveNodeScript, cmd =>
+                        await ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -1413,7 +1413,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(sql, cmd =>
+                await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     var index = 0;
                     cmd.Parameters.AddRange(lockIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
@@ -1447,7 +1447,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteUnusedLocksScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
                 });
@@ -1761,7 +1761,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(UpdateIndexingActivityRunningStateScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1776,7 +1776,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(RefreshIndexingActivityLockTimeScript, cmd =>
+            await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -1790,14 +1790,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
-            await ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteFinishedIndexingActivitiesScript);
+                await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript);
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
 
         public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteAllIndexingActivitiesScript);
+            using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
+                await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript);
         }
         protected abstract string DeleteAllIndexingActivitiesScript { get; }
 

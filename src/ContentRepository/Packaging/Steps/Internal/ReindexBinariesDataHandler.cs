@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -12,17 +13,17 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         private static class DataHandler
         {
-            internal static void InstallTables()
+            internal static void InstallTables(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.CreateTables).Wait();
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
-            internal static void StartBackgroundTasks()
+            internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.CreateTasks).Wait();
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
 
             internal class AssignedTaskResult
@@ -30,14 +31,14 @@ namespace SenseNet.Packaging.Steps.Internal
                 public int[] VersionIds;
                 public int RemainingTaskCount;
             }
-            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes)
+            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
             {
                 var result = new List<int>();
                 int remainingTasks = 0;
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    ctx.ExecuteReaderAsync/*UNDONE*/(SqlScripts.AssignTasks, cmd =>
+                    ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
                         cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
                         cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
@@ -57,11 +58,11 @@ namespace SenseNet.Packaging.Steps.Internal
                 return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
             }
 
-            internal static void FinishTask(int versionId)
+            internal static void FinishTask(int versionId, CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.FinishTask, cmd =>
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                     }).Wait();
@@ -69,23 +70,23 @@ namespace SenseNet.Packaging.Steps.Internal
 
             /* ========================================================================================= */
 
-            public static void CreateTempTask(int versionId, int rank)
+            public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.FinishTask, cmd =>
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                         cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
                     }).Wait();
             }
 
-            public static List<int> GetAllNodeIds()
+            public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(SqlScripts.GetAllNodeIds))
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    return ctx.ExecuteReaderAsync/*UNDONE*/(SqlScripts.GetAllNodeIds, (reader, cancel) =>
+                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
                         var result = new List<int>();
                         while (reader.Read())
@@ -95,21 +96,21 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static void DropTables()
+            public static void DropTables(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.DropTables).Wait();
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
 
-            public static bool CheckFeature()
+            public static bool CheckFeature(CancellationToken cancellationToken)
             {
                 try
                 {
                     //UNDONE:DB: TEST: not tested (packaging)
-                    using (var ctx = new MsSqlDataContext())
+                    using (var ctx = new MsSqlDataContext(cancellationToken))
                     {
-                        var result = ctx.ExecuteScalarAsync/*UNDONE*/(SqlScripts.CheckFeature).Result;
+                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
                         return Convert.ToInt32(result) != 0;
                     }
                 }
@@ -125,12 +126,12 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static DateTime LoadTimeLimit()
+            public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext())
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    var result = ctx.ExecuteScalarAsync/*UNDONE*/(SqlScripts.SelectTimeLimit).Result;
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;
