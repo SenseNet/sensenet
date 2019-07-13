@@ -70,7 +70,7 @@ END
             };
             using (var ctx = new MsSqlDataContext(connectionInfo))
             {
-                ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
+                ctx.ExecuteReaderAsync/*UNDONE*/(script, async (reader, cancel) =>
                 {
                     do
                     {

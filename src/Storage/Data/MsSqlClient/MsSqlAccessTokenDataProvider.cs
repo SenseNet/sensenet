@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
                 {
-                    var result = await ctx.ExecuteScalarAsync(sql);
+                    var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql);
                     var originalCollation = Convert.ToString(result);
                     _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
                 }
@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE AccessTokens");
             }
         }
 
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
+                return await ctx.ExecuteReaderAsync/*UNDONE*/("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
                     async (reader, cancel) =>
                     {
@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql,
+                return await ctx.ExecuteReaderAsync/*UNDONE*/(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
                     async (reader, cancel) =>
                     {
@@ -126,7 +126,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql,
+                return await ctx.ExecuteReaderAsync/*UNDONE*/(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
                     async (reader, cancel) =>
                     {
@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(sql,
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); });
             }
         }
@@ -181,7 +181,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); });
             }
         }
@@ -190,7 +190,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); });
             }
         }
@@ -201,7 +201,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(sql);
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/(sql);
             }
         }
     }

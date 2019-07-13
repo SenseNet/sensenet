@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").Wait();
+                ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE [dbo].[SharedLocks]").Wait();
             }
         }
 
@@ -47,7 +47,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -79,7 +79,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -115,7 +115,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -143,7 +143,7 @@ SELECT @Result
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
                     {
@@ -170,7 +170,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -197,7 +197,7 @@ SELECT @Result
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                var unused = ctx.ExecuteNonQueryAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -226,7 +226,7 @@ SELECT @Result
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -242,7 +242,7 @@ SELECT @Result
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                var unused = ctx.ExecuteNonQueryAsync/*UNDONE*/(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

@@ -31,7 +31,7 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
+                await ctx.ExecuteReaderAsync/*UNDONE*/(InstalledComponentsScript,
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
@@ -61,7 +61,7 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
+                await ctx.ExecuteReaderAsync/*UNDONE*/("SELECT * FROM Packages",
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
@@ -104,7 +104,7 @@ SELECT @@IDENTITY";
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(SavePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -147,7 +147,7 @@ WHERE Id = @Id
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/(UpdatePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -183,7 +183,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             int count;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(PackageExistenceScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -206,7 +206,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM Packages WHERE Id = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
             }
         }
@@ -215,7 +215,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
+                await ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE Packages");
             }
         }
 
@@ -226,7 +226,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(LoadManifestScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

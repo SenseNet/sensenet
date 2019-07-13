@@ -16,13 +16,13 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
+                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks()
             {
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
+                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.CreateTasks).Wait();
             }
 
             internal class AssignedTaskResult
@@ -37,7 +37,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
                 {
-                    ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
+                    ctx.ExecuteReaderAsync/*UNDONE*/(SqlScripts.AssignTasks, cmd =>
                     {
                         cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
                         cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                     }).Wait();
@@ -73,7 +73,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                         cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
@@ -85,7 +85,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(SqlScripts.GetAllNodeIds))
                 {
-                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
+                    return ctx.ExecuteReaderAsync/*UNDONE*/(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
                         var result = new List<int>();
                         while (reader.Read())
@@ -99,7 +99,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
-                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
+                    ctx.ExecuteNonQueryAsync/*UNDONE*/(SqlScripts.DropTables).Wait();
             }
 
             public static bool CheckFeature()
@@ -109,7 +109,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     //UNDONE:DB: TEST: not tested (packaging)
                     using (var ctx = new MsSqlDataContext())
                     {
-                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
+                        var result = ctx.ExecuteScalarAsync/*UNDONE*/(SqlScripts.CheckFeature).Result;
                         return Convert.ToInt32(result) != 0;
                     }
                 }
@@ -130,7 +130,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext())
                 {
-                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
+                    var result = ctx.ExecuteScalarAsync/*UNDONE*/(SqlScripts.SelectTimeLimit).Result;
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;

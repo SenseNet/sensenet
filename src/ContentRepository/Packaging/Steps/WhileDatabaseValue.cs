@@ -33,7 +33,7 @@ namespace SenseNet.Packaging.Steps
             {
                 try
                 {
-                    var result = ctx.ExecuteScalarAsync(script).Result;
+                    var result = ctx.ExecuteScalarAsync/*UNDONE*/(script).Result;
 
                     if (result == null || Convert.IsDBNull(result))
                         return false;
