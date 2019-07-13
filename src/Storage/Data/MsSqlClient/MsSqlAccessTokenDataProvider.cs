@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
                 {
-                    var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql);
+                    var result = await ctx.ExecuteScalarAsync(sql);
                     var originalCollation = Convert.ToString(result);
                     _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
                 }
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

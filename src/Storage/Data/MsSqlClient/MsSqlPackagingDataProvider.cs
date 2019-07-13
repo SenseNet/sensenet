@@ -104,7 +104,7 @@ SELECT @@IDENTITY";
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(SavePackageScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -183,7 +183,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             int count;
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(PackageExistenceScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -226,7 +226,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(LoadManifestScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

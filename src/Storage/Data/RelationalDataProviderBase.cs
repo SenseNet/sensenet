@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var versionId = versionData.VersionId;
 
                         // Update version
-                        var rawVersionTimestamp = await ctx.ExecuteScalarAsync/*UNDONE*/(UpdateVersionScript, cmd =>
+                        var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -254,7 +254,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         versionData.Timestamp = versionTimestamp;
 
                         // Update Node
-                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync/*UNDONE*/(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -484,7 +484,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
 
                         // Update Node
-                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync/*UNDONE*/(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -572,7 +572,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var transaction = ctx.BeginTransaction())
                     {
                         // Update Node
-                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync/*UNDONE*/(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -963,7 +963,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = (int) await ctx.ExecuteScalarAsync/*UNDONE*/(NodeExistsScript, cmd =>
+                var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
                 });
@@ -1226,7 +1226,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                return (int)await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                return (int)await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     var index = 0;
                     cmd.Parameters.AddRange(nodeTypeIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
@@ -1372,7 +1372,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
                     for (var i = 0; i < parentChain.Length; i++)
@@ -1395,7 +1395,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeLimit", DbType.DateTime, timeLimit));
                     for (int i = 0; i < parentChain.Length; i++)
@@ -1475,7 +1475,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(SaveIndexDocumentScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1620,7 +1620,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(GetLastIndexingActivityIdScript);
+                var result = await ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript);
                 return result == DBNull.Value ? 0 : Convert.ToInt32(result);
             }
         }
@@ -1737,7 +1737,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
                 activity.CreationDate = DateTime.UtcNow;
-                var rawActivityId = await ctx.ExecuteScalarAsync/*UNDONE*/(RegisterIndexingActivityScript, cmd =>
+                var rawActivityId = await ctx.ExecuteScalarAsync(RegisterIndexingActivityScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1965,7 +1965,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var lockToken = Guid.NewGuid().ToString();
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(StartSchemaUpdateScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1989,7 +1989,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync/*UNDONE*/(FinishSchemaUpdateScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, schemaLock)); 
                 });
@@ -2010,7 +2010,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                var unused = await ctx.ExecuteScalarAsync/*UNDONE*/(WriteAuditEventScript, cmd =>
+                var unused = await ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -2082,7 +2082,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                return (string)await ctx.ExecuteScalarAsync/*UNDONE*/(GetNameOfLastNodeWithNameBaseScript, cmd =>
+                return (string)await ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -2101,7 +2101,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             RepositoryPath.CheckValidPath(path);
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
-                return (long)await ctx.ExecuteScalarAsync/*UNDONE*/(GetTreeSizeScript, cmd =>
+                return (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -2116,7 +2116,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
-                return (int)await ctx.ExecuteScalarAsync/*UNDONE*/(
+                return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
                     cmd =>
                     {
@@ -2130,7 +2130,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
-                return (int)await ctx.ExecuteScalarAsync/*UNDONE*/(
+                return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
                     cmd =>
                     {
