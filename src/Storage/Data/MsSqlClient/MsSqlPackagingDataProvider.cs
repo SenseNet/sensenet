@@ -5,7 +5,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+// ReSharper disable AccessToDisposedClosure
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
@@ -147,7 +149,7 @@ WHERE Id = @Id
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(UpdatePackageScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -206,7 +208,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM Packages WHERE Id = @Id",
+                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
             }
         }
@@ -215,7 +217,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE Packages");
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
             }
         }
 

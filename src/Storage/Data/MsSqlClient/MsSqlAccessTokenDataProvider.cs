@@ -4,10 +4,11 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
+// ReSharper disable AccessToDisposedClosure
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
@@ -52,7 +53,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE AccessTokens");
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
             }
         }
 
@@ -172,7 +173,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(sql,
+                await ctx.ExecuteNonQueryAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); });
             }
         }
@@ -181,7 +182,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
+                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); });
             }
         }
@@ -190,7 +191,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
+                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); });
             }
         }
@@ -201,7 +202,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(sql);
+                await ctx.ExecuteNonQueryAsync(sql);
             }
         }
     }

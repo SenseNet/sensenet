@@ -7,7 +7,6 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()

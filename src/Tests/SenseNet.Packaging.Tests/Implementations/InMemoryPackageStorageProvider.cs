@@ -10,7 +10,6 @@ using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public class InMemoryPackageStorageProvider : IPackagingDataProviderExtension
     {
         public DataCollection<PackageDoc> GetPackages()

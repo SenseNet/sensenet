@@ -23,7 +23,6 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     public abstract class RelationalDataProviderBase : DataProvider
     {
         protected int IndexBlockSize = 100;

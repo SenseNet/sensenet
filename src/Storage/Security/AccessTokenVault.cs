@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
-    //UNDONE:DB: ASYNC API: CancellationToken is not used in this class.
     /// <summary>
     /// Supports AccessToken operations. Developers may use this API for securing access to a feature.
     /// Token storage is handled through a configurable dataprovider extension that implements
