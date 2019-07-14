@@ -1,4 +1,6 @@
-﻿// ReSharper disable once CheckNamespace
+﻿using System;
+// ReSharper disable CheckNamespace
+
 namespace SenseNet.Configuration
 {
     public class Data : SnConfig
@@ -8,11 +10,16 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Gets the configured Sql command timeout value in seconds.
         /// </summary>
-        public static int SqlCommandTimeout { get; internal set; } = GetInt(SectionName, "SqlCommandTimeout", 120, 5);
+        public static int DbCommandTimeout { get; internal set; } = GetInt(SectionName, "DbCommandTimeout", 120, 5);
+        /// <summary>
+        /// Gets the configured Sql command timeout value in seconds.
+        /// </summary>
+        [Obsolete("Use DbCommandTimeout instead.", true)]
+        public static int SqlCommandTimeout { get; internal set; } = GetInt(SectionName, "SqlCommandTimeout", DbCommandTimeout);
         /// <summary>
         /// Maximum execution time of transactions.
         /// </summary>
-        public static double TransactionTimeout { get; internal set; } = GetDouble(SectionName, "TransactionTimeout", SqlCommandTimeout, SqlCommandTimeout);
+        public static double TransactionTimeout { get; internal set; } = GetDouble(SectionName, "TransactionTimeout", DbCommandTimeout, DbCommandTimeout);
         /// <summary>
         /// Maximum execution time of long-running transactions. Use this in exceptional cases, 
         /// e.g. when copying a huge stream or performing a batch db operation.

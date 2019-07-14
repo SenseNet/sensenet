@@ -20,8 +20,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         [Obsolete("Use Configuration.Common.IsWebEnvironment instead.")]
         public static bool IsWebEnvironment => Configuration.Common.IsWebEnvironment;
 
-        [Obsolete("Use Configuration.Data.SqlCommandTimeout instead.")]
-        public static int SqlCommandTimeout => Configuration.Data.SqlCommandTimeout;
+        [Obsolete("Use Configuration.Data.DbCommandTimeout instead.", true)]
+        public static int SqlCommandTimeout => Configuration.Data.DbCommandTimeout;
         [Obsolete("Use Configuration.Data.TransactionTimeout instead.")]
         public static double TransactionTimeout => Configuration.Data.TransactionTimeout;
         [Obsolete("Use Configuration.Data.LongTransactionTimeout instead.")]

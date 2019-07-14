@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using (var cmd = CreateCommand())
             {
                 cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using (var cmd = CreateCommand())
             {
                 cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using (var cmd = CreateCommand())
             {
                 cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.SqlCommandTimeout;
+                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
                 cmd.CommandText = script;
                 cmd.CommandType = CommandType.Text;
                 cmd.Transaction = _transaction?.Transaction;
