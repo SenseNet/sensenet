@@ -227,7 +227,7 @@ SELECT @Result
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -243,7 +243,7 @@ SELECT @Result
 
             using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
             {
-                var unused = ctx.ExecuteNonQueryAsync/*UNDONE*/(sql, cmd =>
+                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
