@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Tools;
 // ReSharper disable CheckNamespace
 
@@ -16,17 +18,17 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// <summary>
     /// Defines methods for handling shared lock storage.
     /// </summary>
-    public interface ISharedLockDataProviderExtension : IDataProviderExtension //UNDONE:DB: ASYNC API
+    public interface ISharedLockDataProviderExtension : IDataProviderExtension
     {
         TimeSpan SharedLockTimeout { get; }
 
-        void DeleteAllSharedLocks();
-        void CreateSharedLock(int contentId, string @lock);
-        string RefreshSharedLock(int contentId, string @lock);
-        string ModifySharedLock(int contentId, string @lock, string newLock);
-        string GetSharedLock(int contentId);
-        string DeleteSharedLock(int contentId, string @lock);
-        void CleanupSharedLocks();
+        Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken));
+        Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
+        Task CleanupSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.

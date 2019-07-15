@@ -114,7 +114,7 @@
     <Compile Include="Implementations\InMemoryDataClasses.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations\InMemorySchemaWriter.cs" />
-    <Compile Include="Implementations\InMemorySharedLockDataProvider2.cs" />
+    <Compile Include="Implementations\InMemorySharedLockDataProvider.cs" />
     <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
       <AutoGen>True</AutoGen>

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    //UNDONE:DB: ASYNC API + CancellationToken: Missing in this class
     public class MsSqlSharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
@@ -14,15 +15,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
-        public void DeleteAllSharedLocks()
+        public async Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                ctx.ExecuteNonQueryAsync/*UNDONE*/("TRUNCATE TABLE [dbo].[SharedLocks]").Wait();
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]");
             }
         }
 
-        public void CreateSharedLock(int contentId, string @lock)
+        public async Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -45,9 +46,9 @@ SELECT @Result
 ";
 
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -55,7 +56,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                }).Result;
+                });
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -64,7 +65,7 @@ SELECT @Result
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
         }
 
-        public string RefreshSharedLock(int contentId, string @lock)
+        public async Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -77,9 +78,9 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -87,7 +88,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                }).Result;
+                });
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -100,7 +101,7 @@ SELECT @Result
             return existingLock;
         }
 
-        public string ModifySharedLock(int contentId, string @lock, string newLock)
+        public async Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -113,9 +114,9 @@ IF @Result = @OldLock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -124,7 +125,7 @@ SELECT @Result
                         ctx.CreateParameter("@NewLock", DbType.String, newLock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                }).Result;
+                });
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -137,25 +138,25 @@ SELECT @Result
             return existingLock;
         }
 
-        public string GetSharedLock(int contentId)
+        public async Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
                     {
                         ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                }).Result;
+                });
                 return result == DBNull.Value ? null : (string)result;
             }
         }
 
-        public string DeleteSharedLock(int contentId, string @lock)
+        public async Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"DECLARE @Id INT
@@ -168,9 +169,9 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var result = ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -178,7 +179,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                }).Result;
+                });
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -191,19 +192,19 @@ SELECT @Result
             return existingLock;
         }
 
-        public void CleanupSharedLocks()
+        public async Task CleanupSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
             {
-                var unused = ctx.ExecuteNonQueryAsync/*UNDONE*/(sql, cmd =>
+                await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
                     });
-                }).Result;
+                });
             }
         }
 

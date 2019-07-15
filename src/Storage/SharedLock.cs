@@ -1,6 +1,8 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿using System.Threading;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -17,9 +19,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.
         /// </summary>
-        public static void RemoveAllLocks()
+        public static void RemoveAllLocks(CancellationToken cancellationToken = default(CancellationToken))
         {
-            Storage.DeleteAllSharedLocks();
+            Storage.DeleteAllSharedLocksAsync(cancellationToken).Wait(cancellationToken);
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <exception cref="LockedNodeException"></exception>
         /// <exception cref="ContentNotFoundException"></exception>
-        public static void Lock(int contentId, string @lock)
+        public static void Lock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
             var node = Node.LoadNode(contentId);
             if(node == null)
@@ -36,7 +38,7 @@ namespace SenseNet.ContentRepository.Storage
             if(node.Locked)
                 throw new LockedNodeException(node.Lock);
 
-            Storage.CreateSharedLock(contentId, @lock);
+            Storage.CreateSharedLockAsync(contentId, @lock, cancellationToken).Wait(cancellationToken);
         }
         /// <summary>
         /// Updates an existing shared lock. If the lock already exists, the shared lock data provider
@@ -45,9 +47,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The same lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string RefreshLock(int contentId, string @lock)
+        public static string RefreshLock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Storage.RefreshSharedLock(contentId, @lock);
+            return Storage.RefreshSharedLockAsync(contentId, @lock, cancellationToken).Result;
         }
         /// <summary>
         /// Replaces an existing shared lock value with a new one.
@@ -55,17 +57,17 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The original lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string ModifyLock(int contentId, string @lock, string newLock)
+        public static string ModifyLock(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Storage.ModifySharedLock(contentId, @lock, newLock);
+            return Storage.ModifySharedLockAsync(contentId, @lock, newLock, cancellationToken).Result;
         }
         /// <summary>
         /// Loads a shared lock value for the specified content id.
         /// </summary>
         /// <returns>The shared lock value if exists or null.</returns>
-        public static string GetLock(int contentId)
+        public static string GetLock(int contentId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Storage.GetSharedLock(contentId);
+            return Storage.GetSharedLockAsync(contentId, cancellationToken).Result;
         }
         /// <summary>
         /// Deletes a shared lock from a content if exists. Otherwise an exception is thrown.
@@ -73,18 +75,18 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The original lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string Unlock(int contentId, string @lock)
+        public static string Unlock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Storage.DeleteSharedLock(contentId, @lock);
+            return Storage.DeleteSharedLockAsync(contentId, @lock, cancellationToken).Result;
         }
 
         /// <summary>
         /// Deletes expired shared locks. Called by the maintenance task.
         /// </summary>
-        public static void Cleanup()
+        public static void Cleanup(CancellationToken cancellationToken = default(CancellationToken))
         {
             SnTrace.Database.Write("Cleanup shared locks.");
-            Storage.CleanupSharedLocks();
+            Storage.CleanupSharedLocksAsync(cancellationToken).Wait(cancellationToken);
         }
     }
 }
