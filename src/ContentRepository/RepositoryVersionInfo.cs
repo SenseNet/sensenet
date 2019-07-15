@@ -4,6 +4,8 @@ using IO = System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
@@ -15,6 +17,7 @@ namespace SenseNet.ContentRepository
     {
         public AssemblyInfo[] SenseNet { get; set; }
         public AssemblyInfo[] Plugins { get; set; }
+        // ReSharper disable once InconsistentNaming
         public AssemblyInfo[] GAC { get; set; }
         public AssemblyInfo[] Other { get; set; }
         public AssemblyInfo[] Dynamic { get; set; }
@@ -43,33 +46,33 @@ namespace SenseNet.ContentRepository
             DatabaseAvailable = false
         };
 
+        // ReSharper disable once InconsistentNaming
         private static RepositoryVersionInfo __instance;
-        private static object _instanceLock = new object();
+        private static readonly object InstanceLock = new object();
         public static RepositoryVersionInfo Instance
         {
             get
             {
                 if (__instance == null)
-                    lock (_instanceLock)
+                    lock (InstanceLock)
                         if (__instance == null)
-                            __instance = Create();
+                            __instance = Create(CancellationToken.None).Result;
                 return __instance;
             }
         }
 
-        private static RepositoryVersionInfo Create()
+        private static async Task<RepositoryVersionInfo> Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
             try
             {
-                //UNDONE: Use PackageManager async
                 return Create(
-                    storage.LoadInstalledComponentsAsync().Result,
-                    storage.LoadInstalledPackagesAsync().Result);
+                    await storage.LoadInstalledComponentsAsync(cancellationToken),
+                    await storage.LoadInstalledPackagesAsync(cancellationToken));
             }
             catch
             {
-                return RepositoryVersionInfo.BeforeInstall;
+                return BeforeInstall;
             }
         }
 
@@ -82,7 +85,8 @@ namespace SenseNet.ContentRepository
 
             var asmDyn = asms.Where(a => a.IsDynamic).ToArray();
             asms = asms.Except(asmDyn).ToArray();
-            var asmInBin = asms.Where(a => a.CodeBase.StartsWith(binPath)).ToArray();
+            var asmInBin = asms.Where(a => a.CodeBase.StartsWith(binPath ??
+                throw new InvalidOperationException($"Parameter cannot be null."))).ToArray();
             asms = asms.Except(asmInBin).ToArray();
             var asmInGac = asms.Where(a => a.CodeBase.Contains("\\GAC")).ToArray();
             asms = asms.Except(asmInGac).ToArray();
@@ -122,7 +126,7 @@ namespace SenseNet.ContentRepository
             {
                 if (onRemote && isFromMe)
                     return;
-                RepositoryVersionInfo.ResetPrivate();
+                ResetPrivate();
             }
         }
 
@@ -135,6 +139,7 @@ namespace SenseNet.ContentRepository
         private static void CheckComponentVersions(SnComponentInfo[] components)
         {
 #if DEBUG
+            // ReSharper disable once IntroduceOptionalParameters.Local
             CheckComponentVersions(components, false);
 #else
             CheckComponentVersions(components, true);
