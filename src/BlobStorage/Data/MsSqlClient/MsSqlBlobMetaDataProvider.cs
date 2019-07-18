@@ -308,9 +308,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
-            void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, RelationalDbDataContext ctx)
+            void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, MsSqlDataContext ctx)
             {
                 var idsParam = string.Join(",", versionIdSet.Select(x => x.ToString()));
                 ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteBinaryPropertiesScript, cmd =>
@@ -322,12 +322,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             if (dataContext == null)
             {
-                using (var ctx = new RelationalDbDataContext(GetPlatform()))
+                using (var ctx = new MsSqlDataContext())
                     DeleteBinaryPropertiesLogic(versionIds, ctx);
             }
             else
             {
-                DeleteBinaryPropertiesLogic(versionIds, dataContext);
+                DeleteBinaryPropertiesLogic(versionIds, (MsSqlDataContext)dataContext);
             }
         }
 

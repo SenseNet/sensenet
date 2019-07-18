@@ -22,7 +22,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             return new MsSqlDataContext_OLD();
         }
-
+        public override SnDataContext CreateDataContext(CancellationToken token)
+        {
+            return new MsSqlDataContext(token);
+        }
         /* =========================================================================================== Platform specific implementations */
 
         /* =============================================================================================== Nodes */

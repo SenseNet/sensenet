@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
         /// <param name="dataContext">Optional <see cref="RelationalDbDataContext"/>.</param>
-        void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null);
+        void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null);
 
         /// <summary>
         /// Loads binary property object without the stream by the given parameters.

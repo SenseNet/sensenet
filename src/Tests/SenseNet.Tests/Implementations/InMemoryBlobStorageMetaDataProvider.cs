@@ -184,7 +184,7 @@ namespace SenseNet.Tests.Implementations
                 db.BinaryProperties.Remove(item);
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds, RelationalDbDataContext dataContext = null)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
