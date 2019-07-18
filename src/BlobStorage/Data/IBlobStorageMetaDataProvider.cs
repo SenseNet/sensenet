@@ -54,6 +54,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="blobProvider">Blob storage provider.</param>
         /// <param name="value">Binary data to update.</param>
         void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value);
+        Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext);
         /// <summary>
         /// Deletes a binary property value from the metadata database, making the corresponding blob storage entry orphaned.
         /// </summary>

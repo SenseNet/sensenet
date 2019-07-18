@@ -175,6 +175,11 @@ namespace SenseNet.Tests.Implementations
                 value.Stream?.CopyTo(stream);
         }
 
+        public Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
             var db = DataProvider.DB;

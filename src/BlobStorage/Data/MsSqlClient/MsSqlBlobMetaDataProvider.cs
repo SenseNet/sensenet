@@ -288,7 +288,98 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     value.Stream?.CopyTo(stream);
             }
         }
+        public async Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
+        {
+            var streamLength = value.Stream?.Length ?? 0;
+            var isExternal = false;
+            if (blobProvider != BlobStorageBase.BuiltInProvider)
+            {
+                // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
+                var ctx = new BlobStorageContext(blobProvider)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                };
 
+                blobProvider.Allocate(ctx);
+                isExternal = true;
+
+                value.BlobProviderName = ctx.Provider.GetType().FullName;
+                value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
+            }
+            else
+            {
+                value.BlobProviderName = null;
+                value.BlobProviderData = null;
+            }
+
+            if (blobProvider == BlobStorageBase.BuiltInProvider)
+            {
+                // MS-SQL does not support stream size over [Int32.MaxValue].
+                if (streamLength > int.MaxValue)
+                    throw new NotSupportedException();
+            }
+
+            var isRepositoryStream = value.Stream is RepositoryStream;
+            var hasStream = isRepositoryStream || value.Stream is MemoryStream;
+            if (!isExternal && !hasStream)
+                // do not do any database operation if the stream is not modified
+                return;
+
+            if(!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
+
+            var sql = blobProvider == BlobStorageBase.BuiltInProvider
+                ? UpdateBinaryPropertyScript
+                : UpdateBinaryPropertyNewFilerowScript;
+            var fileId = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    sqlCtx.CreateParameter("@BinaryPropertyId", DbType.Int32, value.Id),
+                    sqlCtx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
+                    sqlCtx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
+                    sqlCtx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
+                    sqlCtx.CreateParameter("@Size", DbType.Int64, value.Size),
+                    sqlCtx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
+                    sqlCtx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
+                    sqlCtx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
+                });
+            });
+
+            if (fileId > 0 && fileId != value.FileId)
+                value.FileId = fileId;
+
+            if (blobProvider == BlobStorageBase.BuiltInProvider)
+            {
+                // Stream exists and is loaded -> write it
+                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                    BlobProviderData = new BuiltinBlobProviderData()
+                };
+
+                await BuiltInBlobProvider.UpdateStreamAsync(ctx, value.Stream, sqlCtx);
+            }
+            else
+            {
+                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                };
+
+                using (var stream = blobProvider.GetStreamForWrite(ctx))
+                    value.Stream?.CopyTo(stream);
+            }
+        }
         /// <summary>
         /// Deletes a binary property value from the metadata database, making the corresponding blbo storage entry orphaned.
         /// </summary>

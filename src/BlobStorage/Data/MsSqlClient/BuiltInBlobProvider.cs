@@ -76,6 +76,29 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 }).Wait();
             }
         }
+        public static async Task UpdateStreamAsync(BlobStorageContext context, Stream stream, MsSqlDataContext dataContext)
+        {
+            // We have to work with an integer since SQL does not support
+            // binary values bigger than [Int32.MaxValue].
+            var bufferSize = Convert.ToInt32(stream.Length);
+
+            var buffer = new byte[bufferSize];
+            if (bufferSize > 0)
+            {
+                // Read bytes from the source
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.Read(buffer, 0, bufferSize);
+            }
+
+            await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    dataContext.CreateParameter("@Id", SqlDbType.Int, context.FileId),
+                    dataContext.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
+                });
+            });
+        }
 
         /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)

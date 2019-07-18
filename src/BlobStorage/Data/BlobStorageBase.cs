@@ -42,6 +42,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             var blobProvider = GetProvider(value.Size);
             BlobStorageComponents.DataProvider.UpdateBinaryProperty(blobProvider, value);
         }
+        protected internal static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
+        {
+            var blobProvider = GetProvider(value.Size);
+            return BlobStorageComponents.DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
+        }
         /// <summary>
         /// Deletes a binary property value from the metadata database, making the corresponding blob storage entry orphaned.
         /// </summary>

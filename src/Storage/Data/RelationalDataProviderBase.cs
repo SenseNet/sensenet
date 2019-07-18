@@ -308,7 +308,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx);
 
                         transaction.Commit();
                     }
@@ -371,14 +371,15 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return true;
             });
         }
-        protected virtual void SaveBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
+        protected virtual async Task SaveBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty,
+            SnDataContext dataContext)
         {
             if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
+                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId); //UNDONE:DB@@@ Make async
             else if (value.Id == 0 || isNewProperty)
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode); //UNDONE:DB@@@ Make async
             else
-                BlobStorage.UpdateBinaryProperty(value);
+                await BlobStorage.UpdateBinaryPropertyAsync(value, dataContext);
         }
         protected abstract string UpdateVersionScript { get; }
         protected abstract string UpdateNodeScript { get; }
@@ -539,7 +540,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx);
 
                         transaction.Commit();
                     }

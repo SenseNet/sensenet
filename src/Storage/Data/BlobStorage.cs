@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -17,6 +18,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public new static void UpdateBinaryProperty(BinaryDataValue value)
         {
             BlobStorageBase.UpdateBinaryProperty(value);
+        }
+        public new static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
+        {
+            return BlobStorageBase.UpdateBinaryPropertyAsync(value, dataContext);
         }
 
         public new static void DeleteBinaryProperty(int versionId, int propertyTypeId)
