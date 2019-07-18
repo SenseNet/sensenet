@@ -20,11 +20,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     /// </summary>
     public partial class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
-        public IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
-        {
-            return new MsSqlDataContext_OLD();
-        }
-
         /* ======================================================================================= IBlobStorageMetaDataProvider */
 
         private static string ValidateExtension(string originalExtension)
