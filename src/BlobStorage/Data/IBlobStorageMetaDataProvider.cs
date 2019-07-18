@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        /// <param name="dataContext">Optional <see cref="RelationalDbDataContext"/>.</param>
+        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
         void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null);
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="dataContext">Optional <see cref="RelationalDbDataContext"/>.</param>
+        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
         /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
         BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null);
         /// <summary>
