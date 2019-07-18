@@ -2670,18 +2670,18 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
-        private class TestDataPlatform : IDataPlatform<DbConnection, DbCommand, DbParameter>
+        private class TestDataContext : SnDataContext
         {
-            public DbConnection CreateConnection()
+            public override DbConnection CreateConnection()
             {
                 return new TestConnection();
             }
-            public DbCommand CreateCommand()
+            public override DbCommand CreateCommand()
             {
                 return new TestCommand();
             }
-            public DbParameter CreateParameter(){throw new NotImplementedException();}
-            public TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
+            public override DbParameter CreateParameter(){throw new NotImplementedException();}
+            public override TransactionWrapper WrapTransaction(DbTransaction underlyingTransaction,
                 CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan)){return null;}
         }
         #endregion
@@ -2691,7 +2691,7 @@ namespace SenseNet.ContentRepository.Tests
             async STT.Task<TransactionStatus> TestTimeout(double timeoutInSeconds)
             {
                 TransactionWrapper transactionWrapper;
-                using (var ctx = new RelationalDbDataContext(new TestDataPlatform()))
+                using (var ctx = new TestDataContext())
                 {
                     using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
                     {
