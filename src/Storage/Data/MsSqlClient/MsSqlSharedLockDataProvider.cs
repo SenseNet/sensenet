@@ -225,7 +225,7 @@ SELECT @Result
         {
             const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
 
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
             {
                 var result = ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -241,7 +241,7 @@ SELECT @Result
         {
             const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
 
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform()))
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
             {
                 var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
