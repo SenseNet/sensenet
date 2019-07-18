@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.Tools;
@@ -331,9 +332,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
-            async Task<BinaryDataValue> LoadBinaryPropertyLogic(RelationalDbDataContext ctx)
+            async Task<BinaryDataValue> LoadBinaryPropertyLogic(MsSqlDataContext ctx)
             {
                 return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
                 {
@@ -392,9 +393,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
 
             if (dataContext == null)
-                using (var ctx = new RelationalDbDataContext(GetPlatform()))
+                using (var ctx = new MsSqlDataContext(CancellationToken.None)) //UNDONE:DB: CancellationToken.None
                     return LoadBinaryPropertyLogic(ctx).Result;
-            return LoadBinaryPropertyLogic(dataContext).Result;
+
+            if (!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
+            return LoadBinaryPropertyLogic(sqlCtx).Result;
         }
 
         /// <summary>

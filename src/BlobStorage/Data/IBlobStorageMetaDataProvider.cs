@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
         /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
-        BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, RelationalDbDataContext dataContext = null);
+        BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null);
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
         /// just the blob metadata pointing to the blob storage.
