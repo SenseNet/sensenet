@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 sql.AppendLine().Append("ORDER BY Path");
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
@@ -102,7 +102,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
             List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 var typeCount = nodeTypeIds?.Length ?? 0;
                 var onlyNodes = true;
