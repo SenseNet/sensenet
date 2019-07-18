@@ -399,7 +399,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead.NodeVersion"/> array.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 

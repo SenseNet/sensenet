@@ -487,7 +487,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.GetNodeVersions(nodeId, cancellationToken);
+            return DataProvider.GetNodeVersionsAsync(nodeId, cancellationToken);
         }
         public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {

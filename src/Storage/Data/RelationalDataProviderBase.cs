@@ -107,11 +107,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Manage ReferenceProperties
                         if (dynamicData.ReferenceProperties.Any())
-                            await InsertReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
+                            await InsertReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await InsertLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+                            await InsertLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
@@ -173,7 +173,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return $"{propertyType.Name}:{value}";
         }
         protected abstract string InsertNodeAndVersionScript { get; }
-        protected virtual async Task InsertReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
+        protected virtual async Task InsertReferencePropertiesAsync(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
         {
             var parameters = new List<DbParameter> {ctx.CreateParameter("@VersionId", DbType.Int32, versionId)};
             var sqlBuilder = new StringBuilder(InsertReferencePropertiesHeadScript);
@@ -192,7 +192,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string InsertReferencePropertiesHeadScript { get; }
         protected abstract string InsertReferencePropertiesScript { get; }
-        protected virtual async Task InsertLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
+        protected virtual async Task InsertLongTextPropertiesAsync(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -293,18 +293,18 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Update subtree if needed
                         if (originalPath != null)
-                            await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+                            await UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx);
 
                         // Delete unnecessary versions and update last versions
-                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
 
                         // Manage ReferenceProperties
                         if (dynamicData.ReferenceProperties.Any())
-                            await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
+                            await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
+                            await UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
@@ -327,7 +327,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException(msg, e);
             }
         }
-        protected async Task UpdateSubTreePath(string originalPath, string path, RelationalDbDataContext ctx)
+        protected async Task UpdateSubTreePathAsync(string originalPath, string path, RelationalDbDataContext ctx)
         {
             await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
             {
@@ -338,7 +338,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 });
             });
         }
-        protected virtual async Task ManageLastVersions(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, RelationalDbDataContext ctx)
+        protected virtual async Task ManageLastVersionsAsync(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, RelationalDbDataContext ctx)
         {
             var versionIdsParam = (object)DBNull.Value;
             if (versionIdsToDelete != null)
@@ -384,7 +384,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateNodeScript { get; }
         protected abstract string UpdateSubTreePathScript { get; }
         protected abstract string ManageLastVersionsScript { get; }
-        protected virtual async Task UpdateReferenceProperties(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
+        protected virtual async Task UpdateReferencePropertiesAsync(IDictionary<PropertyType, List<int>> referenceProperties, int versionId, RelationalDbDataContext ctx)
         {
             var parameters = new List<DbParameter> { ctx.CreateParameter("@VersionId", DbType.Int32, versionId) };
             var sqlBuilder = new StringBuilder(UpdateReferencePropertiesHeadScript);
@@ -403,7 +403,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string UpdateReferencePropertiesHeadScript { get; }
         protected abstract string UpdateReferencePropertiesScript { get; }
-        protected virtual async Task UpdateLongTextProperties(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
+        protected virtual async Task UpdateLongTextPropertiesAsync(IDictionary<PropertyType, string> longTextProperties, int versionId, RelationalDbDataContext ctx)
         {
             var longTextSqlBuilder = new StringBuilder();
             var longTextSqlParameters = new List<DbParameter>();
@@ -524,25 +524,24 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Update subtree if needed
                         if (originalPath != null)
-                            await UpdateSubTreePath(originalPath, nodeHeadData.Path, ctx);
+                            await UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx);
 
                         // Delete unnecessary versions and update last versions
-                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
 
                         // Manage ReferenceProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await UpdateReferenceProperties(dynamicData.ReferenceProperties, versionId, ctx);
+                            await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await UpdateLongTextProperties(dynamicData.LongTextProperties, versionId, ctx);
-
-                        transaction.Commit();
+                            await UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
 
                         // Manage BinaryProperties
-                        //UNDONE:DB: BLOB-STORAGE: Use BlobStorage.
                         foreach (var item in dynamicData.BinaryProperties)
                             SaveBinaryProperty(item.Value, versionId, item.Key.Id, false, false);
+
+                        transaction.Commit();
                     }
                 }
             }
@@ -611,7 +610,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
                         // Delete unnecessary versions and update last versions
-                        await ManageLastVersions(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
 
                         transaction.Commit();
                     }
@@ -1057,7 +1056,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadNodeHeadsByIdSetScript { get; }
 
         /// <inheritdoc />
-        public override async Task<NodeHead.NodeVersion[]> GetNodeVersions(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = new RelationalDbDataContext(GetPlatform(), cancellationToken))
             {
