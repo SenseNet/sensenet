@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (clearStream)
                 sql = ClearStreamByFileIdScript + sql;
 
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
+            using (var ctx = new MsSqlDataContext())
             {
                 return await ctx.ExecuteReaderAsync/*UNDONE*/(sql, cmd =>
                 {
@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            using (var dctx = new RelationalDbDataContext(GetPlatform()))
+            using (var dctx = new MsSqlDataContext())
             {
                 var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
                 dctx.ExecuteReaderAsync/*UNDONE*/(sql, cmd =>
@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
+            using (var ctx = new MsSqlDataContext())
             {
                 value.Id = (int) ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
                 {
@@ -236,7 +236,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 // do not do any database operation if the stream is not modified
                 return;
 
-            using (var dctx = new RelationalDbDataContext(GetPlatform()))
+            using (var dctx = new MsSqlDataContext())
             {
                 var sql = blobProvider == BlobStorageBase.BuiltInProvider
                     ? UpdateBinaryPropertyScript
@@ -296,7 +296,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="propertyTypeId">Binary property type id.</param>
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
         {
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
+            using (var ctx = new MsSqlDataContext())
             {
                 ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteBinaryPropertyScript, cmd =>
                 {
@@ -409,7 +409,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
+            using (var ctx = new MsSqlDataContext())
             {
                 return ctx.ExecuteReaderAsync/*UNDONE*/(LoadBinaryCacheEntityScript, cmd =>
                 {
@@ -478,7 +478,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
-                using (var dctx = new RelationalDbDataContext(GetPlatform()))
+                using (var dctx = new MsSqlDataContext())
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
@@ -539,7 +539,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             try
             {
-                using (var ctx = new RelationalDbDataContext(GetPlatform()))
+                using (var ctx = new MsSqlDataContext())
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
@@ -578,7 +578,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// </summary>
         public void CleanupFilesSetDeleteFlag()
         {
-            using (var ctx = new RelationalDbDataContext(GetPlatform()))
+            using (var ctx = new MsSqlDataContext())
             {
                 using (var transaction = ctx.BeginTransaction())
                 {
@@ -601,7 +601,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>Whether there was at least one row that was deleted.</returns>
         public bool CleanupFiles()
         {
-            using (var dctx = new RelationalDbDataContext(GetPlatform()))
+            using (var dctx = new MsSqlDataContext())
             {
                 return dctx.ExecuteReaderAsync/*UNDONE*/(CleanupFileScript, (reader, cancel) =>
                 {
