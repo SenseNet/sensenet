@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform()
         {
-            return new MsSqlDataContext_OLD();
+            throw new NotImplementedException();
         }
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
