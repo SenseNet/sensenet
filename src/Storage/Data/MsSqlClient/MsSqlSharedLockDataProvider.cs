@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public async Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]");
             }
@@ -46,7 +46,7 @@ SELECT @Result
 ";
 
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -78,7 +78,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -114,7 +114,7 @@ IF @Result = @OldLock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -142,7 +142,7 @@ SELECT @Result
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -169,7 +169,7 @@ IF @Result = @Lock
 SELECT @Result
 ";
             string existingLock;
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
@@ -196,7 +196,7 @@ SELECT @Result
         {
             const string sql = "DELETE FROM [dbo].[SharedLocks] WHERE [CreationDate] < DATEADD(MINUTE, -@TimeoutInMinutes - 30, GETUTCDATE())";
 
-            using (var ctx = new RelationalDbDataContext(MainProvider.GetPlatform(), cancellationToken))
+            using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
