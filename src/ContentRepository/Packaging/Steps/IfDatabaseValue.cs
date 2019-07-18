@@ -44,7 +44,7 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            using (var ctx = new MsSqlDataContext(connectionInfo))
+            using (var ctx = new MsSqlDataContext_OLD(connectionInfo))
             {
                 object result;
                 try

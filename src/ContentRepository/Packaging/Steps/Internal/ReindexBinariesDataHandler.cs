@@ -16,13 +16,13 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
 
@@ -36,7 +36,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
                 int remainingTasks = 0;
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void FinishTask(int versionId, CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -73,7 +73,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
@@ -84,7 +84,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                 {
                     return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
                     {
@@ -99,7 +99,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void DropTables(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
 
@@ -108,7 +108,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 try
                 {
                     //UNDONE:DB: TEST: not tested (packaging)
-                    using (var ctx = new MsSqlDataContext(cancellationToken))
+                    using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
                         return Convert.ToInt32(result) != 0;
@@ -129,7 +129,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
                 //UNDONE:DB: TEST: not tested (packaging)
-                using (var ctx = new MsSqlDataContext(cancellationToken))
+                using (var ctx = new MsSqlDataContext_OLD(cancellationToken))
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
