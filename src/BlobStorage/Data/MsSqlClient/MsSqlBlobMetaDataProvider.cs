@@ -101,6 +101,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
+            using (var ctx = new MsSqlDataContext())
+                InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, ctx).Wait();
+        }
+        public async Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
+            bool isNewNode, SnDataContext dataContext)
+        {
             var streamLength = value.Stream?.Length ?? 0;
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
@@ -119,35 +125,35 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            using (var dctx = new MsSqlDataContext())
-            {
-                var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
-                dctx.ExecuteReaderAsync(sql, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        dctx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object)versionId : DBNull.Value),
-                        dctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object)propertyTypeId : DBNull.Value),
-                        dctx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
-                        dctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
-                        dctx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
-                        dctx.CreateParameter("@Size", DbType.Int64, Math.Max(0, value.Size)),
-                        dctx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
-                        dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
-                        dctx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
-                    });
-                }, (reader, cancel) =>
-                {
-                    if (reader.Read())
-                    {
-                        value.Id = Convert.ToInt32(reader[0]);
-                        value.FileId = Convert.ToInt32(reader[1]);
-                        value.Timestamp = Utility.Convert.BytesToLong((byte[])reader.GetValue(2));
-                    }
-                    return Task.FromResult(true);
-                }).Wait();
-            }
+            if(!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
 
+            var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
+            await sqlCtx.ExecuteReaderAsync(sql, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object)versionId : DBNull.Value),
+                    sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object)propertyTypeId : DBNull.Value),
+                    sqlCtx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
+                    sqlCtx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
+                    sqlCtx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
+                    sqlCtx.CreateParameter("@Size", DbType.Int64, Math.Max(0, value.Size)),
+                    sqlCtx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
+                    sqlCtx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
+                    sqlCtx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
+                });
+            }, async (reader, cancel) =>
+            {
+                if (await reader.ReadAsync(cancel))
+                {
+                    value.Id = Convert.ToInt32(reader[0]);
+                    value.FileId = Convert.ToInt32(reader[1]);
+                    value.Timestamp = Utility.Convert.BytesToLong((byte[])reader.GetValue(2));
+                }
+                return true;
+            });
+            
             // The BuiltIn blob provider saves the stream after the record 
             // was saved into the Files table, because simple varbinary
             // column must exist before we can write a stream into the record.
@@ -171,19 +177,26 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
-            var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
             using (var ctx = new MsSqlDataContext())
+                InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, ctx).Wait();
+        }
+        public async Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+            SnDataContext dataContext)
+        {
+            var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
+
+            if (!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
+
+            value.Id = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
             {
-                value.Id = (int) ctx.ExecuteScalarAsync(sql, cmd =>
+                cmd.Parameters.AddRange(new[]
                 {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object) versionId : DBNull.Value),
-                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object) propertyTypeId : DBNull.Value),
-                        ctx.CreateParameter("@FileId", DbType.Int32, value.FileId),
-                    });
-                }).Result;
-            }
+                    sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId != 0 ? (object) versionId : DBNull.Value),
+                    sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId != 0 ? (object) propertyTypeId : DBNull.Value),
+                    sqlCtx.CreateParameter("@FileId", DbType.Int32, value.FileId),
+                });
+            });
         }
 
         /// <summary>

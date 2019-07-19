@@ -33,6 +33,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             else
                 BlobStorageComponents.DataProvider.InsertBinaryProperty(blobProvider, value, versionId, propertyTypeId, isNewNode);
         }
+        protected internal static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
+        {
+            var blobProvider = GetProvider(value.Size);
+            if (value.FileId > 0 && value.Stream == null)
+                return BlobStorageComponents.DataProvider.InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
+            else
+                return BlobStorageComponents.DataProvider.InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, dataContext);
+        }
         /// <summary>
         /// Updates an existing binary property value in the database and the blob storage.
         /// </summary>

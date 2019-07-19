@@ -116,7 +116,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            BlobStorage.InsertBinaryProperty(item.Value, versionId, item.Key.Id, true);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, true, true, ctx);
 
                         transaction.Commit();
                     }
@@ -378,7 +378,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (value == null || value.IsEmpty)
                 BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId); //UNDONE:DB@@@ Make async
             else if (value.Id == 0 || isNewProperty)
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode); //UNDONE:DB@@@ Make async
+                await BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
             else
                 await BlobStorage.UpdateBinaryPropertyAsync(value, dataContext);
         }

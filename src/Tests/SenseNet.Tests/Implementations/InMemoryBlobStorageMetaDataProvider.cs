@@ -97,6 +97,12 @@ namespace SenseNet.Tests.Implementations
             value.Timestamp = 0L; //TODO: file row timestamp
         }
 
+        public Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
+            bool isNewNode, SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
+        }
+
         public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var db = DataProvider.DB;
@@ -113,6 +119,12 @@ namespace SenseNet.Tests.Implementations
             });
 
             value.Id = binaryPropertyId;
+        }
+
+        public Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+            SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
         }
 
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)

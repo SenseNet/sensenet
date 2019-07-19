@@ -39,6 +39,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode);
+        Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext);
+
         /// <summary>
         /// Inserts a new binary record into the metadata database containing an already exising file id,
         /// removing the previous record if the content is not new.
@@ -48,6 +50,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode);
+        Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext);
+
         /// <summary>
         /// Updates an existing binary property value in the database and the blob storage.
         /// </summary>
@@ -55,6 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="value">Binary data to update.</param>
         void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value);
         Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext);
+
         /// <summary>
         /// Deletes a binary property value from the metadata database, making the corresponding blob storage entry orphaned.
         /// </summary>
@@ -76,6 +81,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
         /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
         BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null);
+
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
         /// just the blob metadata pointing to the blob storage.

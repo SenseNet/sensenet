@@ -14,6 +14,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageBase.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
         }
+        public new static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
+        {
+            return BlobStorageBase.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
+        }
 
         public new static void UpdateBinaryProperty(BinaryDataValue value)
         {
