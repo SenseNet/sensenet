@@ -27,7 +27,8 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; }
+        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
+
         public abstract SnDataContext CreateDataContext(CancellationToken token);
         /* =============================================================================================== Nodes */
 

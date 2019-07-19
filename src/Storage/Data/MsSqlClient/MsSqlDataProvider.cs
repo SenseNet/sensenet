@@ -18,7 +18,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
 
-        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; }
+        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
+
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
             return new MsSqlDataContext(token);
