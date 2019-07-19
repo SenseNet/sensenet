@@ -49,7 +49,7 @@ namespace SenseNet.Packaging.Steps
                 object result;
                 try
                 {
-                    result = ctx.ExecuteScalarAsync/*UNDONE*/(script).Result;
+                    result = ctx.ExecuteScalarAsync(script).Result;
                 }
                 catch (Exception ex)
                 {

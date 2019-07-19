@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = new MsSqlDataContext())
             {
-                return await ctx.ExecuteReaderAsync/*UNDONE*/(sql, cmd =>
+                return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@FileId", DbType.Int32, fileId));
                     if (clearStream)
@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             using (var dctx = new MsSqlDataContext())
             {
                 var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
-                dctx.ExecuteReaderAsync/*UNDONE*/(sql, cmd =>
+                dctx.ExecuteReaderAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = isNewNode ? InsertBinaryPropertyWithKnownFileIdScript : DeleteAndInsertBinaryPropertyWithKnownFileIdScript;
             using (var ctx = new MsSqlDataContext())
             {
-                value.Id = (int) ctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                value.Id = (int) ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -236,7 +236,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 var sql = blobProvider == BlobStorageBase.BuiltInProvider
                     ? UpdateBinaryPropertyScript
                     : UpdateBinaryPropertyNewFilerowScript;
-                var fileId = (int)dctx.ExecuteScalarAsync/*UNDONE*/(sql, cmd =>
+                var fileId = (int)dctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -384,7 +384,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new MsSqlDataContext())
             {
-                ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteBinaryPropertyScript, cmd =>
+                ctx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -400,11 +400,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             void DeleteBinaryPropertiesLogic(IEnumerable<int> versionIdSet, MsSqlDataContext ctx)
             {
                 var idsParam = string.Join(",", versionIdSet.Select(x => x.ToString()));
-                ctx.ExecuteNonQueryAsync/*UNDONE*/(DeleteBinaryPropertiesScript, cmd =>
+                ctx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
-                })
-                    .Wait();
+                }).Wait();
             }
 
             if (dataContext == null)
@@ -497,7 +496,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = new MsSqlDataContext())
             {
-                return ctx.ExecuteReaderAsync/*UNDONE*/(LoadBinaryCacheEntityScript, cmd =>
+                return ctx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -568,7 +567,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
-                        var result = dctx.ExecuteReaderAsync/*UNDONE*/(InsertStagingBinaryScript, cmd =>
+                        var result = dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -629,7 +628,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        ctx.ExecuteNonQueryAsync/*UNDONE*/(CommitChunkScript, cmd =>
+                        ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -670,7 +669,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     try
                     {
-                        ctx.ExecuteNonQueryAsync/*UNDONE*/(CleanupFileSetIsdeletedScript).Wait();
+                        ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript).Wait();
                         transaction.Commit();
                     }
                     catch (Exception e)
@@ -689,7 +688,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var dctx = new MsSqlDataContext())
             {
-                return dctx.ExecuteReaderAsync/*UNDONE*/(CleanupFileScript, (reader, cancel) =>
+                return dctx.ExecuteReaderAsync(CleanupFileScript, (reader, cancel) =>
                 {
                     try
                     {

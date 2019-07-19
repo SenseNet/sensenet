@@ -66,7 +66,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
 
             using (var ctx = new MsSqlDataContext())
             {
-                ctx.ExecuteNonQueryAsync/*UNDONE*/(WriteStreamScript, cmd =>
+                ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -134,7 +134,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             //UNDONE:DB: TEST: not tested
             using (var ctx = new MsSqlDataContext())
             {
-                return (byte[])ctx.ExecuteScalarAsync/*UNDONE*/(LoadBinaryFragmentScript, cmd =>
+                return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -171,7 +171,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         {
             using (var ctx = new MsSqlDataContext())
             {
-                await ctx.ExecuteNonQueryAsync/*UNDONE*/(UpdateStreamWriteChunkScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

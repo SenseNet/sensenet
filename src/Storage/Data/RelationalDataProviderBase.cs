@@ -1533,7 +1533,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 try
                 {
-                    buffer = ctx.ExecuteReaderAsync/*UNDONE*/(sql, cmd =>
+                    buffer = ctx.ExecuteReaderAsync(sql, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {

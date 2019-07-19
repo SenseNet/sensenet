@@ -209,7 +209,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             //UNDONE:DB: TEST: not tested (packaging)
             using (var ctx = new MsSqlDataContext())
             {
-                var _ = ctx.ExecuteReaderAsync/*UNDONE*/(sql, async (reader, cancel) =>
+                var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     while (await reader.ReadAsync(cancel))
