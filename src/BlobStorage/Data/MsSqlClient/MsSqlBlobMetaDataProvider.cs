@@ -435,6 +435,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
+        public async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        {
+            if (!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
+
+            await sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
+            {
+                var idsParam = string.Join(",", versionIds.Select(x => x.ToString()));
+                cmd.Parameters.Add(sqlCtx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
+            });
+        }
+
         public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
             async Task<BinaryDataValue> LoadBinaryPropertyLogic(MsSqlDataContext ctx)

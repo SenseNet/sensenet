@@ -77,6 +77,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageComponents.DataProvider.DeleteBinaryProperties(versionIds, dataContext);
         }
+        protected internal static Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        {
+            return BlobStorageComponents.DataProvider.DeleteBinaryPropertiesAsync(versionIds, dataContext);
+        }
 
         /// <summary>
         /// Returns a context object that holds provider-specific data for blob storage operations.

@@ -347,7 +347,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
                 if (versionIds.Length > 0)
                 {
-                    BlobStorage.DeleteBinaryProperties(versionIds, ctx);
+                    await BlobStorage.DeleteBinaryPropertiesAsync(versionIds, ctx);
 
                     versionIdsParam = string.Join(",", versionIds.Select(x => x.ToString()));
                 }

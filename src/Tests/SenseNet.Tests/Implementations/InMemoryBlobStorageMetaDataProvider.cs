@@ -215,6 +215,11 @@ namespace SenseNet.Tests.Implementations
                 db.BinaryProperties.Remove(item);
         }
 
+        public Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
+        }
+
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
         public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
         {
