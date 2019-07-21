@@ -72,8 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
-        void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null);
+        void DeleteBinaryProperties(IEnumerable<int> versionIds);
         Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext);
 
         /// <summary>

@@ -206,7 +206,7 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
+        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
