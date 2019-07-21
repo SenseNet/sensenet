@@ -32,6 +32,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageBase.DeleteBinaryProperty(versionId, propertyTypeId);
         }
+        public new static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            return BlobStorageBase.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+        }
 
         public new static void DeleteBinaryProperties(IEnumerable<int> versionIds, SnDataContext dataContext = null)
         {

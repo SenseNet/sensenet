@@ -376,7 +376,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             SnDataContext dataContext)
         {
             if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId); //UNDONE:DB@@@ Make async
+                await BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
             else if (value.Id == 0 || isNewProperty)
                 await BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
             else

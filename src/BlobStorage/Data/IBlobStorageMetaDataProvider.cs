@@ -66,6 +66,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         void DeleteBinaryProperty(int versionId, int propertyTypeId);
+        Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
+
         /// <summary>
         /// Deletes all binary properties of the requested versions.
         /// </summary>
