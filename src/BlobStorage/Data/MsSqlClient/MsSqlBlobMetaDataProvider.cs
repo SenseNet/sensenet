@@ -163,7 +163,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 ctx.FileId = value.FileId;
                 ctx.BlobProviderData = new BuiltinBlobProviderData();
 
-                BuiltInBlobProvider.AddStream(ctx, value.Stream);
+                await BuiltInBlobProvider.AddStreamAsync(ctx, value.Stream, sqlCtx);
             }
         }
 

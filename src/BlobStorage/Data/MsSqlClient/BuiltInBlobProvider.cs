@@ -45,6 +45,12 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 return;
             UpdateStream(context, stream);
         }
+        public static Task AddStreamAsync(BlobStorageContext context, Stream stream, MsSqlDataContext dataContext)
+        {
+            if (stream == null || stream.Length == 0L)
+                return Task.CompletedTask;
+            return UpdateStreamAsync(context, stream, dataContext);
+        }
 
         /// <summary>
         /// DO NOT USE DIRECTLY THIS METHOD FROM YOUR CODE.
