@@ -430,73 +430,70 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
         {
-            async Task<BinaryDataValue> LoadBinaryPropertyLogic(MsSqlDataContext ctx)
-            {
-                return await ctx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
-                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
-                    });
-                }, async (reader, cancel) =>
-                {
-                    cancel.ThrowIfCancellationRequested();
-                    if (!await reader.ReadAsync(cancel))
-                        return null;
-
-                    var size = reader.GetInt64("Size");
-                    var binaryPropertyId = reader.GetInt32("BinaryPropertyId");
-                    var fileId = reader.GetInt32("FileId");
-                    var providerName = reader.GetSafeString("BlobProvider");
-                    var providerTextData = reader.GetSafeString("BlobProviderData");
-                    var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData)
-                    {
-                        VersionId = versionId,
-                        PropertyTypeId = propertyTypeId,
-                        FileId = fileId,
-                        Length = size
-                    };
-                    Stream stream = null;
-                    if (provider == BlobStorageBase.BuiltInProvider)
-                    {
-                        context.BlobProviderData = new BuiltinBlobProviderData();
-                        var streamIndex = reader.GetOrdinal("Stream");
-                        if (!reader.IsDBNull(streamIndex))
-                        {
-                            var rawData = (byte[])reader.GetValue(streamIndex);
-                            stream = new MemoryStream(rawData);
-                        }
-                    }
-
-                    return new BinaryDataValue
-                    {
-                        Id = binaryPropertyId,
-                        FileId = fileId,
-                        ContentType = reader.GetSafeString("ContentType"),
-                        FileName = new BinaryFileName(
-                            reader.GetSafeString("FileNameWithoutExtension") ?? "",
-                            reader.GetSafeString("Extension") ?? ""),
-                        Size = size,
-                        Checksum = reader.GetSafeString("Checksum"),
-                        BlobProviderName = providerName,
-                        BlobProviderData = providerTextData,
-                        Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
-                        Stream = stream
-                    };
-                });
-            }
-
-            if (dataContext == null)
-                using (var ctx = new MsSqlDataContext(CancellationToken.None))
-                    return LoadBinaryPropertyLogic(ctx).Result;
-
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
+                return LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx).Result;
+        }
+        public async Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
-            return LoadBinaryPropertyLogic(sqlCtx).Result;
+
+            return await sqlCtx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                    sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                });
+            }, async (reader, cancel) =>
+            {
+                cancel.ThrowIfCancellationRequested();
+                if (!await reader.ReadAsync(cancel))
+                    return null;
+
+                var size = reader.GetInt64("Size");
+                var binaryPropertyId = reader.GetInt32("BinaryPropertyId");
+                var fileId = reader.GetInt32("FileId");
+                var providerName = reader.GetSafeString("BlobProvider");
+                var providerTextData = reader.GetSafeString("BlobProviderData");
+                var provider = BlobStorageBase.GetProvider(providerName);
+                var context = new BlobStorageContext(provider, providerTextData)
+                {
+                    VersionId = versionId,
+                    PropertyTypeId = propertyTypeId,
+                    FileId = fileId,
+                    Length = size
+                };
+                Stream stream = null;
+                if (provider == BlobStorageBase.BuiltInProvider)
+                {
+                    context.BlobProviderData = new BuiltinBlobProviderData();
+                    var streamIndex = reader.GetOrdinal("Stream");
+                    if (!reader.IsDBNull(streamIndex))
+                    {
+                        var rawData = (byte[]) reader.GetValue(streamIndex);
+                        stream = new MemoryStream(rawData);
+                    }
+                }
+
+                return new BinaryDataValue
+                {
+                    Id = binaryPropertyId,
+                    FileId = fileId,
+                    ContentType = reader.GetSafeString("ContentType"),
+                    FileName = new BinaryFileName(
+                        reader.GetSafeString("FileNameWithoutExtension") ?? "",
+                        reader.GetSafeString("Extension") ?? ""),
+                    Size = size,
+                    Checksum = reader.GetSafeString("Checksum"),
+                    BlobProviderName = providerName,
+                    BlobProviderData = providerTextData,
+                    Timestamp = reader.GetSafeLongFromBytes("Timestamp"),
+                    Stream = stream
+                };
+            });
         }
 
         /// <summary>

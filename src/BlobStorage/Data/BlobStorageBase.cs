@@ -114,6 +114,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return BlobStorageComponents.DataProvider.LoadBinaryProperty(versionId, propertyTypeId);
         }
+        protected static Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            return BlobStorageComponents.DataProvider.LoadBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+        }
+
         /// <summary>
         /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
         /// just the blob metadata pointing to the blob storage.

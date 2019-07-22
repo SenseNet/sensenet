@@ -221,7 +221,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId, SnDataContext dataContext = null)
+        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
         {
             var db = DataProvider.DB;
 
@@ -240,6 +240,10 @@ namespace SenseNet.Tests.Implementations
 
             result = CreateBinaryDataValue(db, binaryDoc, fileDoc);
             return result;
+        }
+        public Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
         }
         private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
         {

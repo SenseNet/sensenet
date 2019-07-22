@@ -951,10 +951,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadTextPropertyValuesScript { get; }
 
-        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
+        public override async Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Task.FromResult(BlobStorage.LoadBinaryProperty(versionId, propertyTypeId));
+            using (var ctx = CreateDataContext(cancellationToken))
+                return await BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx);
         }
 
         public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
