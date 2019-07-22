@@ -765,12 +765,12 @@ DECLARE @availablePaths AS TABLE([Id] INT IDENTITY (1, 1), [Path] NVARCHAR(900))
         private static readonly string AppModelQ1 = "INSERT @availablePaths ([Path]) VALUES ('{0}')";
 
         private static readonly string AppModelQ2 = @"SELECT TOP 1 N.NodeId FROM @availablePaths C
-LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path] COLLATE Latin1_General_CI_AS
 WHERE N.[Path] IS NOT NULL
 ORDER BY C.Id";
 
         private static readonly string AppModelQ3 = @"SELECT N.NodeId FROM @availablePaths C
-LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path] COLLATE Latin1_General_CI_AS
 WHERE N.[Path] IS NOT NULL
 ORDER BY C.Id";
 
@@ -778,7 +778,7 @@ ORDER BY C.Id";
 WHERE N.ParentNodeId IN
 (
     SELECT N.NodeId FROM @availablePaths C
-    LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path]
+    LEFT OUTER JOIN Nodes N ON C.[Path] = N.[Path] COLLATE Latin1_General_CI_AS
     WHERE N.[Path] IS NOT NULL
 )";
         #endregion
@@ -801,7 +801,7 @@ WHERE N.ParentNodeId IN
             }
             else
             {
-                script.Append(AppModelQ2);
+                script.AppendLine(AppModelQ2);
             }
             return script.ToString();
         }

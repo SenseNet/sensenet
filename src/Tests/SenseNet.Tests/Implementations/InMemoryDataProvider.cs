@@ -605,11 +605,9 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            //UNDONE:DB: NOT IMPLEMENTED: LoadNodeHeadsFromPredefinedSubTeesAsync
-            //UNDONE:DB: TEST: not tested (packaging)
             throw new NotImplementedException();
         }
 

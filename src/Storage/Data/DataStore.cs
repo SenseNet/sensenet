@@ -498,9 +498,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.GetVersionNumbersAsync(path, cancellationToken);
         }
 
-        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return DataProvider.LoadNodeHeadsFromPredefinedSubTeesAsync(paths, resolveAll, resolveChildren, cancellationToken);
+            return DataProvider.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, resolveAll, resolveChildren, cancellationToken);
         }
 
         /* =============================================================================================== NodeQuery */

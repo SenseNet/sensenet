@@ -403,7 +403,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
         public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
 
-        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+        public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /* =============================================================================================== NodeQuery */

@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             if (SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
-            return DataStore.LoadNodeHeadsFromPredefinedSubTeesAsync(paths, false, false).Result.FirstOrDefault();
+            return DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false).Result.FirstOrDefault();
         }
         private static NodeHead ResolveFirstByPathsFromIndexedEngine(IEnumerable<string> paths)
         {
@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             return SearchManager.IsOuterEngineEnabled
                 ? ResolveAllByPathsFromIndexedEngine(paths, resolveChildren)
-                : DataStore.LoadNodeHeadsFromPredefinedSubTeesAsync(paths, true, resolveChildren).Result;
+                : DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren).Result;
         }
         private static IEnumerable<NodeHead> ResolveAllByPathsFromIndexedEngine(IEnumerable<string> paths, bool resolveChildren)
         {

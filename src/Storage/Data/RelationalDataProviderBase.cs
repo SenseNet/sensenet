@@ -1157,8 +1157,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             );
         }
 
-        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTeesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
-            CancellationToken cancellationToken = default(CancellationToken)) //UNDONE:DB: TEST: not tested
+        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             var pathList = paths.ToList();
             List<NodeHead> heads;
@@ -1200,7 +1200,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 else
                 {
-                    sql = GetAppModelScript(pathList, true, resolveChildren);
+                    sql = GetAppModelScript(pathList, false, resolveChildren);
                     heads = await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
