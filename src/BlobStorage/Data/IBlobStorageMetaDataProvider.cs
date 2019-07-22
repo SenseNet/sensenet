@@ -1,6 +1,7 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -80,7 +81,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="dataContext">Optional <see cref="SnDataContext"/>.</param>
         /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
         BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId);
         Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
@@ -104,6 +104,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
         string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize);
+        Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken = default(CancellationToken));
+
         /// <summary>
         /// Finalizes a chunked save operation.
         /// </summary>
@@ -113,6 +116,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         void CommitChunk(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source);
+        Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.

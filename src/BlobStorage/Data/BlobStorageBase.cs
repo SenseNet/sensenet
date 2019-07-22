@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -170,8 +171,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
         protected internal static string StartChunk(int versionId, int propertyTypeId, long fullSize)
         {
+            return StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None).Result;
+        }
+        protected internal static Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
             var blobProvider = GetProvider(fullSize);
-            return BlobStorageComponents.DataProvider.StartChunk(blobProvider, versionId, propertyTypeId, fullSize);
+            return BlobStorageComponents.DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,
+                cancellationToken);
         }
 
         /// <summary>
@@ -241,8 +248,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         protected internal static void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
         {
+            CommitChunkAsync(versionId, propertyTypeId, token, fullSize, source, CancellationToken.None).Wait();
+        }
+        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
             var tokenData = ChunkToken.Parse(token, versionId);
-            BlobStorageComponents.DataProvider.CommitChunk(versionId, propertyTypeId, tokenData.FileId, fullSize, source);
+            return BlobStorageComponents.DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
+                fullSize, source, cancellationToken);
         }
 
         /// <summary>

@@ -571,6 +571,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
         public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)
         {
+            return StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize).Result;
+        }
+        public async Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;
             string blobProviderData = null;
@@ -582,11 +587,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
             try
             {
-                using (var dctx = new MsSqlDataContext())
+                using (var dctx = new MsSqlDataContext(cancellationToken))
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
-                        var result = dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
+                        var result = await dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -619,7 +624,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                                 BinaryPropertyId = binaryPropertyId,
                                 FileId = fileId
                             }.GetToken();
-                        }).Result;
+                        });
                         transaction.Commit();
                         return result;
                     }
@@ -667,6 +672,44 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                                     source != null ? ValidateExtension(source.FileName.Extension) : string.Empty),
                             });
                         }).Wait();
+                        transaction.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new DataException("Error during committing binary chunk to file stream.", ex);
+            }
+        }
+        public async Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            try
+            {
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                {
+                    using (var transaction = ctx.BeginTransaction())
+                    {
+                        await ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
+                        {
+                            cmd.Parameters.AddRange(new[]
+                            {
+                                ctx.CreateParameter("@FileId", DbType.Int32, fileId),
+                                ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                                ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                                ctx.CreateParameter("@Size", DbType.Int64, fullSize),
+                                ctx.CreateParameter("@Checksum", DbType.AnsiString, 200, DBNull.Value),
+                                ctx.CreateParameter("@ContentType", DbType.String, 50, source != null ? source.ContentType : string.Empty),
+                                ctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, source != null
+                                    ? source.FileName.FileNameWithoutExtension == null
+                                        ? DBNull.Value
+                                        : (object) source.FileName.FileNameWithoutExtension
+                                    : DBNull.Value),
+
+                                ctx.CreateParameter("@Extension", DbType.String, 50,
+                                    source != null ? ValidateExtension(source.FileName.Extension) : string.Empty),
+                            });
+                        });
                         transaction.Commit();
                     }
                 }
