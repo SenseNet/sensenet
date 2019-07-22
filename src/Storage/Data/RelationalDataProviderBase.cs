@@ -436,8 +436,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        //UNDONE:DB: BLOB-STORAGE: Copy BinaryProperies via BlobStorage (see the script)
-
                         // Copy and update version
                         var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
                         {
@@ -469,7 +467,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
                             }
                             cancel.ThrowIfCancellationRequested();
-                            //UNDONE:DB: BLOB-STORAGE: Copy BinaryProperies via BlobStorage (see the script)
                             if (await reader.NextResultAsync(cancel))
                             {
                                 while (await reader.ReadAsync(cancel))
