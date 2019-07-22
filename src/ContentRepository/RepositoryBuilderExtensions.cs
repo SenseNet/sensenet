@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="dataProvider">DataProvider instance.</param>
-        public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider) //DB:ok
+        public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
             return repositoryBuilder;

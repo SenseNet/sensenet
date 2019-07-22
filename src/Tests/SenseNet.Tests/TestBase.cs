@@ -208,7 +208,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000).Result; //DB:ok
+            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000).Result;
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)

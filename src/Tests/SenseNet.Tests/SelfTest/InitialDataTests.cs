@@ -50,7 +50,7 @@ namespace SenseNet.Tests.SelfTest
                 using (var vw = new StreamWriter(@"D:\_InitialData\versions.txt", false, Encoding.UTF8))
                 using (var dw = new StreamWriter(@"D:\_InitialData\dynamicData.txt", false, Encoding.UTF8))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId)); //DB:ok
+                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\_InitialData\index.txt");
@@ -69,7 +69,7 @@ namespace SenseNet.Tests.SelfTest
                 using (var vw = new StreamWriter(@"D:\versions.txt", false))
                 using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
                     InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId)); //DB:ok
+                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");

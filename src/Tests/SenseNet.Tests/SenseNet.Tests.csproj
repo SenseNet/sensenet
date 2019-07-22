@@ -92,7 +92,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Implementations\DataCollection.cs" />
     <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />
-    <Compile Include="Implementations\InMemoryTestingDataProvider2.cs" />
+    <Compile Include="Implementations\InMemoryTestingDataProvider.cs" />
     <Compile Include="Implementations\InMemoryDataBase_Transaction.cs" />
     <Compile Include="Implementations\ContentTypeDefinitions.cs">
       <AutoGen>True</AutoGen>
