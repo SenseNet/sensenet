@@ -36,7 +36,7 @@ namespace SenseNet.Packaging.Steps.Internal
         private volatile int _nodeCount;
         private volatile int _taskCount;
 
-        private static CancellationToken cancel = CancellationToken.None; //UNDONE:DB: Cancel: Get token from somewhere
+        private static CancellationToken cancel = CancellationToken.None;
 
         public override void Execute(ExecutionContext context)
         {

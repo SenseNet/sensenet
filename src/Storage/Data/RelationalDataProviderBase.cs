@@ -1526,7 +1526,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var sql = excludedNodeTypes.Any()
                 ? string.Format(LoadIndexDocumentCollectionBlockByPathAndTypeScript, string.Join(", ", excludedNodeTypes))
                 : LoadIndexDocumentCollectionBlockByPathScript;
-            using (var ctx = CreateDataContext(CancellationToken.None)) //UNDONE:DB: CancellationToken.None
+            using (var ctx = CreateDataContext(CancellationToken.None))
             {
                 try
                 {

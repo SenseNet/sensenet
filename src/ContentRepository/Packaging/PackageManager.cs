@@ -202,8 +202,6 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-
-            //UNDONE: Use PackageManager async
             Storage.SavePackageAsync(newPack).Wait();
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
@@ -225,15 +223,11 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-
-                //UNDONE: Use PackageManager async
                 Storage.SavePackageAsync(newPack).Wait();
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-
-                //UNDONE: Use PackageManager async
                 Storage.UpdatePackageAsync(oldPack).Wait();
             }
         }
@@ -438,7 +432,6 @@ namespace SenseNet.Packaging
                         });
 
                         // save the new package info manually based on the patch version number
-                        //UNDONE: Use PackageManager async
                         Storage.SavePackageAsync(new Package
                         {
                             ComponentId = assemblyComponent.ComponentId,

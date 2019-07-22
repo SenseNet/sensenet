@@ -491,7 +491,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
 
             if (dataContext == null)
-                using (var ctx = new MsSqlDataContext(CancellationToken.None)) //UNDONE:DB: CancellationToken.None
+                using (var ctx = new MsSqlDataContext(CancellationToken.None))
                     return LoadBinaryPropertyLogic(ctx).Result;
 
             if (!(dataContext is MsSqlDataContext sqlCtx))
