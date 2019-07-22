@@ -505,52 +505,61 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
             using (var ctx = new MsSqlDataContext())
-            {
-                return ctx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@MaxSize", DbType.Int32, BlobStorage.BinaryCacheSize),
-                        ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
-                        ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
-                    });
-                }, (reader, cancel) =>
-                {
-                    cancel.ThrowIfCancellationRequested();
-                    if (!reader.HasRows || !reader.Read())
-                        return null;
-
-                    var length = reader.GetInt64(0);
-                    var binaryPropertyId = reader.GetInt32(1);
-                    var fileId = reader.GetInt32(2);
-
-                    var providerName = reader.GetSafeString(3);
-                    var providerTextData = reader.GetSafeString(4);
-
-                    byte[] rawData = null;
-
-                    var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
-                    if (provider == BlobStorageBase.BuiltInProvider)
-                    {
-                        context.BlobProviderData = new BuiltinBlobProviderData();
-                        if (!reader.IsDBNull(5))
-                            rawData = (byte[])reader.GetValue(5);
-                    }
-
-                    return Task.FromResult(new BinaryCacheEntity
-                    {
-                        Length = length,
-                        RawData = rawData,
-                        BinaryPropertyId = binaryPropertyId,
-                        FileId = fileId,
-                        Context = context
-                    });
-
-                }).Result;
-            }
+                return LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx).Result;
         }
+        public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            if (!(dataContext is MsSqlDataContext sqlCtx))
+                throw new PlatformNotSupportedException();
 
+            return await sqlCtx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
+            {
+                cmd.Parameters.AddRange(new[]
+                {
+                    sqlCtx.CreateParameter("@MaxSize", DbType.Int32, BlobStorage.BinaryCacheSize),
+                    sqlCtx.CreateParameter("@VersionId", DbType.Int32, versionId),
+                    sqlCtx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
+                });
+            }, async (reader, cancel) =>
+            {
+                cancel.ThrowIfCancellationRequested();
+                if (!reader.HasRows || !await reader.ReadAsync(cancel))
+                    return null;
+
+                var length = reader.GetInt64(0);
+                var binaryPropertyId = reader.GetInt32(1);
+                var fileId = reader.GetInt32(2);
+
+                var providerName = reader.GetSafeString(3);
+                var providerTextData = reader.GetSafeString(4);
+
+                byte[] rawData = null;
+
+                var provider = BlobStorageBase.GetProvider(providerName);
+                var context = new BlobStorageContext(provider, providerTextData)
+                {
+                    VersionId = versionId,
+                    PropertyTypeId = propertyTypeId,
+                    FileId = fileId,
+                    Length = length
+                };
+                if (provider == BlobStorageBase.BuiltInProvider)
+                {
+                    context.BlobProviderData = new BuiltinBlobProviderData();
+                    if (!reader.IsDBNull(5))
+                        rawData = (byte[]) reader.GetValue(5);
+                }
+
+                return new BinaryCacheEntity
+                {
+                    Length = length,
+                    RawData = rawData,
+                    BinaryPropertyId = binaryPropertyId,
+                    FileId = fileId,
+                    Context = context
+                };
+            });
+        }
         /// <summary>
         /// Starts a chunked save operation on an existing content. It does not write any binary data 
         /// to the storage, it only makes prerequisite operations - e.g. allocates a new slot in the storage.

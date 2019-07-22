@@ -307,6 +307,10 @@ namespace SenseNet.Tests.Implementations
                 Context = context
             };
         }
+        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            throw new NotImplementedException();
+        }
 
         public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)
         {

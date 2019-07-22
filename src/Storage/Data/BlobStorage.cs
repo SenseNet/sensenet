@@ -64,6 +64,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return BlobStorageBase.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
         }
+        public new static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int nodeVersionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            return BlobStorageBase.LoadBinaryCacheEntityAsync(nodeVersionId, propertyTypeId, dataContext);
+        }
 
         public new static byte[] LoadBinaryFragment(int fileId, long position, int count)
         {

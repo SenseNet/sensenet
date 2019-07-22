@@ -92,6 +92,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId);
+        Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
 
         /// <summary>
         /// Starts a chunked save operation on an existing content. It does not write any binary data 

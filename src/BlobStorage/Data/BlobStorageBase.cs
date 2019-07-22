@@ -129,6 +129,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return BlobStorageComponents.DataProvider.LoadBinaryCacheEntity(versionId, propertyTypeId);
         }
+        protected internal static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
+            SnDataContext dataContext)
+        {
+            return BlobStorageComponents.DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, dataContext);
+        }
+
         /// <summary>
         /// Loads a segment from the binary data beginning at the specified position.
         /// </summary>
