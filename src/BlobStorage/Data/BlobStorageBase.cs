@@ -374,6 +374,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageComponents.DataProvider.CleanupFilesSetDeleteFlag();
         }
+        protected internal static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
+        {
+            return BlobStorageComponents.DataProvider.CleanupFilesSetDeleteFlagAsync(cancellationToken);
+        }
+
         /// <summary>
         /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
         /// </summary>
@@ -381,6 +386,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static bool CleanupFiles()
         {
             return BlobStorageComponents.DataProvider.CleanupFiles();
+        }
+        protected internal static Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        {
+            return BlobStorageComponents.DataProvider.CleanupFilesAsync(cancellationToken);
         }
 
         /*==================================================================== Provider */

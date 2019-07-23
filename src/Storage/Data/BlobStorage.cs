@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -100,10 +101,18 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             BlobStorageBase.CleanupFilesSetFlag();
         }
+        public new static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
+        {
+            return BlobStorageBase.CleanupFilesSetFlagAsync(cancellationToken);
+        }
 
         public new static bool CleanupFiles()
         {
             return BlobStorageBase.CleanupFiles();
+        }
+        public new static Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        {
+            return BlobStorageBase.CleanupFilesAsync(cancellationToken);
         }
 
         /*==================================================================== Provider */

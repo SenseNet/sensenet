@@ -725,13 +725,17 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// </summary>
         public void CleanupFilesSetDeleteFlag()
         {
-            using (var ctx = new MsSqlDataContext())
+            CleanupFilesSetDeleteFlagAsync(CancellationToken.None).Wait();
+        }
+        public async Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+        {
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 using (var transaction = ctx.BeginTransaction())
                 {
                     try
                     {
-                        ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript).Wait();
+                        await ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript);
                         transaction.Commit();
                     }
                     catch (Exception e)
@@ -748,9 +752,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <returns>Whether there was at least one row that was deleted.</returns>
         public bool CleanupFiles()
         {
-            using (var dctx = new MsSqlDataContext())
+            return CleanupFilesAsync(CancellationToken.None).Result;
+        }
+        public async Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        {
+            using (var dctx = new MsSqlDataContext(cancellationToken))
             {
-                return dctx.ExecuteReaderAsync(CleanupFileScript, (reader, cancel) =>
+                return await dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>
                 {
                     try
                     {
@@ -761,7 +769,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         string providerData = null;
                         // We do not care about the number of deleted rows, 
                         // we only want to know if a row was deleted or not.
-                        if (reader.Read())
+                        if (await reader.ReadAsync(cancel))
                         {
                             deleted = true;
                             fileId = reader.GetSafeInt32(reader.GetOrdinal("FileId"));
@@ -776,15 +784,14 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                         ctx.Provider.Delete(ctx);
 
-                        return Task.FromResult(deleted);
+                        return deleted;
                     }
                     catch (Exception ex)
                     {
                         throw new DataException("Error during binary cleanup.", ex);
                     }
-                }).Result;
+                });
             }
         }
-
     }
 }

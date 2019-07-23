@@ -123,10 +123,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
         /// </summary>
         void CleanupFilesSetDeleteFlag();
+        Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken);
+
         /// <summary>
         /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
         /// </summary>
         /// <returns>Whether there was at least one row that was deleted.</returns>
         bool CleanupFiles();
+        Task<bool> CleanupFilesAsync(CancellationToken cancellationToken);
     }
 }
