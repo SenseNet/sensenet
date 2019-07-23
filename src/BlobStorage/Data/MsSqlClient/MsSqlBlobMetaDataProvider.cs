@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
-            return GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId).Result;
+            return GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, CancellationToken.None).Result;
         }
         /// <summary>
         /// Returns a context object that holds MsSql-specific data for blob storage operations.
@@ -48,13 +48,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
+            CancellationToken cancellationToken)
         {
             var sql = GetBlobStorageContextScript;
             if (clearStream)
                 sql = ClearStreamByFileIdScript + sql;
 
-            using (var ctx = new MsSqlDataContext())
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {

@@ -48,7 +48,8 @@ namespace SenseNet.Tests.Implementations
             };
         }
 
-        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

@@ -97,12 +97,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns a context object that holds provider-specific data for blob storage operations.
         /// </summary>
         /// <param name="fileId">File identifier.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, CancellationToken cancellationToken, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
-            return BlobStorageComponents.DataProvider.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId);
+            return BlobStorageComponents.DataProvider.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
         }
 
         /// <summary>
@@ -214,12 +215,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="buffer">Byte array to write.</param>
         /// <param name="offset">Starting position.</param>
         /// <param name="fullSize">Full size of the whole stream.</param>
-        protected internal static async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
+            CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
-                var ctx = await GetBlobStorageContextAsync(tokenData.FileId);
+                var ctx = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken);
 
                 // must update properties because the Length contains the actual saved size but the featue needs the full size
                 UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
@@ -294,12 +297,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="input">The whole stream to write.</param>
-        protected internal static async Task CopyFromStreamAsync(int versionId, string token, Stream input)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static async Task CopyFromStreamAsync(int versionId, string token, Stream input,
+            CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
-                var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
+                var context = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, true, versionId, tokenData.PropertyTypeId);
                 if (context.Provider == BuiltInProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when
