@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -156,6 +157,10 @@ namespace SenseNet.Tests.Implementations
         }
 
         public void Delete(BlobStorageContext context)
+        {
+            throw new NotImplementedException();
+        }
+        public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

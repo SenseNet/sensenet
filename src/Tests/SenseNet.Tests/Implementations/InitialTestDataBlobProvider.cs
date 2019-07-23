@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -25,6 +26,11 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotSupportedException();
         }
+        public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             var path = (string)context.BlobProviderData;

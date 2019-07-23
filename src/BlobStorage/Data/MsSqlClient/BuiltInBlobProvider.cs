@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
 // ReSharper disable AccessToDisposedClosure
@@ -106,6 +107,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             });
         }
 
+
         /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
@@ -129,6 +131,12 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         public void Delete(BlobStorageContext context)
         {
             // do nothing
+        }
+        /// <inheritdoc />
+        public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            // do nothing
+            return Task.CompletedTask;
         }
 
         #region LoadBinaryFragmentScript

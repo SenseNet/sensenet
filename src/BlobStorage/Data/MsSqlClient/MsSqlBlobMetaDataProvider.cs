@@ -782,7 +782,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         var provider = BlobStorageBase.GetProvider(providerName);
                         var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
-                        ctx.Provider.Delete(ctx);
+                        await ctx.Provider.DeleteAsync(ctx, cancel);
 
                         return deleted;
                     }

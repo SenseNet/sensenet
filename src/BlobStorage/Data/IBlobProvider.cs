@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -42,7 +43,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
         void Delete(BlobStorageContext context);
-        //UNDONE:DB:BLOB: Missing DeleteAsync
+        /// <summary>
+        /// Deletes a binary from the storage related to a binary record in the database.
+        /// </summary>
+        /// <param name="context">A context object that holds information about the binary data.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken);
         /// <summary>
         /// Returns a stream that serves bytes from the blob storage. This stream cannot be used to
         /// write bytes to the storage, it is a readonly stream, but it supports Seek.
