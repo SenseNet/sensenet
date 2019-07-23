@@ -163,7 +163,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         /// <inheritdoc />
         public void Write(BlobStorageContext context, long offset, byte[] buffer)
         {
-            WriteAsync(context, offset, buffer).Wait();
+            WriteAsync(context, offset, buffer, CancellationToken.None).Wait();
         }
 
         #region UpdateStreamWriteChunkScript
@@ -181,9 +181,9 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         #endregion
 
         /// <inheritdoc />
-        public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
+        public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(cancellationToken))
             {
                 await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {
@@ -195,11 +195,9 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
                         ctx.CreateParameter("@Data", SqlDbType.VarBinary, buffer),
                         ctx.CreateParameter("@Offset", SqlDbType.BigInt, offset),
                     });
-
                 });
             }
         }
-
 
         /// <summary>
         /// Throws NotSupportedException. Our algorithms do not use this methon of this type.

@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 // must update properties because the Length contains the actual saved size but the featue needs the full size
                 UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
                     
-                await ctx.Provider.WriteAsync(ctx, offset, buffer);
+                await ctx.Provider.WriteAsync(ctx, offset, buffer, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -309,7 +309,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     // Our built-in provider does not have a special stream for the case when
                     // the binary should be saved into a regular SQL varbinary column.
-                    await CopyFromStreamByChunksAsync(context, input);
+                    await CopyFromStreamByChunksAsync(context, input, cancellationToken);
                 }
                 else
                 {
@@ -341,7 +341,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 offset += read;
             }
         }
-        private static async Task CopyFromStreamByChunksAsync(BlobStorageContext context, Stream input)
+        private static async Task CopyFromStreamByChunksAsync(BlobStorageContext context, Stream input,
+            CancellationToken cancellationToken)
         {
             // This method should be used only when the client has a stream and
             // the target will be a regular SQL varbinary column, because we do
@@ -352,9 +353,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             int read;
             long offset = 0;
 
-            while ((read = await input.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            while ((read = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
-                await context.Provider.WriteAsync(context, offset, GetLocalBufferAfterRead(read, buffer));
+                await context.Provider.WriteAsync(context, offset, GetLocalBufferAfterRead(read, buffer), cancellationToken);
 
                 offset += read;
             }

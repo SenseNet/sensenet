@@ -18,7 +18,7 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotSupportedException();
         }
-        public Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
+        public Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }

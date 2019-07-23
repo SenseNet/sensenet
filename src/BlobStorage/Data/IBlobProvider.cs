@@ -37,7 +37,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
         /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
-        Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes a binary from the storage related to a binary record in the database.
         /// </summary>
