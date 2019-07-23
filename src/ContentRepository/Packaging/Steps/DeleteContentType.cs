@@ -189,16 +189,8 @@ namespace SenseNet.Packaging.Steps
             // testability: the first line is recognizable for the tests.
             var sql = $"-- GetContentPathsWhereTheyAreAllowedChildren: [{string.Join(", ", names)}]" +
                       Environment.NewLine;
-            sql += @"SELECT n.Path, t.Value FROM TextPropertiesNVarchar t
-	JOIN SchemaPropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
-	JOIN Versions v ON t.VersionId = v.VersionId
-	JOIN Nodes n ON n.NodeId = v.NodeId
-WHERE p.Name = 'AllowedChildTypes' AND (
-" + whereClausePart + @"
-)
-UNION ALL
-SELECT n.Path, t.Value FROM TextPropertiesNText t
-	JOIN SchemaPropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
+            sql += @"SELECT n.Path, t.Value FROM LongTextProperties t
+	JOIN PropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
 	JOIN Versions v ON t.VersionId = v.VersionId
 	JOIN Nodes n ON n.NodeId = v.NodeId
 WHERE p.Name = 'AllowedChildTypes' AND (
