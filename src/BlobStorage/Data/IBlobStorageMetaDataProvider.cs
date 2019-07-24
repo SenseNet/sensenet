@@ -67,11 +67,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
 
+void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds);
         /// <summary>
         /// Deletes all binary properties of the requested versions.
         /// </summary>
         /// <param name="versionIds">VersionId set.</param>
-        void DeleteBinaryProperties(IEnumerable<int> versionIds);
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext);
 
         /// <summary>

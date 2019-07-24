@@ -191,18 +191,18 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public void DeleteBinaryProperties(IEnumerable<int> versionIds)
+public void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds)
+{
+    throw new Exception();
+}
+        public Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
                 .Where(x => versionIds.Contains(x.VersionId))
                 .ToArray())
                 db.BinaryProperties.Remove(item);
-        }
-
-        public Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]

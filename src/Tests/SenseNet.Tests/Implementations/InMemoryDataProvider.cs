@@ -392,7 +392,7 @@ namespace SenseNet.Tests.Implementations
                         .Select(l => l.LongTextPropertyId)
                         .ToArray();
 
-                    BlobStorage.DeleteBinaryProperties(versionIds);
+                    BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).Wait(cancellationToken);
 
                     foreach (var longTextPropId in longTextPropIds)
                         DB.LongTextProperties.Remove(longTextPropId);
@@ -1777,7 +1777,7 @@ namespace SenseNet.Tests.Implementations
         {
             var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
 
-            BlobStorage.DeleteBinaryProperties(versionIds);
+            BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).Wait();
 
             foreach (var versionId in versionIds)
             {
