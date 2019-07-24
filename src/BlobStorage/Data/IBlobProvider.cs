@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -21,6 +22,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="context">A context object that holds information about the binary data.</param>
         void Allocate(BlobStorageContext context);
         /// <summary>
+        /// Allocates a place in the blob storage for the bytes to be stored
+        /// (e.g. creates a folder in the file system for file chunks). It should
+        /// fill the BlobProviderData property of the context with the data
+        /// that is necessary to access the binaries later (e.g. the name of
+        /// the folder).
+        /// </summary>
+        /// <param name="context">A context object that holds information about the binary data.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken);
+        /// <summary>
         /// Writes a set of bytes into the blob storage. The offset must point to the
         /// start of one of the internal chunks. The buffer may contain bytes
         /// for multiple internal chunks.
@@ -38,6 +50,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
         /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes a binary from the storage related to a binary record in the database.
@@ -49,6 +62,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken);
         /// <summary>
         /// Returns a stream that serves bytes from the blob storage. This stream cannot be used to

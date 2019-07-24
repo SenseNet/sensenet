@@ -140,10 +140,15 @@ namespace SenseNet.Tests.Implementations
 
         public void Allocate(BlobStorageContext context)
         {
+            AllocateAsync(context, CancellationToken.None).Wait();
+        }
+        public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
             var id = Guid.NewGuid();
             _blobStorage.Add(id, new byte[0]);
 
-            context.BlobProviderData = new InMemoryBlobProviderData {BlobId = id};
+            context.BlobProviderData = new InMemoryBlobProviderData { BlobId = id };
+            return Task.CompletedTask;
         }
 
         public void Write(BlobStorageContext context, long offset, byte[] buffer)

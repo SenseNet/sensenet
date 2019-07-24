@@ -32,6 +32,14 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             // Never used in our algorithms.
             throw new NotSupportedException();
         }
+        /// <summary>
+        /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
+        /// </summary>
+        public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        {
+            // Never used in our algorithms.
+            throw new NotSupportedException();
+        }
 
         private static readonly string WriteStreamScript = @"-- BuiltInBlobProvider.WriteStream
 UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_WriteStream

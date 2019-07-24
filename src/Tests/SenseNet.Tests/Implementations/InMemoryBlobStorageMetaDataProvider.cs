@@ -61,7 +61,7 @@ namespace SenseNet.Tests.Implementations
 
             // blob operation
 
-            blobProvider.Allocate(ctx);
+            blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
 
             using (var stream = blobProvider.GetStreamForWrite(ctx))
                 value.Stream?.CopyTo(stream);
@@ -144,7 +144,7 @@ namespace SenseNet.Tests.Implementations
                     Length = streamLength,
                 };
 
-                blobProvider.Allocate(ctx);
+                blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;

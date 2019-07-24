@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.ContentRepository.Schema;
@@ -115,7 +116,7 @@ namespace SenseNet.Tests.Implementations
                 PropertyTypeId = ctx.PropertyTypeId,
                 Length = ctdString.Length
             };
-            blobProvider2.Allocate(ctx2);
+            blobProvider2.AllocateAsync(ctx2, CancellationToken.None).Wait();
 
             using (var xmlWriterStream = blobProvider2.GetStreamForWrite(ctx2))
             using (var writer = new StreamWriter(xmlWriterStream))

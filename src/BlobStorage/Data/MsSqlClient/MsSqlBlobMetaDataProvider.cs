@@ -119,7 +119,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             // in the Files table to work, it just stores the bytes. 
             if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                blobProvider.Allocate(ctx);
+                await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
 
                 using (var stream = blobProvider.GetStreamForWrite(ctx))
                     value.Stream?.CopyTo(stream);
@@ -222,7 +222,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     Length = streamLength,
                 };
 
-                blobProvider.Allocate(ctx);
+                blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
@@ -314,7 +314,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     Length = streamLength,
                 };
 
-                blobProvider.Allocate(ctx);
+                await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
@@ -584,7 +584,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             string blobProviderData = null;
             if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                blobProvider.Allocate(ctx);
+                await blobProvider.AllocateAsync(ctx, cancellationToken);
                 blobProviderName = blobProvider.GetType().FullName;
                 blobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
