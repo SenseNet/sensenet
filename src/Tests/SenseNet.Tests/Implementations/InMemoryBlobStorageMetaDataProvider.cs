@@ -303,19 +303,11 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public void CleanupFilesSetDeleteFlag()
-        {
-            throw new NotImplementedException();
-        }
         public Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public bool CleanupFiles()
-        {
-            throw new NotImplementedException();
-        }
         public Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

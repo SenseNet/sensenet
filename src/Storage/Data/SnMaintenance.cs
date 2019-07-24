@@ -23,11 +23,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static int _currentCycle;
         private const string TRACE_PREFIX = "#SnMaintenance> ";
         private static IEnumerable<IMaintenanceTask> _maintenanceTasks = new IMaintenanceTask[0];
+        private static CancellationTokenSource _cancellation;
 
         // ========================================================================================= ISnService implementation
 
         public bool Start()
         {
+            _cancellation = new CancellationTokenSource();
+
             _maintenanceTimer = new Timer(MaintenanceTimerElapsed, null, TIMER_INTERVAL * 1000, TIMER_INTERVAL * 1000);
             _maintenanceTasks = DiscoverMaintenanceTasks();
             return true;
@@ -49,6 +52,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             _maintenanceTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _maintenanceTimer.Dispose();
             _maintenanceTimer = null;
+
+            _cancellation.Cancel();
         }
 
         internal static bool Running()
@@ -123,7 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: setting the IsDeleted flag...");
-                BlobStorage.CleanupFilesSetFlag();
+                BlobStorage.CleanupFilesSetFlagAsync(_cancellation.Token).Wait();
             }
             catch (Exception ex)
             {
@@ -142,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: deleting rows...");
 
                 // keep deleting orphaned binary rows while there are any
-                while (BlobStorage.CleanupFiles())
+                while (BlobStorage.CleanupFilesAsync(_cancellation.Token).Result)
                 {
                     deleteCount++;
                 }

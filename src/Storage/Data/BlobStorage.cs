@@ -80,19 +80,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /*================================================================== Maintenance*/
 
-        public new static void CleanupFilesSetFlag()
-        {
-            BlobStorageBase.CleanupFilesSetFlag();
-        }
         public new static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
         {
             return BlobStorageBase.CleanupFilesSetFlagAsync(cancellationToken);
         }
 
-        public new static bool CleanupFiles()
-        {
-            return BlobStorageBase.CleanupFiles();
-        }
         public new static Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             return BlobStorageBase.CleanupFilesAsync(cancellationToken);

@@ -505,13 +505,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        /// <summary>
-        /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.
-        /// </summary>
-        public void CleanupFilesSetDeleteFlag()
-        {
-            CleanupFilesSetDeleteFlagAsync(CancellationToken.None).Wait();
-        }
         public async Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
@@ -531,14 +524,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        /// <summary>
-        /// Deletes file records that are marked as deleted from the metadata database and also from the blob storage.
-        /// </summary>
-        /// <returns>Whether there was at least one row that was deleted.</returns>
-        public bool CleanupFiles()
-        {
-            return CleanupFilesAsync(CancellationToken.None).Result;
-        }
         public async Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             using (var dctx = new MsSqlDataContext(cancellationToken))
