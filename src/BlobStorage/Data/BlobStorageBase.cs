@@ -36,33 +36,31 @@ namespace SenseNet.ContentRepository.Storage.Data
             else
                 return BlobStorageComponents.DataProvider.InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, dataContext);
         }
+
         /// <summary>
         /// Updates an existing binary property value in the database and the blob storage.
         /// </summary>
         /// <param name="value">Binary data to update.</param>
-        protected internal static void UpdateBinaryProperty(BinaryDataValue value)
-        {
-            var blobProvider = GetProvider(value.Size);
-            BlobStorageComponents.DataProvider.UpdateBinaryProperty(blobProvider, value);
-        }
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         protected internal static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
             var blobProvider = GetProvider(value.Size);
             return BlobStorageComponents.DataProvider.UpdateBinaryPropertyAsync(blobProvider, value, dataContext);
         }
+
         /// <summary>
         /// Deletes a binary property value from the metadata database, making the corresponding blob storage entry orphaned.
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static void DeleteBinaryProperty(int versionId, int propertyTypeId)
-        {
-            BlobStorageComponents.DataProvider.DeleteBinaryProperty(versionId, propertyTypeId);
-        }
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         protected internal static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             return BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
+
         /// <summary>
         /// Deletes all binary properties of the requested versions.
         /// </summary>

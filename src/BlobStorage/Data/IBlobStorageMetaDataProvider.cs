@@ -54,7 +54,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="blobProvider">Blob storage provider.</param>
         /// <param name="value">Binary data to update.</param>
-        void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value);
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext);
 
         /// <summary>
@@ -62,7 +63,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        void DeleteBinaryProperty(int versionId, int propertyTypeId);
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
 
         /// <summary>

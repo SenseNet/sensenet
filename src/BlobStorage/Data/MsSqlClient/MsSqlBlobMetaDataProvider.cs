@@ -163,103 +163,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-        /// <summary>
-        /// Updates an existing binary property value in the database and the blob storage.
-        /// </summary>
-        /// <param name="blobProvider">Blob storage provider.</param>
-        /// <param name="value">Binary data to update.</param>
-        public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
-        {
-            var streamLength = value.Stream?.Length ?? 0;
-            var isExternal = false;
-            if (blobProvider != BlobStorageBase.BuiltInProvider)
-            {
-                // BlobProviderData parameter is irrelevant because it will be overridden in the Allocate method
-                var ctx = new BlobStorageContext(blobProvider)
-                {
-                    VersionId = 0,
-                    PropertyTypeId = 0,
-                    FileId = value.FileId,
-                    Length = streamLength,
-                };
-
-                blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
-                isExternal = true;
-
-                value.BlobProviderName = ctx.Provider.GetType().FullName;
-                value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
-            }
-            else
-            {
-                value.BlobProviderName = null;
-                value.BlobProviderData = null;
-            }
-
-            if (blobProvider == BlobStorageBase.BuiltInProvider)
-            {
-                // MS-SQL does not support stream size over [Int32.MaxValue].
-                if (streamLength > int.MaxValue)
-                    throw new NotSupportedException();
-            }
-
-            var isRepositoryStream = value.Stream is RepositoryStream;
-            var hasStream = isRepositoryStream || value.Stream is MemoryStream;
-            if (!isExternal && !hasStream)
-                // do not do any database operation if the stream is not modified
-                return;
-
-            using (var dctx = new MsSqlDataContext())
-            {
-                var sql = blobProvider == BlobStorageBase.BuiltInProvider
-                    ? UpdateBinaryPropertyScript
-                    : UpdateBinaryPropertyNewFilerowScript;
-                var fileId = (int)dctx.ExecuteScalarAsync(sql, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        dctx.CreateParameter("@BinaryPropertyId", DbType.Int32, value.Id),
-                        dctx.CreateParameter("@ContentType", DbType.String, 450, value.ContentType),
-                        dctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, value.FileName.FileNameWithoutExtension == null ? DBNull.Value : (object)value.FileName.FileNameWithoutExtension),
-                        dctx.CreateParameter("@Extension", DbType.String, 50, ValidateExtension(value.FileName.Extension)),
-                        dctx.CreateParameter("@Size", DbType.Int64, value.Size),
-                        dctx.CreateParameter("@Checksum", DbType.AnsiString, 200, value.Checksum != null ? (object)value.Checksum : DBNull.Value),
-                        dctx.CreateParameter("@BlobProvider", DbType.String, 450, value.BlobProviderName != null ? (object)value.BlobProviderName : DBNull.Value),
-                        dctx.CreateParameter("@BlobProviderData", DbType.String, int.MaxValue, value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value),
-                    });
-                }).Result;
-
-                if (fileId > 0 && fileId != value.FileId)
-                    value.FileId = fileId;
-            }
-
-            if (blobProvider == BlobStorageBase.BuiltInProvider)
-            {
-                // Stream exists and is loaded -> write it
-                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
-                {
-                    VersionId = 0,
-                    PropertyTypeId = 0,
-                    FileId = value.FileId,
-                    Length = streamLength,
-                    BlobProviderData = new BuiltinBlobProviderData()
-                };
-
-                BuiltInBlobProvider.UpdateStream(ctx, value.Stream);
-            }
-            else
-            {
-                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
-                {
-                    VersionId = 0,
-                    PropertyTypeId = 0,
-                    FileId = value.FileId,
-                    Length = streamLength,
-                };
-
-                using (var stream = blobProvider.GetStreamForWrite(ctx))
-                    value.Stream?.CopyTo(stream);
-            }
-        }
         public async Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
@@ -352,16 +255,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     value.Stream?.CopyTo(stream);
             }
         }
-        /// <summary>
-        /// Deletes a binary property value from the metadata database, making the corresponding blbo storage entry orphaned.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        public void DeleteBinaryProperty(int versionId, int propertyTypeId)
-        {
-            using (var ctx = new MsSqlDataContext())
-                DeleteBinaryPropertyAsync(versionId, propertyTypeId, ctx).Wait();
-        }
+
         public async Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             if (!(dataContext is MsSqlDataContext sqlCtx))

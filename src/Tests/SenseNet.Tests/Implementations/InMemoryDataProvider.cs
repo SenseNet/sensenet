@@ -1616,11 +1616,11 @@ namespace SenseNet.Tests.Implementations
         private void SaveBinaryPropertySafe(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
         {
             if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
+                BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, null).Wait();
             else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
                 BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).Wait();
             else
-                BlobStorage.UpdateBinaryProperty(value);
+                BlobStorage.UpdateBinaryPropertyAsync(value, null).Wait();
         }
 
         private (int, int) LoadLastVersionIdsSafe(int nodeId)

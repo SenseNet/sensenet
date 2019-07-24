@@ -69,7 +69,7 @@ namespace SenseNet.Tests.Implementations
             // metadata operation
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryProperty(versionId, propertyTypeId);
+                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).Wait();
 
             var fileId = db.Files.GetNextId();
             db.Files.Insert(new FileDoc
@@ -103,7 +103,7 @@ namespace SenseNet.Tests.Implementations
         {
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryProperty(versionId, propertyTypeId);
+                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).Wait();
 
             var binaryPropertyId = db.BinaryProperties.GetNextId();
             db.BinaryProperties.Insert(new BinaryPropertyDoc
@@ -119,7 +119,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
+        public Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
             var isExternal = false;
@@ -145,7 +145,7 @@ namespace SenseNet.Tests.Implementations
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!isExternal && !hasStream)
                 // do not do any database operation if the stream is not modified
-                return;
+                return Task.CompletedTask;
 
             var db = DataProvider.DB;
             var fileId = db.Files.GetNextId();
@@ -177,25 +177,18 @@ namespace SenseNet.Tests.Implementations
 
             using (var stream = blobProvider.GetStreamForWrite(newCtx))
                 value.Stream?.CopyTo(stream);
-        }
 
-        public Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteBinaryProperty(int versionId, int propertyTypeId)
-        {
-            var db = DataProvider.DB;
-            foreach (var item in db.BinaryProperties
-                                  .Where(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId)
-                                  .ToArray())
-                db.BinaryProperties.Remove(item);
+            return Task.CompletedTask;
         }
 
         public Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            throw new NotImplementedException();
+            var db = DataProvider.DB;
+            foreach (var item in db.BinaryProperties
+                .Where(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId)
+                .ToArray())
+                db.BinaryProperties.Remove(item);
+            return Task.CompletedTask;
         }
 
         public void DeleteBinaryProperties(IEnumerable<int> versionIds)

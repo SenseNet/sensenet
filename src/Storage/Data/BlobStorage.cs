@@ -16,19 +16,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageBase.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
         }
 
-        public new static void UpdateBinaryProperty(BinaryDataValue value)
-        {
-            BlobStorageBase.UpdateBinaryProperty(value);
-        }
         public new static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
             return BlobStorageBase.UpdateBinaryPropertyAsync(value, dataContext);
         }
 
-        public new static void DeleteBinaryProperty(int versionId, int propertyTypeId)
-        {
-            BlobStorageBase.DeleteBinaryProperty(versionId, propertyTypeId);
-        }
         public new static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             return BlobStorageBase.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
