@@ -158,13 +158,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
-        /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
-        protected internal static string StartChunk(int versionId, int propertyTypeId, long fullSize)
-        {
-            return StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None).Result;
-        }
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a token with
+        /// all the information (db record ids) that identify a single entry in the blob storage.</returns>
         protected internal static Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var blobProvider = GetProvider(fullSize);
             return BlobStorageComponents.DataProvider.StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize,

@@ -114,10 +114,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
-        /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
-        string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing a token with
+        ///  all the information (db record ids) that identify a single entry in the blob storage.</returns>
         Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Finalizes a chunked save operation.

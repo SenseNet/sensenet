@@ -403,21 +403,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-        /// <summary>
-        /// Starts a chunked save operation on an existing content. It does not write any binary data 
-        /// to the storage, it only makes prerequisite operations - e.g. allocates a new slot in the storage.
-        /// </summary>
-        /// <param name="blobProvider">Blob storage provider.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
-        /// <returns>A token containing all the information (db record ids) that identify a single entry in the blob storage.</returns>
-        public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)
-        {
-            return StartChunkAsync(blobProvider, versionId, propertyTypeId, fullSize).Result;
-        }
         public async Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;

@@ -291,12 +291,8 @@ namespace SenseNet.Tests.Implementations
             return Task.FromResult(result);
         }
 
-        public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)
-        {
-            throw new NotImplementedException();
-        }
         public Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

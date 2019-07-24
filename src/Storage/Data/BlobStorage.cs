@@ -55,9 +55,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageBase.LoadBinaryFragment(fileId, position, count);
         }
 
-        public new static string StartChunk(int versionId, int propertyTypeId, long fullSize)
+        public new static Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken)
         {
-            return BlobStorageBase.StartChunk(versionId, propertyTypeId, fullSize);
+            return BlobStorageBase.StartChunkAsync(versionId, propertyTypeId, fullSize, cancellationToken);
         }
 
         public new static Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
