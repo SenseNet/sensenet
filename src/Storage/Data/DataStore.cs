@@ -390,7 +390,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (binaryCacheEntity == null)
             {
                 // Not in cache, load it from the database
-                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntity(versionId, propertyTypeId);
+                binaryCacheEntity = BlobStorage.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, CancellationToken.None).Result;
 
                 // insert the binary cache entity into the 
                 // cache only if we know the node id

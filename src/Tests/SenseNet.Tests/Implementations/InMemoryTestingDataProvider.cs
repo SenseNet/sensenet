@@ -317,7 +317,7 @@ namespace SenseNet.Tests.Implementations
                                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
                             break;
                         case DataType.Binary:
-                            result = BlobStorage.LoadBinaryProperty(versionId, pt.Id);
+                            result = BlobStorage.LoadBinaryPropertyAsync(versionId, pt.Id, null).Result;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

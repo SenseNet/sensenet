@@ -283,11 +283,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
-        {
-            using (var ctx = new MsSqlDataContext(CancellationToken.None))
-                return LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx).Result;
-        }
         public async Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             if (!(dataContext is MsSqlDataContext sqlCtx))
@@ -349,16 +344,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-        /// <summary>
-        /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
-        /// just the blob metadata pointing to the blob storage.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
+        public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            using (var ctx = new MsSqlDataContext())
-                return LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx).Result;
+            using (var ctx = new MsSqlDataContext(cancellationToken))
+                return await LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx);
         }
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
@@ -413,6 +402,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 };
             });
         }
+
         /// <summary>
         /// Starts a chunked save operation on an existing content. It does not write any binary data 
         /// to the storage, it only makes prerequisite operations - e.g. allocates a new slot in the storage.

@@ -332,7 +332,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Loads a metadata of a single blob. Uses the BlobStorage.LoadBinaryProperty(int, int) method.
+        /// Loads a metadata of a single blob.
         /// </summary>
         /// <param name="versionId">Requested VersionId.</param>
         /// <param name="propertyTypeId">Requested PropertyTypeId.</param>

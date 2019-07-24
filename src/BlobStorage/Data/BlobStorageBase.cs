@@ -90,11 +90,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <returns>A <see cref="BinaryDataValue"/> instance or null.</returns>
-        protected static BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
-        {
-            return BlobStorageComponents.DataProvider.LoadBinaryProperty(versionId, propertyTypeId);
-        }
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation 
+        /// containing the loaded <see cref="BinaryDataValue"/> instance or null.</returns>
         protected static Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             return BlobStorageComponents.DataProvider.LoadBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
@@ -106,10 +104,22 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation 
+        /// containig the loaded <see cref="BinaryCacheEntity"/> instance or null.</returns>
+        protected internal static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            return BlobStorageComponents.DataProvider.LoadBinaryCacheEntity(versionId, propertyTypeId);
+            return BlobStorageComponents.DataProvider.LoadBinaryCacheEntityAsync(versionId, propertyTypeId, cancellationToken);
         }
+        /// <summary>
+        /// Loads a cache item into memory that either contains the raw binary (if its size fits into the limit) or
+        /// just the blob metadata pointing to the blob storage.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation 
+        /// containig the loaded <see cref="BinaryCacheEntity"/> instance or null.</returns>
         protected internal static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId,
             SnDataContext dataContext)
         {

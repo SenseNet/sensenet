@@ -202,7 +202,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
-        public BinaryDataValue LoadBinaryProperty(int versionId, int propertyTypeId)
+        public Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             var db = DataProvider.DB;
 
@@ -211,20 +211,16 @@ namespace SenseNet.Tests.Implementations
             var binaryDoc = db.BinaryProperties.FirstOrDefault(x =>
                 x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
             if (binaryDoc == null)
-                return result;
+                return Task.FromResult(result);
 
             var fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
             if (fileDoc == null)
-                return result;
+                return Task.FromResult(result);
             if (fileDoc.Staging)
-                return result;
+                return Task.FromResult(result);
 
             result = CreateBinaryDataValue(db, binaryDoc, fileDoc);
-            return result;
-        }
-        public Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(result);
         }
         private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
         {
@@ -246,9 +242,14 @@ namespace SenseNet.Tests.Implementations
 
         }
 
-        public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
+        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            //throw new NotImplementedException();
+            // this provider does not use datacontext.
+            cancellationToken.ThrowIfCancellationRequested();
+            return LoadBinaryCacheEntityAsync(versionId, propertyTypeId, null);
+        }
+        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        {
             var db = DataProvider.DB;
             var binaryDoc =
                 db.BinaryProperties.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
@@ -279,7 +280,7 @@ namespace SenseNet.Tests.Implementations
                 Length = length,
             };
 
-            return new BinaryCacheEntity
+            var result = new BinaryCacheEntity
             {
                 Length = length,
                 RawData = rawData,
@@ -287,10 +288,7 @@ namespace SenseNet.Tests.Implementations
                 FileId = fileId,
                 Context = context
             };
-        }
-        public Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(result);
         }
 
         public string StartChunk(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize)

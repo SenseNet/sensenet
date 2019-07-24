@@ -494,7 +494,7 @@ namespace SenseNet.Tests.Implementations
 
             lock (DB)
             {
-                var result = BlobStorage.LoadBinaryProperty(versionId, propertyTypeId);
+                var result = BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, null).Result;
                 return Task.FromResult(result);
             }
         }
