@@ -155,12 +155,6 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
             }
         }
 
-        /// <inheritdoc />
-        public void Write(BlobStorageContext context, long offset, byte[] buffer)
-        {
-            WriteAsync(context, offset, buffer, CancellationToken.None).Wait();
-        }
-
         #region UpdateStreamWriteChunkScript
         private static readonly string UpdateStreamWriteChunkScript = MsSqlBlobMetaDataProvider.UpdateStreamWriteChunkSecurityCheckScript + @"
 -- init for .WRITE

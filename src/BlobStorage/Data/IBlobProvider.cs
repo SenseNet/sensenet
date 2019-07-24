@@ -31,15 +31,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
         /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
-        void Write(BlobStorageContext context, long offset, byte[] buffer);
-        /// <summary>
-        /// Writes a set of bytes into the blob storage. The offset must point to the
-        /// start of one of the internal chunks. The buffer may contain bytes
-        /// for multiple internal chunks.
-        /// </summary>
-        /// <param name="context">A context object that holds information about the binary data.</param>
-        /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
-        /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken);

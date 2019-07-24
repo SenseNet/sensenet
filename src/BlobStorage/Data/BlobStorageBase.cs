@@ -190,31 +190,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="buffer">Byte array to write.</param>
         /// <param name="offset">Starting position.</param>
         /// <param name="fullSize">Full size of the whole stream.</param>
-        protected internal static void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
-        {
-            var tokenData = ChunkToken.Parse(token, versionId);
-            try
-            {
-                var ctx = GetBlobStorageContext(tokenData.FileId);
-
-                // must update properties because the Length contains the actual saved size but the featue needs the full size
-                UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
-
-                ctx.Provider.Write(ctx, offset, buffer);
-            }
-            catch (Exception ex)
-            {
-                throw new DataException("Error during saving binary chunk to stream.", ex);
-            }
-        }
-        /// <summary>
-        /// Writes a byte array to the blob entry specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="buffer">Byte array to write.</param>
-        /// <param name="offset">Starting position.</param>
-        /// <param name="fullSize">Full size of the whole stream.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         protected internal static async Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
             CancellationToken cancellationToken)
@@ -249,10 +224,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
-        protected internal static void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
-        {
-            CommitChunkAsync(versionId, propertyTypeId, token, fullSize, source, CancellationToken.None).Wait();
-        }
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -261,36 +234,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 fullSize, source, cancellationToken);
         }
 
-        /// <summary>
-        /// Writes an input stream to an entry in the blob storage specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="input">The whole stream to write.</param>
-        protected internal static void CopyFromStream(int versionId, string token, Stream input)
-        {
-            var tokenData = ChunkToken.Parse(token, versionId);
-            try
-            {
-                var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
-                if (context.Provider == BuiltInProvider)
-                {
-                    // Our built-in provider does not have a special stream for the case when
-                    // the binary should be saved into a regular SQL varbinary column.
-                    CopyFromStreamByChunks(context, input);
-                }
-                else
-                {
-                    // This is the recommended way to write a stream to the binary storage.
-                    using (var targetStream = context.Provider.GetStreamForWrite(context))
-                        input.CopyTo(targetStream);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new DataException("Error during saving binary chunk to stream.", e);
-            }
-        }
         /// <summary>
         /// Writes an input stream to an entry in the blob storage specified by the provided token.
         /// </summary>
@@ -321,24 +264,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             catch (Exception e)
             {
                 throw new DataException("Error during saving binary chunk to stream.", e);
-            }
-        }
-        private static void CopyFromStreamByChunks(BlobStorageContext context, Stream input)
-        {
-            // This method should be used only when the client has a stream and
-            // the target will be a regular SQL varbinary column, because we do
-            // not have a special write stream for that case. In every other case
-            // the blobprovider API should be used that exposes a writable stream.
-
-            var buffer = new byte[BlobStorage.BinaryChunkSize];
-            int read;
-            long offset = 0;
-
-            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                context.Provider.Write(context, offset, GetLocalBufferAfterRead(read, buffer));
-
-                offset += read;
             }
         }
         private static async Task CopyFromStreamByChunksAsync(BlobStorageContext context, Stream input,

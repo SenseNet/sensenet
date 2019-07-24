@@ -80,19 +80,21 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageBase.StartChunk(versionId, propertyTypeId, fullSize);
         }
 
-        public new static void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
+        public new static Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
+            CancellationToken cancellationToken)
         {
-            BlobStorageBase.WriteChunk(versionId, token, buffer, offset, fullSize);
+            return BlobStorageBase.WriteChunkAsync(versionId, token, buffer, offset, fullSize, cancellationToken);
         }
 
-        public new static void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
+        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            BlobStorageBase.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
+            return BlobStorageBase.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, source, cancellationToken);
         }
 
-        public new static void CopyFromStream(int versionId, string token, Stream input)
+        public new static Task CopyFromStreamAsync(int versionId, string token, Stream input, CancellationToken cancellationToken)
         {
-            BlobStorageBase.CopyFromStream(versionId, token, input);
+            return BlobStorageBase.CopyFromStreamAsync(versionId, token, input, cancellationToken);
         }
 
         /*================================================================== Maintenance*/

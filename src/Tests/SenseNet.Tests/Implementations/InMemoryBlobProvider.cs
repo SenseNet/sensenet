@@ -147,11 +147,6 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public void Write(BlobStorageContext context, long offset, byte[] buffer)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

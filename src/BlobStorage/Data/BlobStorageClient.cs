@@ -18,18 +18,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="buffer">Byte array to write.</param>
         /// <param name="offset">Starting position.</param>
         /// <param name="fullSize">Full size of the whole stream.</param>
-        public new static void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
-        {
-            BlobStorageBase.WriteChunk(versionId, token, buffer, offset, fullSize);
-        }
-        /// <summary>
-        /// Writes a byte array to the blob entry specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="buffer">Byte array to write.</param>
-        /// <param name="offset">Starting position.</param>
-        /// <param name="fullSize">Full size of the whole stream.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public new static Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
             CancellationToken cancellationToken)
@@ -42,17 +30,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="input">The whole stream to write.</param>
-        public new static void CopyFromStream(int versionId, string token, Stream input)
-        {
-            BlobStorageBase.CopyFromStream(versionId, token, input);
-        }
-        /// <summary>
-        /// Writes an input stream to an entry in the blob storage specified by the provided token.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <param name="input">The whole stream to write.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public new static Task CopyFromStreamAsync(int versionId, string token, Stream input,
             CancellationToken cancellationToken)
         {
