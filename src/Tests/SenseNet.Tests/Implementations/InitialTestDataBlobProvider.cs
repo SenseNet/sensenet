@@ -23,10 +23,6 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotSupportedException();
         }
-        public void Delete(BlobStorageContext context)
-        {
-            throw new NotSupportedException();
-        }
         public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

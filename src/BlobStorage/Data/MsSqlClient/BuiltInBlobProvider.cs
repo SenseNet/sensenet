@@ -128,11 +128,6 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         }
 
         /// <inheritdoc />
-        public void Delete(BlobStorageContext context)
-        {
-            // do nothing
-        }
-        /// <inheritdoc />
         public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             // do nothing

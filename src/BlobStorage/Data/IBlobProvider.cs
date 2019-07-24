@@ -47,11 +47,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Deletes a binary from the storage related to a binary record in the database.
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
-        void Delete(BlobStorageContext context);
-        /// <summary>
-        /// Deletes a binary from the storage related to a binary record in the database.
-        /// </summary>
-        /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken);
