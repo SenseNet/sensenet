@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -41,11 +42,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets a readonly stream that contains a blob entry in the blob storage.
         /// </summary>
         /// <param name="token">Blob token provided by a preliminary request.</param>
-        /// <returns>A readonly stream that comes from the blob storage directly.</returns>
-        public static Stream GetStreamForRead(string token)//UNDONE:DB:BLOB ASYNC?
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containig
+        /// a readonly stream that comes from the blob storage directly.</returns>
+        public static async Task<Stream> GetStreamForReadAsync(string token, CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token);
-            var context = GetBlobStorageContextAsync(tokenData.FileId, CancellationToken.None, false, tokenData.VersionId, tokenData.PropertyTypeId).Result;
+            var context = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, false, tokenData.VersionId, tokenData.PropertyTypeId);
 
             return context.Provider.GetStreamForRead(context);
         }
