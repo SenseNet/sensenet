@@ -132,10 +132,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fileId">File record identifier.</param>
         /// <param name="position">Starting position of the segment.</param>
         /// <param name="count">Number of bytes to load.</param>
-        /// <returns>Byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
-        protected internal static byte[] LoadBinaryFragment(int fileId, long position, int count)//UNDONE:DB:BLOB ASYNC?
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation containing
+        /// a byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
+        protected internal static async Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count,
+            CancellationToken cancellationToken)
         {
-            var ctx = GetBlobStorageContextAsync(fileId, CancellationToken.None).Result;
+            var ctx = await GetBlobStorageContextAsync(fileId, cancellationToken);
             var provider = ctx.Provider;
 
             if (provider == BuiltInProvider)

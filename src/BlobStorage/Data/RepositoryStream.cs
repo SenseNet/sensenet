@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using SenseNet.Configuration;
 
 #pragma warning disable 1591
@@ -120,7 +121,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var bytesToStoreInThisIteration = Math.Min(bytesToReadInThisIteration, realCount - bytesRead);
 
                     // stores the current chunk
-                    var tempBuffer = BlobStorageBase.LoadBinaryFragment(this.FileId, Position + bytesRead, bytesToReadInThisIteration);
+                    var tempBuffer = BlobStorageBase.LoadBinaryFragmentAsync(this.FileId, Position + bytesRead,
+                        bytesToReadInThisIteration, CancellationToken.None).Result;
 
                     // first iteration: create inner buffer for caching a part of the stream in memory
                     if (_innerBuffer == null)
