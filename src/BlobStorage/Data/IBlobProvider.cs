@@ -20,15 +20,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// the folder).
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
-        void Allocate(BlobStorageContext context);
-        /// <summary>
-        /// Allocates a place in the blob storage for the bytes to be stored
-        /// (e.g. creates a folder in the file system for file chunks). It should
-        /// fill the BlobProviderData property of the context with the data
-        /// that is necessary to access the binaries later (e.g. the name of
-        /// the folder).
-        /// </summary>
-        /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken);

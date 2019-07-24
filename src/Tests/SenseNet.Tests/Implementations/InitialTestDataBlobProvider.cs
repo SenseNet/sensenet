@@ -10,11 +10,6 @@ namespace SenseNet.Tests.Implementations
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {
-        public void Allocate(BlobStorageContext context)
-        {
-            throw new NotSupportedException();
-        }
-
         public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

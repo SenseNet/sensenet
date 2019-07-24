@@ -138,10 +138,6 @@ namespace SenseNet.Tests.Implementations
     {
         private Dictionary<Guid, byte[]> _blobStorage = new Dictionary<Guid, byte[]>();
 
-        public void Allocate(BlobStorageContext context)
-        {
-            AllocateAsync(context, CancellationToken.None).Wait();
-        }
         public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid();

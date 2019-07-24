@@ -27,14 +27,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <summary>
         /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
         /// </summary>
-        public void Allocate(BlobStorageContext context)
-        {
-            // Never used in our algorithms.
-            throw new NotSupportedException();
-        }
-        /// <summary>
-        /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
-        /// </summary>
         public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             // Never used in our algorithms.
