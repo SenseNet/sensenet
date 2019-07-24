@@ -81,21 +81,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-
-        /// <summary>
-        /// Inserts a new binary property value into the metadata database and the blob storage, 
-        /// removing the previous one if the content is not new.
-        /// </summary>
-        /// <param name="blobProvider">Blob storage provider.</param>
-        /// <param name="value">Binary data to insert.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
-        public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
-        {
-            using (var ctx = new MsSqlDataContext())
-                InsertBinaryPropertyAsync(blobProvider, value, versionId, propertyTypeId, isNewNode, ctx).Wait();
-        }
         public async Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
             bool isNewNode, SnDataContext dataContext)
         {
@@ -159,19 +144,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        /// <summary>
-        /// Inserts a new binary record into the metadata database containing an already exising file id,
-        /// removing the previous record if the content is not new.
-        /// </summary>
-        /// <param name="value">Binary data to insert.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
-        public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
-        {
-            using (var ctx = new MsSqlDataContext())
-                InsertBinaryPropertyWithFileIdAsync(value, versionId, propertyTypeId, isNewNode, ctx).Wait();
-        }
         public async Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
             SnDataContext dataContext)
         {

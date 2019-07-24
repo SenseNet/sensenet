@@ -50,7 +50,8 @@ namespace SenseNet.Tests.Implementations
             return Task.FromResult(result);
         }
 
-        public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
+        public Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
+            bool isNewNode, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
@@ -93,15 +94,12 @@ namespace SenseNet.Tests.Implementations
             value.Id = binaryPropertyId;
             value.FileId = fileId;
             value.Timestamp = 0L; //TODO: file row timestamp
+
+            return Task.CompletedTask;
         }
 
-        public Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
-            bool isNewNode, SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void InsertBinaryPropertyWithFileId(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
+        public Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+            SnDataContext dataContext)
         {
             var db = DataProvider.DB;
             if (!isNewNode)
@@ -117,12 +115,8 @@ namespace SenseNet.Tests.Implementations
             });
 
             value.Id = binaryPropertyId;
-        }
 
-        public Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
-            SnDataContext dataContext)
-        {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)

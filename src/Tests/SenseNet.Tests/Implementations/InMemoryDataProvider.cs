@@ -1618,7 +1618,7 @@ namespace SenseNet.Tests.Implementations
             if (value == null || value.IsEmpty)
                 BlobStorage.DeleteBinaryProperty(versionId, propertyTypeId);
             else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+                BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).Wait();
             else
                 BlobStorage.UpdateBinaryProperty(value);
         }

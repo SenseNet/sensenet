@@ -11,10 +11,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     //UNDONE:DB: ASYNC API + CancellationToken: Missing in this class
     internal class BlobStorage : BlobStorageBase
     {
-        public new static void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
-        {
-            BlobStorageBase.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
-        }
         public new static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
             return BlobStorageBase.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);

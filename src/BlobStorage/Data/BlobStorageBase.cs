@@ -26,14 +26,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
-        protected internal static void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
-        {
-            var blobProvider = GetProvider(value.Size);
-            if (value.FileId > 0 && value.Stream == null)
-                BlobStorageComponents.DataProvider.InsertBinaryPropertyWithFileId(value, versionId, propertyTypeId, isNewNode);
-            else
-                BlobStorageComponents.DataProvider.InsertBinaryProperty(blobProvider, value, versionId, propertyTypeId, isNewNode);
-        }
+        /// <param name="dataContext">Database accessor object.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         protected internal static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
             var blobProvider = GetProvider(value.Size);
