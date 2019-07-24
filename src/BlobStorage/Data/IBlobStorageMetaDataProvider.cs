@@ -128,9 +128,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="fileId">File identifier.</param>
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
-        void CommitChunk(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Marks orphaned file records (the ones that do not have a referencing binary record anymore) as Deleted.

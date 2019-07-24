@@ -472,7 +472,8 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out var node, out var pt);
 
-            BlobStorage.CommitChunkAsync(node.VersionId, pt.Id, token, fullSize, binaryMetadata?.RawData).Wait();
+            BlobStorage.CommitChunkAsync(node.VersionId, pt.Id, token, fullSize, binaryMetadata?.RawData, CancellationToken.None)
+                .Wait();
 
             NodeIdDependency.FireChanged(node.Id);
             StorageContext.L2Cache.Clear();

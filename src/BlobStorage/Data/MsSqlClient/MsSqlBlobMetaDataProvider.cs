@@ -466,53 +466,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        /// <summary>
-        /// Finalizes a chunked save operation.
-        /// </summary>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        /// <param name="fileId">File identifier.</param>
-        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
-        /// <param name="source">Binary data containing metadata (e.g. content type).</param>
-        public void CommitChunk(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source = null)
-        {
-            try
-            {
-                using (var ctx = new MsSqlDataContext())
-                {
-                    using (var transaction = ctx.BeginTransaction())
-                    {
-                        ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
-                        {
-                            cmd.Parameters.AddRange(new[]
-                            {
-                                ctx.CreateParameter("@FileId", DbType.Int32, fileId),
-                                ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
-                                ctx.CreateParameter("@PropertyTypeId", DbType.Int32, propertyTypeId),
-                                ctx.CreateParameter("@Size", DbType.Int64, fullSize),
-                                ctx.CreateParameter("@Checksum", DbType.AnsiString, 200, DBNull.Value),
-                                ctx.CreateParameter("@ContentType", DbType.String, 50, source != null ? source.ContentType : string.Empty),
-                                ctx.CreateParameter("@FileNameWithoutExtension", DbType.String, 450, source != null
-                                    ? source.FileName.FileNameWithoutExtension == null
-                                        ? DBNull.Value
-                                        : (object) source.FileName.FileNameWithoutExtension
-                                    : DBNull.Value),
-
-                                ctx.CreateParameter("@Extension", DbType.String, 50,
-                                    source != null ? ValidateExtension(source.FileName.Extension) : string.Empty),
-                            });
-                        }).Wait();
-                        transaction.Commit();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new DataException("Error during committing binary chunk to file stream.", ex);
-            }
-        }
         public async Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             try
             {
