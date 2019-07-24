@@ -20,14 +20,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId);
-        /// <summary>
-        /// Returns a context object that holds provider-specific data for blob storage operations.
-        /// </summary>
-        /// <param name="fileId">File identifier.</param>
-        /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
             CancellationToken cancellationToken);

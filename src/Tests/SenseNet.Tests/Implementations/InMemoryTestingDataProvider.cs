@@ -98,7 +98,7 @@ namespace SenseNet.Tests.Implementations
         }
         private static void EditFileStream(FileDoc fileRecord, Action<XmlDocument> action)
         {
-            var ctx = BlobStorage.GetBlobStorageContext(fileRecord.FileId);
+            var ctx = BlobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None).Result;
             var blobProvider = ctx.Provider;
 
             var gcXmlDoc = new XmlDocument();

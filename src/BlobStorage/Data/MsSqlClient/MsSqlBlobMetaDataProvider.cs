@@ -37,17 +37,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
-        {
-            return GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, CancellationToken.None).Result;
-        }
-        /// <summary>
-        /// Returns a context object that holds MsSql-specific data for blob storage operations.
-        /// </summary>
-        /// <param name="fileId">File identifier.</param>
-        /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
             CancellationToken cancellationToken)

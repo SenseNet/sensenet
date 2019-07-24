@@ -86,17 +86,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns a context object that holds provider-specific data for blob storage operations.
         /// </summary>
         /// <param name="fileId">File identifier.</param>
-        /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
-        /// <param name="versionId">Content version id.</param>
-        /// <param name="propertyTypeId">Binary property type id.</param>
-        public static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
-        {
-            return BlobStorageComponents.DataProvider.GetBlobStorageContext(fileId, clearStream, versionId, propertyTypeId);
-        }
-        /// <summary>
-        /// Returns a context object that holds provider-specific data for blob storage operations.
-        /// </summary>
-        /// <param name="fileId">File identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
@@ -144,9 +133,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="position">Starting position of the segment.</param>
         /// <param name="count">Number of bytes to load.</param>
         /// <returns>Byte array containing the requested number of bytes (or less if there is not enough in the binary data).</returns>
-        protected internal static byte[] LoadBinaryFragment(int fileId, long position, int count)
+        protected internal static byte[] LoadBinaryFragment(int fileId, long position, int count)//UNDONE:DB:BLOB ASYNC?
         {
-            var ctx = GetBlobStorageContext(fileId);
+            var ctx = GetBlobStorageContextAsync(fileId, CancellationToken.None).Result;
             var provider = ctx.Provider;
 
             if (provider == BuiltInProvider)

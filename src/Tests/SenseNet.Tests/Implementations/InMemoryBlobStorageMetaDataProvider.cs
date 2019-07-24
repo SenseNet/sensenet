@@ -24,7 +24,8 @@ namespace SenseNet.Tests.Implementations
             DataProvider = dataProvider;
         }
 
-        public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
+        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
+            CancellationToken cancellationToken)
         {
             var fileDoc = DataProvider.DB.Files.FirstOrDefault(x => x.FileId == fileId);
             if (fileDoc == null)
@@ -36,7 +37,7 @@ namespace SenseNet.Tests.Implementations
 
             var provider = BlobStorageBase.GetProvider(providerName);
 
-            return new BlobStorageContext(provider, providerData)
+            var result = new BlobStorageContext(provider, providerData)
             {
                 VersionId = versionId,
                 PropertyTypeId = propertyTypeId,
@@ -46,12 +47,7 @@ namespace SenseNet.Tests.Implementations
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
-        }
-
-        public Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(result);
         }
 
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)

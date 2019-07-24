@@ -42,10 +42,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <returns>A readonly stream that comes from the blob storage directly.</returns>
-        public static Stream GetStreamForRead(string token)
+        public static Stream GetStreamForRead(string token)//UNDONE:DB:BLOB ASYNC?
         {
             var tokenData = ChunkToken.Parse(token);
-            var context = GetBlobStorageContext(tokenData.FileId, false, tokenData.VersionId, tokenData.PropertyTypeId);
+            var context = GetBlobStorageContextAsync(tokenData.FileId, CancellationToken.None, false, tokenData.VersionId, tokenData.PropertyTypeId).Result;
 
             return context.Provider.GetStreamForRead(context);
         }
