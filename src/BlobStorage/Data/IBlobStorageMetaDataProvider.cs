@@ -67,7 +67,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext);
 
-void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds);
         /// <summary>
         /// Deletes all binary properties of the requested versions.
         /// </summary>

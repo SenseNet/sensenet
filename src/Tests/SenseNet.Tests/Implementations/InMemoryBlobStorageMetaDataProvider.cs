@@ -191,10 +191,6 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-public void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds)
-{
-    throw new Exception();
-}
         public Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
             var db = DataProvider.DB;

@@ -271,10 +271,6 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             });
         }
 
-public void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds)
-{
-    throw new Exception();
-}
         public async Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
             if (!(dataContext is MsSqlDataContext sqlCtx))

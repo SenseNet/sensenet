@@ -61,10 +61,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageComponents.DataProvider.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
 
-protected internal static void DeleteBinaryProperties_DELETE(IEnumerable<int> versionIds)
-{
-    throw new Exception();
-}
         /// <summary>
         /// Deletes all binary properties of the requested versions.
         /// </summary>
