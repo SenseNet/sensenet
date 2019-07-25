@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE:DB: ASYNC API + CancellationToken: Missing in this class
     internal class BlobStorage : BlobStorageBase
     {
         public new static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
