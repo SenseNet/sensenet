@@ -105,7 +105,6 @@ namespace SenseNet.Packaging.Steps
         }
         private void ExecuteSql(SqlScriptReader sqlReader, ExecutionContext context)
         {
-            //UNDONE:DB: TEST: not tested (packaging)
             while (sqlReader.ReadScript())
             {
                 var script = sqlReader.Script;

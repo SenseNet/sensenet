@@ -140,7 +140,6 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            //UNDONE:DB: TEST: not tested
             using (var ctx = new MsSqlDataContext())
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>

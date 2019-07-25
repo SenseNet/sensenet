@@ -112,7 +112,6 @@ namespace SenseNet.Packaging.Steps.Internal
         /// <returns>True if there are no more tasks.</returns>
         internal static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
         {
-            //UNDONE:DB: TEST: not tested (packaging)
             if (_featureIsRunning)
             {
                 _featureIsRequested = true;

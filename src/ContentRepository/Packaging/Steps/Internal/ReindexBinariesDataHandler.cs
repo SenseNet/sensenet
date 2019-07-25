@@ -15,13 +15,11 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             internal static void InstallTables(CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
             }
             internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
             }
@@ -35,7 +33,6 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 var result = new List<int>();
                 int remainingTasks = 0;
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
                     ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
@@ -60,7 +57,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             internal static void FinishTask(int versionId, CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
@@ -72,7 +68,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
@@ -83,7 +78,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
                     return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
@@ -98,7 +92,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static void DropTables(CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                     ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
             }
@@ -107,7 +100,6 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 try
                 {
-                    //UNDONE:DB: TEST: not tested (packaging)
                     using (var ctx = new MsSqlDataContext(cancellationToken))
                     {
                         var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
@@ -128,7 +120,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
-                //UNDONE:DB: TEST: not tested (packaging)
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
                     var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;

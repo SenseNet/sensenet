@@ -36,7 +36,6 @@ namespace SenseNet.Packaging.Steps
 
         private bool ExecuteSql(string script, ExecutionContext context)
         {
-            //UNDONE:DB: TEST: not tested (packaging)
             var connectionInfo = new ConnectionInfo
             {
                 DataSource = (string)context.ResolveVariable(DataSource),

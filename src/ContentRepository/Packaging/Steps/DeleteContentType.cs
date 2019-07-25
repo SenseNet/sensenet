@@ -198,7 +198,6 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
 
-            //UNDONE:DB: TEST: not tested (packaging)
             using (var ctx = new MsSqlDataContext())
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
