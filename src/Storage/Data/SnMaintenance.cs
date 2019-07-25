@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch
             {
-                SnLog.WriteInformation("One of more maintenance tasks are canceled.");
+                SnLog.WriteInformation("One or more maintenance tasks are canceled.");
             }
         }
 
