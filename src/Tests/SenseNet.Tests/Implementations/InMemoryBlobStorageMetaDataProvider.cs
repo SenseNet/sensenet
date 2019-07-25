@@ -303,12 +303,12 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+        public virtual Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+        public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
