@@ -53,7 +53,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             _maintenanceTimer.Dispose();
             _maintenanceTimer = null;
 
-            _cancellation.Cancel();
+            try
+            {
+                _cancellation.Cancel();
+            }
+            catch
+            {
+                SnLog.WriteInformation("One of more maintenance tasks are canceled.");
+            }
         }
 
         internal static bool Running()
