@@ -81,6 +81,19 @@ namespace SenseNet.Services.Tests
         }
 
         [TestMethod]
+        public void Cors_SetHeader_Port_Subdomain()
+        {
+            // allowed list contains the domain but does not contain the port
+            AssertOrigin("http://sub.example.com:123", DefaultRequestUri, new[] {"*.example.com"}, false, null);
+            // allowed list contains the domain but with a different port
+            AssertOrigin("http://sub.example.com:123", DefaultRequestUri, new[] {"*.example.com:456"}, false, null);
+
+            // allowed list contains a wildcard domain and the port
+            AssertOrigin("http://sub.example.com:123", DefaultRequestUri, new[] {"*.example.com:123"}, true,
+                "http://sub.example.com:123");
+        }
+
+        [TestMethod]
         public void Cors_SetHeader_Https()
         {
             AssertOrigin("https://otherdomain.com", DefaultRequestUri, new[] { "localhost" }, false, null);
