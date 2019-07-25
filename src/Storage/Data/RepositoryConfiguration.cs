@@ -179,44 +179,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         #region Helper methods
-
-        private static string GetStringValue(string sectionName, string key, string defaultValue = null)
-        {
-            string configValue = null;
-
-            var section = ConfigurationManager.GetSection(sectionName) as NameValueCollection;
-            if (section != null)
-                configValue = section[key];
-            
-            // backward compatibility: fallback to the appsettings section
-            if (configValue == null)
-                configValue = ConfigurationManager.AppSettings[key];
-
-            return configValue ?? defaultValue;
-        }
-
+        
         [Obsolete("Use the SnConfig API instead.", true)]
         public static T GetValue<T>(string sectionName, string key, T defaultValue = default(T))
         {
-            var configString = GetStringValue(sectionName, key);
-            if (string.IsNullOrEmpty(configString))
-                return defaultValue;
-
-            try
-            {
-                return Convert<T>(configString);
-            }
-            catch (Exception)
-            {
-                return defaultValue;
-            }
-        }
-        private static T Convert<T>(string value)
-        {
-            if (typeof(T).IsEnum)
-                return (T)Enum.Parse(typeof(T), value);
-
-            return (T)System.Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+            throw new SnNotSupportedException();
         }
 
         #endregion

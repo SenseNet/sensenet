@@ -113,7 +113,7 @@ namespace SenseNet.Tools.SnAdmin.Testability
         }
         public string SearchTargetDirectory()
         {
-            var targetDir = ConfigurationManager.AppSettings["TargetDirectory"];
+            var targetDir = Configuration.Packaging.TargetDirectory;
             if (!string.IsNullOrEmpty(targetDir))
                 return targetDir;
 
@@ -139,7 +139,7 @@ namespace SenseNet.Tools.SnAdmin.Testability
         }
         public string DefaultPackageDirectory()
         {
-            var pkgDir = ConfigurationManager.AppSettings["PackageDirectory"];
+            var pkgDir = Configuration.Packaging.PackageDirectory;
             if (!string.IsNullOrEmpty(pkgDir))
                 return pkgDir;
             var workerExe = Assembly.GetExecutingAssembly().Location;
