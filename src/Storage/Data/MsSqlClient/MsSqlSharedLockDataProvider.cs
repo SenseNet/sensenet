@@ -211,17 +211,22 @@ SELECT @Result
         /// <inheritdoc/>
         public void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            throw new NotImplementedException(); //UNDONE:DB: NOT IMPLEMENTED: SetSharedLockCreationDate
+            const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
+
+            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
+            {
+                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@ContentId", DbType.Int32, nodeId),
+                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, value)
+                    });
+                }).Result;
+            }
         }
         /// <inheritdoc/>
         public DateTime GetSharedLockCreationDate(int nodeId)
-        {
-            throw new NotImplementedException(); //UNDONE:DB: NOT IMPLEMENTED: GetSharedLockCreationDate
-        }
-
-        /* ============================================================= For tests */
-
-        public DateTime GetCreationDate(int contentId)
         {
             const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
 
@@ -231,26 +236,10 @@ SELECT @Result
                 {
                     cmd.Parameters.AddRange(new[]
                     {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId)
+                        ctx.CreateParameter("@ContentId", DbType.Int32, nodeId)
                     });
                 }).Result;
                 return result == DBNull.Value ? DateTime.MinValue : (DateTime)result;
-            }
-        }
-        public void SetCreationDate(int contentId, DateTime value)
-        {
-            const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
-
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
-            {
-                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
-                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, value)
-                    });
-                }).Result;
             }
         }
     }
