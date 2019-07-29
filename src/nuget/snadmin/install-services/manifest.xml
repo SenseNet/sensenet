@@ -1,8 +1,8 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>sensenet Services</Description>
-  <ReleaseDate>2019-06-17</ReleaseDate>
-  <Version>7.6.1</Version>
+  <ReleaseDate>2019-07-15</ReleaseDate>
+  <Version>7.6.2</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>
@@ -11,6 +11,7 @@
     <Parameter name="@dbUserName" description="User name to access the server by the installed software."></Parameter>
     <Parameter name="@dbPassword" description="Password to access the server by the installed software."></Parameter>
     <Parameter name="@recreateDbIfExists">false</Parameter>    
+    <Parameter name="@importOldServices">true</Parameter>    
   </Parameters>
   <Steps>
     <Phase>
@@ -73,6 +74,13 @@
     <Phase>
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
       <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="import" />
+
+      <If condition="@importOldServices">
+        <Then>
+          <Import target="/Root" LogLevel="Verbose" source="importServicesOld" />
+        </Then>
+      </If>
+      
     </Phase>
     <Phase>
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />

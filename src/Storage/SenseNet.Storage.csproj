@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.6.1</Version>
+    <Version>7.6.2</Version>
     <Authors>kavics,aniko,lajos,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -23,7 +23,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="SenseNet.Security" Version="4.0.0" />
     <PackageReference Include="SenseNet.TaskManagement.Core" Version="2.0.0" />
-    <PackageReference Include="SenseNet.Tools" Version="3.1.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="System.Diagnostics.EventLog" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
