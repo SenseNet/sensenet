@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage.Data;
+﻿using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.Packaging.Steps
 {
