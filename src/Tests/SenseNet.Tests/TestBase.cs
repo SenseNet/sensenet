@@ -348,14 +348,19 @@ namespace SenseNet.Tests
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
+            var dataFile = new InitialTestData();
             if (_initialData == null)
             {
-                using (var ptr = new StringReader(InitialTestData.PropertyTypes))
-                using (var ntr = new StringReader(InitialTestData.NodeTypes))
-                using (var nr = new StringReader(InitialTestData.Nodes))
-                using (var vr = new StringReader(InitialTestData.Versions))
-                using (var dr = new StringReader(InitialTestData.DynamicData))
-                    _initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+                InitialData initialData;
+                using (var ptr = new StringReader(dataFile.PropertyTypes))
+                using (var ntr = new StringReader(dataFile.NodeTypes))
+                using (var nr = new StringReader(dataFile.Nodes))
+                using (var vr = new StringReader(dataFile.Versions))
+                using (var dr = new StringReader(dataFile.DynamicData))
+                    initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+                initialData.ContentTypeDefinitions = dataFile.ContentTypeDefinitions;
+                initialData.Blobs = dataFile.Blobs;
+                _initialData = initialData;
             }
             return _initialData;
         }

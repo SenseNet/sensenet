@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using SenseNet.ContentRepository.Storage.DataModel;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace SenseNet.Tests
 {
-    public static class InitialTestData
+    public class InitialTestData : IRepositoryDataFile
     {
-        #region public static readonly string PropertyTypes
-        public static readonly string PropertyTypes = @"
+        public string PropertyTypes => @"
   Id| DataType  | Mapping| Name
 ----- ----------- -------- ---------------
    1| Binary    |       0| Binary
@@ -162,10 +162,8 @@ namespace SenseNet.Tests
  151| String    |      57| FacebookURL
  152| String    |      58| LinkedInURL
 ";
-        #endregion
 
-        #region public static readonly string NodeTypes
-        public static readonly string NodeTypes = @"
+        public string NodeTypes => @"
   Id| Name                          | ParentName                    | ClassName                                                   | Properties
 ----- ------------------------------- ------------------------------- ------------------------------------------------------------- ------------------------------------------
    9| ContentType                   | <null>                        | SenseNet.ContentRepository.Schema.ContentType               | [Binary]
@@ -247,10 +245,8 @@ namespace SenseNet.Tests
   77| PermissionChoiceFieldSetting  | ChoiceFieldSetting            | SenseNet.ContentRepository.Schema.FieldSettingContent       | []
   78| YesNoFieldSetting             | ChoiceFieldSetting            | SenseNet.ContentRepository.Schema.FieldSettingContent       | []
 ";
-        #endregion
 
-        #region public static readonly string Nodes
-        public static readonly string Nodes = @"
+        public string Nodes => @"
 NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path
 ------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
      1|      3|      5|      0|      1|      1|    False|      1| Admin                                   | """"                                              | /Root/IMS/BuiltIn/Portal/Admin
@@ -500,10 +496,8 @@ NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name          
   1246|      1|   1245|      0|    259|    259|     True|      1| TrashBag                                | """"                                              | /Root/Trash/(apps)/TrashBag
   1247|     11|   1246|      0|    260|    260|     True|      1| Restore                                 | $Action,Restore                                   | /Root/Trash/(apps)/TrashBag/Restore
 ";
-        #endregion
 
-        #region public static readonly string Versions
-        public static readonly string Versions = @"
+        public string Versions => @"
 VersionId| NodeId|  Version
 ---------- ------- ---------
         1|      1|  V1.0.A
@@ -753,10 +747,8 @@ VersionId| NodeId|  Version
       259|   1246|  V1.0.A
       260|   1247|  V1.0.A
 ";
-        #endregion
 
-        #region public static readonly string DynamicData
-        public static readonly string DynamicData = @"VersionId: 1
+        public string DynamicData => @"VersionId: 1
     LongTextProperties
         OldPasswords: <?xml version=""1.0"" encoding=""utf-16""?>  <ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">    <OldPasswordData>      <ModificationDate>2018-11-14T02:54:02.7522515Z</ModificationDate>      <Hash>$2a$10$PpzkmffYtUA5XV5nekcqVOKIZUpB8HUczoFcCmTkAUtCqUH5dS5Ki</Hash>    </OldPasswordData>  </ArrayOfOldPasswordData>
     DynamicProperties
@@ -2111,11 +2103,8 @@ VersionId: 260
         CacheControl:String: Nondefined
         StoredIcon:String: restore
 ";
-        #endregion
 
-
-        #region public static readonly IDictionary<string, string> ContentTypeDefinitions
-        public static readonly IDictionary<string, string> ContentTypeDefinitions = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+        public IDictionary<string, string> ContentTypeDefinitions => new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
         {
 			#region  1. Application
 			{ "Application", @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -6401,10 +6390,8 @@ VersionId: 260
 </ContentType>" },
 			#endregion
         });
-        #endregion
 
-        #region public static readonly IDictionary<string, string> GeneralBlobs
-        public static readonly IDictionary<string, string> GeneralBlobs =
+        public IDictionary<string, string> Blobs =>
             new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
             {
                 #region  1.Indexing .settings
@@ -6505,6 +6492,5 @@ User: {ProfileType: ""UserProfile"", ProfilesTarget: ""/Root""}
 }"},
                 #endregion
             });
-        #endregion
     }
 }

@@ -4,12 +4,15 @@ using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.Implementations
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {
+        private readonly IRepositoryDataFile _dataFile = new InitialTestData();
+
         public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
@@ -31,12 +34,12 @@ namespace SenseNet.Tests.Implementations
             if (path.StartsWith(Repository.ContentTypesFolderPath))
             {
                 var ctdName = RepositoryPath.GetFileName(path);
-                fileContent = InitialTestData.ContentTypeDefinitions[ctdName];
+                fileContent = _dataFile.ContentTypeDefinitions[ctdName];
             }
             else
             {
                 var key = $"{ActiveSchema.PropertyTypes.GetItemById(context.PropertyTypeId).Name}:{path}";
-                InitialTestData.GeneralBlobs.TryGetValue(key, out fileContent);
+                _dataFile.Blobs.TryGetValue(key, out fileContent);
             }
             var stream = RepositoryTools.GetStreamFromString(fileContent);
             return stream;
