@@ -12,7 +12,8 @@ using SenseNet.ContentRepository.Storage.Schema;
 namespace SenseNet.ContentRepository.Storage.DataModel
 {
     public class InitialData
-    {        /// <summary>
+    {
+        /// <summary>
         /// Gets or sets the relative filesystem path of the binary streams in the DynamicProperties.BinaryProperties
         /// If the streams are not in the filesystem, this value need to be null.
         /// </summary>
@@ -200,6 +201,25 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         }
 
         /* ===================================================================================== LOAD */
+
+        public static InitialData Load(IRepositoryDataFile dataFile)
+        {
+            InitialData initialData;
+
+            using (var ptr = new StringReader(dataFile.PropertyTypes))
+            using (var ntr = new StringReader(dataFile.NodeTypes))
+            using (var nr = new StringReader(dataFile.Nodes))
+            using (var vr = new StringReader(dataFile.Versions))
+            using (var dr = new StringReader(dataFile.DynamicData))
+                initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
+
+            initialData.ContentTypeDefinitions = dataFile.ContentTypeDefinitions;
+            initialData.Blobs = dataFile.Blobs;
+
+            return initialData;
+        }
+
+        /* ------------------------------------------------------------------------------------------ */
 
         /// <summary>
         /// Loads the initial data from the given readers.

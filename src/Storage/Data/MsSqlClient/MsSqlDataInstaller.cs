@@ -11,7 +11,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
-    internal class MsSqlDataInstaller
+    public class MsSqlDataInstaller
     {
         private static readonly byte Yes = 1;
         private static readonly byte No = 0;

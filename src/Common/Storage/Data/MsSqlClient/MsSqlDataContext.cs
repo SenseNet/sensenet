@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             _connectionString = GetConnectionString(connectionInfo);
         }
 
-        private string GetConnectionString(ConnectionInfo connectionInfo)
+        public static string GetConnectionString(ConnectionInfo connectionInfo)
         {
             string cnstr;
 

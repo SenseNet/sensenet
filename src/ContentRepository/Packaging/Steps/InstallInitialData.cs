@@ -1,5 +1,7 @@
 ﻿using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.ContentRepository.Storage.DataModel;
+
 // ReSharper disable CheckNamespace
 
 namespace SenseNet.Packaging.Steps
@@ -24,10 +26,11 @@ namespace SenseNet.Packaging.Steps
                 UserName = (string) context.ResolveVariable(UserName),
                 Password = (string) context.ResolveVariable(Password)
             };
-            using (var ctx = new MsSqlDataContext(connectionInfo))
-            {
+            var connectionString = MsSqlDataContext.GetConnectionString(connectionInfo);
 
-            }
+            var initialData = InitialData.Load(new SenseNetServicesInitialData());
+
+            MsSqlDataInstaller.InstallInitialDataAsync(initialData, new MsSqlDataProvider(), connectionString).Wait();
         }
     }
 }
