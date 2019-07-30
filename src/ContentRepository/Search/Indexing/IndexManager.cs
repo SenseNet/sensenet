@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         internal static void ActivityFinished(int activityId)
         {
             SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
-            CommitManager.ActivityFinished();
+            CommitManager?.ActivityFinished();
         }
 
         internal static void Commit()
