@@ -86,8 +86,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
             nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | Path");
             nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
-            versionWriter.WriteLine("VersionId| NodeId|  Version");
-            versionWriter.WriteLine("---------- ------- ---------");
+            versionWriter.WriteLine("VersionId| NodeId| Creator| Modifier|  Version");
+            versionWriter.WriteLine("---------- ------- ------- ---------- ---------");
             foreach (var nodeId in getNodeIds())
             {
                 var node = Node.LoadNode(nodeId);
@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         }
         private static void Write(TextWriter writer, VersionData d)
         {
-            writer.WriteLine($"{d.VersionId,9:#}| {d.NodeId,6:#}|  {d.Version}");
+            writer.WriteLine($"{d.VersionId,9:#}| {d.NodeId,6:#}| {d.CreatedById,7:#}| {d.ModifiedById,8:#}|  {d.Version}");
         }
         private static void Write(TextWriter writer, string path, DynamicPropertyData d)
         {
