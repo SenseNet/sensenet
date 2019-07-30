@@ -397,6 +397,8 @@ namespace SenseNet.Packaging.Steps
                         ImportSchema(fsPath);
                     }
 
+                    Cache.Reset();
+
                     var firstImport = SaveInitialIndexDocuments();
                     if (firstImport)
                     {
