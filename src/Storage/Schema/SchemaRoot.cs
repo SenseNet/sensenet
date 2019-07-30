@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 var propertyType = _propertyTypes[propertyName];
                 if (propertyType == null)
                     throw new InvalidSchemaException(
-                        SR.Exceptions.Schema.Msg_PropertyTypeDoesNotExist + ": name=" + type.Name);
+                        SR.Exceptions.Schema.Msg_PropertyTypeDoesNotExist + ": name=" + type.Name + "." + propertyName);
 
                 AddPropertyTypeToPropertySet(propertyType, type);
             }
