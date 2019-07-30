@@ -56,8 +56,8 @@
       </If>
       
       <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password"/>
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_Security.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_01_Schema.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\MsSqlInstall_Security.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\MsSqlInstall_Schema.sql" />
       <InstallInitialData InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" />
 
       <!-- Insert new connection string values into config files. -->
