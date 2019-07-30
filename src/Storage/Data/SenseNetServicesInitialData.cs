@@ -7,7 +7,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public class SenseNetServicesInitialData : IRepositoryDataFile
     {
-        public string PropertyTypes => string.Empty;
+        public string PropertyTypes => @"
+  Id| DataType  | Mapping| Name
+----- ----------- -------- ---------------
+   1| Binary    |       0| Binary
+   2| Int       |       0| VersioningMode
+";
 
         public string NodeTypes => @"
   Id| Name                          | ParentName                    | ClassName                                                   | Properties
@@ -25,24 +30,24 @@ namespace SenseNet.ContentRepository.Storage.Data
 ";
 
         public string Nodes => @"
-NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path
-------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
-     1|      3|      5|      0|      1|      1|    False|      1| Admin                                   | """"                                              | /Root/IMS/BuiltIn/Portal/Admin
-     2|      4|      0|      1|      2|      2|    False|      1| Root                                    | """"                                              | /Root
-     3|      6|      2|      3|      3|      3|    False|      1| IMS                                     | Users and Groups                                  | /Root/IMS
-     4|      7|      3|      0|      4|      4|    False|      1| BuiltIn                                 | """"                                              | /Root/IMS/BuiltIn
-     5|      8|      4|      0|      5|      5|    False|      1| Portal                                  | """"                                              | /Root/IMS/BuiltIn/Portal
-     6|      3|      5|      4|      6|      6|    False|      1| Visitor                                 | """"                                              | /Root/IMS/BuiltIn/Portal/Visitor
-     7|      2|      5|      2|      7|      7|    False|      1| Administrators                          | """"                                              | /Root/IMS/BuiltIn/Portal/Administrators
-     8|      2|      5|      3|      8|      8|    False|      1| Everyone                                | """"                                              | /Root/IMS/BuiltIn/Portal/Everyone
-     9|      2|      5|      5|      9|      9|    False|      1| Owners                                  | """"                                              | /Root/IMS/BuiltIn/Portal/Owners
-    10|      3|      5|      7|     10|     10|    False|      1| Somebody                                | """"                                              | /Root/IMS/BuiltIn/Portal/Somebody
-    11|      2|      5|      7|     11|     11|    False|      1| Operators                               | """"                                              | /Root/IMS/BuiltIn/Portal/Operators
-    12|      3|      5|      8|     12|     12|    False|      1| Startup                                 | """"                                              | /Root/IMS/BuiltIn/Portal/Startup
-  1000|      5|      2|      3|     13|     13|     True|      1| System                                  | """"                                              | /Root/System
-  1001|      5|   1000|      1|     14|     14|     True|      1| Schema                                  | Schema                                            | /Root/System/Schema
-  1002|      5|   1001|      1|     15|     15|     True|      1| ContentTypes                            | ContentTypes                                      | /Root/System/Schema/ContentTypes
-  1003|      5|   1000|      2|     16|     16|     True|      1| Settings                                | Settings                                          | /Root/System/Settings
+NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | Path
+------- ------- -------  ------ ------- ------- --------- -------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------
+     1|      3|      5|      0|      1|      1|    False|       1|        1|      1| Admin                                   | """"                                              | /Root/IMS/BuiltIn/Portal/Admin
+     2|      4|      0|      1|      2|      2|    False|       1|        1|      1| Root                                    | """"                                              | /Root
+     3|      6|      2|      3|      3|      3|    False|       1|        1|      1| IMS                                     | Users and Groups                                  | /Root/IMS
+     4|      7|      3|      0|      4|      4|    False|       1|        1|      1| BuiltIn                                 | """"                                              | /Root/IMS/BuiltIn
+     5|      8|      4|      0|      5|      5|    False|       1|        1|      1| Portal                                  | """"                                              | /Root/IMS/BuiltIn/Portal
+     6|      3|      5|      4|      6|      6|    False|       1|        1|      1| Visitor                                 | """"                                              | /Root/IMS/BuiltIn/Portal/Visitor
+     7|      2|      5|      2|      7|      7|    False|       1|        1|      1| Administrators                          | """"                                              | /Root/IMS/BuiltIn/Portal/Administrators
+     8|      2|      5|      3|      8|      8|    False|       1|        1|      1| Everyone                                | """"                                              | /Root/IMS/BuiltIn/Portal/Everyone
+     9|      2|      5|      5|      9|      9|    False|       1|        1|      1| Owners                                  | """"                                              | /Root/IMS/BuiltIn/Portal/Owners
+    10|      3|      5|      7|     10|     10|    False|       1|        1|      1| Somebody                                | """"                                              | /Root/IMS/BuiltIn/Portal/Somebody
+    11|      2|      5|      7|     11|     11|    False|       1|        1|      1| Operators                               | """"                                              | /Root/IMS/BuiltIn/Portal/Operators
+    12|      3|      5|      8|     12|     12|    False|       1|        1|      1| Startup                                 | """"                                              | /Root/IMS/BuiltIn/Portal/Startup
+  1000|      5|      2|      3|     13|     13|     True|       1|        1|      1| System                                  | """"                                              | /Root/System
+  1001|      5|   1000|      1|     14|     14|     True|       1|        1|      1| Schema                                  | Schema                                            | /Root/System/Schema
+  1002|      5|   1001|      1|     15|     15|     True|       1|        1|      1| ContentTypes                            | ContentTypes                                      | /Root/System/Schema/ContentTypes
+  1003|      5|   1000|      2|     16|     16|     True|       1|        1|      1| Settings                                | Settings                                          | /Root/System/Settings
 ";
 
         public string Versions => @"

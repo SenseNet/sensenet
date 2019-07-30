@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     $"{nt.Id,4:#}| {nt.Name,-30}| {nt.ParentName ?? "<null>",-30}| {nt.ClassName,-60}| " +
                     $"[{(string.Join(" ", nt.Properties))}]");
 
-            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Owner | Name                                    | DisplayName                                       | Path");
+            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | Path");
             nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
             versionWriter.WriteLine("VersionId| NodeId|  Version");
             versionWriter.WriteLine("---------- ------- ---------");
@@ -102,6 +102,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         {
             writer.WriteLine($"{d.NodeId,6:#}| {d.NodeTypeId,6:#}| {d.ParentNodeId,6:#0}| {d.Index,6:#0}| " +
                              $"{d.LastMinorVersionId,6:#}| {d.LastMajorVersionId,6:#}| {d.IsSystem,8}| " +
+                             $"{d.CreatedById,7:#}| {d.ModifiedById,8:#}| " +
                              $"{d.OwnerId,6:#}| {d.Name,-40}| {d.DisplayName,-50}| {d.Path}");
         }
         private static void Write(TextWriter writer, VersionData d)

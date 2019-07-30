@@ -110,12 +110,14 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                 case "CreationDate":
                     CreationDate = DateTime.Parse(value);
                     break;
+                case "Creator":
                 case "CreatedById":
                     CreatedById = int.Parse(value);
                     break;
                 case "ModificationDate":
                     ModificationDate = DateTime.Parse(value);
                     break;
+                case "Modifier":
                 case "ModifiedById":
                     ModifiedById = int.Parse(value);
                     break;
