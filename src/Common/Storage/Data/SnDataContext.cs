@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using SenseNet.Diagnostics;
 using IsolationLevel = System.Data.IsolationLevel;
 
 // ReSharper disable once CheckNamespace
@@ -77,40 +79,52 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = CreateCommand())
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
             {
-                cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
+                using (var cmd = CreateCommand())
+                {
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
 
-                setParams?.Invoke(cmd);
+                    setParams?.Invoke(cmd);
 
-                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                return result;
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    op.Successful = true;
+                    return result;
+                }
             }
         }
+
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var cmd = CreateCommand())
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
             {
-                cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
+                using (var cmd = CreateCommand())
+                {
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
 
-                setParams?.Invoke(cmd);
+                    setParams?.Invoke(cmd);
 
-                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                var result = await cmd.ExecuteScalarAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                return result;
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    op.Successful = true;
+                    return result;
+                }
             }
         }
+
         public Task<T> ExecuteReaderAsync<T>(string script, Func<DbDataReader, CancellationToken, Task<T>> callback)
         {
             return ExecuteReaderAsync(script, null, callback);
@@ -118,23 +132,34 @@ namespace SenseNet.ContentRepository.Storage.Data
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            using (var cmd = CreateCommand())
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
             {
-                cmd.Connection = OpenConnection();
-                cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
-                cmd.CommandText = script;
-                cmd.CommandType = CommandType.Text;
-                cmd.Transaction = _transaction?.Transaction;
-
-                setParams?.Invoke(cmd);
-
-                var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
+                using (var cmd = CreateCommand())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return await callbackAsync(reader, cancellationToken);
+                    cmd.Connection = OpenConnection();
+                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                    cmd.CommandText = script;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Transaction = _transaction?.Transaction;
+
+                    setParams?.Invoke(cmd);
+
+                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                    using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var result = await callbackAsync(reader, cancellationToken);
+                        op.Successful = true;
+                        return result;
+                    }
                 }
             }
+        }
+
+        protected string GetOperationMessage(string name, string script)
+        {
+            const int maxLength = 80;
+            return $"{this.GetType().Name}.{name}: {(script.Length < maxLength ? script : script.Substring(0, maxLength))}";
         }
     }
 }
