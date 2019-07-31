@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<int> ExecuteNonQueryAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteNonQueryAsync", script)))
             {
                 using (var cmd = CreateCommand())
                 {
@@ -103,7 +103,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public async Task<object> ExecuteScalarAsync(string script, Action<DbCommand> setParams = null)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteScalarAsync", script)))
             {
                 using (var cmd = CreateCommand())
                 {
@@ -132,8 +132,35 @@ namespace SenseNet.ContentRepository.Storage.Data
         public async Task<T> ExecuteReaderAsync<T>(string script, Action<DbCommand> setParams,
             Func<DbDataReader, CancellationToken, Task<T>> callbackAsync)
         {
-            using (var op = SnTrace.Database.StartOperation(GetOperationMessage(MethodBase.GetCurrentMethod().Name, script)))
+            using (var op = SnTrace.Database.StartOperation(GetOperationMessage("ExecuteReaderAsync", script)))
             {
+                try
+                {
+                    using (var cmd = CreateCommand())
+                    {
+                        cmd.Connection = OpenConnection();
+                        cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                        cmd.CommandText = script;
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Transaction = _transaction?.Transaction;
+
+                        setParams?.Invoke(cmd);
+
+                        var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            var result = await callbackAsync(reader, cancellationToken);
+                            op.Successful = true;
+                            return result;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    SnTrace.WriteError(e.ToString());
+                    throw;
+                }
                 using (var cmd = CreateCommand())
                 {
                     cmd.Connection = OpenConnection();
