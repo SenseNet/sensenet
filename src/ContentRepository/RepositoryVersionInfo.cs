@@ -10,6 +10,7 @@ using SenseNet.Communication.Messaging;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Tools;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
@@ -56,19 +57,21 @@ namespace SenseNet.ContentRepository
                 if (__instance == null)
                     lock (InstanceLock)
                         if (__instance == null)
-                            __instance = Create(CancellationToken.None).Result;
+                            __instance = Create(CancellationToken.None);
                 return __instance;
             }
         }
 
-        private static async Task<RepositoryVersionInfo> Create(CancellationToken cancellationToken)
+        private static RepositoryVersionInfo Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
             try
             {
-                return Create(
-                    await storage.LoadInstalledComponentsAsync(cancellationToken),
-                    await storage.LoadInstalledPackagesAsync(cancellationToken));
+                var t1 = storage.LoadInstalledComponentsAsync(cancellationToken);
+                var t2 = storage.LoadInstalledPackagesAsync(cancellationToken);
+                STT.Task.WaitAll(t1, t2);
+
+                return Create(t1.Result, t2.Result);
             }
             catch
             {
@@ -149,6 +152,9 @@ namespace SenseNet.ContentRepository
         {
             foreach (var component in components)
             {
+if (component.ComponentId == "SenseNet.Preview") //UNDONE:ASYNC: remove this hack
+    continue;
+
                 if (string.IsNullOrEmpty(component.ComponentId))
                 {
                     SnLog.WriteWarning($"Component class {component.GetType().FullName} is invalid, it does not provide a ComponentId.");

@@ -29,6 +29,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public bool Start()
         {
+return false; //UNDONE:ASYNC: remove this hack
             _cancellation = new CancellationTokenSource();
 
             _maintenanceTimer = new Timer(MaintenanceTimerElapsed, null, TIMER_INTERVAL * 1000, TIMER_INTERVAL * 1000);
