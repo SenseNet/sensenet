@@ -216,7 +216,7 @@ namespace SenseNet.Portal.Virtualization
             {
                 if (!(onRemote && isFromMe))
                 {
-                    ReloadSiteList();
+                    ResetSiteList();
                 }
             }
         }
@@ -664,6 +664,12 @@ namespace SenseNet.Portal.Virtualization
                 }
                 return _sites;
             }
+        }
+
+        private static void ResetSiteList()
+        {
+            lock (_sitesListLock)
+                _sites = null;
         }
 
         private static void ReloadSiteList()
