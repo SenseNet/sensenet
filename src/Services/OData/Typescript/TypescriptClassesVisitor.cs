@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema.Metadata;
 
 namespace SenseNet.Portal.OData.Typescript
@@ -25,18 +24,16 @@ namespace SenseNet.Portal.OData.Typescript
  * inheriting its properties just like Content Types in the Content Repository. This module provides us to create an objects with a type so that we can validate on its properties by their
  * types or check the required ones.
  *
- *//** */
+ */
 
-// tslint:disable:naming-convention
+import { ActionModel } from './ActionModel'
+import * as ComplexTypes from './ComplexTypes'
+import * as Enums from './Enums'
 
-import * as ComplexTypes from ""./ComplexTypes"";
-import * as Enums from ""./Enums"";
-import { IActionModel } from ""./IActionModel"";
+export type ContentReferenceField<T> = ComplexTypes.DeferredObject | T | number
+export type ContentListReferenceField<T> = ComplexTypes.DeferredObject | T[] | number[]
 
-export type ContentReferenceField<T> = ComplexTypes.DeferredObject | T | number;
-export type ContentListReferenceField<T> = ComplexTypes.DeferredObject | T[] | number[];
-
-export type BinaryField = ComplexTypes.MediaResourceObject;
+export type BinaryField = ComplexTypes.MediaResourceObject
 ");
 
             // Do not call base because only classes will be read.
@@ -55,7 +52,7 @@ export type BinaryField = ComplexTypes.MediaResourceObject;
                     propertyLines.Add($" /* {fieldDescription} */");
                 }
                 var isRequired = RequiredFields.Contains(property.Name) ? "!" : "?";
-                propertyLines.Add($"public {property.Name}{isRequired}: {GetPropertyTypeName(property)};");
+                propertyLines.Add($"public {property.Name}{isRequired}: {GetPropertyTypeName(property)}");
             }
 
             var type = @class.Name;
@@ -85,8 +82,8 @@ export type BinaryField = ComplexTypes.MediaResourceObject;
             WriteLine();
             if (string.IsNullOrWhiteSpace(parentName))
             {
-                WriteLine("public Actions?: ContentListReferenceField<IActionModel>;");
-                WriteLine("public Type!: string;");
+                WriteLine("public Actions?: ContentListReferenceField<ActionModel>");
+                WriteLine("public Type!: string");
             }
             _indentCount--;
             WriteLine("}");

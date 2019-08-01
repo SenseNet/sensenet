@@ -191,7 +191,7 @@ namespace SenseNet.Portal.OData.Typescript
             string enumKey;
             if (!Context.EmittedEnumerationNames.TryGetValue(enumName, out enumKey) || enumKey != enumeration.Key)
                 enumName = Context.GetEnumerationFullName(enumeration);
-            return $"{TypescriptGenerationContext.EnumTypesModuleName}.{enumName}";
+            return $"{TypescriptGenerationContext.EnumTypesModuleName}.{enumName}[]";
         }
 
         protected void WriteStart(string text)
