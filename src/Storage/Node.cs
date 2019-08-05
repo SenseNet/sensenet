@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -1959,7 +1960,11 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
-            return LoadNode(DataStore.LoadNodeHeadAsync(nodeId).Result, version);
+//UNDONE:ASYNC: remove this hack: uncomment one line and delete the alternative implementation
+//return LoadNode(DataStore.LoadNodeHeadAsync(nodeId).Result, version);
+SnTrace.Write("#### Hacked LoadNodeHead({0})", nodeId);
+var head = ((MsSqlDataProvider)DataStore.DataProvider).LoadNodeHead(nodeId);
+return LoadNode(head, version);
         }
         /// <summary>
         /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.

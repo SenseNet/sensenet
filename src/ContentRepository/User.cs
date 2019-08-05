@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the Visitor user.
         /// </summary>
-//UNDONE:ASYNC: remove this hack: uncommnt one line and delete the alternative implementation
+//UNDONE:ASYNC: remove this hack: uncomment one line and delete the alternative implementation
 //public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
 public static User Visitor
 {

@@ -28,6 +28,22 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Nodes */
         /* =============================================================================================== NodeHead */
+        public NodeHead LoadNodeHead(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var ctx = new MsSqlDataContext2(cancellationToken))
+            {
+                return ctx.ExecuteReader(LoadNodeHeadByIdScript, cmd =>
+                {
+                    cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
+                }, (reader, cancel) =>
+                {
+                    if (!reader.Read())
+                        return null;
+                    return GetNodeHeadFromReader(reader);
+                });
+            }
+        }
+
         /* =============================================================================================== NodeQuery */
 
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
