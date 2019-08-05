@@ -26,7 +26,7 @@ namespace SenseNet.Portal.OData.Typescript
  * The ```Schema``` class represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
  */
 
-import * as FieldSettings from ""./FieldSettings"";
+import * as FieldSettings from './FieldSettings'
 
 /**
  * Class that represents a Schema.
@@ -34,15 +34,15 @@ import * as FieldSettings from ""./FieldSettings"";
  * It represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
  */
 export class Schema {
-     public ContentTypeName!: string;
-     public ParentTypeName?: string;
-     public Icon!: string;
-     public DisplayName!: string;
-     public Description!: string;
-     public AllowIndexing!: boolean;
-     public AllowIncrementalNaming!: boolean;
-     public AllowedChildTypes!: string[];
-     public FieldSettings!: FieldSettings.FieldSetting[];
+     public ContentTypeName!: string
+     public ParentTypeName?: string
+     public Icon!: string
+     public DisplayName!: string
+     public Description!: string
+     public AllowIndexing!: boolean
+     public AllowIncrementalNaming!: boolean
+     public AllowedChildTypes!: string[]
+     public FieldSettings!: FieldSettings.FieldSetting[]
 }
 
 export const SchemaStore: Schema[] = [

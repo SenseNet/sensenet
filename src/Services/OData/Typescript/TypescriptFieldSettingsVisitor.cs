@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
 
@@ -62,7 +60,6 @@ export enum TextType { LongText, RichText, AdvancedRichText }
  */
 export enum UrlFormat { Hyperlink, Picture }
 
-// tslint:disable-next-line:only-arrow-functions
 export function isFieldSettingOfType<T extends FieldSetting>(setting: FieldSetting, type: { new(): T }): setting is T {
     return setting.Type === type.name;
 }
