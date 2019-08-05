@@ -23,6 +23,7 @@ using SenseNet.Portal.OData;
 using SenseNet.Search;
 using SenseNet.Services.Wopi;
 using SenseNet.Tools;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -674,87 +675,89 @@ namespace SenseNet.Portal.Virtualization
 
         private static void ReloadSiteList()
         {
-            lock (_sitesLock)
+            _sites = null;
+            QueryResult result = null;
+
+            try
             {
-                _sites = null;
-                QueryResult result = null;
+                if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
+                    throw new ApplicationException("Unknown ContentType: Site");
 
-                try
+SnTrace.Write("#### Hacked ReloadSiteList(): Skip NodeQuery.QueryNodesByType and use an empty result");
+//UNDONE:ASYNC: remove this hack: uncomment 4 lines and delete the empty result creation
+//using (new SystemAccount())
+//{
+//    result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);
+//}
+result = new QueryResult(new int[0]);
+
+                _urlPaths = new NameValueCollection(result.Count);
+                _startPages = new NameValueCollection(result.Count);
+                _authTypes = new NameValueCollection(result.Count);
+                _loginPages = new NameValueCollection(result.Count);
+            }
+            catch (Exception e) // logged
+            {
+                SnLog.WriteException(e);
+            }
+
+            var tempSites = new Dictionary<string, Site>();
+
+            // urlsettings come from webconfig
+            var configSites = Configuration.UrlListSection.Current.Sites;
+
+            // urlsettings come either from sites in content repository or from webconfig
+            if (result != null)
+            {
+                // Loading sites and start pages should be done with and admin account.
+                // Authorization will occur when the user tries to load 
+                // the start page of the selected site.
+
+                using (new SystemAccount())
                 {
-                    if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
-                        throw new ApplicationException("Unknown ContentType: Site");
-
-                    using (new SystemAccount())
+                    foreach (Site site in result.Nodes)
                     {
-                        result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
-                    }
+                        var siteUrls = site.UrlList.Keys;
 
-                    _urlPaths = new NameValueCollection(result.Count);
-                    _startPages = new NameValueCollection(result.Count);
-                    _authTypes = new NameValueCollection(result.Count);
-                    _loginPages = new NameValueCollection(result.Count);
-                }
-                catch (Exception e) // logged
-                {
-                    SnLog.WriteException(e);
-                }
+                        // siteurls come from webconfig
+                        if (configSites.Count > 0 && configSites[site.Path] != null)
+                            siteUrls = configSites[site.Path].Urls.GetUrlHosts();
 
-                var tempSites = new Dictionary<string, Site>();
-
-                // urlsettings come from webconfig
-                var configSites = Configuration.UrlListSection.Current.Sites;
-
-                // urlsettings come either from sites in content repository or from webconfig
-                if (result != null)
-                {
-                    // Loading sites and start pages should be done with and admin account.
-                    // Authorization will occur when the user tries to load 
-                    // the start page of the selected site.
-
-                    using (new SystemAccount())
-                    {
-                        foreach (Site site in result.Nodes)
+                        foreach (string siteUrl in siteUrls)
                         {
-                            var siteUrls = site.UrlList.Keys;
+                            try
+                            {
+                                tempSites.Add(siteUrl, site);
+                            }
+                            catch (ArgumentException) // rethrow
+                            {
+                                throw new ArgumentException(String.Format(
+                                    "The url '{0}' has already been added to site '{1}' and cannot be added to site '{2}'",
+                                    siteUrl, tempSites[siteUrl].Name, site.Name));
+                            }
+                        }
 
-                            // siteurls come from webconfig
+                        string siteLoginPageUrl = (site.LoginPage != null ? site.LoginPage.Path : null);
+                        foreach (string url in siteUrls)
+                        {
+                            _urlPaths.Add(url, site.Path);
+                            _loginPages.Add(url, siteLoginPageUrl);
+                            _startPages.Add(url, site.StartPage != null ? site.StartPage.Name : string.Empty);
+
+                            // auth types come from webconfig or from site urllist
                             if (configSites.Count > 0 && configSites[site.Path] != null)
-                                siteUrls = configSites[site.Path].Urls.GetUrlHosts();
-
-                            foreach (string siteUrl in siteUrls)
-                            {
-                                try
-                                {
-                                    tempSites.Add(siteUrl, site);
-                                }
-                                catch (ArgumentException) // rethrow
-                                {
-                                    throw new ArgumentException(String.Format("The url '{0}' has already been added to site '{1}' and cannot be added to site '{2}'", siteUrl, tempSites[siteUrl].Name, site.Name));
-                                }
-                            }
-
-                            string siteLoginPageUrl = (site.LoginPage != null ? site.LoginPage.Path : null);
-                            foreach (string url in siteUrls)
-                            {
-                                _urlPaths.Add(url, site.Path);
-                                _loginPages.Add(url, siteLoginPageUrl);
-                                _startPages.Add(url, site.StartPage != null ? site.StartPage.Name : string.Empty);
-
-                                // auth types come from webconfig or from site urllist
-                                if (configSites.Count > 0 && configSites[site.Path] != null)
-                                    _authTypes.Add(url, configSites[site.Path].Urls[url].Auth);
-                                else
-                                    _authTypes.Add(url, site.UrlList[url]);
-                            }
+                                _authTypes.Add(url, configSites[site.Path].Urls[url].Auth);
+                            else
+                                _authTypes.Add(url, site.UrlList[url]);
                         }
                     }
                 }
-
-                _knownHosts = _urlPaths.AllKeys.Select(x => new Uri("http://" + x).Host).Distinct().ToArray();
-
-                // assign value only at the end
-                _sites = tempSites;
             }
+
+            _knownHosts = _urlPaths.AllKeys.Select(x => new Uri("http://" + x).Host).Distinct().ToArray();
+
+            // assign value only at the end
+            _sites = tempSites;
         }
 
         public string GetCurrentAuthenticationMode()
