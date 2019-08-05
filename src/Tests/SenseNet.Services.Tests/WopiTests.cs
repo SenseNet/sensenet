@@ -1451,7 +1451,8 @@ namespace SenseNet.Services.Tests
                                 Actions = new WopiDiscovery.WopiActionCollection
                                 {
                                     new WopiDiscovery.WopiAction("view", "docx", null, null),
-                                    new WopiDiscovery.WopiAction("edit", "docx", null, null)
+                                    new WopiDiscovery.WopiAction("edit", "docx", null, null),
+                                    new WopiDiscovery.WopiAction("view", "doc", null, null)
                                 }
                             },
                             new WopiDiscovery.WopiApp("Excel", null)
@@ -1473,21 +1474,24 @@ namespace SenseNet.Services.Tests
             var file2 = CreateTestContent("File", parent, "File1.txt");
             var file3 = CreateTestContent("File", parent, "File1.docx");
             var file4 = CreateTestContent("File", parent, "File1.xlsx");
+            var file5 = CreateTestContent("File", parent, "File1.doc");
             var folder = CreateTestContent("Folder", parent, "Folder1");
             
-            void CreateAndAssertWopiAction(Content content, bool visibleExpected, bool forbiddenExpected)
+            void CreateAndAssertWopiAction(Content content, string actionType, bool visibleExpected, bool forbiddenExpected)
             {
-                var (forbidden, visible) = WopiOpenAction.InitializeInternal(content, "test");
+                var (forbidden, visible) = WopiOpenAction.InitializeInternal(content, actionType, "test");
 
                 Assert.AreEqual(visibleExpected, visible ?? true, content.Name);
                 Assert.AreEqual(forbiddenExpected, forbidden ?? false, content.Name);
             }
 
-            CreateAndAssertWopiAction(file1, false, true);
-            CreateAndAssertWopiAction(file2, false, true);
-            CreateAndAssertWopiAction(file3, true, false);
-            CreateAndAssertWopiAction(file4, true, false);
-            CreateAndAssertWopiAction(folder, false, true);
+            CreateAndAssertWopiAction(file1, "view", false, true);
+            CreateAndAssertWopiAction(file2, "view", false, true);
+            CreateAndAssertWopiAction(file3, "view", true, false);
+            CreateAndAssertWopiAction(file4, "view", true, false);
+            CreateAndAssertWopiAction(file5, "view", true, false);
+            CreateAndAssertWopiAction(file5, "edit", false, true);
+            CreateAndAssertWopiAction(folder, "view", false, true);
         }
 
         /* ======================================================================================= */
