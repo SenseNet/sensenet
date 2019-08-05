@@ -147,10 +147,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                         setParams?.Invoke(cmd);
 
                         var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
+                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            var result = await callbackAsync(reader, cancellationToken);
+                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
                             op.Successful = true;
                             return result;
                         }
@@ -161,25 +161,25 @@ namespace SenseNet.ContentRepository.Storage.Data
                     SnTrace.WriteError(e.ToString());
                     throw;
                 }
-                using (var cmd = CreateCommand())
-                {
-                    cmd.Connection = OpenConnection();
-                    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
-                    cmd.CommandText = script;
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Transaction = _transaction?.Transaction;
+                //using (var cmd = CreateCommand())
+                //{
+                //    cmd.Connection = OpenConnection();
+                //    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
+                //    cmd.CommandText = script;
+                //    cmd.CommandType = CommandType.Text;
+                //    cmd.Transaction = _transaction?.Transaction;
 
-                    setParams?.Invoke(cmd);
+                //    setParams?.Invoke(cmd);
 
-                    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var result = await callbackAsync(reader, cancellationToken);
-                        op.Successful = true;
-                        return result;
-                    }
-                }
+                //    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
+                //    using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
+                //    {
+                //        cancellationToken.ThrowIfCancellationRequested();
+                //        var result = await callbackAsync(reader, cancellationToken);
+                //        op.Successful = true;
+                //        return result;
+                //    }
+                //}
             }
         }
 

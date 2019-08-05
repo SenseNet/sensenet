@@ -649,7 +649,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // BASE DATA
                     cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -711,9 +711,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // BINARY PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -728,11 +728,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // REFERENCE PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     // -- collect references
                     var referenceCollector = new Dictionary<int, Dictionary<int, List<int>>>();
                     cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -758,9 +758,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // LONGTEXT PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     cancel.ThrowIfCancellationRequested();
-                    while (await reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -773,7 +773,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     return result.Values;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNodesScript { get; }

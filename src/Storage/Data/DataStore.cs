@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken)).FirstOrDefault();
+            return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (tokensToLoad.Count > 0)
                 {
                     var versionIds = tokensToLoad.Select(x => x.VersionId).ToArray();
-                    var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken);
+                    var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken).ConfigureAwait(false);
                     foreach (var nodeData in loadedCollection)
                     {
                         if (nodeData != null) // lost version
