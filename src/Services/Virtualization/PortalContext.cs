@@ -683,13 +683,10 @@ namespace SenseNet.Portal.Virtualization
                 if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
                     throw new ApplicationException("Unknown ContentType: Site");
 
-SnTrace.Write("#### Hacked ReloadSiteList(): Skip NodeQuery.QueryNodesByType and use an empty result");
-//UNDONE:ASYNC: remove this hack: uncomment 4 lines and delete the empty result creation
-//using (new SystemAccount())
-//{
-//    result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);
-//}
-result = new QueryResult(new int[0]);
+                using (new SystemAccount())
+                {
+                    result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);
+                }
 
                 _urlPaths = new NameValueCollection(result.Count);
                 _startPages = new NameValueCollection(result.Count);

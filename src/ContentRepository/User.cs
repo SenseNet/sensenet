@@ -56,20 +56,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the Visitor user.
         /// </summary>
-//UNDONE:ASYNC: remove this hack: uncomment one line and delete the alternative implementation
-//public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
-public static User Visitor
-{
-    get
-    {
-        AccessProvider.ChangeToSystemAccount();
-        User user = Node.LoadNode(Identifiers.VisitorUserId) as User;
-        AccessProvider.RestoreOriginalUser();
-        if (user == null)
-            throw new ApplicationException("Administrator cannot be found.");
-        return user;
-    }
-}
+        public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
 
         private static User _somebody;
         private static object _somebodyLock = new object();
