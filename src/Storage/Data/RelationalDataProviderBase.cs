@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var transaction = ctx.BeginTransaction())
                     {
                         // Insert new rows int Nodes and Versions tables
-                        var ok = await/*undone*/ ctx.ExecuteReaderAsync(InsertNodeAndVersionScript, cmd =>
+                        var ok = await ctx.ExecuteReaderAsync(InsertNodeAndVersionScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -88,7 +88,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         }, async (reader, cancel) =>
                         {
                             cancel.ThrowIfCancellationRequested();
-                            if (await/*undone*/ reader.ReadAsync(cancel))
+                            if (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             {
                                 nodeHeadData.NodeId = reader.GetInt32("NodeId");
                                 nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
@@ -102,21 +102,21 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 throw new DataException("Node was not saved. The InsertNodeAndVersion script returned nothing.");
                             }
                             return true;
-                        });
+                        }).ConfigureAwait(false);
 
                         var versionId = versionData.VersionId;
 
                         // Manage ReferenceProperties
                         if (dynamicData.ReferenceProperties.Any())
-                            await/*undone*/ InsertReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
+                            await InsertReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await/*undone*/ InsertLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
+                            await InsertLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            await/*undone*/ SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, true, true, ctx);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, true, true, ctx).ConfigureAwait(false);
 
                         transaction.Commit();
                     }
@@ -186,10 +186,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
-            await/*undone*/ ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
-            });
+            }).ConfigureAwait(false);
         }
         protected abstract string InsertReferencePropertiesHeadScript { get; }
         protected abstract string InsertReferencePropertiesScript { get; }
@@ -207,8 +207,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
-            await/*undone*/ ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
-                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
+                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
         }
         protected abstract string InsertLongtextPropertiesHeadScript { get; }
         protected abstract string InsertLongtextPropertiesScript { get; }
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var versionId = versionData.VersionId;
 
                         // Update version
-                        var rawVersionTimestamp = await/*undone*/ ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
+                        var rawVersionTimestamp = await ctx.ExecuteScalarAsync(UpdateVersionScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -246,7 +246,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue,
                                     SerializeDynamicProperties(dynamicData.ContentListProperties)),
                             });
-                        });
+                        }).ConfigureAwait(false);
                         var versionTimestamp = ConvertTimestampToInt64(rawVersionTimestamp);
                         if(versionTimestamp == 0L)
                             throw new ContentNotFoundException(
@@ -254,7 +254,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         versionData.Timestamp = versionTimestamp;
 
                         // Update Node
-                        var rawNodeTimestamp = await/*undone*/ ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -289,27 +289,27 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                        });
+                        }).ConfigureAwait(false);
                         nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
                         // Update subtree if needed
                         if (originalPath != null)
-                            await/*undone*/ UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx);
+                            await UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx).ConfigureAwait(false);
 
                         // Delete unnecessary versions and update last versions
-                        await/*undone*/ ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
                         // Manage ReferenceProperties
                         if (dynamicData.ReferenceProperties.Any())
-                            await/*undone*/ UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
+                            await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await/*undone*/ UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
+                            await UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            await/*undone*/ SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx).ConfigureAwait(false);
 
                         transaction.Commit();
                     }
@@ -330,14 +330,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected async Task UpdateSubTreePathAsync(string originalPath, string path, SnDataContext ctx)
         {
-            await/*undone*/ ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
+            await ctx.ExecuteNonQueryAsync(UpdateSubTreePathScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
                     ctx.CreateParameter("@OldPath", DbType.String, PathMaxLength, originalPath),
                     ctx.CreateParameter("@NewPath", DbType.String, PathMaxLength, path),
                 });
-            });
+            }).ConfigureAwait(false);
         }
         protected virtual async Task ManageLastVersionsAsync(IEnumerable<int> versionIdsToDelete, NodeHeadData nodeHeadData, SnDataContext ctx)
         {
@@ -347,13 +347,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
                 if (versionIds.Length > 0)
                 {
-                    await/*undone*/ BlobStorage.DeleteBinaryPropertiesAsync(versionIds, ctx);
+                    await BlobStorage.DeleteBinaryPropertiesAsync(versionIds, ctx).ConfigureAwait(false);
 
                     versionIdsParam = string.Join(",", versionIds.Select(x => x.ToString()));
                 }
             }
 
-            await/*undone*/ ctx.ExecuteReaderAsync(ManageLastVersionsScript, cmd =>
+            await ctx.ExecuteReaderAsync(ManageLastVersionsScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -363,24 +363,24 @@ namespace SenseNet.ContentRepository.Storage.Data
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
-                if (await/*undone*/ reader.ReadAsync(cancel))
+                if (await reader.ReadAsync(cancel).ConfigureAwait(false))
                 {
                     nodeHeadData.Timestamp = reader.GetSafeLongFromBytes("NodeTimestamp");
                     nodeHeadData.LastMajorVersionId = reader.GetSafeInt32("LastMajorVersionId");
                     nodeHeadData.LastMinorVersionId = reader.GetInt32("LastMinorVersionId");
                 }
                 return true;
-            });
+            }).ConfigureAwait(false);
         }
         protected virtual async Task SaveBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty,
             SnDataContext dataContext)
         {
             if (value == null || value.IsEmpty)
-                await/*undone*/ BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
+                await BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).ConfigureAwait(false);
             else if (value.Id == 0 || isNewProperty)
-                await/*undone*/ BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
+                await BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext).ConfigureAwait(false);
             else
-                await/*undone*/ BlobStorage.UpdateBinaryPropertyAsync(value, dataContext);
+                await BlobStorage.UpdateBinaryPropertyAsync(value, dataContext).ConfigureAwait(false);
         }
         protected abstract string UpdateVersionScript { get; }
         protected abstract string UpdateNodeScript { get; }
@@ -398,10 +398,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                 parameters.Add(ctx.CreateParameter("@PropertyTypeId" + index, DbType.Int32, item.Key.Id));
                 parameters.Add(ctx.CreateParameter("@ReferredNodeIds" + index, DbType.String, int.MaxValue, string.Join(",", item.Value.Select(x => x.ToString()))));
             }
-            await/*undone*/ ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
+            await ctx.ExecuteNonQueryAsync(sqlBuilder.ToString(), cmd =>
             {
                 cmd.Parameters.AddRange(parameters.ToArray());
-            });
+            }).ConfigureAwait(false);
         }
         protected abstract string UpdateReferencePropertiesHeadScript { get; }
         protected abstract string UpdateReferencePropertiesScript { get; }
@@ -419,8 +419,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                 longTextSqlParameters.Add(ctx.CreateParameter("@Length" + index, DbType.Int32, item.Value.Length));
                 longTextSqlParameters.Add(ctx.CreateParameter("@Value" + index, DbType.AnsiString, int.MaxValue, item.Value));
             }
-            await/*undone*/ ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
-                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); });
+            await ctx.ExecuteNonQueryAsync(longTextSqlBuilder.ToString(),
+                cmd => { cmd.Parameters.AddRange(longTextSqlParameters.ToArray()); }).ConfigureAwait(false);
         }
         protected abstract string UpdateLongtextPropertiesHeadScript { get; }
         protected abstract string UpdateLongtextPropertiesScript { get; }
@@ -437,7 +437,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var transaction = ctx.BeginTransaction())
                     {
                         // Copy and update version
-                        var versionId = await/*undone*/ ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
+                        var versionId = await ctx.ExecuteReaderAsync(CopyVersionAndUpdateScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -460,16 +460,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                         }, async (reader, cancel) =>
                         {
                             cancel.ThrowIfCancellationRequested();
-                            while (await/*undone*/ reader.ReadAsync(cancel))
+                            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             {
                                 cancel.ThrowIfCancellationRequested();
                                 versionData.VersionId = reader.GetInt32("VersionId");
                                 versionData.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
                             }
                             cancel.ThrowIfCancellationRequested();
-                            if (await/*undone*/ reader.NextResultAsync(cancel))
+                            if (await reader.NextResultAsync(cancel).ConfigureAwait(false))
                             {
-                                while (await/*undone*/ reader.ReadAsync(cancel))
+                                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                                 {
                                     var binId = reader.GetInt32("BinaryPropertyId");
                                     var propId = reader.GetInt32("PropertyTypeId");
@@ -480,10 +480,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 }
                             }
                             return versionData.VersionId;
-                        });
+                        }).ConfigureAwait(false);
 
                         // Update Node
-                        var rawNodeTimestamp = await/*undone*/ ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -518,27 +518,27 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                        });
+                        }).ConfigureAwait(false);
                         nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
                         // Update subtree if needed
                         if (originalPath != null)
-                            await/*undone*/ UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx);
+                            await UpdateSubTreePathAsync(originalPath, nodeHeadData.Path, ctx).ConfigureAwait(false);
 
                         // Delete unnecessary versions and update last versions
-                        await/*undone*/ ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
                         // Manage ReferenceProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await/*undone*/ UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx);
+                            await UpdateReferencePropertiesAsync(dynamicData.ReferenceProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage LongTextProperties
                         if (dynamicData.LongTextProperties.Any())
-                            await/*undone*/ UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx);
+                            await UpdateLongTextPropertiesAsync(dynamicData.LongTextProperties, versionId, ctx).ConfigureAwait(false);
 
                         // Manage BinaryProperties
                         foreach (var item in dynamicData.BinaryProperties)
-                            await/*undone*/ SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx);
+                            await SaveBinaryPropertyAsync(item.Value, versionId, item.Key.Id, false, false, ctx).ConfigureAwait(false);
 
                         transaction.Commit();
                     }
@@ -570,7 +570,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     using (var transaction = ctx.BeginTransaction())
                     {
                         // Update Node
-                        var rawNodeTimestamp = await/*undone*/ ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
+                        var rawNodeTimestamp = await ctx.ExecuteScalarAsync(UpdateNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -605,11 +605,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@NodeTimestamp", DbType.Binary, ConvertInt64ToTimestamp(nodeHeadData.Timestamp)),
                             #endregion
                         });
-                        });
+                        }).ConfigureAwait(false);
                         nodeHeadData.Timestamp = ConvertTimestampToInt64(rawNodeTimestamp);
 
                         // Delete unnecessary versions and update last versions
-                        await/*undone*/ ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx);
+                        await ManageLastVersionsAsync(versionIdsToDelete, nodeHeadData, ctx).ConfigureAwait(false);
 
                         transaction.Commit();
                     }
@@ -849,7 +849,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 using (var ctx = CreateDataContext(cancellationToken))
                 using (var transaction = ctx.BeginTransaction())
                 {
-                    await/*undone*/ ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
+                    await ctx.ExecuteNonQueryAsync(DeleteNodeScript, cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
                         {
@@ -858,7 +858,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@PartitionSize", DbType.Int32, partitionSize),
 
                         });
-                    });
+                    }).ConfigureAwait(false);
                     transaction.Commit();
                 }
             }
@@ -886,7 +886,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        await/*undone*/ ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
+                        await ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -897,7 +897,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@TargetTimestamp", DbType.Binary,
                                     ConvertInt64ToTimestamp(targetTimestamp)),
                             });
-                        });
+                        }).ConfigureAwait(false);
 
                         transaction.Commit();
                     }
@@ -932,7 +932,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(sql, cmd =>
+                return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
                     for (int i = 0; i < notLoadedPropertyTypeIds.Length; i++)
@@ -940,13 +940,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetInt32("PropertyTypeId"), reader.GetSafeString("Value"));
                     }
                     return result;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadTextPropertyValuesScript { get; }
@@ -955,7 +955,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                return await/*undone*/ BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx);
+                return await BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx).ConfigureAwait(false);
         }
 
         public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
@@ -978,16 +978,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNodeHeadByPathScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, PathMaxLength, path));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    if (!await/*undone*/ reader.ReadAsync(cancel))
+                    if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
                         return null;
                     return GetNodeHeadFromReader(reader);
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNodeHeadByPathScript { get; }
@@ -997,16 +997,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNodeHeadByIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    if (!await/*undone*/ reader.ReadAsync(cancel))
+                    if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
                         return null;
                     return GetNodeHeadFromReader(reader);
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNodeHeadByIdScript { get; }
@@ -1016,16 +1016,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNodeHeadByVersionIdScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNodeHeadByVersionIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    if (!await/*undone*/ reader.ReadAsync(cancel))
+                    if (!await reader.ReadAsync(cancel).ConfigureAwait(false))
                         return null;
                     return GetNodeHeadFromReader(reader);
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNodeHeadByVersionIdScript { get; }
@@ -1036,21 +1036,21 @@ namespace SenseNet.ContentRepository.Storage.Data
             var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNodeHeadsByIdSetScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeIds", DbType.AnsiString, int.MaxValue, ids));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<NodeHead>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(GetNodeHeadFromReader(reader));
                     }
 
                     return result;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNodeHeadsByIdSetScript { get; }
@@ -1060,14 +1060,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
+                return await ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<NodeHead.NodeVersion>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(new NodeHead.NodeVersion(
@@ -1078,7 +1078,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 reader.GetInt32("VersionId")));
                     }
                     return result.ToArray();
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string GetNodeVersionsScript { get; }
@@ -1087,14 +1087,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
+                return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<VersionNumber>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(new VersionNumber(
@@ -1104,7 +1104,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         
                     }
                     return result.ToArray();
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string GetVersionNumbersByNodeIdScript { get; }
@@ -1113,7 +1113,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
+                return await ctx.ExecuteReaderAsync(GetVersionNumbersByPathScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
                 }, async (reader, cancel) =>
@@ -1122,14 +1122,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var result = new List<VersionNumber>();
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             result.Add(new VersionNumber(
                                 reader.GetInt16("MajorNumber"),
                                 reader.GetInt16("MinorNumber"),
                                 (VersionStatus) reader.GetInt16("Status")));
                     }
                     return result.ToArray();
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string GetVersionNumbersByPathScript { get; }
@@ -1170,12 +1170,12 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     sql = GetAppModelScript(pathList, true, resolveChildren);
                     List<NodeHead>[] resultSorter;
-                    heads = await/*undone*/ ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                    heads = await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<NodeHead>();
                         resultSorter = new List<NodeHead>[pathList.Count];
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             var nodeHead = NodeHead.Get(reader.GetInt32(0));
@@ -1197,19 +1197,19 @@ namespace SenseNet.ContentRepository.Storage.Data
                             }
                         }
                         return result;
-                    });
+                    }).ConfigureAwait(false);
                 }
                 else
                 {
                     sql = GetAppModelScript(pathList, false, resolveChildren);
-                    heads = await/*undone*/ ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
+                    heads = await ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<NodeHead>();
-                        if (await/*undone*/ reader.ReadAsync(cancel))
+                        if (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             result.Add(NodeHead.Get(reader.GetInt32(0)));
                         return result;
-                    });
+                    }).ConfigureAwait(false);
                 }
             }
             return heads;
@@ -1225,11 +1225,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return (int)await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                return (int)await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     var index = 0;
                     cmd.Parameters.AddRange(nodeTypeIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string InstanceCountScript { get; }
@@ -1237,7 +1237,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                return await/*undone*/ ctx.ExecuteReaderAsync(
+                return await ctx.ExecuteReaderAsync(
                     GetChildrenIdentfiersScript,
                     cmd =>
                     {
@@ -1247,13 +1247,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<int>();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             result.Add(reader.GetInt32(0));
                         }
                         return result.ToArray();
-                    });
+                    }).ConfigureAwait(false);
         }
         protected abstract string GetChildrenIdentfiersScript { get; }
 
@@ -1291,18 +1291,18 @@ namespace SenseNet.ContentRepository.Storage.Data
                         parameters.Add(ctx.CreateParameter(prefix + i, DbType.Int32, nodeTypeIds[i]));
                 }
 
-                return await/*undone*/ ctx.ExecuteReaderAsync(sql, cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
+                return await ctx.ExecuteReaderAsync(sql, cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<int>();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             result.Add(reader.GetInt32(0));
                         }
                         return result.ToArray();
-                    });
+                    }).ConfigureAwait(false);
             }
 
         }
@@ -1314,7 +1314,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                     },
@@ -1322,7 +1322,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<NodeType>();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             var name = (string) reader[0];
@@ -1331,7 +1331,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 result.Add(nt);
                         }
                         return result;
-                    });
+                    }).ConfigureAwait(false);
         }
         protected abstract string LoadChildTypesToAllowScript { get; }
 
@@ -1339,7 +1339,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
+                return await ctx.ExecuteReaderAsync(GetContentListTypesInTreeScript, cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
                     },
@@ -1347,7 +1347,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<ContentListType>();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             var id = reader.GetInt32(0);
@@ -1355,7 +1355,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             result.Add(t);
                         }
                         return result;
-                    });
+                    }).ConfigureAwait(false);
             }
         }
         protected abstract string GetContentListTypesInTreeScript { get; }
@@ -1371,13 +1371,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
                     for (var i = 0; i < parentChain.Length; i++)
                         cmd.Parameters.Add(
                             ctx.CreateParameter("@Path" + i, DbType.String, DataStore.PathMaxLength, parentChain[i]));
-                });
+                }).ConfigureAwait(false);
                 return (result == null || result == DBNull.Value) ? 0 : (int)result;
             }
         }
@@ -1394,12 +1394,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeLimit", DbType.DateTime, timeLimit));
                     for (int i = 0; i < parentChain.Length; i++)
                         cmd.Parameters.Add(ctx.CreateParameter("@Path" + i, DbType.String, 450, parentChain[i]));
-                });
+                }).ConfigureAwait(false);
                 return result != null && result != DBNull.Value;
             }
         }
@@ -1412,14 +1412,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync(sql, cmd =>
+                await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     var index = 0;
                     cmd.Parameters.AddRange(lockIds.Select(i => ctx.CreateParameter("@Id" + index++, DbType.Int32, i)).ToArray());
-                });
+                }).ConfigureAwait(false);
             }
 
-            await/*undone*/ DeleteUnusedLocksAsync(cancellationToken);
+            await DeleteUnusedLocksAsync(cancellationToken).ConfigureAwait(false);
         }
         protected abstract string ReleaseTreeLockScript { get; }
 
@@ -1427,17 +1427,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadAllTreeLocksScript, async (reader, cancel) =>
+                return await ctx.ExecuteReaderAsync(LoadAllTreeLocksScript, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new Dictionary<int, string>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetInt32(0), reader.GetString(1));
                     }
                     return result;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadAllTreeLocksScript { get; }
@@ -1446,10 +1446,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(DeleteUnusedLocksScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@TimeMin", DbType.DateTime2, GetObsoleteLimitTime()));
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string DeleteUnusedLocksScript { get; }
@@ -1474,14 +1474,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(SaveIndexDocumentScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@VersionId", DbType.Int32, versionId),
                         ctx.CreateParameter("@IndexDocument", DbType.String, int.MaxValue, indexDoc),
                     });
-                });
+                }).ConfigureAwait(false);
                 return ConvertTimestampToInt64(result);
             }
         }
@@ -1491,7 +1491,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadIndexDocumentsByVersionIdScript, cmd =>
                     {
                         cmd.Parameters.Add(ctx.CreateParameter("@VersionIds", DbType.String, string.Join(",", versionIds.Select(x => x.ToString()))));
                     },
@@ -1499,13 +1499,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<IndexDocumentData>();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             result.Add(GetIndexDocumentDataFromReader(reader));
                         }
                         return result;
-                    });
+                    }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadIndexDocumentsByVersionIdScript { get; }
@@ -1590,7 +1590,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNotIndexedNodeIdsScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNotIndexedNodeIdsScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1601,13 +1601,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     cancel.ThrowIfCancellationRequested();
                     var idSet = new List<int>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         idSet.Add(reader.GetSafeInt32(0));
                     }
                     return idSet;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadNotIndexedNodeIdsScript { get; }
@@ -1619,7 +1619,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript);
+                var result = await ctx.ExecuteScalarAsync(GetLastIndexingActivityIdScript).ConfigureAwait(false);
                 return result == DBNull.Value ? 0 : Convert.ToInt32(result);
             }
         }
@@ -1630,7 +1630,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadIndexingActivitiesPageScript,
+                return await ctx.ExecuteReaderAsync(LoadIndexingActivitiesPageScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -1641,7 +1641,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
                     },
                     async (reader, cancel) =>
-                        await/*undone*/ GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancel));
+                        await GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancel).ConfigureAwait(false)).ConfigureAwait(false);
             }
         }
         protected abstract string LoadIndexingActivitiesPageScript { get; }
@@ -1651,7 +1651,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript,
+                return await ctx.ExecuteReaderAsync(LoadIndexingActivitiyGapsScript,
                     cmd =>
                     {
                         cmd.Parameters.AddRange(new[]
@@ -1661,7 +1661,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
                     },
                     async (reader, cancel) =>
-                        await/*undone*/ GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancel));
+                        await GetIndexingActivitiesFromReaderAsync(reader, executingUnprocessedActivities, activityFactory, cancel).ConfigureAwait(false)).ConfigureAwait(false);
             }
         }
         protected abstract string LoadIndexingActivitiyGapsScript { get; }
@@ -1671,14 +1671,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             //if (waitingActivityIds == null || waitingActivityIds.Length == 0)
-            //    return await/*undone*/ LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
+            //    return await LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken).ConfigureAwait(false);
             string waitingActivityIdParam = null;
             if (waitingActivityIds != null && waitingActivityIds.Length > 0)
                 waitingActivityIdParam = string.Join(",", waitingActivityIds.Select(x => x.ToString()));
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(
+                return await ctx.ExecuteReaderAsync(
                     waitingActivityIdParam == null
                         ? LoadExecutableIndexingActivitiesScript
                         : LoadExecutableAndFinishedIndexingActivitiesScript, cmd =>
@@ -1693,14 +1693,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                             cmd.Parameters.Add(ctx.CreateParameter("@WaitingIds", DbType.String, waitingActivityIdParam));
                     }, async (reader, cancel) =>
                     {
-                        var activities = await/*undone*/ GetIndexingActivitiesFromReaderAsync(reader, false, activityFactory, cancel);
+                        var activities = await GetIndexingActivitiesFromReaderAsync(reader, false, activityFactory, cancel).ConfigureAwait(false);
 
                         var finishedIds = new List<int>();
                         if (waitingActivityIdParam != null)
                         {
                             cancel.ThrowIfCancellationRequested();
-                            await/*undone*/ reader.NextResultAsync(cancel);
-                            while (await/*undone*/ reader.ReadAsync(cancel))
+                            await reader.NextResultAsync(cancel).ConfigureAwait(false);
+                            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             {
                                 cancel.ThrowIfCancellationRequested();
                                 finishedIds.Add(reader.GetInt32(0));
@@ -1712,7 +1712,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             Activities = activities,
                             FinishedActivitiyIds = finishedIds.ToArray()
                         };
-                    });
+                    }).ConfigureAwait(false);
             }
 
             /*
@@ -1740,7 +1740,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 activity.CreationDate = DateTime.UtcNow;
-                var rawActivityId = await/*undone*/ ctx.ExecuteScalarAsync(RegisterIndexingActivityScript, cmd =>
+                var rawActivityId = await ctx.ExecuteScalarAsync(RegisterIndexingActivityScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1754,7 +1754,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@VersionTimestamp", DbType.Int64, (object)activity.VersionTimestamp ?? DBNull.Value),
                         ctx.CreateParameter("@Extension", DbType.String, int.MaxValue, (object)activity.Extension ?? DBNull.Value),
                     });
-                });
+                }).ConfigureAwait(false);
                 activity.Id = Convert.ToInt32(rawActivityId);
             }
         }
@@ -1764,14 +1764,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                await/*undone*/ ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@IndexingActivityId", DbType.Int32, indexingActivityId),
                         ctx.CreateParameter("@RunningState", DbType.AnsiString, runningState.ToString())
                     });
-                });
+                }).ConfigureAwait(false);
         }
         protected abstract string UpdateIndexingActivityRunningStateScript { get; }
 
@@ -1779,28 +1779,28 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-            await/*undone*/ ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
+            await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
                     ctx.CreateParameter("@Ids", DbType.String, string.Join(",", waitingIds.Select(x => x.ToString()))),
                     ctx.CreateParameter("@LockTime", DbType.DateTime2, DateTime.UtcNow)
                 });
-            });
+            }).ConfigureAwait(false);
         }
         protected abstract string RefreshIndexingActivityLockTimeScript { get; }
 
         public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                await/*undone*/ ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript);
+                await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript).ConfigureAwait(false);
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
 
         public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                await/*undone*/ ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript);
+                await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript).ConfigureAwait(false);
         }
         protected abstract string DeleteAllIndexingActivitiesScript { get; }
 
@@ -1830,7 +1830,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var nodeTimestampColumn = reader.GetOrdinal("NodeTimestamp");
             var extensionColumn = reader.GetOrdinal("Extension");
 
-            while (await/*undone*/ reader.ReadAsync(cancel))
+            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
             {
                 cancel.ThrowIfCancellationRequested();
 
@@ -1890,20 +1890,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadSchemaScript, async (reader, cancel) =>
+                return await ctx.ExecuteReaderAsync(LoadSchemaScript, async (reader, cancel) =>
                 {
                     var schema = new RepositorySchemaData();
 
                     cancel.ThrowIfCancellationRequested();
-                    if (await/*undone*/ reader.ReadAsync(cancel))
+                    if (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         schema.Timestamp = reader.GetSafeLongFromBytes("Timestamp");
 
                     // PropertyTypes
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     var propertyTypes = new List<PropertyTypeData>();
                     schema.PropertyTypes = propertyTypes;
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         propertyTypes.Add(new PropertyTypeData
@@ -1918,12 +1918,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // NodeTypes
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     var nodeTypes = new List<NodeTypeData>();
                     schema.NodeTypes = nodeTypes;
                     var tree = new List<(NodeTypeData Data, int ParentId)>(); // data, parentId
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         var data = new NodeTypeData
@@ -1949,9 +1949,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var contentListTypes = new List<ContentListTypeData>();
                     schema.ContentListTypes = contentListTypes;
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         contentListTypes.Add(new ContentListTypeData
@@ -1965,7 +1965,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     }
 
                     return schema;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadSchemaScript { get; }
@@ -1976,14 +1976,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             var lockToken = Guid.NewGuid().ToString();
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(StartSchemaUpdateScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@Timestamp", DbType.Binary, ConvertInt64ToTimestamp(schemaTimestamp)),
                         ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, lockToken)
                     });
-                });
+                }).ConfigureAwait(false);
                 var resultCode = result == DBNull.Value ? 0 : (int)result;
 
                 if (resultCode == -1)
@@ -2000,10 +2000,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(FinishSchemaUpdateScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@LockToken", DbType.AnsiString, 50, schemaLock)); 
-                });
+                }).ConfigureAwait(false);
 
                 var timestamp = ConvertTimestampToInt64(result);
                 if(timestamp == 0L)
@@ -2021,7 +2021,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var unused = await/*undone*/ ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
+                var unused = await ctx.ExecuteScalarAsync(WriteAuditEventScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -2043,7 +2043,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@Message", DbType.String, 1500, (object)auditEvent.Message ?? DBNull.Value),
                         ctx.CreateParameter("@Formattedmessage", DbType.String, int.MaxValue, (object)auditEvent.FormattedMessage ?? DBNull.Value),
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string WriteAuditEventScript { get; }
@@ -2052,14 +2052,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadLastAuditEventsScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadLastAuditEventsScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Top", DbType.Int32, count));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<AuditLogEntry>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(new AuditLogEntry
@@ -2076,7 +2076,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
                     }
                     return result;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadLastAuditEventsScript { get; }
@@ -2093,7 +2093,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return (string)await/*undone*/ ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
+                return (string)await ctx.ExecuteScalarAsync(GetNameOfLastNodeWithNameBaseScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -2101,7 +2101,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@Name", DbType.String, namebase),
                         ctx.CreateParameter("@Extension", DbType.String, extension),
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string GetNameOfLastNodeWithNameBaseScript { get; }
@@ -2112,14 +2112,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             RepositoryPath.CheckValidPath(path);
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return (long)await/*undone*/ ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
+                return (long)await ctx.ExecuteScalarAsync(GetTreeSizeScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@IncludeChildren", DbType.Byte, includeChildren ? (byte) 1 : 0),
                         ctx.CreateParameter("@NodePath", DbType.String, PathMaxLength, path),
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string GetTreeSizeScript { get; }
@@ -2127,13 +2127,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                return (int)await/*undone*/ ctx.ExecuteScalarAsync(
+                return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetNodeCountScript : GetNodeCountInSubtreeScript,
                     cmd =>
                     {
                         if (path != null)
                             cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
-                    });
+                    }).ConfigureAwait(false);
         }
         protected abstract string GetNodeCountScript { get; }
         protected abstract string GetNodeCountInSubtreeScript { get; }
@@ -2141,13 +2141,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var ctx = CreateDataContext(cancellationToken))
-                return (int)await/*undone*/ ctx.ExecuteScalarAsync(
+                return (int)await ctx.ExecuteScalarAsync(
                     path == null ? GetVersionCountScript : GetVersionCountInSubtreeScript,
                     cmd =>
                     {
                         if (path != null)
                             cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, path));
-                    });
+                    }).ConfigureAwait(false);
         }
         protected abstract string GetVersionCountScript { get; }
         protected abstract string GetVersionCountInSubtreeScript { get; }
@@ -2159,11 +2159,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadEntityTreeScript, async (reader, cancel) =>
+                return await ctx.ExecuteReaderAsync(LoadEntityTreeScript, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<EntityTreeNodeData>();
-                    while (await/*undone*/ reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(new EntityTreeNodeData
@@ -2174,7 +2174,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                         });
                     }
                     return result;
-                });
+                }).ConfigureAwait(false);
             }
         }
         protected abstract string LoadEntityTreeScript { get; }
