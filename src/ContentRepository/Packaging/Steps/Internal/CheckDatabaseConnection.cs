@@ -75,7 +75,7 @@ END
                     {
                         if (reader.HasRows)
                         {
-                            while (await/*undone*/ reader.ReadAsync(cancel))
+                            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             {
                                 // empty code block, created only for checking the connection
                             }

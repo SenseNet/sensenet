@@ -35,7 +35,7 @@ WHERE RelType = 'Aspects' and TargetId in
 
                         using (new SystemAccount())
                         {
-                            while (await/*undone*/ reader.ReadAsync(cancel))
+                            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             {
                                 Operate(reader.GetInt32(0));
                                 count++;

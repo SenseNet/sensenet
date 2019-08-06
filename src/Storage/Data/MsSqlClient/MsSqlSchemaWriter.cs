@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 foreach (var contentListType in contentListTypes)
                     contentListType.Id = ++lastId;
             }
-            await/*undone*/ MsSqlSchemaInstaller.InstallSchemaAsync(schema);
+            await MsSqlSchemaInstaller.InstallSchemaAsync(schema).ConfigureAwait(false);
         }
 
         #region unused methods

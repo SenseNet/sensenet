@@ -129,7 +129,7 @@ namespace SenseNet.Packaging.Steps
                             if (reader.HasRows)
                             {
                                 var first = true;
-                                while (await/*undone*/ reader.ReadAsync(cancel))
+                                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                                 {
                                     if (first)
                                     {
@@ -145,7 +145,7 @@ namespace SenseNet.Packaging.Steps
                                     sb.Clear();
                                 }
                             }
-                        } while (await/*undone*/ reader.NextResultAsync(cancel));
+                        } while (await reader.NextResultAsync(cancel).ConfigureAwait(false));
                         return Task.FromResult(0);
                     }).Wait();
                 }

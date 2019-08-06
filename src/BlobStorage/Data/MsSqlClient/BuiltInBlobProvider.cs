@@ -97,14 +97,14 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            await/*undone*/ dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+            await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
                     dataContext.CreateParameter("@Id", SqlDbType.Int, context.FileId),
                     dataContext.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
                 });
-            });
+            }).ConfigureAwait(false);
         }
 
 
@@ -173,7 +173,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -183,7 +183,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
                         ctx.CreateParameter("@Data", SqlDbType.VarBinary, buffer),
                         ctx.CreateParameter("@Offset", SqlDbType.BigInt, offset),
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
 

@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal static async Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count,
             CancellationToken cancellationToken)
         {
-            var ctx = await/*undone*/ GetBlobStorageContextAsync(fileId, cancellationToken);
+            var ctx = await GetBlobStorageContextAsync(fileId, cancellationToken).ConfigureAwait(false);
             var provider = ctx.Provider;
 
             if (provider == BuiltInProvider)
@@ -187,12 +187,12 @@ namespace SenseNet.ContentRepository.Storage.Data
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
-                var ctx = await/*undone*/ GetBlobStorageContextAsync(tokenData.FileId, cancellationToken);
+                var ctx = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken).ConfigureAwait(false);
 
                 // must update properties because the Length contains the actual saved size but the featue needs the full size
                 UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
                     
-                await/*undone*/ ctx.Provider.WriteAsync(ctx, offset, buffer, cancellationToken);
+                await ctx.Provider.WriteAsync(ctx, offset, buffer, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -237,18 +237,18 @@ namespace SenseNet.ContentRepository.Storage.Data
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
-                var context = await/*undone*/ GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, true, versionId, tokenData.PropertyTypeId);
+                var context = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, true, versionId, tokenData.PropertyTypeId).ConfigureAwait(false);
                 if (context.Provider == BuiltInProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when
                     // the binary should be saved into a regular SQL varbinary column.
-                    await/*undone*/ CopyFromStreamByChunksAsync(context, input, cancellationToken);
+                    await CopyFromStreamByChunksAsync(context, input, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     // This is the recommended way to write a stream to the binary storage.
                     using (var targetStream = context.Provider.GetStreamForWrite(context))
-                        await/*undone*/ input.CopyToAsync(targetStream);
+                        await input.CopyToAsync(targetStream).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
@@ -268,9 +268,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             int read;
             long offset = 0;
 
-            while ((read = await/*undone*/ input.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            while ((read = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
-                await/*undone*/ context.Provider.WriteAsync(context, offset, GetLocalBufferAfterRead(read, buffer), cancellationToken);
+                await context.Provider.WriteAsync(context, offset, GetLocalBufferAfterRead(read, buffer), cancellationToken).ConfigureAwait(false);
 
                 offset += read;
             }
