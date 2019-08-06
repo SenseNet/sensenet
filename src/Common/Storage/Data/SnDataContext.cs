@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     setParams?.Invoke(cmd);
 
                     var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken);
+                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -116,7 +116,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     setParams?.Invoke(cmd);
 
                     var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -161,25 +161,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                     SnTrace.WriteError(e.ToString());
                     throw;
                 }
-                //using (var cmd = CreateCommand())
-                //{
-                //    cmd.Connection = OpenConnection();
-                //    cmd.CommandTimeout = Configuration.Data.DbCommandTimeout;
-                //    cmd.CommandText = script;
-                //    cmd.CommandType = CommandType.Text;
-                //    cmd.Transaction = _transaction?.Transaction;
-
-                //    setParams?.Invoke(cmd);
-
-                //    var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                //    using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken))
-                //    {
-                //        cancellationToken.ThrowIfCancellationRequested();
-                //        var result = await callbackAsync(reader, cancellationToken);
-                //        op.Successful = true;
-                //        return result;
-                //    }
-                //}
             }
         }
 
