@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     setParams?.Invoke(cmd);
 
                     var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await/*undone*/ cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -116,7 +116,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     setParams?.Invoke(cmd);
 
                     var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                    var result = await/*undone*/ cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -147,10 +147,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                         setParams?.Invoke(cmd);
 
                         var cancellationToken = _transaction?.CancellationToken ?? _cancellationToken;
-                        using (var reader = (DbDataReader)await/*undone*/ cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                        using (var reader = (DbDataReader)await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            var result = await/*undone*/ callbackAsync(reader, cancellationToken).ConfigureAwait(false);
+                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
                             op.Successful = true;
                             return result;
                         }

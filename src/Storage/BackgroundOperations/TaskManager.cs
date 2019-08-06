@@ -153,7 +153,7 @@ namespace SenseNet.BackgroundOperations
             {
                 try
                 {
-                    return await/*undone*/ RepositoryClient.RegisterTaskAsync(taskManagementUrl, requestData).ConfigureAwait(false);
+                    return await RepositoryClient.RegisterTaskAsync(taskManagementUrl, requestData).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -191,7 +191,7 @@ namespace SenseNet.BackgroundOperations
         {
             try
             {
-                await/*undone*/ RepositoryClient.RegisterApplicationAsync(taskManagementUrl, requestData).ConfigureAwait(false);
+                await RepositoryClient.RegisterApplicationAsync(taskManagementUrl, requestData).ConfigureAwait(false);
 
                 return true;
             }

@@ -635,7 +635,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await/*undone*/ ctx.ExecuteReaderAsync(LoadNodesScript, cmd =>
+                return await ctx.ExecuteReaderAsync(LoadNodesScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                         {
@@ -649,7 +649,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // BASE DATA
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -711,9 +711,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // BINARY PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -728,11 +728,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // REFERENCE PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     // -- collect references
                     var referenceCollector = new Dictionary<int, Dictionary<int, List<int>>>();
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -758,9 +758,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // LONGTEXT PROPERTIES
                     cancel.ThrowIfCancellationRequested();
-                    await/*undone*/ reader.NextResultAsync(cancel).ConfigureAwait(false);
+                    await reader.NextResultAsync(cancel).ConfigureAwait(false);
                     cancel.ThrowIfCancellationRequested();
-                    while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
 
@@ -962,7 +962,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                var result = (int) await/*undone*/ ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
+                var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
                 }).ConfigureAwait(false);

@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return (await/*undone*/ LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
+            return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (tokensToLoad.Count > 0)
                 {
                     var versionIds = tokensToLoad.Select(x => x.VersionId).ToArray();
-                    var loadedCollection = await/*undone*/ DataProvider.LoadNodesAsync(versionIds, cancellationToken).ConfigureAwait(false);
+                    var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken).ConfigureAwait(false);
                     foreach (var nodeData in loadedCollection)
                     {
                         if (nodeData != null) // lost version
@@ -317,7 +317,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (Cache.Get(pathKey) is NodeHead)
                 return true;
 
-            return await/*undone*/ DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
+            return await DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
         }
 
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
