@@ -317,7 +317,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (Cache.Get(pathKey) is NodeHead)
                 return true;
 
-            return await DataProvider.NodeExistsAsync(path, cancellationToken);
+            return await DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
         }
 
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)

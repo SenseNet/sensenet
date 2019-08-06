@@ -965,7 +965,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 var result = (int) await ctx.ExecuteScalarAsync(NodeExistsScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@Path", DbType.String, DataStore.PathMaxLength, path));
-                });
+                }).ConfigureAwait(false);
                 return result != 0;
             }
         }

@@ -103,13 +103,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<int>();
-                    while (await reader.ReadAsync(cancel))
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetSafeInt32(0));
                     }
                     return (IEnumerable<int>)result;
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -203,13 +203,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<int>();
-                        while (await reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             result.Add(reader.GetInt32(0));
                         }
                         return result;
-                    });
+                    }).ConfigureAwait(false);
             }
         }
         private (bool IsNodeTable, bool IsColumn, string Column, DbType DataType, object Value) GetPropertyMappingForQuery(QueryPropertyData property)
@@ -303,7 +303,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken);
+            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }
 
         /* =============================================================================================== Tools */
