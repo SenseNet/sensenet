@@ -65,13 +65,13 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(RunComponent(C("CompA", "7.1.0", "7.1.0")));
 
             // Install and run
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0")));
         }
         [TestMethod]
         public async Task Packaging_EzRelease_InstalledComponent_CanRun()
         {
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0")));
         }
         [TestMethod]
@@ -83,7 +83,7 @@ namespace SenseNet.Packaging.Tests
                 invoked = true;
                 return true;
             });
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0", permittingFunction)));
             Assert.IsTrue(invoked, "The function was not invoked.");
         }
@@ -96,23 +96,23 @@ namespace SenseNet.Packaging.Tests
                 invoked = true;
                 return false;
             });
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsFalse(RunComponent(C("CompA", "7.1.0", "7.1.0", permittingFunction)));
             Assert.IsTrue(invoked, "The function was not invoked.");
         }
         [TestMethod]
         public async Task Packaging_EzRelease_CompatibleComponent_CanRun()
         {
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            await/*undone*/ SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.2", "7.1.0")));
         }
         [TestMethod]
         public async Task Packaging_EzRelease_InCompatibleComponent_CannotRun()
         {
-            await/*undone*/ SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            await/*undone*/ SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
-            await/*undone*/ SavePackage("CompA", "7.1.2", "02:00", "2016-01-03", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.2", "02:00", "2016-01-03", PackageType.Patch, ExecutionResult.Successful);
             Assert.IsFalse(RunComponent(C("CompA", "7.2.0", "7.2.0")));
         }
 
