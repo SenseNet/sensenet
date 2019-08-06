@@ -33,11 +33,11 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteReaderAsync(InstalledComponentsScript,
+                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             components.Add(new ComponentInfo
@@ -52,7 +52,7 @@ ON P1.ComponentId = P2.ComponentId";
                         }
 
                         return true;
-                    });
+                    }).ConfigureAwait(false);
             }
 
             return components;
@@ -63,11 +63,11 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteReaderAsync("SELECT * FROM Packages",
+                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             packages.Add(new Package
@@ -90,7 +90,7 @@ ON P1.ComponentId = P2.ComponentId";
                         }
 
                         return true;
-                    });
+                    }).ConfigureAwait(false);
             }
             
             return packages;
@@ -106,7 +106,7 @@ SELECT @@IDENTITY";
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -126,7 +126,7 @@ SELECT @@IDENTITY";
                                 : (object) EncodePackageVersion(package.ComponentVersion)),
                         ctx.CreateParameter("@Manifest", DbType.String, int.MaxValue, package.Manifest ?? (object) DBNull.Value)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 package.Id = Convert.ToInt32(result);
             }
@@ -149,7 +149,7 @@ WHERE Id = @Id
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
+                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -170,7 +170,7 @@ WHERE Id = @Id
                                 ? DBNull.Value
                                 : (object) EncodePackageVersion(package.ComponentVersion))
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -185,7 +185,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             int count;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -193,7 +193,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
                         ctx.CreateParameter("@PackageType", DbType.AnsiString, 50, packageType.ToString()),
                         ctx.CreateParameter("@Version", DbType.AnsiString, 50, EncodePackageVersion(version))
                     });
-                });
+                }).ConfigureAwait(false);
 
                 count = (int)result;
             }
@@ -208,8 +208,8 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
-                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
+                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
+                    cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); }).ConfigureAwait(false);
             }
         }
 
@@ -217,7 +217,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages").ConfigureAwait(false);
             }
         }
 
@@ -228,13 +228,13 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
+                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@Id", DbType.Int32, package.Id)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 package.Manifest = (string)(result == DBNull.Value ? null : result);
             }

@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]");
+                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]").ConfigureAwait(false);
             }
         }
 
@@ -48,7 +48,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -56,7 +56,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -80,7 +80,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -88,7 +88,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -116,7 +116,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -125,7 +125,7 @@ SELECT @Result
                         ctx.CreateParameter("@NewLock", DbType.String, newLock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -144,14 +144,14 @@ SELECT @Result
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
                     {
                         ctx.CreateParameter("@ContentId", DbType.Int32, contentId),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                });
+                }).ConfigureAwait(false);
                 return result == DBNull.Value ? null : (string)result;
             }
         }
@@ -171,7 +171,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -179,7 +179,7 @@ SELECT @Result
                         ctx.CreateParameter("@Lock", DbType.String, @lock),
                         ctx.CreateParameter("@TimeLimit", DbType.DateTime2, timeLimit)
                     });
-                });
+                }).ConfigureAwait(false);
 
                 existingLock = result == DBNull.Value ? null : (string)result;
             }
@@ -198,13 +198,13 @@ SELECT @Result
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await/*undone*/ ctx.ExecuteNonQueryAsync(sql, cmd =>
+                await ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
                         ctx.CreateParameter("@TimeoutInMinutes", DbType.Int32, Convert.ToInt32(SharedLockTimeout.TotalMinutes))
                     });
-                });
+                }).ConfigureAwait(false);
             }
         }
 

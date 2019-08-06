@@ -41,11 +41,11 @@ namespace SenseNet.Packaging.Steps.Internal
                         cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
                     }, async (reader, cancel) =>
                     {
-                        while (await/*undone*/ reader.ReadAsync(cancel))
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             result.Add(reader.GetInt32(0));
-                        await/*undone*/ reader.NextResultAsync(cancel);
+                        await reader.NextResultAsync(cancel).ConfigureAwait(false);
 
-                        await/*undone*/ reader.ReadAsync(cancel);
+                        await reader.ReadAsync(cancel).ConfigureAwait(false);
                         remainingTasks = reader.GetInt32(0);
 
                         return Task.FromResult(0);
