@@ -143,7 +143,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                     setParams?.Invoke(cmd);
 
-                    var result = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await/*undone*/ cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -173,7 +173,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                     setParams?.Invoke(cmd);
 
-                    var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await/*undone*/ cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
                     op.Successful = true;
@@ -210,10 +210,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
                         setParams?.Invoke(cmd);
 
-                        using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                        using (var reader = await/*undone*/ cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
-                            var result = await callbackAsync(reader, cancellationToken).ConfigureAwait(false);
+                            var result = await/*undone*/ callbackAsync(reader, cancellationToken).ConfigureAwait(false);
                             op.Successful = true;
                             return result;
                         }

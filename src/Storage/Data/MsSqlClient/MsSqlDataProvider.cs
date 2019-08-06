@@ -99,11 +99,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             cancellationToken.ThrowIfCancellationRequested();
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
+                return await/*undone*/ ctx.ExecuteReaderAsync(sql.ToString(), async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
                     var result = new List<int>();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                    while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(reader.GetSafeInt32(0));
@@ -197,13 +197,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     sqlBuilder.AppendLine("ORDER BY n.[Path]");
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
+                return await/*undone*/ ctx.ExecuteReaderAsync(sqlBuilder.ToString(),
                     cmd => { cmd.Parameters.AddRange(parameters.ToArray()); },
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
                         var result = new List<int>();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                        while (await/*undone*/ reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
                             result.Add(reader.GetInt32(0));
@@ -303,7 +303,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
+            await/*undone*/ MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }
 
         /* =============================================================================================== Tools */

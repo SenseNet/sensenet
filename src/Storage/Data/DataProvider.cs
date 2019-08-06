@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -23,7 +14,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
     /// ... Recommended minimal object structure: Nodes -> Versions --> BinaryProperties -> Files
-    ///                                                         |-> LongTextProperties
+    ///                                                             |-> LongTextProperties
+    ///                                                             |-> ReferenceProperties
     /// ... Additional structure: TreeLocks, LogEntries, IndexingActivities
     /// </summary>
     public abstract class DataProvider

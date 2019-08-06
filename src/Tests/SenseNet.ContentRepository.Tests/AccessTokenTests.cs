@@ -333,7 +333,7 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(InvalidAccessTokenException))]
         public async Tasks.Task AccessToken_AssertExists_Missing()
         {
-           await AccessTokenVault.AssertTokenExistsAsync("asdf");
+           await/*undone*/ AccessTokenVault.AssertTokenExistsAsync("asdf");
         }
         [TestMethod]
         [ExpectedException(typeof(InvalidAccessTokenException))]
@@ -346,7 +346,7 @@ namespace SenseNet.ContentRepository.Tests
             // ACTION
             Thread.Sleep(1100);
 
-            await AccessTokenVault.AssertTokenExistsAsync(savedToken.Value);
+            await/*undone*/ AccessTokenVault.AssertTokenExistsAsync(savedToken.Value);
         }
 
         [TestMethod]

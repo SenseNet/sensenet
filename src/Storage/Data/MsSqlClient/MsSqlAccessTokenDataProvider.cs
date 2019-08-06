@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             {
                 using (var ctx = MainProvider.CreateDataContext(cancellationToken))
                 {
-                    var result = await ctx.ExecuteScalarAsync(sql);
+                    var result = await/*undone*/ ctx.ExecuteScalarAsync(sql);
                     var originalCollation = Convert.ToString(result);
                     _accessTokenValueCollationName = originalCollation.Replace("_CI_", "_CS_");
                 }
@@ -53,7 +53,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
+                await/*undone*/ ctx.ExecuteNonQueryAsync("TRUNCATE TABLE AccessTokens");
             }
         }
 
@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -87,12 +87,12 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
+                return await/*undone*/ ctx.ExecuteReaderAsync("SELECT TOP 1 * FROM AccessTokens WHERE [AccessTokenId] = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, accessTokenId)); },
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        return await reader.ReadAsync(cancel)
+                        return await/*undone*/ reader.ReadAsync(cancel)
                             ? GetAccessTokenFromReader(reader)
                             : null;
                     });
@@ -102,18 +102,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public async Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = "SELECT TOP 1 * FROM [dbo].[AccessTokens] " +
-                      $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE() AND " +
+                      $"WHERE [Value] = @Value COLLATE {await/*undone*/ GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE() AND " +
                       (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
                       (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql,
+                return await/*undone*/ ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); },
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        return await reader.ReadAsync(cancel)
+                        return await/*undone*/ reader.ReadAsync(cancel)
                             ? GetAccessTokenFromReader(reader)
                             : null;
                     });
@@ -127,13 +127,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql,
+                return await/*undone*/ ctx.ExecuteReaderAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); },
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
                         var tokens = new List<AccessToken>();
-                        while (await reader.ReadAsync(cancel))
+                        while (await/*undone*/ reader.ReadAsync(cancel))
                             tokens.Add(GetAccessTokenFromReader(reader));
 
                         return tokens.ToArray();
@@ -148,11 +148,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                       "SET [ExpirationDate] = @NewExpirationDate " +
                       "   OUTPUT INSERTED.AccessTokenId" +
                       " WHERE [Value] = @Value " +
-                      $" COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE()";
+                      $" COLLATE {await/*undone*/ GetAccessTokenValueCollationNameAsync(cancellationToken)} AND [ExpirationDate] > GETUTCDATE()";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -169,11 +169,11 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public async Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken))
         {
             var sql = "DELETE FROM [dbo].[AccessTokens] " +
-                      $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken)}";
+                      $"WHERE [Value] = @Value COLLATE {await/*undone*/ GetAccessTokenValueCollationNameAsync(cancellationToken)}";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(sql,
+                await/*undone*/ ctx.ExecuteNonQueryAsync(sql,
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Value", DbType.String, tokenValue)); });
             }
         }
@@ -182,7 +182,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
+                await/*undone*/ ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@UserId", DbType.Int32, userId)); });
             }
         }
@@ -191,7 +191,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
+                await/*undone*/ ctx.ExecuteNonQueryAsync("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@ContentId", DbType.Int32, contentId)); });
             }
         }
@@ -202,7 +202,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(sql);
+                await/*undone*/ ctx.ExecuteNonQueryAsync(sql);
             }
         }
     }

@@ -340,7 +340,7 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public async Task Packaging_NoPatchNeeded()
         {
-            await PatchAndCheck(nameof(TestComponentOnePatch),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentOnePatch),
                 new[] {new Version(1, 0), new Version(1, 1)},
                 null,
                 null,
@@ -350,7 +350,7 @@ namespace SenseNet.Packaging.Tests
         public async Task Packaging_OnePatch_Manifest()
         {
             // execute a patch that is defined as a manifest
-            await PatchAndCheck(nameof(TestComponentOnePatch),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentOnePatch),
                 new[] {new Version(1, 0)},
                 new[] {new Version(1, 1)},
                 null,
@@ -362,7 +362,7 @@ namespace SenseNet.Packaging.Tests
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
                 // execute a patch that is defined as code
-                await PatchAndCheck(nameof(TestComponentPatchCode),
+                await/*undone*/ PatchAndCheck(nameof(TestComponentPatchCode),
                     new[] { new Version(1, 0) },
                     new[] { new Version(1, 1) },
                     null,
@@ -374,7 +374,7 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public async Task Packaging_MultiPatch()
         {
-            await PatchAndCheck(nameof(TestComponentMultiPatch),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentMultiPatch),
                 new[] {new Version(1, 0)},
                 new[] {new Version(1, 1), new Version(1, 2)},
                 null,
@@ -383,7 +383,7 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public async Task Packaging_MultiPatch_SkipPatch()
         {
-            await PatchAndCheck(nameof(TestComponentMultiPatch),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentMultiPatch),
                 new[] {new Version(1, 1)},
                 new[] {new Version(1, 2)},
                 null,
@@ -392,7 +392,7 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public async Task Packaging_MultiPatch_Exclusive()
         {
-            await PatchAndCheck(nameof(TestComponentMultiPatchExclusive),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentMultiPatchExclusive),
                 new[] { new Version(2, 0) },
                 null,
                 null,
@@ -403,7 +403,7 @@ namespace SenseNet.Packaging.Tests
         [ExpectedException(typeof(InvalidPackageException))]
         public async Task Packaging_MultiPatch_IncorrectFormat()
         {
-            await PatchAndCheck(nameof(TestComponentMultiPatchIncorrectFormat),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentMultiPatchIncorrectFormat),
                 new[] { new Version(1, 0) },
                 null, null, null);
         }
@@ -413,7 +413,7 @@ namespace SenseNet.Packaging.Tests
         {
             // The Supported version of this component is v1.1, but there is no patch
             // in the assembly, so we expect an exception here.
-            await PatchAndCheck(nameof(TestComponentNoPatch),
+            await/*undone*/ PatchAndCheck(nameof(TestComponentNoPatch),
                 new[] {new Version(1, 0)},
                 null,
                 null,
@@ -425,7 +425,7 @@ namespace SenseNet.Packaging.Tests
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
-                await PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
+                await/*undone*/ PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
                     new[] { new Version(1, 0) },
                     null,
                     null,
@@ -440,7 +440,7 @@ namespace SenseNet.Packaging.Tests
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
-                await PatchAndCheck(nameof(TestComponentPatchInvalidAmbigous),
+                await/*undone*/ PatchAndCheck(nameof(TestComponentPatchInvalidAmbigous),
                     new[] { new Version(1, 0) },
                     null,
                     null,
@@ -526,7 +526,7 @@ namespace SenseNet.Packaging.Tests
 
                 foreach (var packageVersion in packageVersions)
                 {
-                    await PackageManager.Storage.SavePackageAsync(new Package
+                    await/*undone*/ PackageManager.Storage.SavePackageAsync(new Package
                     {
                         ComponentId = componentId,
                         ComponentVersion = packageVersion,

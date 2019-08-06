@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]");
+                await/*undone*/ ctx.ExecuteNonQueryAsync("TRUNCATE TABLE [dbo].[SharedLocks]");
             }
         }
 
@@ -48,7 +48,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -80,7 +80,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -116,7 +116,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -144,7 +144,7 @@ SELECT @Result
             const string sql = @"SELECT [Lock] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId AND [CreationDate] >= @TimeLimit";
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new []
                     {
@@ -171,7 +171,7 @@ SELECT @Result
             string existingLock;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(sql, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -198,7 +198,7 @@ SELECT @Result
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(sql, cmd =>
+                await/*undone*/ ctx.ExecuteNonQueryAsync(sql, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

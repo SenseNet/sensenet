@@ -97,7 +97,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            await dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
+            await/*undone*/ dataContext.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -173,7 +173,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
+                await/*undone*/ ctx.ExecuteNonQueryAsync(UpdateStreamWriteChunkScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {

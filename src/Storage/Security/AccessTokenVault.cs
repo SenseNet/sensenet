@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 ExpirationDate = now.Add(timeout)
             };
 
-            await Storage.SaveAccessTokenAsync(token, cancellationToken);
+            await/*undone*/ Storage.SaveAccessTokenAsync(token, cancellationToken);
             return token;
         }
 
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var maxExpiration = DateTime.UtcNow.Add(timeout);
-            var existingToken = (await Storage.LoadAccessTokensAsync(userId, cancellationToken))
+            var existingToken = (await/*undone*/ Storage.LoadAccessTokensAsync(userId, cancellationToken))
                 .OrderBy(at => at.ExpirationDate)
                 .LastOrDefault(at => at.ContentId == contentId &&
                                      at.Feature == feature &&
@@ -115,7 +115,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             // if the found token expires in less then a minimum expiration, we issue a new one
             return existingToken?.ExpirationDate > DateTime.UtcNow.AddMinutes(MinimumTokenExpirationMinutes)
                 ? existingToken
-                : await CreateTokenAsync(userId, timeout, contentId, feature, cancellationToken);
+                : await/*undone*/ CreateTokenAsync(userId, timeout, contentId, feature, cancellationToken);
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static async Task<bool> TokenExistsAsync(string tokenValue, int contentId = 0, string feature = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await GetTokenAsync(tokenValue, contentId, feature, cancellationToken) != null;
+            return await/*undone*/ GetTokenAsync(tokenValue, contentId, feature, cancellationToken) != null;
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static async Task AssertTokenExistsAsync(string tokenValue, int contentId = 0, string feature = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!await TokenExistsAsync(tokenValue, contentId, feature, cancellationToken))
+            if (!await/*undone*/ TokenExistsAsync(tokenValue, contentId, feature, cancellationToken))
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
         }
 

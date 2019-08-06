@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             CreateData(dataSet, schema);
 
-            await WriteToDatabaseAsync(dataSet, connectionString);
+            await/*undone*/ WriteToDatabaseAsync(dataSet, connectionString);
         }
 
         /* ==================================================================================================== Tables */
@@ -152,9 +152,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 connection.Open();
                 using (var transaction = connection.BeginTransaction())
                 {
-                    await BulkInsertAsync(dataSet, TableName.PropertyTypes, connection, transaction);
-                    await BulkInsertAsync(dataSet, TableName.NodeTypes, connection, transaction);
-                    await BulkInsertAsync(dataSet, TableName.ContentListTypes, connection, transaction);
+                    await/*undone*/ BulkInsertAsync(dataSet, TableName.PropertyTypes, connection, transaction);
+                    await/*undone*/ BulkInsertAsync(dataSet, TableName.NodeTypes, connection, transaction);
+                    await/*undone*/ BulkInsertAsync(dataSet, TableName.ContentListTypes, connection, transaction);
                     transaction.Commit();
                 }
             }
@@ -184,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 foreach (var name in _columnNames[tableName])
                     bulkCopy.ColumnMappings.Add(name, name);
 
-                await bulkCopy.WriteToServerAsync(table);
+                await/*undone*/ bulkCopy.WriteToServerAsync(table);
             }
         }
     }

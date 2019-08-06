@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             cancellationToken.ThrowIfCancellationRequested();
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(sql, cmd =>
+                return await/*undone*/ ctx.ExecuteReaderAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@FileId", DbType.Int32, fileId));
                     if (clearStream)
@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    if (!await reader.ReadAsync(cancel))
+                    if (!await/*undone*/ reader.ReadAsync(cancel))
                         return null;
 
                     var length = reader.GetSafeInt64(0);
@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             // in the Files table to work, it just stores the bytes. 
             if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
+                await/*undone*/ blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
 
                 using (var stream = blobProvider.GetStreamForWrite(ctx))
                     value.Stream?.CopyTo(stream);
@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 throw new PlatformNotSupportedException();
 
             var sql = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryPropertyScript;
-            await sqlCtx.ExecuteReaderAsync(sql, cmd =>
+            await/*undone*/ sqlCtx.ExecuteReaderAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 });
             }, async (reader, cancel) =>
             {
-                if (await reader.ReadAsync(cancel))
+                if (await/*undone*/ reader.ReadAsync(cancel))
                 {
                     value.Id = Convert.ToInt32(reader[0]);
                     value.FileId = Convert.ToInt32(reader[1]);
@@ -140,7 +140,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 ctx.FileId = value.FileId;
                 ctx.BlobProviderData = new BuiltinBlobProviderData();
 
-                await BuiltInBlobProvider.AddStreamAsync(ctx, value.Stream, sqlCtx);
+                await/*undone*/ BuiltInBlobProvider.AddStreamAsync(ctx, value.Stream, sqlCtx);
             }
         }
 
@@ -152,7 +152,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            value.Id = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
+            value.Id = (int)await/*undone*/ sqlCtx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     Length = streamLength,
                 };
 
-                await blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
+                await/*undone*/ blobProvider.AllocateAsync(ctx, dataContext.CancellationToken);
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
@@ -209,7 +209,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             var sql = blobProvider == BlobStorageBase.BuiltInProvider
                 ? UpdateBinaryPropertyScript
                 : UpdateBinaryPropertyNewFilerowScript;
-            var fileId = (int)await sqlCtx.ExecuteScalarAsync(sql, cmd =>
+            var fileId = (int)await/*undone*/ sqlCtx.ExecuteScalarAsync(sql, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -239,7 +239,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                     BlobProviderData = new BuiltinBlobProviderData()
                 };
 
-                await BuiltInBlobProvider.UpdateStreamAsync(ctx, value.Stream, sqlCtx);
+                await/*undone*/ BuiltInBlobProvider.UpdateStreamAsync(ctx, value.Stream, sqlCtx);
             }
             else
             {
@@ -261,7 +261,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            await sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
+            await/*undone*/ sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertyScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -276,7 +276,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            await sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
+            await/*undone*/ sqlCtx.ExecuteNonQueryAsync(DeleteBinaryPropertiesScript, cmd =>
             {
                 var idsParam = string.Join(",", versionIds.Select(x => x.ToString()));
                 cmd.Parameters.Add(sqlCtx.CreateParameter("@VersionIds", DbType.String, idsParam.Length, idsParam));
@@ -288,7 +288,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            return await sqlCtx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
+            return await/*undone*/ sqlCtx.ExecuteReaderAsync(LoadBinaryPropertyScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -298,7 +298,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
-                if (!await reader.ReadAsync(cancel))
+                if (!await/*undone*/ reader.ReadAsync(cancel))
                     return null;
 
                 var size = reader.GetInt64("Size");
@@ -347,14 +347,14 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
-                return await LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx);
+                return await/*undone*/ LoadBinaryCacheEntityAsync(versionId, propertyTypeId, ctx);
         }
         public async Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             if (!(dataContext is MsSqlDataContext sqlCtx))
                 throw new PlatformNotSupportedException();
 
-            return await sqlCtx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
+            return await/*undone*/ sqlCtx.ExecuteReaderAsync(LoadBinaryCacheEntityScript, cmd =>
             {
                 cmd.Parameters.AddRange(new[]
                 {
@@ -365,7 +365,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }, async (reader, cancel) =>
             {
                 cancel.ThrowIfCancellationRequested();
-                if (!reader.HasRows || !await reader.ReadAsync(cancel))
+                if (!reader.HasRows || !await/*undone*/ reader.ReadAsync(cancel))
                     return null;
 
                 var length = reader.GetInt64(0);
@@ -411,7 +411,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             string blobProviderData = null;
             if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                await blobProvider.AllocateAsync(ctx, cancellationToken);
+                await/*undone*/ blobProvider.AllocateAsync(ctx, cancellationToken);
                 blobProviderName = blobProvider.GetType().FullName;
                 blobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
@@ -421,7 +421,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     using (var transaction = dctx.BeginTransaction())
                     {
-                        var result = await dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
+                        var result = await/*undone*/ dctx.ExecuteReaderAsync(InsertStagingBinaryScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -436,7 +436,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                             int binaryPropertyId;
                             int fileId;
                             cancel.ThrowIfCancellationRequested();
-                            if (await reader.ReadAsync(cancel))
+                            if (await/*undone*/ reader.ReadAsync(cancel))
                             {
                                 binaryPropertyId = reader.GetSafeInt32(0);
                                 fileId = reader.GetSafeInt32(1);
@@ -475,7 +475,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        await ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
+                        await/*undone*/ ctx.ExecuteNonQueryAsync(CommitChunkScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -513,7 +513,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 {
                     try
                     {
-                        await ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript);
+                        await/*undone*/ ctx.ExecuteNonQueryAsync(CleanupFileSetIsdeletedScript);
                         transaction.Commit();
                     }
                     catch (Exception e)
@@ -528,7 +528,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             using (var dctx = new MsSqlDataContext(cancellationToken))
             {
-                return await dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>
+                return await/*undone*/ dctx.ExecuteReaderAsync(CleanupFileScript, async (reader, cancel) =>
                 {
                     try
                     {
@@ -539,7 +539,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         string providerData = null;
                         // We do not care about the number of deleted rows, 
                         // we only want to know if a row was deleted or not.
-                        if (await reader.ReadAsync(cancel))
+                        if (await/*undone*/ reader.ReadAsync(cancel))
                         {
                             deleted = true;
                             fileId = reader.GetSafeInt32(reader.GetOrdinal("FileId"));
@@ -552,7 +552,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         var provider = BlobStorageBase.GetProvider(providerName);
                         var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
-                        await ctx.Provider.DeleteAsync(ctx, cancel);
+                        await/*undone*/ ctx.Provider.DeleteAsync(ctx, cancel);
 
                         return deleted;
                     }

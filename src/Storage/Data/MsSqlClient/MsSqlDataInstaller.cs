@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             CreateData(dataSet, data, dataProvider);
 
-            await WriteToDatabaseAsync(dataSet, connectionString, cancellationToken);
+            await/*undone*/ WriteToDatabaseAsync(dataSet, connectionString, cancellationToken);
         }
 
         /* ==================================================================================================== Tables */
@@ -382,14 +382,14 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         private static async Task WriteToDatabaseAsync(DataSet dataSet, string connectionString, CancellationToken cancellationToken)
         {
-            await BulkInsertAsync(dataSet, TableName.PropertyTypes, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.NodeTypes, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.Nodes, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.Versions, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.LongTextProperties, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.BinaryProperties, connectionString, cancellationToken);
-            await BulkInsertAsync(dataSet, TableName.Files, connectionString, cancellationToken);
-            //await BulkInsertAsync(dataSet, TableName.Entities, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.PropertyTypes, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.NodeTypes, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.Nodes, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.Versions, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.LongTextProperties, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.BinaryProperties, connectionString, cancellationToken);
+            await/*undone*/ BulkInsertAsync(dataSet, TableName.Files, connectionString, cancellationToken);
+            //await/*undone*/ BulkInsertAsync(dataSet, TableName.Entities, connectionString, cancellationToken);
         }
         private static async Task BulkInsertAsync(DataSet dataSet, string tableName, string connectionString,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -402,7 +402,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 command.CommandText = "DELETE " + tableName;
                 connection.Open();
                 cancellationToken.ThrowIfCancellationRequested();
-                await command.ExecuteNonQueryAsync(cancellationToken);
+                await/*undone*/ command.ExecuteNonQueryAsync(cancellationToken);
             }
             using (var connection = new SqlConnection(connectionString))
             {
@@ -421,7 +421,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                         bulkCopy.ColumnMappings.Add(name, name);
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    await bulkCopy.WriteToServerAsync(table, cancellationToken);
+                    await/*undone*/ bulkCopy.WriteToServerAsync(table, cancellationToken);
                 }
                 connection.Close();
             }

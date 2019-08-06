@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static async Task<Stream> GetStreamForReadAsync(string token, CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token);
-            var context = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, false, tokenData.VersionId, tokenData.PropertyTypeId);
+            var context = await/*undone*/ GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, false, tokenData.VersionId, tokenData.PropertyTypeId);
 
             return context.Provider.GetStreamForRead(context);
         }

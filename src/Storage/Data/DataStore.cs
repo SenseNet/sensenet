@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.InstallInitialDataAsync(data, cancellationToken);
+            await/*undone*/ DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         case SavingAlgorithm.CreateNewNode:
                             dynamicData = nodeData.GetDynamicData(false);
-                            await DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData,
+                            await/*undone*/ DataProvider.InsertNodeAsync(nodeHeadData, versionData, dynamicData,
                                 cancellationToken);
                             // Write back the new NodeId
                             nodeData.Id = nodeHeadData.NodeId;
@@ -142,11 +142,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                         case SavingAlgorithm.UpdateSameVersion:
                             dynamicData = nodeData.GetDynamicData(false);
                             if (renamed)
-                                await DataProvider.UpdateNodeAsync(
+                                await/*undone*/ DataProvider.UpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                                     nodeData.SharedData.Path, cancellationToken);
                             else
-                                await DataProvider.UpdateNodeAsync(
+                                await/*undone*/ DataProvider.UpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, null,
                                     cancellationToken);
                             break;
@@ -154,12 +154,12 @@ namespace SenseNet.ContentRepository.Storage.Data
                             dynamicData = nodeData.GetDynamicData(true);
                             if (renamed)
                                 // Copy to brand new version and rename
-                                await DataProvider.CopyAndUpdateNodeAsync(
+                                await/*undone*/ DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0,
                                     nodeData.SharedData.Path, cancellationToken);
                             else
                                 // Copy to brand new version
-                                await DataProvider.CopyAndUpdateNodeAsync(
+                                await/*undone*/ DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0, null,
                                     cancellationToken);
                             break;
@@ -167,13 +167,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                             dynamicData = nodeData.GetDynamicData(true);
                             if (renamed)
                                 // Copy to specified version and rename
-                                await DataProvider.CopyAndUpdateNodeAsync(
+                                await/*undone*/ DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                                     settings.ExpectedVersionId,
                                     nodeData.SharedData.Path, cancellationToken);
                             else
                                 // Copy to specified version
-                                await DataProvider.CopyAndUpdateNodeAsync(
+                                await/*undone*/ DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                                     settings.ExpectedVersionId,
                                     null, cancellationToken);
@@ -187,7 +187,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 else
                 {
-                    await DataProvider.UpdateNodeHeadAsync(nodeHeadData, settings.DeletableVersionIds,
+                    await/*undone*/ DataProvider.UpdateNodeHeadAsync(nodeHeadData, settings.DeletableVersionIds,
                         cancellationToken);
                 }
                 // Write back NodeHead level changed values
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
+            return (await/*undone*/ LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
         public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (tokensToLoad.Count > 0)
                 {
                     var versionIds = tokensToLoad.Select(x => x.VersionId).ToArray();
-                    var loadedCollection = await DataProvider.LoadNodesAsync(versionIds, cancellationToken).ConfigureAwait(false);
+                    var loadedCollection = await/*undone*/ DataProvider.LoadNodesAsync(versionIds, cancellationToken).ConfigureAwait(false);
                     foreach (var nodeData in loadedCollection)
                     {
                         if (nodeData != null) // lost version
@@ -284,7 +284,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             // -------------------
             // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
 
-            await DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
+            await/*undone*/ DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
         }
         public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -292,7 +292,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
             // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
             var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
-            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken);
+            await/*undone*/ DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken);
         }
 
         public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds, CancellationToken cancellationToken = default(CancellationToken))
@@ -317,16 +317,16 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (Cache.Get(pathKey) is NodeHead)
                 return true;
 
-            return await DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
+            return await/*undone*/ DataProvider.NodeExistsAsync(path, cancellationToken).ConfigureAwait(false);
         }
 
         internal static NodeData CreateNewNodeData(Node parent, NodeType nodeType, ContentListType listType, int listId)
         {
-            var listTypeId = listType == null ? 0 : listType.Id;
-            var parentId = parent == null ? 0 : parent.Id;
+            var listTypeId = listType?.Id ?? 0;
+            var parentId = parent?.Id ?? 0;
             var userId = AccessProvider.Current.GetOriginalUser().Id;
-            var now = DataStore.RoundDateTime(DateTime.UtcNow);
-            var name = String.Concat(nodeType.Name, "-", now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
+            var now = RoundDateTime(DateTime.UtcNow);
+            var name = string.Concat(nodeType.Name, "-", now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
             var path = (parent == null) ? "/" + name : RepositoryPath.Combine(parent.Path, name);
             var versionNumber = new VersionNumber(1, 0, VersionStatus.Approved);
 
@@ -364,9 +364,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                 ETag = null,
                 LockType = 0,
                 LockTimeout = 0,
-                LockDate = DataStore.DateTimeMinValue,
+                LockDate = DateTimeMinValue,
                 LockToken = null,
-                LastLockUpdate = DataStore.DateTimeMinValue,
+                LastLockUpdate = DateTimeMinValue,
 
                 //TODO: IsSystem
 
@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var item = (NodeHead)Cache.Get(pathKey);
             if (item == null)
             {
-                item = await DataProvider.LoadNodeHeadAsync(path, cancellationToken);
+                item = await/*undone*/ DataProvider.LoadNodeHeadAsync(path, cancellationToken);
                 if (item != null)
                     CacheNodeHead(item, CreateNodeHeadIdCacheKey(item.Id), pathKey);
             }
@@ -439,7 +439,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var item = (NodeHead)Cache.Get(idKey);
             if (item == null)
             {
-                item = await DataProvider.LoadNodeHeadAsync(nodeId, cancellationToken);
+                item = await/*undone*/ DataProvider.LoadNodeHeadAsync(nodeId, cancellationToken);
                 if (item != null)
                     CacheNodeHead(item, idKey, CreateNodeHeadPathCacheKey(item.Path));
             }
@@ -467,7 +467,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             if (headIdsToLoad.Count > 0)
             {
-                var heads = await DataProvider.LoadNodeHeadsAsync(headIdsToLoad, cancellationToken);
+                var heads = await/*undone*/ DataProvider.LoadNodeHeadsAsync(headIdsToLoad, cancellationToken);
 
                 foreach (var head in heads)
                 {
@@ -595,7 +595,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out var hasBinary);
             var serializedIndexDocument = doc.Serialize();
 
-            await SaveIndexDocumentAsync(node.Data, doc, cancellationToken);
+            await/*undone*/ SaveIndexDocumentAsync(node.Data, doc, cancellationToken);
 
             return new SavingIndexDocumentDataResult
             {
@@ -614,7 +614,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
             var serializedIndexDocument = completedDocument.Serialize();
 
-            await SaveIndexDocumentAsync(node.Data, completedDocument, cancellationToken);
+            await/*undone*/ SaveIndexDocumentAsync(node.Data, completedDocument, cancellationToken);
 
             return CreateIndexDocumentData(node, completedDocument, serializedIndexDocument);
         }
@@ -637,21 +637,21 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var timestamp = await SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken);
+            var timestamp = await/*undone*/ SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken);
             if (timestamp != 0)
                 nodeData.VersionTimestamp = timestamp;
         }
         public static async Task<long> SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
         {
             var serialized = indexDoc.Serialize();
-            return await DataProvider.SaveIndexDocumentAsync(versionId, serialized, cancellationToken);
+            return await/*undone*/ DataProvider.SaveIndexDocumentAsync(versionId, serialized, cancellationToken);
         }
 
         /* ----------------------------------------------------------------------------------------------- Load IndexDocument */
 
         public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var result = await DataProvider.LoadIndexDocumentsAsync(new []{versionId}, cancellationToken);
+            var result = await/*undone*/ DataProvider.LoadIndexDocumentsAsync(new []{versionId}, cancellationToken);
             return result.FirstOrDefault();
         }
         public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
@@ -692,23 +692,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         public static async Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.RegisterIndexingActivityAsync(activity, cancellationToken);
+            await/*undone*/ DataProvider.RegisterIndexingActivityAsync(activity, cancellationToken);
         }
         public static async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.UpdateIndexingActivityRunningStateAsync(indexingActivityId, runningState, cancellationToken);
+            await/*undone*/ DataProvider.UpdateIndexingActivityRunningStateAsync(indexingActivityId, runningState, cancellationToken);
         }
         public static async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds, cancellationToken);
+            await/*undone*/ DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds, cancellationToken);
         }
         public static async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.DeleteFinishedIndexingActivitiesAsync(cancellationToken);
+            await/*undone*/ DataProvider.DeleteFinishedIndexingActivitiesAsync(cancellationToken);
         }
         public static async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.DeleteAllIndexingActivitiesAsync(cancellationToken);
+            await/*undone*/ DataProvider.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
 
         /* =============================================================================================== Schema */
@@ -771,13 +771,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await DataProvider.WriteAuditEventAsync(auditEvent, cancellationToken);
+            await/*undone*/ DataProvider.WriteAuditEventAsync(auditEvent, cancellationToken);
         }
 
         public static async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await DataProvider.LoadLastAuditEventsAsync(count, cancellationToken);
+            return await/*undone*/ DataProvider.LoadLastAuditEventsAsync(count, cancellationToken);
         }
 
         /* =============================================================================================== Tools */

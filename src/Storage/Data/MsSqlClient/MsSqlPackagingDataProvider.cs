@@ -33,11 +33,11 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteReaderAsync(InstalledComponentsScript,
+                await/*undone*/ ctx.ExecuteReaderAsync(InstalledComponentsScript,
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel))
+                        while (await/*undone*/ reader.ReadAsync(cancel))
                         {
                             cancel.ThrowIfCancellationRequested();
                             components.Add(new ComponentInfo
@@ -63,11 +63,11 @@ ON P1.ComponentId = P2.ComponentId";
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteReaderAsync("SELECT * FROM Packages",
+                await/*undone*/ ctx.ExecuteReaderAsync("SELECT * FROM Packages",
                     async (reader, cancel) =>
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel))
+                        while (await/*undone*/ reader.ReadAsync(cancel))
                         {
                             cancel.ThrowIfCancellationRequested();
                             packages.Add(new Package
@@ -106,7 +106,7 @@ SELECT @@IDENTITY";
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(SavePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -149,7 +149,7 @@ WHERE Id = @Id
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
+                await/*undone*/ ctx.ExecuteNonQueryAsync(UpdatePackageScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -185,7 +185,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             int count;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(PackageExistenceScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -208,7 +208,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
+                await/*undone*/ ctx.ExecuteNonQueryAsync("DELETE FROM Packages WHERE Id = @Id",
                     cmd => { cmd.Parameters.Add(ctx.CreateParameter("@Id", DbType.Int32, package.Id)); });
             }
         }
@@ -217,7 +217,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                await ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
+                await/*undone*/ ctx.ExecuteNonQueryAsync("TRUNCATE TABLE Packages");
             }
         }
 
@@ -228,7 +228,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
-                var result = await ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
+                var result = await/*undone*/ ctx.ExecuteScalarAsync(LoadManifestScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
