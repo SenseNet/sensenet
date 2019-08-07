@@ -152,9 +152,6 @@ namespace SenseNet.ContentRepository
         {
             foreach (var component in components)
             {
-if (component.ComponentId == "SenseNet.Preview") //UNDONE:ASYNC: remove this hack
-    continue;
-
                 if (string.IsNullOrEmpty(component.ComponentId))
                 {
                     SnLog.WriteWarning($"Component class {component.GetType().FullName} is invalid, it does not provide a ComponentId.");
