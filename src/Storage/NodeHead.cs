@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage
@@ -36,7 +37,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_versions == null)
                 {
-                    _versions = DataStore.GetNodeVersionsAsync(this.Id).Result;
+                    _versions = DataStore.GetNodeVersionsAsync(this.Id, CancellationToken.None).Result;
                     //TODO: After GetNodeVersions: check changes
                 }
                 return _versions;
@@ -133,19 +134,19 @@ namespace SenseNet.ContentRepository.Storage
 
         public static NodeHead Get(int nodeId)
         {
-            return DataStore.LoadNodeHeadAsync(nodeId).Result;
+            return DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).Result;
         }
         public static NodeHead GetByVersionId(int versionId)
         {
-            return DataStore.LoadNodeHeadByVersionIdAsync(versionId).Result;
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).Result;
         }
         public static NodeHead Get(string path)
         {
-            return DataStore.LoadNodeHeadAsync(path).Result;
+            return DataStore.LoadNodeHeadAsync(path, CancellationToken.None).Result;
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<int> idArray)
         {
-            return DataStore.LoadNodeHeadsAsync(idArray).Result;
+            return DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).Result;
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<string> pathSet)
         {

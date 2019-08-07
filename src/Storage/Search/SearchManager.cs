@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -158,14 +159,14 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
-            return DataStore.LoadIndexDocumentsAsync(new[] {versionId}).Result.FirstOrDefault();
+            return DataStore.LoadIndexDocumentsAsync(new[] {versionId}, CancellationToken.None).Result.FirstOrDefault();
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
         /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
-            return DataStore.LoadIndexDocumentsAsync(versionId).Result;
+            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).Result;
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.

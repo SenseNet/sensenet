@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -99,7 +100,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static void RegisterActivity(IndexingActivityBase activity)
         {
-            DataStore.RegisterIndexingActivityAsync(activity).Wait();
+            DataStore.RegisterIndexingActivityAsync(activity, CancellationToken.None).Wait();
         }
 
         /// <summary>
@@ -148,12 +149,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataStore.GetLastIndexingActivityIdAsync().Result;
+            return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
         }
 
         internal static void DeleteAllIndexingActivities()
         {
-            DataStore.DeleteAllIndexingActivitiesAsync().Wait();
+            DataStore.DeleteAllIndexingActivitiesAsync(CancellationToken.None).Wait();
         }
 
         /// <summary>

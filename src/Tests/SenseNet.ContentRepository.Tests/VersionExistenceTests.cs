@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -31,13 +32,13 @@ namespace SenseNet.ContentRepository.Tests
                 file.CheckOut();
 
                 //-- Thread #2
-                var head = DataStore.LoadNodeHeadAsync(contentId).Result;
+                var head = DataStore.LoadNodeHeadAsync(contentId, CancellationToken.None).Result;
 
                 //-- Thread #1
                 file.CheckIn();
 
                 //-- Thread #2
-                var data = DataStore.LoadNodeAsync(head, head.LastMinorVersionId).Result.NodeData;
+                var data = DataStore.LoadNodeAsync(head, head.LastMinorVersionId, CancellationToken.None).Result.NodeData;
                 Assert.IsNull(data);
             });
         }
@@ -57,7 +58,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.CheckOut();
 
                 //-- Thread #2
-                var head = DataStore.LoadNodeHeadAsync(contentId).Result;
+                var head = DataStore.LoadNodeHeadAsync(contentId, CancellationToken.None).Result;
 
                 //-- Thread #1
                 file.CheckIn();
@@ -83,7 +84,7 @@ namespace SenseNet.ContentRepository.Tests
                 file.CheckOut();
 
                 //-- Thread #2
-                var head = DataStore.LoadNodeHeadAsync(contentId).Result;
+                var head = DataStore.LoadNodeHeadAsync(contentId, CancellationToken.None).Result;
 
                 //-- Thread #1
                 file.ForceDelete();
@@ -120,7 +121,7 @@ namespace SenseNet.ContentRepository.Tests
                 files[3].CheckOut();
 
                 //-- Thread #2
-                var heads = DataStore.LoadNodeHeadsAsync(ids).Result;
+                var heads = DataStore.LoadNodeHeadsAsync(ids, CancellationToken.None).Result;
 
                 //-- Thread #1
                 files[1].CheckIn();
@@ -158,7 +159,7 @@ namespace SenseNet.ContentRepository.Tests
                 gcontents[3].CheckOut();
 
                 //-- Thread #2
-                var heads = DataStore.LoadNodeHeadsAsync(ids).Result;
+                var heads = DataStore.LoadNodeHeadsAsync(ids, CancellationToken.None).Result;
 
                 //-- Thread #1
                 gcontents[1].CheckIn();

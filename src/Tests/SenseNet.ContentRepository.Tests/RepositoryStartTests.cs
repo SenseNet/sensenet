@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -215,7 +215,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -243,7 +243,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -272,7 +272,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -317,7 +317,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NullPopulator()
         {
             var dbProvider2 = new InMemoryDataProvider();
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
@@ -406,7 +406,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {
@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             using (Repository.Start(repoBuilder))
             {

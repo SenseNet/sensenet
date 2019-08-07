@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using SenseNet.ContentRepository.Schema;
 using System.IO;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using System.Web;
 using SenseNet.ContentRepository.Storage.Data;
@@ -203,7 +204,7 @@ namespace SenseNet.ContentRepository
             var fileName = Path.GetFileNameWithoutExtension(currentName);
             var count = ParseSuffix(fileName, out var nameBase);
 
-            var lastName = DataStore.GetNameOfLastNodeWithNameBaseAsync(parentNodeId, nameBase, ext).Result;
+            var lastName = DataStore.GetNameOfLastNodeWithNameBaseAsync(parentNodeId, nameBase, ext, CancellationToken.None).Result;
 
             // if there is no suffixed name in db, return with first variant
             if (lastName == null)

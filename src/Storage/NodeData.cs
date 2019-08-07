@@ -780,7 +780,7 @@ namespace SenseNet.ContentRepository.Storage
                     lock (_readPropertySync)
                         return  (dynamicData.TryGetValue(propId, out data)) ? data : null;
                 case DataType.Binary:
-                    data = DataStore.LoadBinaryPropertyValueAsync(this.VersionId, propertyType.Id).Result;
+                    data = DataStore.LoadBinaryPropertyValueAsync(this.VersionId, propertyType.Id, CancellationToken.None).Result;
                     break;
                 default:
                     data = propertyType.DefaultValue;
@@ -806,7 +806,7 @@ namespace SenseNet.ContentRepository.Storage
             }
 
             var notLoadedTextPropertyTypeIds = this.TextPropertyIds.Where(p => !dynamicData.ContainsKey(p)).ToArray();
-            var data = DataStore.LoadTextPropertyValuesAsync(this.VersionId, notLoadedTextPropertyTypeIds).Result;
+            var data = DataStore.LoadTextPropertyValuesAsync(this.VersionId, notLoadedTextPropertyTypeIds, CancellationToken.None).Result;
             foreach (var id in notLoadedTextPropertyTypeIds)
             {
                 string value = null;

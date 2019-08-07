@@ -84,7 +84,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="data">A storage-model structure to install.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
             return DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
@@ -95,14 +95,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
-        public static Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
             return DataProvider.LoadEntityTreeAsync(cancellationToken);
         }
 
         /* =============================================================================================== Nodes */
 
-        public static async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
             // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
@@ -225,11 +225,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return nodeType.IsInstaceOfOrDerivedFrom(NodeType.GetByName("Folder"));
         }
 
-        public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeToken> LoadNodeAsync(NodeHead head, int versionId, CancellationToken cancellationToken)
         {
             return (await LoadNodesAsync(new[] {head}, new[] {versionId}, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
-        public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeToken[]> LoadNodesAsync(NodeHead[] headArray, int[] versionIdArray, CancellationToken cancellationToken)
         {
             var tokens = new List<NodeToken>();
             var tokensToLoad = new List<NodeToken>();
@@ -274,7 +274,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw GetException(e);
             }
         }
-        public static Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
             // internal void DeleteNode(int nodeId)
@@ -286,7 +286,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             return DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
         }
-        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
@@ -295,16 +295,16 @@ namespace SenseNet.ContentRepository.Storage.Data
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds, CancellationToken cancellationToken)
         {
             return DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds, cancellationToken);
         }
-        public static Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadBinaryPropertyValueAsync(versionId, propertyTypeId, cancellationToken);
         }
 
-        public static async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -414,7 +414,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeHead */
 
-        public static async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
             if (!CanExistInDatabase(path))
                 return null;
@@ -430,7 +430,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             return item;
         }
-        public static async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
             if (!CanExistInDatabase(nodeId))
                 return null;
@@ -446,11 +446,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
             return item;
         }
-        public static Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
-        public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
         {
             var nodeHeads = new List<NodeHead>();
             var headIdsToLoad = new List<int>();
@@ -485,93 +485,93 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             return nodeHeads;
         }
-        public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken)
         {
             return DataProvider.GetNodeVersionsAsync(nodeId, cancellationToken);
         }
-        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
         {
             return DataProvider.GetVersionNumbersAsync(nodeId, cancellationToken);
         }
-        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.GetVersionNumbersAsync(path, cancellationToken);
         }
 
-        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, resolveAll, resolveChildren, cancellationToken);
         }
 
         /* =============================================================================================== NodeQuery */
 
-        public static Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return DataProvider.InstanceCountAsync(nodeTypeIds, cancellationToken);
         }
-        public static Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken)
         {
             return DataProvider.GetChildrenIdentfiersAsync(parentId, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByPathAsync(string pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAsync(null, pathStart, orderByPath, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAsync(nodeTypeIds, new string[0], false, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, null, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
         {
             return QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, new[] { pathStart }, orderByPath, name, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
         {
             return DataProvider.QueryNodesByTypeAndPathAndNameAsync(nodeTypeIds, pathStart, orderByPath, name, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
             return DataProvider.QueryNodesByTypeAndPathAndPropertyAsync(nodeTypeIds, pathStart, orderByPath, properties, cancellationToken);
         }
-        public static Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             return DataProvider.QueryNodesByReferenceAndTypeAsync(referenceName, referredNodeId, nodeTypeIds, cancellationToken);
         }
 
         /* =============================================================================================== Tree */
 
-        public static Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadChildTypesToAllowAsync(nodeId, cancellationToken);
         }
-        public static Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.GetContentListTypesInTreeAsync(path, cancellationToken);
         }
 
         /* =============================================================================================== TreeLock */
 
-        public static Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<int> AcquireTreeLockAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.AcquireTreeLockAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
-        public static Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<bool> IsTreeLockedAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.IsTreeLockedAsync(path, GetTreeLockTimeLimit(), cancellationToken);
         }
-        public static Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
         {
             return DataProvider.ReleaseTreeLockAsync(lockIds, cancellationToken);
         }
-        public static Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
         {
             return DataProvider.LoadAllTreeLocksAsync(cancellationToken);
         }
@@ -585,7 +585,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static IIndexDocumentProvider IndexDocumentProvider => Providers.Instance.IndexDocumentProvider;
 
         public static async Task<SavingIndexDocumentDataResult> SaveIndexDocumentAsync(Node node, bool skipBinaries, bool isNew,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             if (node.Id == 0)
                 throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
@@ -604,7 +604,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             };
         }
         public static async Task<IndexDocumentData> SaveIndexDocumentAsync(Node node, IndexDocumentData indexDocumentData,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             if (node.Id == 0)
                 throw new NotSupportedException("Cannot save the indexing information before node is not saved.");
@@ -635,13 +635,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             };
         }
 
-        public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken)
         {
             var timestamp = await SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken).ConfigureAwait(false);
             if (timestamp != 0)
                 nodeData.VersionTimestamp = timestamp;
         }
-        public static async Task<long> SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<long> SaveIndexDocumentAsync(int versionId, IndexDocument indexDoc, CancellationToken cancellationToken)
         {
             var serialized = indexDoc.Serialize();
             return await DataProvider.SaveIndexDocumentAsync(versionId, serialized, cancellationToken).ConfigureAwait(false);
@@ -649,12 +649,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* ----------------------------------------------------------------------------------------------- Load IndexDocument */
 
-        public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IndexDocumentData> LoadIndexDocumentByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             var result = await DataProvider.LoadIndexDocumentsAsync(new []{versionId}, cancellationToken).ConfigureAwait(false);
             return result.FirstOrDefault();
         }
-        public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
         {
             return DataProvider.LoadIndexDocumentsAsync(versionIds, cancellationToken);
         }
@@ -663,62 +663,62 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadIndexDocumentsAsync(path, excludedNodeTypes);
         }
 
-        public static Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken)
         {
             return DataProvider.LoadNotIndexedNodeIdsAsync(fromId, toId, cancellationToken);
         }
 
         /* =============================================================================================== IndexingActivity */
 
-        public static Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)
         {
             return DataProvider.GetLastIndexingActivityIdAsync(cancellationToken);
         }
-        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
             return DataProvider.LoadIndexingActivitiesAsync(fromId, toId, count, executingUnprocessedActivities, activityFactory, cancellationToken);
         }
-        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
             return DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory, cancellationToken);
         }
-        //public static Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken = default(CancellationToken))
+        //public static Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken)
         //{
         //    return DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
         //}
-        public static Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
         {
             return DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, waitingActivityIds, cancellationToken);
         }
-        public static Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
         {
             return DataProvider.RegisterIndexingActivityAsync(activity, cancellationToken);
         }
-        public static Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState, CancellationToken cancellationToken)
         {
             return DataProvider.UpdateIndexingActivityRunningStateAsync(indexingActivityId, runningState, cancellationToken);
         }
-        public static Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken)
         {
             return DataProvider.RefreshIndexingActivityLockTimeAsync(waitingIds, cancellationToken);
         }
-        public static Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             return DataProvider.DeleteFinishedIndexingActivitiesAsync(cancellationToken);
         }
-        public static Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             return DataProvider.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
 
         /* =============================================================================================== Schema */
 
-        public static Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
         {
             return DataProvider.LoadSchemaAsync(cancellationToken);
         }
 
-        public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
         {
             try
             {
@@ -733,7 +733,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.CreateSchemaWriter();
         }
-        public static Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
         {
             try
             {
@@ -769,13 +769,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Logging */
 
-        public static Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken)
         {
             return DataProvider.WriteAuditEventAsync(auditEvent, cancellationToken);
         }
 
         public static Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             return DataProvider.LoadLastAuditEventsAsync(count, cancellationToken);
         }
@@ -790,19 +790,27 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.IsCacheableText(value);
         }
-        public static Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken)
         {
             return DataProvider.GetNameOfLastNodeWithNameBaseAsync(parentId, namebase, extension, cancellationToken);
         }
-        public static Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken)
         {
             return DataProvider.GetTreeSizeAsync(path, includeChildren, cancellationToken);
         }
-        public static Task<int> GetNodeCountAsync(string path = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<int> GetNodeCountAsync(CancellationToken cancellationToken)
+        {
+            return GetNodeCountAsync(null, cancellationToken);
+        }
+        public static Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.GetNodeCountAsync(path, cancellationToken);
         }
-        public static Task<int> GetVersionCountAsync(string path = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<int> GetVersionCountAsync(CancellationToken cancellationToken)
+        {
+            return DataProvider.GetVersionCountAsync(null, cancellationToken);
+        }
+        public static Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken)
         {
             return DataProvider.GetVersionCountAsync(path, cancellationToken);
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -44,13 +45,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         using (TreeLock.Acquire(node.Path))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
                         }
                     }
                     else
                     {
                         TreeLock.AssertFree(node.Path);
-                        DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                        DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
                     }
                 }
                 op.Successful = true;

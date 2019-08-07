@@ -656,7 +656,7 @@ namespace SenseNet.ContentRepository.Tests
                 var site2 = new Site(root) { Name = "Site2" }; site2.Save();
 
                 // ACTION
-                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id);
+                var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, CancellationToken.None);
 
                 // ASSERT
                 var names = string.Join(", ", types.Select(x => x.Name).OrderBy(x => x));
@@ -1248,7 +1248,7 @@ namespace SenseNet.ContentRepository.Tests
             await Test(async () =>
             {
                 // ACTION
-                var treeData = await DataStore.LoadEntityTreeAsync();
+                var treeData = await DataStore.LoadEntityTreeAsync(CancellationToken.None);
 
                 // ASSERT check the right ordering: every node follows it's parent node.
                 var tree = new Dictionary<int, EntityTreeNodeData>();

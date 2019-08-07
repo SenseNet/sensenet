@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SenseNet.ContentRepository.Storage.Schema
 {
@@ -20,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 return sche;
             });
 
-            var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp).Result;
+            var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp, CancellationToken.None).Result;
             var schemaWriter = DataStore.CreateSchemaWriter();
             try
             {
@@ -28,7 +29,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             }
             finally
             {
-                DataStore.FinishSchemaUpdateAsync(schemaLock).Wait();
+                DataStore.FinishSchemaUpdateAsync(schemaLock, CancellationToken.None).Wait();
             }
         }
 

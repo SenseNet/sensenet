@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
@@ -66,7 +67,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         foreach (var node in Node.LoadNode(path).LoadVersions())
                         {
                             SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                            DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                            DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                         }
 
@@ -76,7 +77,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                                 foreach (var node in n.LoadVersions())
                                 {
                                     SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                                    DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
                                     OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
                             });
@@ -236,7 +237,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (databaseAndIndex)
             {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    DataStore.SaveIndexDocumentAsync(version, false, false).Wait();
+                    DataStore.SaveIndexDocumentAsync(version, false, false, CancellationToken.None).Wait();
             }
 
             var versioningInfo = new VersioningInfo
@@ -257,10 +258,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
                 {
-                    DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
 
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { DataStore.SaveIndexDocumentAsync(node, false, false).Wait(); });
+                        n => { DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait(); });
                 }
 
                 AddTree(node.Path, node.Id);

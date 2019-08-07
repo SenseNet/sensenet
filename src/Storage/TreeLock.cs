@@ -3,6 +3,7 @@ using SenseNet.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -27,12 +28,12 @@ namespace SenseNet.ContentRepository.Storage
         {
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
 
-            var lockIds = paths.Select(p =>  DataStore.AcquireTreeLockAsync(p).Result).ToArray();
+            var lockIds = paths.Select(p =>  DataStore.AcquireTreeLockAsync(p, CancellationToken.None).Result).ToArray();
             for (var i = 0; i < lockIds.Length; i++)
             {
                 if (lockIds[i] == 0)
                 {
-                    DataStore.ReleaseTreeLockAsync(lockIds).Wait();
+                    DataStore.ReleaseTreeLockAsync(lockIds, CancellationToken.None).Wait();
                     var msg = "Cannot acquire a tree lock for " + paths[i];
                     SnTrace.ContentOperation.Write("TreeLock: " + msg);
                     throw new LockedTreeException(msg);
@@ -54,7 +55,7 @@ namespace SenseNet.ContentRepository.Storage
 
             foreach (var path in paths)
             {
-                if (DataStore.IsTreeLockedAsync(path).Result)
+                if (DataStore.IsTreeLockedAsync(path, CancellationToken.None).Result)
                 {
                     var msg = "Cannot perform the operation because another process is making changes on this path: " + path;
                     SnTrace.ContentOperation.Write("TreeLock: Checking {0}", String.Join(", ", paths));
@@ -65,7 +66,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public void Dispose()
         {
-            DataStore.ReleaseTreeLockAsync(_lockIds).Wait();
+            DataStore.ReleaseTreeLockAsync(_lockIds, CancellationToken.None).Wait();
             if (_logOp != null)
             {
                 _logOp.Successful = true;
@@ -75,7 +76,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static Dictionary<int, string> GetAllLocks()
         {
-            return DataStore.LoadAllTreeLocksAsync().Result;
+            return DataStore.LoadAllTreeLocksAsync(CancellationToken.None).Result;
         }
     }
 }

@@ -741,7 +741,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
                     var segment = DataStore.LoadIndexingActivitiesAsync(from, to, count,
-                        _executingUnprocessedActivities, IndexingActivityFactory.Instance).Result;
+                        _executingUnprocessedActivities, IndexingActivityFactory.Instance, CancellationToken.None).Result;
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
 
@@ -809,7 +809,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
                     return DataStore.LoadIndexingActivitiesAsync(gaps, _executingUnprocessedActivities,
-                        IndexingActivityFactory.Instance).Result;
+                        IndexingActivityFactory.Instance, CancellationToken.None).Result;
                 }
             }
         }

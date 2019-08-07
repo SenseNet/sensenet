@@ -147,7 +147,7 @@ namespace SenseNet.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(GetInitialData()).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -209,7 +209,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000).Result;
+            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, CancellationToken.None).Result;
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
@@ -217,7 +217,7 @@ namespace SenseNet.Tests
 
             foreach (var node in nodes)
             {
-                DataStore.SaveIndexDocumentAsync(node, false, false).Wait();
+                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
             }
         }
 

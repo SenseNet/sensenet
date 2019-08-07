@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
@@ -1741,7 +1742,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 	            var securityContext = SecurityContext;
 	            DeleteEverythingAndRestart();
 
-	            var entityTreeNodes = DataStore.LoadEntityTreeAsync().Result;
+	            var entityTreeNodes = DataStore.LoadEntityTreeAsync(CancellationToken.None).Result;
 	            foreach (var entityTreeNode in entityTreeNodes)
 	                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
 	        }
