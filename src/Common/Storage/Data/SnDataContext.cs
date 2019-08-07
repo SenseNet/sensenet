@@ -21,6 +21,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionWrapper Transaction => _transaction;
         public CancellationToken CancellationToken => _cancellationToken;
 
+        /// <summary>
+        /// Used only test purposes.
+        /// </summary>
+        internal bool IsDisposed { get; private set; }
+
         protected SnDataContext(CancellationToken cancellationToken = default(CancellationToken))
         {
             _cancellationToken = cancellationToken;
@@ -31,6 +36,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (_transaction?.Status == TransactionStatus.Active)
                 _transaction.Rollback();
             _connection?.Dispose();
+            IsDisposed = true;
         }
 
         public abstract DbConnection CreateConnection();

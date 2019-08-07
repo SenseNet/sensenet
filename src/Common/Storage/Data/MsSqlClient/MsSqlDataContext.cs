@@ -13,20 +13,22 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
     public class MsSqlDataContext : SnDataContext
     {
-        private readonly string _connectionString;
+        public string ConnectionString { get; }
 
-        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken)) : base(cancellationToken) { }
-        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken)) :
-            base(cancellationToken)
+        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
+            : base(cancellationToken)
         {
-            //UNDONE:DB: TEST: not tested (packaging)
-            _connectionString = connectionString;
+            ConnectionString = ConnectionStrings.ConnectionString;
         }
-        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken)) :
-            base(cancellationToken)
+        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
+            : base(cancellationToken)
         {
-            //UNDONE:DB: TEST: not tested (packaging)
-            _connectionString = GetConnectionString(connectionInfo);
+            ConnectionString = connectionString ?? ConnectionStrings.ConnectionString;
+        }
+        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
+            : base(cancellationToken)
+        {
+            ConnectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
         }
 
         public static string GetConnectionString(ConnectionInfo connectionInfo)
@@ -55,7 +57,8 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             if (!string.IsNullOrEmpty(connectionInfo.DataSource))
                 connectionBuilder.DataSource = connectionInfo.DataSource;
 
-            if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName))
+            if (!string.IsNullOrEmpty(connectionInfo.InitialCatalogName)
+                    && connectionInfo.InitialCatalog != InitialCatalog.Master)
                 connectionBuilder.InitialCatalog = connectionInfo.InitialCatalogName;
 
             if (!string.IsNullOrWhiteSpace(connectionInfo.UserName))
@@ -65,6 +68,13 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
                 connectionBuilder.UserID = connectionInfo.UserName;
                 connectionBuilder.Password = connectionInfo.Password;
                 connectionBuilder.IntegratedSecurity = false;
+            }
+            else
+            {
+                connectionBuilder.Remove("User ID");
+                connectionBuilder.Remove("Password");
+                connectionBuilder.Remove("Persist Security Info");
+                connectionBuilder.IntegratedSecurity = true;
             }
             return connectionBuilder.ToString();
         }
@@ -104,7 +114,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         public virtual SqlConnection CreateSqlConnection()
         {
-            return new SqlConnection(_connectionString ?? ConnectionStrings.ConnectionString);
+            return new SqlConnection(ConnectionString);
         }
         public virtual SqlCommand CreateSqlCommand()
         {

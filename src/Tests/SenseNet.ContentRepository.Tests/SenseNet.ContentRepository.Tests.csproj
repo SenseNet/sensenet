@@ -127,6 +127,7 @@
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="CryptoApiTests.cs" />
+    <Compile Include="DataContextTests.cs" />
     <Compile Include="DataProviderTests.cs" />
     <Compile Include="EvaluatorTests.cs" />
     <Compile Include="FieldSettingTests.cs" />

@@ -39,8 +39,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class DataProviderTests : TestBase
     {
-        // The prefix DP_AB_ means: DataProvider A-B comparative test when A is the 
-        //     old in-memory DataProvider implementation and B is the new one.
+        // The prefix DP_ means: DataProvider.
 
         private class TestLogger : IEventLogger
         {
