@@ -17,13 +17,13 @@ namespace SenseNet.ContentRepository.Storage.Data
 
     public interface IPackagingDataProviderExtension : IDataProviderExtension
     {
-        Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
-        Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
-        Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, CancellationToken cancellationToken = default(CancellationToken));
-        Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
-        Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken);
+        Task SavePackageAsync(Package package, CancellationToken cancellationToken);
+        Task UpdatePackageAsync(Package package, CancellationToken cancellationToken);
+        Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, CancellationToken cancellationToken);
+        Task DeletePackageAsync(Package package, CancellationToken cancellationToken);
+        Task DeleteAllPackagesAsync(CancellationToken cancellationToken);
+        Task LoadManifestAsync(Package package, CancellationToken cancellationToken);
     }
 }

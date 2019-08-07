@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -334,7 +335,7 @@ namespace SenseNet.Packaging.Tests
             DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
 
             // make sure that every test starts with a clean slate (no existing installed components)
-            return PackageManager.Storage.DeleteAllPackagesAsync();
+            return PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);
         }
 
         [TestMethod]
@@ -478,7 +479,7 @@ namespace SenseNet.Packaging.Tests
                      ComponentVersion = new Version(1, 0),
                      ExecutionResult = ExecutionResult.Successful,
                      PackageType = PackageType.Install
-                 }).Wait();
+                 }, CancellationToken.None).Wait();
              },
              () =>
              {
@@ -500,7 +501,7 @@ namespace SenseNet.Packaging.Tests
                     ComponentVersion = new Version(1, 0),
                     ExecutionResult = ExecutionResult.Successful,
                     PackageType = PackageType.Install
-                }).Wait();
+                }, CancellationToken.None).Wait();
             },
             () =>
             {
@@ -532,7 +533,7 @@ namespace SenseNet.Packaging.Tests
                         ComponentVersion = packageVersion,
                         ExecutionResult = ExecutionResult.Successful,
                         PackageType = install ? PackageType.Install : PackageType.Patch
-                    });
+                    }, CancellationToken.None);
 
                     install = false;
                 }

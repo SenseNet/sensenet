@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
@@ -1584,7 +1585,7 @@ namespace SenseNet.Packaging.Tests
             var package = verInfo.InstalledPackages.FirstOrDefault();
             Assert.IsNull(package?.Manifest);
 
-            await PackageManager.Storage.LoadManifestAsync(package);
+            await PackageManager.Storage.LoadManifestAsync(package, CancellationToken.None);
 
             var actual = package?.Manifest;
 
@@ -1614,7 +1615,7 @@ namespace SenseNet.Packaging.Tests
             var packs = RepositoryVersionInfo.Instance.InstalledPackages
                 .Where(p => p.ExecutionResult != ExecutionResult.Successful);
             foreach (var package in packs)
-                await PackageManager.Storage.DeletePackageAsync(package);
+                await PackageManager.Storage.DeletePackageAsync(package, CancellationToken.None);
 
             RepositoryVersionInfo.Reset();
 
@@ -1634,7 +1635,7 @@ namespace SenseNet.Packaging.Tests
             await SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
 
             // action
-            await PackageManager.Storage.DeleteAllPackagesAsync();
+            await PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);
 
             // check
             Assert.IsFalse(RepositoryVersionInfo.Instance.InstalledPackages.Any());

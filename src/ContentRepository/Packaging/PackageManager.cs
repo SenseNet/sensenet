@@ -7,6 +7,7 @@ using System.Xml;
 using System.Diagnostics;
 using SenseNet.ContentRepository;
 using System.Reflection;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -202,7 +203,7 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-            Storage.SavePackageAsync(newPack).Wait();
+            Storage.SavePackageAsync(newPack, CancellationToken.None).Wait();
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
@@ -223,12 +224,12 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-                Storage.SavePackageAsync(newPack).Wait();
+                Storage.SavePackageAsync(newPack, CancellationToken.None).Wait();
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-                Storage.UpdatePackageAsync(oldPack).Wait();
+                Storage.UpdatePackageAsync(oldPack, CancellationToken.None).Wait();
             }
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
@@ -438,7 +439,7 @@ namespace SenseNet.Packaging
                             ComponentVersion = patch.Version,
                             ExecutionResult = ExecutionResult.Successful,
                             PackageType = PackageType.Patch
-                        }).Wait();
+                        }, CancellationToken.None).Wait();
 
                         patchResult = new PackagingResult
                         {

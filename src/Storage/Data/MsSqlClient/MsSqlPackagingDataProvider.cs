@@ -27,7 +27,7 @@ JOIN (SELECT Description, ComponentId FROM Packages WHERE PackageType = '" + Pac
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
 ON P1.ComponentId = P2.ComponentId";
         #endregion
-        public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
             var components = new List<ComponentInfo>();
 
@@ -57,7 +57,7 @@ ON P1.ComponentId = P2.ComponentId";
 
             return components;
         }
-        public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {
             var packages = new List<Package>();
 
@@ -102,7 +102,7 @@ ON P1.ComponentId = P2.ComponentId";
     ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion, @Manifest)
 SELECT @@IDENTITY";
         #endregion
-        public async Task SavePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SavePackageAsync(Package package, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -145,7 +145,7 @@ SELECT @@IDENTITY";
 WHERE Id = @Id
 ";
         #endregion
-        public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -180,7 +180,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 ";
         #endregion
         public async Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version
-            , CancellationToken cancellationToken = default(CancellationToken))
+            , CancellationToken cancellationToken)
         {
             int count;
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
@@ -201,7 +201,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             return count > 0;
         }
         
-        public async Task DeletePackageAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
@@ -213,7 +213,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             }
         }
 
-        public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -224,7 +224,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         #region SQL LoadManifestScript
         private static readonly string LoadManifestScript = @"SELECT Manifest FROM Packages WHERE Id = @Id";
         #endregion
-        public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
