@@ -296,7 +296,6 @@ END -- IF EXISTS
 ";
         #endregion
 
-        //UNDONE:DB: REFACTOR: MoveNodeScript can be smaller with algorithm switches
         #region MoveNodeScript
         protected override string MoveNodeScript => @"-- MsSqlDataProvider.MoveNode
 DECLARE @Path nvarchar(450)
