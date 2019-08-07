@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Updates objects in the database that contain static and dynamic properties of the node.
@@ -152,15 +152,15 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
-        /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id or [versionData].Id is missing.</exception>
         /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            IEnumerable<int> versionIdsToDelete, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
+            IEnumerable<int> versionIdsToDelete, CancellationToken cancellationToken, string originalPath = null);
 
         /// <summary>
         /// Copies all objects that contain static and dynamic properties of the node (except the nodeHead representation)
@@ -218,9 +218,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// DynamicProperties: All dynamic property values except the binaries and long texts.
         /// </param>
         /// <param name="versionIdsToDelete">Defines the versions that need to be deleted. Can be empty but not null.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="expectedVersionId">Id of the target version. 0 means: need to create a new version.</param>
         /// <param name="originalPath">Contains the node's original path if it is renamed. Null if the name was not changed.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="ContentNotFoundException">Any part of Node identified by [nodeHeadData].Id or [versionData].Id is missing.</exception>
         /// <exception cref="NodeIsOutOfDateException">The change you want to save is based on outdated basic data.</exception>
@@ -228,7 +228,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task CopyAndUpdateNodeAsync(
             NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
-            int expectedVersionId = 0, string originalPath = null, CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken, int expectedVersionId = 0, string originalPath = null);
 
         /// <summary>
         /// Updates the paths in the subtree if the node is renamed (i.e. Name property changed).
@@ -263,7 +263,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Loads node representations by the given versionId set. If a node not found by it's versionId, the item need to be skipped.
@@ -289,7 +289,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes the specified Node and its whole subtree including all head data, all versions and any other related part of the Node.
@@ -304,10 +304,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="NodeIsOutOfDateException">The operation is requested on outdated data.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken);
 
         public abstract Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns a Dictionary&lt;int, string&gt; instance that contains LongTextProperty values 
@@ -321,7 +321,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
             int[] notLoadedPropertyTypeIds,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Loads a metadata of a single blob.
@@ -331,9 +331,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="BinaryDataValue"/> instance or null.</returns>
         public abstract Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
-        public abstract Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken);
 
         /* =============================================================================================== NodeHead */
 
@@ -347,7 +347,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadAsync(string path,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Loads a <see cref="NodeHead"/> instance by given nodeId.
@@ -359,7 +359,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadAsync(int nodeId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Loads a <see cref="NodeHead"/> instance by given versionId.
@@ -371,7 +371,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Loads a set of <see cref="NodeHead"/> instances by given nodeIds.
@@ -380,7 +380,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns></returns>
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns an array of <see cref="NodeHead.NodeVersion"/> that contains all version representation of the requested <see cref="Node"/>.
@@ -391,17 +391,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="NodeHead.NodeVersion"/> array.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken);
 
         public abstract Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /* =============================================================================================== NodeQuery */
 
-        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken);
         /// <summary>
         /// Queries the <see cref="Node"/>s by the given criterias. Every criteria can be null or empty.
         /// There are AND logical relations among the kind of criterias but OR relations among elements of the each criterion.
@@ -413,11 +413,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains the set of found <see cref="Node"/>s' identifiers.</returns>
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart,
-            bool orderByPath, string name, CancellationToken cancellationToken = default(CancellationToken));
+            bool orderByPath, string name, CancellationToken cancellationToken);
         public abstract Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart,
-            bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken));
+            bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken);
         public abstract Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId,
-            int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken));
+            int[] nodeTypeIds, CancellationToken cancellationToken);
 
         /* =============================================================================================== Tree */
 
@@ -436,8 +436,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         //
         // Move /Root/Site1/Folder1 to /Root/Site2
         // Expected type list: Folder, Task1, DocLib1, MemoList
-        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken);
+        public abstract Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken);
 
         /* =============================================================================================== TreeLock */
 
@@ -454,7 +454,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="InvalidPathException">Thrown when <c>path</c> is invalid.</exception>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns a boolean value that indicates whether the requested path is locked or not.
@@ -468,7 +468,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes one or more tree locks by the given Id set.
@@ -478,7 +478,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken);
         /// <summary>
         /// Loads all existing tree locks (including expired elements) as an Id, Path dictionary.
         /// </summary>
@@ -486,7 +486,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and contains the result as an Id, Path dictionary.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
-        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken);
 
         /* =============================================================================================== IndexDocument */
 
@@ -502,14 +502,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken);
 
         //TODO: Make async version if the .NET framework allows the async enumerable with "yield return".
         public abstract IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes);
 
-        public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken);
 
         /* =============================================================================================== IndexingActivity */
 
@@ -519,21 +519,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains the biggest IndexingActivity Id ot 0.</returns>
         public abstract Task<int> GetLastIndexingActivityIdAsync(
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count,
-            bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
+            bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken);
         public abstract Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
-            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken));
+            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken);
         public abstract Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(
             IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds,
-            CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
+        public abstract Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken);
         public abstract Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
-            CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
+        public abstract Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken);
+        public abstract Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken);
+        public abstract Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken);
 
         /* =============================================================================================== Schema */
 
@@ -543,7 +543,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and contains the loaded <see cref="RepositorySchemaData"/> instance.</returns>
         public abstract Task<RepositorySchemaData> LoadSchemaAsync(
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         public abstract SchemaWriter CreateSchemaWriter();
 
@@ -560,7 +560,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A string value as the schema lock token.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
-        public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken);
         /// <summary>
         /// Finishes the schema update, releases the exclusive schema lock and return the new schema timestamp.
         /// </summary>
@@ -573,7 +573,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>New schema timestamp.</returns>
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
-        public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken);
 
         /* =============================================================================================== Logging */
 
@@ -584,10 +584,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task WriteAuditEventAsync(AuditEventInfo auditEvent,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         public abstract Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /* =============================================================================================== Provider Tools */
 
@@ -599,7 +599,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract DateTime RoundDateTime(DateTime d);
         public abstract bool IsCacheableText(string text);
         public abstract Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the size of the requested node or all the whole subree.
@@ -615,10 +615,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <exception cref="DataException">The operation causes any database-related error.</exception>
         /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public abstract Task<long> GetTreeSizeAsync(string path, bool includeChildren,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken);
 
-        public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken);
+        public abstract Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken);
 
         /* =============================================================================================== Installation */
 
@@ -630,7 +630,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="data">A storage-model structure to install.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the Content tree representation for building the security model.
@@ -638,7 +638,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>An enumerable <see cref="EntityTreeNodeData"/> as the Content tree representation.</returns>
-        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken);
 
         /* =============================================================================================== Tools */
 

@@ -144,24 +144,24 @@ namespace SenseNet.ContentRepository.Storage.Data
                             if (renamed)
                                 await DataProvider.UpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                    nodeData.SharedData.Path, cancellationToken).ConfigureAwait(false);
+                                    cancellationToken, nodeData.SharedData.Path).ConfigureAwait(false);
                             else
                                 await DataProvider.UpdateNodeAsync(
-                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, null,
-                                    cancellationToken).ConfigureAwait(false);
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken,
+                                    null).ConfigureAwait(false);
                             break;
                         case SavingAlgorithm.CopyToNewVersionAndUpdate:
                             dynamicData = nodeData.GetDynamicData(true);
                             if (renamed)
                                 // Copy to brand new version and rename
                                 await DataProvider.CopyAndUpdateNodeAsync(
-                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0,
-                                    nodeData.SharedData.Path, cancellationToken).ConfigureAwait(false);
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken,
+                                    0, nodeData.SharedData.Path).ConfigureAwait(false);
                             else
                                 // Copy to brand new version
                                 await DataProvider.CopyAndUpdateNodeAsync(
-                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, 0, null,
-                                    cancellationToken).ConfigureAwait(false);
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken, 0,
+                                    null).ConfigureAwait(false);
                             break;
                         case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
                             dynamicData = nodeData.GetDynamicData(true);
@@ -169,14 +169,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 // Copy to specified version and rename
                                 await DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                    settings.ExpectedVersionId,
-                                    nodeData.SharedData.Path, cancellationToken).ConfigureAwait(false);
+                                    cancellationToken,
+                                    settings.ExpectedVersionId, nodeData.SharedData.Path).ConfigureAwait(false);
                             else
                                 // Copy to specified version
                                 await DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
-                                    settings.ExpectedVersionId,
-                                    null, cancellationToken).ConfigureAwait(false);
+                                    cancellationToken,
+                                    settings.ExpectedVersionId, null).ConfigureAwait(false);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);

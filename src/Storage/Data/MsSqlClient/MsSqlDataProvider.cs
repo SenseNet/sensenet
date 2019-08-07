@@ -31,7 +31,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         /* =============================================================================================== NodeQuery */
 
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var sql = new StringBuilder("SELECT NodeId FROM Nodes WHERE ");
             var first = true;
@@ -98,7 +98,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         }
 
         public override async Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath,
-            List<QueryPropertyData> properties, CancellationToken cancellationToken = default(CancellationToken))
+            List<QueryPropertyData> properties, CancellationToken cancellationToken)
         {
             using (var ctx = new MsSqlDataContext(cancellationToken))
             {
@@ -285,7 +285,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
         /* =============================================================================================== Installation */
 
-        public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }

@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <inheritdoc />
         public override async Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -216,7 +216,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task UpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             IEnumerable<int> versionIdsToDelete,
-            string originalPath = null, CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken, string originalPath = null)
         {
             try
             {
@@ -427,8 +427,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <inheritdoc />
         public override async Task CopyAndUpdateNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
-            IEnumerable<int> versionIdsToDelete, int expectedVersionId = 0, string originalPath = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            IEnumerable<int> versionIdsToDelete, CancellationToken cancellationToken, int expectedVersionId = 0,
+            string originalPath = null)
         {
             try
             {
@@ -561,7 +561,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /// <inheritdoc />
         public override async Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -630,7 +630,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIds, CancellationToken cancellationToken)
         {
             var ids = string.Join(",", versionIds.Select(x => x.ToString()));
             using (var ctx = CreateDataContext(cancellationToken))
@@ -838,11 +838,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             };
         }
 
-        public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken)
         {
             return DeleteNodeAsync(nodeHeadData, 500, cancellationToken);
         }
-        public virtual async Task DeleteNodeAsync(NodeHeadData nodeHeadData, int partitionSize, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task DeleteNodeAsync(NodeHeadData nodeHeadData, int partitionSize, CancellationToken cancellationToken)
         {
             try
             {
@@ -878,7 +878,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string DeleteNodeScript { get; }
 
         public override async Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -920,7 +920,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string MoveNodeScript { get; }
 
         public override async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var result = new Dictionary<int, string>();
             if (notLoadedPropertyTypeIds == null || notLoadedPropertyTypeIds.Length == 0)
@@ -952,13 +952,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadTextPropertyValuesScript { get; }
 
         public override async Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return await BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, ctx).ConfigureAwait(false);
         }
 
-        public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -974,7 +974,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== NodeHead */
 
         /// <inheritdoc />
-        public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -993,7 +993,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadNodeHeadByPathScript { get; }
 
         /// <inheritdoc />
-        public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1012,7 +1012,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadNodeHeadByIdScript { get; }
 
         /// <inheritdoc />
-        public override async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1031,7 +1031,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadNodeHeadByVersionIdScript { get; }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
         {
             var ids = string.Join(",", nodeIds.Select(x => x.ToString()));
             using (var ctx = CreateDataContext(cancellationToken))
@@ -1056,7 +1056,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadNodeHeadsByIdSetScript { get; }
 
         /// <inheritdoc />
-        public override async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1083,7 +1083,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetNodeVersionsScript { get; }
 
-        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1109,7 +1109,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetVersionNumbersByNodeIdScript { get; }
 
-        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1159,7 +1159,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public override async Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var pathList = paths.ToList();
             List<NodeHead> heads;
@@ -1218,7 +1218,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== NodeQuery */
 
-        public override async Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
             var sql = string.Format(InstanceCountScript,
                 string.Join(", ", Enumerable.Range(0, nodeTypeIds.Length).Select(i => "@Id" + i)));
@@ -1234,7 +1234,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string InstanceCountScript { get; }
 
-        public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return await ctx.ExecuteReaderAsync(
@@ -1258,7 +1258,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetChildrenIdentfiersScript { get; }
 
         public override async Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             if (referenceName == null)
                 throw new ArgumentNullException(nameof(referenceName));
@@ -1311,7 +1311,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         /* =============================================================================================== Tree */
 
-        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return await ctx.ExecuteReaderAsync(LoadChildTypesToAllowScript, cmd =>
@@ -1335,7 +1335,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadChildTypesToAllowScript { get; }
 
-        public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1363,7 +1363,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== TreeLock */
 
         public override async Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var parentChain =  GetParentChain(path);
             var sql = string.Format(AcquireTreeLockScript,
@@ -1384,7 +1384,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string AcquireTreeLockScript { get; }
 
         /// <inheritdoc />
-        public override async Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken)
         {
             RepositoryPath.CheckValidPath(path);
             var parentChain = GetParentChain(path);
@@ -1405,7 +1405,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string IsTreeLockedScript { get; }
 
-        public override async Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
         {
             var sql = string.Format(ReleaseTreeLockScript,
                 string.Join(", ", Enumerable.Range(0, lockIds.Length).Select(i => "@Id" + i)));
@@ -1423,7 +1423,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string ReleaseTreeLockScript { get; }
 
-        public override async Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1442,7 +1442,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadAllTreeLocksScript { get; }
 
-        protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        protected async Task DeleteUnusedLocksAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1470,7 +1470,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== IndexDocument */
 
         /// <inheritdoc />
-        public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1487,7 +1487,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string SaveIndexDocumentScript { get; }
 
-        public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1586,7 +1586,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadIndexDocumentCollectionBlockByPathScript { get; }
         protected abstract string LoadIndexDocumentCollectionBlockByPathAndTypeScript { get; }
 
-        public override async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1615,7 +1615,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== IndexingActivity */
 
         /// <inheritdoc />
-        public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1626,7 +1626,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetLastIndexingActivityIdScript { get; }
 
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
-            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
+            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1647,7 +1647,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadIndexingActivitiesPageScript { get; }
 
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities,
-            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken = default(CancellationToken))
+            IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1668,7 +1668,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public override async Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount,
             int runningTimeoutInSeconds, int[] waitingActivityIds,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             //if (waitingActivityIds == null || waitingActivityIds.Length == 0)
             //    return await LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken).ConfigureAwait(false);
@@ -1735,7 +1735,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
 
         public override async Task RegisterIndexingActivityAsync(IIndexingActivity activity,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1761,7 +1761,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string RegisterIndexingActivityScript { get; }
 
         public override async Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
@@ -1776,7 +1776,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string UpdateIndexingActivityRunningStateScript { get; }
 
         public override async Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             await ctx.ExecuteNonQueryAsync(RefreshIndexingActivityLockTimeScript, cmd =>
@@ -1790,14 +1790,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string RefreshIndexingActivityLockTimeScript { get; }
 
-        public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(DeleteFinishedIndexingActivitiesScript).ConfigureAwait(false);
         }
         protected abstract string DeleteFinishedIndexingActivitiesScript { get; }
 
-        public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 await ctx.ExecuteNonQueryAsync(DeleteAllIndexingActivitiesScript).ConfigureAwait(false);
@@ -1886,7 +1886,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Schema */
 
         /// <inheritdoc />
-        public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1971,7 +1971,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string LoadSchemaScript { get; }
        
         /// <inheritdoc />
-        public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
         {
             var lockToken = Guid.NewGuid().ToString();
             using (var ctx = CreateDataContext(cancellationToken))
@@ -1996,7 +1996,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string StartSchemaUpdateScript { get; }
 
         /// <inheritdoc />
-        public override async Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -2017,7 +2017,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Logging */
 
         /// <inheritdoc />
-        public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -2048,7 +2048,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string WriteAuditEventScript { get; }
 
-        public override async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -2089,7 +2089,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         public override async Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -2107,7 +2107,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetNameOfLastNodeWithNameBaseScript { get; }
 
         /// <inheritdoc />
-        public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken)
         {
             RepositoryPath.CheckValidPath(path);
             using (var ctx = CreateDataContext(cancellationToken))
@@ -2124,7 +2124,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetTreeSizeScript { get; }
 
-        public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
@@ -2138,7 +2138,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetNodeCountScript { get; }
         protected abstract string GetNodeCountInSubtreeScript { get; }
 
-        public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return (int)await ctx.ExecuteScalarAsync(
@@ -2155,7 +2155,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Installation */
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {

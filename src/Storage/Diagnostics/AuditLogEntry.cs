@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.Diagnostics
@@ -25,7 +26,7 @@ namespace SenseNet.Diagnostics
 
         public static AuditLogEntry[] LoadLastEntries(int count)
         {
-            return DataStore.DataProvider.LoadLastAuditEventsAsync(count).Result.ToArray();
+            return DataStore.DataProvider.LoadLastAuditEventsAsync(count, CancellationToken.None).Result.ToArray();
         }
     }
 }
