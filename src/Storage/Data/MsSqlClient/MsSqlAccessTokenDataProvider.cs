@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         private string _accessTokenValueCollationName;
-        private async Task<string> GetAccessTokenValueCollationNameAsync(CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<string> GetAccessTokenValueCollationNameAsync(CancellationToken cancellationToken)
         {
             const string sql = "SELECT c.collation_name, c.* " +
                                "FROM sys.columns c " +
@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             };
         }
 
-        public async Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken)
         {
             const string sql = "INSERT INTO [dbo].[AccessTokens] " +
                                "([Value],[UserId],[ContentId],[Feature],[CreationDate],[ExpirationDate]) VALUES " +
@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken)
         {
             var sql = "SELECT TOP 1 * FROM [dbo].[AccessTokens] " +
                       $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)} AND [ExpirationDate] > GETUTCDATE() AND " +
@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken)
         {
             const string sql = "SELECT * FROM [dbo].[AccessTokens] " +
                                "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()";
@@ -142,7 +142,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken)
         {
             var sql = "UPDATE [AccessTokens] " +
                       "SET [ExpirationDate] = @NewExpirationDate " +
@@ -166,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken)
         {
             var sql = "DELETE FROM [dbo].[AccessTokens] " +
                       $"WHERE [Value] = @Value COLLATE {await GetAccessTokenValueCollationNameAsync(cancellationToken).ConfigureAwait(false)}";
@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -187,7 +187,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -196,7 +196,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             }
         }
 
-        public async Task CleanupAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task CleanupAccessTokensAsync(CancellationToken cancellationToken)
         {
             const string sql = "DELETE FROM [dbo].[AccessTokens] WHERE [ExpirationDate] < DATEADD(MINUTE, -30, GETUTCDATE())";
 

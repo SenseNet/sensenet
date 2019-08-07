@@ -17,15 +17,15 @@ namespace SenseNet.ContentRepository.Storage.Data
 
     public interface IAccessTokenDataProviderExtension : IDataProviderExtension
     {
-        Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken = default(CancellationToken));
-        Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken));
-        Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken = default(CancellationToken));
-        Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken = default(CancellationToken));
-        Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken = default(CancellationToken));
-        Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken));
-        Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken));
-        Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken));
-        Task CleanupAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken);
+        Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken);
+        Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken);
+        Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken);
+        Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken);
+        Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken);
+        Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken);
+        Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken);
+        Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken);
+        Task CleanupAccessTokensAsync(CancellationToken cancellationToken);
     }
 }

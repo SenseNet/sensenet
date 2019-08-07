@@ -14,12 +14,12 @@ namespace SenseNet.Tests.Implementations
             return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<AccessTokenDoc>();
         }
         
-        public Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
             GetAccessTokens().Clear();
             return Task.CompletedTask;
         }
-        public Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken = default(CancellationToken))
+        public Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken)
         {
             var accessTokens = GetAccessTokens();
 
@@ -49,13 +49,13 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken)
         {
             var existing = GetAccessTokens().FirstOrDefault(x => x.AccessTokenRowId == accessTokenId);
             return Task.FromResult(existing == null ? null : CreateAccessTokenFromDoc(existing));
         }
 
-        public Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken)
         {
             var contentIdValue = contentId == 0 ? (int?)null : contentId;
             var existing = GetAccessTokens().FirstOrDefault(x => x.Value == tokenValue &&
@@ -64,7 +64,7 @@ namespace SenseNet.Tests.Implementations
                                                            x.ExpirationDate > DateTime.UtcNow);
             return Task.FromResult(existing == null ? null : CreateAccessTokenFromDoc(existing));
         }
-        public Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken)
         {
             return Task.FromResult(GetAccessTokens()
                 .Where(x => x.UserId == userId && x.ExpirationDate > DateTime.UtcNow)
@@ -72,7 +72,7 @@ namespace SenseNet.Tests.Implementations
                 .ToArray());
         }
 
-        public Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken = default(CancellationToken))
+        public Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken)
         {
             var doc = GetAccessTokens().FirstOrDefault(x => x.Value == tokenValue && x.ExpirationDate > DateTime.UtcNow);
             if (doc == null)
@@ -82,7 +82,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken = default(CancellationToken))
+        public Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken)
         {
             var accessTokens = GetAccessTokens();
             var docs = accessTokens.Where(x => x.Value == tokenValue).ToArray();
@@ -92,7 +92,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken = default(CancellationToken))
+        public Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
             var accessTokens = GetAccessTokens();
             var docs = accessTokens.Where(x => x.UserId == userId).ToArray();
@@ -102,7 +102,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
+        public Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
             var accessTokens = GetAccessTokens();
             var docs = accessTokens.Where(x => x.ContentId == contentId).ToArray();
@@ -112,7 +112,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task CleanupAccessTokensAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task CleanupAccessTokensAsync(CancellationToken cancellationToken)
         {
             // do nothing
             return Task.CompletedTask;
