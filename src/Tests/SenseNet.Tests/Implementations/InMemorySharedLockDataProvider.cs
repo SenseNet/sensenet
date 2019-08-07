@@ -18,13 +18,13 @@ namespace SenseNet.Tests.Implementations
 
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
-        public Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
             GetSharedLocks().Clear();
             return Task.CompletedTask;
         }
 
-        public Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var sharedLocks = GetSharedLocks();
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
@@ -55,7 +55,7 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             DeleteTimedOutItems();
 
@@ -68,7 +68,7 @@ namespace SenseNet.Tests.Implementations
             return Task.FromResult(row.Lock);
         }
 
-        public Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
         {
             var sharedLocks = GetSharedLocks();
 
@@ -88,14 +88,14 @@ namespace SenseNet.Tests.Implementations
             return Task.FromResult(existingLock);
         }
 
-        public Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
             return Task.FromResult(GetSharedLocks()
                 .FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock);
         }
 
-        public Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var sharedLocks = GetSharedLocks();
 
@@ -115,7 +115,7 @@ namespace SenseNet.Tests.Implementations
             return Task.FromResult(existingLock);
         }
 
-        public Task CleanupSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task CleanupSharedLocksAsync(CancellationToken cancellationToken)
         {
             // do nothing
             return Task.CompletedTask;

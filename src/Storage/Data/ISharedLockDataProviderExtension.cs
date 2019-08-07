@@ -22,13 +22,13 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         TimeSpan SharedLockTimeout { get; }
 
-        Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
-        Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
-        Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken));
-        Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken = default(CancellationToken));
-        Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken));
-        Task CleanupSharedLocksAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken);
+        Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
+        Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
+        Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken);
+        Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken);
+        Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
+        Task CleanupSharedLocksAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.
