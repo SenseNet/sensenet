@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -581,7 +582,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -645,7 +646,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -688,7 +689,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -710,7 +711,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -786,7 +787,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
                 
@@ -829,7 +830,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -880,7 +881,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
                 file.CheckOut();
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
@@ -907,7 +908,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -949,7 +950,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -999,7 +1000,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -1024,7 +1025,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1069,7 +1070,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1124,7 +1125,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -1342,7 +1343,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 var newContent = "new filecontent2";
 
                 var response = WopiPost($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
@@ -1624,7 +1625,7 @@ namespace SenseNet.Services.Tests
         }
         private void WopiTestPrivate(Action callback1, Action<Site> callback2)
         {
-            SharedLock.RemoveAllLocks();
+            SharedLock.RemoveAllLocks(CancellationToken.None);
             var site = CreateTestSite();
             try
             {

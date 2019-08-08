@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Web;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository;
@@ -341,7 +342,7 @@ namespace SenseNet.Services.Wopi
             {
                 if (!file.Locked)
                 {
-                    SharedLock.Lock(file.Id, wopiReq.Lock);
+                    SharedLock.Lock(file.Id, wopiReq.Lock, CancellationToken.None);
                     return new WopiResponse { StatusCode = HttpStatusCode.OK };
                 }
                 return new WopiResponse

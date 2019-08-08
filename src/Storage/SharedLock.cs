@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes all shared locks from the system. Not intended for external callers.
         /// </summary>
-        public static void RemoveAllLocks(CancellationToken cancellationToken = default(CancellationToken))
+        public static void RemoveAllLocks(CancellationToken cancellationToken)
         {
             Storage.DeleteAllSharedLocksAsync(cancellationToken).Wait(cancellationToken);
         }
@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <exception cref="LockedNodeException"></exception>
         /// <exception cref="ContentNotFoundException"></exception>
-        public static void Lock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public static void Lock(int contentId, string @lock, CancellationToken cancellationToken)
         {
             var node = Node.LoadNode(contentId);
             if(node == null)
