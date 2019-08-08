@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         internal bool IsDisposed { get; private set; }
 
-        protected SnDataContext(CancellationToken cancellationToken = default(CancellationToken))
+        protected SnDataContext(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
         }

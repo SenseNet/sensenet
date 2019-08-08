@@ -3,6 +3,7 @@ using System.Text;
 using System.Data;
 using SenseNet.ContentRepository.Storage.Data;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -120,7 +121,7 @@ namespace SenseNet.Packaging.Steps
                     UserName = (string)context.ResolveVariable(UserName),
                     Password = (string)context.ResolveVariable(Password)
                 };
-                using (var ctx = new MsSqlDataContext(connectionInfo))
+                using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
                 {
                     ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                     {

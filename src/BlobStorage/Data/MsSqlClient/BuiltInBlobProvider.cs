@@ -71,7 +71,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                 stream.Read(buffer, 0, bufferSize);
             }
 
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
                 ctx.ExecuteNonQueryAsync(WriteStreamScript, cmd =>
                 {
@@ -140,7 +140,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
         #endregion
         internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
                 return (byte[])ctx.ExecuteScalarAsync(LoadBinaryFragmentScript, cmd =>
                 {

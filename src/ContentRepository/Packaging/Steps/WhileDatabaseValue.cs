@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
@@ -28,7 +29,7 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
                 try
                 {

@@ -15,18 +15,15 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public string ConnectionString { get; }
 
-        public MsSqlDataContext(CancellationToken cancellationToken = default(CancellationToken))
-            : base(cancellationToken)
+        public MsSqlDataContext(CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = ConnectionStrings.ConnectionString;
         }
-        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken = default(CancellationToken))
-            : base(cancellationToken)
+        public MsSqlDataContext(string connectionString, CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = connectionString ?? ConnectionStrings.ConnectionString;
         }
-        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken = default(CancellationToken))
-            : base(cancellationToken)
+        public MsSqlDataContext(ConnectionInfo connectionInfo, CancellationToken cancellationToken) : base(cancellationToken)
         {
             ConnectionString = GetConnectionString(connectionInfo) ?? ConnectionStrings.ConnectionString;
         }

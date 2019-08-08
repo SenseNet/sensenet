@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
@@ -67,7 +68,7 @@ END
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
             };
-            using (var ctx = new MsSqlDataContext(connectionInfo))
+            using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                 {

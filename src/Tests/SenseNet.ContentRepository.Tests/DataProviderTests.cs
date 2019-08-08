@@ -2673,6 +2673,10 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
+            public TestDataContext(CancellationToken cancellationToken) : base(cancellationToken)
+            {
+                
+            }
             public override DbConnection CreateConnection()
             {
                 return new TestConnection();
@@ -2692,7 +2696,7 @@ namespace SenseNet.ContentRepository.Tests
             async STT.Task<TransactionStatus> TestTimeout(double timeoutInSeconds)
             {
                 TransactionWrapper transactionWrapper;
-                using (var ctx = new TestDataContext())
+                using (var ctx = new TestDataContext(CancellationToken.None))
                 {
                     using (var transaction = ctx.BeginTransaction(timeout: TimeSpan.FromSeconds(timeoutInSeconds)))
                     {

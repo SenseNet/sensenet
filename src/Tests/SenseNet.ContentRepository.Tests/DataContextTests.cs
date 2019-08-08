@@ -66,8 +66,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestDataContext : SnDataContext
         {
-            public TestDataContext(CancellationToken cancellationToken = default(CancellationToken))
-                : base(cancellationToken)
+            public TestDataContext(CancellationToken cancellationToken) : base(cancellationToken)
             {
                 // do nothing
             }
@@ -100,7 +99,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DC_CancellationToken_Default()
         {
-            var dataContext = new TestDataContext();
+            var dataContext = new TestDataContext(CancellationToken.None);
             Assert.AreEqual(CancellationToken.None, dataContext.CancellationToken);
         }
         [TestMethod]
@@ -118,7 +117,7 @@ namespace SenseNet.ContentRepository.Tests
             TestTransaction testTransaction = null;
             try
             {
-                using (dataContext = new TestDataContext())
+                using (dataContext = new TestDataContext(CancellationToken.None))
                 {
                     Assert.IsFalse(dataContext.IsDisposed);
                     using (var transaction = dataContext.BeginTransaction(IsolationLevel.ReadCommitted, TimeSpan.FromMinutes(10)))
@@ -141,14 +140,14 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void DC_MSSQL_Construction_Default()
         {
-            var dataContext = new MsSqlDataContext();
+            var dataContext = new MsSqlDataContext(CancellationToken.None);
             Assert.AreEqual(ConnectionStrings.ConnectionString, dataContext.ConnectionString);
         }
         [TestMethod]
         public void DC_MSSQL_Construction_ConnectionString()
         {
             var connectionString = "ConnectionString1";
-            var dataContext = new MsSqlDataContext(connectionString);
+            var dataContext = new MsSqlDataContext(connectionString, CancellationToken.None);
             Assert.AreEqual(connectionString, dataContext.ConnectionString);
         }
         [TestMethod]
@@ -162,7 +161,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo);
+            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=True";
@@ -179,7 +178,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo);
+            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=master;Integrated Security=True";
@@ -198,7 +197,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var dataContext = new MsSqlDataContext(connectionInfo);
+            var dataContext = new MsSqlDataContext(connectionInfo, CancellationToken.None);
 
             // ASSERT
             var expected = "Data Source=DataSource1;Initial Catalog=InitialCatalog1;Integrated Security=False;Persist Security Info=False;User ID=User1;Password=123";

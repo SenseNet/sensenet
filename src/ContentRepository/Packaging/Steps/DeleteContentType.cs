@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
@@ -198,7 +199,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
 )
 ";
 
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
                 var _ = ctx.ExecuteReaderAsync(sql, async (reader, cancel) =>
                 {

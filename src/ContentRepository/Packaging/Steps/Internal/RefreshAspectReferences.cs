@@ -1,6 +1,7 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using Task = System.Threading.Tasks.Task;
@@ -24,7 +25,7 @@ WHERE RelType = 'Aspects' and TargetId in
         {
             var count = 0;
 
-            using (var ctx = new MsSqlDataContext())
+            using (var ctx = new MsSqlDataContext(CancellationToken.None))
             {
                 ctx.ExecuteReaderAsync(Script, async (reader, cancel) =>
                 {
