@@ -387,6 +387,21 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        private DataCollection<SharedLockDoc> GetSharedLocks()
+        {
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
+        }
+        public DateTime GetSharedLockCreationDate(int nodeId)
+        {
+            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
+            return sharedLockRow.CreationDate;
+        }
+        public void SetSharedLockCreationDate(int nodeId, DateTime value)
+        {
+            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
+            sharedLockRow.CreationDate = value;
+        }
+
         public virtual string TestMethodThatIsNotInterfaceMember(string input)
         {
             return input + input;

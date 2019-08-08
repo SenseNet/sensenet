@@ -121,18 +121,6 @@ namespace SenseNet.Tests.Implementations
             return Task.CompletedTask;
         }
 
-        public void SetSharedLockCreationDate(int nodeId, DateTime value)
-        {
-            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
-            sharedLockRow.CreationDate = value;
-        }
-
-        public DateTime GetSharedLockCreationDate(int nodeId)
-        {
-            var sharedLockRow = GetSharedLocks().First(x => x.ContentId == nodeId);
-            return sharedLockRow.CreationDate;
-        }
-
 
         private void DeleteTimedOutItems()
         {

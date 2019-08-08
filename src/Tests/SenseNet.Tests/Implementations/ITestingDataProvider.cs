@@ -34,5 +34,8 @@ namespace SenseNet.Tests.Implementations
         Task DeleteFileAsync(int fileId);
 
         Task EnsureOneUnlockedSchemaLockAsync();
+
+        DateTime GetSharedLockCreationDate(int nodeId);
+        void SetSharedLockCreationDate(int nodeId, DateTime value);
     }
 }

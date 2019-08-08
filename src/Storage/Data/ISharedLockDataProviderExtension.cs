@@ -29,14 +29,5 @@ namespace SenseNet.ContentRepository.Storage.Data
         Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken);
         Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken);
         Task CleanupSharedLocksAsync(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.
-        /// </summary>
-        void SetSharedLockCreationDate(int nodeId, DateTime value);
-        /// <summary>
-        /// Designed for test purposes. DO NOT USE THIS METHOD IN YOUR CODE.
-        /// </summary>
-        DateTime GetSharedLockCreationDate(int nodeId);
     }
 }

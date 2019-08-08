@@ -1651,11 +1651,19 @@ namespace SenseNet.Services.Tests
         }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            GetDataProvider().SetSharedLockCreationDate(nodeId, value);
+            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            if (!(provider is InMemoryTestingDataProvider))
+                throw new PlatformNotSupportedException();
+
+            provider.SetSharedLockCreationDate(nodeId, value);
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            return GetDataProvider().GetSharedLockCreationDate(nodeId);
+            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            if (!(provider is InMemoryTestingDataProvider))
+                throw new PlatformNotSupportedException();
+
+            return provider.GetSharedLockCreationDate(nodeId);
         }
     }
 }

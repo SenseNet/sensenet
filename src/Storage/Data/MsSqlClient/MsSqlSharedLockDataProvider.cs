@@ -207,40 +207,5 @@ SELECT @Result
                 }).ConfigureAwait(false);
             }
         }
-
-        /// <inheritdoc/>
-        public void SetSharedLockCreationDate(int nodeId, DateTime value)
-        {
-            const string sql = "UPDATE [dbo].[SharedLocks] SET [CreationDate] = @CreationDate WHERE [ContentId] = @ContentId";
-
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
-            {
-                var unused = ctx.ExecuteNonQueryAsync(sql, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, nodeId),
-                        ctx.CreateParameter("@CreationDate", DbType.DateTime2, value)
-                    });
-                }).Result;
-            }
-        }
-        /// <inheritdoc/>
-        public DateTime GetSharedLockCreationDate(int nodeId)
-        {
-            const string sql = "SELECT [CreationDate] FROM [dbo].[SharedLocks] WHERE [ContentId] = @ContentId";
-
-            using (var ctx = MainProvider.CreateDataContext(CancellationToken.None))
-            {
-                var result = ctx.ExecuteScalarAsync(sql, cmd =>
-                {
-                    cmd.Parameters.AddRange(new[]
-                    {
-                        ctx.CreateParameter("@ContentId", DbType.Int32, nodeId)
-                    });
-                }).Result;
-                return result == DBNull.Value ? DateTime.MinValue : (DateTime)result;
-            }
-        }
     }
 }
