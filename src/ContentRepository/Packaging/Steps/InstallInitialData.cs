@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿using System.Threading;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.DataModel;
 
@@ -30,7 +31,8 @@ namespace SenseNet.Packaging.Steps
 
             var initialData = InitialData.Load(new SenseNetServicesInitialData());
 
-            MsSqlDataInstaller.InstallInitialDataAsync(initialData, new MsSqlDataProvider(), connectionString).Wait();
+            MsSqlDataInstaller.InstallInitialDataAsync(initialData, new MsSqlDataProvider(), connectionString,
+                CancellationToken.None).Wait();
         }
     }
 }

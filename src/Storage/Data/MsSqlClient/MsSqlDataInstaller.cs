@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private static Dictionary<string, string[]> _columnNames;
 
         public static async Task InstallInitialDataAsync(InitialData data, MsSqlDataProvider dataProvider, string connectionString,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             var dataSet = new DataSet();
 
@@ -392,7 +392,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             //await BulkInsertAsync(dataSet, TableName.Entities, connectionString, cancellationToken).ConfigureAwait(false);
         }
         private static async Task BulkInsertAsync(DataSet dataSet, string tableName, string connectionString,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var connection = new SqlConnection(connectionString))
             using (var command = new SqlCommand())

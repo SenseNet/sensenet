@@ -66,8 +66,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             return BlobStorageBase.WriteChunkAsync(versionId, token, buffer, offset, fullSize, cancellationToken);
         }
 
-        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            CancellationToken cancellationToken )
+        {
+            return BlobStorageBase.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, cancellationToken);
+        }
+        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            BinaryDataValue source, CancellationToken cancellationToken)
         {
             return BlobStorageBase.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, source, cancellationToken);
         }

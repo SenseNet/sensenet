@@ -213,11 +213,25 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="propertyTypeId">Binary property type id.</param>
         /// <param name="token">Blob token provided by a preliminary request.</param>
         /// <param name="fullSize">Full size (stream length) of the binary value.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            CancellationToken cancellationToken)
+        {
+            return CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, cancellationToken);
+        }
+        /// <summary>
+        /// Finalizes a chunked save operation.
+        /// </summary>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="propertyTypeId">Binary property type id.</param>
+        /// <param name="token">Blob token provided by a preliminary request.</param>
+        /// <param name="fullSize">Full size (stream length) of the binary value.</param>
         /// <param name="source">Binary data containing metadata (e.g. content type).</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+        protected internal static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source,
+            CancellationToken cancellationToken)
         {
             var tokenData = ChunkToken.Parse(token, versionId);
             return BlobStorageComponents.DataProvider.CommitChunkAsync(versionId, propertyTypeId, tokenData.FileId,
