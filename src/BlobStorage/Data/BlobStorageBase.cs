@@ -77,10 +77,44 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="fileId">File identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId,
+            CancellationToken cancellationToken)
+        {
+            return GetBlobStorageContextAsync(fileId, false, cancellationToken);
+        }
+        /// <summary>
+        /// Returns a context object that holds provider-specific data for blob storage operations.
+        /// </summary>
+        /// <param name="fileId">File identifier.</param>
+        /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream,
+            CancellationToken cancellationToken)
+        {
+            return GetBlobStorageContextAsync(fileId, clearStream, 0, cancellationToken);
+        }
+        /// <summary>
+        /// Returns a context object that holds provider-specific data for blob storage operations.
+        /// </summary>
+        /// <param name="fileId">File identifier.</param>
+        /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
+        /// <param name="versionId">Content version id.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId,
+            CancellationToken cancellationToken)
+        {
+            return GetBlobStorageContextAsync(fileId, clearStream, versionId, 0, cancellationToken);
+        }
+        /// <summary>
+        /// Returns a context object that holds provider-specific data for blob storage operations.
+        /// </summary>
+        /// <param name="fileId">File identifier.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, CancellationToken cancellationToken, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        protected internal static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId,
+            CancellationToken cancellationToken)
         {
             return BlobStorageComponents.DataProvider.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
         }
@@ -251,7 +285,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var tokenData = ChunkToken.Parse(token, versionId);
             try
             {
-                var context = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken, true, versionId, tokenData.PropertyTypeId).ConfigureAwait(false);
+                var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId, cancellationToken).ConfigureAwait(false);
                 if (context.Provider == BuiltInProvider)
                 {
                     // Our built-in provider does not have a special stream for the case when

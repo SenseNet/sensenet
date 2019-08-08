@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var transaction = OpenConnection().BeginTransaction(isolationLevel);
             _transaction = WrapTransaction(transaction, _cancellationToken, timeout)
-                           ?? new TransactionWrapper(transaction, _cancellationToken, timeout);
+                           ?? new TransactionWrapper(transaction, timeout, _cancellationToken);
             return _transaction;
         }
 

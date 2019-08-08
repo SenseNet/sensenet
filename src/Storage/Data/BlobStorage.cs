@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public new static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, CancellationToken cancellationToken, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
-            return BlobStorageBase.GetBlobStorageContextAsync(fileId, cancellationToken, clearStream, versionId, propertyTypeId);
+            return BlobStorageBase.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
         }
 
         public new static Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)

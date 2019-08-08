@@ -18,7 +18,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public TransactionStatus Status { get; private set; }
         public CancellationToken CancellationToken { get; }
 
-        public TransactionWrapper(DbTransaction transaction, CancellationToken cancellationToken, TimeSpan timeout = default(TimeSpan))
+        public TransactionWrapper(DbTransaction transaction, CancellationToken cancellationToken):this(transaction, default(TimeSpan), cancellationToken)
+        {
+        }
+        public TransactionWrapper(DbTransaction transaction, TimeSpan timeout, CancellationToken cancellationToken)
         {
             Status = TransactionStatus.Active;
             Transaction = transaction;
