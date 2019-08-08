@@ -31,12 +31,12 @@ namespace SenseNet.ContentRepository.Tests
             var node = CreateTestFolder();
             var nodeId = node.Id;
             var expectedLockValue = Guid.NewGuid().ToString();
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
 
             // ACTION
             SharedLock.Lock(nodeId, expectedLockValue, CancellationToken.None);
 
-            var actualLockValue = SharedLock.GetLock(nodeId);
+            var actualLockValue = SharedLock.GetLock(nodeId, CancellationToken.None);
             Assert.AreEqual(expectedLockValue, actualLockValue);
         }
         [TestMethod]
@@ -45,14 +45,14 @@ namespace SenseNet.ContentRepository.Tests
             var node = CreateTestFolder();
             var nodeId = node.Id;
             var lockValue = Guid.NewGuid().ToString();
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
             SharedLock.Lock(nodeId, lockValue, CancellationToken.None);
 
             // ACTION
             var timeout = GetDataProvider().SharedLockTimeout;
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddMinutes(-timeout.TotalMinutes - 1));
 
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
         }
         [TestMethod]
         [ExpectedException(typeof(ContentNotFoundException))]
@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Tests
             node.CheckOut();
             var nodeId = node.Id;
             var expectedLockValue = Guid.NewGuid().ToString();
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
 
             // ACTION
             SharedLock.Lock(nodeId, expectedLockValue, CancellationToken.None);
@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Tests
             // ACTION
             SharedLock.Lock(nodeId, newLockValue, CancellationToken.None);
 
-            var actualLockValue = SharedLock.GetLock(nodeId);
+            var actualLockValue = SharedLock.GetLock(nodeId, CancellationToken.None);
             Assert.AreEqual(newLockValue, actualLockValue);
         }
 
@@ -125,14 +125,14 @@ namespace SenseNet.ContentRepository.Tests
             var nodeId = node.Id;
             var oldLockValue = Guid.NewGuid().ToString();
             var newLockValue = Guid.NewGuid().ToString();
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
             SharedLock.Lock(nodeId, oldLockValue, CancellationToken.None);
-            Assert.AreEqual(oldLockValue, SharedLock.GetLock(nodeId));
+            Assert.AreEqual(oldLockValue, SharedLock.GetLock(nodeId, CancellationToken.None));
 
             // ACTION
-            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue);
+            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue, CancellationToken.None);
 
-            Assert.AreEqual(newLockValue, SharedLock.GetLock(nodeId));
+            Assert.AreEqual(newLockValue, SharedLock.GetLock(nodeId, CancellationToken.None));
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]
@@ -142,12 +142,12 @@ namespace SenseNet.ContentRepository.Tests
             var nodeId = node.Id;
             var oldLockValue = Guid.NewGuid().ToString();
             var newLockValue = Guid.NewGuid().ToString();
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
             SharedLock.Lock(nodeId, oldLockValue, CancellationToken.None);
-            Assert.AreEqual(oldLockValue, SharedLock.GetLock(nodeId));
+            Assert.AreEqual(oldLockValue, SharedLock.GetLock(nodeId, CancellationToken.None));
 
             // ACTION
-            var actualLock = SharedLock.ModifyLock(nodeId, "DifferentLock", newLockValue);
+            var actualLock = SharedLock.ModifyLock(nodeId, "DifferentLock", newLockValue, CancellationToken.None);
 
             Assert.AreEqual(oldLockValue, actualLock);
         }
@@ -161,7 +161,7 @@ namespace SenseNet.ContentRepository.Tests
             var newLockValue = Guid.NewGuid().ToString();
 
             // ACTION
-            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue);
+            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue, CancellationToken.None);
         }
         [TestMethod]
         [ExpectedException(typeof(SharedLockNotFoundException))]
@@ -169,14 +169,14 @@ namespace SenseNet.ContentRepository.Tests
         {
             var node = CreateTestFolder();
             var nodeId = node.Id;
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
             var oldLockValue = Guid.NewGuid().ToString();
             var newLockValue = Guid.NewGuid().ToString();
             SharedLock.Lock(nodeId, oldLockValue, CancellationToken.None);
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
 
             // ACTION
-            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue);
+            SharedLock.ModifyLock(nodeId, oldLockValue, newLockValue, CancellationToken.None);
         }
 
         [TestMethod]
@@ -189,7 +189,7 @@ namespace SenseNet.ContentRepository.Tests
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddMinutes(-10.0d));
 
             // ACTION
-            SharedLock.RefreshLock(nodeId, lockValue);
+            SharedLock.RefreshLock(nodeId, lockValue, CancellationToken.None);
 
             Assert.IsTrue((DateTime.UtcNow - GetSharedLockCreationDate(nodeId)).TotalSeconds < 1);
         }
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Tests
             SharedLock.Lock(nodeId, lockValue, CancellationToken.None);
 
             // ACTION
-            var actualLock = SharedLock.RefreshLock(nodeId, "DifferentLock");
+            var actualLock = SharedLock.RefreshLock(nodeId, "DifferentLock", CancellationToken.None);
 
             Assert.AreEqual(lockValue, actualLock);
         }
@@ -216,7 +216,7 @@ namespace SenseNet.ContentRepository.Tests
             var lockValue = "LCK_" + Guid.NewGuid();
 
             // ACTION
-            SharedLock.RefreshLock(nodeId, lockValue);
+            SharedLock.RefreshLock(nodeId, lockValue, CancellationToken.None);
         }
         [TestMethod]
         [ExpectedException(typeof(SharedLockNotFoundException))]
@@ -229,7 +229,7 @@ namespace SenseNet.ContentRepository.Tests
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
 
             // ACTION
-            SharedLock.RefreshLock(nodeId, lockValue);
+            SharedLock.RefreshLock(nodeId, lockValue, CancellationToken.None);
         }
 
         [TestMethod]
@@ -241,9 +241,9 @@ namespace SenseNet.ContentRepository.Tests
             SharedLock.Lock(nodeId, existingLock, CancellationToken.None);
 
             // ACTION
-            SharedLock.Unlock(nodeId, existingLock);
+            SharedLock.Unlock(nodeId, existingLock, CancellationToken.None);
 
-            Assert.IsNull(SharedLock.GetLock(nodeId));
+            Assert.IsNull(SharedLock.GetLock(nodeId, CancellationToken.None));
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]
@@ -255,7 +255,7 @@ namespace SenseNet.ContentRepository.Tests
             SharedLock.Lock(nodeId, existingLock, CancellationToken.None);
 
             // ACTION
-            var actualLock = SharedLock.Unlock(nodeId, "DifferentLock");
+            var actualLock = SharedLock.Unlock(nodeId, "DifferentLock", CancellationToken.None);
 
             Assert.AreEqual(existingLock, actualLock);
         }
@@ -268,7 +268,7 @@ namespace SenseNet.ContentRepository.Tests
             var existingLock = "LCK_" + Guid.NewGuid();
 
             // ACTION
-            SharedLock.Unlock(nodeId, existingLock);
+            SharedLock.Unlock(nodeId, existingLock, CancellationToken.None);
         }
         [TestMethod]
         [ExpectedException(typeof(SharedLockNotFoundException))]
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Tests
             SetSharedLockCreationDate(nodeId, DateTime.UtcNow.AddHours(-1.0d));
 
             // ACTION
-            SharedLock.Unlock(nodeId, existingLock);
+            SharedLock.Unlock(nodeId, existingLock, CancellationToken.None);
         }
 
 
@@ -605,7 +605,7 @@ namespace SenseNet.ContentRepository.Tests
             node.CheckOut();
 
             Assert.IsTrue(node.Locked);
-            Assert.AreEqual(lockValue, SharedLock.GetLock(nodeId));
+            Assert.AreEqual(lockValue, SharedLock.GetLock(nodeId, CancellationToken.None));
         }
         [TestMethod]
         [ExpectedException(typeof(LockedNodeException))]

@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The same lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string RefreshLock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public static string RefreshLock(int contentId, string @lock, CancellationToken cancellationToken)
         {
             return Storage.RefreshSharedLockAsync(contentId, @lock, cancellationToken).Result;
         }
@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The original lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string ModifyLock(int contentId, string @lock, string newLock, CancellationToken cancellationToken = default(CancellationToken))
+        public static string ModifyLock(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
         {
             return Storage.ModifySharedLockAsync(contentId, @lock, newLock, cancellationToken).Result;
         }
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Loads a shared lock value for the specified content id.
         /// </summary>
         /// <returns>The shared lock value if exists or null.</returns>
-        public static string GetLock(int contentId, CancellationToken cancellationToken = default(CancellationToken))
+        public static string GetLock(int contentId, CancellationToken cancellationToken)
         {
             return Storage.GetSharedLockAsync(contentId, cancellationToken).Result;
         }
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The original lock value if exists.</returns>
         /// <exception cref="SharedLockNotFoundException"></exception>
         /// <exception cref="LockedNodeException"></exception>
-        public static string Unlock(int contentId, string @lock, CancellationToken cancellationToken = default(CancellationToken))
+        public static string Unlock(int contentId, string @lock, CancellationToken cancellationToken)
         {
             return Storage.DeleteSharedLockAsync(contentId, @lock, cancellationToken).Result;
         }
@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Deletes expired shared locks. Called by the maintenance task.
         /// </summary>
-        public static void Cleanup(CancellationToken cancellationToken = default(CancellationToken))
+        public static void Cleanup(CancellationToken cancellationToken)
         {
             SnTrace.Database.Write("Cleanup shared locks.");
             Storage.CleanupSharedLocksAsync(cancellationToken).Wait(cancellationToken);

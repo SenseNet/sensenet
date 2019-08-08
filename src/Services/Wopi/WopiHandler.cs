@@ -319,7 +319,7 @@ namespace SenseNet.Services.Wopi
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
 
-            var existingLock = SharedLock.GetLock(file.Id) ?? string.Empty;
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None) ?? string.Empty;
 
             return new WopiResponse
             {
@@ -337,7 +337,7 @@ namespace SenseNet.Services.Wopi
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 if (!file.Locked)
@@ -367,7 +367,7 @@ namespace SenseNet.Services.Wopi
                     }
                 };
             }
-            SharedLock.RefreshLock(contentId, existingLock);
+            SharedLock.RefreshLock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
         private WopiResponse ProcessUnlockRequest(UnlockRequest wopiReq)
@@ -377,7 +377,7 @@ namespace SenseNet.Services.Wopi
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 return new WopiResponse
@@ -402,7 +402,7 @@ namespace SenseNet.Services.Wopi
                     }
                 };
             }
-            SharedLock.Unlock(contentId, existingLock);
+            SharedLock.Unlock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
         private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq)
@@ -412,7 +412,7 @@ namespace SenseNet.Services.Wopi
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 return new WopiResponse
@@ -437,7 +437,7 @@ namespace SenseNet.Services.Wopi
                     }
                 };
             }
-            SharedLock.RefreshLock(contentId, existingLock);
+            SharedLock.RefreshLock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
         private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq)
@@ -447,7 +447,7 @@ namespace SenseNet.Services.Wopi
             if (!(Node.LoadNode(contentId) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 return new WopiResponse
@@ -472,7 +472,7 @@ namespace SenseNet.Services.Wopi
                     }
                 };
             }
-            SharedLock.ModifyLock(contentId, existingLock, wopiReq.Lock);
+            SharedLock.ModifyLock(contentId, existingLock, wopiReq.Lock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
 
@@ -517,7 +517,7 @@ namespace SenseNet.Services.Wopi
         /// <summary>Method for tests</summary>
         internal static WopiResponse ProcessPutFileRequest(File file, string lockValue, Stream stream)
         {
-            var existingLock = SharedLock.GetLock(file.Id);
+            var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 if (file.Binary.Size != 0)

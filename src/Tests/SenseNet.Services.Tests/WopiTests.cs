@@ -591,7 +591,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -609,7 +609,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -656,7 +656,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -678,7 +678,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -698,7 +698,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -722,7 +722,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -772,7 +772,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "CheckedOut");
                 AssertHeader(response.Headers, "X-WOPI-Lock", "");
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -841,7 +841,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -917,7 +917,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -937,7 +937,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -961,7 +961,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(actualLock, existingLock);
             });
         }
@@ -1010,7 +1010,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -1035,7 +1035,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -1058,7 +1058,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -1082,7 +1082,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(actualLock, existingLock);
             });
         }
@@ -1136,7 +1136,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
