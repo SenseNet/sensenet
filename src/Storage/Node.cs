@@ -3048,7 +3048,8 @@ namespace SenseNet.ContentRepository.Storage
                     // Store in the database
                     int lastMajorVersionId, lastMinorVersionId;
 
-                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).Result;
+                    //UNDONE: check Result and Wait calls: GetAwaiter().GetResult()
+                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).GetAwaiter().GetResult();
                     lastMajorVersionId = settings.LastMajorVersionIdAfter;
                     lastMinorVersionId = settings.LastMinorVersionIdAfter;
                     node.RefreshVersionInfo(head);

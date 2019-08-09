@@ -21,7 +21,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 return sche;
             });
 
-            var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp, CancellationToken.None).Result;
+            //UNDONE: check Result and Wait calls: GetAwaiter().GetResult()
+            var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp, CancellationToken.None).GetAwaiter().GetResult();
             var schemaWriter = DataStore.CreateSchemaWriter();
             try
             {

@@ -50,22 +50,26 @@ namespace SenseNet.ContentRepository.Schema
         {
             get
             {
-                if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
+                var contentTypeManager = Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+                if (contentTypeManager == null)
                 {
                     lock (_syncRoot)
                     {
-                        if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
+                        contentTypeManager = Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+                        if (contentTypeManager == null)
                         {
                             _initializing = true;
-                            var current = new ContentTypeManager();
-                            current.Initialize();
+                            var ctm = new ContentTypeManager();
+                            ctm.Initialize();
+                            contentTypeManager = ctm;
                             _initializing = false;
-                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, current);
-                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + current._contentTypes.Count);
+                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, ctm);
+                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
                         }
                     }
                 }
-                return Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+
+                return contentTypeManager;
             }
         }
 
