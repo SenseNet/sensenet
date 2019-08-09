@@ -1,22 +1,23 @@
 ---
 title: "Cross-origin resource sharing"
-source_url: 'https://github.com/SenseNet/sensenet/docs/cors.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/cors.md'
 category: Development
 version: v7.0
 tags: [CORS, authentication, jwt, login, origin, http headers, preflight, OData, REST]
+description: "In this article operators and developers may learn about CORS settings in sensenet and how we prevent cross-domain attacks."
 ---
 
 # Cross-origin resource sharing
 [Cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) (CORS) is a technique that allows client-side web developers to access resources from a *different domain*. Shared JavaScript files or images are good examples for this. However cross-origin requests can also be used by hackers and malicious sites to access confidential information if a site is not protected against [Cross Site Request Forgery](http://hu.wikipedia.org/wiki/Cross-site_request_forgery) (CSRF) attacks. This is why browsers apply strict rules for these operations to prevent hackers from accessing the portal from external sites.
 
-> **sensenet ECM** supports CORS OData requests from **version 6.4** and CORS file download requests from **version 6.5.3**. In this article operators and developers may learn about CORS settings and how we prevent cross-domain attacks.}}
+> **sensenet** supports CORS OData requests from **version 6.4** and CORS file download requests from **version 6.5.3**. In this article operators and developers may learn about CORS settings and how we prevent cross-domain attacks.}}
 
-All the information on this page refers to our [OData REST API](/docs/odata-rest-api.md), as that is the most important entry point for client developers to the repository.
+All the information on this page refers to our [OData REST API](/docs/odata-rest-api), as that is the most important entry point for client developers to the repository.
 
 ## CORS basics
 The CORS specification defines two kinds of cross-origin request protocols:
 - simple CORS, using a single GET or POST request 
-- advanced CORS, using a *preflight request* (supported from sensenet ECM **version 6.5.4 patch 8**)
+- advanced CORS, using a *preflight request* (supported from sensenet **version 6.5.4 patch 8**)
 
 For details see the following article:
 - [CORS on Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
@@ -45,12 +46,12 @@ When a browser receives the response above, it will allow the JavaScript runtime
 > Please note that in this case the request was already executed successfully on the server, it is just the client-side JavaScript code that is not allowed to access the results. See the next section about how we use origin check to protect our portals against requests that would cause harm even if the client-side code does not receive the result.
 
 ### Origin check 
-In case of cross-domain requests all modern browsers send the *Origin* header to the server, containing the domain of the original page. Sensenet ECM always checks for the Origin header and if it is different than the requested domain and it is not included in a **whitelist**, the request will fail on the server without being able to do any harm. 
+In case of cross-domain requests all modern browsers send the *Origin* header to the server, containing the domain of the original page. sensenet always checks for the Origin header and if it is different than the requested domain and it is not included in a **whitelist**, the request will fail on the server without being able to do any harm. 
 
 > Unlike the old *Referer* header that contains the whole url, the *Origin* header contains only the domain and **it cannot be modified after the browser has sent the request**, meaning it is reliable.
 
 ## Settings
-You can manage CORS-related settings in the following [Settings](http://wiki.sensenet.com/Settings) content in the [Content Repository](/docs/content-repository.md)
+You can manage CORS-related settings in the following [Settings](http://wiki.sensenet.com/Settings) content in the [Content Repository](/docs/content-repository)
 - */Root/System/Settings/Portal.settings*
 
 ### Allowed origin domains
@@ -64,6 +65,18 @@ The list may contain internal or external domains:
 }
 ```
 
+##### Port handling
+You may define urls containing a specific port. In this case only the requests arriving from the defined urls will be allowed: requests from the same domain (`localhost`) but without a port will be denied.
+
+> If you are using sensenet on urls containing a port, you will have to define them here with exact port numbers. Simply adding `localhost` is not enough, there is no wildcard support for ports yet.
+
+```javascript
+{
+   AllowedOriginDomains: [ "localhost:1234", "localhost:5678" ]
+}
+```
+
+##### Wildcard
 It is also possible to open the Content Repository to *everyone* by providing a *wildcard* as the only allowed origin.
 
 ```javascript
@@ -73,9 +86,9 @@ It is also possible to open the Content Repository to *everyone* by providing a 
 ```
 
 ### Allowed methods and headers
-*from sensenet ECM version 7.0*
+*from sensenet version 7.0*
 
-If you need to, you may customize the list of allowed methods (http verbs) for CORS requests on your sensenet ECM instance. If something is missing from the default list, or you want to restrict the allowed request methods for security reasons, you can do so by providing the following line in the setting:
+If you need to, you may customize the list of allowed methods (http verbs) for CORS requests on your sensenet instance. If something is missing from the default list, or you want to restrict the allowed request methods for security reasons, you can do so by providing the following line in the setting:
 
 ```javascript
 {
@@ -106,7 +119,7 @@ Access-Control-Allow-Credentials: true
 ```
 
 ### Logging in using JWT authentication
-*from sensenet ECM version 7.0*
+*from sensenet version 7.0*
 
 To log in to a portal on a different domain than the current one (the target portal is where you want to send CORS requests), you can use [JWT authentication](/docs/web-token-authentication). The easiest way to do that is using the [Client JS API](/docs/tutorials/how-to-use-jwt-in-sn-client-js) instead of implementing the protocol by yourself.
 
@@ -114,13 +127,13 @@ To log in to a portal on a different domain than the current one (the target por
 All the protection and protocol above is related to browsers. Web requests made by *command line tools* do not contain these http headers and the response is not checked by the tool in any way. This means the whole cross-origin protection does not apply to command line tools.
 
 ## Examples
-To send a cross-origin request from JavaScript, you simply have to provide the absolute url of the resource you want to query (e.g. an OData request to a sensenet ECM portal) and tell the browser that you want it to send user credentials with the request:
+To send a cross-origin request from JavaScript, you simply have to provide the absolute url of the resource you want to query (e.g. an OData request to a sensenet portal) and tell the browser that you want it to send user credentials with the request:
 
 ```txt
 withCredentials: true
 ```
 
-The following examples send a CORS request to a sensenet ECM portal to get memos and create a new one. Of course you will have to be authenticated on the target site to make this work (see authentication section above for details).
+The following examples send a CORS request to a sensenet portal to get memos and create a new one. Of course you will have to be authenticated on the target site to make this work (see authentication section above for details).
 
 ```javascript
 // GET request: load memos from the Memos list

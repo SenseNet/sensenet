@@ -30,14 +30,8 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        [Obsolete("Please use RegionInfos instead")]
-        public static NameValueCollection CurrencyTypes
-        {
-            get
-            {
-                return System.Configuration.ConfigurationManager.GetSection("currencyValues") as NameValueCollection;
-            }
-        }
+        [Obsolete("Please use RegionInfos instead", true)]
+        public static NameValueCollection CurrencyTypes { get; } = new NameValueCollection();
 
         private static Dictionary<string, RegionInfo> _regionInfos;
         private static object _regionLock = new object();

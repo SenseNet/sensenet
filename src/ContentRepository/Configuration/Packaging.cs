@@ -7,5 +7,6 @@ namespace SenseNet.Configuration
 
         public static string[] NetworkTargets { get; internal set; } = GetListOrEmpty<string>(SectionName, "NetworkTargets").ToArray();
         public static string TargetDirectory { get; internal set; } = GetString(SectionName, "TargetDirectory");
+        public static string PackageDirectory { get; internal set; } = GetString(SectionName, "PackageDirectory");
     }
 }

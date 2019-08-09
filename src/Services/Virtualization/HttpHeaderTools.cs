@@ -289,10 +289,23 @@ namespace SenseNet.Portal.Virtualization
         {
             if (HttpContext.Current == null)
                 return true;
-            
+
             // Get the Origin header from the request, if it was sent by the browser.
             // Command-line tools or local html files will not send this.
             var originHeader = HttpContext.Current.Request.Headers[HEADER_ACESSCONTROL_ORIGIN_NAME];
+
+            return TrySetAllowedOriginHeader(originHeader,
+                HttpContext.Current.Request.Url,
+                () => Settings.GetValue<IEnumerable<string>>(PortalSettings.SETTINGSNAME,
+                    PortalSettings.SETTINGS_ALLOWEDORIGINDOMAINS,
+                    PortalContext.Current.ContextNodePath, new string[0]), out _);
+        }
+
+        internal static bool TrySetAllowedOriginHeader(string originHeader, Uri requestUri, 
+            Func<IEnumerable<string>> getCorsDomains, out string responseDomain)
+        {
+            responseDomain = null;
+
             if (string.IsNullOrEmpty(originHeader) || string.Compare(originHeader, "null", StringComparison.InvariantCultureIgnoreCase) == 0)
             {
                 SetAccessControlHeaders();
@@ -301,13 +314,15 @@ namespace SenseNet.Portal.Virtualization
 
             // We compare only the domain parts of the two urls, because interim servers
             // may change the scheme and port of the url (e.g. from https to http).
-            var currentDomain = HttpContext.Current.Request.Url.GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
+            var currentDomain = requestUri.GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
             var originDomain = string.Empty;
+
+            Uri origin = null;
             var error = false;
 
             try
             {
-                var origin = new Uri(originHeader.Trim(' '));
+                origin = new Uri(originHeader.Trim(' '));
                 originDomain = origin.GetComponents(UriComponents.Host, UriFormat.SafeUnescaped);
             }
             catch (Exception)
@@ -319,21 +334,27 @@ namespace SenseNet.Portal.Virtualization
             if (!error)
             {
                 // check if the request arrived from an external domain
-                if (string.Compare(currentDomain, originDomain, StringComparison.InvariantCultureIgnoreCase) != 0)
+                if (string.Compare(currentDomain, originDomain, StringComparison.InvariantCultureIgnoreCase) != 0 ||
+                    requestUri.Port != origin.Port)
                 {
                     // We allow requests from external domains only if they are registered in this whitelist.
-                    var corsDomains = Settings.GetValue<IEnumerable<string>>(PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_ALLOWEDORIGINDOMAINS, 
-                        PortalContext.Current.ContextNodePath, new string[0]);
+                    var corsDomains = getCorsDomains();
 
                     // try to find the domain in the whitelist (or the '*')
-                    var externalDomain = GetAllowedDomain(originDomain, corsDomains);
+                    var externalDomain = origin.IsDefaultPort
+                        ? GetAllowedDomain(originDomain, corsDomains)
+                        : GetAllowedDomain(originDomain + ":" + origin.Port, corsDomains);
 
                     if (!string.IsNullOrEmpty(externalDomain))
                     {
                         // Set the desired domain as allowed (or '*' if it is among the whitelisted domains). We cannot use 
                         // the value from the whitelist (e.g. 'example.com'), because the browser expects the full origin 
                         // (with schema and port, e.g. 'http://example.com:80').
-                        SetAccessControlHeaders(externalDomain == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL ? HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL : originHeader);
+                        responseDomain = externalDomain == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL
+                            ? HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL
+                            : originHeader;
+
+                        SetAccessControlHeaders(responseDomain);
                         return true;
                     }
 
@@ -349,7 +370,7 @@ namespace SenseNet.Portal.Virtualization
 
         internal static string GetAllowedDomain(string originDomain, IEnumerable<string> allowedDomains)
         {
-            return allowedDomains.FirstOrDefault(d =>
+            return allowedDomains?.FirstOrDefault(d =>
                 d == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL ||
                 string.Compare(d, originDomain, StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 d.StartsWith("*.", StringComparison.Ordinal) && originDomain.EndsWith(d.Substring(1), 

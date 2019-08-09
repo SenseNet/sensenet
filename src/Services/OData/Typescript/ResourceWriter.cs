@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.Portal.OData.Typescript
@@ -23,7 +19,7 @@ namespace SenseNet.Portal.OData.Typescript
  *
  * const editActionName = SenseNet.Resources.Actions[""Edit""]
  * ```
- */ /** */");
+ */");
 
             foreach (var className in SenseNetResourceManager.Current.GetClasses().OrderBy(x => x))
                 writer.WriteLine($" export class {className.Replace("-", "")} {{ }}");
