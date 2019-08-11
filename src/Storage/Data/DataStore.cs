@@ -23,10 +23,14 @@ using SenseNet.Search.Querying;
 namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
-    /// Defines methods for loading and saving <see cref="Node"/>s and further repository elements.
+    /// Main data access API of the Content Repository. Defines methods for loading and saving 
+    /// <see cref="Node"/>s and other repository elements.
     /// </summary>
     public static class DataStore
     {
+        /// <summary>
+        /// Default size limit for preloading and caching long text values.
+        /// </summary>
         public const int TextAlternationSizeLimit = 4000;
 
         /// <summary>
@@ -35,23 +39,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static DataProvider DataProvider => Providers.Instance.DataProvider;
 
         /// <summary>
-        /// Gets the allowed length of the Path of the <see cref="Node"/>.
+        /// Gets the allowed length of the Path of a <see cref="Node"/>.
         /// </summary>
         public static int PathMaxLength => DataProvider.PathMaxLength;
         /// <summary>
-        /// Gets the allowed minimum value of the <see cref="DateTime"/>.
+        /// Gets the allowed minimum of a <see cref="DateTime"/> value.
         /// </summary>
         public static DateTime DateTimeMinValue => DataProvider.DateTimeMinValue;
         /// <summary>
-        /// Gets the allowed maximum value of the <see cref="DateTime"/>.
+        /// Gets the allowed maximum of a <see cref="DateTime"/> value.
         /// </summary>
         public static DateTime DateTimeMaxValue => DataProvider.DateTimeMaxValue;
         /// <summary>
-        /// Gets the allowed maximum value of the <see cref="decimal"/>.
+        /// Gets the allowed minimum of a <see cref="decimal"/> value.
         /// </summary>
         public static decimal DecimalMinValue => DataProvider.DecimalMinValue;
         /// <summary>
-        /// Gets the allowed maximum value of the <see cref="decimal"/>.
+        /// Gets the allowed maximum of a <see cref="decimal"/> value.
         /// </summary>
         public static decimal DecimalMaxValue => DataProvider.DecimalMaxValue;
 
@@ -67,7 +71,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /// <summary>
-        /// Restores the underlying dataprovider to the initial state after the system start.
+        /// Restores the underlying dataprovider to the initial state after system start.
         /// </summary>
         public static void Reset()
         {
@@ -77,9 +81,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== Installation */
 
         /// <summary>
-        /// Prepares the initial valid state of the underlying database by the given storage-model structure.
-        /// The database structure (tables, collections, indexes) are already prepared.
-        /// This method is called tipically in the installation workflow.
+        /// Prepares the initial valid state of the underlying database using the provided storage-model structure.
+        /// The database structure (tables, collections, indexes) should be prepared before calling this method 
+        /// which happens during the installation process.
         /// </summary>
         /// <param name="data">A storage-model structure to install.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>

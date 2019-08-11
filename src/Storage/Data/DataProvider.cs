@@ -21,14 +21,31 @@ namespace SenseNet.ContentRepository.Storage.Data
     public abstract class DataProvider
     {
         /// <summary>
-        /// ... (MSSQL: unique index size is 900 byte)
+        /// Gets the allowed length of the Path of a <see cref="Node"/>.
+        /// In case of MSSQL the unique index size is 900 bytes, this is why the default value 
+        /// of this property is 450 unicode characters.
         /// </summary>
         public virtual int PathMaxLength { get; } = 450;
+        /// <summary>
+        /// Gets the allowed minimum of a <see cref="DateTime"/> value.
+        /// </summary>
         public virtual DateTime DateTimeMinValue { get; } = DateTime.MinValue;
+        /// <summary>
+        /// Gets the allowed maximum of a <see cref="DateTime"/> value.
+        /// </summary>
         public virtual DateTime DateTimeMaxValue { get; } = DateTime.MaxValue;
+        /// <summary>
+        /// Gets the allowed minimum of a <see cref="decimal"/> value.
+        /// </summary>
         public virtual decimal DecimalMinValue { get; } = decimal.MinValue;
+        /// <summary>
+        /// Gets the allowed maximum of a <see cref="decimal"/> value.
+        /// </summary>
         public virtual decimal DecimalMaxValue { get; } = decimal.MinValue;
 
+        /// <summary>
+        /// Restores the dataprovider to the initial state after system start.
+        /// </summary>
         public virtual void Reset()
         {
             // Do nothing if the provider is stateless.
