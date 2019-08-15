@@ -31,18 +31,19 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Deletes all AccessTokens even if they are still valid.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
             return Storage.DeleteAllAccessTokensAsync(cancellationToken);
         }
 
         /// <summary>
-        /// Creates a new token for the given user with the specified timeout.
-        /// The token can be bound to a content or any specified feature name.
+        /// Creates a new token for the provided user with the specified timeout.
+        /// The token can be bound to a content or a feature.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <returns>The new AccessToken instance.</returns>
         public static AccessToken CreateToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
@@ -51,42 +52,41 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Creates a new token for the given user with the specified timeout.
-        /// The token can be bound to a content or any specified feature name.
+        /// Creates a new token for the provided user with the specified timeout.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the new AccessToken instance.</returns>
         public static Task<AccessToken> CreateTokenAsync(int userId, TimeSpan timeout,
             CancellationToken cancellationToken)
         {
             return CreateTokenAsync(userId, timeout, 0, null, cancellationToken);
         }
         /// <summary>
-        /// Creates a new token for the given user with the specified timeout.
-        /// The token can be bound to a content or any specified feature name.
+        /// Creates a new token for the provided user with the specified timeout.
+        /// The token can be bound to a content.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the new AccessToken instance.</returns>
         public static Task<AccessToken> CreateTokenAsync(int userId, TimeSpan timeout, int contentId,
             CancellationToken cancellationToken)
         {
             return CreateTokenAsync(userId, timeout, contentId, null, cancellationToken);
         }
         /// <summary>
-        /// Creates a new token for the given user with the specified timeout.
-        /// The token can be bound to a content or any specified feature name.
+        /// Creates a new token for the provided user with the specified timeout.
+        /// The token can be bound to a content or a feature.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the new AccessToken instance.</returns>
         public static async Task<AccessToken> CreateTokenAsync(int userId, TimeSpan timeout, int contentId, string feature,
             CancellationToken cancellationToken)
         {
@@ -106,60 +106,62 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Loads an existing token or creates a new one for the given user with the specified timeout.
+        /// Loads an existing token or creates a new one for the provided user with the specified timeout.
         /// If there is an existing token that expires in less then 5 minutes, this method issues a new one.
-        /// The token can be bound to a content or any specified feature name.
+        /// The token can be bound to a content or a feature.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
-        /// <returns>The eisting or new AccessToken instance.</returns>
+        /// <returns>The existing or new AccessToken instance.</returns>
         public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
             return GetOrAddTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).Result;
         }
 
         /// <summary>
-        /// Loads an existing token or creates a new one for the given user with the specified timeout.
+        /// Loads an existing token or creates a new one for the provided user with the specified timeout.
         /// If there is an existing token that expires in less then 5 minutes, this method issues a new one.
-        /// The token can be bound to a content or any specified feature name.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The eisting or new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps
+        /// the existing or new AccessToken instance.</returns>
         public static Task<AccessToken> GetOrAddTokenAsync(int userId, TimeSpan timeout,
             CancellationToken cancellationToken)
         {
             return GetOrAddTokenAsync(userId, timeout, 0, cancellationToken);
         }
         /// <summary>
-        /// Loads an existing token or creates a new one for the given user with the specified timeout.
+        /// Loads an existing token or creates a new one for the provided user with the specified timeout.
         /// If there is an existing token that expires in less then 5 minutes, this method issues a new one.
-        /// The token can be bound to a content or any specified feature name.
+        /// The token can be bound to a content.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The eisting or new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps
+        /// the existing or new AccessToken instance.</returns>
         public static Task<AccessToken> GetOrAddTokenAsync(int userId, TimeSpan timeout, int contentId,
             CancellationToken cancellationToken)
         {
             return GetOrAddTokenAsync(userId, timeout, contentId, null, cancellationToken);
         }
         /// <summary>
-        /// Loads an existing token or creates a new one for the given user with the specified timeout.
+        /// Loads an existing token or creates a new one for the provided user with the specified timeout.
         /// If there is an existing token that expires in less then 5 minutes, this method issues a new one.
-        /// The token can be bound to a content or any specified feature name.
+        /// The token can be bound to a content or a feature.
         /// </summary>
-        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="userId">The id of the User that is the owner of the token.</param>
         /// <param name="timeout">The timeout of the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>The eisting or new AccessToken instance.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps
+        /// the existing or new AccessToken instance.</returns>
         public static async Task<AccessToken> GetOrAddTokenAsync(int userId, TimeSpan timeout, int contentId, string feature,
             CancellationToken cancellationToken)
         {
@@ -178,7 +180,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Designed for test purposes.
-        /// Returns the AccessToken by the given Id.
+        /// Returns the AccessToken by the provided Id.
         /// The token is null if it does not exist in the database.
         /// </summary>
         internal static AccessToken GetTokenById(int accessTokenId)
@@ -187,7 +189,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
         /// <summary>
         /// Designed for test purposes.
-        /// Returns the AccessToken by the given Id.
+        /// Returns the AccessToken by the provided Id.
         /// The token is null if it does not exist in the database.
         /// </summary>
         internal static Task<AccessToken> GetTokenByIdAsync(int accessTokenId, 
@@ -197,52 +199,51 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Returns the the token by the specified value and the given filters if there is any.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Gets the token by the specified value and the provided filters if there is any.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
-        /// <returns>Existing AccessToken or null.</returns>
+        /// <returns>The existing AccessToken or null.</returns>
         public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
         {
             return Storage.LoadAccessTokenAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
         }
 
         /// <summary>
-        /// Returns the the token by the specified value and the given filters if there is any.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Gets the token by the specified value.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>Existing AccessToken or null.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the existing AccessToken or null.</returns>
         public static Task<AccessToken> GetTokenAsync(string tokenValue,
             CancellationToken cancellationToken)
         {
             return GetTokenAsync(tokenValue, 0, cancellationToken);
         }
         /// <summary>
-        /// Returns the the token by the specified value and the given filters if there is any.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Gets the token by the specified value and the provided content id.
+        /// The 'contentId' parameter is necessary if the original token was emitted by that.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>Existing AccessToken or null.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the existing AccessToken or null.</returns>
         public static Task<AccessToken> GetTokenAsync(string tokenValue, int contentId,
             CancellationToken cancellationToken)
         {
             return GetTokenAsync(tokenValue, contentId, null, cancellationToken);
         }
         /// <summary>
-        /// Returns the the token by the specified value and the given filters if there is any.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Gets the token by the specified value and the provided filters if there is any.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>Existing AccessToken or null.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the existing AccessToken or null.</returns>
         public static Task<AccessToken> GetTokenAsync(string tokenValue, int contentId, string feature,
             CancellationToken cancellationToken)
         {
@@ -250,7 +251,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Returs all tokens of the given User.
+        /// Gets all tokens of the provided User.
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         /// <returns>An AccessToken array.</returns>
@@ -259,11 +260,11 @@ namespace SenseNet.ContentRepository.Storage.Security
             return Storage.LoadAccessTokensAsync(userId, CancellationToken.None).Result;
         }
         /// <summary>
-        /// Returs all tokens of the given User.
+        /// Gets all tokens of the provided User.
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>An AccessToken array.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps an AccessToken array.</returns>
         public static Task<AccessToken[]> GetAllTokensAsync(int userId, 
             CancellationToken cancellationToken)
         {
@@ -271,50 +272,51 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Returns true if the specified token value exists and has not yet expired.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Checks whether the specified token value exists and has not yet expired.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
-        /// <returns>true or false</returns>
+        /// <returns>True if the token exists and is valid.</returns>
         public static bool TokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
             return TokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
         }
 
         /// <summary>
-        /// Returns true if the specified token value exists and has not yet expired.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Checks whether the specified token value exists and has not yet expired.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>true or false</returns>
+        /// <returns>True if the token exists and is valid.</returns>
         public static Task<bool> TokenExistsAsync(string tokenValue, CancellationToken cancellationToken)
         {
             return TokenExistsAsync(tokenValue, 0, null, cancellationToken);
         }
         /// <summary>
-        /// Returns true if the specified token value exists and has not yet expired.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// checks whether the specified token value exists and has not yet expired.
+        /// The 'contentId' parameter is necessary if the original token was emitted by that.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>true or false</returns>
+        /// <returns>A Task that represents the asynchronous operation and
+        /// wraps True if the token exists and is valid.</returns>
         public static Task<bool> TokenExistsAsync(string tokenValue, int contentId, CancellationToken cancellationToken)
         {
             return TokenExistsAsync(tokenValue, contentId, null, cancellationToken);
         }
         /// <summary>
-        /// Returns true if the specified token value exists and has not yet expired.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// Checks whether the specified token value exists and has not yet expired.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>true or false</returns>
+        /// <returns>A Task that represents the asynchronous operation and
+        /// wraps True if the token exists and is valid.</returns>
         public static async Task<bool> TokenExistsAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken)
         {
             return await GetTokenAsync(tokenValue, contentId, feature, cancellationToken).ConfigureAwait(false) != null;
@@ -322,10 +324,10 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
         public static void AssertTokenExists(string tokenValue, int contentId = 0, string feature = null)
@@ -335,25 +337,25 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
-        public static Task AssertTokenExistsAsync(string tokenValue,
-            CancellationToken cancellationToken)
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static Task AssertTokenExistsAsync(string tokenValue, CancellationToken cancellationToken)
         {
             return AssertTokenExistsAsync(tokenValue, 0, cancellationToken);
         }
         /// <summary>
         /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task AssertTokenExistsAsync(string tokenValue, int contentId,
             CancellationToken cancellationToken)
         {
@@ -361,13 +363,14 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
         /// <summary>
         /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
-        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token was emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="contentId">The id of the Content that is associated with the token.</param>
         /// <param name="feature">Any word that identifies the feature.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task AssertTokenExistsAsync(string tokenValue, int contentId, string feature,
             CancellationToken cancellationToken)
         {
@@ -376,7 +379,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Updates the expiration date of the specified token value.
+        /// Updates the expiration date of the specified token.
         /// Missing or expired token causes InvalidAccessTokenException.
         /// </summary>
         /// <param name="tokenValue">The value of the original token.</param>
@@ -387,13 +390,14 @@ namespace SenseNet.ContentRepository.Storage.Security
             Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, CancellationToken.None).Wait();
         }
         /// <summary>
-        /// Updates the expiration date of the specified token value.
+        /// Updates the expiration date of the specified token.
         /// Missing or expired token causes InvalidAccessTokenException.
         /// </summary>
         /// <param name="tokenValue">The value of the original token.</param>
         /// <param name="expirationDate">The new expiration date.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <exception cref="InvalidAccessTokenException"></exception>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task UpdateTokenAsync(string tokenValue, DateTime expirationDate,
             CancellationToken cancellationToken)
         {
@@ -413,13 +417,14 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="tokenValue">The value of the original token.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteTokenAsync(string tokenValue, CancellationToken cancellationToken)
         {
             return Storage.DeleteAccessTokenAsync(tokenValue, cancellationToken);
         }
 
         /// <summary>
-        /// Deletes all tokens of the given user regardless of expiration date.
+        /// Deletes all tokens of the provided user regardless of expiration date.
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         public static void DeleteTokensByUser(int userId)
@@ -427,17 +432,18 @@ namespace SenseNet.ContentRepository.Storage.Security
             Storage.DeleteAccessTokensByUserAsync(userId, CancellationToken.None).Wait();
         }
         /// <summary>
-        /// Deletes all tokens of the given user regardless of expiration date.
+        /// Deletes all tokens of the provided user regardless of expiration date.
         /// </summary>
         /// <param name="userId">The token owner ID.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
             return Storage.DeleteAccessTokensByUserAsync(userId, cancellationToken);
         }
 
         /// <summary>
-        /// Deletes the tokens associated by the specified contentId regardless of expiration date.
+        /// Deletes tokens associated with the specified contentId regardless of expiration date.
         /// </summary>
         /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
@@ -445,17 +451,18 @@ namespace SenseNet.ContentRepository.Storage.Security
             Storage.DeleteAccessTokensByContentAsync(contentId, CancellationToken.None).Wait();
         }
         /// <summary>
-        /// Deletes the tokens associated by the specified contentId regardless of expiration date.
+        /// Deletes the tokens associated with the specified contentId regardless of expiration date.
         /// </summary>
         /// <param name="contentId">The associated content id.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
             return Storage.DeleteAccessTokensByContentAsync(contentId, cancellationToken);
         }
 
         /// <summary>
-        /// Deletes all access tokens that expired a certain time ago.
+        /// Deletes all expired access tokens.
         /// </summary>
         public static void Cleanup()
         {
@@ -463,8 +470,9 @@ namespace SenseNet.ContentRepository.Storage.Security
             Storage.CleanupAccessTokensAsync(CancellationToken.None).Wait();
         }
         /// <summary>
-        /// Deletes all access tokens that expired a certain time ago.
+        /// Deletes all expired access tokens.
         /// </summary>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task CleanupAsync(CancellationToken cancellationToken)
         {
             SnTrace.Database.Write("Cleanup access tokens.");
