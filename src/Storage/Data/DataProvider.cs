@@ -418,7 +418,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== NodeQuery */
 
         public abstract Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken);
-        public abstract Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken);
         /// <summary>
         /// Queries the <see cref="Node"/>s by the given criterias. Every criteria can be null or empty.
         /// There are AND logical relations among the kind of criterias but OR relations among elements of the each criterion.

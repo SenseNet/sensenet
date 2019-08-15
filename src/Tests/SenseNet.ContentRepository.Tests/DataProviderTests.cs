@@ -957,14 +957,14 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public async STT.Task DP_NodeQuery_ChildrenIdentfiers()
+        public async STT.Task DP_NodeQuery_ChildrenIdentifiers()
         {
             await Test(async () =>
             {
                 var expected = CreateSafeContentQuery("+InFolder:/Root").Execute().Identifiers;
 
                 // ACTION
-                var result = await DP.GetChildrenIdentfiersAsync(Repository.Root.Id, CancellationToken.None);
+                var result = await DP.GetChildrenIdentifiersAsync(Repository.Root.Id, CancellationToken.None);
 
                 // ASSERT
                 AssertSequenceEqual(expected.OrderBy(x => x), result.OrderBy(x => x));

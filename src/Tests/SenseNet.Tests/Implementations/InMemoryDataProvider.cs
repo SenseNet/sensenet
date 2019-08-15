@@ -645,7 +645,7 @@ namespace SenseNet.Tests.Implementations
                 return STT.Task.FromResult(result);
             }
         }
-        public override Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken)
+        public override Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)

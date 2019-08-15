@@ -1234,7 +1234,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string InstanceCountScript { get; }
 
-        public override async Task<IEnumerable<int>> GetChildrenIdentfiersAsync(int parentId, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
                 return await ctx.ExecuteReaderAsync(
