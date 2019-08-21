@@ -8,6 +8,10 @@ using SenseNet.ContentRepository.Storage.Security;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    /// <summary> 
+    /// This is an MS SQL implementation of the <see cref="ISharedLockDataProviderExtension"/> interface.
+    /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
+    /// </summary>
     public class MsSqlSharedLockDataProvider : ISharedLockDataProviderExtension
     {
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
