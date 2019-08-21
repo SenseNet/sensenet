@@ -7,6 +7,9 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations
 {
+    /// <summary>
+    /// Defines helper data methods necessary for tests to run.
+    /// </summary>
     public interface ITestingDataProviderExtension : IDataProviderExtension
     {
         void InitializeForTests();

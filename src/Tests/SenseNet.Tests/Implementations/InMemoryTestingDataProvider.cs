@@ -14,6 +14,10 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations
 {
+    /// <summary>
+    /// In-memory implementation of the <see cref="ITestingDataProviderExtension"/> interface.
+    /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
+    /// </summary>
     public class InMemoryTestingDataProvider : ITestingDataProviderExtension
     {
         private DataProvider _mainProvider;
