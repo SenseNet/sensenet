@@ -10,6 +10,10 @@ using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
+    /// <summary> 
+    /// This is an in-memory implementation of the <see cref="IPackagingDataProviderExtension"/> interface.
+    /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
+    /// </summary>
     public class InMemoryPackageStorageProvider : IPackagingDataProviderExtension
     {
         public DataCollection<PackageDoc> GetPackages()

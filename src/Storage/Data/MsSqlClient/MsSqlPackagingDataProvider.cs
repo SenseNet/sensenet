@@ -10,6 +10,10 @@ using Newtonsoft.Json;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    /// <summary> 
+    /// This is an MS SQL implementation of the <see cref="IPackagingDataProviderExtension"/> interface.
+    /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
+    /// </summary>
     public class MsSqlPackagingDataProvider : IPackagingDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
