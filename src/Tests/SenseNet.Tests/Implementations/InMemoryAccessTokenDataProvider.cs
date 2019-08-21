@@ -7,6 +7,10 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
+    /// <summary> 
+    /// This is an in-memory implementation of the <see cref="IAccessTokenDataProviderExtension"/> interface.
+    /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
+    /// </summary>
     public class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         public DataCollection<AccessTokenDoc> GetAccessTokens()

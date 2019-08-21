@@ -9,6 +9,10 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 {
+    /// <summary> 
+    /// This is an MS SQL implementation of the <see cref="IAccessTokenDataProviderExtension"/> interface.
+    /// It requires the main data provider to be a <see cref="RelationalDataProviderBase"/>.
+    /// </summary>
     public class MsSqlAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
         private RelationalDataProviderBase _dataProvider;
