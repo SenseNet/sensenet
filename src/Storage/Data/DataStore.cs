@@ -1208,7 +1208,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.RoundDateTime(d);
         }
         /// <summary>
-        /// Checks whether the text is short enough to cache.
+        /// Checks whether the text is short enough to be cached.
         /// By default it uses the <see cref="TextAlternationSizeLimit"/> value as a limit.
         /// </summary>
         /// <param name="value">Text value to test for.</param>

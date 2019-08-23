@@ -23,16 +23,24 @@ using SenseNet.Diagnostics;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Data provider base class for relational databases.
+    /// </summary>
     public abstract class RelationalDataProviderBase : DataProvider
     {
         protected int IndexBlockSize = 100;
 
         public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
 
-        public abstract SnDataContext CreateDataContext(CancellationToken token);
+        /// <summary>
+        /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A new data context object.</returns>
+        public abstract SnDataContext CreateDataContext(CancellationToken cancellationToken);
         /* =============================================================================================== Nodes */
-
-        /// <inheritdoc />
+        
         public override async Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
             CancellationToken cancellationToken)
         {
@@ -136,6 +144,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                 throw new DataException(msg, e);
             }
         }
+        /// <summary>
+        /// Combines dynamic properties into a single value before saving.
+        /// </summary>
+        /// <param name="properties">A collection of dynamic properties.</param>
+        /// <returns>A string containing all dynamic property names and values in a serialized format.</returns>
         public virtual string SerializeDynamicProperties(IDictionary<PropertyType, object> properties)
         {
             var lines = properties
@@ -144,6 +157,12 @@ namespace SenseNet.ContentRepository.Storage.Data
                 .ToArray();
             return $"\r\n{string.Join("\r\n", lines)}\r\n";
         }
+        /// <summary>
+        /// Serializes a single dynamic property.
+        /// </summary>
+        /// <param name="propertyType">Property type.</param>
+        /// <param name="propertyValue">Value of the property.</param>
+        /// <returns>A serialized dynamic property name and value pair.</returns>
         protected virtual string SerializeDynamicProperty(PropertyType propertyType, object propertyValue)
         {
             if (propertyValue == null)
