@@ -477,7 +477,7 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // Memorize instances.
-                dataProvider = (InMemoryDataProvider)DataStore.DataProvider; //DB:??test??
+                dataProvider = (InMemoryDataProvider)DataStore.DataProvider;
                 searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
 
                 // Create 8 activities.
