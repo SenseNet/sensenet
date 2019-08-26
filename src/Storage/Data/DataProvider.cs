@@ -60,12 +60,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
 
-        internal virtual void SetExtension(Type providerType, IDataProviderExtension provider)
+        protected internal virtual void SetExtension(Type providerType, IDataProviderExtension provider)
         {
             _dataProvidersByType[providerType] = provider;
         }
 
-        internal virtual T GetExtension<T>() where T : class, IDataProviderExtension
+        protected internal virtual T GetExtension<T>() where T : class, IDataProviderExtension
         {
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;
