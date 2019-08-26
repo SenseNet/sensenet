@@ -896,7 +896,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string DeleteNodeScript { get; }
 
-        public override async Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
+        public override async Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
             CancellationToken cancellationToken)
         {
             try
@@ -913,8 +913,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@TargetNodeId", DbType.Int32, targetNodeId),
                                 ctx.CreateParameter("@SourceTimestamp", DbType.Binary,
                                     ConvertInt64ToTimestamp(sourceNodeHeadData.Timestamp)),
-                                ctx.CreateParameter("@TargetTimestamp", DbType.Binary,
-                                    ConvertInt64ToTimestamp(targetTimestamp)),
                             });
                         }).ConfigureAwait(false);
 

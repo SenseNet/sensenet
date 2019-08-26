@@ -2065,7 +2065,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.NodeId = 999999;
-                    await DP.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp, CancellationToken.None);
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2089,7 +2089,7 @@ namespace SenseNet.ContentRepository.Tests
                     var nodeHeadData = node.Data.GetNodeHeadData();
 
                     // ACTION
-                    await DP.MoveNodeAsync(nodeHeadData, 999999, target.NodeTimestamp, CancellationToken.None);
+                    await DP.MoveNodeAsync(nodeHeadData, 999999, CancellationToken.None);
                     Assert.Fail("ContentNotFoundException was not thrown.");
                 }
                 catch (ContentNotFoundException)
@@ -2114,7 +2114,7 @@ namespace SenseNet.ContentRepository.Tests
 
                     // ACTION
                     nodeHeadData.Timestamp++;
-                    await DP.MoveNodeAsync(nodeHeadData, target.Id, target.NodeTimestamp, CancellationToken.None);
+                    await DP.MoveNodeAsync(nodeHeadData, target.Id, CancellationToken.None);
                     Assert.Fail("NodeIsOutOfDateException was not thrown.");
                 }
                 catch (NodeIsOutOfDateException)
@@ -2422,7 +2422,7 @@ namespace SenseNet.ContentRepository.Tests
                     var hackedNodeHeadData = ErrorGenNodeHeadData.Create(nodeData.GetNodeHeadData());
                     // Call low level API
                     await DataStore.DataProvider
-                        .MoveNodeAsync(hackedNodeHeadData, target.Id, target.NodeTimestamp, CancellationToken.None);
+                        .MoveNodeAsync(hackedNodeHeadData, target.Id, CancellationToken.None);
                 }
                 catch (Exception)
                 {

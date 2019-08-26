@@ -418,7 +418,7 @@ namespace SenseNet.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId, long targetTimestamp,
+        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

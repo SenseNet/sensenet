@@ -3179,16 +3179,9 @@ namespace SenseNet.ContentRepository.Storage
         public virtual void MoveTo(Node target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
-            MoveTo(target, target.NodeTimestamp);
-        }
-        private void MoveTo(Node target, long targetTimestamp)
-        {
+                throw new ArgumentNullException(nameof(target));
             this.AssertLock();
             AssertMoving(target);
-
-            if (target == null)
-                throw new ArgumentNullException("target");
 
             // check permissions
             this.Security.AssertSubtree(PermissionType.Delete);
@@ -3228,7 +3221,7 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        DataStore.MoveNodeAsync(this.Data, target.Id, targetTimestamp, CancellationToken.None).Wait();
+                        DataStore.MoveNodeAsync(this.Data, target.Id, CancellationToken.None).Wait();
                     }
                     catch (DataOperationException e) // rethrow
                     {

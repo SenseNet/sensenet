@@ -348,32 +348,30 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="sourceNodeHead">A node data representing the node to move.</param>
         /// <param name="targetNodeId">Id of the container where the node will be moved.</param>
-        /// <param name="targetTimestamp">Timestamp of the target container.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken)
+        public static async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
             // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
             var sourceNodeHeadData = sourceNodeHead.GetNodeHeadData();
-            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken).ConfigureAwait(false);
+            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Moves a node to the provided target container.
         /// </summary>
         /// <param name="sourceNodeData">A node data representing the node to move.</param>
         /// <param name="targetNodeId">Id of the container where the node will be moved.</param>
-        /// <param name="targetTimestamp">Timestamp of the target container.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken)
+        public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
             // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
             // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
             var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
-            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken).ConfigureAwait(false);
+            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
