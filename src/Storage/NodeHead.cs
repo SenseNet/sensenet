@@ -37,7 +37,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_versions == null)
                 {
-                    _versions = DataStore.GetNodeVersionsAsync(this.Id, CancellationToken.None).Result;
+                    _versions = DataStore.GetVersionNumbersAsync(this.Id, CancellationToken.None).Result.ToArray();
                     //TODO: After GetNodeVersions: check changes
                 }
                 return _versions;

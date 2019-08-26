@@ -568,39 +568,26 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        public override Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken)
+        public override Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
-                var result = DB.Versions
-                    .Where(x => x.NodeId == nodeId)
-                    .OrderBy(x => x.Version.Major)
-                    .ThenBy(x => x.Version.Minor)
-                    .Select(x => new NodeHead.NodeVersion(x.Version.Clone(), x.VersionId))
+                var versions = DB.Versions.Where(r => r.NodeId == nodeId)
+                    .Select(r => new NodeHead.NodeVersion(r.Version, r.VersionId))
                     .ToArray();
-                return STT.Task.FromResult(result);
+                return STT.Task.FromResult((IEnumerable<NodeHead.NodeVersion>)versions);
             }
         }
 
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (DB)
-            {
-                var versions = DB.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
-                return STT.Task.FromResult((IEnumerable<VersionNumber>)versions);
-            }
-        }
-
-        public override Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
+        public override Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
                 if (node == null)
-                    return STT.Task.FromResult((IEnumerable<VersionNumber>)new VersionNumber[0]);
+                    return STT.Task.FromResult((IEnumerable<NodeHead.NodeVersion>)new NodeHead.NodeVersion[0]);
                 return GetVersionNumbersAsync(node.NodeId, cancellationToken);
             }
         }

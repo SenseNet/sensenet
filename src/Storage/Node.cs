@@ -2219,7 +2219,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return new List<VersionNumber>(DataStore.GetVersionNumbersAsync(nodeId, CancellationToken.None).Result);
+            return DataStore.GetVersionNumbersAsync(nodeId, CancellationToken.None).Result
+                .Select(x => x.VersionNumber)
+                .ToList();
         }
         /// <summary>
         /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
@@ -2229,7 +2231,9 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            return new List<VersionNumber>(DataStore.GetVersionNumbersAsync(path, CancellationToken.None).Result);
+            return DataStore.GetVersionNumbersAsync(path, CancellationToken.None).Result
+                .Select(x => x.VersionNumber)
+                .ToList();
         }
 
         /// <summary>

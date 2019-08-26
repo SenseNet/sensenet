@@ -422,30 +422,19 @@ namespace SenseNet.ContentRepository.Storage.Data
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Returns an array of <see cref="NodeHead.NodeVersion"/>s that contains all version instances
-        /// of the requested <see cref="Node"/>.
-        /// The result is sorted first by MajorNumber and then by MinorNumber.
-        /// </summary>
-        /// <param name="nodeId">Id of the requested <see cref="Node"/>.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the loaded <see cref="NodeHead.NodeVersion"/> array.</returns>
-        /// <exception cref="DataException">The operation causes a database-related error.</exception>
-        /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
-        public abstract Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken);
-        /// <summary>
         /// Returns version numbers representing all versions of the requested <see cref="Node"/>.
         /// </summary>
         /// <param name="nodeId">Node identifier.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of version numbers.</returns>
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken);
         /// <summary>
         /// Returns version numbers representing all versions of the requested <see cref="Node"/>.
         /// </summary>
         /// <param name="path">Node path.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a list of version numbers.</returns>
-        public abstract Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken);
 
         /// <summary>
         /// Load node heads in multiple subtrees.

@@ -724,18 +724,10 @@ WHERE
             where: "Node.NodeId IN (SELECT Id FROM @NodeIdTable)");
         #endregion
 
-        #region GetNodeVersionsScript
-        protected override string GetNodeVersionsScript => @"-- MsSqlDataProvider.GetNodeVersions
-SELECT VersionId, MajorNumber, MinorNumber, Status
-FROM Versions
-WHERE NodeId = @NodeId
-ORDER BY MajorNumber, MinorNumber
-";
-        #endregion
-
         #region GetVersionNumbersByNodeIdScript
         protected override string GetVersionNumbersByNodeIdScript => @"-- MsSqlDataProvider.GetVersionNumbersByNodeId
-SELECT MajorNumber, MinorNumber, [Status] FROM Versions
+SELECT VersionId, MajorNumber, MinorNumber, [Status]
+FROM Versions
 WHERE NodeId = @NodeId
 ORDER BY MajorNumber, MinorNumber
 ";
@@ -743,9 +735,10 @@ ORDER BY MajorNumber, MinorNumber
 
         #region GetVersionNumbersByPathScript
         protected override string GetVersionNumbersByPathScript => @"-- MsSqlDataProvider.GetVersionNumbersByPath
-SELECT v.MajorNumber, v.MinorNumber, v.[Status] FROM Versions v
+SELECT v.VersionId, v.MajorNumber, v.MinorNumber, v.[Status]
+FROM Versions v
     INNER JOIN Nodes n ON n.NodeId = v.NodeId
-WHERE n.[Path] = @Path
+WHERE n.[Path] = @Path COLLATE Latin1_General_CI_AS
 ORDER BY v.MajorNumber, v.MinorNumber
 ";
         #endregion

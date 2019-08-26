@@ -1074,12 +1074,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadNodeHeadsByIdSetScript { get; }
 
-        /// <inheritdoc />
-        public override async Task<NodeHead.NodeVersion[]> GetNodeVersionsAsync(int nodeId, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
-                return await ctx.ExecuteReaderAsync(GetNodeVersionsScript, cmd =>
+                return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
                 }, async (reader, cancel) =>
@@ -1090,37 +1089,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                     {
                         cancel.ThrowIfCancellationRequested();
                         result.Add(new NodeHead.NodeVersion(
-                                new VersionNumber(
-                                    reader.GetInt16("MajorNumber"),
-                                    reader.GetInt16("MinorNumber"),
-                                    (VersionStatus)reader.GetInt16("Status")),
-                                reader.GetInt32("VersionId")));
-                    }
-                    return result.ToArray();
-                }).ConfigureAwait(false);
-            }
-        }
-        protected abstract string GetNodeVersionsScript { get; }
-
-        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
-        {
-            using (var ctx = CreateDataContext(cancellationToken))
-            {
-                return await ctx.ExecuteReaderAsync(GetVersionNumbersByNodeIdScript, cmd =>
-                {
-                    cmd.Parameters.Add(ctx.CreateParameter("@NodeId", DbType.Int32, nodeId));
-                }, async (reader, cancel) =>
-                {
-                    cancel.ThrowIfCancellationRequested();
-                    var result = new List<VersionNumber>();
-                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        result.Add(new VersionNumber(
+                            new VersionNumber(
                                 reader.GetInt16("MajorNumber"),
                                 reader.GetInt16("MinorNumber"),
-                                (VersionStatus)reader.GetInt16("Status")));
-                        
+                                (VersionStatus)reader.GetInt16("Status")),
+                            reader.GetInt32("VersionId")));
                     }
                     return result.ToArray();
                 }).ConfigureAwait(false);
@@ -1128,7 +1101,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string GetVersionNumbersByNodeIdScript { get; }
 
-        public override async Task<IEnumerable<VersionNumber>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path,
+            CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
@@ -1138,14 +1112,16 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();
-                    var result = new List<VersionNumber>();
+                    var result = new List<NodeHead.NodeVersion>();
+                    while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                     {
                         cancel.ThrowIfCancellationRequested();
-                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
-                            result.Add(new VersionNumber(
+                        result.Add(new NodeHead.NodeVersion(
+                            new VersionNumber(
                                 reader.GetInt16("MajorNumber"),
                                 reader.GetInt16("MinorNumber"),
-                                (VersionStatus) reader.GetInt16("Status")));
+                                (VersionStatus)reader.GetInt16("Status")),
+                            reader.GetInt32("VersionId")));
                     }
                     return result.ToArray();
                 }).ConfigureAwait(false);
