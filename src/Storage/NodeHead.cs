@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -166,6 +167,32 @@ namespace SenseNet.ContentRepository.Storage
         public NodeVersion GetLastMinorVersion()
         {
             return Versions.Where(v => v.VersionId == LastMinorVersionId).FirstOrDefault();
+        }
+
+        internal NodeHeadData GetNodeHeadData()
+        {
+            return new NodeHeadData
+            {
+                NodeId = Id,
+                NodeTypeId = NodeTypeId,
+                ContentListTypeId = ContentListTypeId,
+                ContentListId = ContentListId,
+                ParentNodeId = ParentId,
+                Name = Name,
+                DisplayName = DisplayName,
+                Path = Path,
+                Index = Index,
+                Locked = LockerId != 0,
+                LockedById = LockerId,
+                LastMinorVersionId = LastMinorVersionId,
+                LastMajorVersionId = LastMajorVersionId,
+                CreationDate = CreationDate,
+                CreatedById = CreatorId,
+                ModificationDate = ModificationDate,
+                ModifiedById = LastModifierId,
+                OwnerId = OwnerId,
+                Timestamp = Timestamp,
+            };
         }
 
     }

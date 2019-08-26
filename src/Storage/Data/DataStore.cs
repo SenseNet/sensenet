@@ -316,9 +316,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Deletes a node from the database.
         /// </summary>
-        /// <param name="nodeData">A node data representing the node.</param>
+        /// <param name="nodeHead">A node data representing the node.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static Task DeleteNodeAsync(NodeHead nodeHead, CancellationToken cancellationToken)
+        {
+            // ORIGINAL SIGNATURES:
+            // internal void DeleteNode(int nodeId)
+            // internal void DeleteNodePsychical(int nodeId, long timestamp)
+            // protected internal abstract DataOperationResult DeleteNodeTree(int nodeId);
+            // protected internal abstract DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp);
+            // -------------------
+            // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
+
+            return DataProvider.DeleteNodeAsync(nodeHead.GetNodeHeadData(), cancellationToken);
+        }
         public static Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken)
         {
             // ORIGINAL SIGNATURES:
@@ -330,6 +342,22 @@ namespace SenseNet.ContentRepository.Storage.Data
             // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
 
             return DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
+        }
+        /// <summary>
+        /// Moves a node to the provided target container.
+        /// </summary>
+        /// <param name="sourceNodeHead">A node data representing the node to move.</param>
+        /// <param name="targetNodeId">Id of the container where the node will be moved.</param>
+        /// <param name="targetTimestamp">Timestamp of the target container.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, long targetTimestamp, CancellationToken cancellationToken)
+        {
+            // ORIGINAL SIGNATURES:
+            // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
+            // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
+            var sourceNodeHeadData = sourceNodeHead.GetNodeHeadData();
+            await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, targetTimestamp, cancellationToken).ConfigureAwait(false);
         }
         /// <summary>
         /// Moves a node to the provided target container.
