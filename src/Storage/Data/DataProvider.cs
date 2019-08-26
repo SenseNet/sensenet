@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             _dataProvidersByType[providerType] = provider;
         }
 
-        internal virtual T GetExtensionInstance<T>() where T : class, IDataProviderExtension
+        internal virtual T GetExtension<T>() where T : class, IDataProviderExtension
         {
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;

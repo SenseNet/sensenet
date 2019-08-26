@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>Requested data provider extension instance or null.</returns>
         public static T GetDataProviderExtension<T>() where T : class, IDataProviderExtension
         {
-            return DataProvider.GetExtensionInstance<T>();
+            return DataProvider.GetExtension<T>();
         }
 
         public static void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)

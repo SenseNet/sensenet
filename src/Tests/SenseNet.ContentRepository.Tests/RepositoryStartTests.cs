@@ -410,8 +410,8 @@ namespace SenseNet.ContentRepository.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), DataStore.DataProvider.GetExtensionInstance<IPackagingDataProviderExtension>().GetType()); //DB:??test??
-                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), DataStore.DataProvider.GetExtensionInstance<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(MsSqlPackagingDataProvider), DataStore.DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType()); //DB:??test??
+                Assert.AreEqual(typeof(MsSqlAccessTokenDataProvider), DataStore.DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType()); //DB:??test??
             }
         }
 
