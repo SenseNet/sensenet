@@ -1302,15 +1302,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             return true;
         }
 
-        //UNDONE: can we remove the MetaQueryEngine property?
-        // Why this is defined in the DataStore? Maybe SearchManager would be better.
-        // Or at least use it through the Provider api.
-
-        /// <summary>
-        /// Gets the configured meta query engine.
-        /// </summary>
-        public static IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
-
         internal static Exception GetException(Exception e, string message = null)
         {
             if (DataProvider.IsDeadlockException(e))
