@@ -938,24 +938,24 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string MoveNodeScript { get; }
 
-        public override async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
+        public override async Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad,
             CancellationToken cancellationToken)
         {
             var result = new Dictionary<int, string>();
-            if (notLoadedPropertyTypeIds == null || notLoadedPropertyTypeIds.Length == 0)
+            if (propertiesToLoad == null || propertiesToLoad.Length == 0)
                 return result;
 
             var propParamPrefix = "@Prop";
             var sql = string.Format(LoadTextPropertyValuesScript, string.Join(", ",
-                Enumerable.Range(0, notLoadedPropertyTypeIds.Length).Select(i => propParamPrefix + i)));
+                Enumerable.Range(0, propertiesToLoad.Length).Select(i => propParamPrefix + i)));
 
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(sql, cmd =>
                 {
                     cmd.Parameters.Add(ctx.CreateParameter("@VersionId", DbType.Int32, versionId));
-                    for (int i = 0; i < notLoadedPropertyTypeIds.Length; i++)
-                        cmd.Parameters.Add(ctx.CreateParameter(propParamPrefix + i, DbType.Int32, notLoadedPropertyTypeIds[i]));
+                    for (int i = 0; i < propertiesToLoad.Length; i++)
+                        cmd.Parameters.Add(ctx.CreateParameter(propParamPrefix + i, DbType.Int32, propertiesToLoad[i]));
                 }, async (reader, cancel) =>
                 {
                     cancel.ThrowIfCancellationRequested();

@@ -475,14 +475,14 @@ namespace SenseNet.Tests.Implementations
             return STT.Task.CompletedTask;
         }
 
-        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds,
+        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
                 var result = DB.LongTextProperties
-                    .Where(x => x.VersionId == versionId && notLoadedPropertyTypeIds.Contains(x.PropertyTypeId))
+                    .Where(x => x.VersionId == versionId && propertiesToLoad.Contains(x.PropertyTypeId))
                     .ToDictionary(x => x.PropertyTypeId, x => x.Value);
                 return STT.Task.FromResult(result);
             }

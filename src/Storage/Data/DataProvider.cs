@@ -347,13 +347,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// for the provided property types of the requested version.
         /// </summary>
         /// <param name="versionId">Id of the requested version.</param>
-        /// <param name="notLoadedPropertyTypeIds">Ids of requested <see cref="PropertyType"/>s.</param>
+        /// <param name="propertiesToLoad">Ids of requested <see cref="PropertyType"/>s.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the loaded Dictionary&lt;int, string&gt; instance.</returns>
         /// <exception cref="DataException">The operation causes a database-related error.</exception>
         /// <exception cref="OperationCanceledException">The operation has been cancelled.</exception>
-        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId,
-            int[] notLoadedPropertyTypeIds,
+        public abstract Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad,
             CancellationToken cancellationToken);
 
         /// <summary>

@@ -352,13 +352,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Loads the provided text property values from the database.
         /// </summary>
         /// <param name="versionId">Version identifier.</param>
-        /// <param name="notLoadedPropertyTypeIds">A <see cref="PropertyType"/> id set to load.</param>
+        /// <param name="propertiesToLoad">A <see cref="PropertyType"/> id set to load.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps a dictionary
         /// containing the loaded text property values.</returns>
-        public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] notLoadedPropertyTypeIds, CancellationToken cancellationToken)
+        public static Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad, CancellationToken cancellationToken)
         {
-            return DataProvider.LoadTextPropertyValuesAsync(versionId, notLoadedPropertyTypeIds, cancellationToken);
+            return DataProvider.LoadTextPropertyValuesAsync(versionId, propertiesToLoad, cancellationToken);
         }
         /// <summary>
         /// Loads the provided binary property value from the database.
