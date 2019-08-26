@@ -70,6 +70,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.GetExtensionInstance<T>();
         }
 
+        public static void SetDataProviderExtension(Type providerType, IDataProviderExtension provider)
+        {
+            DataProvider.SetExtension(providerType, provider);
+        }
+
         /// <summary>
         /// Restores the underlying dataprovider to the initial state after system start.
         /// </summary>

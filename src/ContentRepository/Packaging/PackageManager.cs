@@ -28,7 +28,7 @@ namespace SenseNet.Packaging
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
+                DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
 
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters

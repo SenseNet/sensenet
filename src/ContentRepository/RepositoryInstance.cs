@@ -316,11 +316,11 @@ namespace SenseNet.ContentRepository
         {
             // set default value of well-known data provider extensions
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
+                DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
             if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(IAccessTokenDataProviderExtension), new MsSqlAccessTokenDataProvider());
+                DataStore.SetDataProviderExtension(typeof(IAccessTokenDataProviderExtension), new MsSqlAccessTokenDataProvider());
             if (null == DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>())
-                DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), new MsSqlSharedLockDataProvider());
+                DataStore.SetDataProviderExtension(typeof(ISharedLockDataProviderExtension), new MsSqlSharedLockDataProvider());
         }
 
         private static void InitializeOAuthProviders()
