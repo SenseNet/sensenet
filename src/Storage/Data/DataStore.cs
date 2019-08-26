@@ -912,21 +912,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 VersionTimestamp = node.VersionTimestamp
             };
         }
-
-        /// <summary>
-        /// Serializes the index document of a node and saves it to the database. This method will update
-        /// the version timestamp of the node.
-        /// </summary>
-        /// <param name="nodeData">The Node data of the target node version.</param>
-        /// <param name="indexDoc">Index document assembled by previous steps in the save operation.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken)
+        private static async Task SaveIndexDocumentAsync(NodeData nodeData, IndexDocument indexDoc, CancellationToken cancellationToken)
         {
             var timestamp = await SaveIndexDocumentAsync(nodeData.VersionId, indexDoc, cancellationToken).ConfigureAwait(false);
             if (timestamp != 0)
                 nodeData.VersionTimestamp = timestamp;
         }
+
         /// <summary>
         /// Serializes the index document of a node and saves it to the database.
         /// </summary>
