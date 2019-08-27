@@ -15,7 +15,6 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Querying;
 
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
@@ -126,16 +125,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// containing the latest version and time identifiers.</returns>
         public static async Task<NodeHead> SaveNodeAsync(NodeData nodeData, NodeSaveSettings settings, CancellationToken cancellationToken)
         {
-            // ORIGINAL SIGNATURES:
-            // internal void SaveNodeData(NodeData nodeData, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
-            // private static void SaveNodeBaseData(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, NodeSaveSettings settings, out int lastMajorVersionId, out int lastMinorVersionId)
-            // private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
-            // protected internal abstract INodeWriter CreateNodeWriter();
-            // protected internal abstract void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId);
-            // -------------------
-            // Before return the LastMajorVersionIdAfter and LastMinorVersionIdAfter properties of the given "settings" need to be updated
-            //    instead of use the original output values.
-
             if (nodeData == null)
                 throw new ArgumentNullException(nameof(nodeData));
             if (settings == null)
@@ -169,8 +158,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                                     cancellationToken, nodeData.SharedData.Path).ConfigureAwait(false);
                             else
                                 await DataProvider.UpdateNodeAsync(
-                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken,
-                                    null).ConfigureAwait(false);
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken)
+                                    .ConfigureAwait(false);
                             break;
                         case SavingAlgorithm.CopyToNewVersionAndUpdate:
                             dynamicData = nodeData.GetDynamicData(true);
@@ -182,8 +171,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                             else
                                 // Copy to brand new version
                                 await DataProvider.CopyAndUpdateNodeAsync(
-                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken, 0,
-                                    null).ConfigureAwait(false);
+                                    nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds, cancellationToken)
+                                    .ConfigureAwait(false);
                             break;
                         case SavingAlgorithm.CopyToSpecifiedVersionAndUpdate:
                             dynamicData = nodeData.GetDynamicData(true);
@@ -198,7 +187,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 await DataProvider.CopyAndUpdateNodeAsync(
                                     nodeHeadData, versionData, dynamicData, settings.DeletableVersionIds,
                                     cancellationToken,
-                                    settings.ExpectedVersionId, null).ConfigureAwait(false);
+                                    settings.ExpectedVersionId).ConfigureAwait(false);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException("Unknown SavingAlgorithm: " + savingAlgorithm);
@@ -321,26 +310,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteNodeAsync(NodeHead nodeHead, CancellationToken cancellationToken)
         {
-            // ORIGINAL SIGNATURES:
-            // internal void DeleteNode(int nodeId)
-            // internal void DeleteNodePsychical(int nodeId, long timestamp)
-            // protected internal abstract DataOperationResult DeleteNodeTree(int nodeId);
-            // protected internal abstract DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp);
-            // -------------------
-            // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
-
             return DataProvider.DeleteNodeAsync(nodeHead.GetNodeHeadData(), cancellationToken);
         }
+        /// <summary>
+        /// Deletes a node from the database.
+        /// </summary>
+        /// <param name="nodeData">A node data representing the node.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task DeleteNodeAsync(NodeData nodeData, CancellationToken cancellationToken)
         {
-            // ORIGINAL SIGNATURES:
-            // internal void DeleteNode(int nodeId)
-            // internal void DeleteNodePsychical(int nodeId, long timestamp)
-            // protected internal abstract DataOperationResult DeleteNodeTree(int nodeId);
-            // protected internal abstract DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp);
-            // -------------------
-            // The word as suffix "Tree" is unnecessary, "Psychical" is misleading.
-
             return DataProvider.DeleteNodeAsync(nodeData.GetNodeHeadData(), cancellationToken);
         }
         /// <summary>
@@ -352,9 +331,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task MoveNodeAsync(NodeHead sourceNodeHead, int targetNodeId, CancellationToken cancellationToken)
         {
-            // ORIGINAL SIGNATURES:
-            // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
-            // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
             var sourceNodeHeadData = sourceNodeHead.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
         }
@@ -367,9 +343,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task MoveNodeAsync(NodeData sourceNodeData, int targetNodeId, CancellationToken cancellationToken)
         {
-            // ORIGINAL SIGNATURES:
-            // internal void MoveNode(int sourceNodeId, int targetNodeId, long sourceTimestamp, long targetTimestamp)
-            // protected internal abstract DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0);
             var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
         }
@@ -473,12 +446,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                 //TODO: IsSystem
 
                 SavingState = default(ContentSavingState),
-                ChangedData = null
+                ChangedData = null,
+
+                VersionModificationDateChanged = false,
+                VersionModifiedByIdChanged = false,
+                ModificationDateChanged = false,
+                ModifiedByIdChanged = false
             };
-            privateData.VersionModificationDateChanged = false;
-            privateData.VersionModifiedByIdChanged = false;
-            privateData.ModificationDateChanged = false;
-            privateData.ModifiedByIdChanged = false;
             return privateData;
         }
 
@@ -1032,10 +1006,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             return DataProvider.LoadIndexingActivitiesAsync(gaps, executingUnprocessedActivities, activityFactory, cancellationToken);
         }
-        //public static Task<IIndexingActivity[]> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken)
-        //{
-        //    return DataProvider.LoadExecutableIndexingActivitiesAsync(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
-        //}
 
         /// <summary>
         /// Gets executable and finished indexing activities.

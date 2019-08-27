@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -46,13 +42,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             try
             {
-                //using (var ctx = CreateDataContext(cancellationToken))
                 using (var ctx = CreateDataContext(cancellationToken))
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
                         // Insert new rows int Nodes and Versions tables
-                        var ok = await ctx.ExecuteReaderAsync(InsertNodeAndVersionScript, cmd =>
+                        var _ = await ctx.ExecuteReaderAsync(InsertNodeAndVersionScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -87,9 +82,9 @@ namespace SenseNet.ContentRepository.Storage.Data
                                 ctx.CreateParameter("@MinorNumber", DbType.Int16, (short)versionData.Version.Minor),
                                 ctx.CreateParameter("@Status", DbType.Int16, (short)versionData.Version.Status),
                                 ctx.CreateParameter("@VersionCreationDate", DbType.DateTime2, versionData.CreationDate),
-                                ctx.CreateParameter("@VersionCreatedById", DbType.Int32, (int)nodeHeadData.CreatedById),
+                                ctx.CreateParameter("@VersionCreatedById", DbType.Int32, nodeHeadData.CreatedById),
                                 ctx.CreateParameter("@VersionModificationDate", DbType.DateTime2, versionData.ModificationDate),
-                                ctx.CreateParameter("@VersionModifiedById", DbType.Int32, (int)nodeHeadData.ModifiedById),
+                                ctx.CreateParameter("@VersionModifiedById", DbType.Int32, nodeHeadData.ModifiedById),
                                 ctx.CreateParameter("@DynamicProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.DynamicProperties)),
                                 ctx.CreateParameter("@ContentListProperties", DbType.String, int.MaxValue, SerializeDynamicProperties(dynamicData.ContentListProperties)),
                             });
@@ -810,7 +805,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             var propertyType = ActiveSchema.PropertyTypes[propertyName];
             if (propertyType == null)
                 return (null, null);
-            object value = null;
+            object value;
             switch (propertyType.DataType)
             {
                 case DataType.String:
@@ -827,15 +822,13 @@ namespace SenseNet.ContentRepository.Storage.Data
                     break;
                 case DataType.Reference:
                     value = stringValue.Length > 0
-                        ? stringValue.Split(',').Select(x => int.Parse(x)).ToArray()
+                        ? stringValue.Split(',').Select(int.Parse).ToArray()
                         : new int[0];
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            if (value == null)
-                propertyType = null;
             return (propertyType, value);
         }
         protected virtual BinaryDataValue GetBinaryDataValueFromReader(DbDataReader reader)
@@ -1836,7 +1829,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 activity.LockTime = reader.GetSafeDateTime(startDateDateColumn);
                 activity.NodeId = reader.GetSafeInt32(nodeIdColumn);
                 activity.VersionId = reader.GetSafeInt32(versionIdColumn);
-                activity.Path = reader.GetSafeString(pathColumn) as string;
+                activity.Path = reader.GetSafeString(pathColumn);
                 activity.FromDatabase = true;
                 activity.IsUnprocessedActivity = executingUnprocessedActivities;
                 activity.Extension = reader.GetSafeString(extensionColumn);
