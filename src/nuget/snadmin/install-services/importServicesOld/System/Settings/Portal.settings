@@ -1,27 +1,55 @@
 {
-	ClientCacheHeaders: [
-		{ ContentType: "PreviewImage", MaxAge: 1 },
-		{ Extension: "jpeg", MaxAge: 604800 },
-		{ Extension: "gif", MaxAge: 604800 },
-		{ Extension: "jpg", MaxAge: 604800 },
-		{ Extension: "png", MaxAge: 604800 },
-		{ Extension: "swf", MaxAge: 604800 },
-		{ Extension: "css", MaxAge: 600 },
-		{ Extension: "js", MaxAge: 600 }
-	],
-	UploadFileExtensions: {
-		"jpg": "Image",
-		"jpeg": "Image",
-		"gif": "Image",
-		"png": "Image",
-		"bmp": "Image",
-		"svg": "Image",
-		"svgz": "Image",
-		"tif": "Image",
-		"tiff": "Image",
-		"xaml": "WorkflowDefinition",
-		"DefaultContentType": "File"
-	},
-	BinaryHandlerClientCacheMaxAge: 600,
-	PermittedAppsWithoutOpenPermission: "Details"
+  "ClientCacheHeaders": [
+    {
+      "ContentType": "PreviewImage",
+      "MaxAge": 1
+    },
+    {
+      "Extension": "jpeg",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "gif",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "jpg",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "png",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "swf",
+      "MaxAge": 604800
+    },
+    {
+      "Extension": "css",
+      "MaxAge": 600
+    },
+    {
+      "Extension": "js",
+      "MaxAge": 600
+    }
+  ],
+  "UploadFileExtensions": {
+    "jpg": "Image",
+    "jpeg": "Image",
+    "gif": "Image",
+    "png": "Image",
+    "bmp": "Image",
+    "svg": "Image",
+    "svgz": "Image",
+    "tif": "Image",
+    "tiff": "Image",
+    "xaml": "WorkflowDefinition",
+    "DefaultContentType": "File"
+  },
+  "BinaryHandlerClientCacheMaxAge": 600,
+  "PermittedAppsWithoutOpenPermission": "Details",
+  "AllowedOriginDomains": [
+    "localhost:*",
+    "*.sensenet.com"
+  ]
 }
