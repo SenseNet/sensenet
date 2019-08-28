@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
@@ -51,6 +50,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /// Value is the blob as textual data.
         /// </summary>
         public IDictionary<string, string> Blobs { get; set; }
+
+        public IList<string> Permissions { get; set; }
 
         /* ===================================================================================== SAVE */
 
@@ -214,6 +215,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
             initialData.ContentTypeDefinitions = dataFile.ContentTypeDefinitions;
             initialData.Blobs = dataFile.Blobs;
+            initialData.Permissions = dataFile.Permissions;
 
             return initialData;
         }

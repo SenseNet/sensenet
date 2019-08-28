@@ -12,5 +12,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         string DynamicData { get; }
         IDictionary<string, string> ContentTypeDefinitions { get; }
         IDictionary<string, string> Blobs { get; }
+        IList<string> Permissions { get; }
     }
 }

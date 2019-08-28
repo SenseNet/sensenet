@@ -6,6 +6,12 @@ namespace SenseNet.Tests
 {
     public class InitialTestData : IRepositoryDataFile
     {
+        private InitialTestData()
+        {
+        }
+
+        public static InitialTestData Instance { get; } = new InitialTestData();
+
         public string PropertyTypes => @"
   Id| DataType  | Mapping| Name
 ----- ----------- -------- ---------------
@@ -6492,5 +6498,52 @@ User: {ProfileType: ""UserProfile"", ProfilesTarget: ""/Root""}
 }"},
                 #endregion
             });
+
+        public IList<string> Permissions => new List<string>
+        {
+            // "+E1|Normal|+G1:______________+,Normal|+G2:_____________+_";
+
+
+            // RECORD STRUCTURE:
+            // Inherited: +, breaked: -
+            // EntityId
+            // |
+            // EntryType: Normal
+            // |
+            // Global: +, Local only: -
+            // IdentityId
+            // :
+            // Permission bits (64 chars): Not set: _, Allow: +, Deny: -
+            //---------------------------------------------------------------------------
+            // See: See
+            // Pre: Preview
+            // PWa: PreviewWithoutWatermark
+            // PRd: PreviewWithoutRedaction
+            // Opn: Open
+            // OpM: OpenMinor
+            // Sav: Save
+            // Pub: Publish
+            // Chk: ForceCheckin
+            // Add: AddNew
+            // Apr: Approve
+            // Del: Delete
+            // ReV: RecallOldVersion
+            // DeV: DeleteOldVersion
+            // ReP: SeePermissions
+            // WrP: SetPermissions
+            // Run: RunApplication
+            // LST: ManageListsAndWorkspaces
+            // Own: TakeOwnership
+            //---------------------------------------------------------------------------
+            //                                                            WrP Del Pub PRd
+            //                                                         Own ReP Apr Sav PWa
+            //                                                          LST DeV Add OpM Pre
+            //            |            custom            ||   unused  |  Run ReV Chk Opn See
+            //            3333333333333333222222222222222211111111111111110000000000000000
+            //            FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210
+            "+2|Normal|+1:_____________________________________________+++++++++++++++++++",
+            "+2|Normal|+7:_____________________________________________+++++++++++++++++++",
+            "+2|Normal|+8:_______________________________________________________________+",
+        };
     }
 }

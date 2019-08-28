@@ -74,5 +74,6 @@ VersionId| NodeId| Creator| Modifier|  Version
         public string DynamicData => string.Empty;
         public IDictionary<string, string> ContentTypeDefinitions { get; } = new Dictionary<string, string>();
         public IDictionary<string, string> Blobs { get; } = new Dictionary<string, string>();
+        public IList<string> Permissions { get; } = new List<string>();
     }
 }
