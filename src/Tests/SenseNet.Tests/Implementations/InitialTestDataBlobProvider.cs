@@ -11,7 +11,7 @@ namespace SenseNet.Tests.Implementations
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {
-        private readonly IRepositoryDataFile _dataFile = new InitialTestData();
+        private readonly IRepositoryDataFile _dataFile = InitialTestData.Instance;
 
         public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
