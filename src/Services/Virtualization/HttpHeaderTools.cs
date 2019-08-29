@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Net;
+using System.Text.RegularExpressions;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using System.Threading;
@@ -370,17 +371,33 @@ namespace SenseNet.Portal.Virtualization
 
         internal static string GetAllowedDomain(string originDomain, IEnumerable<string> allowedDomains)
         {
+            bool TemplateMatch(string template)
+            {
+                if (string.IsNullOrEmpty(template) || !template.Contains("*"))
+                    return false;
+
+                // If there is a port wildcard, we will match all ports,
+                // including the not present default port.
+                if (template.EndsWith(":*"))
+                    template = template.Replace(":*", "(:[\\d]+){0,1}");
+
+                // subdomain wildcard
+                template = template.Replace("*", "[\\da-z.]+");
+
+                var regex = new Regex($"^{template}$", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                return regex.IsMatch(originDomain);
+            }
+
             return allowedDomains?.FirstOrDefault(d =>
                 d == HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL ||
                 string.Compare(d, originDomain, StringComparison.InvariantCultureIgnoreCase) == 0 ||
-                d.StartsWith("*.", StringComparison.Ordinal) && originDomain.EndsWith(d.Substring(1), 
-                    StringComparison.InvariantCultureIgnoreCase));
+                TemplateMatch(d));
         }
 
         /// <summary>
         /// If the resource requested by the client is still valid based on its modification date and the 
         /// date sent by the client (in the request header), this method sets 304 (not modified) as 
-        /// the response status and optionally phisically ends the response.
+        /// the response status and optionally physically ends the response.
         /// </summary>
         /// <param name="lastModificationDate">Last modification date of the accessed resource.</param>
         /// <param name="endResponse">Whether to actually end the response in case the client cache is still valid.</param>
