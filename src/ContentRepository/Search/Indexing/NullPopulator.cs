@@ -45,13 +45,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         using (TreeLock.Acquire(node.Path))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                                    .GetAwaiter().GetResult();
                         }
                     }
                     else
                     {
                         TreeLock.AssertFree(node.Path);
-                        DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                        DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     }
                 }
                 op.Successful = true;

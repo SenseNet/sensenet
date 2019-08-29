@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public static void DeleteAllAccessTokens()
         {
-            Storage.DeleteAllAccessTokensAsync(CancellationToken.None).Wait();
+            Storage.DeleteAllAccessTokensAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes all AccessTokens even if they are still valid.
@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The new AccessToken instance.</returns>
         public static AccessToken CreateToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
-            return CreateTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).Result;
+            return CreateTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The existing or new AccessToken instance.</returns>
         public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
-            return GetOrAddTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).Result;
+            return GetOrAddTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         internal static AccessToken GetTokenById(int accessTokenId)
         {
-            return Storage.LoadAccessTokenByIdAsync(accessTokenId, CancellationToken.None).Result;
+            return Storage.LoadAccessTokenByIdAsync(accessTokenId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Designed for test purposes.
@@ -208,7 +208,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The existing AccessToken or null.</returns>
         public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
         {
-            return Storage.LoadAccessTokenAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
+            return Storage.LoadAccessTokenAsync(tokenValue, contentId, feature, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -257,7 +258,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>An AccessToken array.</returns>
         public static AccessToken[] GetAllTokens(int userId)
         {
-            return Storage.LoadAccessTokensAsync(userId, CancellationToken.None).Result;
+            return Storage.LoadAccessTokensAsync(userId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Gets all tokens of the provided User.
@@ -281,7 +282,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>True if the token exists and is valid.</returns>
         public static bool TokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
-            return TokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
+            return TokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -332,7 +333,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <exception cref="InvalidAccessTokenException"></exception>
         public static void AssertTokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
-            AssertTokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).Wait();
+            AssertTokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -387,7 +388,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <exception cref="InvalidAccessTokenException"></exception>
         public static void UpdateToken(string tokenValue, DateTime expirationDate)
         {
-            Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, CancellationToken.None).Wait();
+            Storage.UpdateAccessTokenAsync(tokenValue, expirationDate, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Updates the expiration date of the specified token.
@@ -410,7 +411,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="tokenValue">The value of the original token.</param>
         public static void DeleteToken(string tokenValue)
         {
-            Storage.DeleteAccessTokenAsync(tokenValue, CancellationToken.None).Wait();
+            Storage.DeleteAccessTokenAsync(tokenValue, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes the specified token regardless of expiration date.
@@ -429,7 +430,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userId">The token owner ID.</param>
         public static void DeleteTokensByUser(int userId)
         {
-            Storage.DeleteAccessTokensByUserAsync(userId, CancellationToken.None).Wait();
+            Storage.DeleteAccessTokensByUserAsync(userId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes all tokens of the provided user regardless of expiration date.
@@ -448,7 +449,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
         {
-            Storage.DeleteAccessTokensByContentAsync(contentId, CancellationToken.None).Wait();
+            Storage.DeleteAccessTokensByContentAsync(contentId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes the tokens associated with the specified contentId regardless of expiration date.
@@ -467,7 +468,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static void Cleanup()
         {
             SnTrace.Database.Write("Cleanup access tokens.");
-            Storage.CleanupAccessTokensAsync(CancellationToken.None).Wait();
+            Storage.CleanupAccessTokensAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes all expired access tokens.

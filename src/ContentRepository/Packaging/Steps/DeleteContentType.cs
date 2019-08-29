@@ -210,7 +210,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                         result.Add(reader.GetString(0), reader.GetString(1));
                     }
                     return Task.FromResult(0);
-                }).Result;
+                }).GetAwaiter().GetResult();
             }
 
             return result;

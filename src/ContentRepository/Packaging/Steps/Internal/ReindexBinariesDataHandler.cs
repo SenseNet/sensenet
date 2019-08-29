@@ -16,12 +16,12 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             }
             internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             }
 
             internal class AssignedTaskResult
@@ -49,7 +49,7 @@ namespace SenseNet.Packaging.Steps.Internal
                         remainingTasks = reader.GetInt32(0);
 
                         return Task.FromResult(0);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
                 }
 
                 return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
             }
 
             /* ========================================================================================= */
@@ -73,7 +73,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                         cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
             }
 
             public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
@@ -86,14 +86,14 @@ namespace SenseNet.Packaging.Steps.Internal
                         while (reader.Read())
                             result.Add(reader.GetInt32(0));
                         return Task.FromResult(result);
-                    }).Result;
+                    }).GetAwaiter().GetResult();
                 }
             }
 
             public static void DropTables(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             }
 
             public static bool CheckFeature(CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 {
                     using (var ctx = new MsSqlDataContext(cancellationToken))
                     {
-                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
+                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                         return Convert.ToInt32(result) != 0;
                     }
                 }
@@ -122,7 +122,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;

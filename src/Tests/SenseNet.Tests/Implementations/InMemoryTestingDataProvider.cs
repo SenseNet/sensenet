@@ -102,7 +102,8 @@ namespace SenseNet.Tests.Implementations
         }
         private static void EditFileStream(FileDoc fileRecord, Action<XmlDocument> action)
         {
-            var ctx = BlobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None).Result;
+            var ctx = BlobStorage.GetBlobStorageContextAsync(fileRecord.FileId, CancellationToken.None)
+                .GetAwaiter().GetResult();
             var blobProvider = ctx.Provider;
 
             var gcXmlDoc = new XmlDocument();
@@ -120,7 +121,7 @@ namespace SenseNet.Tests.Implementations
                 PropertyTypeId = ctx.PropertyTypeId,
                 Length = ctdString.Length
             };
-            blobProvider2.AllocateAsync(ctx2, CancellationToken.None).Wait();
+            blobProvider2.AllocateAsync(ctx2, CancellationToken.None).GetAwaiter().GetResult();
 
             using (var xmlWriterStream = blobProvider2.GetStreamForWrite(ctx2))
             using (var writer = new StreamWriter(xmlWriterStream))
@@ -321,7 +322,7 @@ namespace SenseNet.Tests.Implementations
                                 .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == pt.Id)?.Value;
                             break;
                         case DataType.Binary:
-                            result = BlobStorage.LoadBinaryPropertyAsync(versionId, pt.Id, null).Result;
+                            result = BlobStorage.LoadBinaryPropertyAsync(versionId, pt.Id, null).GetAwaiter().GetResult();
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

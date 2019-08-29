@@ -1538,7 +1538,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             }
                         }
                         return Task.FromResult(block);
-                    }).Result;
+                    }).GetAwaiter().GetResult();
                     return buffer.Count > 0;
                 }
                 catch (Exception ex) // logged, rethrown

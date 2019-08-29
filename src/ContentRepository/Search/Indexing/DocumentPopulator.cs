@@ -67,7 +67,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         foreach (var node in Node.LoadNode(path).LoadVersions())
                         {
                             SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                            DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                            DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                                .GetAwaiter().GetResult();
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                         }
 
@@ -77,7 +78,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                                 foreach (var node in n.LoadVersions())
                                 {
                                     SnTrace.Test.Write("@@ WriteDoc: " + node.Path);
-                                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                                        .GetAwaiter().GetResult();
                                     OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
                             });
@@ -237,7 +239,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (databaseAndIndex)
             {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    DataStore.SaveIndexDocumentAsync(version, false, false, CancellationToken.None).Wait();
+                    DataStore.SaveIndexDocumentAsync(version, false, false, CancellationToken.None)
+                        .GetAwaiter().GetResult();
             }
 
             var versioningInfo = new VersioningInfo
@@ -258,10 +261,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
                 {
-                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        .GetAwaiter().GetResult();
 
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                        n => { DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait(); });
+                        n => { DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                            .GetAwaiter().GetResult(); });
                 }
 
                 AddTree(node.Path, node.Id);

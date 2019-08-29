@@ -10,7 +10,8 @@ namespace SenseNet.Diagnostics
     {
         public void Write(IAuditEvent auditEvent, IDictionary<string, object> properties)
         {
-            DataStore.WriteAuditEventAsync(new AuditEventInfo(auditEvent, properties), CancellationToken.None).Wait();
+            DataStore.WriteAuditEventAsync(new AuditEventInfo(auditEvent, properties), CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
     }
 }

@@ -135,7 +135,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: setting the IsDeleted flag...");
-                BlobStorage.CleanupFilesSetFlagAsync(_cancellation.Token).Wait();
+                BlobStorage.CleanupFilesSetFlagAsync(_cancellation.Token).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: deleting rows...");
 
                 // keep deleting orphaned binary rows while there are any
-                while (BlobStorage.CleanupFilesAsync(_cancellation.Token).Result)
+                while (BlobStorage.CleanupFilesAsync(_cancellation.Token).GetAwaiter().GetResult())
                 {
                     deleteCount++;
                 }

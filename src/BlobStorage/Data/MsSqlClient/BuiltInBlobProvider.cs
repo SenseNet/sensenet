@@ -80,7 +80,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                         ctx.CreateParameter("@Id", SqlDbType.Int, context.FileId),
                         ctx.CreateParameter("@Value", SqlDbType.VarBinary, bufferSize, buffer),
                     });
-                }).Wait();
+                }).GetAwaiter().GetResult();
             }
         }
         public static async Task UpdateStreamAsync(BlobStorageContext context, Stream stream, MsSqlDataContext dataContext)
@@ -150,7 +150,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                         ctx.CreateParameter("@Position", SqlDbType.BigInt, offset + 1),
                         ctx.CreateParameter("@Count", SqlDbType.Int, count),
                     });
-                }).Result;
+                }).GetAwaiter().GetResult();
             }
         }
 

@@ -38,7 +38,8 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_versions == null)
                 {
-                    _versions = DataStore.GetVersionNumbersAsync(this.Id, CancellationToken.None).Result.ToArray();
+                    _versions = DataStore.GetVersionNumbersAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult()
+                        .ToArray();
                     //TODO: After GetNodeVersions: check changes
                 }
                 return _versions;
@@ -135,19 +136,19 @@ namespace SenseNet.ContentRepository.Storage
 
         public static NodeHead Get(int nodeId)
         {
-            return DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).Result;
+            return DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
         }
         public static NodeHead GetByVersionId(int versionId)
         {
-            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).Result;
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
         }
         public static NodeHead Get(string path)
         {
-            return DataStore.LoadNodeHeadAsync(path, CancellationToken.None).Result;
+            return DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult();
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<int> idArray)
         {
-            return DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).Result;
+            return DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult();
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<string> pathSet)
         {

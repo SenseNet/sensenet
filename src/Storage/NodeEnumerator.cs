@@ -167,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (_filter != null)
                 throw new NotSupportedException("Cannot query the children from database with filter.");
-            var idArray = DataStore.GetChildrenIdentifiersAsync(thisId, CancellationToken.None).Result;
+            var idArray = DataStore.GetChildrenIdentifiersAsync(thisId, CancellationToken.None).GetAwaiter().GetResult();
             return new QueryResult(idArray);
         }
 

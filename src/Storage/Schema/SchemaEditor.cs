@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             }
             finally
             {
-                DataStore.FinishSchemaUpdateAsync(schemaLock, CancellationToken.None).Wait();
+                DataStore.FinishSchemaUpdateAsync(schemaLock, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -71,7 +71,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             {
                 using (var op = SnTrace.Database.StartOperation("Update storage schema."))
                 {
-                    schemaWriter.WriteSchemaAsync(newSchema.ToRepositorySchemaData()).Wait();
+                    schemaWriter.WriteSchemaAsync(newSchema.ToRepositorySchemaData()).GetAwaiter().GetResult();
                     ActiveSchema.Reset();
                     op.Successful = true;
                 }

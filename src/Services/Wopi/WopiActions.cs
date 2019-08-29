@@ -124,7 +124,7 @@ namespace SenseNet.Services.Wopi
                     using (var client = new HttpClient())
                     {
                         using (var discoveryStream = client.GetAsync($"{oosUrl}/hosting/discovery")
-                            .Result.Content.ReadAsStreamAsync().Result)
+                            .GetAwaiter().GetResult().Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                         {
                             discoveryXml.Load(discoveryStream);
                         }

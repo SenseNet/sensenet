@@ -392,7 +392,7 @@ namespace SenseNet.Tests.Implementations
                         .Select(l => l.LongTextPropertyId)
                         .ToArray();
 
-                    BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).Wait(cancellationToken);
+                    BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
 
                     foreach (var longTextPropId in longTextPropIds)
                         DB.LongTextProperties.Remove(longTextPropId);
@@ -494,7 +494,7 @@ namespace SenseNet.Tests.Implementations
 
             lock (DB)
             {
-                var result = BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, null).Result;
+                var result = BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
                 return Task.FromResult(result);
             }
         }
@@ -1603,11 +1603,11 @@ namespace SenseNet.Tests.Implementations
         private void SaveBinaryPropertySafe(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
         {
             if (value == null || value.IsEmpty)
-                BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, null).Wait();
+                BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
             else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
-                BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).Wait();
+                BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).GetAwaiter().GetResult();
             else
-                BlobStorage.UpdateBinaryPropertyAsync(value, null).Wait();
+                BlobStorage.UpdateBinaryPropertyAsync(value, null).GetAwaiter().GetResult();
         }
 
         private (int, int) LoadLastVersionIdsSafe(int nodeId)
@@ -1764,7 +1764,7 @@ namespace SenseNet.Tests.Implementations
         {
             var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
 
-            BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).Wait();
+            BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
 
             foreach (var versionId in versionIds)
             {

@@ -81,7 +81,7 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void ReindexNode(Node node)
         {
-            var result = DataStore.SaveIndexDocumentAsync(node, true, false, CancellationToken.None).Result;
+            var result = DataStore.SaveIndexDocumentAsync(node, true, false, CancellationToken.None).GetAwaiter().GetResult();
             var indx = result.IndexDocumentData;
             if (result.HasBinary)
                 CreateBinaryReindexTask(node,
@@ -167,7 +167,8 @@ namespace SenseNet.Packaging.Steps.Internal
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                        DataStore.SaveIndexDocumentAsync(node, indx, CancellationToken.None).Wait();
+                        var _ = DataStore.SaveIndexDocumentAsync(node, indx, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     });
                     Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;

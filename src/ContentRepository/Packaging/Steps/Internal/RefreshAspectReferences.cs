@@ -46,7 +46,7 @@ WHERE RelType = 'Aspects' and TargetId in
                     } while (reader.NextResult());
 
                     return Task.FromResult(0);
-                }).Wait();
+                }).GetAwaiter().GetResult();
             }
 
             Logger.LogMessage(count < 1

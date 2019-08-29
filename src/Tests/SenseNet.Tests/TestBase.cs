@@ -147,7 +147,7 @@ namespace SenseNet.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -179,7 +179,8 @@ namespace SenseNet.Tests
                 {
                     new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
                 },
-                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).Result.ToDictionary(x => x.Id, x => new StoredSecurityEntity
+                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
+                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
                 {
                     Id = x.Id,
                     OwnerId = x.OwnerId,
@@ -209,7 +210,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, CancellationToken.None).Result;
+            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, CancellationToken.None).GetAwaiter().GetResult();
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
@@ -217,7 +218,7 @@ namespace SenseNet.Tests
 
             foreach (var node in nodes)
             {
-                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

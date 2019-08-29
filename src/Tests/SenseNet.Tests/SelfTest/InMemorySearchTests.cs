@@ -44,11 +44,12 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document and  last indexing activity
-                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None).Result;
-                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None)
+                .GetAwaiter().GetResult();
+                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var lastActivity =
                     DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
-                        .Result.FirstOrDefault();
+                        .GetAwaiter().GetResult().FirstOrDefault();
 
                 var index = GetTestIndex();
 
@@ -111,11 +112,11 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document and  last indexing activity
-                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None).Result;
-                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None).GetAwaiter().GetResult();
+                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var lastActivity =
                     DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
-                        .Result.FirstOrDefault();
+                        .GetAwaiter().GetResult().FirstOrDefault();
 
                 var index = GetTestIndex();
 
@@ -192,9 +193,9 @@ namespace SenseNet.Tests.SelfTest
                 node1.ForceDelete();
 
                 // load last indexing activity
-                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
+                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
                 var lastActivity = DataStore.LoadIndexingActivitiesAsync(activityId, activityId, 1, false, IndexingActivityFactory.Instance, CancellationToken.None)
-                    .Result.FirstOrDefault();
+                    .GetAwaiter().GetResult().FirstOrDefault();
 
                 // ASSERT
                 var index = GetTestIndex();
@@ -398,7 +399,8 @@ namespace SenseNet.Tests.SelfTest
                 node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
-                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None).Result;
+                var indexDoc = DataStore.LoadIndexDocumentByVersionIdAsync(node.VersionId, CancellationToken.None)
+                .GetAwaiter().GetResult();
 
                 // check the index document head consistency
                 Assert.IsNotNull(indexDoc);
@@ -442,8 +444,9 @@ namespace SenseNet.Tests.SelfTest
                     SearchManager.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
-                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
-                activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance, CancellationToken.None).Result;
+                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
+                activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance, CancellationToken.None)
+                    .GetAwaiter().GetResult();
                 // We cannot call the GetNodeCount and GetVersionCount methods directly here because
                 // there may be some nodes that cannot be loaded therefore missing from the index, which
                 // would mean different count values.

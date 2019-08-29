@@ -203,7 +203,7 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-            Storage.SavePackageAsync(newPack, CancellationToken.None).Wait();
+            Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
@@ -224,12 +224,12 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-                Storage.SavePackageAsync(newPack, CancellationToken.None).Wait();
+                Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-                Storage.UpdatePackageAsync(oldPack, CancellationToken.None).Wait();
+                Storage.UpdatePackageAsync(oldPack, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
@@ -439,7 +439,7 @@ namespace SenseNet.Packaging
                             ComponentVersion = patch.Version,
                             ExecutionResult = ExecutionResult.Successful,
                             PackageType = PackageType.Patch
-                        }, CancellationToken.None).Wait();
+                        }, CancellationToken.None).GetAwaiter().GetResult();
 
                         patchResult = new PackagingResult
                         {
