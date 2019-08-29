@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             using (var op = SnTrace.Database.StartOperation("Load storage schema."))
             {
                 Clear();
-                var schemaData = DataStore.LoadSchemaAsync(CancellationToken.None).Result;
+                var schemaData = DataStore.LoadSchemaAsync(CancellationToken.None).GetAwaiter().GetResult();
                 Load(schemaData);
                 op.Successful = true;
             }

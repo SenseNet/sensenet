@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: deleting rows...");
 
                 // keep deleting orphaned binary rows while there are any
-                while (BlobStorage.CleanupFilesAsync(_cancellation.Token).Result)
+                while (BlobStorage.CleanupFilesAsync(_cancellation.Token).GetAwaiter().GetResult())
                 {
                     deleteCount++;
                 }

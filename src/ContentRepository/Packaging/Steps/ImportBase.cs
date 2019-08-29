@@ -505,7 +505,7 @@ namespace SenseNet.Packaging.Steps
 
             private bool SaveInitialIndexDocuments()
             {
-                var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 1100, CancellationToken.None).Result;
+                var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 1100, CancellationToken.None).GetAwaiter().GetResult();
                 var nodes = Node.LoadNodes(idSet);
                 var count = 0;
 

@@ -71,7 +71,7 @@ namespace SenseNet.ContentRepository
                 var t2 = storage.LoadInstalledPackagesAsync(cancellationToken);
                 STT.Task.WaitAll(t1, t2);
 
-                return Create(t1.Result, t2.Result);
+                return Create(t1.GetAwaiter().GetResult(), t2.GetAwaiter().GetResult());
             }
             catch
             {

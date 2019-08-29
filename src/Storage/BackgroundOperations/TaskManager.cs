@@ -43,7 +43,7 @@ namespace SenseNet.BackgroundOperations
                 return null;
 
             // make this a synchron call
-            return Instance.RegisterTaskAsync(taskManUrl, requestData).Result;
+            return Instance.RegisterTaskAsync(taskManUrl, requestData).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Registers a task through the task management API asynchronously.
@@ -76,7 +76,7 @@ namespace SenseNet.BackgroundOperations
             };
 
             // make this a synchron call
-            var registered = Instance.RegisterApplicationAsync(taskManUrl, requestData).Result;
+            var registered = Instance.RegisterApplicationAsync(taskManUrl, requestData).GetAwaiter().GetResult();
 
             if (registered)
             {

@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <exception cref="LockedNodeException"></exception>
         public static string RefreshLock(int contentId, string @lock, CancellationToken cancellationToken)
         {
-            return Storage.RefreshSharedLockAsync(contentId, @lock, cancellationToken).Result;
+            return Storage.RefreshSharedLockAsync(contentId, @lock, cancellationToken).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Replaces an existing shared lock value with a new one.
@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <exception cref="LockedNodeException"></exception>
         public static string ModifyLock(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
         {
-            return Storage.ModifySharedLockAsync(contentId, @lock, newLock, cancellationToken).Result;
+            return Storage.ModifySharedLockAsync(contentId, @lock, newLock, cancellationToken).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Loads a shared lock value for the specified content id.
@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The shared lock value if exists or null.</returns>
         public static string GetLock(int contentId, CancellationToken cancellationToken)
         {
-            return Storage.GetSharedLockAsync(contentId, cancellationToken).Result;
+            return Storage.GetSharedLockAsync(contentId, cancellationToken).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Deletes a shared lock from a content if exists. Otherwise an exception is thrown.
@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <exception cref="LockedNodeException"></exception>
         public static string Unlock(int contentId, string @lock, CancellationToken cancellationToken)
         {
-            return Storage.DeleteSharedLockAsync(contentId, @lock, cancellationToken).Result;
+            return Storage.DeleteSharedLockAsync(contentId, @lock, cancellationToken).GetAwaiter().GetResult();
         }
 
         /// <summary>

@@ -26,7 +26,8 @@ namespace SenseNet.Diagnostics
 
         public static AuditLogEntry[] LoadLastEntries(int count)
         {
-            return DataStore.DataProvider.LoadLastAuditEventsAsync(count, CancellationToken.None).Result.ToArray();
+            return DataStore.DataProvider.LoadLastAuditEventsAsync(count, CancellationToken.None)
+                .GetAwaiter().GetResult().ToArray();
         }
     }
 }

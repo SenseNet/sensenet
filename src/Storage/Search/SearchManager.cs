@@ -159,14 +159,15 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
-            return DataStore.LoadIndexDocumentsAsync(new[] {versionId}, CancellationToken.None).Result.FirstOrDefault();
+            return DataStore.LoadIndexDocumentsAsync(new[] {versionId}, CancellationToken.None).GetAwaiter().GetResult()
+                .FirstOrDefault();
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
         /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
-            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).Result;
+            return DataStore.LoadIndexDocumentsAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.

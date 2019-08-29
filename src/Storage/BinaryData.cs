@@ -438,7 +438,7 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out var node, out var pt);
 
-            return BlobStorage.StartChunkAsync(node.VersionId, pt.Id, fullSize, CancellationToken.None).Result;
+            return BlobStorage.StartChunkAsync(node.VersionId, pt.Id, fullSize, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

@@ -220,7 +220,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 IndexingActivityFactory.Instance,
                 MaxCount,
                 RunningTimeoutInSeconds,
-                waitingActivityIds, CancellationToken.None).Result;
+                waitingActivityIds, CancellationToken.None).GetAwaiter().GetResult();
             var loadedActivities = result.Activities;
             var finishedActivitiyIds = result.FinishedActivitiyIds;
 

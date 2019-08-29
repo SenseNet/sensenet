@@ -81,7 +81,7 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void ReindexNode(Node node)
         {
-            var result = DataStore.SaveIndexDocumentAsync(node, true, false, CancellationToken.None).Result;
+            var result = DataStore.SaveIndexDocumentAsync(node, true, false, CancellationToken.None).GetAwaiter().GetResult();
             var indx = result.IndexDocumentData;
             if (result.HasBinary)
                 CreateBinaryReindexTask(node,

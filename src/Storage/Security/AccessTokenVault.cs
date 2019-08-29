@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The new AccessToken instance.</returns>
         public static AccessToken CreateToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
-            return CreateTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).Result;
+            return CreateTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The existing or new AccessToken instance.</returns>
         public static AccessToken GetOrAddToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
-            return GetOrAddTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).Result;
+            return GetOrAddTokenAsync(userId, timeout, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         internal static AccessToken GetTokenById(int accessTokenId)
         {
-            return Storage.LoadAccessTokenByIdAsync(accessTokenId, CancellationToken.None).Result;
+            return Storage.LoadAccessTokenByIdAsync(accessTokenId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Designed for test purposes.
@@ -208,7 +208,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>The existing AccessToken or null.</returns>
         public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
         {
-            return Storage.LoadAccessTokenAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
+            return Storage.LoadAccessTokenAsync(tokenValue, contentId, feature, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -257,7 +258,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>An AccessToken array.</returns>
         public static AccessToken[] GetAllTokens(int userId)
         {
-            return Storage.LoadAccessTokensAsync(userId, CancellationToken.None).Result;
+            return Storage.LoadAccessTokensAsync(userId, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Gets all tokens of the provided User.
@@ -281,7 +282,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>True if the token exists and is valid.</returns>
         public static bool TokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
-            return TokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).Result;
+            return TokenExistsAsync(tokenValue, contentId, feature, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

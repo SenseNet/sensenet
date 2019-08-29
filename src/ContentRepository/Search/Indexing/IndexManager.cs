@@ -149,7 +149,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).Result;
+            return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         internal static void DeleteAllIndexingActivities()

@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
                     // stores the current chunk
                     var tempBuffer = BlobStorageBase.LoadBinaryFragmentAsync(this.FileId, Position + bytesRead,
-                        bytesToReadInThisIteration, CancellationToken.None).Result;
+                        bytesToReadInThisIteration, CancellationToken.None).GetAwaiter().GetResult();
 
                     // first iteration: create inner buffer for caching a part of the stream in memory
                     if (_innerBuffer == null)

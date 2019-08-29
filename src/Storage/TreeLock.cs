@@ -28,7 +28,8 @@ namespace SenseNet.ContentRepository.Storage
         {
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
 
-            var lockIds = paths.Select(p =>  DataStore.AcquireTreeLockAsync(p, CancellationToken.None).Result).ToArray();
+            var lockIds = paths.Select(p =>  DataStore.AcquireTreeLockAsync(p, CancellationToken.None).GetAwaiter().GetResult())
+                .ToArray();
             for (var i = 0; i < lockIds.Length; i++)
             {
                 if (lockIds[i] == 0)
@@ -55,7 +56,7 @@ namespace SenseNet.ContentRepository.Storage
 
             foreach (var path in paths)
             {
-                if (DataStore.IsTreeLockedAsync(path, CancellationToken.None).Result)
+                if (DataStore.IsTreeLockedAsync(path, CancellationToken.None).GetAwaiter().GetResult())
                 {
                     var msg = "Cannot perform the operation because another process is making changes on this path: " + path;
                     SnTrace.ContentOperation.Write("TreeLock: Checking {0}", String.Join(", ", paths));
@@ -76,7 +77,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static Dictionary<int, string> GetAllLocks()
         {
-            return DataStore.LoadAllTreeLocksAsync(CancellationToken.None).Result;
+            return DataStore.LoadAllTreeLocksAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

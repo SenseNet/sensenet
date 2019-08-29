@@ -86,7 +86,7 @@ namespace SenseNet.Packaging.Steps.Internal
                         while (reader.Read())
                             result.Add(reader.GetInt32(0));
                         return Task.FromResult(result);
-                    }).Result;
+                    }).GetAwaiter().GetResult();
                 }
             }
 
@@ -102,7 +102,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 {
                     using (var ctx = new MsSqlDataContext(cancellationToken))
                     {
-                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).Result;
+                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                         return Convert.ToInt32(result) != 0;
                     }
                 }
@@ -122,7 +122,7 @@ namespace SenseNet.Packaging.Steps.Internal
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).Result;
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;

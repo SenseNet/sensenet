@@ -150,7 +150,7 @@ UPDATE Files SET Stream = @Value WHERE FileId = @Id;"; // proc_BinaryProperty_Wr
                         ctx.CreateParameter("@Position", SqlDbType.BigInt, offset + 1),
                         ctx.CreateParameter("@Count", SqlDbType.Int, count),
                     });
-                }).Result;
+                }).GetAwaiter().GetResult();
             }
         }
 
