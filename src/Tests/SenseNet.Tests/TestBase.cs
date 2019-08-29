@@ -147,7 +147,7 @@ namespace SenseNet.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).Wait();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
@@ -217,7 +217,7 @@ namespace SenseNet.Tests
 
             foreach (var node in nodes)
             {
-                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 

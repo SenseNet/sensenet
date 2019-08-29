@@ -38,7 +38,7 @@ namespace SenseNet.RestTester
 
             // Create and save a new content
             var content = Content.CreateNew("/Root", "SystemFolder", contentName);
-            content.SaveAsync().Wait();
+            content.SaveAsync().GetAwaiter().GetResult();
             var contentId = content.Id;
             Assert.IsTrue(0 < contentId);
 
@@ -48,7 +48,7 @@ namespace SenseNet.RestTester
             Assert.AreEqual(contentName, loadedContent.Name);
 
             // Delete
-            loadedContent.DeleteAsync().Wait();
+            loadedContent.DeleteAsync().GetAwaiter().GetResult();
 
             // Check that the current state and initial state are same
             var deletedContent = Content.LoadAsync(contentId).Result;
@@ -59,7 +59,7 @@ namespace SenseNet.RestTester
         {
             var contentName = $"Test_{Guid.NewGuid()}";
             var content = Content.CreateNew("/Root", "SystemFolder", contentName);
-            content.SaveAsync().Wait();
+            content.SaveAsync().GetAwaiter().GetResult();
             var contentId = content.Id;
 
             // Query for name of the newly created content
@@ -79,7 +79,7 @@ namespace SenseNet.RestTester
             // Create and save a new content
             var content = Content.CreateNew("/Root", "SystemFolder", contentName);
             content["DisplayName"] = displayNameBefore;
-            content.SaveAsync().Wait();
+            content.SaveAsync().GetAwaiter().GetResult();
             var contentId = content.Id;
             Assert.IsTrue(0 < contentId);
 
@@ -90,7 +90,7 @@ namespace SenseNet.RestTester
             // Load back the newly created content
             var updatedContent = foundContents[0];
             updatedContent["DisplayName"] = displayNameAfter;
-            updatedContent.SaveAsync().Wait();
+            updatedContent.SaveAsync().GetAwaiter().GetResult();
 
             // Query for updated displayname of the content
             var foundUpdatedContents = Content.QueryForAdminAsync($"DisplayName:'{displayNameAfter}'").Result.ToArray();

@@ -58,7 +58,7 @@ namespace SenseNet.Tests.Implementations
 
             // blob operation
 
-            blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
+            blobProvider.AllocateAsync(ctx, CancellationToken.None).GetAwaiter().GetResult();
 
             using (var stream = blobProvider.GetStreamForWrite(ctx))
                 value.Stream?.CopyTo(stream);
@@ -69,7 +69,7 @@ namespace SenseNet.Tests.Implementations
             // metadata operation
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).Wait();
+                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).GetAwaiter().GetResult();
 
             var fileId = db.Files.GetNextId();
             db.Files.Insert(new FileDoc
@@ -103,7 +103,7 @@ namespace SenseNet.Tests.Implementations
         {
             var db = DataProvider.DB;
             if (!isNewNode)
-                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).Wait();
+                DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext).GetAwaiter().GetResult();
 
             var binaryPropertyId = db.BinaryProperties.GetNextId();
             db.BinaryProperties.Insert(new BinaryPropertyDoc
@@ -134,7 +134,7 @@ namespace SenseNet.Tests.Implementations
                     Length = streamLength,
                 };
 
-                blobProvider.AllocateAsync(ctx, CancellationToken.None).Wait();
+                blobProvider.AllocateAsync(ctx, CancellationToken.None).GetAwaiter().GetResult();
                 isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;

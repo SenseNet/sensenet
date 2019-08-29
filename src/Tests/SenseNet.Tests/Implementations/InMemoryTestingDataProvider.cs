@@ -120,7 +120,7 @@ namespace SenseNet.Tests.Implementations
                 PropertyTypeId = ctx.PropertyTypeId,
                 Length = ctdString.Length
             };
-            blobProvider2.AllocateAsync(ctx2, CancellationToken.None).Wait();
+            blobProvider2.AllocateAsync(ctx2, CancellationToken.None).GetAwaiter().GetResult();
 
             using (var xmlWriterStream = blobProvider2.GetStreamForWrite(ctx2))
             using (var writer = new StreamWriter(xmlWriterStream))

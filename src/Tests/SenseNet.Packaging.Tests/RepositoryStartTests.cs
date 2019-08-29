@@ -479,7 +479,7 @@ namespace SenseNet.Packaging.Tests
                      ComponentVersion = new Version(1, 0),
                      ExecutionResult = ExecutionResult.Successful,
                      PackageType = PackageType.Install
-                 }, CancellationToken.None).Wait();
+                 }, CancellationToken.None).GetAwaiter().GetResult();
              },
              () =>
              {
@@ -501,7 +501,7 @@ namespace SenseNet.Packaging.Tests
                     ComponentVersion = new Version(1, 0),
                     ExecutionResult = ExecutionResult.Successful,
                     PackageType = PackageType.Install
-                }, CancellationToken.None).Wait();
+                }, CancellationToken.None).GetAwaiter().GetResult();
             },
             () =>
             {
