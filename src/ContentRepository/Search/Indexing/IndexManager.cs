@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         public static void RegisterActivity(IndexingActivityBase activity)
         {
-            DataStore.RegisterIndexingActivityAsync(activity, CancellationToken.None).Wait();
+            DataStore.RegisterIndexingActivityAsync(activity, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         internal static void DeleteAllIndexingActivities()
         {
-            DataStore.DeleteAllIndexingActivitiesAsync(CancellationToken.None).Wait();
+            DataStore.DeleteAllIndexingActivitiesAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

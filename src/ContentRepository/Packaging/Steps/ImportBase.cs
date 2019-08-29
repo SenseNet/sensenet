@@ -516,7 +516,8 @@ namespace SenseNet.Packaging.Steps
 
                 foreach (var node in nodes)
                 {
-                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).Wait();
+                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        .GetAwaiter().GetResult();
                     Log(ImportLogLevel.Verbose, "  " + node.Path);
                     count++;
                 }

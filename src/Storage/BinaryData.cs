@@ -473,7 +473,7 @@ namespace SenseNet.ContentRepository.Storage
             AssertChunk(contentId, fieldName, out var node, out var pt);
 
             BlobStorage.CommitChunkAsync(node.VersionId, pt.Id, token, fullSize, binaryMetadata?.RawData, CancellationToken.None)
-                .Wait();
+                .GetAwaiter().GetResult();
 
             NodeIdDependency.FireChanged(node.Id);
             StorageContext.L2Cache.Clear();
@@ -491,7 +491,8 @@ namespace SenseNet.ContentRepository.Storage
         public static void WriteChunk(int contentId, string token, long fullStreamSize, byte[] buffer, long offset, string fieldName = "Binary")
         {
             AssertChunk(contentId, fieldName, out var node, out _);
-            BlobStorage.WriteChunkAsync(node.VersionId, token, buffer, offset, fullStreamSize, CancellationToken.None).Wait();
+            BlobStorage.WriteChunkAsync(node.VersionId, token, buffer, offset, fullStreamSize, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
 
         public static void CopyFromStream(int contentId, Stream input, string fieldName = "Binary", BinaryData binaryData = null)
@@ -500,7 +501,8 @@ namespace SenseNet.ContentRepository.Storage
 
             AssertChunk(contentId, fieldName, out var node, out _);
 
-            BlobStorage.CopyFromStreamAsync(node.VersionId, token, input, CancellationToken.None).Wait();
+            BlobStorage.CopyFromStreamAsync(node.VersionId, token, input, CancellationToken.None)
+                .GetAwaiter().GetResult();
 
             CommitChunk(contentId, token, input.Length, fieldName, binaryData);
         }

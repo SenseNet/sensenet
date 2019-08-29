@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static void RemoveAllLocks(CancellationToken cancellationToken)
         {
-            Storage.DeleteAllSharedLocksAsync(cancellationToken).Wait(cancellationToken);
+            Storage.DeleteAllSharedLocksAsync(cancellationToken).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Storage
             if(node.Locked)
                 throw new LockedNodeException(node.Lock);
 
-            Storage.CreateSharedLockAsync(contentId, @lock, cancellationToken).Wait(cancellationToken);
+            Storage.CreateSharedLockAsync(contentId, @lock, cancellationToken).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Updates an existing shared lock. If the lock already exists, the shared lock data provider
@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage
         public static void Cleanup(CancellationToken cancellationToken)
         {
             SnTrace.Database.Write("Cleanup shared locks.");
-            Storage.CleanupSharedLocksAsync(cancellationToken).Wait(cancellationToken);
+            Storage.CleanupSharedLocksAsync(cancellationToken).GetAwaiter().GetResult();
         }
     }
 }

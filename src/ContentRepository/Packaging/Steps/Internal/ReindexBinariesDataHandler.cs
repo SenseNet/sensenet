@@ -16,12 +16,12 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             }
             internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             }
 
             internal class AssignedTaskResult
@@ -49,7 +49,7 @@ namespace SenseNet.Packaging.Steps.Internal
                         remainingTasks = reader.GetInt32(0);
 
                         return Task.FromResult(0);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
                 }
 
                 return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
             }
 
             /* ========================================================================================= */
@@ -73,7 +73,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     {
                         cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
                         cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
             }
 
             public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
@@ -93,7 +93,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void DropTables(CancellationToken cancellationToken)
             {
                 using (var ctx = new MsSqlDataContext(cancellationToken))
-                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).Wait();
+                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             }
 
             public static bool CheckFeature(CancellationToken cancellationToken)

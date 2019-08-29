@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // 3: save indexDocument.
             docData.IndexDocumentChanged();
-            DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).Wait();
+            DataStore.SaveIndexDocumentAsync(versionId, indexDoc, CancellationToken.None).GetAwaiter().GetResult();
 
             // 4: distributed cache invalidation because of version timestamp.
             DataStore.RemoveNodeDataFromCacheByVersionId(versionId);

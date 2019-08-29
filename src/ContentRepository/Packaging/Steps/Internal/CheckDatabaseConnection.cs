@@ -83,7 +83,7 @@ END
                         }
                     } while (reader.NextResult());
                     return Task.FromResult(0);
-                }).Wait();
+                }).GetAwaiter().GetResult();
             }
         }
     }

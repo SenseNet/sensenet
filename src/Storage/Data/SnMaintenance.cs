@@ -135,7 +135,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             try
             {
                 SnTrace.Database.Write(TRACE_PREFIX + "Cleanup files: setting the IsDeleted flag...");
-                BlobStorage.CleanupFilesSetFlagAsync(_cancellation.Token).Wait();
+                BlobStorage.CleanupFilesSetFlagAsync(_cancellation.Token).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {

@@ -167,7 +167,8 @@ namespace SenseNet.Packaging.Steps.Internal
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                        DataStore.SaveIndexDocumentAsync(node, indx, CancellationToken.None).Wait();
+                        var _ = DataStore.SaveIndexDocumentAsync(node, indx, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     });
                     Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;

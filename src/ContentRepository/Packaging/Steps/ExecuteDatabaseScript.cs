@@ -148,7 +148,7 @@ namespace SenseNet.Packaging.Steps
                             }
                         } while (await reader.NextResultAsync(cancel).ConfigureAwait(false));
                         return Task.FromResult(0);
-                    }).Wait();
+                    }).GetAwaiter().GetResult();
                 }
             }
             Logger.LogMessage("Script is successfully executed.");

@@ -32,7 +32,7 @@ namespace SenseNet.Packaging.Steps
             var initialData = InitialData.Load(new SenseNetServicesInitialData());
 
             MsSqlDataInstaller.InstallInitialDataAsync(initialData, new MsSqlDataProvider(), connectionString,
-                CancellationToken.None).Wait();
+                CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

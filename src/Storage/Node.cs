@@ -3221,7 +3221,8 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        DataStore.MoveNodeAsync(this.Data, target.Id, CancellationToken.None).Wait();
+                        DataStore.MoveNodeAsync(this.Data, target.Id, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     }
                     catch (DataOperationException e) // rethrow
                     {
@@ -3785,7 +3786,7 @@ namespace SenseNet.ContentRepository.Storage
                             // prevent concurrency problems
                             using (var treeLock = TreeLock.Acquire(this.Path))
                                 // main work
-                                DataStore.DeleteNodeAsync(Data, CancellationToken.None).Wait();
+                                DataStore.DeleteNodeAsync(Data, CancellationToken.None).GetAwaiter().GetResult();
                             // successful
                             break;
                         }
@@ -3959,7 +3960,7 @@ namespace SenseNet.ContentRepository.Storage
                 try
                 {
                     using (var treeLock = TreeLock.Acquire(nodeRef.Path))
-                        DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).Wait();
+                        DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e) // rethrow
                 {
