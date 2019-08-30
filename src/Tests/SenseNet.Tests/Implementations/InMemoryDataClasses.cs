@@ -381,7 +381,7 @@ namespace SenseNet.Tests.Implementations
         private int _createdById;
         private DateTime _modificationDate;
         private int _modifiedById;
-        private string _indexDocument; //UNDONE:DB: Do not store IndexDocument in the VersionDoc
+        private string _indexDocument; //TODO: Do not store IndexDocument in the VersionDoc
         private string _changedData;
         Dictionary<string, object> _dynamicProperties;
         private long _timestamp;

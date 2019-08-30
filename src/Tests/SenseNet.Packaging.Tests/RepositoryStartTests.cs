@@ -324,7 +324,7 @@ namespace SenseNet.Packaging.Tests
         }
     }
 
-    //UNDONE: [auto-patch] this feature is not released yet
+    //TODO: [auto-patch] this feature is not released yet
     //[TestClass]
     public class RepositoryStartTests : PackagingTestBase
     {

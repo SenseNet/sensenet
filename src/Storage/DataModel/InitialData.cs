@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.DataModel
 {
+    //TODO: The ContentTypeDefinitions, Blobs, Permissions are not saved and loaded in this version.
     public class InitialData
     {
         /// <summary>

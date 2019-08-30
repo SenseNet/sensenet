@@ -324,7 +324,7 @@ namespace SenseNet.Packaging
         internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
             RepositoryStartSettings settings = null)
         {
-            //UNDONE: make sure that patches are executed exclusively 
+            //TODO: make sure that patches are executed exclusively 
             // No other app domain should be able to start executing patches.
 
             return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), settings);

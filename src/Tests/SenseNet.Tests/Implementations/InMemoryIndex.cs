@@ -13,6 +13,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Tests.Implementations
 {
+    //TODO: Known issue: this class is not thread safe (sometimes there is an ArgumentOutOfRangeException in the InMemoryIndex.cs line 194).
     public class InMemoryIndex
     {
         /// <summary>
@@ -190,7 +191,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var subItem in item.Value)
                 {
                     var versionIdList = subItem.Value;
-                    foreach (var versionId in deletableVersionIds)
+                    foreach (var versionId in deletableVersionIds) //TODO: Thread safety. See the comment above.
                         versionIdList.Remove(versionId);
                 }
             }

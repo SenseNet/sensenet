@@ -34,7 +34,7 @@ namespace SenseNet.Services.Wopi
             if (wd == null || !wd.Zones.Any())
                 throw new SnNotSupportedException("Office Online Server not found.");
 
-            //UNDONE: handle internal or external zone urls
+            //TODO: handle internal or external zone urls
             var wopiApp = wd.Zones["internal-https"]?.GetApp(content.Name, action);
             var wopiAction = wopiApp?.Actions.GetAction(action, content.Name);
             if (wopiAction == null)
