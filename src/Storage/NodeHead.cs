@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage
         public int LastModifierId { get; private set; }
         public int Index { get; private set; }
         public int LockerId { get; private set; }
-        public long Timestamp { get; private set; }
+        public long Timestamp { get; internal set; }
 
         internal NodeHead() { }
 

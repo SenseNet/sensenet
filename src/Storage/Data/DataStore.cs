@@ -333,6 +333,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var sourceNodeHeadData = sourceNodeHead.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
+            sourceNodeHead.Timestamp = sourceNodeHeadData.Timestamp;
         }
         /// <summary>
         /// Moves a node to the provided target container.
@@ -345,6 +346,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             var sourceNodeHeadData = sourceNodeData.GetNodeHeadData();
             await DataProvider.MoveNodeAsync(sourceNodeHeadData, targetNodeId, cancellationToken).ConfigureAwait(false);
+            if (!sourceNodeData.IsShared)
+                sourceNodeData.NodeTimestamp = sourceNodeHeadData.Timestamp;
         }
 
         /// <summary>

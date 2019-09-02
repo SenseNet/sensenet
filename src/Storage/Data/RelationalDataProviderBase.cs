@@ -898,7 +898,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     using (var transaction = ctx.BeginTransaction())
                     {
-                        await ctx.ExecuteNonQueryAsync(MoveNodeScript, cmd =>
+                        var result = await ctx.ExecuteScalarAsync(MoveNodeScript, cmd =>
                         {
                             cmd.Parameters.AddRange(new[]
                             {
@@ -910,6 +910,8 @@ namespace SenseNet.ContentRepository.Storage.Data
                         }).ConfigureAwait(false);
 
                         transaction.Commit();
+
+                        sourceNodeHeadData.Timestamp = ConvertTimestampToInt64(result);
                     }
                 }
             }

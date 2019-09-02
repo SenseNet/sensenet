@@ -567,6 +567,8 @@ BEGIN TRY
         DEALLOCATE sysfolder_cursor
     END
 
+    SELECT Timestamp FROM Nodes WHERE NodeId = @SourceNodeId
+
     -- commit
     IF @HasTrans < 1
     BEGIN
