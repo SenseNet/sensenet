@@ -61,7 +61,7 @@ namespace SenseNet.ContentRepository.Storage
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
 
             var lockTasks = paths.Select(p => DataStore.AcquireTreeLockAsync(p, cancellationToken));
-            var lockIds = await Task.WhenAll(lockTasks);
+            var lockIds = await Task.WhenAll(lockTasks).ConfigureAwait(false);
 
             for (var i = 0; i < lockIds.Length; i++)
             {
@@ -69,7 +69,7 @@ namespace SenseNet.ContentRepository.Storage
 
                 if (lockIds[i] == 0)
                 {
-                    await DataStore.ReleaseTreeLockAsync(lockIds, cancellationToken);
+                    await DataStore.ReleaseTreeLockAsync(lockIds, cancellationToken).ConfigureAwait(false);
                     var msg = "Cannot acquire a tree lock for " + paths[i];
                     SnTrace.ContentOperation.Write("TreeLock: " + msg);
                     throw new LockedTreeException(msg);
@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (await DataStore.IsTreeLockedAsync(path, cancellationToken))
+                if (await DataStore.IsTreeLockedAsync(path, cancellationToken).ConfigureAwait(false))
                 {
                     var msg = "Cannot perform the operation because another process is making changes on this path: " + path;
                     SnTrace.ContentOperation.Write("TreeLock: Checking {0}", string.Join(", ", paths));
