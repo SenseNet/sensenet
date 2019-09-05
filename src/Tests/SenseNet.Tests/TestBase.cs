@@ -241,7 +241,7 @@ namespace SenseNet.Tests
             var paths = new List<string>();
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
-            populator.ClearAndPopulateAll();
+            populator.ClearAndPopulateAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

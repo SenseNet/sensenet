@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -11,12 +12,11 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
-using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -431,22 +431,23 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_ClearAndPopulateAll()
+        public async Task InMemSearch_Indexing_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
             IIndexingActivity[] activities;
-            Test(() =>
+            await Test(async () =>
             {
                 SaveInitialIndexDocuments();
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    SearchManager.GetIndexPopulator().ClearAndPopulateAll(console);
+                    await SearchManager.GetIndexPopulator().ClearAndPopulateAllAsync(CancellationToken.None, console).ConfigureAwait(false);
 
                 // load last indexing activity
-                var activityId = DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
-                activities = DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false, IndexingActivityFactory.Instance, CancellationToken.None)
-                    .GetAwaiter().GetResult();
+                var activityId = await DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).ConfigureAwait(false);
+                activities = await DataStore.LoadIndexingActivitiesAsync(1, activityId, 10000, false,
+                    IndexingActivityFactory.Instance, CancellationToken.None).ConfigureAwait(false);
+
                 // We cannot call the GetNodeCount and GetVersionCount methods directly here because
                 // there may be some nodes that cannot be loaded therefore missing from the index, which
                 // would mean different count values.
@@ -969,7 +970,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================ */
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_ActivityStatus_WithoutRepository()
+        public async Task InMemSearch_ActivityStatus_WithoutRepository()
         {
             var newStatus = new IndexingActivityStatus
             {
@@ -978,12 +979,12 @@ namespace SenseNet.Tests.SelfTest
             };
 
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
-            var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+            var originalStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
 
-            searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
+            await searchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(newStatus, CancellationToken.None).ConfigureAwait(false);
 
-            var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
-            var resultStatus = new IndexingActivityStatus()
+            var updatedStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
+            var resultStatus = new IndexingActivityStatus
             {
                 LastActivityId = updatedStatus.LastActivityId,
                 Gaps = updatedStatus.Gaps
@@ -995,7 +996,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_ActivityStatus_WithRepository()
+        public async Task InMemSearch_ActivityStatus_WithRepository()
         {
             var newStatus = new IndexingActivityStatus
             {
@@ -1003,13 +1004,13 @@ namespace SenseNet.Tests.SelfTest
                 Gaps = new[] { 5, 6, 7 }
             };
 
-            Test(() =>
+            await Test(async () =>
             {
                 var searchEngine = SearchManager.SearchEngine;
-                var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
-                searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
+                var originalStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
+                await searchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(newStatus, CancellationToken.None).ConfigureAwait(false);
 
-                var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+                var updatedStatus = await searchEngine.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
 
                 Assert.AreEqual(0, originalStatus.LastActivityId);
                 Assert.AreEqual(0, originalStatus.Gaps.Length);
@@ -1056,27 +1057,30 @@ namespace SenseNet.Tests.SelfTest
 
                 public bool IndexIsCentralized => false;
 
-                public void Start(TextWriter consoleOut)
+                public Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
                 {
                     Running = true;
+                    return Task.CompletedTask;
                 }
-                public void ShutDown()
+                public Task ShutDownAsync(CancellationToken cancellationToken)
                 {
                     Running = false;
+                    return Task.CompletedTask;
                 }
-                public void ClearIndex()
+                public Task ClearIndexAsync(CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();
                 }
-                public IndexingActivityStatus ReadActivityStatusFromIndex()
+                public Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken)
                 {
-                    return IndexingActivityStatus.Startup;
+                    return Task.FromResult(IndexingActivityStatus.Startup);
                 }
-                public void WriteActivityStatusToIndex(IndexingActivityStatus state)
+                public Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();
                 }
-                public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
+                public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
+                    IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();
                 }

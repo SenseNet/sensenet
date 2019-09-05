@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading;
+using STT=System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 // ReSharper disable ArrangeThisQualifier
@@ -102,7 +104,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         }
 
 
-        internal override void ExecuteIndexingActivity()
+        internal override async STT.Task ExecuteIndexingActivityAsync(CancellationToken cancellationToken)
         {
             // if not running or paused, skip execution except executing unprocessed activities
             if (!IsExecutable())
@@ -115,7 +117,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             bool successful;
             try
             {
-                successful = ProtectedExecute();
+                successful = await ProtectedExecuteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (SerializationException)
             {
@@ -147,7 +149,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// Defines the customizable method to reach the activity's main goal.
         /// </summary>
         /// <returns></returns>
-        protected abstract bool ProtectedExecute();
+        protected abstract STT.Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken);
         
         [NonSerialized]
         private IndexingActivityBase _attachedActivity;

@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 
@@ -14,18 +13,19 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public abstract class DistributedAction : ClusterMessage
     {
-        public void Execute()
+        public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             try
             {
-                DoAction(false, true);
+                await DoActionAsync(false, true, cancellationToken).ConfigureAwait(false);
+
                 SnTrace.Messaging.Write("Execute DistributedAction: {0}", this);
             }
             finally
             {
                 try
                 {
-                    Distribute();
+                    await DistributeAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception exc2) // logged
                 {
@@ -35,18 +35,22 @@ namespace SenseNet.Communication.Messaging
             
         }
 
-        public abstract void DoAction(bool onRemote, bool isFromMe);
+        public abstract Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken);
 
-        public virtual void Distribute()
+        public virtual Task DistributeAsync(CancellationToken cancellationToken)
         {
             try
             {
+                //UNDONE: [async] async cluster channel Send
                 DistributedApplication.ClusterChannel.Send(this);
             }
             catch (Exception exc) // logged
             {
                 SnLog.WriteException(exc);
             }
+
+            //UNDONE: [async] remove when Send above is async
+            return Task.CompletedTask;
         }
     }
 

@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Communication.Messaging;
 
@@ -19,10 +18,12 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
             PortletID = portletID;
         }
 
-        public override void DoAction(bool onRemote, bool isFromMe)
+        public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {
             if (!(onRemote && isFromMe))
                 PortletDependency.FireChanged(this.PortletID);
+
+            return Task.CompletedTask;
         }
 
         public override string ToString()

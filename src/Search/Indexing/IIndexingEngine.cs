@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
@@ -23,30 +25,30 @@ namespace SenseNet.Search.Indexing
         /// Initializes the IIndexingEngine instance.
         /// ConsoleOut can be used for writing interactive messages if the system is running under an administrative tool.
         /// </summary>
-        void Start(TextWriter consoleOut);
+        Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken);
 
         /// <summary>
         /// Stops the indexing and releases all inner and outer resources.  This is not a destructor.
         /// </summary>
-        void ShutDown();
+        Task ShutDownAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes the current index and creates a brand new empty one.
         /// </summary>
-        void ClearIndex();
+        Task ClearIndexAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns an IndexingActivityStatus instance that was associated to the index state.
         /// Called once in the system startup sequence and periodically in the index health check.
         /// </summary>
         /// <returns></returns>
-        IndexingActivityStatus ReadActivityStatusFromIndex();
+        Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Associate the given indexing state to the index. This method is called after index writing.
         /// In heavy load the status writing is not as dense than the index writing.
         /// </summary>
-        void WriteActivityStatusToIndex(IndexingActivityStatus state);
+        Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken);
 
         /// <summary>
         /// Executes an atomic indexing operation. Deletes all index documents by "deletions" parameter,
@@ -62,6 +64,8 @@ namespace SenseNet.Search.Indexing
         /// <param name="deletions">Contains terms that define the documents to delete. Can be null or empty.</param>
         /// <param name="updates">Contains term-document pairs that define the refreshed items. Can be null or empty.</param>
         /// <param name="additions">Contains documents to add to index.</param>
-        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
+            IEnumerable<IndexDocument> additions, CancellationToken cancellationToken);
     }
 }

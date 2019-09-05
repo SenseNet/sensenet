@@ -14,8 +14,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Portal;
 using SenseNet.Tests.Implementations;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -23,19 +23,19 @@ namespace SenseNet.Tests.SelfTest
     public class InitialDataTests : TestBase
     {
         //[TestMethod]
-        public void InitialData_RebuildIndex()
+        public async Task InitialData_RebuildIndex()
         {
             if (SnTrace.SnTracers.Count != 2)
                 SnTrace.SnTracers.Add(new SnDebugViewTracer());
 
-            Test(() =>
+            await Test(async () =>
             {
                 using (var op = SnTrace.Test.StartOperation("@@ ========= Populate"))
                 {
                     try
                     {
-                        SearchManager.GetIndexPopulator()
-                            .RebuildIndexDirectly("/Root", IndexRebuildLevel.DatabaseAndIndex);
+                        await SearchManager.GetIndexPopulator().RebuildIndexDirectlyAsync("/Root",
+                            CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex).ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {

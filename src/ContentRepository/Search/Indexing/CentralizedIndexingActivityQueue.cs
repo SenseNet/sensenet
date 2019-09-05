@@ -33,6 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public static void Startup(TextWriter consoleOut)
         {
+            //TODO: [async] rewrite this using async APIs instead of Thread.Sleep.
             using (var op = SnTrace.Index.StartOperation("CIAQ: STARTUP."))
             {
                 var loadedCount = 0;
@@ -303,7 +304,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         /// <summary>
-        /// Executes an activity with synchron way with its encapsulated implementation.
+        /// Executes an activity synchronously.
         /// Updates the activity's runningState to "Done" to indicate the end of execution.
         /// Calls the activity's Finish to release the waiting thread.
         /// Removes the activity from the waiting list.
@@ -319,9 +320,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     Interlocked.Increment(ref _activeTasks);
 #pragma warning restore 420
 
+                    //UNDONE: [async] refactor this method to be async
                     // execute synchronously
                     using (new Storage.Security.SystemAccount())
-                        act.ExecuteIndexingActivity();
+                        act.ExecuteIndexingActivityAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // publish the finishing state
                     DataStore.UpdateIndexingActivityRunningStateAsync(act.Id, IndexingActivityRunningState.Done, CancellationToken.None)

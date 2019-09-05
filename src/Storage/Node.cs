@@ -3085,7 +3085,7 @@ namespace SenseNet.ContentRepository.Storage
                         if (node.IsIndexingEnabled)
                         {
                             using (new SystemAccount())
-                                populator.CommitPopulateNode(populatorData, indexDocument);
+                                populator.CommitPopulateNodeAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
                         }
 
                         if (indexDocument != null && hasBinary)
@@ -3094,7 +3094,7 @@ namespace SenseNet.ContentRepository.Storage
                             {
                                 indexDocument = DataStore.SaveIndexDocumentAsync(node, indexDocument, CancellationToken.None)
                                     .GetAwaiter().GetResult();
-                                populator.FinalizeTextExtracting(populatorData, indexDocument);
+                                populator.FinalizeTextExtractingAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
                             }
                         }
                         op2.Successful = true;
@@ -3243,7 +3243,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(this.Path);
 
                     var populator = SearchManager.GetIndexPopulator();
-                    populator.DeleteTree(this.Path, this.Id);
+                    populator.DeleteTreeAsync(this.Path, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     // <L2Cache>
                     StorageContext.L2Cache.Clear();
@@ -3267,7 +3267,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
 
                     using (new SystemAccount())
-                        populator.AddTree(targetPath, this.Id);
+                        populator.AddTreeAsync(targetPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                 } // end lock
 
@@ -3827,7 +3827,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    SearchManager.GetIndexPopulator().DeleteTree(myPath, this.Id);
+                    SearchManager.GetIndexPopulator().DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -4008,7 +4008,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                SearchManager.GetIndexPopulator().DeleteForest(ids);
+                SearchManager.GetIndexPopulator().DeleteForestAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (Exception e)
             {

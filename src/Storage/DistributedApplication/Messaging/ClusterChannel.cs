@@ -189,7 +189,9 @@ namespace SenseNet.Communication.Messaging
             {
                 var isMe = msg.SenderInfo.IsMe;
                 SnTrace.Messaging.Write("Processing a '{0}' message. IsMe: {1}", message.GetType().FullName, isMe);
-                msg.DoAction(true, msg.SenderInfo.IsMe);
+
+                //UNDONE: [async] make this async
+                msg.DoActionAsync(true, msg.SenderInfo.IsMe, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -31,21 +33,23 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Build a brand new index.
         /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="consoleWriter">TextWriter instance for writing progress.</param>
-        void ClearAndPopulateAll(TextWriter consoleWriter = null);
+        Task ClearAndPopulateAllAsync(CancellationToken cancellationToken, TextWriter consoleWriter = null);
 
         /// <summary>
         /// Refreshes the index of the given subtree directly. Designed for offline usage e.g. any step of SnAdmin package.
-        /// Does not notify any other webservers and does not register any activity.
+        /// Does not notify any other web servers and does not register any activity.
         /// Note: 
         /// </summary>
-        void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly);
+        Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly);
         /// <summary>
         /// Adds a brand new subtree to the index.
         /// </summary>
         /// <param name="path">The Path of the root node of the subtree.</param>
         /// <param name="nodeId">The Id of the root node of the subtree.</param>
-        void AddTree(string path, int nodeId);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        Task AddTreeAsync(string path, int nodeId, CancellationToken cancellationToken);
         /// <summary>
         /// Creates a snapshot object before saving the node.
         /// This snapshot helps to perform the correct indexing operation.
@@ -61,37 +65,42 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="data">The snapshot that recorded by the BeginPopulateNode method.</param>
         /// <param name="indexDocument">The index document that will be written into the index.</param>
-        void CommitPopulateNode(object data, IndexDocumentData indexDocument);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        Task CommitPopulateNodeAsync(object data, IndexDocumentData indexDocument, CancellationToken cancellationToken);
         /// <summary>
         /// Writes index document to the index after text extracting by the given snapshot.
         /// </summary>
         /// <param name="data">The snapshot that recorded by the BeginPopulateNode method.</param>
         /// <param name="indexDocument">The index document that will be written into the index.</param>
-        void FinalizeTextExtracting(object data, IndexDocumentData indexDocument);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        Task FinalizeTextExtractingAsync(object data, IndexDocumentData indexDocument, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes a subtree from the index by path.
         /// </summary>
         /// <param name="path">Path of the deleted content.</param>
         /// <param name="nodeId">Id os the deleted content.</param>
-        void DeleteTree(string path, int nodeId);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        Task DeleteTreeAsync(string path, int nodeId, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes more subtrees by id.
         /// The idSet cannot be null.
         /// </summary>
-        void DeleteForest(IEnumerable<int> idSet);
+        Task DeleteForestAsync(IEnumerable<int> idSet, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes more subtrees by path.
         /// The pathSet cannot be null.
         /// </summary>
-        void DeleteForest(IEnumerable<string> pathSet);
+        Task DeleteForestAsync(IEnumerable<string> pathSet, CancellationToken cancellationToken);
 
         /// <summary>
         /// Rebuilds the index of a node or a subtree.
         /// </summary>
         /// <param name="node">The root node of the subtree.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <param name="recursive">True if the intention is to reindex the whole subtree.</param>
         /// <param name="rebuildLevel">IndexRebuildLevel option.</param>
-        void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
+        Task RebuildIndexAsync(Node node, CancellationToken cancellationToken, bool recursive = false, 
+            IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         /// <summary>
         /// Defines an event that occurs when an index document is refreshed.
