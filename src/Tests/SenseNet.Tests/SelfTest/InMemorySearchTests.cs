@@ -437,7 +437,7 @@ namespace SenseNet.Tests.SelfTest
             IIndexingActivity[] activities;
             await Test(async () =>
             {
-                SaveInitialIndexDocuments();
+                await SaveInitialIndexDocumentsAsync(CancellationToken.None);
 
                 // ACTION
                 using (var console = new StringWriter(sb))
