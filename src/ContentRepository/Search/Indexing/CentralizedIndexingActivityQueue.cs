@@ -320,7 +320,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     Interlocked.Increment(ref _activeTasks);
 #pragma warning restore 420
 
-                    //UNDONE: [async] refactor this method to be async
+                    //TODO: [async] refactor this method to be async
                     // execute synchronously
                     using (new Storage.Security.SystemAccount())
                         act.ExecuteIndexingActivityAsync(CancellationToken.None).GetAwaiter().GetResult();

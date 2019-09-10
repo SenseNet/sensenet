@@ -13,6 +13,11 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public abstract class DistributedAction : ClusterMessage
     {
+        /// <summary>
+        /// Executes the activity's main action and distributes it to the other app domains in the cluster.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             try
@@ -32,11 +37,22 @@ namespace SenseNet.Communication.Messaging
                     SnLog.WriteException(exc2);
                 }
             }
-            
         }
 
+        /// <summary>
+        /// Executes the activity's main action.
+        /// </summary>
+        /// <param name="onRemote">True if the caller is a message receiver.</param>
+        /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public abstract Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Distributes the activity to the other app domains in the cluster.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public virtual Task DistributeAsync(CancellationToken cancellationToken)
         {
             try
