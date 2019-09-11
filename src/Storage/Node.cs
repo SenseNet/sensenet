@@ -2681,9 +2681,10 @@ namespace SenseNet.ContentRepository.Storage
                     // save
                     TreeLock treeLock = null;
                     if (renamed)
-                        treeLock = TreeLock.Acquire(this.ParentPath + "/" + this.Name, originalPath);
+                        treeLock = TreeLock.AcquireAsync(CancellationToken.None,this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
                     else
-                        TreeLock.AssertFree(this.ParentPath + "/" + this.Name);
+                        TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
+
                     try
                     {
                         this.Data.PreloadTextProperties();
@@ -2691,8 +2692,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
                     finally
                     {
-                        if (treeLock != null)
-                            treeLock.Dispose();
+                        treeLock?.Dispose();
                     }
 
                     // <L2Cache>
@@ -3214,7 +3214,7 @@ namespace SenseNet.ContentRepository.Storage
             {                { "Id", Id }, {"Path", Path }, {"Target", targetPath }            }))
             {
                 IDictionary<string, object> customData;
-                using (var treeLock = TreeLock.Acquire(this.Path, RepositoryPath.Combine(target.Path, this.Name)))
+                using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
                     var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                     FireOnMoving(args);
@@ -3791,9 +3791,12 @@ namespace SenseNet.ContentRepository.Storage
                         try
                         {
                             // prevent concurrency problems
-                            using (var treeLock = TreeLock.Acquire(this.Path))
+                            using (TreeLock.AcquireAsync(CancellationToken.None, this.Path).GetAwaiter().GetResult())
+                            {
                                 // main work
                                 DataStore.DeleteNodeAsync(Data, CancellationToken.None).GetAwaiter().GetResult();
+                            }
+
                             // successful
                             break;
                         }
@@ -3966,7 +3969,7 @@ namespace SenseNet.ContentRepository.Storage
 
                 try
                 {
-                    using (var treeLock = TreeLock.Acquire(nodeRef.Path))
+                    using (TreeLock.AcquireAsync(CancellationToken.None, nodeRef.Path).GetAwaiter().GetResult())
                         DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e) // rethrow

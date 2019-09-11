@@ -25,6 +25,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <exception cref="SenseNet.ContentRepository.Storage.LockedTreeException">Thrown when any of the requested paths (or any of the parent containers) are already locked.</exception>
         /// <param name="paths">One or more Content Repository paths to be locked.</param>
+        [Obsolete("Use the async version instead.")]
         public static TreeLock Acquire(params string[] paths)
         {
             SnTrace.ContentOperation.Write("TreeLock: Acquiring lock for {0}", paths);
@@ -85,6 +86,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         /// <exception cref="SenseNet.ContentRepository.Storage.LockedTreeException">Thrown when any of the requested paths (or any of the parent containers) are already locked.</exception>
         /// <param name="paths">One or more Content Repository paths to check for locked state.</param>
+        [Obsolete("Use the async version instead.")]
         public static void AssertFree(params string[] paths)
         {
             SnTrace.ContentOperation.Write("TreeLock: Checking {0}", String.Join(", ", paths));
@@ -138,6 +140,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets all existing locks from the database.
         /// </summary>
+        [Obsolete("Use the async version instead.")]
         public static Dictionary<int, string> GetAllLocks()
         {
             return DataStore.LoadAllTreeLocksAsync(CancellationToken.None).GetAwaiter().GetResult();
