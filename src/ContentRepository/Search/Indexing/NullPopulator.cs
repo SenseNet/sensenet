@@ -77,8 +77,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     if (recursive)
                     {
-                        //UNDONE: [async] Use the new async API of TreeLock when merged
-                        using (TreeLock.Acquire(node.Path))
+                        using (await TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
                                 await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
@@ -87,8 +86,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
                     else
                     {
-                        //UNDONE: [async] Use the new async API of TreeLock when merged
-                        TreeLock.AssertFree(node.Path);
+                        await TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
                         await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                             .ConfigureAwait(false);
                     }
