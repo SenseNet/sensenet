@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static bool Running => IndexingEngine?.Running ?? false;
 
         /// <summary>
-        /// Gets the ids of the not indexed <see cref="NodeType"/>s.
+        /// Gets the ids of not indexed <see cref="NodeType"/>s.
         /// </summary>
         public static int[] GetNotIndexedNodeTypes()
         {
@@ -50,6 +50,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
         {
             await IndexingEngine.StartAsync(consoleOut, cancellationToken).ConfigureAwait(false);
@@ -69,7 +70,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         /// <summary>
-        /// Shuts down the indexing feature: stops CommitManager, indexing activity organizator and IndexingEngine.
+        /// Shuts down the indexing feature: stops CommitManager, indexing activity organizer and IndexingEngine.
         /// </summary>
         public static void ShutDown()
         {
@@ -92,6 +93,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Deletes the existing index. Called before making a brand new index.
         /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
             return IndexingEngine.ClearIndexAsync(cancellationToken);
@@ -100,19 +103,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /* ========================================================================================== Activity */
 
         /// <summary>
-        /// Registers an indexing aztivity in the database.
+        /// Registers an indexing activity in the database.
         /// </summary>
+        /// <param name="activity">The activity to register.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task RegisterActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
             return DataStore.RegisterIndexingActivityAsync(activity, cancellationToken);
         }
 
         /// <summary>
-        /// Executes an indexing activity taking into account the dependencies.
-        /// The execution is immediately (ie parallelized) when possible but the
-        /// dependent activities are executed in the order of registration.
-        /// Dependent activity execution starts after the blocker activity is completed.
+        /// Executes an indexing activity taking dependencies into account and waits for its completion asynchronously.
+        /// Dependent activities are executed in the order of registration.
+        /// Dependent activity execution starts after the previously blocker activity is completed.
         /// </summary>
+        /// <param name="activity">The activity to execute.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static STT.Task ExecuteActivityAsync(IndexingActivityBase activity, CancellationToken cancellationToken)
         {
             return SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized
@@ -148,23 +156,28 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         /// <summary>
-        /// Returns with the Id of the last registered indexing activity.
+        /// Returns the Id of the last registered indexing activity.
         /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
             return DataStore.GetLastIndexingActivityIdAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
+        /// <summary>
+        /// Deletes all activities from the database.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         internal static STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
             return DataStore.DeleteAllIndexingActivitiesAsync(cancellationToken);
         }
 
         /// <summary>
-        /// Returns with the current <see cref="IndexingActivityStatus"/> instance
-        /// containing the last executed indexing activity id and ids if missing indexing activities.
+        /// Gets the current <see cref="IndexingActivityStatus"/> instance
+        /// containing the last executed indexing activity id and ids of missing indexing activities.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current indexing activity status.</returns>
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();
