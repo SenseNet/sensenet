@@ -8,6 +8,7 @@ using System.Configuration;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
+using System.Threading;
 using SenseNet.Communication.Messaging;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
@@ -172,7 +173,7 @@ namespace SenseNet.ContentRepository
             }
             ConsoleWriteLine("Starting IndexingEngine:");
 
-            IndexManager.Start(_settings.Console);
+            IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
 
             ConsoleWriteLine("IndexingEngine has started.");
         }

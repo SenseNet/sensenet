@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using STT=System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
@@ -464,7 +466,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR")]
-        public void Indexing_ExecuteUnprocessed_FaultTolerance()
+        public async STT.Task Indexing_ExecuteUnprocessed_FaultToleranceAsync()
         {
             // Temporary storages for manage repository's restart.
             InMemoryDataProvider dataProvider = null;
@@ -501,8 +503,8 @@ namespace SenseNet.ContentRepository.Tests
 
             // Roll back the time. Expected unprocessed sequence when next restart:
             //   Update "Folder2" (error), Add "Folder3", Update "Folder3", ...
-            ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
-                .WriteActivityStatusToIndex(new IndexingActivityStatus { LastActivityId = 3 });
+            await ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
+                .WriteActivityStatusToIndexAsync(new IndexingActivityStatus { LastActivityId = 3 }, CancellationToken.None).ConfigureAwait(false);
 
             // ACTION
             // Restart the repository with the known provider instances.
@@ -534,8 +536,8 @@ namespace SenseNet.ContentRepository.Tests
             // 1 - Check the indexing status
             // Before fix the last activity id was ok but the status had 3 gaps
             // After fix all activities need to be executed.
-            var status = ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
-                .ReadActivityStatusFromIndex();
+            var status = await ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
+                .ReadActivityStatusFromIndexAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.AreEqual(8, status.LastActivityId);
             Assert.AreEqual(0, status.Gaps.Length);
 

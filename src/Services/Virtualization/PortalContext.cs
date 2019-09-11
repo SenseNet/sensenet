@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
@@ -213,22 +214,26 @@ namespace SenseNet.Portal.Virtualization
         [Serializable]
         public class ReloadSiteListDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (!(onRemote && isFromMe))
                 {
                     ResetSiteList();
                 }
+
+                return STT.Task.CompletedTask;
             }
         }
 
         [Serializable]
         public class ReloadSmartUrlListDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (!(onRemote && isFromMe))
                     _smartUrls = null;
+
+                return STT.Task.CompletedTask;
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
@@ -22,11 +24,13 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                 _portletId = portletId;
             }
 
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)
-                    return;
+                    return Task.CompletedTask;
                 FireChangedPrivate(_portletId);
+
+                return Task.CompletedTask;
             }
         }
         #endregion
@@ -48,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         /// </summary>
         public static void FireChanged(string portletId)
         {
-            new FireChangedDistributedAction(portletId).Execute();
+            new FireChangedDistributedAction(portletId).ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void FireChangedPrivate(string portletId)
         {

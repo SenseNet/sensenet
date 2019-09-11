@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Nito.AsyncEx;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -120,7 +121,7 @@ namespace SenseNet.Tests
         {
             return ExecuteTest(useCurrentUser, initialize, callback);
         }
-        private STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
+        private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
             Cache.Reset();
             ContentTypeManager.Reset();
@@ -136,9 +137,9 @@ namespace SenseNet.Tests
                 PrepareRepository();
 
                 if (useCurrentUser)
-                    return callback();
+                    await callback();
                 using (new SystemAccount())
-                    return callback();
+                    await callback();
             }
         }
 
@@ -208,18 +209,22 @@ namespace SenseNet.Tests
             Assert.AreEqual(e, a);
         }
 
-        protected void SaveInitialIndexDocuments()
+        protected async STT.Task SaveInitialIndexDocumentsAsync(CancellationToken cancellationToken)
         {
-            var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, CancellationToken.None).GetAwaiter().GetResult();
+            var idSet = await DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, cancellationToken).ConfigureAwait(false);
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
                 return;
 
-            foreach (var node in nodes)
+            var tasks = nodes.Select(async node =>
             {
-                DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None).GetAwaiter().GetResult();
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
+            });
+            
+            await tasks.WhenAll();
         }
 
         protected string ArrayToString(int[] array)
@@ -241,7 +246,7 @@ namespace SenseNet.Tests
             var paths = new List<string>();
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
-            populator.ClearAndPopulateAll();
+            populator.ClearAndPopulateAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>

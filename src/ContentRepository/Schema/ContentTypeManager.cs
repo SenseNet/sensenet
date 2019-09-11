@@ -5,19 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SnCS = SenseNet.ContentRepository.Storage;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
+using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Schema
 {
@@ -26,12 +26,15 @@ namespace SenseNet.ContentRepository.Schema
         [Serializable]
         internal sealed class ContentTypeManagerResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
                 if (onRemote && isFromMe)
-                    return;
+                    return STT.Task.CompletedTask;
+
                 ContentTypeManager.ResetPrivate();
+
+                return STT.Task.CompletedTask;
             }
         }
 
@@ -171,7 +174,7 @@ namespace SenseNet.ContentRepository.Schema
             SnLog.WriteInformation("ContentTypeManager.Reset called.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
-            new ContentTypeManagerResetDistributedAction().Execute();
+            new ContentTypeManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {

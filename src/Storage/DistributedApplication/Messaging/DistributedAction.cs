@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 
@@ -14,39 +13,60 @@ namespace SenseNet.Communication.Messaging
     [Serializable]
     public abstract class DistributedAction : ClusterMessage
     {
-        public void Execute()
+        /// <summary>
+        /// Executes the activity's main action and distributes it to the other app domains in the cluster.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             try
             {
-                DoAction(false, true);
+                await DoActionAsync(false, true, cancellationToken).ConfigureAwait(false);
+
                 SnTrace.Messaging.Write("Execute DistributedAction: {0}", this);
             }
             finally
             {
                 try
                 {
-                    Distribute();
+                    await DistributeAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception exc2) // logged
                 {
                     SnLog.WriteException(exc2);
                 }
             }
-            
         }
 
-        public abstract void DoAction(bool onRemote, bool isFromMe);
+        /// <summary>
+        /// Executes the activity's main action.
+        /// </summary>
+        /// <param name="onRemote">True if the caller is a message receiver.</param>
+        /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public abstract Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken);
 
-        public virtual void Distribute()
+        /// <summary>
+        /// Distributes the activity to the other app domains in the cluster.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public virtual Task DistributeAsync(CancellationToken cancellationToken)
         {
             try
             {
+                //UNDONE: [async] async cluster channel Send
                 DistributedApplication.ClusterChannel.Send(this);
             }
             catch (Exception exc) // logged
             {
                 SnLog.WriteException(exc);
             }
+
+            //UNDONE: [async] remove when Send above is async
+            return Task.CompletedTask;
         }
     }
 

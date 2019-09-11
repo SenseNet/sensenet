@@ -115,7 +115,7 @@ namespace SenseNet.ContentRepository
 
         public static void Reset()
         {
-            new RepositoryVersionInfoResetDistributedAction().Execute();
+            new RepositoryVersionInfoResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
@@ -125,11 +125,13 @@ namespace SenseNet.ContentRepository
         [Serializable]
         internal sealed class RepositoryVersionInfoResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)
-                    return;
+                    return STT.Task.CompletedTask;
                 ResetPrivate();
+
+                return STT.Task.CompletedTask;
             }
         }
 

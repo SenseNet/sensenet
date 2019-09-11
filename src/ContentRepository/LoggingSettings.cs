@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using STT=System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
@@ -46,19 +48,22 @@ namespace SenseNet.ContentRepository
                 SetCachedData(TRACESETTINGS_UPDATED_KEY, true);
 
                 // update flags on all connected servers
-                new UpdateCategoriesDistributedAction().Execute();
+                // (no need to wait for this method)
+                _ = new UpdateCategoriesDistributedAction().ExecuteAsync(CancellationToken.None);
             }
         }
 
         [Serializable]
         public class UpdateCategoriesDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)
-                    return;
+                    return STT.Task.CompletedTask;
 
                 SnTraceConfigurator.UpdateCategories();
+
+                return STT.Task.CompletedTask;
             }
         }
 

@@ -71,14 +71,14 @@ namespace SenseNet.Packaging.Steps
                 if (string.IsNullOrEmpty(path) && rebuildLevel == IndexRebuildLevel.IndexOnly)
                 {
                     Logger.LogMessage($"Populating new index of the whole Content Repository...");
-                    populator.ClearAndPopulateAll(context.Console);
+                    populator.ClearAndPopulateAllAsync(CancellationToken.None, context.Console).GetAwaiter().GetResult();
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(path))
                         path = Identifiers.RootPath;
                     Logger.LogMessage($"Populating index for {path}, level={rebuildLevel} ...");
-                    populator.RebuildIndexDirectly(path, rebuildLevel);
+                    populator.RebuildIndexDirectlyAsync(path, CancellationToken.None, rebuildLevel).GetAwaiter().GetResult();
                 }
             }
             finally

@@ -33,6 +33,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.0.0" />
     <PackageReference Include="SenseNet.Preview" Version="7.1.0" />
     <PackageReference Include="SenseNet.Security" Version="4.0.0" />
     <PackageReference Include="SenseNet.TaskManagement.Core" Version="2.0.0" />

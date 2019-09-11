@@ -102,8 +102,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public static void Startup(System.IO.TextWriter consoleOut)
         {
-            // initalize from index
-            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex();
+            // initialize from index
+            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 
@@ -275,7 +275,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    IndexManager.Commit(); // explicit commit
+                    IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
@@ -610,7 +610,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     try
                     {
                         using (new Storage.Security.SystemAccount())
-                            activity.ExecuteIndexingActivity();
+                            activity.ExecuteIndexingActivityAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {
