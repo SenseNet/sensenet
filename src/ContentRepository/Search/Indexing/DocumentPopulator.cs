@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                         }
 
-                        //UNDONE: [async] make this parallel async (TPL DataFlow)
+                        //TODO: [async] make this parallel async (TPL DataFlow)
                         Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
                             n =>
                             {
@@ -209,7 +209,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (idSet == null)
                 throw new ArgumentNullException(nameof(idSet));
 
-            //UNDONE: [async] make this parallel async (TPL DataFlow)
+            //TODO: [async] make this parallel async (TPL DataFlow)
             foreach (var head in NodeHead.Get(idSet))
                 await DeleteTreeAsync(head.Path, head.Id, cancellationToken).ConfigureAwait(false);
         }
@@ -219,7 +219,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (pathSet == null)
                 throw new ArgumentNullException(nameof(pathSet));
 
-            //UNDONE: [async] make this parallel async (TPL DataFlow)
+            //TODO: [async] make this parallel async (TPL DataFlow)
             foreach (var head in NodeHead.Get(pathSet))
                 await DeleteTreeAsync(head.Path, head.Id, cancellationToken).ConfigureAwait(false);
         }
@@ -274,7 +274,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
 
-                    //UNDONE: [async] convert this to async (TPL DataFlow TransformBlock)
+                    //TODO: [async] make this parallel async (TPL DataFlow TransformBlock)
                     Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
                         n => { DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
                             .GetAwaiter().GetResult(); });

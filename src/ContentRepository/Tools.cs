@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository
 {
     public static class RepositoryTools
     {
-        //UNDONE: [async] move this method to the Tools package
+        //TODO: [async] move this method to the Tools package
         // Remove the original CombineCancellationToken method from the Common project as well.
         internal static CancellationToken AddTimeout(this CancellationToken cancellationToken, TimeSpan timeout)
         {

@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         
         private void Commit()
         {
-            //UNDONE: [async] make the whole mechanism async
+            //TODO: [async] make the whole mechanism async
             IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
             Interlocked.Exchange(ref _uncommittedActivityCount, 0);
             _lastCommitTime = DateTime.UtcNow;
