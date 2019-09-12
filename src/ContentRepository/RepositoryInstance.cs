@@ -256,7 +256,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Sending greeting message ... ");
-                (new PingMessage(new string[0])).Send();
+                new PingMessage(new string[0]).SendAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting NodeType system ... ");
@@ -305,7 +305,7 @@ namespace SenseNet.ContentRepository
             catch
             {
                 // If an error occoured, shut down the cluster channel.
-                channel?.ShutDown();
+                channel?.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 throw;
             }
@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository
                 _instance.ConsoleWriteLine("Sending a goodbye message...");
                 DistributedApplication.ClusterChannel.ClusterMemberInfo.NeedToRecover = false;
                 var pingMessage = new PingMessage();
-                pingMessage.Send();
+                pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 foreach (var svc in _instance.serviceInstances)
                 {
@@ -452,7 +452,7 @@ namespace SenseNet.ContentRepository
                 }
 
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
-                DistributedApplication.ClusterChannel.ShutDown();
+                DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 SnTrace.Repository.Write("Shutting down Security.");
                 SecurityHandler.ShutDownSecurity();

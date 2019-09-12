@@ -8,6 +8,7 @@ using SenseNet.Packaging;
 using SenseNet.ContentRepository;
 using System.Diagnostics;
 using System.Security;
+using System.Threading;
 using System.Xml;
 using SenseNet.Tools.SnAdmin.Testability;
 
@@ -253,7 +254,7 @@ namespace SenseNet.Tools.SnAdmin
                 // Stop this background thread so that the app could exit correctly. This is a
                 // workaround for cases when the Repository was not started during execution,
                 // but the clusterchannel started because one of the components needed it.
-                DistributedApplication.ClusterChannel.ShutDown();
+                DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
 
             // result:

@@ -53,20 +53,16 @@ namespace SenseNet.Communication.Messaging
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public virtual Task DistributeAsync(CancellationToken cancellationToken)
+        public virtual async Task DistributeAsync(CancellationToken cancellationToken)
         {
             try
             {
-                //UNDONE: [async] async cluster channel Send
-                DistributedApplication.ClusterChannel.Send(this);
+                await DistributedApplication.ClusterChannel.SendAsync(this, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exc) // logged
             {
                 SnLog.WriteException(exc);
             }
-
-            //UNDONE: [async] remove when Send above is async
-            return Task.CompletedTask;
         }
     }
 
@@ -79,9 +75,10 @@ namespace SenseNet.Communication.Messaging
             return "DebugMessage: " + Message;
         }
 
-        public static void Send(string message)
+        public static Task SendAsync(string message, CancellationToken cancellationToken)
         {
-            new DebugMessage() { Message = message }.Send();
+            var dm = new DebugMessage { Message = message };
+            return dm.SendAsync(cancellationToken);
         }
     }
 
