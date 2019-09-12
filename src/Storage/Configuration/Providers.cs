@@ -5,7 +5,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -14,6 +13,7 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -291,7 +291,7 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid ClusterChannel implementation: {ClusterChannelProviderClassName}");
             }
             
-            provider.Start();
+            provider.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             SnTrace.Messaging.Write("Cluster channel created: " + ClusterChannelProviderClassName);
             SnLog.WriteInformation($"ClusterChannel created: {ClusterChannelProviderClassName}");

@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Configuration;
-using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using System.Threading;
-using System.Diagnostics;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
+using System.Threading.Tasks;
 
 namespace SenseNet.Communication.Messaging
 {
@@ -21,25 +15,15 @@ namespace SenseNet.Communication.Messaging
         private static List<ClusterMessage> _incomingMessages;
         private static volatile int _messagesCount;
         protected static bool _shutdown;
-        private static object _messageListSwitchSync = new object();
+        private static readonly object MessageListSwitchSync = new object();
         protected IClusterMessageFormatter m_formatter;
         protected ClusterMemberInfo m_clusterMemberInfo;
 
         public bool AllowMessageProcessing { get; set; }
 
         /* ============================================================================== Properties */
-        public ClusterMemberInfo ClusterMemberInfo
-        {
-            get { return m_clusterMemberInfo; }
-        }
-        private int _incomingMessageCount;
-        public int IncomingMessageCount
-        {
-            get
-            {
-                return _incomingMessageCount;
-            }
-        }
+        public ClusterMemberInfo ClusterMemberInfo => m_clusterMemberInfo;
+        public int IncomingMessageCount { get; private set; }
 
         /* ============================================================================== Events */
         public event MessageReceivedEventHandler MessageReceived;
@@ -59,10 +43,13 @@ namespace SenseNet.Communication.Messaging
             {
                 try
                 {
-                    var thstart = new ParameterizedThreadStart(CheckProcessableMessages);
-                    var thread = new Thread(thstart);
-                    thread.Name = i.ToString();
+                    var threadStart = new ParameterizedThreadStart(CheckProcessableMessages);
+                    var thread = new Thread(threadStart)
+                    {
+                        Name = i.ToString()
+                    };
                     thread.Start();
+
                     SnTrace.Messaging.Write("ClusterChannel: 'CheckProcessableMessages' thread started. ManagedThreadId: {0}", thread.ManagedThreadId);
                 }
                 catch (Exception ex)
@@ -71,35 +58,38 @@ namespace SenseNet.Communication.Messaging
                 }
             }
         }
-        protected virtual void StartMessagePump()
+        protected virtual Task StartMessagePumpAsync(CancellationToken cancellationToken)
         {
-
+            return Task.CompletedTask;
         }
-        protected virtual void StopMessagePump()
+        protected virtual Task StopMessagePumpAsync(CancellationToken cancellationToken)
         {
             _shutdown = true;
+            return Task.CompletedTask;
         }
-        public virtual void Start()
+        public virtual Task StartAsync(CancellationToken cancellationToken)
         {
             SnTrace.Messaging.Write("ClusterChannel start");
-            StartMessagePump();
+            return StartMessagePumpAsync(cancellationToken);
         }
-        public virtual void ShutDown()
+        public virtual Task ShutDownAsync(CancellationToken cancellationToken)
         {
             SnTrace.Messaging.Write("ClusterChannel shutdown");
-            StopMessagePump();
+            return StopMessagePumpAsync(cancellationToken);
         }
 
         /* ============================================================================== Send */
-        public virtual void Send(ClusterMessage message)
+        public virtual async Task SendAsync(ClusterMessage message, CancellationToken cancellationToken)
         {
             try
             {
                 message.SenderInfo = m_clusterMemberInfo;
-                message.SenderInfo.ClusterMemberID = this.ReceiverName;
+                message.SenderInfo.ClusterMemberID = ReceiverName;
+
                 Stream messageStream = m_formatter.Serialize(message);
                 SnTrace.Messaging.Write("Sending a '{0}' message", message.GetType().FullName);
-                InternalSend(messageStream, message is DebugMessage);
+
+                await InternalSendAsync(messageStream, message is DebugMessage, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) // logged
             {
@@ -108,18 +98,25 @@ namespace SenseNet.Communication.Messaging
                 OnSendException(message, e);
             }
         }
-        protected abstract void InternalSend(Stream messageBody, bool isDebugMessage);
+        protected abstract Task InternalSendAsync(Stream messageBody, bool isDebugMessage, CancellationToken cancellationToken);
 
         /* ============================================================================== Receive */
-        private void CheckProcessableMessages(object parameter)
+
+        private void CheckProcessableMessages(object data)
         {
-            List<ClusterMessage> messagesToProcess;
+            CheckProcessableMessagesAsync(CancellationToken.None).GetAwaiter().GetResult();
+        }
+        private async Task CheckProcessableMessagesAsync(CancellationToken cancellationToken)
+        {
+            SnTrace.Messaging.Write("ClusterChannel: CheckProcessableMessages started.");
+
             while (true)
             {
                 try
                 {
                     if (AllowMessageProcessing)
                     {
+                        List<ClusterMessage> messagesToProcess;
                         while ((messagesToProcess = GetProcessableMessages()) != null)
                         {
                             var count = messagesToProcess.Count;
@@ -130,7 +127,9 @@ namespace SenseNet.Communication.Messaging
                             // process all messages in the queue
                             for (var i = 0; i < count; i++)
                             {
-                                ProcessSingleMessage(messagesToProcess[i]);
+                                //TODO: [async] handle cancellation during message processing
+                                //TODO: [async] process messages in parallel if possible
+                                await ProcessSingleMessageAsync(messagesToProcess[i], cancellationToken).ConfigureAwait(false);
                                 messagesToProcess[i] = null;
                             }
 
@@ -157,15 +156,16 @@ namespace SenseNet.Communication.Messaging
         }
         private List<ClusterMessage> GetProcessableMessages()
         {
-            List<ClusterMessage> messagesToProcess = null;
-            lock (_messageListSwitchSync)
-            {
-                _incomingMessageCount = _incomingMessages.Count;
+            List<ClusterMessage> messagesToProcess;
 
-                if (_incomingMessageCount == 0)
+            lock (MessageListSwitchSync)
+            {
+                IncomingMessageCount = _incomingMessages.Count;
+
+                if (IncomingMessageCount == 0)
                     return null;
 
-                if (_incomingMessageCount <= Configuration.Messaging.MessageProcessorThreadMaxMessages)
+                if (IncomingMessageCount <= Configuration.Messaging.MessageProcessorThreadMaxMessages)
                 {
                     // if total message count is smaller than the maximum allowed, process all of them and empty incoming queue
                     messagesToProcess = _incomingMessages;
@@ -181,34 +181,35 @@ namespace SenseNet.Communication.Messaging
 
             return messagesToProcess;
         }
-        private void ProcessSingleMessage(object parameter)
+        private async Task ProcessSingleMessageAsync(object parameter, CancellationToken cancellationToken)
         {
             var message = parameter as ClusterMessage;
-            var msg = message as DistributedAction;
-            if (msg != null)
+
+            if (message is DistributedAction msg)
             {
                 var isMe = msg.SenderInfo.IsMe;
                 SnTrace.Messaging.Write("Processing a '{0}' message. IsMe: {1}", message.GetType().FullName, isMe);
 
-                //UNDONE: [async] make this async
-                msg.DoActionAsync(true, msg.SenderInfo.IsMe, CancellationToken.None).GetAwaiter().GetResult();
+                await msg.DoActionAsync(true, msg.SenderInfo.IsMe, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                SnTrace.Messaging.Write("Processing a '{0}' message.", message.GetType().FullName);
-                var pingMessage = message as PingMessage;
-                if (pingMessage != null)
-                    new PongMessage() { PingId = pingMessage.Id }.Send();
+                SnTrace.Messaging.Write("Processing a '{0}' message.", message?.GetType().FullName ?? "unknown");
+                if (message is PingMessage pingMessage)
+                {
+                    var pm = new PongMessage {PingId = pingMessage.Id};
+                    await pm.SendAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
-            if (MessageReceived != null)
-                MessageReceived(this, new MessageReceivedEventArgs(message));
+
+            MessageReceived?.Invoke(this, new MessageReceivedEventArgs(message));
         }
         protected internal virtual void OnMessageReceived(Stream messageBody)
         {
             ClusterMessage message = m_formatter.Deserialize(messageBody);
             SnTrace.Messaging.Write("Received a '{0}' message.", message.GetType().FullName);
 
-            lock (_messageListSwitchSync)
+            lock (MessageListSwitchSync)
             {
                 _incomingMessages.Add(message);
 
@@ -217,27 +218,26 @@ namespace SenseNet.Communication.Messaging
             }
         }
 
-        public virtual string ReceiverName { get { return null; } }
-        public virtual List<string> SenderNames { get { return new List<string>(); } }
+        public virtual string ReceiverName => null;
+        public virtual List<string> SenderNames => new List<string>();
         public abstract bool RestartingAllChannels { get; }
-        public abstract void RestartAllChannels();
+        public abstract Task RestartAllChannelsAsync(CancellationToken cancellationToken);
 
         /* ============================================================================== Purge */
-        public virtual void Purge()
+        public virtual Task PurgeAsync(CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
 
         /* ============================================================================== Error handling */
         protected virtual void OnSendException(ClusterMessage message, Exception exception)
         {
-            if (SendException != null)
-                SendException(this, new ExceptionEventArgs(exception, message));
+            SendException?.Invoke(this, new ExceptionEventArgs(exception, message));
         }
         protected virtual void OnReceiveException(Exception exception)
         {
-            if (ReceiveException != null)
-                ReceiveException(this, new ExceptionEventArgs(exception, null));
+            ReceiveException?.Invoke(this, new ExceptionEventArgs(exception, null));
         }
     }
 }

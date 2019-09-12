@@ -163,7 +163,7 @@ namespace SenseNet.Packaging
 
                 // we need to shut down messaging, because the line above uses it
                 if (!executionContext.Test)
-                    DistributedApplication.ClusterChannel.ShutDown();
+                    DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else
                     Diagnostics.SnTrace.Test.Write("DistributedApplication.ClusterChannel.ShutDown SKIPPED because it is a test context.");
             }
