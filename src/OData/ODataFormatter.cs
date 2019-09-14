@@ -126,19 +126,19 @@ namespace SenseNet.OData
         /// <param name="names">Root names.</param>
         protected abstract void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names);
 
-        internal void WriteMetadata(HttpContext context, ODataRequest req)
+        internal void WriteMetadata(HttpContext httpContext, ODataRequest req)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath);
+            var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
 
             var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
             if (isRoot)
-                MetaGenerator.WriteMetadata(context.Response.Output, this);
+                MetaGenerator.WriteMetadata(httpContext.Response.Output, this);
             else
-                MetaGenerator.WriteMetadata(context.Response.Output, this, content, req.IsCollection);
+                MetaGenerator.WriteMetadata(httpContext.Response.Output, this, content, req.IsCollection);
 
             var mimeType = this.MimeType;
             if (mimeType != null)
-                context.Response.ContentType = mimeType;
+                httpContext.Response.ContentType = mimeType;
         }
         internal void WriteMetadataInternal(TextWriter writer, Metadata.Edmx edmx)
         {
@@ -155,11 +155,11 @@ namespace SenseNet.OData
 
         internal void WriteSingleContent(String path, HttpContext httpContext)
         {
-            WriteSingleContent(ODataHandler.LoadContentByVersionRequest(path), httpContext);
+            WriteSingleContent(ODataHandler.LoadContentByVersionRequest(path, httpContext), httpContext);
         }
         internal void WriteSingleContent(Content content, HttpContext httpContext)
         {
-            var fields = CreateFieldDictionary(content, false);
+            var fields = CreateFieldDictionary(content, false, httpContext);
             WriteSingleContent(httpContext, fields);
         }
         /// <summary>
@@ -200,7 +200,7 @@ namespace SenseNet.OData
             }
 
 
-            var contents = ProcessOperationQueryResponse(chdef, req, out var count);
+            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
             if (req.CountOnly)
                 WriteCount(httpContext, count);
             else
@@ -217,7 +217,7 @@ namespace SenseNet.OData
             {
                 var contents = new List<Dictionary<string, object>>
                 {
-                    CreateFieldDictionary(Content.Create(node), projector)
+                    CreateFieldDictionary(Content.Create(node), projector,httpContext)
                 };
                 //TODO: ODATA: multiref item: get available types from reference property
                 WriteMultipleContent(httpContext, contents, 1);
@@ -235,7 +235,7 @@ namespace SenseNet.OData
                     {
                         var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
                         foreach (Node item in filtered)
-                            contents.Add(CreateFieldDictionary(Content.Create(item), projector));
+                            contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
                         allcount = filtered.AllCount;
                         realcount = contents.Count;
                     }
@@ -248,7 +248,7 @@ namespace SenseNet.OData
                                 continue;
                             if (req.Top == 0 || count++ < req.Top)
                             {
-                                contents.Add(CreateFieldDictionary(Content.Create(item), projector));
+                                contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
                                 realcount++;
                             }
                         }
@@ -263,7 +263,7 @@ namespace SenseNet.OData
             {
                 if (references is Node node)
                 {
-                    WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(node), false));
+                    WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext));
                 }
                 else
                 {
@@ -271,7 +271,7 @@ namespace SenseNet.OData
                     {
                         foreach (Node item in enumerable)
                         {
-                            WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(item), false));
+                            WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext));
                             break;
                         }
                     }
@@ -295,7 +295,7 @@ namespace SenseNet.OData
 
         internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(path);
+            var content = ODataHandler.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
             {
                 ODataHandler.ContentNotFound(httpContext);
@@ -402,7 +402,7 @@ new StackInfo
         /// </summary>
         internal void WriteOperationResult(HttpContext httpContext, ODataRequest odataReq)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath);
+            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
@@ -432,7 +432,7 @@ new StackInfo
                 return;
             }
 
-            response = ProcessOperationResponse(response, odataReq, out var count);
+            response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
             WriteOperationResult(response, httpContext, odataReq, count);
         }
         /// <summary>
@@ -440,7 +440,7 @@ new StackInfo
         /// </summary>
         internal void WriteOperationResult(Stream inputStream, HttpContext httpContext, ODataRequest odataReq)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath);
+            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
@@ -466,7 +466,7 @@ new StackInfo
                 return;
             }
 
-            response = ProcessOperationResponse(response, odataReq, out var count);
+            response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
             WriteOperationResult(response, httpContext, odataReq, count);
         }
         private void WriteOperationResult(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
@@ -494,13 +494,13 @@ new StackInfo
         /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
         protected abstract void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount);
 
-        private object ProcessOperationResponse(object response, ODataRequest odataReq, out int count)
+        private object ProcessOperationResponse(object response, ODataRequest odataReq, HttpContext httpContext, out int count)
         {
             if (response is ChildrenDefinition qdef)
-                return ProcessOperationQueryResponse(qdef, odataReq, out count);
+                return ProcessOperationQueryResponse(qdef, odataReq, httpContext, out count);
 
             if (response is IEnumerable<Content> coll)
-                return ProcessOperationCollectionResponse(coll, odataReq, out count);
+                return ProcessOperationCollectionResponse(coll, odataReq, httpContext, out count);
 
             if (response is IDictionary dict)
             {
@@ -512,7 +512,7 @@ new StackInfo
                         return response;
                     targetTypized.Add(content, dict[content]);
                 }
-                return ProcessOperationDictionaryResponse(targetTypized, odataReq, out count);
+                return ProcessOperationDictionaryResponse(targetTypized, odataReq, httpContext, out count);
             }
 
             // get real count from an enumerable
@@ -535,7 +535,7 @@ new StackInfo
                 return false;
             return response;
         }
-        private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {
             var queryText = qdef.ContentQuery;
             if (queryText.Contains("}}"))
@@ -599,7 +599,7 @@ new StackInfo
                     continue;
                 }
 
-                var fields = CreateFieldDictionary(content, projector);
+                var fields = CreateFieldDictionary(content, projector, httpContext);
                 contents.Add(fields);
             }
 
@@ -619,7 +619,8 @@ new StackInfo
 
             return contents;
         }
-        private List<Dictionary<string, object>> ProcessOperationDictionaryResponse(IDictionary<Content, object> input, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+            ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(input.Keys, req, out var totalCount);
 
@@ -627,7 +628,7 @@ new StackInfo
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
-                var fields = CreateFieldDictionary(content, projector);
+                var fields = CreateFieldDictionary(content, projector, httpContext);
                 var item = new Dictionary<string, object>
                 {
                     {"key", fields},
@@ -640,7 +641,8 @@ new StackInfo
                 return null;
             return output;
         }
-        private List<Dictionary<string, object>> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+            ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(inputContents, req, out var totalCount);
 
@@ -648,7 +650,7 @@ new StackInfo
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
-                var fields = CreateFieldDictionary(content, projector);
+                var fields = CreateFieldDictionary(content, projector, httpContext);
                 outContents.Add(fields);
             }
 
@@ -893,14 +895,14 @@ new StackInfo
             }
             return values;
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, Projector projector)
+        private Dictionary<string, object> CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
         {
-            return projector.Project(content);
+            return projector.Project(content, httpContext);
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, bool isCollectionItem)
+        private Dictionary<string, object> CreateFieldDictionary(Content content, bool isCollectionItem, HttpContext httpContext)
         {
             var projector = Projector.Create(this.ODataRequest, isCollectionItem, content);
-            return projector.Project(content);
+            return projector.Project(content, httpContext);
         }
 
         //TODO: Bad name: GetJsonObject is a method for odata serializing

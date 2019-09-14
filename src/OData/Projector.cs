@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
@@ -33,13 +34,13 @@ namespace SenseNet.OData
             return prj;
         }
         internal abstract void Initialize(Content container);
-        internal abstract Dictionary<string, object> Project(Content content);
+        internal abstract Dictionary<string, object> Project(Content content, HttpContext httpContext);
 
         protected string GetSelfUrl(Content content)
         {
             return string.Concat("/", Configuration.Services.ODataServiceToken, ODataHandler.GetEntityUrl(content.Path));
         }
-        protected ODataSimpleMeta GetMetadata(Content content, string selfurl, MetadataFormat format)
+        protected ODataSimpleMeta GetMetadata(Content content, string selfurl, MetadataFormat format, HttpContext httpContext)
         {
             if (format == MetadataFormat.Minimal)
             {
@@ -50,7 +51,7 @@ namespace SenseNet.OData
                 };
             }
 
-            var snActions = ODataTools.GetActions(content, this.Request).ToArray();
+            var snActions = ODataTools.GetActions(content, this.Request, httpContext).ToArray();
 
             return new ODataFullMeta
             {
@@ -112,9 +113,9 @@ namespace SenseNet.OData
             }
         }
 
-        protected ODataActionItem[] GetActions(Content content)
+        protected ODataActionItem[] GetActions(Content content, HttpContext httpContext)
         {
-            return ODataTools.GetActionItems(content, this.Request).ToArray();
+            return ODataTools.GetActionItems(content, this.Request, httpContext).ToArray();
         }
     }
 }

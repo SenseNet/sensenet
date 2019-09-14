@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using SenseNet.Search;
 // ReSharper disable ArrangeThisQualifier
 
@@ -117,18 +118,18 @@ namespace SenseNet.OData
             }
         }
 
-        internal override Dictionary<string, object> Project(Content content)
+        internal override Dictionary<string, object> Project(Content content, HttpContext httpContext)
         {
             if (content.ContentHandler.IsHeadOnly)
-                return Project(content, new List<Property>(0), _selectTree);
-            return Project(content, _expandTree, _selectTree);
+                return Project(content, new List<Property>(0), _selectTree, httpContext);
+            return Project(content, _expandTree, _selectTree, httpContext);
         }
-        private Dictionary<string, object> Project(Content content, List<Property> expandTree, List<Property> selectTree)
+        private Dictionary<string, object> Project(Content content, List<Property> expandTree, List<Property> selectTree, HttpContext httpContext)
         {
             var outfields = new Dictionary<string, object>();
             var selfurl = GetSelfUrl(content);
             if (this.Request.EntityMetadata != MetadataFormat.None)
-                outfields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata));
+                outfields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata, httpContext));
 
             var hasJoker = false;
             foreach (var property in selectTree)
@@ -144,7 +145,7 @@ namespace SenseNet.OData
                     switch (propertyName)
                     {
                         case ACTIONSPROPERTY:
-                            AddField(content, expandTree, outfields, ACTIONSPROPERTY, GetActions);
+                            AddField(content, expandTree, outfields, ACTIONSPROPERTY, httpContext, GetActions);
                             break;
                         case ICONPROPERTY:
                             outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
@@ -154,8 +155,8 @@ namespace SenseNet.OData
                             break;
                         case ODataHandler.ChildrenPropertyName:
                             var expansion = GetPropertyFromList(ODataHandler.ChildrenPropertyName, expandTree);
-                            AddField(content, expansion, outfields, ODataHandler.ChildrenPropertyName,
-                                c =>
+                            AddField(content, expansion, outfields, ODataHandler.ChildrenPropertyName, httpContext,
+                                (c, ctx) =>
                                 {
                                     // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
                                     c.ChildrenDefinition.EnableAutofilters =
@@ -165,7 +166,7 @@ namespace SenseNet.OData
 
                                     return ProjectMultiRefContents(
                                         c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler), expansion.Children,
-                                        property.Children);
+                                        property.Children, httpContext);
                                 });
                             break;
                         default:
@@ -184,7 +185,7 @@ namespace SenseNet.OData
                         var expansion = GetPropertyFromList(propertyName, expandTree);
                         if (expansion != null)
                         {
-                            outfields.Add(propertyName, Project(field, expansion.Children, property.Children ?? Property.JokerList));
+                            outfields.Add(propertyName, Project(field, expansion.Children, property.Children ?? Property.JokerList, httpContext));
                         }
                         else
                         {
@@ -207,7 +208,7 @@ namespace SenseNet.OData
                     var expansion = GetPropertyFromList(propertyName, expandTree);
                     outfields.Add(propertyName,
                         expansion != null
-                            ? Project(contentField, expansion.Children, Property.JokerList)
+                            ? Project(contentField, expansion.Children, Property.JokerList, httpContext)
                             : ODataFormatter.GetJsonObject(contentField, selfurl));
                 }
             }
@@ -235,13 +236,13 @@ namespace SenseNet.OData
 
             return null;
         }
-        private object Project(Field field, List<Property> expansion, List<Property> selection)
+        private object Project(Field field, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             if (!(field is ReferenceField refField))
             {
                 if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
-                return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, selection);
+                return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, selection, httpContext);
             }
 
             var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
@@ -250,17 +251,17 @@ namespace SenseNet.OData
                 isMultiRef = refFieldSetting.AllowMultiple == true;
 
             return isMultiRef
-                ? ProjectMultiRefContents(refField.GetData(), expansion, selection)
-                : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection);
+                ? ProjectMultiRefContents(refField.GetData(), expansion, selection, httpContext)
+                : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection, httpContext);
         }
-        private List<Dictionary<string, object>> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection)
+        private List<Dictionary<string, object>> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             var contents = new List<Dictionary<string, object>>();
             if (references != null)
             {
                 if (references is Node node)
                 {
-                    contents.Add(Project(Content.Create(node), expansion, selection));
+                    contents.Add(Project(Content.Create(node), expansion, selection, httpContext));
                 }
                 else
                 {
@@ -270,7 +271,7 @@ namespace SenseNet.OData
                     {
                         foreach (Node item in enumerable)
                         {
-                            contents.Add(Project(Content.Create(item), expansion, selection));
+                            contents.Add(Project(Content.Create(item), expansion, selection, httpContext));
                             if (++count > ODataHandler.ExpansionLimit)
                                 break;
                         }
@@ -279,35 +280,35 @@ namespace SenseNet.OData
             }
             return contents;
         }
-        private Dictionary<string, object> ProjectSingleRefContent(object references, List<Property> expansion, List<Property> selection)
+        private Dictionary<string, object> ProjectSingleRefContent(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             if (references == null)
                 return null;
 
             if (references is Node node)
-                return Project(Content.Create(node), expansion, selection);
+                return Project(Content.Create(node), expansion, selection, httpContext);
 
             if (references is IEnumerable enumerable)
                 foreach (Node item in enumerable)
-                    return Project(Content.Create(item), expansion, selection);
+                    return Project(Content.Create(item), expansion, selection, httpContext);
 
             return null;
         }
 
         private void AddField(Content content, List<Property> expandTree, IDictionary<string, object> fields,
-            string fieldName, Func<Content, object> getFieldValue)
+            string fieldName, HttpContext httpContext, Func<Content, HttpContext, object> getFieldValue)
         {
             var expansion = GetPropertyFromList(fieldName, expandTree);
 
-            AddField(content, expansion, fields, fieldName, getFieldValue);
+            AddField(content, expansion, fields, fieldName, httpContext, getFieldValue);
         }
         private void AddField(Content content, Property expansion, IDictionary<string, object> fields,
-            string fieldName, Func<Content, object> getFieldValue)
+            string fieldName, HttpContext httpContext, Func<Content, HttpContext, object> getFieldValue)
         {
             fields.Add(fieldName,
                 expansion == null
                     ? ODataReference.Create(string.Concat(GetSelfUrl(content), "/", fieldName))
-                    : getFieldValue?.Invoke(content));
+                    : getFieldValue?.Invoke(content, httpContext));
         }
     }
 }

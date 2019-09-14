@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
@@ -14,12 +15,12 @@ namespace SenseNet.OData
         {
             // do nothing
         }
-        internal override Dictionary<string, object> Project(Content content)
+        internal override Dictionary<string, object> Project(Content content, HttpContext httpContext)
         {
             var fields = new Dictionary<string, object>();
             var selfurl = GetSelfUrl(content);
             if (Request.EntityMetadata != MetadataFormat.None)
-                fields.Add("__metadata", GetMetadata(content, selfurl, Request.EntityMetadata));
+                fields.Add("__metadata", GetMetadata(content, selfurl, Request.EntityMetadata, httpContext));
 
             IEnumerable<string> fieldNames;
             if (Request.HasSelect)
