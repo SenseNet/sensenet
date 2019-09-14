@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 
@@ -101,25 +102,24 @@ namespace SenseNet.OData
         {
             ODataRequest odataReq = null;
             ODataFormatter formatter = null;
-            var portalContext = (PortalContext)context.Items[PortalContext.CONTEXT_ITEM_KEY];
             try
             {
                 Content content;
 
-                odataReq = portalContext.ODataRequest;
+                odataReq = ODataRequest.Parse(string.Empty, context);
                 if (odataReq == null)
                 {
-                    formatter = ODataFormatter.Create("json", portalContext);
+                    formatter = ODataFormatter.Create("json");
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
-                this.ODataRequest = portalContext.ODataRequest;
+                this.ODataRequest = odataReq;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                formatter = ODataFormatter.Create(portalContext, odataReq);
+                formatter = ODataFormatter.Create(context, odataReq);
                 if (formatter == null)
                 {
-                    formatter = ODataFormatter.Create("json", portalContext);
+                    formatter = ODataFormatter.Create("json");
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
                 }
 
@@ -138,7 +138,7 @@ namespace SenseNet.OData
                 var exists = Node.Exists(odataReq.RepositoryPath);
                 if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
-                    ContentNotFound(context, odataReq.RepositoryPath);
+                    ContentNotFound(context);
                     return;
                 }
 
@@ -148,7 +148,7 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataReq.IsServiceDocumentRequest)
                         {
-                            formatter.WriteServiceDocument(portalContext, odataReq);
+                            formatter.WriteServiceDocument(context, odataReq);
                         }
                         else if (odataReq.IsMetadataRequest)
                         {
@@ -157,14 +157,14 @@ namespace SenseNet.OData
                         else
                         {
                             if (!Node.Exists(odataReq.RepositoryPath))
-                                ContentNotFound(context, odataReq.RepositoryPath);
+                                ContentNotFound(context);
                             else if (odataReq.IsCollection)
-                                formatter.WriteChildrenCollection(odataReq.RepositoryPath, portalContext, odataReq);
+                                formatter.WriteChildrenCollection(odataReq.RepositoryPath, context, odataReq);
                             else if (odataReq.IsMemberRequest)
                                 formatter.WriteContentProperty(odataReq.RepositoryPath, odataReq.PropertyName,
-                                    odataReq.IsRawValueRequest, portalContext, odataReq);
+                                    odataReq.IsRawValueRequest, context, odataReq);
                             else
-                                formatter.WriteSingleContent(odataReq.RepositoryPath, portalContext);
+                                formatter.WriteSingleContent(odataReq.RepositoryPath, context);
                         }
                         break;
                     case "PUT": // update
@@ -179,13 +179,13 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(context, odataReq.RepositoryPath);
+                                ContentNotFound(context);
                                 return;
                             }
 
                             ResetContent(content);
                             UpdateContent(content, model, odataReq);
-                            formatter.WriteSingleContent(content, portalContext);
+                            formatter.WriteSingleContent(content, context);
                         }
                         break;
                     case "MERGE":
@@ -202,30 +202,30 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(context, odataReq.RepositoryPath);
+                                ContentNotFound(context);
                                 return;
                             }
 
                             UpdateContent(content, model, odataReq);
-                            formatter.WriteSingleContent(content, portalContext);
+                            formatter.WriteSingleContent(content, context);
                         }
                         break;
                     case "POST": // invoke an action, create content
                         if (odataReq.IsMemberRequest)
                         {
-                            formatter.WriteOperationResult(inputStream, portalContext, odataReq);
+                            formatter.WriteOperationResult(inputStream, context, odataReq);
                         }
                         else
                         {
                             // parent must exist
                             if (!Node.Exists(odataReq.RepositoryPath))
                             {
-                                ContentNotFound(context, odataReq.RepositoryPath);
+                                ContentNotFound(context);
                                 return;
                             }
                             model = Read(inputStream);
                             content = CreateContent(model, odataReq);
-                            formatter.WriteSingleContent(content, portalContext);
+                            formatter.WriteSingleContent(content, context);
                         }
                         break;
                     case "DELETE":
@@ -267,7 +267,7 @@ namespace SenseNet.OData
                     var head = NodeHead.Get(odataReq.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
-                        ContentNotFound(context, odataReq.RepositoryPath);
+                        ContentNotFound(context);
                         return;
                     }
                 }
@@ -414,10 +414,10 @@ namespace SenseNet.OData
 
         // ==============================================================================================================
 
-        internal static Content LoadContentByVersionRequest(string path)
+        internal static Content LoadContentByVersionRequest(string path, HttpContext httpContext)
         {
-            // load content by version if the client provided the version string
-            return PortalContext.Current != null && !string.IsNullOrEmpty(PortalContext.Current.VersionRequest) && VersionNumber.TryParse(PortalContext.Current.VersionRequest, out var version)
+            var versionRequest = httpContext.Request.Query["version"];
+            return VersionNumber.TryParse(versionRequest, out var version)
                 ? Content.Load(path, version)
                 : Content.Load(path);
         }

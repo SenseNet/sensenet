@@ -304,7 +304,7 @@ namespace SenseNet.OData
 
             if (propertyName == ODataHandler.ActionsPropertyName)
             {
-                WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req).ToArray(), rawValue);
+                WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue);
                 return;
             }
             if (propertyName == ODataHandler.ChildrenPropertyName)

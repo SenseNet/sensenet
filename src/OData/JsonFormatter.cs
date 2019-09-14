@@ -359,6 +359,7 @@ namespace SenseNet.OData
             resp.Write("      <tr><td>Message (lang: " + error.Message.Lang + ")</td><td>" + error.Message.Value + "</td></tr>\n");
             if (error.InnerError != null)
                 resp.Write("      <tr><td>Inner error</td><td>" + error.InnerError.Trace.Replace("<", "&lt;").Replace(">", "&gt;").Replace(Environment.NewLine, "<br/>") + "</td></tr>\n");
+
             WriteEnd(resp);
         }
 
@@ -391,11 +392,10 @@ namespace SenseNet.OData
         }
         private static void WriteStartError(HttpResponse resp)
         {
-            resp.Write("<html>\n");
-            resp.Write("<head>\n");
-            resp.Write("<style>\n");
-
-            resp.Write(@"
+            resp.WriteAsync("<html>\n"
+                            + "<head>\n"
+                            + "<style>"
+                            + @"
 .MainTable { margin:0px;padding:0px; width:100%; border:1px solid #7c0202; }
 .MainTable table { border-collapse: collapse; border-spacing: 0; width:100%; /*height:100%;*/ margin:0px;padding:0px; }
 /*.MainTable tr:nth-child(odd)  { background-color:#fce3e3; }*/
@@ -408,13 +408,12 @@ namespace SenseNet.OData
 .MainTable tr:first-child td             { border-width:0px 0px 1px 1px; background-color:#ff0000; border:0px solid #7c0202; text-align:center; font-size:16px; font-family:Arial; font-weight:bold; color:#ffffff; width:150px;}
 .MainTable tr:first-child td:first-child { border-width:0px 0px 1px 0px;}
 .MainTable tr:first-child td:last-child  { border-width:0px 0px 1px 1px;}
-");
-            resp.Write("</style>\n");
-            resp.Write("</head>\n");
-
-            resp.Write("<body>\n");
-            resp.Write("  <div class=\"MainTable\">\n");
-            resp.Write("    <table>\n");
+"
+                            + "</style>\n"
+                            + "</head>\n"
+                            + "<body>\n"
+                            + "  <div class=\"MainTable\">\n"
+                            + "    <table>\n");
         }
         private static void WriteEnd(HttpResponse resp)
         {
