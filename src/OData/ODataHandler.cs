@@ -73,32 +73,32 @@ namespace SenseNet.OData
 
         internal ODataRequest ODataRequest { get; private set; }
 
-
+        private RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
         public ODataHandler(RequestDelegate next)
         {
-            // This is an HTTP Handler, so no need to store next
+            _next = next;
         }
-        public async STT.Task Invoke(HttpContext context)
+        public async STT.Task Invoke(HttpContext httpContext)
         {
             var response = "Hello!";
-            context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync(response);
+            httpContext.Response.ContentType = "text/plain";
+            await httpContext.Response.WriteAsync(response);
         }
 
         /// <inheritdoc />
         /// <remarks>Processes the OData web request.</remarks>
-        public void ProcessRequest(HttpContext context)
+        public void ProcessRequest(HttpContext httpContext)
         {
-            ProcessRequest(context, context.Request.Method.ToUpper(), context.Request.Body);
+            ProcessRequest(httpContext, httpContext.Request.Method.ToUpper(), httpContext.Request.Body);
         }
         /// <summary>
         /// Processes the OData web request. Designed for test purposes.
         /// </summary>
-        /// <param name="context">An <see cref="HttpContext" /> object that provides references to the intrinsic server objects (for example, <see langword="Request" />, <see langword="Response" />, <see langword="Session" />, and <see langword="Server" />) used to service HTTP requests. </param>
+        /// <param name="httpContext">An <see cref="HttpContext" /> object that provides references to the intrinsic server objects (for example, <see langword="Request" />, <see langword="Response" />, <see langword="Session" />, and <see langword="Server" />) used to service HTTP requests. </param>
         /// <param name="httpMethod">HTTP protocol method.</param>
         /// <param name="inputStream">Request stream containing the posted JSON object.</param>
-        public void ProcessRequest(HttpContext context, string httpMethod, Stream inputStream)
+        public void ProcessRequest(HttpContext httpContext, string httpMethod, Stream inputStream)
         {
             ODataRequest odataReq = null;
             ODataFormatter formatter = null;
@@ -106,7 +106,7 @@ namespace SenseNet.OData
             {
                 Content content;
 
-                odataReq = ODataRequest.Parse(string.Empty, context);
+                odataReq = ODataRequest.Parse(string.Empty, httpContext);
                 if (odataReq == null)
                 {
                     formatter = ODataFormatter.Create("json");
@@ -116,7 +116,7 @@ namespace SenseNet.OData
                 this.ODataRequest = odataReq;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                formatter = ODataFormatter.Create(context, odataReq);
+                formatter = ODataFormatter.Create(httpContext, odataReq);
                 if (formatter == null)
                 {
                     formatter = ODataFormatter.Create("json");
@@ -138,7 +138,7 @@ namespace SenseNet.OData
                 var exists = Node.Exists(odataReq.RepositoryPath);
                 if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
-                    ContentNotFound(context);
+                    ContentNotFound(httpContext);
                     return;
                 }
 
@@ -148,23 +148,23 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataReq.IsServiceDocumentRequest)
                         {
-                            formatter.WriteServiceDocument(context, odataReq);
+                            formatter.WriteServiceDocument(httpContext, odataReq);
                         }
                         else if (odataReq.IsMetadataRequest)
                         {
-                            formatter.WriteMetadata(context, odataReq);
+                            formatter.WriteMetadata(httpContext, odataReq);
                         }
                         else
                         {
                             if (!Node.Exists(odataReq.RepositoryPath))
-                                ContentNotFound(context);
+                                ContentNotFound(httpContext);
                             else if (odataReq.IsCollection)
-                                formatter.WriteChildrenCollection(odataReq.RepositoryPath, context, odataReq);
+                                formatter.WriteChildrenCollection(odataReq.RepositoryPath, httpContext, odataReq);
                             else if (odataReq.IsMemberRequest)
                                 formatter.WriteContentProperty(odataReq.RepositoryPath, odataReq.PropertyName,
-                                    odataReq.IsRawValueRequest, context, odataReq);
+                                    odataReq.IsRawValueRequest, httpContext, odataReq);
                             else
-                                formatter.WriteSingleContent(odataReq.RepositoryPath, context);
+                                formatter.WriteSingleContent(odataReq.RepositoryPath, httpContext);
                         }
                         break;
                     case "PUT": // update
@@ -179,13 +179,13 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(context);
+                                ContentNotFound(httpContext);
                                 return;
                             }
 
                             ResetContent(content);
                             UpdateContent(content, model, odataReq);
-                            formatter.WriteSingleContent(content, context);
+                            formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "MERGE":
@@ -202,30 +202,30 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(context);
+                                ContentNotFound(httpContext);
                                 return;
                             }
 
                             UpdateContent(content, model, odataReq);
-                            formatter.WriteSingleContent(content, context);
+                            formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "POST": // invoke an action, create content
                         if (odataReq.IsMemberRequest)
                         {
-                            formatter.WriteOperationResult(inputStream, context, odataReq);
+                            formatter.WriteOperationResult(inputStream, httpContext, odataReq);
                         }
                         else
                         {
                             // parent must exist
                             if (!Node.Exists(odataReq.RepositoryPath))
                             {
-                                ContentNotFound(context);
+                                ContentNotFound(httpContext);
                                 return;
                             }
                             model = Read(inputStream);
                             content = CreateContent(model, odataReq);
-                            formatter.WriteSingleContent(content, context);
+                            formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "DELETE":
@@ -247,14 +247,14 @@ namespace SenseNet.OData
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
 
-                formatter?.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
 
-                formatter?.WriteErrorResponse(context, e);
+                formatter?.WriteErrorResponse(httpContext, e);
             }
             catch (SenseNetSecurityException e)
             {
@@ -267,7 +267,7 @@ namespace SenseNet.OData
                     var head = NodeHead.Get(odataReq.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
-                        ContentNotFound(context);
+                        ContentNotFound(httpContext);
                         return;
                     }
                 }
@@ -276,7 +276,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (InvalidContentActionException ex)
             {
@@ -285,34 +285,40 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                formatter?.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                formatter?.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
-            catch (System.Threading.ThreadAbortException tae)
-            {
-                if (!context.Response.IsRequestBeingRedirected)
-                {
-                    var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-                    formatter?.WriteErrorResponse(context, oe);
-                }
-                // specific redirect response so do nothing
-            }
+            //UNDONE:ODATA: ? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
+            //UNDONE:ODATA: ? ThreadAbortException does not occur in this technology.
+            //catch (System.Threading.ThreadAbortException tae)
+            //{
+            //    if (!httpContext.Response.IsRequestBeingRedirected)
+            //    {
+            //        var oe = new ODataException(ODataExceptionCode.RequestError, tae);
+            //        formatter?.WriteErrorResponse(httpContext, oe);
+            //    }
+            //    // specific redirect response so do nothing
+            //}
             catch (Exception ex)
             {
                 var oe = new ODataException(ODataExceptionCode.NotSpecified, ex);
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             finally
             {
-                context.Response.End();
+                //httpContext.Response.End();
+
+                //UNDONE:ODATA: async
+                //await _next(httpContext);
+                _next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -378,14 +384,6 @@ namespace SenseNet.OData
         internal static string GetEntityUrl(string path)
         {
             path = path.TrimEnd('/');
-            if (PortalContext.Current != null)
-            {
-                var sitePath = PortalContext.Current.Site?.Path;
-                if (!string.IsNullOrEmpty(sitePath) &&
-                    path.StartsWith(sitePath, StringComparison.OrdinalIgnoreCase) &&
-                    !sitePath.Equals(path, StringComparison.OrdinalIgnoreCase))
-                    path = path.Substring(sitePath.Length);
-            }
 
             var p = path.LastIndexOf('/');
             if (p < 0)
@@ -394,10 +392,10 @@ namespace SenseNet.OData
             return string.Concat(path.Substring(0, p), "('", path.Substring(p + 1), "')");
         }
 
-        internal static void ContentNotFound(HttpContext context)
+        internal static void ContentNotFound(HttpContext httpContext)
         {
-            context.Response.Clear();
-            context.Response.StatusCode = 404;
+            httpContext.Response.Clear();
+            httpContext.Response.StatusCode = 404;
         }
         internal static void ContentAlreadyExists(string path)
         {

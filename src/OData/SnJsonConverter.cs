@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 using SenseNet.Tools;
 
 namespace SenseNet.OData
@@ -47,11 +48,12 @@ namespace SenseNet.OData
         /// <summary>
         /// Serializes a single <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static void ToJson(this Content content, TextWriter writer, IEnumerable<string> select = null, IEnumerable<string> expand = null)
+        public static void ToJson(this Content content, HttpContext httpContext, TextWriter writer,
+            IEnumerable<string> @select = null, IEnumerable<string> expand = null)
         {
             var req = ODataRequest.CreateSingleContentRequest(select, expand);
             var projector = Projector.Create(req, false, null);
-            var fields = projector.Project(content);
+            var fields = projector.Project(content, httpContext);
             
             var serializer = JsonSerializer.Create(SnJsonConverter.JsonSettings);
             serializer.Serialize(writer, fields);
@@ -60,11 +62,11 @@ namespace SenseNet.OData
         /// <summary>
         /// Serializes a single <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static string ToJson(this Content content, IEnumerable<string> select = null, IEnumerable<string> expand = null)
+        public static string ToJson(this Content content, HttpContext httpContext, IEnumerable<string> select = null, IEnumerable<string> expand = null)
         {
             using (var writer = new StringWriter())
             {
-                ToJson(content, writer, select, expand);
+                ToJson(content, httpContext, writer, @select, expand);
                 return writer.ToString();
             }
         }
@@ -72,15 +74,16 @@ namespace SenseNet.OData
         /// <summary>
         /// Serializes a single <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static string ToJson(this Content content, params string[] select)
+        public static string ToJson(this Content content, HttpContext httpContext, params string[] select)
         {
-            return ToJson(content, select, null);
+            return ToJson(content, httpContext, select, null);
         }
 
         /// <summary>
         /// Serializes a collection of <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static void ToJson(this IEnumerable<Content> contents, TextWriter writer, IEnumerable<string> select = null, IEnumerable<string> expand = null)
+        public static void ToJson(this IEnumerable<Content> contents, HttpContext httpContext, TextWriter writer,
+            IEnumerable<string> @select = null, IEnumerable<string> expand = null)
         {
             writer.Write("[");
             var first = true;
@@ -90,7 +93,7 @@ namespace SenseNet.OData
                     first = false;
                 else
                     writer.Write(",");
-                ToJson(c, writer, select, expand);
+                ToJson(c, httpContext, writer, @select, expand);
             }
             writer.Write("]");
         }
@@ -98,11 +101,11 @@ namespace SenseNet.OData
         /// <summary>
         /// Serializes a collection of <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static string ToJson(this IEnumerable<Content> contents, IEnumerable<string> select = null, IEnumerable<string> expand = null)
+        public static string ToJson(this IEnumerable<Content> contents, HttpContext httpContext, IEnumerable<string> select = null, IEnumerable<string> expand = null)
         {
             using (var writer = new StringWriter())
             {
-                ToJson(contents, writer, select, expand);
+                ToJson(contents, httpContext, writer, @select, expand);
                 return writer.ToString();
             }
         }
@@ -110,9 +113,9 @@ namespace SenseNet.OData
         /// <summary>
         /// Serializes a collection of <see cref="SenseNet.ContentRepository.Content"/> into JSON with the specified options.
         /// </summary>
-        public static string ToJson(this IEnumerable<Content> contents, params string[] select)
+        public static string ToJson(this IEnumerable<Content> contents, HttpContext httpContext, params string[] select)
         {
-            return ToJson(contents, select, null);
+            return ToJson(contents, httpContext, select, null);
         }
     }
 }

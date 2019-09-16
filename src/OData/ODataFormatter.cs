@@ -122,7 +122,7 @@ namespace SenseNet.OData
         /// <summary>
         /// Writes the OData service document with the given root names to the webresponse.
         /// </summary>
-        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current web-response.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="names">Root names.</param>
         protected abstract void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names);
 
@@ -351,7 +351,7 @@ namespace SenseNet.OData
         /// <summary>
         /// Writes the available actions of the current <see cref="Content"/> to the webresponse.
         /// </summary>
-        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current web-response.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="actions">Array of <see cref="ODataActionItem"/> that will be written.</param>
         /// <param name="raw"></param>
         protected abstract void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw);
@@ -488,7 +488,7 @@ new StackInfo
         /// <summary>
         /// Writes a custom operations's result object to the webresponse.
         /// </summary>
-        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current web-response.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="result">The object that will be written.</param>
         /// <param name="allCount">A nullable int that contains the count of items in the result object 
         /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
@@ -946,7 +946,7 @@ new StackInfo
         /// Writes an object to the webresponse.
         /// </summary>
         /// <param name="response">The object that will be written.</param>
-        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current web-response.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected void Write(object response, HttpContext httpContext)
         {
             var resp = httpContext.Response;
@@ -977,7 +977,7 @@ new StackInfo
         /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
         /// </summary>
         /// <param name="response">The object that will be written.</param>
-        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current web-response.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected void WriteRaw(object response, HttpContext httpContext)
         {
             var resp = httpContext.Response;
