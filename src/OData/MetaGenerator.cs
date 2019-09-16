@@ -136,7 +136,7 @@ namespace SenseNet.OData
         private static void CreateEntityTypes(IEnumerable<ContentType> contentTypes, SchemaGenerationContext context)
         {
             foreach (var contentType in contentTypes)
-                if (context.IsPermitteType(contentType))
+                if (context.IsPermittedType(contentType))
                     CreateEntityType(contentType, context);
         }
         private static void CreateEntityType(ContentType contentType, SchemaGenerationContext context)
@@ -279,7 +279,7 @@ namespace SenseNet.OData
         {
             context.Flattening = false;
             foreach (var childType in contentType.ChildTypes)
-                if (context.IsPermitteType(childType))
+                if (context.IsPermittedType(childType))
                     CreateEntityType(childType, context);
         }
 
