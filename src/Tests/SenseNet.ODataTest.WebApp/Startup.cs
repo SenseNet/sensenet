@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SenseNet.OData;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -43,6 +45,23 @@ namespace SenseNet.ODataTest.WebApp
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            app.MapWhen(httpContext => httpContext.Request.Path.StartsWithSegments("/odata.svc"),
+                appBranch =>
+                {
+                    appBranch.UseSenseNetOdata();
+                    appBranch.Use(async (httpContext, next) =>
+                    {
+                        var response = httpContext.Items["SnODataResponse"] as ODataHandler.SnOdataResponse;
+                        if (response == null)
+                            return;
+                        if (response.Type != typeof(int))
+                            return;
+                        var intValue = (int) response.Value;
+                        response.Value = intValue * 2;
+                    });
+                });
+
         }
     }
 }

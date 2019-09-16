@@ -79,11 +79,21 @@ namespace SenseNet.OData
         {
             _next = next;
         }
+
+        public class SnOdataResponse
+        {
+            public Type Type { get; set; }
+            public object Value { get; set; }
+        }
         public async STT.Task Invoke(HttpContext httpContext)
         {
-            var response = "Hello!";
+            httpContext.Items["SnODataResponse"] = new SnOdataResponse {Type = typeof(int), Value = 42};
+
+            await _next(httpContext);
+
             httpContext.Response.ContentType = "text/plain";
-            await httpContext.Response.WriteAsync(response);
+            var response = httpContext.Items["SnODataResponse"] as SnOdataResponse;
+            await httpContext.Response.WriteAsync(response.Value.ToString());
         }
 
         /// <inheritdoc />

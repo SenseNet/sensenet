@@ -12,7 +12,9 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/values",
+      //"launchUrl": "api/values",
+      //"launchUrl": /*"api/values"*/ "odata.svc/Root/Sites('MySite')?metadata=no&$select=Name,DisplayName",
+      "launchUrl": /*"api/values"*/ "odata.svc/Root/IMS/Demo/$count",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
