@@ -128,17 +128,18 @@ namespace SenseNet.OData
 
         internal void WriteMetadata(HttpContext httpContext, ODataRequest req)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
+            //var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
 
-            var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
-            if (isRoot)
-                MetaGenerator.WriteMetadata(httpContext.Response.Output, this);
-            else
-                MetaGenerator.WriteMetadata(httpContext.Response.Output, this, content, req.IsCollection);
+            //var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
+            //if (isRoot)
+            //    MetaGenerator.WriteMetadata(httpContext.Response.Output, this);
+            //else
+            //    MetaGenerator.WriteMetadata(httpContext.Response.Output, this, content, req.IsCollection);
 
-            var mimeType = this.MimeType;
-            if (mimeType != null)
-                httpContext.Response.ContentType = mimeType;
+            //var mimeType = this.MimeType;
+            //if (mimeType != null)
+            //    httpContext.Response.ContentType = mimeType;
+            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         internal void WriteMetadataInternal(TextWriter writer, Metadata.Edmx edmx)
         {
@@ -949,29 +950,30 @@ new StackInfo
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected void Write(object response, HttpContext httpContext)
         {
-            var resp = httpContext.Response;
+            //var resp = httpContext.Response;
 
-            if (response == null)
-            {
-                resp.StatusCode = 204;
-                return;
-            }
+            //if (response == null)
+            //{
+            //    resp.StatusCode = 204;
+            //    return;
+            //}
 
-            if (response is string)
-            {
-                WriteRaw(response, httpContext);
-                return;
-            }
+            //if (response is string)
+            //{
+            //    WriteRaw(response, httpContext);
+            //    return;
+            //}
 
-            var settings = new JsonSerializerSettings
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                Formatting = Formatting.Indented,
-                Converters = ODataHandler.JsonConverters
-            };
-            var serializer = JsonSerializer.Create(settings);
-            serializer.Serialize(httpContext.Response.Output, response);
-            resp.ContentType = "application/json;odata=verbose;charset=utf-8";
+            //var settings = new JsonSerializerSettings
+            //{
+            //    DateFormatHandling = DateFormatHandling.IsoDateFormat,
+            //    Formatting = Formatting.Indented,
+            //    Converters = ODataHandler.JsonConverters
+            //};
+            //var serializer = JsonSerializer.Create(settings);
+            //serializer.Serialize(httpContext.Response.Output, response);
+            //resp.ContentType = "application/json;odata=verbose;charset=utf-8";
+            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <summary>
         /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
@@ -980,8 +982,9 @@ new StackInfo
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected void WriteRaw(object response, HttpContext httpContext)
         {
-            var resp = httpContext.Response;
-            resp.Write(response);
+            //var resp = httpContext.Response;
+            //resp.Write(response);
+            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
 
     }
