@@ -17,6 +17,7 @@ using SenseNet.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using SenseNet.OData.Metadata;
 using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 
@@ -28,9 +29,29 @@ namespace SenseNet.OData
         {
             return builder.UseMiddleware<ODataHandler>();
         }
+
+        public static ODataResponse GetODataResponse(this HttpContext httpContext)
+        {
+            return httpContext.Items[ODataResponse.Key] as ODataResponse;
+        }
+        public static void SetODataResponse(this HttpContext httpContext, ODataResponse value)
+        {
+            httpContext.Items[ODataResponse.Key] = value;
+        }
     }
+    public class ODataResponse
+    {
+        /// <summary>
+        /// Key name in the HttpContext.Items
+        /// </summary>
+        public static readonly string Key = "SnODataResponse";
+
+        public Type Type { get; set; }
+        public object Value { get; set; }
+    }
+
     /// <summary>
-    /// An <see cref="IHttpHandler"/> implementation to process the OData requests.
+    /// AN ASP.NET Core middleware to process the OData requests.
     /// </summary>
     public class ODataHandler
     {
@@ -73,27 +94,26 @@ namespace SenseNet.OData
 
         internal ODataRequest ODataRequest { get; private set; }
 
-        private RequestDelegate _next;
+        private readonly RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
         public ODataHandler(RequestDelegate next)
         {
             _next = next;
         }
 
-        public class SnOdataResponse
-        {
-            public Type Type { get; set; }
-            public object Value { get; set; }
-        }
+
         public async STT.Task Invoke(HttpContext httpContext)
         {
-            httpContext.Items["SnODataResponse"] = new SnOdataResponse {Type = typeof(int), Value = 42};
+            httpContext.SetODataResponse(new ODataResponse { Type = typeof(int), Value = 42});
 
             await _next(httpContext);
 
-            httpContext.Response.ContentType = "text/plain";
-            var response = httpContext.Items["SnODataResponse"] as SnOdataResponse;
-            await httpContext.Response.WriteAsync(response.Value.ToString());
+            var response = httpContext.GetODataResponse();
+            if (response != null)
+            {
+                httpContext.Response.ContentType = "text/plain";
+                await httpContext.Response.WriteAsync(response.Value.ToString());
+            }
         }
 
         /// <inheritdoc />

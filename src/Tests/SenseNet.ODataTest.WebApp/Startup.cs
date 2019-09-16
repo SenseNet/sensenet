@@ -50,15 +50,13 @@ namespace SenseNet.ODataTest.WebApp
                 appBranch =>
                 {
                     appBranch.UseSenseNetOdata();
-                    appBranch.Use(async (httpContext, next) =>
+                    appBranch.Use((httpContext, next) =>
                     {
-                        var response = httpContext.Items["SnODataResponse"] as ODataHandler.SnOdataResponse;
-                        if (response == null)
-                            return;
-                        if (response.Type != typeof(int))
-                            return;
-                        var intValue = (int) response.Value;
-                        response.Value = intValue * 2;
+                        var response = httpContext.GetODataResponse();
+                        if(response != null)
+                            if (response.Type == typeof(int))
+                                response.Value = (int)response.Value * 2;
+                        return Task.CompletedTask;
                     });
                 });
 
