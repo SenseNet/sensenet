@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using SenseNet.ContentRepository.Fields;
 
@@ -13,7 +12,7 @@ namespace SenseNet.OData.Metadata
         public Type UnderlyingEnumType;
         [NonSerialized]
         public ChoiceFieldSetting UnderlyingFieldSetting;
-        public IEnumerable<EnumOption> Options { get { return GetOptions(); } }
+        public IEnumerable<EnumOption> Options => GetOptions();
 
         public override void WriteXml(TextWriter writer)
         {
@@ -70,9 +69,7 @@ namespace SenseNet.OData.Metadata
             if (UnderlyingFieldSetting == null)
                 return GetEnumOptions();
             var options = UnderlyingFieldSetting.Options;
-            if (options == null)
-                return null;
-            return options.Select(x => new EnumOption { Name = x.Text, Value = x.Value }).ToArray();
+            return options?.Select(x => new EnumOption { Name = x.Text, Value = x.Value }).ToArray();
         }
         private IEnumerable<EnumOption> GetEnumOptions()
         {

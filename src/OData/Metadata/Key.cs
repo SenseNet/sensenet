@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 
 namespace SenseNet.OData.Metadata
 {
@@ -15,8 +11,7 @@ namespace SenseNet.OData.Metadata
         public override void WriteXml(TextWriter writer)
         {
             writer.Write("        <Key>");
-            if (PropertyRef != null)
-                PropertyRef.WriteXml(writer);
+            PropertyRef?.WriteXml(writer);
             writer.WriteLine("</Key>");
         }
     }

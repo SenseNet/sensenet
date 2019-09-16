@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.IO;
-using System.Xml.Serialization;
-using System.Runtime.Serialization;
-using System.Xml;
+// ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.OData.Metadata
 {
@@ -29,7 +24,7 @@ namespace SenseNet.OData.Metadata
 
         public void WriteJson(TextWriter writer)
         {
-            var serializer = Newtonsoft.Json.JsonSerializer.Create(new JsonSerializerSettings
+            var serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore
             });

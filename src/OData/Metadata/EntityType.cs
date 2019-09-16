@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace SenseNet.OData.Metadata
@@ -23,8 +20,7 @@ namespace SenseNet.OData.Metadata
                 WriteAttribute(writer, "HasStream", HasStream.Value.ToString().ToLower());
             writer.WriteLine(">");
 
-            if (Key != null)
-                Key.WriteXml(writer);
+            Key?.WriteXml(writer);
 
             WriteCollectionXml(writer, Properties);
             WriteCollectionXml(writer, NavigationProperties);

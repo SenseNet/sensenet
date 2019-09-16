@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
 
@@ -17,14 +16,21 @@ namespace SenseNet.OData.Metadata
         public IEnumerable<FieldSetting> ListFieldSettings;
         public bool Flattening;
 
-        private string[] _allowedContentTypeNames;
+        private readonly string[] _allowedContentTypeNames;
 
         public SchemaGenerationContext()
         {
             _allowedContentTypeNames = (new MetaClassEnumerable()).Select(c => c.Name).ToArray();
         }
 
+        [Obsolete("Use 'IsPermittedType' method instead.", true)]
+        // ReSharper disable once IdentifierTypo
         public bool IsPermitteType(ContentType contentType)
+        {
+            return IsPermittedType(contentType);
+        }
+
+        public bool IsPermittedType(ContentType contentType)
         {
             return _allowedContentTypeNames.Contains(contentType.Name);
         }

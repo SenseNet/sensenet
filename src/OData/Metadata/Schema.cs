@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace SenseNet.OData.Metadata
@@ -24,8 +21,7 @@ namespace SenseNet.OData.Metadata
             WriteCollectionXml(writer, ComplexTypes);
             WriteCollectionXml(writer, EnumTypes);
             WriteCollectionXml(writer, Associations);
-            if (EntityContainer != null)
-                EntityContainer.WriteXml(writer);
+            EntityContainer?.WriteXml(writer);
 
             writer.WriteLine("    </Schema>");
         }

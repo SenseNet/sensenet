@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace SenseNet.OData.Metadata
@@ -32,9 +29,9 @@ namespace SenseNet.OData.Metadata
             if (FixedLength.HasValue)
                 WriteAttribute(writer, "FixedLength", FixedLength.Value.ToString());
             if (Precision.HasValue)
-                WriteAttribute(writer, "Precision", FixedLength.Value.ToString());
+                WriteAttribute(writer, "Precision", Precision.Value.ToString());
             if (Scale.HasValue)
-                WriteAttribute(writer, "Scale", FixedLength.Value.ToString());
+                WriteAttribute(writer, "Scale", Scale.Value.ToString());
             if (Unicode.HasValue)
                 WriteAttribute(writer, "Unicode", Unicode.Value.ToString().ToLower());
             if (Attributes != null)

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace SenseNet.OData.Metadata
+﻿namespace SenseNet.OData.Metadata
 {
     public class EnumOption : NamedItem
     {
