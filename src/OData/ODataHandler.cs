@@ -293,8 +293,8 @@ namespace SenseNet.OData
 
                 formatter?.WriteErrorResponse(httpContext, oe);
             }
-            //UNDONE:ODATA: ? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
-            //UNDONE:ODATA: ? ThreadAbortException does not occur in this technology.
+            //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
+            //UNDONE:ODATA: ?? ThreadAbortException does not occur in this technology.
             //catch (System.Threading.ThreadAbortException tae)
             //{
             //    if (!httpContext.Response.IsRequestBeingRedirected)

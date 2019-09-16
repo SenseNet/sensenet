@@ -374,7 +374,7 @@ namespace SenseNet.OData
                         //    newPath = newPath == "/"
                         //        ? portalContext.Site.Path
                         //        : string.Concat(portalContext.Site.Path, newPath);
-                        //UNDONE:ODATA: ?
+                        //UNDONE:ODATA: Delete IsRelative feature
                         throw new SnNotSupportedException("Relative path is not supported. Use full path (/Root/...)");
                     }
                     req.RepositoryPath = newPath;

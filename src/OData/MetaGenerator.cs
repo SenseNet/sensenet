@@ -390,9 +390,6 @@ namespace SenseNet.OData
         {
             typeof(System.NonSerializedAttribute),
             typeof(System.Xml.Serialization.XmlIgnoreAttribute),
-            //UNDONE:ODATA: ? Remove this attr from list because of undesired asm dependency 
-            //typeof(System.Web.Script.Serialization.ScriptIgnoreAttribute)
-            //UNDONE:ODATA: ? Add this attr to list
             typeof(Newtonsoft.Json.JsonIgnoreAttribute),
         };
         private static void CreateComplexType(Type type, SchemaGenerationContext context)

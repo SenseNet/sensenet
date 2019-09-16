@@ -82,7 +82,7 @@ namespace SenseNet.OData
             //return ODataHandler.ActionResolver.GetActions(content,
             //    request != null ? request.Scenario : null,
             //    string.IsNullOrEmpty(backUrl) ? null : backUrl);
-            //UNDONE:ODATA: ? backUrl support is off
+            //UNDONE:ODATA: ?? backUrl support is off
             return ODataHandler.ActionResolver.GetActions(content, request?.Scenario, null, httpContext);
         }
         internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request, HttpContext httpContext)
@@ -95,7 +95,7 @@ namespace SenseNet.OData
                 Index = a.Index,
                 Url = a.Uri,
                 IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
-                //UNDONE:ODATA: ? ClientAction is not available here.
+                //UNDONE:ODATA: ?? ClientAction is not available here.
                 //ClientAction = !string.IsNullOrEmpty((a as ClientAction)?.Callback),
                 Forbidden = a.Forbidden
             });
@@ -111,7 +111,7 @@ namespace SenseNet.OData
                 Index = a.Action.Index,
                 Url = a.Action.Uri,
                 IncludeBackUrl = a.Action.GetApplication() == null ? 0 : (int)a.Action.GetApplication().IncludeBackUrl,
-                //UNDONE:ODATA: ? ClientAction is not available here.
+                //UNDONE:ODATA: ?? ClientAction is not available here.
                 //ClientAction = !string.IsNullOrEmpty((a.Action as ClientAction)?.Callback),
                 Forbidden = a.Action.Forbidden,
                 IsODataAction = a.Action.IsODataOperation,
@@ -142,7 +142,7 @@ namespace SenseNet.OData
             //    backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
             //}
 
-            //UNDONE:ODATA: ? backUrl support is off
+            //UNDONE:ODATA: ?? backUrl support is off
             string backUrl = null;
 
             var scenario = request?.Scenario;
