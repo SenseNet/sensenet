@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Tests</id>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <title>sensenet Test library</title>
     <authors>kavics,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -19,7 +19,7 @@
       <dependency id="SenseNet.Security" version="4.0.0" />
       <dependency id="SenseNet.Tools" version="3.1.0" />
       <dependency id="SenseNet.Search" version="2.1.0" />
-      <dependency id="SenseNet.ContentRepository" version="7.6.1" />
+      <dependency id="SenseNet.ContentRepository" version="7.6.4.1" />
       <dependency id="MSTest.TestAdapter" version="1.2.0" />
       <dependency id="MSTest.TestFramework" version="1.2.0" />
     </dependencies>
