@@ -427,13 +427,20 @@ namespace SenseNet.ContentRepository
                     Node.Save(this);
                     break;
                 }
+                catch (AggregateException ae)
+                {
+                    if (!autoNamingAllowed)
+                        throw;
+                    if (!(ae.InnerException is Storage.Data.NodeAlreadyExistsException))
+                        throw;
+                }
                 catch (Storage.Data.NodeAlreadyExistsException)
                 {
                     if (!autoNamingAllowed)
                         throw;
-
-                    this.Node.Name = ContentNamingProvider.IncrementNameSuffixToLastName(Node.Name, Node.ParentId);
                 }
+
+                this.Node.Name = ContentNamingProvider.IncrementNameSuffixToLastName(Node.Name, Node.ParentId);
             }
         }
 

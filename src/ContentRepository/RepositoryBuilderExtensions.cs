@@ -32,14 +32,6 @@ namespace SenseNet.ContentRepository
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
-            WriteLog("DataProvider", dataProvider);
-
-            if (dataProvider != null)
-            {
-                CommonComponents.TransactionFactory = dataProvider;
-                WriteLog("TransactionFactory", dataProvider);
-            }
-
             return repositoryBuilder;
         }
 
@@ -51,6 +43,7 @@ namespace SenseNet.ContentRepository
         public static IRepositoryBuilder UseBlobMetaDataProvider(this IRepositoryBuilder repositoryBuilder, IBlobStorageMetaDataProvider metaDataProvider)
         {
             Configuration.Providers.Instance.BlobMetaDataProvider = metaDataProvider;
+
             WriteLog("BlobMetaDataProvider", metaDataProvider);
 
             return repositoryBuilder;

@@ -1,7 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.DataModel;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Schema
 {
     public abstract class SchemaWriter
@@ -9,7 +10,17 @@ namespace SenseNet.ContentRepository.Storage.Schema
         protected const int NodeTypeSchemaId = 1;
         protected const int ContentListTypeSchemaId = 2;
 
+        public virtual bool CanWriteDifferences => true;
+
+        public abstract Task WriteSchemaAsync(RepositorySchemaData schema);
+
+        /// <summary>
+        /// Derived classes need to start a new transactional session.
+        /// </summary>
         public abstract void Open();
+        /// <summary>
+        /// Derived classes need to commit the transactional session.
+        /// </summary>
         public abstract void Close();
 
         // ============================ PropertySlot

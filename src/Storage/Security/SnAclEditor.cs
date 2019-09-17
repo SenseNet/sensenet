@@ -221,6 +221,24 @@ namespace SenseNet.ContentRepository.Storage.Security
             return this;
         }
 
+        internal void Apply(IEnumerable<SecurityHandler.PermissionAction> actions)
+        {
+            var noCopy = new EntryType[0];
+            foreach (var action in actions)
+            {
+                var entityId = action.EntityId;
+
+                if (action.Break)
+                    BreakInheritance(entityId, noCopy);
+                else if (action.Unbreak)
+                    UnbreakInheritance(entityId, noCopy);
+
+                foreach (var entry in action.Entries)
+                    Set(entityId, entry.IdentityId, entry.LocalOnly,
+                        new PermissionBitMask { AllowBits = entry.AllowBits, DenyBits = entry.DenyBits });
+            }
+            Apply();
+        }
         /// <summary>
         /// Executes all modifications.
         /// Current user must have SetPermissions permission on any modified entity.
@@ -229,7 +247,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public override void Apply()
         {
-            Apply(null);
+            Apply((List<Type>)null);
         }
 
         /// <summary>
@@ -485,5 +503,6 @@ namespace SenseNet.ContentRepository.Storage.Security
             var ace = acl.Entries.Where(e => e.IdentityId == identityId && e.LocalOnly == localOnly).FirstOrDefault();
             return ace;
         }
+
     }
 }

@@ -5,7 +5,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -14,8 +13,11 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using System.Threading;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
 using SenseNet.Tools.Diagnostics;
@@ -31,7 +33,7 @@ namespace SenseNet.Configuration
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
             "SenseNet.Diagnostics.ContextEventPropertyCollector");
-        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
+        public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
@@ -56,6 +58,9 @@ namespace SenseNet.Configuration
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
         public static string CacheClassName { get; internal set; } = GetProvider("Cache",
             typeof(SnMemoryCache).FullName);
+
+        public static string IndexDocumentProviderClassName { get; internal set; } = "SenseNet.ContentRepository.Search.Indexing.IndexDocumentProvider";
+
         public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
@@ -110,9 +115,6 @@ namespace SenseNet.Configuration
         private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
         {
             var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
-            
-            CommonComponents.TransactionFactory = dbp;
-
             return dbp;
         });
         public virtual DataProvider DataProvider
@@ -289,7 +291,7 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid ClusterChannel implementation: {ClusterChannelProviderClassName}");
             }
             
-            provider.Start();
+            provider.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             SnTrace.Messaging.Write("Cluster channel created: " + ClusterChannelProviderClassName);
             SnLog.WriteInformation($"ClusterChannel created: {ClusterChannelProviderClassName}");
@@ -351,6 +353,17 @@ namespace SenseNet.Configuration
             get { return _nodeObservers.Value; }
             set { _nodeObservers = new Lazy<NodeObserver[]>(() => value); }
         }
+        #endregion
+
+        #region private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>
+        private Lazy<IIndexDocumentProvider> _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() =>
+            CreateProviderInstance<IIndexDocumentProvider>(IndexDocumentProviderClassName, "IndexDocumentProvider"));
+        public virtual IIndexDocumentProvider IndexDocumentProvider
+        {
+            get { return _indexDocumentProvider.Value; }
+            set { _indexDocumentProvider = new Lazy<IIndexDocumentProvider>(() => value); }
+        }
+
         #endregion
 
         internal NodeTypeManager NodeTypeManeger { get; set; }

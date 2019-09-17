@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Nito.AsyncEx;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -11,54 +12,20 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests
 {
     [TestClass]
     public class TestBase
     {
-
-        private static volatile bool _prototypesCreated;
-        private static readonly object PrototypeSync = new object();
-        private void EnsurePrototypes()
-        {
-            if (!_prototypesCreated)
-            {
-                SnTrace.Test.Write("Wait for creating prototypes.");
-                lock (PrototypeSync)
-                {
-                    if (!_prototypesCreated)
-                    {
-                        using (var op = SnTrace.Test.StartOperation("Create prototypes."))
-                        {
-                            ExecuteTest(false, null, () =>
-                            {
-                                SnTrace.Test.Write("Create initial index.");
-                                SaveInitialIndexDocuments();
-                                RebuildIndex();
-
-                                SnTrace.Test.Write("Create snapshots.");
-                                if (Providers.Instance.DataProvider is InMemoryDataProvider inMemDataProvider)
-                                    inMemDataProvider.CreateSnapshot();
-                                if (Providers.Instance.SearchEngine is InMemorySearchEngine inMemSearchEngine)
-                                    inMemSearchEngine.CreateSnapshot();
-                            });
-                            _prototypesCreated = true;
-                            op.Successful = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // ==========================================================
-
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -97,12 +64,11 @@ namespace SenseNet.Tests
         }
         protected void Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            EnsurePrototypes();
             ExecuteTest(useCurrentUser, initialize, callback);
         }
         private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             Providers.Instance.NodeTypeManeger = null;
             
@@ -114,13 +80,15 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            if (!_prototypesCreated)
-                SnTrace.Test.Write("Start repository.");
+            Cache.Reset();
+            ContentTypeManager.Reset();
 
             OnBeforeRepositoryStart(builder);
 
             using (Repository.Start(builder))
             {
+                PrepareRepository();
+
                 if (useCurrentUser)
                     callback();
                 else
@@ -137,29 +105,25 @@ namespace SenseNet.Tests
 
         // ==========================================================
 
-        protected T Test<T>(Func<T> callback)
+        protected STT.Task Test(Func<STT.Task> callback)
         {
             return Test(false, null, callback);
-
         }
-        protected T Test<T>(bool useCurrentUser, Func<T> callback)
+        protected STT.Task Test(bool useCurrentUser, Func<STT.Task> callback)
         {
-            return Test(useCurrentUser, null, callback);
-
+            return ExecuteTest(useCurrentUser, null, callback);
         }
-        protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
+        protected STT.Task Test(Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            return Test(false, initialize, callback);
-
+            return ExecuteTest(false, initialize, callback);
         }
-        protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        protected STT.Task Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            EnsurePrototypes();
-            return ExecuteTest<T>(useCurrentUser, initialize, callback);
+            return ExecuteTest(useCurrentUser, initialize, callback);
         }
-        private T ExecuteTest<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        private async STT.Task ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<STT.Task> callback)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTestInstance();
@@ -168,15 +132,14 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
-            if (!_prototypesCreated)
-                SnTrace.Test.Write("Start repository.");
-
             using (Repository.Start(builder))
             {
+                PrepareRepository();
+
                 if (useCurrentUser)
-                    return callback();
+                    await callback();
                 using (new SystemAccount())
-                    return callback();
+                    await callback();
             }
         }
 
@@ -184,18 +147,19 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
-            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+            Providers.Instance.DataProvider = dataProvider;
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
-                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                .UseSearchEngine(new InMemorySearchEngine())
-                .UseSecurityDataProvider(securityDataProvider)
+                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
@@ -216,7 +180,15 @@ namespace SenseNet.Tests
                 {
                     new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
                 },
-                Entities = repo.GetSecurityEntities().ToDictionary(e => e.Id, e => e),
+                Entities = repo.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult()
+                    .ToDictionary(x => x.Id, x => new StoredSecurityEntity
+                {
+                    Id = x.Id,
+                    OwnerId = x.OwnerId,
+                    ParentId = x.ParentId,
+                    IsInherited = true,
+                    HasExplicitEntry = x.Id == 2
+                }),
                 Memberships = new List<Membership>
                 {
                     new Membership
@@ -237,27 +209,44 @@ namespace SenseNet.Tests
             Assert.AreEqual(e, a);
         }
 
-        protected void SaveInitialIndexDocuments()
+        protected async STT.Task SaveInitialIndexDocumentsAsync(CancellationToken cancellationToken)
         {
-            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000);
+            var idSet = await DataStore.LoadNotIndexedNodeIdsAsync(0, 11000, cancellationToken).ConfigureAwait(false);
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
                 return;
 
-            foreach (var node in nodes)
+            var tasks = nodes.Select(async node =>
             {
-                // ReSharper disable once UnusedVariable
-                DataBackingStore.SaveIndexDocument(node, false, false, out var hasBinary);
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await DataStore.SaveIndexDocumentAsync(node, false, false, cancellationToken).ConfigureAwait(false);
+            });
+            
+            await tasks.WhenAll();
+        }
+
+        protected string ArrayToString(int[] array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(List<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(IEnumerable<object> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
         }
 
         protected void RebuildIndex()
         {
+            // ReSharper disable once CollectionNeverQueried.Local
             var paths = new List<string>();
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
-            populator.ClearAndPopulateAll();
+            populator.ClearAndPopulateAllAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -269,10 +258,10 @@ namespace SenseNet.Tests
         {
             var fname = Path.Combine(directoryName, fileNameWithoutExtension + ".txt");
 
-            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                indexingEngine.Index.Save(fname);
+            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                searchEngine.Index.Save(fname);
             else
-                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
+                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.GetType().FullName}. Only the InMemorySearchEngine is allowed.");
         }
 
         /// <summary>
@@ -283,8 +272,8 @@ namespace SenseNet.Tests
         /// </summary>
         protected IDisposable SaveIndexDocuments(string directoryName)
         {
-            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                indexingEngine.Index.IndexDocumentPath = directoryName;
+            if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                searchEngine.Index.IndexDocumentPath = directoryName;
             else
                 throw new NotSupportedException($"IndexDocuments cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
             return new SaveIndexDocumentsBlock();
@@ -293,8 +282,8 @@ namespace SenseNet.Tests
         {
             public void Dispose()
             {
-                if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-                    indexingEngine.Index.IndexDocumentPath = null;
+                if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
+                    searchEngine.Index.IndexDocumentPath = null;
             }
         }
 
@@ -349,5 +338,36 @@ namespace SenseNet.Tests
             ContentTypeInstaller.InstallContentType(CarContentType);
         }
 
+
+
+        protected void PrepareRepository()
+        {
+            // Improve Debug experience
+            new SnMaintenance().Shutdown();
+
+            // Index
+            if (Providers.Instance.SearchEngine is InMemorySearchEngine searchEngine)
+                if(searchEngine.Index == null)
+                    searchEngine.Index = GetInitialIndex();
+            //throw new Exception("Only an InMemorySearchEngine is allowed here.");
+        }
+
+        private static InitialData _initialData;
+        protected static InitialData GetInitialData()
+        {
+            return _initialData ?? (_initialData = InitialData.Load(InitialTestData.Instance));
+        }
+
+        private static InMemoryIndex _initialIndex;
+        protected static InMemoryIndex GetInitialIndex()
+        {
+            if (_initialIndex == null)
+            {
+                var index = new InMemoryIndex();
+                index.Load(new StringReader(InitialTestIndex.Index));
+                _initialIndex = index;
+            }
+            return _initialIndex.Clone();
+        }
     }
 }

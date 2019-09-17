@@ -102,8 +102,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public static void Startup(System.IO.TextWriter consoleOut)
         {
-            // initalize from index
-            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex();
+            // initialize from index
+            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 
@@ -275,7 +275,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    IndexManager.Commit(); // explicit commit
+                    IndexManager.CommitAsync(CancellationToken.None).GetAwaiter().GetResult(); // explicit commit
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
@@ -610,7 +610,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     try
                     {
                         using (new Storage.Security.SystemAccount())
-                            activity.ExecuteIndexingActivity();
+                            activity.ExecuteIndexingActivityAsync(CancellationToken.None).GetAwaiter().GetResult();
                     }
                     catch (Exception e)
                     {
@@ -740,7 +740,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
-                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    var segment = DataStore.LoadIndexingActivitiesAsync(from, to, count,
+                        _executingUnprocessedActivities, IndexingActivityFactory.Instance, CancellationToken.None).GetAwaiter().GetResult();
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
 
@@ -807,7 +808,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
-                    return DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    return DataStore.LoadIndexingActivitiesAsync(gaps, _executingUnprocessedActivities,
+                        IndexingActivityFactory.Instance, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }

@@ -14,23 +14,36 @@ namespace SenseNet.ContentRepository.Tests
     public class TimestampTests : TestBase
     {
         [TestMethod]
-        [ExpectedException(typeof(NodeIsOutOfDateException))]
         public void Timestamp_CannotSaveObsolete()
         {
             Test(() =>
             {
-                var testRoot = new SystemFolder(Repository.Root) { Name = "Folder1" };
-                testRoot.Save();
-                var file = new File(testRoot) { Name = "File1" };
-                file.Save();
-                var id = file.Id;
+                try
+                {
+                    var testRoot = new SystemFolder(Repository.Root) { Name = "Folder1" };
+                    testRoot.Save();
+                    var file = new File(testRoot) { Name = "File1" };
+                    file.Save();
+                    var id = file.Id;
 
-                var node1 = Node.LoadNode(id);
-                var node2 = Node.LoadNode(id);
-                node1.Index = 111;
-                node2.Index = 112;
-                node1.Save();
-                node2.Save();
+                    var node1 = Node.LoadNode(id);
+                    var node2 = Node.LoadNode(id);
+                    node1.Index = 111;
+                    node2.Index = 112;
+                    node1.Save();
+                    node2.Save();
+                }
+                catch (Exception e)
+                {
+                    while (e != null)
+                    {
+                        if (e is NodeIsOutOfDateException)
+                            break;
+                        e = e.InnerException;
+                    }
+                    if (e == null)
+                        Assert.Fail("The expected NodeIsOutOfDateException was not thrown.");
+                }
             });
         }
 

@@ -4,10 +4,13 @@ using IO = System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Tools;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
@@ -15,6 +18,7 @@ namespace SenseNet.ContentRepository
     {
         public AssemblyInfo[] SenseNet { get; set; }
         public AssemblyInfo[] Plugins { get; set; }
+        // ReSharper disable once InconsistentNaming
         public AssemblyInfo[] GAC { get; set; }
         public AssemblyInfo[] Other { get; set; }
         public AssemblyInfo[] Dynamic { get; set; }
@@ -43,32 +47,35 @@ namespace SenseNet.ContentRepository
             DatabaseAvailable = false
         };
 
+        // ReSharper disable once InconsistentNaming
         private static RepositoryVersionInfo __instance;
-        private static object _instanceLock = new object();
+        private static readonly object InstanceLock = new object();
         public static RepositoryVersionInfo Instance
         {
             get
             {
                 if (__instance == null)
-                    lock (_instanceLock)
+                    lock (InstanceLock)
                         if (__instance == null)
-                            __instance = Create();
+                            __instance = Create(CancellationToken.None);
                 return __instance;
             }
         }
 
-        private static RepositoryVersionInfo Create()
+        private static RepositoryVersionInfo Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
             try
             {
-                return Create(
-                    storage.LoadInstalledComponents(),
-                    storage.LoadInstalledPackages());
+                var t1 = storage.LoadInstalledComponentsAsync(cancellationToken);
+                var t2 = storage.LoadInstalledPackagesAsync(cancellationToken);
+                STT.Task.WaitAll(t1, t2);
+
+                return Create(t1.GetAwaiter().GetResult(), t2.GetAwaiter().GetResult());
             }
             catch
             {
-                return RepositoryVersionInfo.BeforeInstall;
+                return BeforeInstall;
             }
         }
 
@@ -81,7 +88,8 @@ namespace SenseNet.ContentRepository
 
             var asmDyn = asms.Where(a => a.IsDynamic).ToArray();
             asms = asms.Except(asmDyn).ToArray();
-            var asmInBin = asms.Where(a => a.CodeBase.StartsWith(binPath)).ToArray();
+            var asmInBin = asms.Where(a => a.CodeBase.StartsWith(binPath ??
+                throw new InvalidOperationException($"Parameter cannot be null."))).ToArray();
             asms = asms.Except(asmInBin).ToArray();
             var asmInGac = asms.Where(a => a.CodeBase.Contains("\\GAC")).ToArray();
             asms = asms.Except(asmInGac).ToArray();
@@ -107,7 +115,7 @@ namespace SenseNet.ContentRepository
 
         public static void Reset()
         {
-            new RepositoryVersionInfoResetDistributedAction().Execute();
+            new RepositoryVersionInfoResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
@@ -117,11 +125,13 @@ namespace SenseNet.ContentRepository
         [Serializable]
         internal sealed class RepositoryVersionInfoResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)
-                    return;
-                RepositoryVersionInfo.ResetPrivate();
+                    return STT.Task.CompletedTask;
+                ResetPrivate();
+
+                return STT.Task.CompletedTask;
             }
         }
 
@@ -134,6 +144,7 @@ namespace SenseNet.ContentRepository
         private static void CheckComponentVersions(SnComponentInfo[] components)
         {
 #if DEBUG
+            // ReSharper disable once IntroduceOptionalParameters.Local
             CheckComponentVersions(components, false);
 #else
             CheckComponentVersions(components, true);

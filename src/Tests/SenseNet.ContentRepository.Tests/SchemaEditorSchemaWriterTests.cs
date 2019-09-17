@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using SenseNet.ContentRepository.Storage.DataModel;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -25,6 +26,11 @@ namespace SenseNet.ContentRepository.Tests
         public TestSchemaWriter()
         {
             _log = new StringBuilder();
+        }
+
+        public override System.Threading.Tasks.Task WriteSchemaAsync(RepositorySchemaData schema)
+        {
+            throw new NotSupportedException();
         }
 
         public override void Open()

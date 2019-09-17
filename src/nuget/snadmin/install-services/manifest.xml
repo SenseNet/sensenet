@@ -1,8 +1,8 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>sensenet Services</Description>
-  <ReleaseDate>2019-09-10</ReleaseDate>
-  <Version>7.6.4</Version>
+  <ReleaseDate>2019-09-12</ReleaseDate>
+  <Version>7.6.4.2</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>
@@ -56,11 +56,9 @@
       </If>
       
       <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password"/>
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_Security.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_01_Schema.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_02_Procs.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_03_Data_Phase1.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_04_Data_Phase2.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\MsSqlInstall_Security.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\MsSqlInstall_Schema.sql" />
+      <InstallInitialData InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" />
 
       <!-- Insert new connection string values into config files. -->
       <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" DbUserName="@dbUserName" DbPassword="@dbPassword" File="Web.config" />

@@ -54,20 +54,6 @@ namespace SenseNet.Tests
             }
         }
 
-        public class DataProviderSwindler : IDisposable
-        {
-            readonly DataProvider _providerInstanceBackup;
-            public DataProviderSwindler(DataProvider providerInstance)
-            {
-                _providerInstanceBackup = Providers.Instance.DataProvider;
-                Providers.Instance.DataProvider = providerInstance;
-            }
-            public void Dispose()
-            {
-                Providers.Instance.DataProvider = _providerInstanceBackup;
-            }
-        }
-
         public class LoggerSwindler<T> : IDisposable where T : class, IEventLogger
         {
             private readonly IEventLogger _originalLogger;

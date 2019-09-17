@@ -33,6 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public static void Startup(TextWriter consoleOut)
         {
+            //TODO: [async] rewrite this using async APIs instead of Thread.Sleep.
             using (var op = SnTrace.Index.StartOperation("CIAQ: STARTUP."))
             {
                 var loadedCount = 0;
@@ -152,7 +153,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             SnTrace.IndexQueue.Write($"CIAQ: Refreshing indexing activity locks: {string.Join(", ", waitingIds)}");
 
-            DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+            DataStore.RefreshIndexingActivityLockTimeAsync(waitingIds, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
         private static void DeleteFinishedActivitiesOccasionally()
         {
@@ -160,9 +162,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 using (var op = SnTrace.IndexQueue.StartOperation("CIAQ: DeleteFinishedActivities"))
                 {
-                    DataProvider.Current.DeleteFinishedIndexingActivities();
+                    DataStore.DeleteFinishedIndexingActivitiesAsync(CancellationToken.None)
+                        .GetAwaiter().GetResult();
                     _lastDeleteFinishedTime = DateTime.UtcNow;
-
                     op.Successful = true;
                 }
             }
@@ -215,12 +217,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
 
             // load some executable activities and currently finished ones
-            var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(
+            var result = DataStore.LoadExecutableIndexingActivitiesAsync(
                 IndexingActivityFactory.Instance,
                 MaxCount,
                 RunningTimeoutInSeconds,
-                waitingActivityIds,
-                out var finishedActivitiyIds);
+                waitingActivityIds, CancellationToken.None).GetAwaiter().GetResult();
+            var loadedActivities = result.Activities;
+            var finishedActivitiyIds = result.FinishedActivitiyIds;
 
             if (SnTrace.IndexQueue.Enabled)
                 SnTrace.IndexQueue.Write("CIAQ: loaded: {0} ({1}), waiting: {2}, finished: {3}, tasks: {4}",
@@ -301,7 +304,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         /// <summary>
-        /// Executes an activity with synchron way with its encapsulated implementation.
+        /// Executes an activity synchronously.
         /// Updates the activity's runningState to "Done" to indicate the end of execution.
         /// Calls the activity's Finish to release the waiting thread.
         /// Removes the activity from the waiting list.
@@ -317,12 +320,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     Interlocked.Increment(ref _activeTasks);
 #pragma warning restore 420
 
+                    //TODO: [async] refactor this method to be async
                     // execute synchronously
                     using (new Storage.Security.SystemAccount())
-                        act.ExecuteIndexingActivity();
+                        act.ExecuteIndexingActivityAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                     // publish the finishing state
-                    DataProvider.Current.UpdateIndexingActivityRunningState(act.Id, IndexingActivityRunningState.Done);
+                    DataStore.UpdateIndexingActivityRunningStateAsync(act.Id, IndexingActivityRunningState.Done, CancellationToken.None)
+                        .GetAwaiter().GetResult();
                 }
                 catch (Exception e)
                 {

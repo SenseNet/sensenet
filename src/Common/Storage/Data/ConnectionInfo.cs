@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
     public class ConnectionInfo

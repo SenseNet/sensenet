@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -147,20 +148,8 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             if (SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
-
-            var script = DataProvider.GetAppModelScript(paths, false, false);
-
-            using (var proc = DataProvider.Instance.CreateDataProcedure(script))
-            {
-                proc.CommandType = System.Data.CommandType.Text;
-
-                using (var reader = proc.ExecuteReader())
-                {
-                    while (reader.Read())
-                        return NodeHead.Get(reader.GetInt32(0));
-                }
-            }
-            return null;
+            return DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, false, false, CancellationToken.None)
+                .GetAwaiter().GetResult().FirstOrDefault();
         }
         private static NodeHead ResolveFirstByPathsFromIndexedEngine(IEnumerable<string> paths)
         {
@@ -175,40 +164,10 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static IEnumerable<NodeHead> ResolveAllByPaths(IEnumerable<string> paths, bool resolveChildren)
         {
-            if (SearchManager.IsOuterEngineEnabled)
-                return ResolveAllByPathsFromIndexedEngine(paths, resolveChildren);
-
-            var script = DataProvider.GetAppModelScript(paths, true, resolveChildren);
-            var pathIndexer = paths.ToList();
-
-            List<NodeHead>[] resultSorter;
-            using (var proc = DataProvider.Instance.CreateDataProcedure(script))
-            {
-                proc.CommandType = System.Data.CommandType.Text;
-
-                resultSorter = new List<NodeHead>[pathIndexer.Count];
-                using (var reader = proc.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        var nodeHead = NodeHead.Get(reader.GetInt32(0));
-                        var searchPath = resolveChildren ? RepositoryPath.GetParentPath(nodeHead.Path) : nodeHead.Path;
-                        var index = pathIndexer.IndexOf(searchPath);
-                        if (resultSorter[index] == null)
-                            resultSorter[index] = new List<NodeHead>();
-                        resultSorter[index].Add(nodeHead);
-                    }
-                }
-            }
-            var result = new List<NodeHead>();
-            foreach (var list in resultSorter)
-                if (list != null)
-                {
-                    list.Sort(CompareByName);
-                    foreach (var nodeHead in list)
-                        result.Add(nodeHead);
-                }
-            return result;
+            return SearchManager.IsOuterEngineEnabled
+                ? ResolveAllByPathsFromIndexedEngine(paths, resolveChildren)
+                : DataStore.LoadNodeHeadsFromPredefinedSubTreesAsync(paths, true, resolveChildren, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
         private static IEnumerable<NodeHead> ResolveAllByPathsFromIndexedEngine(IEnumerable<string> paths, bool resolveChildren)
         {
@@ -232,11 +191,5 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             }
             return heads;
         }
-
-        private static int CompareByName(NodeHead x, NodeHead y)
-        {
-            return x.Path.CompareTo(y.Path);
-        }
-
     }
 }

@@ -35,16 +35,12 @@ namespace SenseNet.Tests.Implementations
             _analyzers = analyzerTypes;
         }
 
-
-        public InMemorySearchEngine()
+        public InMemoryIndex Index { get; set; }
+        public InMemorySearchEngine(InMemoryIndex index)
         {
-            _indexingEngine = new InMemoryIndexingEngine();
-            _queryEngine = new InMemoryQueryEngine(_indexingEngine.Index);
-        }
-
-        public void CreateSnapshot()
-        {
-            InMemoryIndex.SetPrototype(_indexingEngine.Index);
+            Index = index;
+            _indexingEngine = new InMemoryIndexingEngine(this);
+            _queryEngine = new InMemoryQueryEngine(this);
         }
     }
 }

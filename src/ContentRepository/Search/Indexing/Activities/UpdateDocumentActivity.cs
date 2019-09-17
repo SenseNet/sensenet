@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     internal class UpdateDocumentActivity : DocumentIndexingActivity
     {
-        protected override bool ProtectedExecute()
+        protected override Task<bool> ProtectedExecuteAsync(CancellationToken cancellationToken)
         {
-            return IndexManager.UpdateDocument(Document, Versioning);
+            return IndexManager.UpdateDocumentAsync(Document, Versioning, cancellationToken);
         }
     }
 }

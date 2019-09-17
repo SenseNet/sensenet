@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
@@ -1717,25 +1719,131 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #region /*========================================================== Install, Import, Export */
 
+	    internal class PermissionAction
+	    {
+            public int EntityId { get; set; }
+	        public bool Break { get; set; }
+	        public bool Unbreak { get; set; }
+            public List<StoredAce> Entries { get; set; }
+        }
+
+        /*=========================================================================================== Initial-permission parser */
+
+        internal static IEnumerable<PermissionAction> ParseInitialPermissions(SnSecurityContext context, IList<string> permissionData)
+        {
+            var actions = new Dictionary<int, PermissionAction>();
+            foreach (var action in permissionData.Select(x => ParsePermissions(context, x)))
+            {
+                var entityId = action.Entries[0].EntityId;
+                if (!actions.TryGetValue(entityId, out var existingAction))
+                {
+                    existingAction = new PermissionAction
+                    {
+                        EntityId = entityId,
+                        Entries = new List<StoredAce>()
+                    };
+                    var isEntityInherited = context.IsEntityInherited(entityId);
+                    if (isEntityInherited && action.Break)
+                        existingAction.Break = true;
+                    if (!isEntityInherited && !action.Break)
+                        existingAction.Unbreak = true;
+                    actions.Add(entityId, existingAction);
+                }
+                existingAction.Entries.AddRange(action.Entries);
+            }
+            return actions.Values;
+        }
+        private static SecurityHandler.PermissionAction ParsePermissions(SnSecurityContext context, string permissionData)
+        {
+            // "+E1|Normal|+U1:____++++,Normal|+G1:____++++"
+            var a = permissionData.Split('|');
+            var isInherited = a[0][0] == '+';
+            var b = a[0].Substring(1);
+            var entityId = int.Parse(b);
+
+            return new SecurityHandler.PermissionAction()
+            {
+                Break = !isInherited,
+                Entries = ParseEntries(entityId, permissionData.Substring(a[0].Length + 1))
+            };
+        }
+        private static List<StoredAce> ParseEntries(int entityId, string src)
+        {
+            // "+U1:____++++,+G1:____++++"
+            return src.Split(',').Select(x => CreateAce(entityId, x)).ToList();
+        }
+        private static StoredAce CreateAce(int entityId, string src)
+        {
+            // "Normal|+U1:____++++
+            var segments = src.Split('|');
+
+            Enum.TryParse<EntryType>(segments[0], true, out var entryType);
+
+            var localOnly = segments[1][0] != '+';
+            var a = segments[1].Substring(1).Split(':');
+
+            var identityId = int.Parse(a[0]);
+            ParsePermissions(a[1], out var allowBits, out var denyBits);
+
+            return new StoredAce
+            {
+                EntityId = entityId,
+                EntryType = entryType,
+                IdentityId = identityId,
+                LocalOnly = localOnly,
+                AllowBits = allowBits,
+                DenyBits = denyBits
+            };
+        }
+        private static void ParsePermissions(string src, out ulong allowBits, out ulong denyBits)
+        {
+            //+_____-____++++
+            var mask = 1ul;
+            allowBits = denyBits = 0;
+            for (int i = src.Length - 1; i >= 0; i--)
+            {
+                var c = src[i];
+                if (c == '+')
+                    allowBits |= mask << src.Length - i - 1;
+                if (c == '-')
+                    denyBits |= mask << src.Length - i - 1;
+            }
+        }
+
         /// <summary>Contains methods for install scenarios.</summary>
         public static class SecurityInstaller
         {
             /// <summary>
-            /// Clear security tables and copies ids of the full content tree structure from the repository to the security component.
-            /// Security component must be available.
+            /// Clears the security storage copies ids of the full content tree structure from the repository 
+            /// to the security component. Security component must be available.
             /// WARNING! Use only in install scenarios.
             /// </summary>
-            public static void InstallDefaultSecurityStructure()
+            public static void InstallDefaultSecurityStructure(InitialData data = null)
             {
                 using (new SystemAccount())
                 {
-                    DataProvider.Current.InstallDefaultSecurityStructure();
+                    CreateEntities();
 
-                    CreateAclEditor()
-                        .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
-                        .Apply();
+                    var ed = CreateAclEditor();
+                    ed.Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
+                        // ReSharper disable once CoVariantArrayConversion
+                        PermissionType.BuiltInPermissionTypes);
+
+                    if (data == null)
+                        ed.Apply();
+                    else
+                        ed.Apply(ParseInitialPermissions(ed.Context, data.Permissions));
                 }
             }
+	        private static void CreateEntities()
+	        {
+	            var securityContext = SecurityContext;
+	            DeleteEverythingAndRestart();
+
+	            var entityTreeNodes = DataStore.LoadEntityTreeAsync(CancellationToken.None).GetAwaiter().GetResult();
+	            foreach (var entityTreeNode in entityTreeNodes)
+	                securityContext.CreateSecurityEntity(entityTreeNode.Id, entityTreeNode.ParentId, entityTreeNode.OwnerId);
+	        }
         }
 
         /// <summary>

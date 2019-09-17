@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using SenseNet.Security;
 using SenseNet.Search;
 using System.Diagnostics;
+using System.Threading;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -26,6 +27,19 @@ namespace SenseNet.ContentRepository
 {
     public static class RepositoryTools
     {
+        //TODO: [async] move this method to the Tools package
+        // Remove the original CombineCancellationToken method from the Common project as well.
+        internal static CancellationToken AddTimeout(this CancellationToken cancellationToken, TimeSpan timeout)
+        {
+            if (timeout == default)
+                return cancellationToken;
+
+            var timeoutToken = new CancellationTokenSource(timeout).Token;
+            return cancellationToken == CancellationToken.None
+                ? timeoutToken
+                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutToken).Token;
+        }
+
         public static string GetStreamString(Stream stream)
         {
             StreamReader sr = new StreamReader(stream);

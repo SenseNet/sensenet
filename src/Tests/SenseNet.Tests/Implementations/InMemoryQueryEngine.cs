@@ -53,18 +53,19 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        private readonly InMemoryIndex _index;
+        private InMemorySearchEngine _searchEngine;
+        private InMemoryIndex Index => _searchEngine.Index;
 
-        public InMemoryQueryEngine(InMemoryIndex index)
+        public InMemoryQueryEngine(InMemorySearchEngine searchEngine)
         {
-            _index = index;
+            _searchEngine = searchEngine;
         }
 
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             _log.AppendLine($"ExecuteQuery: {query}");
 
-            var interpreter = new SnQueryInterpreter(_index);
+            var interpreter = new SnQueryInterpreter(this.Index);
             var result = interpreter.Execute(query, filter, out var totalCount);
 
             var nodeIds = result.Select(h => h.NodeId).ToArray();
@@ -75,7 +76,7 @@ namespace SenseNet.Tests.Implementations
         {
             _log.AppendLine($"ExecuteQueryAndProject: {query}");
 
-            var interpreter = new SnQueryInterpreter(_index);
+            var interpreter = new SnQueryInterpreter(this.Index);
             var result = interpreter.Execute(query, filter, out var totalCount);
 
             var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();

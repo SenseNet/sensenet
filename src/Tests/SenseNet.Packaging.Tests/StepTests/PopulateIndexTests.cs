@@ -10,6 +10,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
@@ -41,7 +42,10 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Packaging_PopulateIndex_HardReindexWorksOnAllVersions()
         {
-            Test(() =>
+            Test(builder =>
+            {
+                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider());
+            }, () =>
             {
                 // arrange
                 InstallCarContentType();

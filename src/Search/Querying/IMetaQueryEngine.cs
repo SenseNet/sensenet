@@ -37,4 +37,22 @@
         /// </returns>
         QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
     }
+
+    /// <inheritdoc />
+    /// <summary>
+    /// Defines a class for a placeholder object that implements the IMetaQueryEngine interface.
+    /// </summary>
+    public class NullMetaQueryEngine : IMetaQueryEngine
+    {
+        /// <inheritdoc />
+        public QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        {
+            return null;
+        }
+        /// <inheritdoc />
+        public QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        {
+            return null;
+        }
+    }
 }

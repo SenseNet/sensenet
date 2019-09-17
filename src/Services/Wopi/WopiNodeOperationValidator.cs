@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -31,7 +32,7 @@ namespace SenseNet.Services.Wopi
                 return true;
 
             // Everything is allowed if the node is not locked
-            var existingLock = SharedLock.GetLock(node.Id);
+            var existingLock = SharedLock.GetLock(node.Id, CancellationToken.None);
             if (existingLock == null)
                 return true;
 
@@ -42,7 +43,7 @@ namespace SenseNet.Services.Wopi
             errorMessage = null;
 
             // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(source.Id);
+            var existingLock = SharedLock.GetLock(source.Id, CancellationToken.None);
             if (existingLock == null)
                 return true;
 
@@ -53,7 +54,7 @@ namespace SenseNet.Services.Wopi
             errorMessage = null;
 
             // Everything is allowed if the file is not locked
-            var existingLock = SharedLock.GetLock(node.Id);
+            var existingLock = SharedLock.GetLock(node.Id, CancellationToken.None);
             if (existingLock == null)
                 return true;
 

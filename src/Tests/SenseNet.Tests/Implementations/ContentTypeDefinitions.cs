@@ -2772,7 +2772,6 @@ namespace SenseNet.Tests.Implementations
       <Description>$Ctd-Memo,Date-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
       </Configuration>
     </Field>
     <Field name=""MemoType"" type=""Choice"">

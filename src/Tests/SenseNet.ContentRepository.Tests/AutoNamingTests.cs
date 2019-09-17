@@ -95,23 +95,36 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        [ExpectedException(typeof(NodeAlreadyExistsException))]
         public void ContentNaming_AllowIncrementalNaming_Disallowed()
         {
             Test(() =>
             {
-                InstallContentTypes();
-                var testRoot = new SystemFolder(Repository.Root);
-                testRoot.Save();
-
-                Content content1, content2;
-                do
+                var thrown = false;
+                try
                 {
-                    content1 = Content.CreateNew(ContentType_Car2Name, testRoot, null);
-                    content2 = Content.CreateNew(ContentType_Car2Name, testRoot, null);
-                } while (content1.Name != content2.Name);
-                content1.Save();
-                content2.Save();
+                    InstallContentTypes();
+                    var testRoot = new SystemFolder(Repository.Root);
+                    testRoot.Save();
+
+                    Content content1, content2;
+                    do
+                    {
+                        content1 = Content.CreateNew(ContentType_Car2Name, testRoot, null);
+                        content2 = Content.CreateNew(ContentType_Car2Name, testRoot, null);
+                    } while (content1.Name != content2.Name);
+                    content1.Save();
+                    content2.Save();
+                }
+                catch (NodeAlreadyExistsException)
+                {
+                    thrown = true;
+                }
+                catch (AggregateException ae)
+                {
+                    thrown = ae.InnerException is NodeAlreadyExistsException;
+                }
+                if (!thrown)
+                    Assert.Fail("The expected NodeAlreadyExistsException was not thrown.");
             });
         }
         [TestMethod]
@@ -233,6 +246,10 @@ namespace SenseNet.ContentRepository.Tests
                 catch (NodeAlreadyExistsException)
                 {
                     typeNotAutoIncrement = true;
+                }
+                catch(AggregateException ae)
+                {
+                    typeNotAutoIncrement = ae.InnerException is NodeAlreadyExistsException;
                 }
                 Assert.IsTrue(typeNotAutoIncrement);    // the type is non-autoincremental
 

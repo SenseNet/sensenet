@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using Retrier = SenseNet.Tools.Retrier;
@@ -34,10 +36,12 @@ namespace SenseNet.Packaging.Steps.Internal
         private volatile int _nodeCount;
         private volatile int _taskCount;
 
+        private static CancellationToken cancel = CancellationToken.None;
+
         public override void Execute(ExecutionContext context)
         {
             Tracer.Write("Phase-0: Initializing.");
-            DataHandler.InstallTables();
+            DataHandler.InstallTables(cancel);
 
             using (var op = Tracer.StartOperation("Phase-1: Reindex metadata."))
             {
@@ -47,7 +51,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
             using (var op = Tracer.StartOperation("Phase-2: Create background tasks."))
             {
-                DataHandler.StartBackgroundTasks();
+                DataHandler.StartBackgroundTasks(cancel);
                 op.Successful = true;
             }
 
@@ -59,7 +63,7 @@ namespace SenseNet.Packaging.Steps.Internal
             using (new SystemAccount())
             {
                 Tracer.Write("Phase-1: Discover node ids.");
-                var nodeIds = DataHandler.GetAllNodeIds();
+                var nodeIds = DataHandler.GetAllNodeIds(cancel);
                 _nodeCount = nodeIds.Count;
 
                 Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes. Create background tasks");
@@ -77,15 +81,16 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private void ReindexNode(Node node)
         {
-            var indx = DataBackingStore.SaveIndexDocument(node, true, false, out var hasBinary);
-            if (hasBinary)
+            var result = DataStore.SaveIndexDocumentAsync(node, true, false, CancellationToken.None).GetAwaiter().GetResult();
+            var indx = result.IndexDocumentData;
+            if (result.HasBinary)
                 CreateBinaryReindexTask(node,
                     indx.IsLastPublic ? 1 : indx.IsLastDraft ? 2 : 3);
             _reindexMetadataProgress++;
         }
         private void CreateBinaryReindexTask(Node node, int rank)
         {
-            DataHandler.CreateTempTask(node.VersionId, rank);
+            DataHandler.CreateTempTask(node.VersionId, rank, cancel);
             _taskCount++;
             Tracer.Write($"V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
         }
@@ -119,24 +124,24 @@ namespace SenseNet.Packaging.Steps.Internal
             do
             {
                 _featureIsRequested = false;
-
-                var versionIds = DataHandler.AssignTasks(
+                var assignedTasks = DataHandler.AssignTasks(
                     taskCount > 0 ? taskCount : 10,
-                    timeoutInMinutes > 0 ? timeoutInMinutes : 5,
-                    out var remainingTasks);
-                if (remainingTasks == 0)
+                    timeoutInMinutes > 0 ? timeoutInMinutes : 5, cancel);
+
+                var versionIds = assignedTasks.VersionIds;
+                if (assignedTasks.RemainingTaskCount == 0)
                 {
                     _featureIsRequested = false;
                     _featureIsRunning = false;
                     return true;
                 }
 
-                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {remainingTasks}");
+                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {assignedTasks.RemainingTaskCount}");
 
                 foreach (var versionId in versionIds)
                 {
                     if (ReindexBinaryProperties(versionId, timeLimit))
-                        DataHandler.FinishTask(versionId);
+                        DataHandler.FinishTask(versionId, cancel);
                 }
             } while (_featureIsRequested); // repeat if the maintenance called in the previous loop. 
 
@@ -162,7 +167,8 @@ namespace SenseNet.Packaging.Steps.Internal
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
                     {
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                        DataBackingStore.SaveIndexDocument(node, indx);
+                        var _ = DataStore.SaveIndexDocumentAsync(node, indx, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     });
                     Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;
@@ -177,7 +183,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         internal static DateTime GetTimeLimit()
         {
-            return DataHandler.LoadTimeLimit();
+            return DataHandler.LoadTimeLimit(cancel);
         }
         internal static bool IsFeatureActive()
         {
@@ -186,11 +192,11 @@ namespace SenseNet.Packaging.Steps.Internal
             if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
-            return DataHandler.CheckFeature();
+            return DataHandler.CheckFeature(cancel);
         }
         internal static void InactivateFeature()
         {
-            DataHandler.DropTables();
+            DataHandler.DropTables(cancel);
             Tracer.Write("Feature is inactivated.");
         }
     }

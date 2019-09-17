@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.Packaging.Steps.Internal
 {
@@ -56,27 +59,7 @@ END
 
         private void ExecuteSql(string script, ExecutionContext context)
         {
-            using (var proc = CreateDataProcedure(script, context))
-            {
-                proc.CommandType = CommandType.Text;
-                using (var reader = proc.ExecuteReader())
-                {
-                    do
-                    {
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                // empty code block, created only for checking the connection
-                            }
-                        }
-                    } while (reader.NextResult());
-                }
-            }
-        }
-        private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
-        {
-            return DataProvider.Instance.CreateDataProcedure(script, new ConnectionInfo
+            var connectionInfo = new ConnectionInfo
             {
                 ConnectionName = null,
                 DataSource = (string)context.ResolveVariable(DataSource),
@@ -84,7 +67,24 @@ END
                 InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
                 UserName = (string)context.ResolveVariable(UserName),
                 Password = (string)context.ResolveVariable(Password)
-            });
+            };
+            using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
+            {
+                ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
+                {
+                    do
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (await reader.ReadAsync(cancel).ConfigureAwait(false))
+                            {
+                                // empty code block, created only for checking the connection
+                            }
+                        }
+                    } while (reader.NextResult());
+                    return Task.FromResult(0);
+                }).GetAwaiter().GetResult();
+            }
         }
     }
 }

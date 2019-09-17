@@ -4,9 +4,11 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using System.Globalization;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Security;
+// ReSharper disable ArrangeThisQualifier
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
     /// <summary>
@@ -14,24 +16,25 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
 	public class BinaryData : IDynamicDataAccessor
     {
+        // ReSharper disable once InconsistentNaming
         private BinaryDataValue __privateValue;
 
         // =============================================== Accessor Interface
 
         Node IDynamicDataAccessor.OwnerNode
         {
-            get { return OwnerNode; }
-            set { OwnerNode = value; }
+            get => OwnerNode;
+            set => OwnerNode = value;
         }
         PropertyType IDynamicDataAccessor.PropertyType
         {
-            get { return PropertyType; }
-            set { PropertyType = value; }
+            get => PropertyType;
+            set => PropertyType = value;
         }
         object IDynamicDataAccessor.RawData
         {
-            get { return RawData; }
-            set { RawData = (BinaryDataValue)value; }
+            get => RawData;
+            set => RawData = (BinaryDataValue)value;
         }
         object IDynamicDataAccessor.GetDefaultRawData() { return GetDefaultRawData(); }
 
@@ -65,22 +68,19 @@ namespace SenseNet.ContentRepository.Storage
                 var value = (BinaryDataValue)OwnerNode.Data.GetDynamicRawData(PropertyType);
                 return value;
             }
-            set
+            set => __privateValue = new BinaryDataValue
             {
-                __privateValue = new BinaryDataValue
-                {
-                    Id = value.Id,
-                    FileId = value.FileId,
-                    ContentType = value.ContentType,
-                    FileName = value.FileName,
-                    Size = value.Size,
-                    BlobProviderName = value.BlobProviderName,
-                    BlobProviderData = value.BlobProviderData,
-                    Checksum = value.Checksum,
-                    Stream = CloneStream(value.Stream),
-                    Timestamp = value.Timestamp
-                };
-            }
+                Id = value.Id,
+                FileId = value.FileId,
+                ContentType = value.ContentType,
+                FileName = value.FileName,
+                Size = value.Size,
+                BlobProviderName = value.BlobProviderName,
+                BlobProviderData = value.BlobProviderData,
+                Checksum = value.Checksum,
+                Stream = CloneStream(value.Stream),
+                Timestamp = value.Timestamp
+            };
         }
         public bool IsEmpty
         {
@@ -137,16 +137,15 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void Modified()
         {
-            if (OwnerNode != null)
-                if (OwnerNode.Data.SharedData != null)
-                    OwnerNode.Data.CheckChanges(PropertyType);
+            if (OwnerNode?.Data.SharedData != null)
+                OwnerNode.Data.CheckChanges(PropertyType);
         }
 
         // =============================================== Accessors
 
         public int Id
         {
-            get { return RawData == null ? 0 : RawData.Id; }
+            get => RawData?.Id ?? 0;
             internal set
             {
                 Modifying();
@@ -156,7 +155,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         public int FileId
         {
-            get { return RawData == null ? 0 : RawData.FileId; }
+            get => RawData?.FileId ?? 0;
             internal set
             {
                 Modifying();
@@ -166,7 +165,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         public long Size
         {
-            get { return RawData == null ? -1 : RawData.Size; }
+            get => RawData?.Size ?? -1;
             internal set
             {
                 Modifying();
@@ -176,12 +175,9 @@ namespace SenseNet.ContentRepository.Storage
         }
         public BinaryFileName FileName
         {
-            get { return RawData == null ? new BinaryFileName("") : RawData.FileName; }
+            get => RawData?.FileName ?? new BinaryFileName("");
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException("value");
-
                 Modifying();
                 var rawData = this.RawData;
                 value = NormalizeFileName(value);
@@ -192,14 +188,11 @@ namespace SenseNet.ContentRepository.Storage
         }
         public string ContentType
         {
-            get { return RawData == null ? string.Empty : RawData.ContentType; }
+            get => RawData == null ? string.Empty : RawData.ContentType;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException("value");
-
                 Modifying();
-                RawData.ContentType = value;
+                RawData.ContentType = value ?? throw new ArgumentNullException(nameof(value));
                 Modified();
             }
         }
@@ -208,9 +201,7 @@ namespace SenseNet.ContentRepository.Storage
             get
             {
                 var raw = RawData;
-                if (raw == null)
-                    return null;
-                return raw.Checksum;
+                return raw?.Checksum;
             }
         }
         public long Timestamp
@@ -218,7 +209,7 @@ namespace SenseNet.ContentRepository.Storage
             get
             {
                 var raw = RawData;
-                return raw == null ? 0 : raw.Timestamp;
+                return raw?.Timestamp ?? 0;
             }
         }
 
@@ -239,7 +230,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public string BlobProvider
         {
-            get { return RawData == null ? null : RawData.BlobProviderName; }
+            get => RawData?.BlobProviderName;
             internal set
             {
                 Modifying();
@@ -249,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         public string BlobProviderData
         {
-            get { return RawData == null ? null : RawData.BlobProviderData; }
+            get => RawData?.BlobProviderData;
             internal set
             {
                 Modifying();
@@ -272,7 +263,7 @@ namespace SenseNet.ContentRepository.Storage
             if (this.OwnerNode.SavingState != ContentSavingState.Finalized)
                 throw new InvalidOperationException(SR.GetString(SR.Exceptions.General.Error_AccessToNotFinalizedBinary_2, this.OwnerNode.Path, this.PropertyType.Name));
 
-            return DataBackingStore.GetBinaryStream(OwnerNode.Id, OwnerNode.VersionId, PropertyType.Id);
+            return DataStore.GetBinaryStream(OwnerNode.Id, OwnerNode.VersionId, PropertyType.Id);
         }
         public Stream GetStreamWithoutDbRead()
         {
@@ -344,9 +335,9 @@ namespace SenseNet.ContentRepository.Storage
             {
                 stream = this.GetStream();
 
-                if (stream is MemoryStream)
+                if (stream is MemoryStream memoryStream)
                 {
-                    ms = (MemoryStream)stream;
+                    ms = memoryStream;
                     stream = null;
                 }
                 else
@@ -360,10 +351,8 @@ namespace SenseNet.ContentRepository.Storage
             }
             finally
             {
-                if (stream != null)
-                    stream.Dispose();
-                if (ms != null)
-                    ms.Dispose();
+                stream?.Dispose();
+                ms?.Dispose();
             }
         }
 
@@ -371,8 +360,8 @@ namespace SenseNet.ContentRepository.Storage
         {
             Id = 0;
             FileId = 0;
-            FileName = String.Empty;
-            ContentType = String.Empty;
+            FileName = string.Empty;
+            ContentType = string.Empty;
             Size = -1;
             BlobProvider = null;
             BlobProviderData = null;
@@ -407,11 +396,10 @@ namespace SenseNet.ContentRepository.Storage
             if (stream == null || !stream.CanRead)
                 return null;
 
-            var snStream = stream as SnStream;
-            if (snStream != null)
+            if (stream is SnStream snStream)
                 return snStream.Clone();
 
-            long pos = stream.Position;
+            var pos = stream.Position;
             stream.Seek(0, SeekOrigin.Begin);
             Stream clone = new MemoryStream(new BinaryReader(stream).ReadBytes((int)stream.Length));
             clone.Seek(0, SeekOrigin.Begin);
@@ -421,8 +409,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private static string GetMimeType(BinaryFileName value)
         {
-            if (value == null)
-                return string.Empty;
             string ext = value.Extension;
             if (ext == null)
                 return string.Empty;
@@ -446,16 +432,13 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The token that is needed for chunk upload. This token must be passed to the SaveChunk method when adding binary chunks.</returns>
         public static string StartChunk(int contentId, long fullSize, string fieldName = "Binary")
         {
-            Node node;
-            PropertyType pt;
-
             // workaround for empty string (not null)
             if (string.IsNullOrEmpty(fieldName))
                 fieldName = "Binary";
 
-            AssertChunk(contentId, fieldName, out node, out pt);
+            AssertChunk(contentId, fieldName, out var node, out var pt);
 
-            return DataProvider.Current.StartChunk(node.VersionId, pt.Id, fullSize);
+            return BlobStorage.StartChunkAsync(node.VersionId, pt.Id, fullSize, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -483,16 +466,14 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="binaryMetadata">Additional metadata for the binary row: file name, extension, content type.</param>
         public static void CommitChunk(int contentId, string token, long fullSize, string fieldName = "Binary", BinaryData binaryMetadata = null)
         {
-            Node node;
-            PropertyType pt;
-
             // workaround for empty string (not null)
             if (string.IsNullOrEmpty(fieldName))
                 fieldName = "Binary";
 
-            AssertChunk(contentId, fieldName, out node, out pt);
+            AssertChunk(contentId, fieldName, out var node, out var pt);
 
-            DataProvider.Current.CommitChunk(node.VersionId, pt.Id, token, fullSize, binaryMetadata == null ? null : binaryMetadata.RawData);
+            BlobStorage.CommitChunkAsync(node.VersionId, pt.Id, token, fullSize, binaryMetadata?.RawData, CancellationToken.None)
+                .GetAwaiter().GetResult();
 
             NodeIdDependency.FireChanged(node.Id);
             StorageContext.L2Cache.Clear();
@@ -509,24 +490,19 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="fieldName">Name of the field. Default: Binary</param>
         public static void WriteChunk(int contentId, string token, long fullStreamSize, byte[] buffer, long offset, string fieldName = "Binary")
         {
-            Node node;
-            PropertyType pt;
-
-            AssertChunk(contentId, fieldName, out node, out pt);
-
-            DataProvider.Current.WriteChunk(node.VersionId, token, buffer, offset, fullStreamSize);
+            AssertChunk(contentId, fieldName, out var node, out _);
+            BlobStorage.WriteChunkAsync(node.VersionId, token, buffer, offset, fullStreamSize, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
 
         public static void CopyFromStream(int contentId, Stream input, string fieldName = "Binary", BinaryData binaryData = null)
         {
             var token = StartChunk(contentId, input.Length, fieldName);
 
-            Node node;
-            PropertyType pt;
+            AssertChunk(contentId, fieldName, out var node, out _);
 
-            AssertChunk(contentId, fieldName, out node, out pt);
-
-            DataProvider.Current.CopyFromStream(node.VersionId, token, input);
+            BlobStorage.CopyFromStreamAsync(node.VersionId, token, input, CancellationToken.None)
+                .GetAwaiter().GetResult();
 
             CommitChunk(contentId, token, input.Length, fieldName, binaryData);
         }

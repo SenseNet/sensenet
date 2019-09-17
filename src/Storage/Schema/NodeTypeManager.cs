@@ -3,10 +3,9 @@ using System;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
-using System.Linq;
-using System.Configuration;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Schema
 {
@@ -16,13 +15,15 @@ namespace SenseNet.ContentRepository.Storage.Schema
         [Serializable]
         internal class NodeTypeManagerRestartDistributedAction : SenseNet.Communication.Messaging.DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
                 if (onRemote && isFromMe)
-                    return;
+                    return Task.CompletedTask;
 
                 NodeTypeManager.RestartPrivate();
+
+                return Task.CompletedTask;
             }
         }
         #endregion
@@ -59,7 +60,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         {
             SnLog.WriteInformation("NodeTypeManager.Restart called.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
-            new NodeTypeManagerRestartDistributedAction().Execute();
+            new NodeTypeManagerRestartDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
 
@@ -75,7 +76,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
             lock (_lock)
             {
-                DataProvider.Current.Reset();
+                DataStore.Reset();
                 LoadPrivate();
             }
         }

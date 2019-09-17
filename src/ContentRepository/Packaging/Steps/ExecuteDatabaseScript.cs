@@ -3,6 +3,9 @@ using System.Text;
 using System.Data;
 using SenseNet.ContentRepository.Storage.Data;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -108,18 +111,26 @@ namespace SenseNet.Packaging.Steps
                 var script = sqlReader.Script;
 
                 var sb = new StringBuilder();
-                using (var proc = CreateDataProcedure(script, context))
-                {
-                    proc.CommandType = CommandType.Text;
 
-                    using (var reader = proc.ExecuteReader())
+                var connectionInfo = new ConnectionInfo
+                {
+                    ConnectionName = (string)context.ResolveVariable(ConnectionName),
+                    DataSource = (string)context.ResolveVariable(DataSource),
+                    InitialCatalog = InitialCatalog,
+                    InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                    UserName = (string)context.ResolveVariable(UserName),
+                    Password = (string)context.ResolveVariable(Password)
+                };
+                using (var ctx = new MsSqlDataContext(connectionInfo, CancellationToken.None))
+                {
+                    ctx.ExecuteReaderAsync(script, async (reader, cancel) =>
                     {
                         do
                         {
                             if (reader.HasRows)
                             {
                                 var first = true;
-                                while (reader.Read())
+                                while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                                 {
                                     if (first)
                                     {
@@ -135,24 +146,12 @@ namespace SenseNet.Packaging.Steps
                                     sb.Clear();
                                 }
                             }
-                        } while (reader.NextResult());
-                    }
+                        } while (await reader.NextResultAsync(cancel).ConfigureAwait(false));
+                        return Task.FromResult(0);
+                    }).GetAwaiter().GetResult();
                 }
             }
             Logger.LogMessage("Script is successfully executed.");
-        }
-
-        private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
-        {
-            return DataProvider.Instance.CreateDataProcedure(script, new ConnectionInfo
-            {
-                ConnectionName = (string)context.ResolveVariable(ConnectionName),
-                DataSource = (string)context.ResolveVariable(DataSource),
-                InitialCatalog = InitialCatalog,
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
-                UserName  = (string)context.ResolveVariable(UserName),
-                Password = (string)context.ResolveVariable(Password)
-            });
         }
     }
 }
