@@ -53,9 +53,8 @@ namespace SenseNet.ODataTest.WebApp
                     appBranch.Use((httpContext, next) =>
                     {
                         var response = httpContext.GetODataResponse();
-                        if(response != null)
-                            if (response.Type == typeof(int))
-                                response.Value = (int)response.Value * 2;
+                        if (response?.Type == ODataResponseType.Int)
+                            httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
                         return Task.CompletedTask;
                     });
                 });

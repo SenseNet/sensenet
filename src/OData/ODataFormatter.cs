@@ -106,19 +106,6 @@ namespace SenseNet.OData
 
         // --------------------------------------------------------------------------------------------------------------- metadata
 
-        internal void WriteServiceDocument(HttpContext httpContext, ODataRequest req)
-        {
-            WriteServiceDocument(httpContext, GetTopLevelNames(req));
-
-            var mimeType = this.MimeType;
-            if (mimeType != null)
-                httpContext.Response.ContentType = mimeType;
-        }
-        private string[] GetTopLevelNames(ODataRequest req)
-        {
-            var rootContent = Content.Load(req.RepositoryPath);
-            return rootContent?.Children.Select(n => n.Name).ToArray() ?? new[] { Repository.RootName };
-        }
         /// <summary>
         /// Writes the OData service document with the given root names to the webresponse.
         /// </summary>

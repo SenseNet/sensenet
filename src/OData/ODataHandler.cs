@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
 using SenseNet.OData.Metadata;
 using STT = System.Threading.Tasks;
@@ -38,16 +39,6 @@ namespace SenseNet.OData
         {
             httpContext.Items[ODataResponse.Key] = value;
         }
-    }
-    public class ODataResponse
-    {
-        /// <summary>
-        /// Key name in the HttpContext.Items
-        /// </summary>
-        public static readonly string Key = "SnODataResponse";
-
-        public Type Type { get; set; }
-        public object Value { get; set; }
     }
 
     /// <summary>
@@ -104,23 +95,25 @@ namespace SenseNet.OData
 
         public async STT.Task Invoke(HttpContext httpContext)
         {
-            httpContext.SetODataResponse(new ODataResponse { Type = typeof(int), Value = 42});
+            var response = ProcessRequest(httpContext);
+            httpContext.SetODataResponse(response);
 
             await _next(httpContext);
 
-            var response = httpContext.GetODataResponse();
-            if (response != null)
+            //UNDONE: Let to know whether ODataResponse is changed or not
+            var changedResponse = httpContext.GetODataResponse();
+            if (changedResponse != null)
             {
                 httpContext.Response.ContentType = "text/plain";
-                await httpContext.Response.WriteAsync(response.Value.ToString());
+                await httpContext.Response.WriteAsync(changedResponse.Value.ToString());
             }
         }
 
         /// <inheritdoc />
         /// <remarks>Processes the OData web request.</remarks>
-        public void ProcessRequest(HttpContext httpContext)
+        public ODataResponse ProcessRequest(HttpContext httpContext)
         {
-            ProcessRequest(httpContext, httpContext.Request.Method.ToUpper(), httpContext.Request.Body);
+            return ProcessRequest(httpContext, httpContext.Request.Method.ToUpper(), httpContext.Request.Body);
         }
         /// <summary>
         /// Processes the OData web request. Designed for test purposes.
@@ -128,15 +121,17 @@ namespace SenseNet.OData
         /// <param name="httpContext">An <see cref="HttpContext" /> object that provides references to the intrinsic server objects (for example, <see langword="Request" />, <see langword="Response" />, <see langword="Session" />, and <see langword="Server" />) used to service HTTP requests. </param>
         /// <param name="httpMethod">HTTP protocol method.</param>
         /// <param name="inputStream">Request stream containing the posted JSON object.</param>
-        public void ProcessRequest(HttpContext httpContext, string httpMethod, Stream inputStream)
+        public ODataResponse ProcessRequest(HttpContext httpContext, string httpMethod, Stream inputStream)
         {
             ODataRequest odataReq = null;
             ODataFormatter formatter = null;
             try
             {
                 Content content;
-
-                odataReq = ODataRequest.Parse(string.Empty, httpContext);
+                //var uri = new Uri(httpContext.Request.GetEncodedUrl());
+                //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
+                var path = httpContext.Request.Path;
+                odataReq = ODataRequest.Parse(path, httpContext);
                 if (odataReq == null)
                 {
                     formatter = ODataFormatter.Create("json");
@@ -165,11 +160,10 @@ namespace SenseNet.OData
                 odataReq.Format = formatter.FormatName;
                 formatter.Initialize(odataReq);
 
-                var exists = Node.Exists(odataReq.RepositoryPath);
+                var exists = false;// Node.Exists(odataReq.RepositoryPath);
                 if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
-                    ContentNotFound(httpContext);
-                    return;
+                    return ODataResponse.CreateNoContentResponse();//404
                 }
 
                 JObject model;
@@ -178,7 +172,7 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataReq.IsServiceDocumentRequest)
                         {
-                            formatter.WriteServiceDocument(httpContext, odataReq);
+                            return ODataResponse.CreateServiceDocumentResponse(GetServiceDocument(httpContext, odataReq));
                         }
                         else if (odataReq.IsMetadataRequest)
                         {
@@ -209,8 +203,7 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(httpContext);
-                                return;
+                                return ODataResponse.CreateNoContentResponse();
                             }
 
                             ResetContent(content);
@@ -232,8 +225,7 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataReq);
                             if (content == null)
                             {
-                                ContentNotFound(httpContext);
-                                return;
+                                return ODataResponse.CreateNoContentResponse();
                             }
 
                             UpdateContent(content, model, odataReq);
@@ -250,8 +242,7 @@ namespace SenseNet.OData
                             // parent must exist
                             if (!Node.Exists(odataReq.RepositoryPath))
                             {
-                                ContentNotFound(httpContext);
-                                return;
+                                return ODataResponse.CreateNoContentResponse();
                             }
                             model = Read(inputStream);
                             content = CreateContent(model, odataReq);
@@ -297,8 +288,7 @@ namespace SenseNet.OData
                     var head = NodeHead.Get(odataReq.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
-                        ContentNotFound(httpContext);
-                        return;
+                        return ODataResponse.CreateNoContentResponse();
                     }
                 }
 
@@ -348,9 +338,25 @@ namespace SenseNet.OData
 
                 //UNDONE:ODATA: async
                 //await _next(httpContext);
-                _next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
+                //_next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
             }
+
+            return ODataResponse.CreateNoContentResponse();
         }
+
+        internal string[] GetServiceDocument(HttpContext httpContext, ODataRequest req)
+        {
+            var rootContent = Content.Load(req.RepositoryPath);
+            var topLevelNames = rootContent?.Children.Select(n => n.Name).ToArray() ?? new[] {Repository.RootName};
+
+            return topLevelNames;
+        }
+
+
+
+
+
+
 
         internal static JObject Read(Stream inputStream)
         {
