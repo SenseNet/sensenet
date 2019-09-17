@@ -8,6 +8,7 @@ using System.Configuration;
 using System.Reflection;
 using SenseNet.Diagnostics;
 using System.IO;
+using System.Threading;
 using SenseNet.Communication.Messaging;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
@@ -20,7 +21,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -172,7 +173,7 @@ namespace SenseNet.ContentRepository
             }
             ConsoleWriteLine("Starting IndexingEngine:");
 
-            IndexManager.Start(_settings.Console);
+            IndexManager.StartAsync(_settings.Console, CancellationToken.None).GetAwaiter().GetResult();
 
             ConsoleWriteLine("IndexingEngine has started.");
         }
@@ -247,7 +248,7 @@ namespace SenseNet.ContentRepository
                 BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 
                 ConsoleWrite("Initializing cache ... ");
-                dummy = DistributedApplication.Cache.Count;
+                dummy = Cache.Count;
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting message channel ... ");
@@ -255,7 +256,7 @@ namespace SenseNet.ContentRepository
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Sending greeting message ... ");
-                (new PingMessage(new string[0])).Send();
+                new PingMessage(new string[0]).SendAsync(CancellationToken.None).GetAwaiter().GetResult();
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting NodeType system ... ");
@@ -304,7 +305,7 @@ namespace SenseNet.ContentRepository
             catch
             {
                 // If an error occoured, shut down the cluster channel.
-                channel?.ShutDown();
+                channel?.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 throw;
             }
@@ -315,15 +316,12 @@ namespace SenseNet.ContentRepository
         private static void InitializeDataProviderExtensions()
         {
             // set default value of well-known data provider extensions
-
-            if (DataProvider.GetExtension<IPackagingDataProviderExtension>() == null)
-                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
-
-            if (DataProvider.GetExtension<IAccessTokenDataProviderExtension>() == null)
-                DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider());
-
-            if (DataProvider.GetExtension<ISharedLockDataProviderExtension>() == null)
-                DataProvider.Instance.SetExtension(typeof(ISharedLockDataProviderExtension), new SqlSharedLockDataProvider());
+            if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
+                DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
+            if (null == DataStore.GetDataProviderExtension<IAccessTokenDataProviderExtension>())
+                DataStore.SetDataProviderExtension(typeof(IAccessTokenDataProviderExtension), new MsSqlAccessTokenDataProvider());
+            if (null == DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>())
+                DataStore.SetDataProviderExtension(typeof(ISharedLockDataProviderExtension), new MsSqlSharedLockDataProvider());
         }
 
         private static void InitializeOAuthProviders()
@@ -445,7 +443,7 @@ namespace SenseNet.ContentRepository
                 _instance.ConsoleWriteLine("Sending a goodbye message...");
                 DistributedApplication.ClusterChannel.ClusterMemberInfo.NeedToRecover = false;
                 var pingMessage = new PingMessage();
-                pingMessage.Send();
+                pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 foreach (var svc in _instance.serviceInstances)
                 {
@@ -454,7 +452,7 @@ namespace SenseNet.ContentRepository
                 }
 
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
-                DistributedApplication.ClusterChannel.ShutDown();
+                DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
 
                 SnTrace.Repository.Write("Shutting down Security.");
                 SecurityHandler.ShutDownSecurity();

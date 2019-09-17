@@ -44,8 +44,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(analyzersAfter[fieldName1] == analyzerValue1);
                 Assert.IsTrue(analyzersAfter.ContainsKey(fieldName2));
                 Assert.IsTrue(analyzersAfter[fieldName2] == analyzerValue2);
-
-                return true;
             });
         }
 
@@ -62,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
                 var searchEngine = SearchManager.SearchEngine as InMemorySearchEngine;
                 Assert.IsNotNull(searchEngine);
 
-                /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
          handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>

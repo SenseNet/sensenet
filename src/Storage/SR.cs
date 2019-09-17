@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
 using System.Linq;
 using SenseNet.Tools;
+// ReSharper disable InconsistentNaming
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -12,13 +11,10 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     internal static class SR
 	{
-        private static IResourceManager resMan;
-        internal static IResourceManager ResourceManager
-        {
-            get { return resMan; }
-        }
+        private static readonly IResourceManager resMan;
+        internal static IResourceManager ResourceManager => resMan;
 
-        static SR()
+	    static SR()
         {
             var resManType = TypeResolver.GetTypesByInterface(typeof(IResourceManager))
                 .FirstOrDefault(t => t.FullName != typeof(DefaultResourceManager).FullName);
@@ -65,13 +61,13 @@ namespace SenseNet.ContentRepository.Storage
                 internal static Exception Exc_LessThanDateTimeMinValue()
                 {
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be less than ",
-						Data.DataProvider.Current.DateTimeMinValue.ToString(CultureInfo.CurrentCulture)));
-				}
+						Data.DataStore.DateTimeMinValue.ToString(CultureInfo.CurrentCulture)));
+                }
 				internal static Exception Exc_BiggerThanDateTimeMaxValue()
 				{
 					return new ArgumentOutOfRangeException(String.Concat("DateTime value cannot be bigger than ",
-						Data.DataProvider.Current.DateTimeMaxValue.ToString(CultureInfo.CurrentCulture)));
-				}
+						Data.DataStore.DateTimeMaxValue.ToString(CultureInfo.CurrentCulture)));
+                }
 
                 internal static string Error_Preview_BinaryAccess_2 = "$Error_Storage:Preview_BinaryAccess_2";
                 internal static string Error_PathTooLong_1 = "$Error_Storage:PathTooLong_1";

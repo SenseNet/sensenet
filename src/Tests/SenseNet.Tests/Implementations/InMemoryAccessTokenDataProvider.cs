@@ -1,59 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
-    internal class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
+    /// <summary> 
+    /// This is an in-memory implementation of the <see cref="IAccessTokenDataProviderExtension"/> interface.
+    /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
+    /// </summary>
+    public class InMemoryAccessTokenDataProvider : IAccessTokenDataProviderExtension
     {
-        public class AccessTokenRow
+        public DataCollection<AccessTokenDoc> GetAccessTokens()
         {
-            public int AccessTokenRowId;
-            public string Value;
-            public int UserId;
-            public int? ContentId;
-            public string Feature;
-            public DateTime CreationDate;
-            public DateTime ExpirationDate;
-
-            public AccessTokenRow Clone()
-            {
-                return new AccessTokenRow
-                {
-                    AccessTokenRowId = AccessTokenRowId,
-                    Value = Value,
-                    UserId = UserId,
-                    ContentId = ContentId,
-                    Feature = Feature,
-                    CreationDate = CreationDate,
-                    ExpirationDate = ExpirationDate
-                };
-            }
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<AccessTokenDoc>();
         }
-
-        public DataProvider MainProvider { get; set; }
-        public List<AccessTokenRow> AccessTokens { get; set; } = new List<AccessTokenRow>();
-
-        public void DeleteAllAccessTokens()
+        
+        public Task DeleteAllAccessTokensAsync(CancellationToken cancellationToken)
         {
-            AccessTokens.Clear();
+            GetAccessTokens().Clear();
+            return Task.CompletedTask;
         }
-        public void SaveAccessToken(AccessToken token)
+        public Task SaveAccessTokenAsync(AccessToken token, CancellationToken cancellationToken)
         {
-            AccessTokenRow existing = null;
+            var accessTokens = GetAccessTokens();
+
+            AccessTokenDoc existing = null;
             if (token.Id != 0)
-                existing = AccessTokens.FirstOrDefault(x => x.AccessTokenRowId == token.Id);
+                existing = accessTokens.FirstOrDefault(x => x.AccessTokenRowId == token.Id);
 
             if (existing != null)
             {
                 existing.ExpirationDate = token.ExpirationDate;
-                return;
+                return Task.CompletedTask;
             }
 
-            var newAccessTokenRowId = AccessTokens.Count == 0 ? 1 : AccessTokens.Max(t => t.AccessTokenRowId) + 1;
-            AccessTokens.Add(new AccessTokenRow
+            var newAccessTokenRowId = accessTokens.Count == 0 ? 1 : accessTokens.Max(t => t.AccessTokenRowId) + 1;
+            accessTokens.Insert(new AccessTokenDoc
             {
                 AccessTokenRowId = newAccessTokenRowId,
                 Value = token.Value,
@@ -65,76 +50,89 @@ namespace SenseNet.Tests.Implementations
             });
 
             token.Id = newAccessTokenRowId;
+            return Task.CompletedTask;
         }
 
-        public AccessToken LoadAccessTokenById(int accessTokenId)
+        public Task<AccessToken> LoadAccessTokenByIdAsync(int accessTokenId, CancellationToken cancellationToken)
         {
-            var existing = AccessTokens.FirstOrDefault(x => x.AccessTokenRowId == accessTokenId);
-            return existing == null ? null : CreateAccessTokenFromRow(existing);
+            var existing = GetAccessTokens().FirstOrDefault(x => x.AccessTokenRowId == accessTokenId);
+            return Task.FromResult(existing == null ? null : CreateAccessTokenFromDoc(existing));
         }
 
-        public AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
+        public Task<AccessToken> LoadAccessTokenAsync(string tokenValue, int contentId, string feature, CancellationToken cancellationToken)
         {
             var contentIdValue = contentId == 0 ? (int?)null : contentId;
-            var existing = AccessTokens.FirstOrDefault(x => x.Value == tokenValue &&
+            var existing = GetAccessTokens().FirstOrDefault(x => x.Value == tokenValue &&
                                                            x.ContentId == contentIdValue &&
                                                            x.Feature == feature &&
                                                            x.ExpirationDate > DateTime.UtcNow);
-            return existing == null ? null : CreateAccessTokenFromRow(existing);
+            return Task.FromResult(existing == null ? null : CreateAccessTokenFromDoc(existing));
         }
-        public AccessToken[] LoadAccessTokens(int userId)
+        public Task<AccessToken[]> LoadAccessTokensAsync(int userId, CancellationToken cancellationToken)
         {
-            return AccessTokens
+            return Task.FromResult(GetAccessTokens()
                 .Where(x => x.UserId == userId && x.ExpirationDate > DateTime.UtcNow)
-                .Select(CreateAccessTokenFromRow)
-                .ToArray();
+                .Select(CreateAccessTokenFromDoc)
+                .ToArray());
         }
 
-        public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
+        public Task UpdateAccessTokenAsync(string tokenValue, DateTime newExpirationDate, CancellationToken cancellationToken)
         {
-            var row = AccessTokens.FirstOrDefault(x => x.Value == tokenValue && x.ExpirationDate > DateTime.UtcNow);
-            if (row == null)
+            var doc = GetAccessTokens().FirstOrDefault(x => x.Value == tokenValue && x.ExpirationDate > DateTime.UtcNow);
+            if (doc == null)
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
-            row.ExpirationDate = newExpirationDate;
+            doc.ExpirationDate = newExpirationDate;
+
+            return Task.CompletedTask;
         }
 
-        public void DeleteAccessToken(string tokenValue)
+        public Task DeleteAccessTokenAsync(string tokenValue, CancellationToken cancellationToken)
         {
-            var rows = AccessTokens.Where(x => x.Value == tokenValue).ToArray();
-            foreach (var row in rows)
-                AccessTokens.Remove(row);
+            var accessTokens = GetAccessTokens();
+            var docs = accessTokens.Where(x => x.Value == tokenValue).ToArray();
+            foreach (var doc in docs)
+                accessTokens.Remove(doc);
+
+            return Task.CompletedTask;
         }
 
-        public void DeleteAccessTokensByUser(int userId)
+        public Task DeleteAccessTokensByUserAsync(int userId, CancellationToken cancellationToken)
         {
-            var rows = AccessTokens.Where(x => x.UserId == userId).ToArray();
-            foreach (var row in rows)
-                AccessTokens.Remove(row);
+            var accessTokens = GetAccessTokens();
+            var docs = accessTokens.Where(x => x.UserId == userId).ToArray();
+            foreach (var doc in docs)
+                accessTokens.Remove(doc);
+
+            return Task.CompletedTask;
         }
 
-        public void DeleteAccessTokensByContent(int contentId)
+        public Task DeleteAccessTokensByContentAsync(int contentId, CancellationToken cancellationToken)
         {
-            var rows = AccessTokens.Where(x => x.ContentId == contentId).ToArray();
-            foreach (var row in rows)
-                AccessTokens.Remove(row);
+            var accessTokens = GetAccessTokens();
+            var docs = accessTokens.Where(x => x.ContentId == contentId).ToArray();
+            foreach (var doc in docs)
+                accessTokens.Remove(doc);
+
+            return Task.CompletedTask;
         }
 
-        public void CleanupAccessTokens()
+        public Task CleanupAccessTokensAsync(CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
 
-        private AccessToken CreateAccessTokenFromRow(AccessTokenRow row)
+        private static AccessToken CreateAccessTokenFromDoc(AccessTokenDoc doc)
         {
             return new AccessToken
             {
-                Id = row.AccessTokenRowId,
-                Value = row.Value,
-                UserId = row.UserId,
-                ContentId = row.ContentId ?? 0,
-                Feature = row.Feature,
-                CreationDate = row.CreationDate,
-                ExpirationDate = row.ExpirationDate
+                Id = doc.AccessTokenRowId,
+                Value = doc.Value,
+                UserId = doc.UserId,
+                ContentId = doc.ContentId ?? 0,
+                Feature = doc.Feature,
+                CreationDate = doc.CreationDate,
+                ExpirationDate = doc.ExpirationDate
             };
         }
     }

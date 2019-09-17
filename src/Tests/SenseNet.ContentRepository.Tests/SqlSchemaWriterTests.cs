@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 				GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_CreateContentListPropertyType()
@@ -136,7 +136,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_DeletePropertyType()
@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         //============================ NodeType
@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_CreateRootNodeType_WithClassName()
@@ -191,7 +191,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_CreateNodeType_WithoutClassName()
@@ -211,7 +211,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_CreateNodeType_WithClassName()
@@ -231,7 +231,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_ModifyNodeType_NullClass()
@@ -252,7 +252,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_ModifyNodeType()
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_DeleteNodeType()
@@ -300,7 +300,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_DeleteNodeTypeWithProperties()
@@ -321,7 +321,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         //============================ ContentListType
@@ -339,7 +339,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_DeleteContentListType()
@@ -358,7 +358,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         //============================ PropertyType
@@ -384,7 +384,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_AddPropertyTypeToNodeType_Inherited()
@@ -407,7 +407,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_AddPropertyTypeToContentListType()
@@ -430,7 +430,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         [TestMethod]
@@ -455,7 +455,7 @@ DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND
 GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_Currency()
@@ -470,19 +470,12 @@ GO";
             writer.RemovePropertyTypeFromPropertySet(pt, nt);
 
             string expectedSql = @"
-						-- Reset property values
-						UPDATE dbo.FlatProperties 
-							SET money_1 = NULL
-						WHERE Id IN (SELECT dbo.FlatProperties.Id FROM dbo.Nodes 
-							INNER JOIN dbo.Versions ON dbo.Versions.NodeId = dbo.Nodes.NodeId 
-							INNER JOIN dbo.FlatProperties ON dbo.Versions.VersionId = dbo.FlatProperties.VersionId 
-							WHERE (dbo.Nodes.NodeTypeId = 1) AND (dbo.FlatProperties.Page = 0))
 						-- Remove PropertyType 'PT0' from PropertySet 'NT0'
 						DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND PropertySetId = 1
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_DateTime()
@@ -497,19 +490,12 @@ GO";
             writer.RemovePropertyTypeFromPropertySet(pt, nt);
 
             string expectedSql = @"
-						-- Reset property values
-						UPDATE dbo.FlatProperties 
-							SET datetime_1 = NULL
-						WHERE Id IN (SELECT dbo.FlatProperties.Id FROM dbo.Nodes 
-							INNER JOIN dbo.Versions ON dbo.Versions.NodeId = dbo.Nodes.NodeId 
-							INNER JOIN dbo.FlatProperties ON dbo.Versions.VersionId = dbo.FlatProperties.VersionId 
-							WHERE (dbo.Nodes.NodeTypeId = 1) AND (dbo.FlatProperties.Page = 0))
 						-- Remove PropertyType 'PT0' from PropertySet 'NT0'
 						DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND PropertySetId = 1
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_Int()
@@ -524,19 +510,12 @@ GO";
             writer.RemovePropertyTypeFromPropertySet(pt, nt);
 
             string expectedSql = @"
-						-- Reset property values
-						UPDATE dbo.FlatProperties 
-							SET int_1 = NULL
-						WHERE Id IN (SELECT dbo.FlatProperties.Id FROM dbo.Nodes 
-							INNER JOIN dbo.Versions ON dbo.Versions.NodeId = dbo.Nodes.NodeId 
-							INNER JOIN dbo.FlatProperties ON dbo.Versions.VersionId = dbo.FlatProperties.VersionId 
-							WHERE (dbo.Nodes.NodeTypeId = 1) AND (dbo.FlatProperties.Page = 0))
 						-- Remove PropertyType 'PT0' from PropertySet 'NT0'
 						DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND PropertySetId = 1
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_Reference()
@@ -561,7 +540,7 @@ GO";
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_String()
@@ -576,19 +555,12 @@ GO";
             writer.RemovePropertyTypeFromPropertySet(pt, nt);
 
             string expectedSql = @"
-						-- Reset property values
-						UPDATE dbo.FlatProperties 
-							SET nvarchar_1 = NULL
-						WHERE Id IN (SELECT dbo.FlatProperties.Id FROM dbo.Nodes 
-							INNER JOIN dbo.Versions ON dbo.Versions.NodeId = dbo.Nodes.NodeId 
-							INNER JOIN dbo.FlatProperties ON dbo.Versions.VersionId = dbo.FlatProperties.VersionId 
-							WHERE (dbo.Nodes.NodeTypeId = 1) AND (dbo.FlatProperties.Page = 0))
 						-- Remove PropertyType 'PT0' from PropertySet 'NT0'
 						DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND PropertySetId = 1
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_RemovePropertyTypeFromNodeType_Text()
@@ -618,7 +590,7 @@ GO
 ";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         [TestMethod]
@@ -641,7 +613,7 @@ GO
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         //============================ More actions
@@ -697,15 +669,6 @@ GO
             #endregion
 
             string expectedSql = @"
-						-- Reset property values
-						UPDATE dbo.FlatProperties 
-							SET nvarchar_1 = NULL,
-								nvarchar_2 = NULL,
-								nvarchar_3 = NULL
-						WHERE Id IN (SELECT dbo.FlatProperties.Id FROM dbo.Nodes 
-							INNER JOIN dbo.Versions ON dbo.Versions.NodeId = dbo.Nodes.NodeId 
-							INNER JOIN dbo.FlatProperties ON dbo.Versions.VersionId = dbo.FlatProperties.VersionId 
-							WHERE (dbo.Nodes.NodeTypeId = 1) AND (dbo.FlatProperties.Page = 0))
 						-- Remove PropertyType 'PT0' from PropertySet 'NT0'
 						DELETE FROM [dbo].[SchemaPropertySetsPropertyTypes] WHERE PropertyTypeId = 2 AND PropertySetId = 1
 						GO
@@ -717,7 +680,7 @@ GO
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
         [TestMethod]
         public void SqlSchemaWriter_CreateNodeType_More()
@@ -743,14 +706,16 @@ GO
 						GO";
 
             string sql = writer.GetSqlScript();
-            Assert.IsTrue(ScriptsAreEqual(sql, expectedSql));
+            AssertScriptsAreEqual(expectedSql, sql);;
         }
 
         //================================================= Tools =================================================
 
-        private bool ScriptsAreEqual(string striptA, string scriptB)
+        private void AssertScriptsAreEqual(string striptA, string scriptB)
         {
-            return striptA.Replace("\r\n", "").Replace("\t", "").Replace("    ", "") == scriptB.Replace("\r\n", "").Replace("\t", "").Replace("    ", "");
+            Assert.AreEqual(
+                striptA.Replace("\r\n", "").Replace("\t", "").Replace("    ", ""),
+                scriptB.Replace("\r\n", "").Replace("\t", "").Replace("    ", ""));
         }
 
         private void SetSchemaItemId(SchemaItem item, int id)

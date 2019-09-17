@@ -2,11 +2,8 @@
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Tests;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Web;
 
 namespace SenseNet.ContentRepository.Tests
@@ -18,7 +15,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             // need to reset the pinned site list
             var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.Execute();
+            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var sites = new GenericContent(Repository.Root, "Sites") { Name = "Sites" };
             sites.Save();

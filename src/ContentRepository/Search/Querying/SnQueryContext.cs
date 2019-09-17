@@ -18,7 +18,7 @@ namespace SenseNet.Search.Querying
         /// <inheritdoc />
         public IQueryEngine QueryEngine => SearchManager.SearchEngine.QueryEngine;
         /// <inheritdoc />
-        public IMetaQueryEngine MetaQueryEngine => DataProvider.Current.MetaQueryEngine;
+        public IMetaQueryEngine MetaQueryEngine { get; } = new NullMetaQueryEngine();
 
         /// <summary>
         /// Initializes a new instance of the SnQueryContext.

@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.Portal.Virtualization;
 using System.Xml;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.ContentRepository.Fields;
@@ -175,7 +176,7 @@ namespace SenseNet.Portal
             base.Save(mode);
 
             var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.Execute();
+            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void ValidateStartPage()
@@ -193,7 +194,7 @@ namespace SenseNet.Portal
             base.Delete();
 
             var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.Execute();
+            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <inheritdoc />
@@ -202,7 +203,7 @@ namespace SenseNet.Portal
             base.ForceDelete();
 
             var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.Execute();
+            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private void RefreshUrlList()

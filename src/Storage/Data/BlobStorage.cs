@@ -3,71 +3,95 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
     internal class BlobStorage : BlobStorageBase
     {
-        public new static void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
+        public new static Task InsertBinaryPropertyAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, SnDataContext dataContext)
         {
-            BlobStorageBase.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+            return BlobStorageBase.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, dataContext);
         }
 
-        public new static void UpdateBinaryProperty(BinaryDataValue value)
+        public new static Task UpdateBinaryPropertyAsync(BinaryDataValue value, SnDataContext dataContext)
         {
-            BlobStorageBase.UpdateBinaryProperty(value);
+            return BlobStorageBase.UpdateBinaryPropertyAsync(value, dataContext);
         }
 
-        public new static void DeleteBinaryProperty(int versionId, int propertyTypeId)
+        public new static Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            BlobStorageBase.DeleteBinaryProperty(versionId, propertyTypeId);
+            return BlobStorageBase.DeleteBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
 
-        public new static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        public new static Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
-            return BlobStorageBase.GetBlobStorageContext(fileId, clearStream, versionId, propertyTypeId);
+            return BlobStorageBase.DeleteBinaryPropertiesAsync(versionIds, dataContext);
         }
 
-        public new static BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
+        public static Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, CancellationToken cancellationToken, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
-            return BlobStorageBase.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
+            return BlobStorageBase.GetBlobStorageContextAsync(fileId, clearStream, versionId, propertyTypeId, cancellationToken);
         }
 
-        public new static byte[] LoadBinaryFragment(int fileId, long position, int count)
+        public new static Task<BinaryDataValue> LoadBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
-            return BlobStorageBase.LoadBinaryFragment(fileId, position, count);
+            return BlobStorageBase.LoadBinaryPropertyAsync(versionId, propertyTypeId, dataContext);
         }
 
-        public new static string StartChunk(int versionId, int propertyTypeId, long fullSize)
+        public new static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int nodeVersionId, int propertyTypeId, CancellationToken cancellationToken)
         {
-            return BlobStorageBase.StartChunk(versionId, propertyTypeId, fullSize);
+            return BlobStorageBase.LoadBinaryCacheEntityAsync(nodeVersionId, propertyTypeId, cancellationToken);
+        }
+        public new static Task<BinaryCacheEntity> LoadBinaryCacheEntityAsync(int nodeVersionId, int propertyTypeId, SnDataContext dataContext)
+        {
+            return BlobStorageBase.LoadBinaryCacheEntityAsync(nodeVersionId, propertyTypeId, dataContext);
         }
 
-        public new static void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
+        public new static Task<byte[]> LoadBinaryFragmentAsync(int fileId, long position, int count, CancellationToken cancellationToken)
         {
-            BlobStorageBase.WriteChunk(versionId, token, buffer, offset, fullSize);
+            return BlobStorageBase.LoadBinaryFragmentAsync(fileId, position, count, cancellationToken);
         }
 
-        public new static void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
+        public new static Task<string> StartChunkAsync(int versionId, int propertyTypeId, long fullSize,
+            CancellationToken cancellationToken)
         {
-            BlobStorageBase.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
+            return BlobStorageBase.StartChunkAsync(versionId, propertyTypeId, fullSize, cancellationToken);
         }
 
-        public new static void CopyFromStream(int versionId, string token, Stream input)
+        public new static Task WriteChunkAsync(int versionId, string token, byte[] buffer, long offset, long fullSize,
+            CancellationToken cancellationToken)
         {
-            BlobStorageBase.CopyFromStream(versionId, token, input);
+            return BlobStorageBase.WriteChunkAsync(versionId, token, buffer, offset, fullSize, cancellationToken);
+        }
+
+        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            CancellationToken cancellationToken )
+        {
+            return BlobStorageBase.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, cancellationToken);
+        }
+        public new static Task CommitChunkAsync(int versionId, int propertyTypeId, string token, long fullSize,
+            BinaryDataValue source, CancellationToken cancellationToken)
+        {
+            return BlobStorageBase.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, source, cancellationToken);
+        }
+
+        public new static Task CopyFromStreamAsync(int versionId, string token, Stream input, CancellationToken cancellationToken)
+        {
+            return BlobStorageBase.CopyFromStreamAsync(versionId, token, input, cancellationToken);
         }
 
         /*================================================================== Maintenance*/
 
-        public new static void CleanupFilesSetFlag()
+        public new static Task CleanupFilesSetFlagAsync(CancellationToken cancellationToken)
         {
-            BlobStorageBase.CleanupFilesSetFlag();
+            return BlobStorageBase.CleanupFilesSetFlagAsync(cancellationToken);
         }
 
-        public new static bool CleanupFiles()
+        public new static Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
-            return BlobStorageBase.CleanupFiles();
+            return BlobStorageBase.CleanupFilesAsync(cancellationToken);
         }
 
         /*==================================================================== Provider */

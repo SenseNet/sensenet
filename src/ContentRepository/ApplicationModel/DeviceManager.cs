@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using SenseNet.ContentRepository;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
 using SafeQueries = SenseNet.ContentRepository.SafeQueries;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ApplicationModel
 {
@@ -18,7 +17,7 @@ namespace SenseNet.ApplicationModel
     {
         internal static void Reset()
         {
-            new DeviceManagerResetDistributedAction().Execute();
+            new DeviceManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {
@@ -27,12 +26,13 @@ namespace SenseNet.ApplicationModel
         [Serializable]
         internal sealed class DeviceManagerResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
                 if (onRemote && isFromMe)
-                    return;
+                    return Task.CompletedTask;
                 DeviceManager.ResetPrivate();
+                return Task.CompletedTask;
             }
         }
 

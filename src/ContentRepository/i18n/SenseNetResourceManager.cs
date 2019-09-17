@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
+using STT=System.Threading.Tasks;
 using System.Web;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage;
@@ -47,12 +49,14 @@ namespace SenseNet.ContentRepository.i18n
         [Serializable]
         internal sealed class ResourceManagerResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
                 if (onRemote && isFromMe)
-                    return;
+                    return STT.Task.CompletedTask;
                 SenseNetResourceManager.ResetPrivate();
+
+                return STT.Task.CompletedTask;
             }
         }
 
@@ -61,7 +65,7 @@ namespace SenseNet.ContentRepository.i18n
             SnLog.WriteInformation("ResourceManager.Reset called.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
-            new ResourceManagerResetDistributedAction().Execute();
+            new ResourceManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -450,7 +451,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // need to reset the pinned site list
             var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.Execute();
+            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
             sites.Save();

@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository
                 // do not try to execute patches again recursively.
                 settings.ExecutingPatches = true;
 
-                //UNDONE: [auto-patch] this feature is not released yet
+                //TODO: [auto-patch] this feature is not released yet
                 //PackageManager.ExecuteAssemblyPatches(settings);
             }
 

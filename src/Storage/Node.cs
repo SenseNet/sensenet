@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -15,10 +17,12 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -207,7 +211,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         protected virtual IEnumerable<Node> GetChildren()
         {
-            var nodeHeads = DataBackingStore.GetNodeHeads(QueryChildren().Identifiers);
+            var nodeHeads = DataStore.LoadNodeHeadsAsync(QueryChildren().Identifiers, CancellationToken.None)
+                .GetAwaiter().GetResult();
             var user = AccessProvider.Current.GetCurrentUser();
 
             // use loop here instead of LoadNodes to check permissions
@@ -636,9 +641,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetCreationDate(DateTime creation)
         {
-            if (creation < DataProvider.Current.DateTimeMinValue)
+            if (creation < DataStore.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > DataProvider.Current.DateTimeMaxValue)
+            if (creation > DataStore.DateTimeMaxValue)
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.CreationDate = creation;
@@ -683,9 +688,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.ModificationDate; }
             set
             {
-                if (value < DataProvider.Current.DateTimeMinValue)
+                if (value < DataStore.DateTimeMinValue)
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > DataProvider.Current.DateTimeMaxValue)
+                if (value > DataStore.DateTimeMaxValue)
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -779,9 +784,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         private void SetVersionCreationDate(DateTime creation)
         {
-            if (creation < DataProvider.Current.DateTimeMinValue)
+            if (creation < DataStore.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-            if (creation > DataProvider.Current.DateTimeMaxValue)
+            if (creation > DataStore.DateTimeMaxValue)
                 throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
             MakePrivateData();
             _data.VersionCreationDate = creation;
@@ -826,9 +831,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.VersionModificationDate; }
             set
             {
-                if (value < DataProvider.Current.DateTimeMinValue)
+                if (value < DataStore.DateTimeMinValue)
                     throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
-                if (value > DataProvider.Current.DateTimeMaxValue)
+                if (value > DataStore.DateTimeMaxValue)
                     throw SR.Exceptions.General.Exc_BiggerThanDateTimeMaxValue();
 
                 MakePrivateData();
@@ -1656,7 +1661,7 @@ namespace SenseNet.ContentRepository.Storage
                 throw new ApplicationException("Cannot create a ContentList under another ContentList");
             }
 
-            var data = DataBackingStore.CreateNewNodeData(parent, nodeType, listType, listId);
+            var data = DataStore.CreateNewNodeData(parent, nodeType, listType, listId);
             SetNodeData(data);
 
         }
@@ -1715,7 +1720,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
         public static List<Node> LoadNodes(IEnumerable<int> idArray)
         {
-            return LoadNodes(DataBackingStore.GetNodeHeads(idArray), VersionNumber.LastAccessible);
+            return LoadNodes(DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult(),
+                VersionNumber.LastAccessible);
         }
         private static List<Node> LoadNodes(IEnumerable<NodeHead> heads, VersionNumber version)
         {
@@ -1767,7 +1773,8 @@ namespace SenseNet.ContentRepository.Storage
 
             // loading data
             var result = new List<Node>();
-            var tokenArray = DataBackingStore.GetNodeData(headList.ToArray(), versionIdList.ToArray());
+            var tokenArray = DataStore.LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), CancellationToken.None)
+                .GetAwaiter().GetResult();
             for (int i = 0; i < tokenArray.Length; i++)
             {
                 var token = tokenArray[i];
@@ -1829,7 +1836,7 @@ namespace SenseNet.ContentRepository.Storage
                         if (acceptedLevel == AccessLevel.Header)
                             isHeadOnly = true;
                         var versionId = GetVersionId(head, acceptedLevel, version);
-                        token = DataBackingStore.GetNodeData(head, versionId);
+                        token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
                     }
                 }
             }
@@ -1927,7 +1934,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (path == null)
                 throw new ArgumentNullException("path");
-            return LoadNode(DataBackingStore.GetNodeHead(path), version);
+            return LoadNode(DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
         /// Loads the appropiate <see cref="Node"/> by the given Id.
@@ -1956,7 +1963,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
-            return LoadNode(DataBackingStore.GetNodeHead(nodeId), version);
+            return LoadNode(DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
         /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.
@@ -2006,7 +2013,7 @@ namespace SenseNet.ContentRepository.Storage
                     return (Node)cachedNode;
                 // </L2Cache>
 
-                var token = DataBackingStore.GetNodeData(head, versionId);
+                var token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
                 if (token.NodeData != null)
                 {
                     var node = CreateTargetClass(token);
@@ -2215,7 +2222,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
         {
-            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(nodeId));
+            return DataStore.GetVersionNumbersAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult()
+                .Select(x => x.VersionNumber)
+                .ToList();
         }
         /// <summary>
         /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
@@ -2224,8 +2233,10 @@ namespace SenseNet.ContentRepository.Storage
         public static List<VersionNumber> GetVersionNumbers(string path)
         {
             if (path == null)
-                throw new ArgumentNullException("path");
-            return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(path));
+                throw new ArgumentNullException(nameof(path));
+            return DataStore.GetVersionNumbersAsync(path, CancellationToken.None).GetAwaiter().GetResult()
+                .Select(x => x.VersionNumber)
+                .ToList();
         }
 
         /// <summary>
@@ -2268,7 +2279,7 @@ namespace SenseNet.ContentRepository.Storage
 
             SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
-            var token = DataBackingStore.GetNodeData(head, versionId);
+            var token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
 
             Node node = null;
             if (token.NodeData != null)
@@ -2286,7 +2297,8 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeHead != null)
             {
                 //  Reload by nodeHead.LastMinorVersionId
-                var token = DataBackingStore.GetNodeData(nodeHead, nodeHead.LastMinorVersionId);
+                var token =  DataStore.LoadNodeAsync(nodeHead, nodeHead.LastMinorVersionId, CancellationToken.None)
+                    .GetAwaiter().GetResult();
                 var sharedData = token.NodeData;
                 sharedData.IsShared = true;
                 SetNodeData(sharedData);
@@ -2301,7 +2313,7 @@ namespace SenseNet.ContentRepository.Storage
             if (nodeHead == null)
                 throw new ContentNotFoundException(String.Format("Version of a content was not found. VersionId: {0}, old Path: {1}", this.VersionId, this.Path));
 
-            var token = DataBackingStore.GetNodeData(nodeHead, this.VersionId);
+            var token =  DataStore.LoadNodeAsync(nodeHead, this.VersionId, CancellationToken.None).GetAwaiter().GetResult();
             var sharedData = token.NodeData;
             sharedData.IsShared = true;
             SetNodeData(sharedData);
@@ -2415,7 +2427,7 @@ namespace SenseNet.ContentRepository.Storage
                 // Update the modification
                 
                 // update to current
-                DateTime now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                var now = DataStore.RoundDateTime(DateTime.UtcNow);
                 this.ModificationDate = now;
                 this.Data.ModifiedById = currentUserId;
                 this.VersionModificationDate = now;
@@ -2426,7 +2438,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
+                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2580,7 +2592,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (!isElevatedMode ||
                         ElevatedModificationVisibilityRule.EvaluateRule(this))
                     {
-                        var now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                        var now = DataStore.RoundDateTime(DateTime.UtcNow);
                         if (!_data.VersionModificationDateChanged)
                             this.VersionModificationDate = now;
                         if (!_data.VersionModifiedByIdChanged)
@@ -2669,18 +2681,18 @@ namespace SenseNet.ContentRepository.Storage
                     // save
                     TreeLock treeLock = null;
                     if (renamed)
-                        treeLock = TreeLock.Acquire(this.ParentPath + "/" + this.Name, originalPath);
+                        treeLock = TreeLock.AcquireAsync(CancellationToken.None,this.ParentPath + "/" + this.Name, originalPath).GetAwaiter().GetResult();
                     else
-                        TreeLock.AssertFree(this.ParentPath + "/" + this.Name);
+                        TreeLock.AssertFreeAsync(CancellationToken.None, this.ParentPath + "/" + this.Name).GetAwaiter().GetResult();
+
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
+                        SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
-                        if (treeLock != null)
-                            treeLock.Dispose();
+                        treeLock?.Dispose();
                     }
 
                     // <L2Cache>
@@ -2776,7 +2788,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
+                SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2798,7 +2810,7 @@ namespace SenseNet.ContentRepository.Storage
                 this.Version = settings.ExpectedVersion;
 
                 MakePrivateData();
-                _data.VersionCreationDate = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
+                _data.VersionCreationDate = DataStore.RoundDateTime(DateTime.UtcNow);
             }
 
             if (settings.LockerUserId != null)
@@ -2914,23 +2926,219 @@ namespace SenseNet.ContentRepository.Storage
             if (this.IsContentType)
                 return;
 
-            switch (Cache.CacheContentAfterSaveMode)
+            switch (CacheConfiguration.CacheContentAfterSaveMode)
             {
-                case Cache.CacheContentAfterSaveOption.None:
+                case CacheConfiguration.CacheContentAfterSaveOption.None:
                     // do nothing
                     break;
-                case Cache.CacheContentAfterSaveOption.Containers:
+                case CacheConfiguration.CacheContentAfterSaveOption.Containers:
                     // cache IFolders only
                     if (this is IFolder)
-                        DataBackingStore.CacheNodeData(this._data);
+                        DataStore.CacheNodeData(this._data);
                     break;
-                case Cache.CacheContentAfterSaveOption.All:
+                case CacheConfiguration.CacheContentAfterSaveOption.All:
                     // cache every node
-                    DataBackingStore.CacheNodeData(this._data);
+                    DataStore.CacheNodeData(this._data);
                     break;
             }
         }
 
+        #region /* ------------------------------------------------------------------------- SaveNodeData */
+        private const int maxDeadlockIterations = 3;
+        private const int sleepIfDeadlock = 1000;
+
+        private static void SaveNodeData(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        {
+            var isNewNode = node.Id == 0;
+            var isOwnerChanged = node.Data.IsPropertyChanged("OwnerId");
+            if (!isNewNode && isOwnerChanged)
+                node.Security.Assert(PermissionType.TakeOwnership);
+
+            var data = node.Data;
+            var attempt = 0;
+
+            using (var op = SnTrace.Database.StartOperation("SaveNodeData"))
+            {
+                while (true)
+                {
+                    attempt++;
+
+                    var deadlockException = SaveNodeDataAttempt(node, settings, populator, originalPath, newPath);
+                    if (deadlockException == null)
+                        break;
+
+                    SnTrace.Database.Write("DEADLOCK detected. Attempt: {0}/{1}, NodeId:{2}, Version:{3}, Path:{4}",
+                        attempt, maxDeadlockIterations, node.Id, node.Version, node.Path);
+
+                    if (attempt >= maxDeadlockIterations)
+                        throw new DataException(string.Format("Error saving node. Id: {0}, Path: {1}", node.Id, node.Path), deadlockException);
+
+                    SnLog.WriteWarning("Deadlock detected in SaveNodeData", properties:
+                        new Dictionary<string, object>
+                        {
+                            {"Id: ", node.Id},
+                            {"Path: ", node.Path},
+                            {"Version: ", node.Version},
+                            {"Attempt: ", attempt}
+                        });
+
+                    System.Threading.Thread.Sleep(sleepIfDeadlock);
+                }
+                op.Successful = true;
+            }
+
+            try
+            {
+                if (isNewNode)
+                {
+                    SecurityHandler.CreateSecurityEntity(node.Id, node.ParentId, node.OwnerId);
+                }
+                else if (isOwnerChanged)
+                {
+                    SecurityHandler.ModifyEntityOwner(node.Id, node.OwnerId);
+                }
+            }
+            catch (EntityNotFoundException e)
+            {
+                SnLog.WriteException(e, $"Error during creating or modifying security entity: {node.Id}. Original message: {e}",
+                    EventId.Security);
+            }
+            catch (SecurityStructureException) // suppressed
+            {
+                // no need to log this: somebody else already created or modified this security entity
+            }
+
+            if (isNewNode)
+                SnTrace.ContentOperation.Write("Node created. Id:{0}, Path:{1}", data.Id, data.Path);
+            else
+                SnTrace.ContentOperation.Write("Node updated. Id:{0}, Path:{1}", data.Id, data.Path);
+        }
+        private static Exception SaveNodeDataAttempt(Node node, NodeSaveSettings settings, IIndexPopulator populator, string originalPath, string newPath)
+        {
+            IndexDocumentData indexDocument = null;
+            bool hasBinary = false;
+
+            var data = node.Data;
+            var isNewNode = data.Id == 0;
+
+            var msg = "Saving Node#" + node.Id + ", " + node.ParentPath + "/" + node.Name;
+
+            using (var op = SnTrace.Database.StartOperation(msg))
+            {
+                try
+                {
+                    // collect data for populator
+                    var populatorData = populator.BeginPopulateNode(node, settings, originalPath, newPath);
+
+                    if (settings.NodeHead != null)
+                    {
+                        settings.LastMajorVersionIdBefore = settings.NodeHead.LastMajorVersionId;
+                        settings.LastMinorVersionIdBefore = settings.NodeHead.LastMinorVersionId;
+                    }
+
+                    // Finalize path
+                    string path;
+
+                    if (data.Id != Identifiers.PortalRootId)
+                    {
+                        var parent = NodeHead.Get(data.ParentId);
+                        if (parent == null)
+                            throw new ContentNotFoundException(data.ParentId.ToString());
+                        path = RepositoryPath.Combine(parent.Path, data.Name);
+                    }
+                    else
+                    {
+                        path = Identifiers.RootPath;
+                    }
+                    Node.AssertPath(path);
+                    data.Path = path;
+
+                    // Store in the database
+                    int lastMajorVersionId, lastMinorVersionId;
+
+                    var head = DataStore.SaveNodeAsync(data, settings, CancellationToken.None).GetAwaiter().GetResult();
+                    lastMajorVersionId = settings.LastMajorVersionIdAfter;
+                    lastMinorVersionId = settings.LastMinorVersionIdAfter;
+                    node.RefreshVersionInfo(head);
+
+                    // here we re-create the node head to insert it into the cache and refresh the version info);
+                    if (lastMajorVersionId > 0 || lastMinorVersionId > 0)
+                    {
+                        if (!settings.DeletableVersionIds.Contains(node.VersionId))
+                        {
+                            // Elevation: we need to create the index document with full
+                            // control to avoid field access errors (indexing must be independent
+                            // from the current users permissions).
+                            using (new SystemAccount())
+                            {
+                                var result = DataStore.SaveIndexDocumentAsync(node, true, isNewNode, CancellationToken.None)
+                                    .GetAwaiter().GetResult();
+                                indexDocument = result.IndexDocumentData;
+                                hasBinary = result.HasBinary;
+                            }
+                        }
+                    }
+
+                    // populate index only if it is enabled on this content (e.g. preview images will be skipped)
+                    using (var op2 = SnTrace.Index.StartOperation("Indexing node"))
+                    {
+                        if (node.IsIndexingEnabled)
+                        {
+                            using (new SystemAccount())
+                                populator.CommitPopulateNodeAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
+                        }
+
+                        if (indexDocument != null && hasBinary)
+                        {
+                            using (new SystemAccount())
+                            {
+                                indexDocument = DataStore.SaveIndexDocumentAsync(node, indexDocument, CancellationToken.None)
+                                    .GetAwaiter().GetResult();
+                                populator.FinalizeTextExtractingAsync(populatorData, indexDocument, CancellationToken.None).GetAwaiter().GetResult();
+                            }
+                        }
+                        op2.Successful = true;
+                    }
+                }
+                catch (TransactionDeadlockedException tde)
+                {
+                    return tde;
+                }
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerException is TransactionDeadlockedException)
+                        return ae.InnerException;
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    var ee = SavingExceptionHelper(data, e);
+                    if (ee == e)
+                        throw;
+                    throw ee;
+                }
+                op.Successful = true;
+            }
+            return null;
+        }
+        private static Exception SavingExceptionHelper(NodeData data, Exception catchedEx)
+        {
+            var message = "The content cannot be saved.";
+            if (catchedEx.Message.StartsWith("Cannot insert duplicate key"))
+            {
+                message += " A content with the name you specified already exists.";
+
+                var appExc = new NodeAlreadyExistsException(message, catchedEx); // new ApplicationException(message, catchedEx);
+                appExc.Data.Add("NodeId", data.Id);
+                appExc.Data.Add("Path", data.Path);
+                appExc.Data.Add("OriginalPath", data.OriginalPath);
+
+                appExc.Data.Add("ErrorCode", "ExistingNode");
+                return appExc;
+            }
+            return catchedEx;
+        }
+        #endregion
 
         #region // ================================================================================================= Move methods
 
@@ -2940,7 +3148,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
-            return DataProvider.Current.LoadChildTypesToAllow(nodeId);
+            return DataStore.LoadChildTypesToAllowAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
         }
         //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
@@ -2948,7 +3156,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
-            return DataProvider.Current.LoadChildTypesToAllow(this.Id);
+            return DataStore.LoadChildTypesToAllowAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -2976,16 +3184,9 @@ namespace SenseNet.ContentRepository.Storage
         public virtual void MoveTo(Node target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
-            MoveTo(target, this.NodeTimestamp, target.NodeTimestamp);
-        }
-        private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
-        {
+                throw new ArgumentNullException(nameof(target));
             this.AssertLock();
             AssertMoving(target);
-
-            if (target == null)
-                throw new ArgumentNullException("target");
 
             // check permissions
             this.Security.AssertSubtree(PermissionType.Delete);
@@ -3013,7 +3214,7 @@ namespace SenseNet.ContentRepository.Storage
             {                { "Id", Id }, {"Path", Path }, {"Target", targetPath }            }))
             {
                 IDictionary<string, object> customData;
-                using (var treeLock = TreeLock.Acquire(this.Path, RepositoryPath.Combine(target.Path, this.Name)))
+                using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
                     var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                     FireOnMoving(args);
@@ -3025,7 +3226,8 @@ namespace SenseNet.ContentRepository.Storage
 
                     try
                     {
-                        DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp);
+                        DataStore.MoveNodeAsync(this.Data, target.Id, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                     }
                     catch (DataOperationException e) // rethrow
                     {
@@ -3041,7 +3243,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(this.Path);
 
                     var populator = SearchManager.GetIndexPopulator();
-                    populator.DeleteTree(this.Path, this.Id);
+                    populator.DeleteTreeAsync(this.Path, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     // <L2Cache>
                     StorageContext.L2Cache.Clear();
@@ -3054,7 +3256,8 @@ namespace SenseNet.ContentRepository.Storage
                         var acceptedLevel = GetAcceptedLevel(userAccessLevel, VersionNumber.LastAccessible);
                         var versionId = GetVersionId(nodeHead, acceptedLevel != AccessLevel.Header ? acceptedLevel : AccessLevel.Major, VersionNumber.LastAccessible);
 
-                        var sharedData = DataBackingStore.GetNodeData(nodeHead, versionId);
+                        var sharedData =  DataStore.LoadNodeAsync(nodeHead, versionId, CancellationToken.None)
+                            .GetAwaiter().GetResult();
                         var privateData = NodeData.CreatePrivateData(sharedData.NodeData);
                         SetNodeData(privateData);
                     }
@@ -3064,7 +3267,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
 
                     using (new SystemAccount())
-                        populator.AddTree(targetPath, this.Id);
+                        populator.AddTreeAsync(targetPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                 } // end lock
 
@@ -3572,9 +3775,10 @@ namespace SenseNet.ContentRepository.Storage
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                     var customData = args.GetCustomData();
 
-                    var contentListTypesInTree = (this is IContentList) ?
-                        new List<ContentListType>(new[] { this.ContentListType }) :
-                        DataProvider.Current.GetContentListTypesInTree(this.Path);
+                    var contentListTypesInTree = (this is IContentList)
+                        ? new List<ContentListType>(new[] {this.ContentListType})
+                        : DataStore.GetContentListTypesInTreeAsync(this.Path, CancellationToken.None)
+                        .GetAwaiter().GetResult();
 
                     var logProps = CollectAllProperties(this.Data);
                     var oldPath = this.Path;
@@ -3587,9 +3791,12 @@ namespace SenseNet.ContentRepository.Storage
                         try
                         {
                             // prevent concurrency problems
-                            using (var treeLock = TreeLock.Acquire(this.Path))
+                            using (TreeLock.AcquireAsync(CancellationToken.None, this.Path).GetAwaiter().GetResult())
+                            {
                                 // main work
-                                DataProvider.Current.DeleteNodePsychical(this.Id, this.NodeTimestamp);
+                                DataStore.DeleteNodeAsync(Data, CancellationToken.None).GetAwaiter().GetResult();
+                            }
+
                             // successful
                             break;
                         }
@@ -3623,7 +3830,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    SearchManager.GetIndexPopulator().DeleteTree(myPath, this.Id);
+                    SearchManager.GetIndexPopulator().DeleteTreeAsync(myPath, this.Id, CancellationToken.None).GetAwaiter().GetResult();
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3762,8 +3969,8 @@ namespace SenseNet.ContentRepository.Storage
 
                 try
                 {
-                    using (var treeLock = TreeLock.Acquire(nodeRef.Path))
-                        DataProvider.Current.DeleteNodePsychical(nodeRef.Id, nodeRef.NodeTimestamp);
+                    using (TreeLock.AcquireAsync(CancellationToken.None, nodeRef.Path).GetAwaiter().GetResult())
+                        DataStore.DeleteNodeAsync(nodeRef.Data, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception e) // rethrow
                 {
@@ -3804,7 +4011,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                SearchManager.GetIndexPopulator().DeleteForest(ids);
+                SearchManager.GetIndexPopulator().DeleteForestAsync(ids, CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
@@ -4147,7 +4354,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public static bool Exists(string path)
         {
-            return DataBackingStore.NodeExists(path);
+            return DataStore.NodeExistsAsync(path, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -4280,14 +4487,9 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Returns size of all blobs of all <see cref="Node"/> in the subtree that is identified by the given path.
         /// </summary>
-        public static long GetTreeSize(string path)
+        public static long GetTreeSize(string path, bool includeChildren = true)
         {
-            return GetTreeSize(path, true);
-        }
-
-        private static long GetTreeSize(string path, bool includeChildren)
-        {
-            return DataProvider.Current.GetTreeSize(path, includeChildren);
+            return DataStore.GetTreeSizeAsync(path, includeChildren, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         #endregion

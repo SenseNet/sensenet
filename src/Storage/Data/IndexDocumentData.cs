@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
     /// <summary>
@@ -32,25 +27,17 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
 
-        private byte[] _serializedIndexDocument;
+        private string _serializedIndexDocument;
         /// <summary>
         /// Gets the serialized index document. If this instance is initialized with an
         /// IndexDocument instance or invalidated, the serialization will be executed.
         /// </summary>
-        public byte[] SerializedIndexDocument
+        public string SerializedIndexDocument
         {
             get
             {
                 if (_serializedIndexDocument == null)
-                {
-                    using (var docStream = new MemoryStream())
-                    {
-                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                        formatter.Serialize(docStream, _indexDocument);
-                        docStream.Flush();
-                        _serializedIndexDocument = docStream.GetBuffer();
-                    }
-                }
+                    _serializedIndexDocument = _indexDocument.Serialize();
                 return _serializedIndexDocument;
             }
         }
@@ -58,7 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets the size of the serialized version if there is, otherwise null. 
         /// </summary>
-        public long? IndexDocumentSize => SerializedIndexDocument?.LongLength;
+        public long? IndexDocumentSize => SerializedIndexDocument?.Length;
 
         public int NodeTypeId { get; set; }
         public int VersionId { get; set; }
@@ -76,11 +63,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Both parameters cannot be null at one time.
         /// </summary>
         /// <param name="indexDocument">The index document.</param>
-        /// <param name="indexDocumentBytes">Serialized data from the database.</param>
-        public IndexDocumentData(IndexDocument indexDocument, byte[] indexDocumentBytes)
+        /// <param name="serializedIndexDocument">Serialized data from the database.</param>
+        public IndexDocumentData(IndexDocument indexDocument, string serializedIndexDocument)
         {
             _indexDocument = indexDocument;
-            _serializedIndexDocument = indexDocumentBytes;
+            _serializedIndexDocument = serializedIndexDocument;
         }
 
         /// <summary>

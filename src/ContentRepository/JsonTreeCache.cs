@@ -104,7 +104,7 @@ namespace SenseNet.ContentRepository
         {
             // serve script from the cache if possible
             var key = GetCacheKey(path, skin, category);
-            var cachedScript = DistributedApplication.Cache.Get(key) as CachedScript;
+            var cachedScript = Cache.Get(key) as CachedScript;
             if (cachedScript != null)
             {
                 if (!string.IsNullOrEmpty(cachedScript.Script))
@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository
             var typeName = typeof (T).Name;
 
             // insert into cache
-            DistributedApplication.Cache.Insert(key, new CachedScript(script), new NodeTypeDependency(ActiveSchema.NodeTypes[typeName].Id));
+            Cache.Insert(key, new CachedScript(script), new NodeTypeDependency(ActiveSchema.NodeTypes[typeName].Id));
 
             SnTrace.Web.Write("JsonTreeCache: generated {0} script with cache key {1}.", typeName, key);
 

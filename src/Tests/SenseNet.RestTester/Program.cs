@@ -11,9 +11,9 @@ namespace SenseNet.RestTester
     {
         static void Main(string[] args)
         {
-            TestBase.InitAllTests(args);
+            RestTestBase.InitAllTests(args);
             var emptyParams = new object[0];
-            foreach (var testClass in TypeResolver.GetTypesByBaseType(typeof(TestBase)))
+            foreach (var testClass in TypeResolver.GetTypesByBaseType(typeof(RestTestBase)))
             {
                 var testObject = Activator.CreateInstance(testClass);
                 foreach (var testMethod in testClass.GetMethods().Where(m => m.GetCustomAttribute(typeof(TestMethodAttribute)) != null))
@@ -29,7 +29,7 @@ namespace SenseNet.RestTester
                     }
                 }
             }
-            TestBase.CleanupAllTests();
+            RestTestBase.CleanupAllTests();
 
             if (Debugger.IsAttached)
             {

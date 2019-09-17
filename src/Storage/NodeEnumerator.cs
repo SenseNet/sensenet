@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
@@ -166,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (_filter != null)
                 throw new NotSupportedException("Cannot query the children from database with filter.");
-            var idArray = DataProvider.Current.GetChildrenIdentfiers(thisId);
+            var idArray = DataStore.GetChildrenIdentifiersAsync(thisId, CancellationToken.None).GetAwaiter().GetResult();
             return new QueryResult(idArray);
         }
 

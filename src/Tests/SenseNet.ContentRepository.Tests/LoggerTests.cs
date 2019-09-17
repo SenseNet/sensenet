@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -24,14 +25,6 @@ namespace SenseNet.ContentRepository.Tests
     public class LoggerTests : TestBase
     {
         [TestMethod]
-        public void Provider_Logger_Default()
-        {
-            Test(() =>
-            {
-                Assert.IsTrue(SnLog.Instance is SnEventLogger);
-            });
-        }
-        [TestMethod]
         public void Provider_Logger_Configured()
         {
             var loggerTypeName = typeof(TestLogger).FullName;
@@ -45,7 +38,11 @@ namespace SenseNet.ContentRepository.Tests
 
             try
             {
-                Test(() =>
+                Test(builder =>
+                {
+                    builder.UseLogger(new TestLogger());
+                },
+                () =>
                 {
                     Assert.AreEqual(loggerTypeName, SnLog.Instance.GetType().FullName);
                 });
@@ -93,7 +90,7 @@ namespace SenseNet.ContentRepository.Tests
                 folder.ForceDelete();
 
                 // load audit log entries
-                var entries = DataProvider.Current.LoadLastAuditLogEntries(10);
+                var entries = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>().LoadLastAuditLogEntries(10);
                 var relatedEntries = entries.Where(e => e.ContentId == folderId).ToArray();
 
                 // assertions

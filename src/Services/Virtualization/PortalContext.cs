@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web;
 using SenseNet.ApplicationModel;
 using SenseNet.Communication.Messaging;
@@ -23,6 +24,7 @@ using SenseNet.Portal.OData;
 using SenseNet.Search;
 using SenseNet.Services.Wopi;
 using SenseNet.Tools;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -212,22 +214,26 @@ namespace SenseNet.Portal.Virtualization
         [Serializable]
         public class ReloadSiteListDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (!(onRemote && isFromMe))
                 {
-                    ReloadSiteList();
+                    ResetSiteList();
                 }
+
+                return STT.Task.CompletedTask;
             }
         }
 
         [Serializable]
         public class ReloadSmartUrlListDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (!(onRemote && isFromMe))
                     _smartUrls = null;
+
+                return STT.Task.CompletedTask;
             }
         }
 
@@ -666,89 +672,94 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
+        private static void ResetSiteList()
+        {
+            lock (_sitesListLock)
+                _sites = null;
+        }
+
         private static void ReloadSiteList()
         {
-            lock (_sitesLock)
+            _sites = null;
+            QueryResult result = null;
+
+            try
             {
-                _sites = null;
-                QueryResult result = null;
+                if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
+                    throw new ApplicationException("Unknown ContentType: Site");
 
-                try
+                using (new SystemAccount())
                 {
-                    if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
-                        throw new ApplicationException("Unknown ContentType: Site");
-
-                    using (new SystemAccount())
-                    {
-                        result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
-                    }
-
-                    _urlPaths = new NameValueCollection(result.Count);
-                    _startPages = new NameValueCollection(result.Count);
-                    _authTypes = new NameValueCollection(result.Count);
-                    _loginPages = new NameValueCollection(result.Count);
-                }
-                catch (Exception e) // logged
-                {
-                    SnLog.WriteException(e);
+                    result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);
                 }
 
-                var tempSites = new Dictionary<string, Site>();
+                _urlPaths = new NameValueCollection(result.Count);
+                _startPages = new NameValueCollection(result.Count);
+                _authTypes = new NameValueCollection(result.Count);
+                _loginPages = new NameValueCollection(result.Count);
+            }
+            catch (Exception e) // logged
+            {
+                SnLog.WriteException(e);
+            }
 
-                // urlsettings come from webconfig
-                var configSites = Configuration.UrlListSection.Current.Sites;
+            var tempSites = new Dictionary<string, Site>();
 
-                // urlsettings come either from sites in content repository or from webconfig
-                if (result != null)
+            // urlsettings come from webconfig
+            var configSites = Configuration.UrlListSection.Current.Sites;
+
+            // urlsettings come either from sites in content repository or from webconfig
+            if (result != null)
+            {
+                // Loading sites and start pages should be done with and admin account.
+                // Authorization will occur when the user tries to load 
+                // the start page of the selected site.
+
+                using (new SystemAccount())
                 {
-                    // Loading sites and start pages should be done with and admin account.
-                    // Authorization will occur when the user tries to load 
-                    // the start page of the selected site.
-
-                    using (new SystemAccount())
+                    foreach (Site site in result.Nodes)
                     {
-                        foreach (Site site in result.Nodes)
+                        var siteUrls = site.UrlList.Keys;
+
+                        // siteurls come from webconfig
+                        if (configSites.Count > 0 && configSites[site.Path] != null)
+                            siteUrls = configSites[site.Path].Urls.GetUrlHosts();
+
+                        foreach (string siteUrl in siteUrls)
                         {
-                            var siteUrls = site.UrlList.Keys;
+                            try
+                            {
+                                tempSites.Add(siteUrl, site);
+                            }
+                            catch (ArgumentException) // rethrow
+                            {
+                                throw new ArgumentException(String.Format(
+                                    "The url '{0}' has already been added to site '{1}' and cannot be added to site '{2}'",
+                                    siteUrl, tempSites[siteUrl].Name, site.Name));
+                            }
+                        }
 
-                            // siteurls come from webconfig
+                        string siteLoginPageUrl = (site.LoginPage != null ? site.LoginPage.Path : null);
+                        foreach (string url in siteUrls)
+                        {
+                            _urlPaths.Add(url, site.Path);
+                            _loginPages.Add(url, siteLoginPageUrl);
+                            _startPages.Add(url, site.StartPage != null ? site.StartPage.Name : string.Empty);
+
+                            // auth types come from webconfig or from site urllist
                             if (configSites.Count > 0 && configSites[site.Path] != null)
-                                siteUrls = configSites[site.Path].Urls.GetUrlHosts();
-
-                            foreach (string siteUrl in siteUrls)
-                            {
-                                try
-                                {
-                                    tempSites.Add(siteUrl, site);
-                                }
-                                catch (ArgumentException) // rethrow
-                                {
-                                    throw new ArgumentException(String.Format("The url '{0}' has already been added to site '{1}' and cannot be added to site '{2}'", siteUrl, tempSites[siteUrl].Name, site.Name));
-                                }
-                            }
-
-                            string siteLoginPageUrl = (site.LoginPage != null ? site.LoginPage.Path : null);
-                            foreach (string url in siteUrls)
-                            {
-                                _urlPaths.Add(url, site.Path);
-                                _loginPages.Add(url, siteLoginPageUrl);
-                                _startPages.Add(url, site.StartPage != null ? site.StartPage.Name : string.Empty);
-
-                                // auth types come from webconfig or from site urllist
-                                if (configSites.Count > 0 && configSites[site.Path] != null)
-                                    _authTypes.Add(url, configSites[site.Path].Urls[url].Auth);
-                                else
-                                    _authTypes.Add(url, site.UrlList[url]);
-                            }
+                                _authTypes.Add(url, configSites[site.Path].Urls[url].Auth);
+                            else
+                                _authTypes.Add(url, site.UrlList[url]);
                         }
                     }
                 }
-
-                _knownHosts = _urlPaths.AllKeys.Select(x => new Uri("http://" + x).Host).Distinct().ToArray();
-
-                // assign value only at the end
-                _sites = tempSites;
             }
+
+            _knownHosts = _urlPaths.AllKeys.Select(x => new Uri("http://" + x).Host).Distinct().ToArray();
+
+            // assign value only at the end
+            _sites = tempSites;
         }
 
         public string GetCurrentAuthenticationMode()
@@ -1535,7 +1546,7 @@ namespace SenseNet.Portal.Virtualization
             get
             {
                 if (!_loggedInUserCacheEnabled.HasValue)
-                    _loggedInUserCacheEnabled = !IsInAdminGroup(User.Current, Cache.AdminGroupPathsForLoggedInUserCache);
+                    _loggedInUserCacheEnabled = !IsInAdminGroup(User.Current, CacheConfiguration.AdminGroupPathsForLoggedInUserCache);
                 return _loggedInUserCacheEnabled.Value;
             }
         }

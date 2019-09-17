@@ -3,6 +3,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Security.Principal;
 using System.Threading;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Security
 {
@@ -31,13 +32,15 @@ namespace SenseNet.ContentRepository.Security
             {
                 if (Thread.CurrentPrincipal?.Identity is IUser user)
                     return user;
-
                 CurrentUser = StartupUser;
                 user = User.Administrator;
                 CurrentUser = user;
                 return user;
             }
-            set => Thread.CurrentPrincipal = new SystemPrincipal(value);
+            set
+            {
+                Thread.CurrentPrincipal = new SystemPrincipal(value);
+            }
         }
 
         public override IUser GetCurrentUser()

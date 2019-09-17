@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using STT= System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
@@ -13,23 +15,57 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static readonly object PopulatorData = new object();
 
-        public void ClearAndPopulateAll(TextWriter consoleWriter = null) { }
-        public void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly) { }
-        public void AddTree(string path, int nodeId) { }
+        public STT.Task ClearAndPopulateAllAsync(CancellationToken cancellationToken, TextWriter consoleWriter = null)
+        {
+            return STT.Task.CompletedTask;
+        }
+
+        public STT.Task RebuildIndexDirectlyAsync(string path, CancellationToken cancellationToken,
+            IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
+        {
+            return STT.Task.CompletedTask;
+        }
+
+        public STT.Task AddTreeAsync(string path, int nodeId, CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
-        public void CommitPopulateNode(object data, IndexDocumentData indexDocument) { }
-        public void FinalizeTextExtracting(object data, IndexDocumentData indexDocument) { }
-        public void DeleteTree(string path, int nodeId) { }
+
+        public STT.Task CommitPopulateNodeAsync(object data, IndexDocumentData indexDocument,
+            CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
+
+        public STT.Task FinalizeTextExtractingAsync(object data, IndexDocumentData indexDocument,
+            CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
+
+        public STT.Task DeleteTreeAsync(string path, int nodeId, CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
 #pragma warning disable 0067
         // suppressed because it is not used but the interface declares.
         public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
         public event EventHandler<NodeIndexedEventArgs> IndexDocumentRefreshed;
         public event EventHandler<NodeIndexingErrorEventArgs> IndexingError;
 #pragma warning restore 0067
-        public void DeleteForest(IEnumerable<int> idSet) { }
-        public void DeleteForest(IEnumerable<string> pathSet) { }
+        public STT.Task DeleteForestAsync(IEnumerable<int> idSet, CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
 
-        public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
+        public STT.Task DeleteForestAsync(IEnumerable<string> pathSet, CancellationToken cancellationToken)
+        {
+            return STT.Task.CompletedTask;
+        }
+
+        public async STT.Task RebuildIndexAsync(Node node, CancellationToken cancellationToken, bool recursive = false,
+            IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
             // do nothing in case of IndexOnly level, because this is a NULL populator
             if (rebuildLevel == IndexRebuildLevel.IndexOnly)
@@ -41,16 +77,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     if (recursive)
                     {
-                        using (TreeLock.Acquire(node.Path))
+                        using (await TreeLock.AcquireAsync(cancellationToken, node.Path).ConfigureAwait(false))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataBackingStore.SaveIndexDocument(n, false, false, out _);
+                                await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                                    .ConfigureAwait(false);
                         }
                     }
                     else
                     {
-                        TreeLock.AssertFree(node.Path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        await TreeLock.AssertFreeAsync(cancellationToken, node.Path).ConfigureAwait(false);
+                        await DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                            .ConfigureAwait(false);
                     }
                 }
                 op.Successful = true;

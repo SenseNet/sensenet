@@ -87,7 +87,7 @@ namespace SenseNet.ContentRepository.Schema
         // Properties /////////////////////////////////////////////////////////////
 
         [JsonProperty]
-        private string Type { get; }
+        public string Type { get; }
 
         private string _name;
         /// <summary>

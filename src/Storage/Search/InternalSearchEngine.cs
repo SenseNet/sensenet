@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using SenseNet.ContentRepository.Storage;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
@@ -31,32 +32,35 @@ namespace SenseNet.Search
 
             public bool IndexIsCentralized => false;
 
-            public void Start(TextWriter consoleOut)
+            public Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
             {
                 // do nothing
+                return Task.CompletedTask;
             }
 
-            public void ShutDown()
+            public Task ShutDownAsync(CancellationToken cancellationToken)
             {
                 // do nothing
+                return Task.CompletedTask;
             }
 
-            public void ClearIndex()
+            public Task ClearIndexAsync(CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }
 
-            public IndexingActivityStatus ReadActivityStatusFromIndex()
+            public Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }
 
-            public void WriteActivityStatusToIndex(IndexingActivityStatus state)
+            public Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }
 
-            public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
+            public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates,
+                IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }

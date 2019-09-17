@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using STT=System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
@@ -104,15 +106,16 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             return $"{GetType().Name}: [{NodeId}/{VersionId}], {Path}";
         }
 
-        public override void Distribute()
+        public override async STT.Task DistributeAsync(CancellationToken cancellationToken)
         {
             // check doc size before distributing
-            var sendDocOverMsmq = IndexDocumentData?.IndexDocumentSize != null && IndexDocumentData.IndexDocumentSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
+            var sendDocOver = IndexDocumentData?.IndexDocumentSize != null &&
+                              IndexDocumentData.IndexDocumentSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
 
-            if (sendDocOverMsmq)
+            if (sendDocOver)
             {
-                // document is small to send over MSMQ
-                base.Distribute();
+                // document is small enough to send over in a message
+                await base.DistributeAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -121,9 +124,9 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 var docData = IndexDocumentData;
                 IndexDocumentData = null;
 
-                base.Distribute();
+                await base.DistributeAsync(cancellationToken).ConfigureAwait(false);
 
-                // restore indexdocument after activity is sent
+                // restore index document after activity is sent
                 IndexDocumentData = docData;
             }
         }

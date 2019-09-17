@@ -6,10 +6,14 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
+    // This class is not used currently.
+    // Can write differences ant it may be important in the future
     internal class SqlSchemaWriter : SchemaWriter
     {
         private List<StringBuilder> _scripts;
@@ -17,6 +21,11 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         private Dictionary<string, List<string>> _slotsToReset; // key: "{NodeTypeId}.{PageIndex}", value: "{slotName list}", e.g.: "123.0", "nvarchar_12"
 
         public SqlSchemaWriter() { }
+
+        public override Task WriteSchemaAsync(RepositorySchemaData schema)
+        {
+            throw new NotSupportedException();
+        }
 
         public override void Open()
         {
@@ -37,37 +46,37 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         }
         private void ExecuteScripts(List<StringBuilder> scripts)
         {
-            using (var op = SnTrace.Database.StartOperation("Execute storage schema scripts."))
-            {
-                // Ensure transaction encapsulation
-                bool isLocalTransaction = !TransactionScope.IsActive;
-                if (isLocalTransaction)
-                    TransactionScope.Begin();
-                try
-                {
-                    if (_slotsToReset.Count > 0)
-                    {
-                        StringBuilder sb = new StringBuilder();
-                        scripts.Insert(0, sb);
-                        WriteSlotsToResetScripts(sb, _slotsToReset);
-                    }
-                    foreach (StringBuilder script in scripts)
-                    {
-                        using (var proc = new SqlProcedure { CommandText = script.ToString(), CommandType = CommandType.Text })
-                        {
-                            proc.ExecuteNonQuery();
-                        }
-                    }
-                    if (isLocalTransaction)
-                        TransactionScope.Commit();
-                    op.Successful = true;
-                }
-                finally
-                {
-                    if (isLocalTransaction && TransactionScope.IsActive)
-                        TransactionScope.Rollback();
-                }
-            }
+            //using (var op = SnTrace.Database.StartOperation("Execute storage schema scripts."))
+            //{
+            //    // Ensure transaction encapsulation
+            //    bool isLocalTransaction = !TransactionScope.IsActive;
+            //    if (isLocalTransaction)
+            //        TransactionScope.Begin();
+            //    try
+            //    {
+            //        if (_slotsToReset.Count > 0)
+            //        {
+            //            StringBuilder sb = new StringBuilder();
+            //            scripts.Insert(0, sb);
+            //            WriteSlotsToResetScripts(sb, _slotsToReset);
+            //        }
+            //        foreach (StringBuilder script in scripts)
+            //        {
+            //            using (var proc = new SqlProcedure { CommandText = script.ToString(), CommandType = CommandType.Text })
+            //            {
+            //                proc.ExecuteNonQuery();
+            //            }
+            //        }
+            //        if (isLocalTransaction)
+            //            TransactionScope.Commit();
+            //        op.Successful = true;
+            //    }
+            //    finally
+            //    {
+            //        if (isLocalTransaction && TransactionScope.IsActive)
+            //            TransactionScope.Rollback();
+            //    }
+            //}
         }
 
         private string GetSqlScript()
@@ -340,16 +349,16 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             switch (slot.DataType)
             {
                 case DataType.String:
-                    WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.StringMappingPrefix, SqlProvider.StringPageSize, comment);
+                    //WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.StringMappingPrefix, SqlProvider.StringPageSize, comment);
                     break;
                 case DataType.Int:
-                    WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.IntMappingPrefix, SqlProvider.IntPageSize, comment);
+                    //WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.IntMappingPrefix, SqlProvider.IntPageSize, comment);
                     break;
                 case DataType.Currency:
-                    WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.CurrencyMappingPrefix, SqlProvider.CurrencyPageSize, comment);
+                    //WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.CurrencyMappingPrefix, SqlProvider.CurrencyPageSize, comment);
                     break;
                 case DataType.DateTime:
-                    WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.DateTimeMappingPrefix, SqlProvider.DateTimePageSize, comment);
+                    //WriteResetPropertySlotScript(scriptBuilder, nodeType.Id, slot.Mapping, SqlProvider.DateTimeMappingPrefix, SqlProvider.DateTimePageSize, comment);
                     break;
                 case DataType.Binary:
                     WriteDeletePropertyScript(scriptBuilder, nodeType.Id, slot.Id, "BinaryProperties", "BinaryPropertyId", comment);

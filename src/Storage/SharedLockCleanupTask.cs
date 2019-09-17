@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Storage
@@ -11,7 +12,7 @@ namespace SenseNet.Storage
 
         public void Execute()
         {
-            SharedLock.Cleanup();
+            SharedLock.Cleanup(CancellationToken.None);
         }
     }
 }
