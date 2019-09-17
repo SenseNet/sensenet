@@ -53,14 +53,14 @@ namespace SenseNet.OData
             }
 
             if (!Request.HasSelect)
-                fieldNames = fieldNames.Concat(new[] { ACTIONSPROPERTY, ISFILEPROPERTY, ODataHandler.ChildrenPropertyName });
+                fieldNames = fieldNames.Concat(new[] { ACTIONSPROPERTY, ISFILEPROPERTY, ODataMiddleware.ChildrenPropertyName });
 
             foreach (var fieldName in fieldNames)
             {
                 if (fields.ContainsKey(fieldName))
                     continue;
 
-                if (ODataHandler.DisabledFieldNames.Contains(fieldName))
+                if (ODataMiddleware.DisabledFieldNames.Contains(fieldName))
                 {
                     fields.Add(fieldName, null);
                     continue;
@@ -71,13 +71,13 @@ namespace SenseNet.OData
                     if (content.Fields.TryGetValue(fieldName, out var field))
                         fields.Add(fieldName, ODataFormatter.GetJsonObject(field, selfurl));
                     else if (fieldName == ACTIONSPROPERTY)
-                        fields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.ActionsPropertyName)));
+                        fields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataMiddleware.ActionsPropertyName)));
                     else if (fieldName == ISFILEPROPERTY)
-                        fields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
+                        fields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataMiddleware.BinaryPropertyName));
                     else if (fieldName == ICONPROPERTY)
                         fields.Add(fieldName, content.Icon ?? content.ContentType.Icon);
-                    else if (fieldName == ODataHandler.ChildrenPropertyName)
-                        fields.Add(fieldName, ODataReference.Create(string.Concat(selfurl, "/", ODataHandler.ChildrenPropertyName)));
+                    else if (fieldName == ODataMiddleware.ChildrenPropertyName)
+                        fields.Add(fieldName, ODataReference.Create(string.Concat(selfurl, "/", ODataMiddleware.ChildrenPropertyName)));
                     else
                         fields.Add(fieldName, null);
                 }

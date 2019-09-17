@@ -151,11 +151,11 @@ namespace SenseNet.OData
                             outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
                             break;
                         case ISFILEPROPERTY:
-                            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
+                            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataMiddleware.BinaryPropertyName));
                             break;
-                        case ODataHandler.ChildrenPropertyName:
-                            var expansion = GetPropertyFromList(ODataHandler.ChildrenPropertyName, expandTree);
-                            AddField(content, expansion, outfields, ODataHandler.ChildrenPropertyName, httpContext,
+                        case ODataMiddleware.ChildrenPropertyName:
+                            var expansion = GetPropertyFromList(ODataMiddleware.ChildrenPropertyName, expandTree);
+                            AddField(content, expansion, outfields, ODataMiddleware.ChildrenPropertyName, httpContext,
                                 (c, ctx) =>
                                 {
                                     // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
@@ -176,7 +176,7 @@ namespace SenseNet.OData
                 }
                 else
                 {
-                    if (ODataHandler.DisabledFieldNames.Contains(field.Name))
+                    if (ODataMiddleware.DisabledFieldNames.Contains(field.Name))
                     {
                         outfields.Add(propertyName, null);
                     }
@@ -272,7 +272,7 @@ namespace SenseNet.OData
                         foreach (Node item in enumerable)
                         {
                             contents.Add(Project(Content.Create(item), expansion, selection, httpContext));
-                            if (++count > ODataHandler.ExpansionLimit)
+                            if (++count > ODataMiddleware.ExpansionLimit)
                                 break;
                         }
                     }

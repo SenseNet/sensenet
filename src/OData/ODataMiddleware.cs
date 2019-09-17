@@ -28,7 +28,7 @@ namespace SenseNet.OData
     {
         public static IApplicationBuilder UseSenseNetOdata(this IApplicationBuilder builder)
         {
-            return builder.UseMiddleware<ODataHandler>();
+            return builder.UseMiddleware<ODataMiddleware>();
         }
 
         public static ODataResponse GetODataResponse(this HttpContext httpContext)
@@ -44,7 +44,7 @@ namespace SenseNet.OData
     /// <summary>
     /// AN ASP.NET Core middleware to process the OData requests.
     /// </summary>
-    public class ODataHandler
+    public class ODataMiddleware
     {
         // Do not remove setter.
         internal static IActionResolver ActionResolver { get; set; }
@@ -57,7 +57,7 @@ namespace SenseNet.OData
         internal static List<JsonConverter> JsonConverters { get; }
         internal static List<FieldConverter> FieldConverters { get; }
 
-        static ODataHandler()
+        static ODataMiddleware()
         {
             JsonConverters = new List<JsonConverter> {new Newtonsoft.Json.Converters.VersionConverter()};
             FieldConverters = new List<FieldConverter>();
@@ -87,7 +87,7 @@ namespace SenseNet.OData
 
         private readonly RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataHandler(RequestDelegate next)
+        public ODataMiddleware(RequestDelegate next)
         {
             _next = next;
         }

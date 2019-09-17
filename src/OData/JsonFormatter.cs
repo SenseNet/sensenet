@@ -88,7 +88,7 @@ namespace SenseNet.OData
             if(raw)
                 Write(actions, httpContext);
             else
-                Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataHandler.ActionsPropertyName, actions } } }, httpContext);
+                Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext);
         }
         /// <inheritdoc />
         protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
@@ -118,7 +118,7 @@ namespace SenseNet.OData
             //{
             //    DateFormatHandling = DateFormatHandling.IsoDateFormat,
             //    Formatting = Formatting.Indented,
-            //    Converters = ODataHandler.JsonConverters
+            //    Converters = ODataMiddleware.JsonConverters
             //};
 
             //var serializer = JsonSerializer.Create(settings);

@@ -38,7 +38,7 @@ namespace SenseNet.OData
 
         protected string GetSelfUrl(Content content)
         {
-            return string.Concat("/", Configuration.Services.ODataServiceToken, ODataHandler.GetEntityUrl(content.Path));
+            return string.Concat("/", Configuration.Services.ODataServiceToken, ODataMiddleware.GetEntityUrl(content.Path));
         }
         protected ODataSimpleMeta GetMetadata(Content content, string selfurl, MetadataFormat format, HttpContext httpContext)
         {
@@ -106,7 +106,7 @@ namespace SenseNet.OData
                 case ACTIONSPROPERTY:
                 case ICONPROPERTY:
                 case ISFILEPROPERTY:
-                case ODataHandler.ChildrenPropertyName:
+                case ODataMiddleware.ChildrenPropertyName:
                     return true;
                 default:
                     return content.IsAllowedField(fieldName);

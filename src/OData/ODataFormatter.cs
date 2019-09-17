@@ -115,7 +115,7 @@ namespace SenseNet.OData
 
         internal void WriteMetadata(HttpContext httpContext, ODataRequest req)
         {
-            //var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
+            //var content = ODataMiddleware.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
 
             //var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
             //if (isRoot)
@@ -143,7 +143,7 @@ namespace SenseNet.OData
 
         internal void WriteSingleContent(String path, HttpContext httpContext)
         {
-            WriteSingleContent(ODataHandler.LoadContentByVersionRequest(path, httpContext), httpContext);
+            WriteSingleContent(ODataMiddleware.LoadContentByVersionRequest(path, httpContext), httpContext);
         }
         internal void WriteSingleContent(Content content, HttpContext httpContext)
         {
@@ -283,19 +283,19 @@ namespace SenseNet.OData
 
         internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(path, httpContext);
+            var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
             {
-                ODataHandler.ContentNotFound(httpContext);
+                ODataMiddleware.ContentNotFound(httpContext);
                 return;
             }
 
-            if (propertyName == ODataHandler.ActionsPropertyName)
+            if (propertyName == ODataMiddleware.ActionsPropertyName)
             {
                 WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue);
                 return;
             }
-            if (propertyName == ODataHandler.ChildrenPropertyName)
+            if (propertyName == ODataMiddleware.ChildrenPropertyName)
             {
                 WriteChildrenCollection(path, httpContext, req);
                 return;
@@ -390,11 +390,11 @@ new StackInfo
         /// </summary>
         internal void WriteOperationResult(HttpContext httpContext, ODataRequest odataReq)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
+            var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataHandler.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -428,12 +428,12 @@ new StackInfo
         /// </summary>
         internal void WriteOperationResult(Stream inputStream, HttpContext httpContext, ODataRequest odataReq)
         {
-            var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
+            var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataHandler.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -833,7 +833,7 @@ new StackInfo
                 }
                 else
                 {
-                    values[0] = ODataHandler.Read(inputStream, parameter.Type);
+                    values[0] = ODataMiddleware.Read(inputStream, parameter.Type);
                     if (parameter.Required && values[0] == null)
                         // ReSharper disable once NotResolvedInText
                         throw new ArgumentNullException("[unnamed]", "Request parameter is required. Type: " + parameter.Type.FullName);
@@ -841,7 +841,7 @@ new StackInfo
             }
             else
             {
-                var model = ODataHandler.Read(inputStream);
+                var model = ODataMiddleware.Read(inputStream);
                 var i = 0;
                 foreach (var parameter in parameters)
                 {
@@ -908,7 +908,7 @@ new StackInfo
 
                 return ODataBinary.Create(BinaryField.GetBinaryUrl(field.Content.Id, field.Name, binaryData.Timestamp), null, binaryData.ContentType, null);
             }
-            else if (ODataHandler.DeferredFieldNames.Contains(field.Name))
+            else if (ODataMiddleware.DeferredFieldNames.Contains(field.Name))
             {
                 return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
             }
@@ -955,7 +955,7 @@ new StackInfo
             //{
             //    DateFormatHandling = DateFormatHandling.IsoDateFormat,
             //    Formatting = Formatting.Indented,
-            //    Converters = ODataHandler.JsonConverters
+            //    Converters = ODataMiddleware.JsonConverters
             //};
             //var serializer = JsonSerializer.Create(settings);
             //serializer.Serialize(httpContext.Response.Output, response);

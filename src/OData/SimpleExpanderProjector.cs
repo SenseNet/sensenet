@@ -78,7 +78,7 @@ namespace SenseNet.OData
             var expansionEnabled = !content.ContentHandler.IsHeadOnly;
             foreach (var field in fields)
             {
-                if (ODataHandler.DisabledFieldNames.Contains(field.Name))
+                if (ODataMiddleware.DisabledFieldNames.Contains(field.Name))
                     continue;
 
                 var propertyName = field.Name;
@@ -97,7 +97,7 @@ namespace SenseNet.OData
             }
 
             AddField(content, expandTree, outfields, ACTIONSPROPERTY, httpContext, GetActions);
-            AddField(content, expandTree, outfields, ODataHandler.ChildrenPropertyName, httpContext, (c, ctx) =>
+            AddField(content, expandTree, outfields, ODataMiddleware.ChildrenPropertyName, httpContext, (c, ctx) =>
             {
                 // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
                 c.ChildrenDefinition.EnableAutofilters =
@@ -105,7 +105,7 @@ namespace SenseNet.OData
                         ? Request.AutofiltersEnabled
                         : FilterStatus.Disabled;
 
-                var expansion = GetExpansion(ODataHandler.ChildrenPropertyName, expandTree);
+                var expansion = GetExpansion(ODataMiddleware.ChildrenPropertyName, expandTree);
 
                 return ProjectMultiRefContents(c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler), expansion.Children, httpContext);
             });
@@ -113,7 +113,7 @@ namespace SenseNet.OData
             if (!outfields.ContainsKey(ICONPROPERTY))
                 outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
 
-            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
+            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataMiddleware.BinaryPropertyName));
 
             return outfields;
         }
@@ -162,7 +162,7 @@ namespace SenseNet.OData
                         foreach (Node item in enumerable)
                         {
                             contents.Add(Project(Content.Create(item), expansion, httpContext));
-                            if (++count > ODataHandler.ExpansionLimit)
+                            if (++count > ODataMiddleware.ExpansionLimit)
                                 break;
                         }
                     }

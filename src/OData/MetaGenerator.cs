@@ -166,7 +166,7 @@ namespace SenseNet.OData
         {
             if (!context.Flattening && fieldSetting.Owner != contentType && fieldSetting.Owner != ContentListContentType)
                 return;
-            if (ODataHandler.DisabledFieldNames.Contains(fieldSetting.Name))
+            if (ODataMiddleware.DisabledFieldNames.Contains(fieldSetting.Name))
                 return;
 
             var refField = fieldSetting as ReferenceFieldSetting;

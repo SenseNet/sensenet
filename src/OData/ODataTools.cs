@@ -79,11 +79,11 @@ namespace SenseNet.OData
             //    HttpContext.Current.Request.UrlReferrer != null)
             //    backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
 
-            //return ODataHandler.ActionResolver.GetActions(content,
+            //return ODataMiddleware.ActionResolver.GetActions(content,
             //    request != null ? request.Scenario : null,
             //    string.IsNullOrEmpty(backUrl) ? null : backUrl);
             //UNDONE:ODATA: ?? backUrl support is off
-            return ODataHandler.ActionResolver.GetActions(content, request?.Scenario, null, httpContext);
+            return ODataMiddleware.ActionResolver.GetActions(content, request?.Scenario, null, httpContext);
         }
         internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request, HttpContext httpContext)
         {
