@@ -109,8 +109,10 @@ namespace SenseNet.OData
             var changedResponse = httpContext.GetODataResponse();
             if (changedResponse != null)
             {
+                var stringValue = changedResponse.Value?.ToString() ?? "{null}";
+
                 httpContext.Response.ContentType = "text/plain";
-                await httpContext.Response.WriteAsync(changedResponse.Value.ToString());
+                await httpContext.Response.WriteAsync($"{changedResponse.Type}:{stringValue}");
             }
         }
 
@@ -157,7 +159,7 @@ namespace SenseNet.OData
                 var exists = false;// Node.Exists(odataRequest.RepositoryPath);
                 if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
-                    return ODataResponse.CreateNoContentResponse();//404
+                    return ODataResponse.CreateContentNotFoundResponse();//404
                 }
 
                 JObject model;
@@ -175,14 +177,15 @@ namespace SenseNet.OData
                         else
                         {
                             if (!Node.Exists(odataRequest.RepositoryPath))
-                                ContentNotFound(httpContext);
+                                return ODataResponse.CreateContentNotFoundResponse();
                             else if (odataRequest.IsCollection)
                                 formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
-                                formatter.WriteSingleContent(odataRequest.RepositoryPath, httpContext);
+                                return ODataResponse.CreateSingleContentResponse(
+                                    GetSingleContent(httpContext, odataRequest, odataRequest.RepositoryPath));
                         }
                         break;
                     case "PUT": // update
@@ -197,12 +200,12 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
-                                return ODataResponse.CreateNoContentResponse();
+                                return ODataResponse.CreateContentNotFoundResponse();
                             }
 
                             ResetContent(content);
                             UpdateContent(content, model, odataRequest);
-                            formatter.WriteSingleContent(content, httpContext);
+                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
                         }
                         break;
                     case "MERGE":
@@ -219,11 +222,11 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
-                                return ODataResponse.CreateNoContentResponse();
+                                return ODataResponse.CreateContentNotFoundResponse();
                             }
 
                             UpdateContent(content, model, odataRequest);
-                            formatter.WriteSingleContent(content, httpContext);
+                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
                         }
                         break;
                     case "POST": // invoke an action, create content
@@ -236,11 +239,11 @@ namespace SenseNet.OData
                             // parent must exist
                             if (!Node.Exists(odataRequest.RepositoryPath))
                             {
-                                return ODataResponse.CreateNoContentResponse();
+                                return ODataResponse.CreateContentNotFoundResponse();
                             }
                             model = Read(inputStream);
                             content = CreateContent(model, odataRequest);
-                            formatter.WriteSingleContent(content, httpContext);
+                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
                         }
                         break;
                     case "DELETE":
@@ -261,15 +264,13 @@ namespace SenseNet.OData
             catch (ContentNotFoundException e)
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-
-                formatter?.WriteErrorResponse(httpContext, oe);
+                return ODataResponse.CreateErrorResponse(oe);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
-
-                formatter?.WriteErrorResponse(httpContext, e);
+                return ODataResponse.CreateErrorResponse(e);
             }
             catch (SenseNetSecurityException e)
             {
@@ -282,7 +283,7 @@ namespace SenseNet.OData
                     var head = NodeHead.Get(odataRequest.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
-                        return ODataResponse.CreateNoContentResponse();
+                        return ODataResponse.CreateContentNotFoundResponse();
                     }
                 }
 
@@ -290,7 +291,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                return ODataResponse.CreateErrorResponse(oe);
             }
             catch (InvalidContentActionException ex)
             {
@@ -299,13 +300,13 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                formatter?.WriteErrorResponse(httpContext, oe);
+                return ODataResponse.CreateErrorResponse(oe);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                return ODataResponse.CreateErrorResponse(oe);
             }
             //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
             //UNDONE:ODATA: ?? ThreadAbortException does not occur in this technology.
@@ -314,7 +315,8 @@ namespace SenseNet.OData
             //    if (!httpContext.Response.IsRequestBeingRedirected)
             //    {
             //        var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-            //        formatter?.WriteErrorResponse(httpContext, oe);
+            //        //formatter?.WriteErrorResponse(httpContext, oe);
+            //        return ODataResponse.CreateErrorResponse(oe);
             //    }
             //    // specific redirect response so do nothing
             //}
@@ -324,7 +326,8 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                return ODataResponse.CreateErrorResponse(oe);
+
             }
             finally
             {
@@ -338,7 +341,7 @@ namespace SenseNet.OData
             return ODataResponse.CreateNoContentResponse();
         }
 
-        internal string[] GetServiceDocument(HttpContext httpContext, ODataRequest req)
+        private string[] GetServiceDocument(HttpContext httpContext, ODataRequest req)
         {
             var rootContent = Content.Load(req.RepositoryPath);
             var topLevelNames = rootContent?.Children.Select(n => n.Name).ToArray() ?? new[] {Repository.RootName};
@@ -346,6 +349,21 @@ namespace SenseNet.OData
             return topLevelNames;
         }
 
+        private Dictionary<string, object> GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, string repositoryPath)
+        {
+            return GetSingleContent(httpContext, odataRequest, LoadContentByVersionRequest(repositoryPath, httpContext));
+        }
+        private Dictionary<string, object> GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
+        {
+            return CreateFieldDictionary(httpContext, odataRequest, content, false);
+        }
+
+        private Dictionary<string, object> CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
+            bool isCollectionItem)
+        {
+            var projector = Projector.Create(odataRequest, isCollectionItem, content);
+            return projector.Project(content, httpContext);
+        }
 
 
 

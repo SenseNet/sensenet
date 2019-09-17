@@ -439,6 +439,9 @@ namespace SenseNet.OData
             var filterStr = req["$filter"];
             new ODataParser().Parse(filterStr, this);
 
+            var formatName = req["$format"].ToString();
+            this.Format = ParseFormat(formatName);
+
             // --------------------------------------------------------------- scenario
             this.Scenario = ParseScenario(httpContext);
 
@@ -515,6 +518,10 @@ namespace SenseNet.OData
                 return new List<string>();
             var x = expandStr.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
             return x;
+        }
+        private string ParseFormat(string formatName)
+        {
+            return string.IsNullOrEmpty(formatName) ? (IsMetadataRequest ? "xml" : "json") : formatName.ToLower();
         }
         private string ParseScenario(HttpContext httpContext)
         {

@@ -139,12 +139,12 @@ namespace SenseNet.OData
         /// <param name="edmx">Metadata that will be written.</param>
         protected abstract void WriteMetadata(TextWriter writer, Metadata.Edmx edmx);
 
-        // --------------------------------------------------------------------------------------------------------------- contents
+        /* ---------------------------------------------------------------------------------------------------- content requests */
 
-        internal void WriteSingleContent(String path, HttpContext httpContext)
-        {
-            WriteSingleContent(ODataMiddleware.LoadContentByVersionRequest(path, httpContext), httpContext);
-        }
+        //internal void WriteSingleContent(String path, HttpContext httpContext)
+        //{
+        //    WriteSingleContent(ODataMiddleware.LoadContentByVersionRequest(path, httpContext), httpContext);
+        //}
         internal void WriteSingleContent(Content content, HttpContext httpContext)
         {
             var fields = CreateFieldDictionary(content, false, httpContext);
