@@ -95,7 +95,12 @@ namespace SenseNet.OData
 
         public async STT.Task Invoke(HttpContext httpContext)
         {
-            var response = ProcessRequest(httpContext);
+            //var uri = new Uri(httpContext.Request.GetEncodedUrl());
+            //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
+            var path = httpContext.Request.Path;
+            var odataRequest = ODataRequest.Parse(path, httpContext);
+
+            var response = ProcessRequest(httpContext, odataRequest);
             httpContext.SetODataResponse(response);
 
             await _next(httpContext);
@@ -111,37 +116,26 @@ namespace SenseNet.OData
 
         /// <inheritdoc />
         /// <remarks>Processes the OData web request.</remarks>
-        public ODataResponse ProcessRequest(HttpContext httpContext)
+        public ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
         {
-            return ProcessRequest(httpContext, httpContext.Request.Method.ToUpper(), httpContext.Request.Body);
-        }
-        /// <summary>
-        /// Processes the OData web request. Designed for test purposes.
-        /// </summary>
-        /// <param name="httpContext">An <see cref="HttpContext" /> object that provides references to the intrinsic server objects (for example, <see langword="Request" />, <see langword="Response" />, <see langword="Session" />, and <see langword="Server" />) used to service HTTP requests. </param>
-        /// <param name="httpMethod">HTTP protocol method.</param>
-        /// <param name="inputStream">Request stream containing the posted JSON object.</param>
-        public ODataResponse ProcessRequest(HttpContext httpContext, string httpMethod, Stream inputStream)
-        {
-            ODataRequest odataReq = null;
+            var request = httpContext.Request;
+            var httpMethod = request.Method;
+            var inputStream = request.Body;
+
             ODataFormatter formatter = null;
             try
             {
                 Content content;
-                //var uri = new Uri(httpContext.Request.GetEncodedUrl());
-                //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
-                var path = httpContext.Request.Path;
-                odataReq = ODataRequest.Parse(path, httpContext);
-                if (odataReq == null)
+                if (odataRequest == null)
                 {
                     formatter = ODataFormatter.Create("json");
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
-                this.ODataRequest = odataReq;
+                this.ODataRequest = odataRequest;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                formatter = ODataFormatter.Create(httpContext, odataReq);
+                formatter = ODataFormatter.Create(httpContext, odataRequest);
                 if (formatter == null)
                 {
                     formatter = ODataFormatter.Create("json");
@@ -157,11 +151,11 @@ namespace SenseNet.OData
                     throw new ODataException(message, code, requestError);
                 }
 
-                odataReq.Format = formatter.FormatName;
-                formatter.Initialize(odataReq);
+                odataRequest.Format = formatter.FormatName;
+                formatter.Initialize(odataRequest);
 
-                var exists = false;// Node.Exists(odataReq.RepositoryPath);
-                if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
+                var exists = false;// Node.Exists(odataRequest.RepositoryPath);
+                if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
                     return ODataResponse.CreateNoContentResponse();//404
                 }
@@ -170,29 +164,29 @@ namespace SenseNet.OData
                 switch (httpMethod)
                 {
                     case "GET":
-                        if (odataReq.IsServiceDocumentRequest)
+                        if (odataRequest.IsServiceDocumentRequest)
                         {
-                            return ODataResponse.CreateServiceDocumentResponse(GetServiceDocument(httpContext, odataReq));
+                            return ODataResponse.CreateServiceDocumentResponse(GetServiceDocument(httpContext, odataRequest));
                         }
-                        else if (odataReq.IsMetadataRequest)
+                        else if (odataRequest.IsMetadataRequest)
                         {
-                            formatter.WriteMetadata(httpContext, odataReq);
+                            formatter.WriteMetadata(httpContext, odataRequest);
                         }
                         else
                         {
-                            if (!Node.Exists(odataReq.RepositoryPath))
+                            if (!Node.Exists(odataRequest.RepositoryPath))
                                 ContentNotFound(httpContext);
-                            else if (odataReq.IsCollection)
-                                formatter.WriteChildrenCollection(odataReq.RepositoryPath, httpContext, odataReq);
-                            else if (odataReq.IsMemberRequest)
-                                formatter.WriteContentProperty(odataReq.RepositoryPath, odataReq.PropertyName,
-                                    odataReq.IsRawValueRequest, httpContext, odataReq);
+                            else if (odataRequest.IsCollection)
+                                formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
+                            else if (odataRequest.IsMemberRequest)
+                                formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                    odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
-                                formatter.WriteSingleContent(odataReq.RepositoryPath, httpContext);
+                                formatter.WriteSingleContent(odataRequest.RepositoryPath, httpContext);
                         }
                         break;
                     case "PUT": // update
-                        if (odataReq.IsMemberRequest)
+                        if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException("Cannot access a member with HTTP PUT.",
                                 ODataExceptionCode.IllegalInvoke);
@@ -200,20 +194,20 @@ namespace SenseNet.OData
                         else
                         {
                             model = Read(inputStream);
-                            content = LoadContentOrVirtualChild(odataReq);
+                            content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
                                 return ODataResponse.CreateNoContentResponse();
                             }
 
                             ResetContent(content);
-                            UpdateContent(content, model, odataReq);
+                            UpdateContent(content, model, odataRequest);
                             formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "MERGE":
                     case "PATCH": // update
-                        if (odataReq.IsMemberRequest)
+                        if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
@@ -222,35 +216,35 @@ namespace SenseNet.OData
                         else
                         {
                             model = Read(inputStream);
-                            content = LoadContentOrVirtualChild(odataReq);
+                            content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
                                 return ODataResponse.CreateNoContentResponse();
                             }
 
-                            UpdateContent(content, model, odataReq);
+                            UpdateContent(content, model, odataRequest);
                             formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "POST": // invoke an action, create content
-                        if (odataReq.IsMemberRequest)
+                        if (odataRequest.IsMemberRequest)
                         {
-                            formatter.WriteOperationResult(inputStream, httpContext, odataReq);
+                            formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
                         }
                         else
                         {
                             // parent must exist
-                            if (!Node.Exists(odataReq.RepositoryPath))
+                            if (!Node.Exists(odataRequest.RepositoryPath))
                             {
                                 return ODataResponse.CreateNoContentResponse();
                             }
                             model = Read(inputStream);
-                            content = CreateContent(model, odataReq);
+                            content = CreateContent(model, odataRequest);
                             formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "DELETE":
-                        if (odataReq.IsMemberRequest)
+                        if (odataRequest.IsMemberRequest)
                         {
                             throw new ODataException(
                                 String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
@@ -258,7 +252,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            content = LoadContentOrVirtualChild(odataReq);
+                            content = LoadContentOrVirtualChild(odataRequest);
                             content?.Delete();
                         }
                         break;
@@ -283,9 +277,9 @@ namespace SenseNet.OData
                 // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
                 // really does not exist. But do this only if the visitor really does not have permission for the
                 // requested content (because security exception could be thrown by an action or something else too).
-                if (odataReq != null && User.Current.Id == Identifiers.VisitorUserId)
+                if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
                 {
-                    var head = NodeHead.Get(odataReq.RepositoryPath);
+                    var head = NodeHead.Get(odataRequest.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
                         return ODataResponse.CreateNoContentResponse();
