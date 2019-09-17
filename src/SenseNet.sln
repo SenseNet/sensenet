@@ -56,9 +56,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TextExtractors.Pdf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Tests.Hosting", "Tests\SenseNet.Tests.Hosting\SenseNet.Tests.Hosting.csproj", "{3FD689F9-C015-44B3-9EDE-144E60E666A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.OData", "OData\SenseNet.OData.csproj", "{0C76A4C4-1ECF-4AAD-BF34-726A283DB497}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.OData", "OData\SenseNet.OData.csproj", "{0C76A4C4-1ECF-4AAD-BF34-726A283DB497}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ODataTest.WebApp", "Tests\SenseNet.ODataTest.WebApp\SenseNet.ODataTest.WebApp.csproj", "{453AB597-C90F-476C-9A05-A7A9BC495AA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.ODataTest.WebApp", "Tests\SenseNet.ODataTest.WebApp\SenseNet.ODataTest.WebApp.csproj", "{453AB597-C90F-476C-9A05-A7A9BC495AA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository.Volatile", "ContentRepository.Volatile\SenseNet.ContentRepository.Volatile.csproj", "{16F82399-1E8E-450D-8320-D52F5BC5EA6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -408,6 +410,22 @@ Global
 		{453AB597-C90F-476C-9A05-A7A9BC495AA6}.Release|x64.Build.0 = Release|Any CPU
 		{453AB597-C90F-476C-9A05-A7A9BC495AA6}.Release|x86.ActiveCfg = Release|Any CPU
 		{453AB597-C90F-476C-9A05-A7A9BC495AA6}.Release|x86.Build.0 = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|x64.Build.0 = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Debug|x86.Build.0 = Debug|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|x64.ActiveCfg = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|x64.Build.0 = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|x86.ActiveCfg = Release|Any CPU
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -435,6 +453,7 @@ Global
 		{3FD689F9-C015-44B3-9EDE-144E60E666A9} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{0C76A4C4-1ECF-4AAD-BF34-726A283DB497} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 		{453AB597-C90F-476C-9A05-A7A9BC495AA6} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
+		{16F82399-1E8E-450D-8320-D52F5BC5EA6D} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
