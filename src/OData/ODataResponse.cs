@@ -10,6 +10,7 @@ namespace SenseNet.OData
         ContentNotFound,
         ServiceDocument,
         SingleContent,
+        ChildrenCollection,
         Error,
         Int
     }
@@ -51,9 +52,14 @@ namespace SenseNet.OData
         {
             return new ODataResponse(ODataResponseType.ServiceDocument, topLevelNames);
         }
-        public static ODataResponse CreateSingleContentResponse(Dictionary<string, object> fieldData)
+        internal static ODataResponse CreateSingleContentResponse(ODataContent fieldData)
         {
             return new ODataResponse(ODataResponseType.SingleContent, fieldData);
+        }
+
+        internal static ODataResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data)
+        {
+            return new ODataResponse(ODataResponseType.ChildrenCollection, data);
         }
     }
 

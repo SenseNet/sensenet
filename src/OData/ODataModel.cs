@@ -45,13 +45,13 @@ namespace SenseNet.OData
     internal class ODataSingleContent
     {
         [JsonProperty(PropertyName = "d", Order = 1)]
-        public Dictionary<string, object> FieldData { get; set; }
+        public ODataContent FieldData { get; set; }
     }
     internal class ODataMultipleContent
     {
         [JsonProperty(PropertyName = "d", Order = 1)]
         public Dictionary<string, object> Contents { get; private set; }
-        public static ODataMultipleContent Create(IEnumerable<Dictionary<string, object>> data, int count)
+        public static ODataMultipleContent Create(IEnumerable<ODataContent> data, int count)
         {
             var array = data.ToArray();
 

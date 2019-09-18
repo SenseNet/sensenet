@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
 using SenseNet.OData.Metadata;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 
@@ -179,7 +181,8 @@ namespace SenseNet.OData
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 return ODataResponse.CreateContentNotFoundResponse();
                             else if (odataRequest.IsCollection)
-                                formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
+                                return ODataResponse.CreateChildrenCollectionResponse(
+                                    GetChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest));
                             else if (odataRequest.IsMemberRequest)
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
@@ -341,6 +344,8 @@ namespace SenseNet.OData
             return ODataResponse.CreateNoContentResponse();
         }
 
+        /* ==== */
+
         private string[] GetServiceDocument(HttpContext httpContext, ODataRequest req)
         {
             var rootContent = Content.Load(req.RepositoryPath);
@@ -349,23 +354,67 @@ namespace SenseNet.OData
             return topLevelNames;
         }
 
-        private Dictionary<string, object> GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, string repositoryPath)
+        /* ==== */
+
+        private ODataContent GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, string repositoryPath)
         {
             return GetSingleContent(httpContext, odataRequest, LoadContentByVersionRequest(repositoryPath, httpContext));
         }
-        private Dictionary<string, object> GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
+        private ODataContent GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
         {
             return CreateFieldDictionary(httpContext, odataRequest, content, false);
         }
 
-        private Dictionary<string, object> CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
+        /* ==== */
+
+        private IEnumerable<ODataContent> GetChildrenCollection(string path, HttpContext httpContext, ODataRequest req)
+        {
+            var content = Content.Load(path);
+            var chdef = content.ChildrenDefinition;
+            if (req.HasContentQuery)
+            {
+                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), LogicalOperator.And);
+
+                if (req.AutofiltersEnabled != FilterStatus.Default)
+                    chdef.EnableAutofilters = req.AutofiltersEnabled;
+                if (req.LifespanFilterEnabled != FilterStatus.Default)
+                    chdef.EnableLifespanFilter = req.LifespanFilterEnabled;
+                if (req.QueryExecutionMode != QueryExecutionMode.Default)
+                    chdef.QueryExecutionMode = req.QueryExecutionMode;
+                if (req.Top > 0)
+                    chdef.Top = req.Top;
+                if (req.Skip > 0)
+                    chdef.Skip = req.Skip;
+                if (req.Sort.Any())
+                    chdef.Sort = req.Sort;
+            }
+            else
+            {
+                chdef.EnableAutofilters = FilterStatus.Disabled;
+                if (string.IsNullOrEmpty(chdef.ContentQuery))
+                {
+                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), LogicalOperator.And);
+                }
+            }
+
+            throw new NotImplementedException();
+            //var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+            //if (req.CountOnly)
+            //    WriteCount(httpContext, count);
+            //else
+            //    WriteMultipleContent(httpContext, contents, count);
+        }
+
+        /* ----------------------------------------------------------------------------------- */
+
+        private ODataContent CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
             bool isCollectionItem)
         {
             var projector = Projector.Create(odataRequest, isCollectionItem, content);
             return projector.Project(content, httpContext);
         }
 
-
+        /* =================================================================================== */
 
 
 

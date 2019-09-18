@@ -118,15 +118,15 @@ namespace SenseNet.OData
             }
         }
 
-        internal override Dictionary<string, object> Project(Content content, HttpContext httpContext)
+        internal override ODataContent Project(Content content, HttpContext httpContext)
         {
             if (content.ContentHandler.IsHeadOnly)
                 return Project(content, new List<Property>(0), _selectTree, httpContext);
             return Project(content, _expandTree, _selectTree, httpContext);
         }
-        private Dictionary<string, object> Project(Content content, List<Property> expandTree, List<Property> selectTree, HttpContext httpContext)
+        private ODataContent Project(Content content, List<Property> expandTree, List<Property> selectTree, HttpContext httpContext)
         {
-            var outfields = new Dictionary<string, object>();
+            var outfields = new ODataContent();
             var selfurl = GetSelfUrl(content);
             if (this.Request.EntityMetadata != MetadataFormat.None)
                 outfields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata, httpContext));
@@ -254,9 +254,9 @@ namespace SenseNet.OData
                 ? ProjectMultiRefContents(refField.GetData(), expansion, selection, httpContext)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection, httpContext);
         }
-        private List<Dictionary<string, object>> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
+        private List<ODataContent> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
-            var contents = new List<Dictionary<string, object>>();
+            var contents = new List<ODataContent>();
             if (references != null)
             {
                 if (references is Node node)
@@ -280,7 +280,7 @@ namespace SenseNet.OData
             }
             return contents;
         }
-        private Dictionary<string, object> ProjectSingleRefContent(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
+        private ODataContent ProjectSingleRefContent(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             if (references == null)
                 return null;
@@ -295,14 +295,14 @@ namespace SenseNet.OData
             return null;
         }
 
-        private void AddField(Content content, List<Property> expandTree, IDictionary<string, object> fields,
+        private void AddField(Content content, List<Property> expandTree, ODataContent fields,
             string fieldName, HttpContext httpContext, Func<Content, HttpContext, object> getFieldValue)
         {
             var expansion = GetPropertyFromList(fieldName, expandTree);
 
             AddField(content, expansion, fields, fieldName, httpContext, getFieldValue);
         }
-        private void AddField(Content content, Property expansion, IDictionary<string, object> fields,
+        private void AddField(Content content, Property expansion, ODataContent fields,
             string fieldName, HttpContext httpContext, Func<Content, HttpContext, object> getFieldValue)
         {
             fields.Add(fieldName,

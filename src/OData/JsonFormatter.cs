@@ -29,7 +29,7 @@ namespace SenseNet.OData
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteSingleContent(HttpContext httpContext, Dictionary<string, object> fields) { throw new SnNotSupportedException(); }
+        protected override void WriteSingleContent(HttpContext httpContext, ODataContent fields) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
@@ -37,7 +37,7 @@ namespace SenseNet.OData
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteMultipleContent(HttpContext httpContext, List<Dictionary<string, object>> contents, int count) { throw new SnNotSupportedException(); }
+        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataContent> contents, int count) { throw new SnNotSupportedException(); }
         /// <inheritdoc />
         protected override void WriteCount(HttpContext httpContext, int count)
         {
@@ -73,12 +73,12 @@ namespace SenseNet.OData
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteSingleContent(HttpContext httpContext, Dictionary<string, object> fields)
+        protected override void WriteSingleContent(HttpContext httpContext, ODataContent fields)
         {
             Write(new ODataSingleContent { FieldData = fields }, httpContext);
         }
         /// <inheritdoc />
-        protected override void WriteMultipleContent(HttpContext httpContext, List<Dictionary<string, object>> contents, int count)
+        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataContent> contents, int count)
         {
             Write(ODataMultipleContent.Create(contents, count), httpContext);
         }
@@ -88,14 +88,14 @@ namespace SenseNet.OData
             if(raw)
                 Write(actions, httpContext);
             else
-                Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext);
+                Write(new ODataSingleContent { FieldData = new ODataContent { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext);
         }
         /// <inheritdoc />
         protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
         {
-            if (result is List<Dictionary<string, object>> dictionaryList)
+            if (result is IEnumerable<ODataContent> dictionaryList)
             {
-                Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count), httpContext);
+                Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count()), httpContext);
                 return;
             }
             if (result is IEnumerable<ODataObject> customContentList)
@@ -176,7 +176,7 @@ namespace SenseNet.OData
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteSingleContent(HttpContext httpContext, Dictionary<string, object> fields)
+        protected override void WriteSingleContent(HttpContext httpContext, ODataContent fields)
         {
             //var resp = httpContext.Response;
             //resp.ContentType = "text/html";
@@ -222,7 +222,7 @@ namespace SenseNet.OData
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteMultipleContent(HttpContext httpContext, List<Dictionary<string, object>> contents, int count)
+        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataContent> contents, int count)
         {
             //var resp = httpContext.Response;
             //var colNames = new List<string> {"Nr."};
@@ -327,7 +327,7 @@ namespace SenseNet.OData
         protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw)
         {
             // raw parameter isn't used
-            var data = actions.Select(x => new Dictionary<string, object>{
+            var data = actions.Select(x => new ODataContent{
                 {"Name", x.Name},
                 {"DisplayName", x.DisplayName},
                 {"Index", x.Index},

@@ -155,7 +155,7 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="fields">A Dictionary&lt;string, object&gt; that will be written.</param>
-        protected abstract void WriteSingleContent(HttpContext httpContext, Dictionary<string, object> fields);
+        protected abstract void WriteSingleContent(HttpContext httpContext, ODataContent fields);
 
         internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
         {
@@ -203,7 +203,7 @@ namespace SenseNet.OData
             var projector = Projector.Create(req, true);
             if (node != null)
             {
-                var contents = new List<Dictionary<string, object>>
+                var contents = new List<ODataContent>
                 {
                     CreateFieldDictionary(Content.Create(node), projector,httpContext)
                 };
@@ -218,7 +218,7 @@ namespace SenseNet.OData
                     var allcount = 0;
                     var count = 0;
                     var realcount = 0;
-                    var contents = new List<Dictionary<string, object>>();
+                    var contents = new List<ODataContent>();
                     if (req.HasFilter)
                     {
                         var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
@@ -272,7 +272,7 @@ namespace SenseNet.OData
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="contents">A List&lt;Dictionary&lt;string, object&gt;&gt; that will be written.</param>
         /// <param name="count">Count of contents. This value can be different from the count of the written content list if the request has restrictions in connection with cardinality (e.g. "$top=10") but specifies the total count of the collection ("$inlinecount=allpages").</param>
-        protected abstract void WriteMultipleContent(HttpContext httpContext, List<Dictionary<string, object>> contents, int count);
+        protected abstract void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataContent> contents, int count);
         /// <summary>
         /// Writes only the count of the requested resource to the webresponse.
         /// Activated if the URI of the requested resource contains the "$count" segment.
@@ -324,7 +324,7 @@ namespace SenseNet.OData
                 }
                 else if (!rawValue)
                 {
-                    WriteSingleContent(httpContext, new Dictionary<string, object> { { propertyName, field.GetData() } });
+                    WriteSingleContent(httpContext, new ODataContent { { propertyName, field.GetData() } });
                 }
                 else
                 {
@@ -523,7 +523,7 @@ new StackInfo
                 return false;
             return response;
         }
-        private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
+        private IEnumerable<ODataContent> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {
             var queryText = qdef.ContentQuery;
             if (queryText.Contains("}}"))
@@ -573,7 +573,7 @@ new StackInfo
                 return null;
             }
 
-            var contents = new List<Dictionary<string, object>>();
+            var contents = new List<ODataContent>();
             var projector = Projector.Create(req, true);
             var missingIds = new List<int>();
 
@@ -599,7 +599,7 @@ new StackInfo
                 // index anomaly: there are ids in the index that could not be loaded from the database
                 SnLog.WriteWarning("Missing ids found in the index that could not be loaded from the database. See id list below.",
                     EventId.Indexing,
-                    properties: new Dictionary<string, object>
+                    properties: new ODataContent
                     {
                         {"MissingIds", string.Join(", ", missingIds.OrderBy(id => id))}
                     });
@@ -607,17 +607,17 @@ new StackInfo
 
             return contents;
         }
-        private List<Dictionary<string, object>> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+        private List<ODataContent> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(input.Keys, req, out var totalCount);
 
-            var output = new List<Dictionary<string, object>>();
+            var output = new List<ODataContent>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
                 var fields = CreateFieldDictionary(content, projector, httpContext);
-                var item = new Dictionary<string, object>
+                var item = new ODataContent
                 {
                     {"key", fields},
                     {"value", input[content]}
@@ -629,12 +629,12 @@ new StackInfo
                 return null;
             return output;
         }
-        private List<Dictionary<string, object>> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+        private List<ODataContent> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(inputContents, req, out var totalCount);
 
-            var outContents = new List<Dictionary<string, object>>();
+            var outContents = new List<ODataContent>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
@@ -883,11 +883,11 @@ new StackInfo
             }
             return values;
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
+        private ODataContent CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
         {
             return projector.Project(content, httpContext);
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, bool isCollectionItem, HttpContext httpContext)
+        private ODataContent CreateFieldDictionary(Content content, bool isCollectionItem, HttpContext httpContext)
         {
             var projector = Projector.Create(this.ODataRequest, isCollectionItem, content);
             return projector.Project(content, httpContext);
