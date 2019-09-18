@@ -112,7 +112,7 @@ namespace SenseNet.OData
                 var stringValue = changedResponse.Value?.ToString() ?? "{null}";
 
                 httpContext.Response.ContentType = "text/plain";
-                await httpContext.Response.WriteAsync($"{changedResponse.Type}:{stringValue}");
+                await httpContext.Response.WriteAsync($"{changedResponse.Type}: {stringValue}");
             }
         }
 
