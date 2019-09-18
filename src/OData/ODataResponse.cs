@@ -53,7 +53,7 @@ namespace SenseNet.OData
         }
         public static ODataResponse CreateSingleContentResponse(Dictionary<string, object> fieldData)
         {
-            return new ODataResponse(ODataResponseType.Error, fieldData);
+            return new ODataResponse(ODataResponseType.SingleContent, fieldData);
         }
     }
 

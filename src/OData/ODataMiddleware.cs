@@ -156,7 +156,7 @@ namespace SenseNet.OData
                 odataRequest.Format = formatter.FormatName;
                 formatter.Initialize(odataRequest);
 
-                var exists = false;// Node.Exists(odataRequest.RepositoryPath);
+                var exists = Node.Exists(odataRequest.RepositoryPath);
                 if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
                     return ODataResponse.CreateContentNotFoundResponse();//404
@@ -462,8 +462,8 @@ namespace SenseNet.OData
 
         internal static Content LoadContentByVersionRequest(string path, HttpContext httpContext)
         {
-            var versionRequest = httpContext.Request.Query["version"];
-            return VersionNumber.TryParse(versionRequest, out var version)
+            var versionRequest = httpContext.Request.Query["version"].ToString();
+            return !string.IsNullOrEmpty(versionRequest) && VersionNumber.TryParse(versionRequest, out var version)
                 ? Content.Load(path, version)
                 : Content.Load(path);
         }
