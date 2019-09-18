@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace SenseNet.Tests
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InitialTestData : IRepositoryDataFile
     {

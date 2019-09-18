@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public partial class InMemoryDataBase
     {

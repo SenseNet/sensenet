@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemoryBlobProviderSelector : IBlobProviderSelector
     {
@@ -138,21 +139,21 @@ namespace SenseNet.Tests.Implementations
     {
         private Dictionary<Guid, byte[]> _blobStorage = new Dictionary<Guid, byte[]>();
 
-        public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        public STT.Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid();
             _blobStorage.Add(id, new byte[0]);
 
             context.BlobProviderData = new InMemoryBlobProviderData { BlobId = id };
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
+        public STT.Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        public STT.Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

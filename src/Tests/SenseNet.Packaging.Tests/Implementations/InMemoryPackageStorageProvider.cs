@@ -6,6 +6,7 @@ using Tasks = System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Packaging.Tests.Implementations

@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;

@@ -196,6 +196,10 @@
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>SenseNet.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ContentRepository.Volatile\SenseNet.ContentRepository.Volatile.csproj">
+      <Project>{920fe29a-ebc3-431e-8bf7-a98792b99c2f}</Project>
+      <Name>SenseNet.ContentRepository.Volatile</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
       <Name>SenseNet.ContentRepository</Name>

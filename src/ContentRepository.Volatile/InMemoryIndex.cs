@@ -11,7 +11,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     //TODO: Known issue: this class is not thread safe (sometimes there is an ArgumentOutOfRangeException in the InMemoryIndex.cs line 194).
     public class InMemoryIndex
@@ -305,26 +305,26 @@ namespace SenseNet.Tests.Implementations
                     throw new ArgumentOutOfRangeException();
             }
         }
-        internal static string IntToString(int value)
+        public static string IntToString(int value)
         {
             var uValue = value >= 0
                 ? Convert.ToUInt32(value) + int.MaxValue
                 : Convert.ToUInt32(value + 1 + int.MaxValue);
             return uValue.ToString("0000000000") + "|" + value;
         }
-        internal static string LongToString(long value)
+        public static string LongToString(long value)
         {
             var uValue = value >= 0
                 ? Convert.ToUInt64(value) + long.MaxValue
                 : Convert.ToUInt64(value + 1L + long.MaxValue);
             return uValue.ToString("00000000000000000000") + "|" + value;
         }
-        internal static string SingleToString(float value)
+        public static string SingleToString(float value)
         {
             //TODO: Single fields are not comparable as a string
             return value.ToString(CultureInfo.InvariantCulture);
         }
-        internal static string DoubleToString(double value)
+        public static string DoubleToString(double value)
         {
             //TODO: Double fields are not comparable as a string
             return value.ToString(CultureInfo.InvariantCulture);

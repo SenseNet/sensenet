@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security.Data;

@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;

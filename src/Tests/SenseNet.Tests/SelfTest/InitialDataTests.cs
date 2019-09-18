@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Diagnostics;
 using SenseNet.Tests.Implementations;
 using Task = System.Threading.Tasks.Task;

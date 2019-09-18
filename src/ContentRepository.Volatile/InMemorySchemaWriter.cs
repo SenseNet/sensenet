@@ -5,8 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     internal class InMemorySchemaWriter : SchemaWriter
     {
@@ -19,7 +20,7 @@ namespace SenseNet.Tests.Implementations
             _finishedCallback = finishedCallback;
         }
 
-        public override Task WriteSchemaAsync(RepositorySchemaData schema)
+        public override STT.Task WriteSchemaAsync(RepositorySchemaData schema)
         {
             throw new NotSupportedException();
         }

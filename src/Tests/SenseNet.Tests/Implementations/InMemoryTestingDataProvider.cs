@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations

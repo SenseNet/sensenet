@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class DataCollection<T> : IEnumerable<T> where T : IDataDocument
     {

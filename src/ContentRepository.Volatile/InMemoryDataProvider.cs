@@ -17,7 +17,7 @@ using SenseNet.Diagnostics;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemoryDataProvider : DataProvider
     {
@@ -495,7 +495,7 @@ namespace SenseNet.Tests.Implementations
             lock (DB)
             {
                 var result = BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
-                return Task.FromResult(result);
+                return STT.Task.FromResult(result);
             }
         }
 

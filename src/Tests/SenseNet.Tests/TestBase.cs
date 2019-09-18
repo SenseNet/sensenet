@@ -14,11 +14,13 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Volatile;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
+//using InMemoryBlobStorageMetaDataProvider = SenseNet.Tests.Implementations.InMemoryBlobStorageMetaDataProvider;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests

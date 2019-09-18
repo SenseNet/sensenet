@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemoryBlobStorageMetaDataProvider : IBlobStorageMetaDataProvider
     {
@@ -47,10 +48,10 @@ namespace SenseNet.Tests.Implementations
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
-            return Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
 
-        public Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
+        public STT.Task InsertBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId,
             bool isNewNode, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
@@ -95,10 +96,10 @@ namespace SenseNet.Tests.Implementations
             value.FileId = fileId;
             value.Timestamp = 0L; //TODO: file row timestamp
 
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
+        public STT.Task InsertBinaryPropertyWithFileIdAsync(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode,
             SnDataContext dataContext)
         {
             var db = DataProvider.DB;
@@ -116,10 +117,10 @@ namespace SenseNet.Tests.Implementations
 
             value.Id = binaryPropertyId;
 
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
+        public STT.Task UpdateBinaryPropertyAsync(IBlobProvider blobProvider, BinaryDataValue value, SnDataContext dataContext)
         {
             var streamLength = value.Stream?.Length ?? 0;
             var isExternal = false;
@@ -145,7 +146,7 @@ namespace SenseNet.Tests.Implementations
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!isExternal && !hasStream)
                 // do not do any database operation if the stream is not modified
-                return Task.CompletedTask;
+                return STT.Task.CompletedTask;
 
             var db = DataProvider.DB;
             var fileId = db.Files.GetNextId();
@@ -178,27 +179,27 @@ namespace SenseNet.Tests.Implementations
             using (var stream = blobProvider.GetStreamForWrite(newCtx))
                 value.Stream?.CopyTo(stream);
 
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
+        public STT.Task DeleteBinaryPropertyAsync(int versionId, int propertyTypeId, SnDataContext dataContext)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
                 .Where(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId)
                 .ToArray())
                 db.BinaryProperties.Remove(item);
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
+        public STT.Task DeleteBinaryPropertiesAsync(IEnumerable<int> versionIds, SnDataContext dataContext)
         {
             var db = DataProvider.DB;
             foreach (var item in db.BinaryProperties
                 .Where(x => versionIds.Contains(x.VersionId))
                 .ToArray())
                 db.BinaryProperties.Remove(item);
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
         [SuppressMessage("ReSharper", "ExpressionIsAlwaysNull")]
@@ -211,16 +212,16 @@ namespace SenseNet.Tests.Implementations
             var binaryDoc = db.BinaryProperties.FirstOrDefault(x =>
                 x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
             if (binaryDoc == null)
-                return Task.FromResult(result);
+                return STT.Task.FromResult(result);
 
             var fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
             if (fileDoc == null)
-                return Task.FromResult(result);
+                return STT.Task.FromResult(result);
             if (fileDoc.Staging)
-                return Task.FromResult(result);
+                return STT.Task.FromResult(result);
 
             result = CreateBinaryDataValue(db, binaryDoc, fileDoc);
-            return Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
         private BinaryDataValue CreateBinaryDataValue(InMemoryDataBase db, BinaryPropertyDoc binaryDoc, FileDoc fileDoc = null)
         {
@@ -288,7 +289,7 @@ namespace SenseNet.Tests.Implementations
                 FileId = fileId,
                 Context = context
             };
-            return Task.FromResult(result);
+            return STT.Task.FromResult(result);
         }
 
         public Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
@@ -297,13 +298,13 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
+        public STT.Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
             CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public virtual Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+        public virtual STT.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

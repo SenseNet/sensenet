@@ -9,7 +9,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemoryQueryEngine : IQueryEngine
     {

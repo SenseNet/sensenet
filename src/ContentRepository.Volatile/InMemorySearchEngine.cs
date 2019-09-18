@@ -3,7 +3,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemorySearchEngine : ISearchEngine
     {

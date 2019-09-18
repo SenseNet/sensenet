@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     public class InMemoryIndexingEngine : IIndexingEngine
     {
@@ -21,36 +22,36 @@ namespace SenseNet.Tests.Implementations
             _searchEngine = searchEngine;
         }
 
-        public Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
+        public STT.Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
         {
             Running = true;
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task ShutDownAsync(CancellationToken cancellationToken)
+        public STT.Task ShutDownAsync(CancellationToken cancellationToken)
         {
             Running = false;
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task ClearIndexAsync(CancellationToken cancellationToken)
+        public STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
             Index.Clear();
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
         public Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(Index.ReadActivityStatus());
+            return STT.Task.FromResult(Index.ReadActivityStatus());
         }
 
-        public Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken)
+        public STT.Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken)
         {
             Index.WriteActivityStatus(state);
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
 
-        public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, 
+        public STT.Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, 
             IEnumerable<IndexDocument> additions, CancellationToken cancellationToken)
         {
             if (deletions != null)
@@ -65,7 +66,7 @@ namespace SenseNet.Tests.Implementations
                 foreach(var doc in additions)
                     Index.AddDocument(doc);
 
-            return Task.CompletedTask;
+            return STT.Task.CompletedTask;
         }
     }
 }

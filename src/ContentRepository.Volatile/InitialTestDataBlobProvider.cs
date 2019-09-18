@@ -5,24 +5,24 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
-using Task = System.Threading.Tasks.Task;
+using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests.Implementations
+namespace SenseNet.ContentRepository.Volatile
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {
         private readonly IRepositoryDataFile _dataFile = InitialTestData.Instance;
 
-        public Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        public STT.Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
+        public STT.Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }
-        public Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
+        public STT.Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
