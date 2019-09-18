@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
+using SenseNet.ContentRepository.Linq;
 using SenseNet.OData.Metadata;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -181,8 +182,7 @@ namespace SenseNet.OData
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 return ODataResponse.CreateContentNotFoundResponse();
                             else if (odataRequest.IsCollection)
-                                return ODataResponse.CreateChildrenCollectionResponse(
-                                    GetChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest));
+                                return GetChildrenCollectionResponse(odataRequest.RepositoryPath, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
@@ -367,7 +367,7 @@ namespace SenseNet.OData
 
         /* ==== */
 
-        private IEnumerable<ODataContent> GetChildrenCollection(string path, HttpContext httpContext, ODataRequest req)
+        private ODataResponse GetChildrenCollectionResponse(string path, HttpContext httpContext, ODataRequest req)
         {
             var content = Content.Load(path);
             var chdef = content.ChildrenDefinition;
@@ -397,16 +397,102 @@ namespace SenseNet.OData
                 }
             }
 
-            throw new NotImplementedException();
-            //var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
-            //if (req.CountOnly)
-            //    WriteCount(httpContext, count);
-            //else
-            //    WriteMultipleContent(httpContext, contents, count);
+            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+            if (req.CountOnly)
+                return ODataResponse.CreateCollectionCountResponse(count);
+            return ODataResponse.CreateChildrenCollectionResponse(contents);
+        }
+        private IEnumerable<ODataContent> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
+        {
+            var queryText = qdef.ContentQuery;
+            if (queryText.Contains("}}"))
+            {
+                queryText = ContentQuery.ResolveInnerQueries(qdef.ContentQuery, new QuerySettings
+                {
+                    EnableAutofilters = qdef.EnableAutofilters,
+                    EnableLifespanFilter = qdef.EnableLifespanFilter,
+                    QueryExecutionMode = qdef.QueryExecutionMode,
+                    Sort = qdef.Sort
+                });
+            }
+
+            var cdef = new ChildrenDefinition
+            {
+                PathUsage = qdef.PathUsage,
+                ContentQuery = queryText,
+                Top = req.Top > 0 ? req.Top : qdef.Top,
+                Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
+                Sort = req.Sort != null && req.Sort.Any() ? req.Sort : qdef.Sort,
+                CountAllPages = req.HasInlineCount ? req.InlineCount == InlineCount.AllPages : qdef.CountAllPages,
+                EnableAutofilters = req.AutofiltersEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableAutofilters,
+                EnableLifespanFilter = req.LifespanFilterEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableLifespanFilter,
+                QueryExecutionMode = req.QueryExecutionMode != QueryExecutionMode.Default ? req.QueryExecutionMode : qdef.QueryExecutionMode,
+            };
+
+            var snQuery = SnExpression.BuildQuery(req.Filter, typeof(Content), null, cdef);
+            if (cdef.EnableAutofilters != FilterStatus.Default)
+                snQuery.EnableAutofilters = cdef.EnableAutofilters;
+            if (cdef.EnableLifespanFilter != FilterStatus.Default)
+                snQuery.EnableLifespanFilter = cdef.EnableLifespanFilter;
+            if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
+                snQuery.QueryExecutionMode = cdef.QueryExecutionMode;
+
+            var result = snQuery.Execute(new SnQueryContext(null, User.Current.Id));
+            // for optimization purposes this combined condition is examined separately
+            if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
+            {
+                count = result.TotalCount;
+                return null;
+            }
+
+            var ids = result.Hits.ToArray();
+            count = req.InlineCount == InlineCount.AllPages ? result.TotalCount : ids.Length;
+            if (req.CountOnly)
+            {
+                return null;
+            }
+
+            var contents = new List<ODataContent>();
+            var projector = Projector.Create(req, true);
+            var missingIds = new List<int>();
+
+            foreach (var id in ids)
+            {
+                var content = Content.Load(id);
+                if (content == null)
+                {
+                    // collect missing ids for logging purposes
+                    missingIds.Add(id);
+                    continue;
+                }
+
+                var fields = CreateFieldDictionary(content, projector, httpContext);
+                contents.Add(fields);
+            }
+
+            if (missingIds.Count > 0)
+            {
+                // subtract missing count from result count
+                count = Math.Max(0, count - missingIds.Count);
+
+                // index anomaly: there are ids in the index that could not be loaded from the database
+                SnLog.WriteWarning("Missing ids found in the index that could not be loaded from the database. See id list below.",
+                    EventId.Indexing,
+                    properties: new Dictionary<string, object>
+                    {
+                        {"MissingIds", string.Join(", ", missingIds.OrderBy(id => id))}
+                    });
+            }
+
+            return contents;
         }
 
         /* ----------------------------------------------------------------------------------- */
 
+        private ODataContent CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
+        {
+            return projector.Project(content, httpContext);
+        }
         private ODataContent CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
             bool isCollectionItem)
         {

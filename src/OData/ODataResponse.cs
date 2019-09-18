@@ -12,7 +12,7 @@ namespace SenseNet.OData
         SingleContent,
         ChildrenCollection,
         Error,
-        Int
+        Int,
     }
 
     /// <summary>
@@ -56,10 +56,13 @@ namespace SenseNet.OData
         {
             return new ODataResponse(ODataResponseType.SingleContent, fieldData);
         }
-
         internal static ODataResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data)
         {
             return new ODataResponse(ODataResponseType.ChildrenCollection, data);
+        }
+        internal static ODataResponse CreateCollectionCountResponse(int count)
+        {
+            return new ODataResponse(ODataResponseType.Int, count);
         }
     }
 
