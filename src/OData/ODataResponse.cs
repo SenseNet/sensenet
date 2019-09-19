@@ -15,6 +15,7 @@ namespace SenseNet.OData
         MultipleContent,
         ActionsProperty,
         ActionsPropertyRaw,
+        OperationCustomResult,
 
         Int,
         RawData,
@@ -85,6 +86,19 @@ namespace SenseNet.OData
         {
             //UNDONE:ODATA: Use allCount parameter
             return new ODataResponse(ODataResponseType.MultipleContent, items);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ODataResponse"/> from a general object.
+        /// </summary>
+        /// <param name="result">The object that will be written.</param>
+        /// <param name="allCount">A nullable int that contains the count of items in the result object if it is an enumerable and
+        /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
+        /// <returns></returns>
+        internal static ODataResponse CreateOperationCustomResultResponse(object result, int? allCount)
+        {
+            //UNDONE:ODATA: Use allCount parameter
+            return new ODataResponse(ODataResponseType.OperationCustomResult, result);
         }
     }
 

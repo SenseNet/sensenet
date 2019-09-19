@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -101,13 +102,16 @@ namespace SenseNet.OData
 
         public async STT.Task Invoke(HttpContext httpContext)
         {
-            //var uri = new Uri(httpContext.Request.GetEncodedUrl());
-            //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
-            var path = httpContext.Request.Path;
-            var odataRequest = ODataRequest.Parse(path, httpContext);
+            using (new SystemAccount())
+            {
+                //var uri = new Uri(httpContext.Request.GetEncodedUrl());
+                //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
+                var path = httpContext.Request.Path;
+                var odataRequest = ODataRequest.Parse(path, httpContext);
 
-            var response = ProcessRequest(httpContext, odataRequest);
-            httpContext.SetODataResponse(response);
+                var response = ProcessRequest(httpContext, odataRequest);
+                httpContext.SetODataResponse(response);
+            }
 
             await _next(httpContext);
 
@@ -595,8 +599,311 @@ namespace SenseNet.OData
                 return ODataResponse.CreateRawResponse(field.GetData());
             }
 
-            //WriteOperationResult(httpContext, req);
-            throw new NotImplementedException("WriteOperationResult is not implemented yet."); //UNDONE:ODATA: WriteOperationResult
+            return ExecuteFunction(httpContext, req, content);
+        }
+
+        /* ==== */
+
+        /// <summary>
+        /// Handles GET operations. Parameters come from the URL or the request stream.
+        /// </summary>
+        // orig name:  GetOperationResultResponse
+        internal ODataResponse ExecuteFunction(HttpContext httpContext, ODataRequest odataReq, Content content)
+        {
+            //var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
+            //if (content == null)
+            //    throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
+
+            var action = ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            if (action == null)
+            {
+                // check if this is a versioning action (e.g. a checkout)
+                SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
+
+                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
+            }
+
+            if (!action.IsODataOperation)
+                throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
+            if (action.CausesStateChange)
+                throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
+
+            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+                throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
+
+            var parameters = GetOperationParameters(action, httpContext.Request);
+            var response = action.Execute(content, parameters);
+
+            if (response is Content responseAsContent)
+            {
+                return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, responseAsContent, false));
+                //WriteSingleContent(responseAsContent, httpContext);
+                //return;
+            }
+
+            response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
+            return GetOperationResultResponse(response, httpContext, odataReq, count);
+        }
+
+        private ODataResponse GetOperationResultResponse(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
+        {
+            //UNDONE:ODATA: is this test unnecessary?
+            if (result is Content content)
+                return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, content, false));
+
+            //UNDONE:ODATA: is this test unnecessary?
+            if (result is IEnumerable<Content> enumerable)
+                return GetMultiRefContentResponse(enumerable, httpContext, odataReq);
+
+            return ODataResponse.CreateOperationCustomResultResponse(result, odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null);
+        }
+
+
+
+        private object ProcessOperationResponse(object response, ODataRequest odataReq, HttpContext httpContext, out int count)
+        {
+            if (response is ChildrenDefinition qdef)
+                return ProcessOperationQueryResponse(qdef, odataReq, httpContext, out count);
+
+            if (response is IEnumerable<Content> coll)
+                return ProcessOperationCollectionResponse(coll, odataReq, httpContext, out count);
+
+            if (response is IDictionary dict)
+            {
+                count = dict.Count;
+                var targetTypized = new Dictionary<Content, object>();
+                foreach (var item in dict.Keys)
+                {
+                    if (!(item is Content content))
+                        return response;
+                    targetTypized.Add(content, dict[content]);
+                }
+                return ProcessOperationDictionaryResponse(targetTypized, odataReq, httpContext, out count);
+            }
+
+            // get real count from an enumerable
+            if (response is IEnumerable enumerable)
+            {
+                var c = 0;
+                // ReSharper disable once UnusedVariable
+                foreach (var x in enumerable)
+                    c++;
+                count = c;
+            }
+            else
+            {
+                count = 1;
+            }
+
+            if (response != null && response.ToString() == "{ PreviewAvailable = True }")
+                return true;
+            if (response != null && response.ToString() == "{ PreviewAvailable = False }")
+                return false;
+            return response;
+        }
+        private IEnumerable<ODataContent> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+            ODataRequest req, HttpContext httpContext, out int count)
+        {
+            var x = ProcessODataFilters(input.Keys, req, out var totalCount);
+
+            var output = new List<ODataContent>();
+            var projector = Projector.Create(req, true);
+            foreach (var content in x)
+            {
+                var fields = CreateFieldDictionary(httpContext, content, projector);
+                var item = new ODataContent
+                {
+                    {"key", fields},
+                    {"value", input[content]}
+                };
+                output.Add(item);
+            }
+            count = totalCount ?? output.Count;
+            if (req.CountOnly)
+                return null;
+            return output;
+        }
+        private IEnumerable<ODataContent> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+            ODataRequest req, HttpContext httpContext, out int count)
+        {
+            var x = ProcessODataFilters(inputContents, req, out var totalCount);
+
+            var outContents = new List<ODataContent>();
+            var projector = Projector.Create(req, true);
+            foreach (var content in x)
+            {
+                var fields = CreateFieldDictionary(httpContext, content, projector);
+                outContents.Add(fields);
+            }
+
+            count = totalCount ?? outContents.Count;
+            if (req.CountOnly)
+                return null;
+            return outContents;
+        }
+        private IEnumerable<Content> ProcessODataFilters(IEnumerable<Content> inputContents, ODataRequest req, out int? totalCount)
+        {
+            var x = inputContents;
+            if (req.HasFilter)
+            {
+                if (x is IQueryable<Content> y)
+                {
+                    x = y.Where((Expression<Func<Content, bool>>)req.Filter);
+                }
+                else
+                {
+                    var filter = SnExpression.GetCaseInsensitiveFilter(req.Filter);
+                    var lambdaExpr = (LambdaExpression)filter;
+                    x = x.Where((Func<Content, bool>)lambdaExpr.Compile());
+                }
+            }
+            if (req.HasSort)
+                x = AddSortToCollectionExpression(x, req.Sort);
+
+            if (req.InlineCount == InlineCount.AllPages)
+            {
+                x = x.ToList();
+                totalCount = ((IList)x).Count;
+            }
+            else
+            {
+                totalCount = null;
+            }
+
+            if (req.HasSkip)
+                x = x.Skip(req.Skip);
+            if (req.HasTop)
+                x = x.Take(req.Top);
+
+            return x;
+        }
+        private IEnumerable<Content> AddSortToCollectionExpression(IEnumerable<Content> contents, IEnumerable<SortInfo> sort)
+        {
+            IOrderedEnumerable<Content> sortedContents = null;
+            var contentArray = contents as Content[] ?? contents.ToArray();
+            foreach (var sortInfo in sort)
+            {
+                if (sortedContents == null)
+                {
+                    sortedContents = sortInfo.Reverse
+                        ? contentArray.OrderByDescending(c => c[sortInfo.FieldName])
+                        : contentArray.OrderBy(c => c[sortInfo.FieldName]);
+                }
+                else
+                {
+                    sortedContents = sortInfo.Reverse
+                        ? sortedContents.ThenByDescending(c => c[sortInfo.FieldName])
+                        : sortedContents.ThenBy(c => c[sortInfo.FieldName]);
+                }
+            }
+            return sortedContents ?? contents;
+        }
+
+
+
+        private object[] GetOperationParameters(ActionBase action, HttpRequest request)
+        {
+            if ((action.ActionParameters?.Length ?? 0) == 0)
+                return ActionParameter.EmptyValues;
+
+            Debug.Assert(action.ActionParameters != null, "action.ActionParameters != null");
+            var values = new object[action.ActionParameters.Length];
+
+            var parameters = action.ActionParameters;
+            if (parameters.Length == 1 && parameters[0].Name == null)
+            {
+                throw new ArgumentException("Cannot parse unnamed parameter from URL. This operation expects POST verb.");
+            }
+            else
+            {
+                var i = 0;
+                foreach (var parameter in parameters)
+                {
+                    var name = parameter.Name;
+                    var type = parameter.Type;
+                    var val = request.Query[name];
+                    if (val == StringValues.Empty)
+                    {
+                        if (parameter.Required)
+                            throw new ArgumentNullException(parameter.Name);
+                    }
+                    else
+                    {
+                        var valStr = (string)val;
+
+                        if (type == typeof(string))
+                        {
+                            values[i] = valStr;
+                        }
+                        else if (type == typeof(bool))
+                        {
+                            // we handle "True", "true" and "1" as boolean true values
+                            values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
+                        }
+                        else if (type.IsEnum)
+                        {
+                            values[i] = Enum.Parse(type, valStr, true);
+                        }
+                        else if (type == typeof(string[]))
+                        {
+                            var parsed = false;
+                            try
+                            {
+                                values[i] = JsonConvert.DeserializeObject(valStr, type);
+                                parsed = true;
+                            }
+                            catch // recompute
+                            {
+                                // ignored
+                            }
+                            if (!parsed)
+                            {
+                                if (valStr.StartsWith("'"))
+                                    values[i] = GetStringArrayFromString(name, valStr, '\'');
+                                else if (valStr.StartsWith("\""))
+                                    values[i] = GetStringArrayFromString(name, valStr, '"');
+                                else
+                                    values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
+                            }
+                        }
+                        else
+                        {
+                            values[i] = JsonConvert.DeserializeObject(valStr, type);
+                        }
+                    }
+                    i++;
+                }
+            }
+            return values;
+        }
+        private string[] GetStringArrayFromString(string paramName, string src, char stringEnvelope)
+        {
+            var result = new List<string>();
+            int startPos = -1;
+            bool started = false;
+            for (int i = 0; i < src.Length; i++)
+            {
+                var c = src[i];
+                if (c == stringEnvelope)
+                {
+                    if (!started)
+                    {
+                        started = true;
+                        startPos = i + 1;
+                    }
+                    else
+                    {
+                        started = false;
+                        result.Add(src.Substring(startPos, i - startPos));
+                    }
+                }
+                else if (!started)
+                {
+                    if (c != ' ' && c != ',')
+                        throw new ODataException("Parameter error: cannot parse a string array. Name: " + paramName, ODataExceptionCode.NotSpecified);
+                }
+            }
+            return result.ToArray();
         }
 
         /* ----------------------------------------------------------------------------------- */
