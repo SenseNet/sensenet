@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Web;
+using System.Xml.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -159,11 +162,11 @@ namespace SenseNet.OData
                 odataRequest.Format = formatter.FormatName;
                 formatter.Initialize(odataRequest);
 
-                var exists = Node.Exists(odataRequest.RepositoryPath);
+                var requestedContent = LoadContentByVersionRequest(odataRequest.RepositoryPath, httpContext);
+
+                var exists = requestedContent != null;
                 if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
-                {
                     return ODataResponse.CreateContentNotFoundResponse();//404
-                }
 
                 JObject model;
                 switch (httpMethod)
@@ -179,16 +182,16 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            if (!Node.Exists(odataRequest.RepositoryPath))
+                            if (!exists)
                                 return ODataResponse.CreateContentNotFoundResponse();
                             else if (odataRequest.IsCollection)
-                                return GetChildrenCollectionResponse(odataRequest.RepositoryPath, httpContext, odataRequest);
+                                return GetChildrenCollectionResponse(requestedContent, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
-                                formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                return GetContentPropertyResponse(requestedContent, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
                                 return ODataResponse.CreateSingleContentResponse(
-                                    GetSingleContent(httpContext, odataRequest, odataRequest.RepositoryPath));
+                                    GetSingleContent(httpContext, odataRequest, requestedContent));
                         }
                         break;
                     case "PUT": // update
@@ -240,13 +243,14 @@ namespace SenseNet.OData
                         else
                         {
                             // parent must exist
+                            //UNDONE:ODATA: unnecessary check (?)
                             if (!Node.Exists(odataRequest.RepositoryPath))
                             {
                                 return ODataResponse.CreateContentNotFoundResponse();
                             }
                             model = Read(inputStream);
-                            content = CreateContent(model, odataRequest);
-                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
+                            var newContent = CreateNewContent(model, odataRequest);
+                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, newContent));
                         }
                         break;
                     case "DELETE":
@@ -283,6 +287,7 @@ namespace SenseNet.OData
                 // requested content (because security exception could be thrown by an action or something else too).
                 if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
                 {
+                    //UNDONE:ODATA: Use loaded content
                     var head = NodeHead.Get(odataRequest.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
@@ -356,10 +361,6 @@ namespace SenseNet.OData
 
         /* ==== */
 
-        private ODataContent GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, string repositoryPath)
-        {
-            return GetSingleContent(httpContext, odataRequest, LoadContentByVersionRequest(repositoryPath, httpContext));
-        }
         private ODataContent GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
         {
             return CreateFieldDictionary(httpContext, odataRequest, content, false);
@@ -367,13 +368,12 @@ namespace SenseNet.OData
 
         /* ==== */
 
-        private ODataResponse GetChildrenCollectionResponse(string path, HttpContext httpContext, ODataRequest req)
+        private ODataResponse GetChildrenCollectionResponse(Content content, HttpContext httpContext, ODataRequest req)
         {
-            var content = Content.Load(path);
             var chdef = content.ChildrenDefinition;
             if (req.HasContentQuery)
             {
-                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), LogicalOperator.And);
+                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", content.Path, "'"), LogicalOperator.And);
 
                 if (req.AutofiltersEnabled != FilterStatus.Default)
                     chdef.EnableAutofilters = req.AutofiltersEnabled;
@@ -393,7 +393,7 @@ namespace SenseNet.OData
                 chdef.EnableAutofilters = FilterStatus.Disabled;
                 if (string.IsNullOrEmpty(chdef.ContentQuery))
                 {
-                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), LogicalOperator.And);
+                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", content.Path, "'"), LogicalOperator.And);
                 }
             }
 
@@ -466,7 +466,7 @@ namespace SenseNet.OData
                     continue;
                 }
 
-                var fields = CreateFieldDictionary(content, projector, httpContext);
+                var fields = CreateFieldDictionary(httpContext, content, projector);
                 contents.Add(fields);
             }
 
@@ -487,9 +487,121 @@ namespace SenseNet.OData
             return contents;
         }
 
+        private ODataResponse GetMultiRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
+        {
+            if (references == null)
+                //UNDONE:ODATA: Empty or null?
+                return ODataResponse.CreateMultipleContentResponse(new ODataContent[0], 0);
+
+            var node = references as Node;
+            var projector = Projector.Create(req, true);
+            if (node != null)
+            {
+                var contents = new List<ODataContent>
+                {
+                    CreateFieldDictionary(httpContext, Content.Create(node), projector)
+                };
+                //TODO: ODATA: multiref item: get available types from reference property
+                return ODataResponse.CreateMultipleContentResponse(contents, 1);
+            }
+
+            if (references is IEnumerable enumerable)
+            {
+                var skipped = 0;
+                var allcount = 0;
+                var count = 0;
+                var realcount = 0;
+                var contents = new List<ODataContent>();
+                if (req.HasFilter)
+                {
+                    var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
+                    foreach (Node item in filtered)
+                        contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
+                    allcount = filtered.AllCount;
+                    realcount = contents.Count;
+                }
+                else
+                {
+                    foreach (Node item in enumerable)
+                    {
+                        allcount++;
+                        if (skipped++ < req.Skip)
+                            continue;
+                        if (req.Top == 0 || count++ < req.Top)
+                        {
+                            contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
+                            realcount++;
+                        }
+                    }
+                }
+                return ODataResponse.CreateMultipleContentResponse(contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
+            }
+            //UNDONE:ODATA: Empty or null?
+            return ODataResponse.CreateMultipleContentResponse(new ODataContent[0], 0);
+        }
+        private ODataResponse GetSingleRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
+        {
+            if (references != null)
+            {
+                if (references is Node node)
+                    return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req, Content.Create(node), false));
+
+                if (references is IEnumerable enumerable)
+                    foreach (Node item in enumerable)
+                        // Only the first item plays
+                        return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req,
+                            Content.Create(item), false));
+            }
+            //UNDONE:ODATA: Empty or null?
+            return null;
+        }
+
+        /* ==== */
+
+        internal ODataResponse GetContentPropertyResponse(Content content, string propertyName, bool rawValue,
+            HttpContext httpContext, ODataRequest req)
+        {
+            if (propertyName == ODataMiddleware.ActionsPropertyName)
+            {
+                var items = ODataTools.GetActionItems(content, req, httpContext).ToArray();
+                return rawValue
+                    ? ODataResponse.CreateActionsPropertyRawResponse(items)
+                    : ODataResponse.CreateActionsPropertyResponse(items);
+            }
+            if (propertyName == ODataMiddleware.ChildrenPropertyName)
+            {
+                return GetChildrenCollectionResponse(content, httpContext, req);
+            }
+
+            if (content.Fields.TryGetValue(propertyName, out var field))
+            {
+                if (field is ReferenceField refField)
+                {
+                    var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
+                    var isMultiRef = true;
+                    if (refFieldSetting != null)
+                        isMultiRef = refFieldSetting.AllowMultiple == true;
+                    return isMultiRef
+                        ? GetMultiRefContentResponse(refField.GetData(), httpContext, req)
+                        : GetSingleRefContentResponse(refField.GetData(), httpContext, req);
+                }
+
+                if (field is AllowedChildTypesField actField)
+                    return GetMultiRefContentResponse(actField.GetData(), httpContext, req);
+
+                if (!rawValue)
+                    return ODataResponse.CreateSingleContentResponse(new ODataContent {{propertyName, field.GetData()}});
+
+                return ODataResponse.CreateRawResponse(field.GetData());
+            }
+
+            //WriteOperationResult(httpContext, req);
+            throw new NotImplementedException("WriteOperationResult is not implemented yet."); //UNDONE:ODATA: WriteOperationResult
+        }
+
         /* ----------------------------------------------------------------------------------- */
 
-        private ODataContent CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
+        private ODataContent CreateFieldDictionary(HttpContext httpContext, Content content, Projector projector)
         {
             return projector.Project(content, httpContext);
         }
@@ -603,7 +715,7 @@ namespace SenseNet.OData
                 : Content.Load(path);
         }
 
-        private Content CreateContent(JObject model, ODataRequest odataRequest)
+        private Content CreateNewContent(JObject model, ODataRequest odataRequest)
         {
             var contentTypeName = GetPropertyValue<string>("__ContentType", model);
             var templateName = GetPropertyValue<string>("__ContentTemplate", model);

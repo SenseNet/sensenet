@@ -8,11 +8,16 @@ namespace SenseNet.OData
     {
         NoContent,
         ContentNotFound,
+        Error,
         ServiceDocument,
         SingleContent,
         ChildrenCollection,
-        Error,
+        MultipleContent,
+        ActionsProperty,
+        ActionsPropertyRaw,
+
         Int,
+        RawData,
     }
 
     /// <summary>
@@ -63,6 +68,23 @@ namespace SenseNet.OData
         internal static ODataResponse CreateCollectionCountResponse(int count)
         {
             return new ODataResponse(ODataResponseType.Int, count);
+        }
+        internal static ODataResponse CreateActionsPropertyResponse(ODataActionItem[] items)
+        {
+            return new ODataResponse(ODataResponseType.ActionsProperty, items);
+        }
+        internal static ODataResponse CreateActionsPropertyRawResponse(ODataActionItem[] items)
+        {
+            return new ODataResponse(ODataResponseType.ActionsPropertyRaw, items);
+        }
+        internal static ODataResponse CreateRawResponse(object data)
+        {
+            return new ODataResponse(ODataResponseType.RawData, data);
+        }
+        internal static ODataResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
+        {
+            //UNDONE:ODATA: Use allCount parameter
+            return new ODataResponse(ODataResponseType.MultipleContent, items);
         }
     }
 
