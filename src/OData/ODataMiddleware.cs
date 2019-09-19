@@ -102,20 +102,14 @@ namespace SenseNet.OData
 
         public async STT.Task Invoke(HttpContext httpContext)
         {
+            var odataRequest = ODataRequest.Parse(httpContext);
+            //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
             using (new SystemAccount())
-            {
-                //var uri = new Uri(httpContext.Request.GetEncodedUrl());
-                //var path = uri.GetComponents(UriComponents.Path, UriFormat.Unescaped);
-                var path = httpContext.Request.Path;
-                var odataRequest = ODataRequest.Parse(path, httpContext);
-
-                var response = ProcessRequest(httpContext, odataRequest);
-                httpContext.SetODataResponse(response);
-            }
+                httpContext.SetODataResponse(ProcessRequest(httpContext, odataRequest));
 
             await _next(httpContext);
 
-            //UNDONE: Let to know whether ODataResponse is changed or not
+            //UNDONE:ODATA: Let to know whether ODataResponse is changed or not
             var changedResponse = httpContext.GetODataResponse();
             if (changedResponse != null)
             {
@@ -126,9 +120,10 @@ namespace SenseNet.OData
             }
         }
 
+
         /// <inheritdoc />
         /// <remarks>Processes the OData web request.</remarks>
-        public ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
+        internal ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
         {
             var request = httpContext.Request;
             var httpMethod = request.Method;

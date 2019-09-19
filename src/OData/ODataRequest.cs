@@ -267,8 +267,9 @@ namespace SenseNet.OData
             return path;
         }
 
-        internal static ODataRequest Parse(string path, HttpContext httpContext)
+        internal static ODataRequest Parse(HttpContext httpContext)
         {
+            var path = httpContext.Request.Path.Value;
             var req = new ODataRequest();
             try
             {
