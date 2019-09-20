@@ -86,10 +86,6 @@ namespace SenseNet.OData
         internal const string BinaryPropertyName = "Binary";
         internal const int ExpansionLimit = int.MaxValue - 1;
 
-        /// <inheritdoc select="summary" />
-        /// <remarks>Returns with false in this implementation.</remarks>
-        public bool IsReusable => false;
-
         internal ODataRequest ODataRequest { get; private set; }
 
         private readonly RequestDelegate _next;
@@ -113,16 +109,12 @@ namespace SenseNet.OData
             var changedResponse = httpContext.GetODataResponse();
             if (changedResponse != null)
             {
-                var stringValue = changedResponse.Value?.ToString() ?? "{null}";
-
+                var stringValue = changedResponse.GetValue()?.ToString() ?? "{null}";
                 httpContext.Response.ContentType = "text/plain";
                 await httpContext.Response.WriteAsync($"{changedResponse.Type}: {stringValue}");
             }
         }
 
-
-        /// <inheritdoc />
-        /// <remarks>Processes the OData web request.</remarks>
         internal ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
         {
             var request = httpContext.Request;
@@ -564,7 +556,7 @@ namespace SenseNet.OData
             {
                 var items = ODataTools.GetActionItems(content, req, httpContext).ToArray();
                 return rawValue
-                    ? ODataResponse.CreateActionsPropertyRawResponse(items)
+                    ? (ODataResponse)ODataResponse.CreateActionsPropertyRawResponse(items)
                     : ODataResponse.CreateActionsPropertyResponse(items);
             }
             if (propertyName == ODataMiddleware.ChildrenPropertyName)

@@ -128,9 +128,8 @@ namespace SenseNet.ODataTests
             var odata = new ODataMiddleware(null);
 
             var odataRequest = ODataRequest.Parse(httpContext);
-            return (T) odata.ProcessRequest(httpContext, odataRequest);
+            return (T)odata.ProcessRequest(httpContext, odataRequest);
         }
-
 
     }
 }

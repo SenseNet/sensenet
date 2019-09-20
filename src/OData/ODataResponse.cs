@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using SenseNet.OData.Responses;
 
 namespace SenseNet.OData
 {
@@ -13,79 +12,71 @@ namespace SenseNet.OData
         SingleContent,
         ChildrenCollection,
         MultipleContent,
+        CollectionCount,
         ActionsProperty,
         ActionsPropertyRaw,
         OperationCustomResult,
-
-        Int,
         RawData,
     }
 
     /// <summary>
     /// Represents an immutable response object for <see cref="ODataRequest"/>.
     /// </summary>
-    public class ODataResponse
+    public abstract class ODataResponse
     {
         /// <summary>
         /// Key name in the HttpContext.Items
         /// </summary>
         public static readonly string Key = "SnODataResponse";
 
-        public virtual ODataResponseType Type { get; }
-        public virtual object Value { get; }
-
-        public ODataResponse(ODataResponseType type, object value)
-        {
-            Type = type;
-            Value = value;
-        }
+        public abstract ODataResponseType Type { get; }
+        public abstract object GetValue();
 
         /* ====================================================================== Internal factory methods */
 
-        internal static ODataResponse CreateNoContentResponse()
+        internal static ODataNoContentResponse CreateNoContentResponse()
         {
-            return new ODataResponse(ODataResponseType.NoContent, null);
+            return new ODataNoContentResponse();
         }
-        internal static ODataResponse CreateContentNotFoundResponse()
+        internal static ODataContentNotFoundResponse CreateContentNotFoundResponse()
         {
-            return new ODataResponse(ODataResponseType.ContentNotFound, null);
+            return new ODataContentNotFoundResponse();
         }
-        internal static ODataResponse CreateErrorResponse(ODataException exception)
+        internal static ODataErrorResponse CreateErrorResponse(ODataException exception)
         {
-            return new ODataResponse(ODataResponseType.Error, exception);
+            return new ODataErrorResponse(exception);
         }
-        internal static ODataResponse CreateServiceDocumentResponse(string[] topLevelNames)
+        internal static ODataServiceDocumentResponse CreateServiceDocumentResponse(string[] topLevelNames)
         {
-            return new ODataResponse(ODataResponseType.ServiceDocument, topLevelNames);
+            return new ODataServiceDocumentResponse(topLevelNames);
         }
-        internal static ODataResponse CreateSingleContentResponse(ODataContent fieldData)
+        internal static ODataSingleContentResponse CreateSingleContentResponse(ODataContent fieldData)
         {
-            return new ODataResponse(ODataResponseType.SingleContent, fieldData);
+            return new ODataSingleContentResponse(fieldData);
         }
-        internal static ODataResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data)
+        internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data)
         {
-            return new ODataResponse(ODataResponseType.ChildrenCollection, data);
+            return new ODataChildrenCollectionResponse(data);
         }
-        internal static ODataResponse CreateCollectionCountResponse(int count)
+        internal static ODataCollectionCountResponse CreateCollectionCountResponse(int count)
         {
-            return new ODataResponse(ODataResponseType.Int, count);
+            return new ODataCollectionCountResponse(count);
         }
-        internal static ODataResponse CreateActionsPropertyResponse(ODataActionItem[] items)
+        internal static ODataActionsPropertyResponse CreateActionsPropertyResponse(ODataActionItem[] items)
         {
-            return new ODataResponse(ODataResponseType.ActionsProperty, items);
+            return new ODataActionsPropertyResponse(items);
         }
-        internal static ODataResponse CreateActionsPropertyRawResponse(ODataActionItem[] items)
+        internal static ODataActionsPropertyRawResponse CreateActionsPropertyRawResponse(ODataActionItem[] items)
         {
-            return new ODataResponse(ODataResponseType.ActionsPropertyRaw, items);
+            return new ODataActionsPropertyRawResponse(items);
         }
-        internal static ODataResponse CreateRawResponse(object data)
+        internal static ODataRawResponse CreateRawResponse(object data)
         {
-            return new ODataResponse(ODataResponseType.RawData, data);
+            return new ODataRawResponse(data);
         }
-        internal static ODataResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
+        internal static ODataMultipleContentResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
         {
-            //UNDONE:ODATA: Use allCount parameter
-            return new ODataResponse(ODataResponseType.MultipleContent, items);
+            return new ODataMultipleContentResponse(items, allCount);
         }
 
         /// <summary>
@@ -95,10 +86,9 @@ namespace SenseNet.OData
         /// <param name="allCount">A nullable int that contains the count of items in the result object if it is an enumerable and
         /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
         /// <returns></returns>
-        internal static ODataResponse CreateOperationCustomResultResponse(object result, int? allCount)
+        internal static ODataOperationCustomResultResponse CreateOperationCustomResultResponse(object result, int? allCount)
         {
-            //UNDONE:ODATA: Use allCount parameter
-            return new ODataResponse(ODataResponseType.OperationCustomResult, result);
+            return new ODataOperationCustomResultResponse(result, allCount);
         }
     }
 

@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.OData;
+using SenseNet.OData.Responses;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -52,9 +53,12 @@ namespace SenseNet.ODataTest.WebApp
                     appBranch.UseSenseNetOdata();
                     appBranch.Use((httpContext, next) =>
                     {
-                        var response = httpContext.GetODataResponse();
-                        if (response?.Type == ODataResponseType.Int)
-                            httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
+                        var r = httpContext.GetODataResponse();
+                        if(httpContext.GetODataResponse() is ODataCollectionCountResponse response)
+                        {
+                            response.Value++;
+                            //httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
+                        }
                         return Task.CompletedTask;
                     });
                 });
