@@ -15,7 +15,7 @@ namespace SenseNet.OData
         [JsonIgnore]
         public string Path => _properties.TryGetValue(nameof(Path), out var value) ? (string)value : null;
         [JsonIgnore]
-        public string ContentType => _properties.TryGetValue(nameof(ContentType), out var value) ? (string)value : null;
+        public string ContentType => _properties.TryGetValue("Type", out var value) ? (string) value : null;
 
         #region IDictionary<string, object> implementation
         public int Count => _properties.Count;
