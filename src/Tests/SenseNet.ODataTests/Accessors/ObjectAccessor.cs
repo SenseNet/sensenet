@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+// ReSharper disable UnusedParameter.Local
 
-namespace SenseNet.OData.Accessors
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Tests.Accessors
 {
-    public class ObjectAccessor : Accessor
+    public class ObjectAccessor
     {
         private Type _targetType;
         private BindingFlags _publicFlags = BindingFlags.Instance | BindingFlags.Public;
@@ -45,6 +45,9 @@ namespace SenseNet.OData.Accessors
             var ctor = GetConstructorByTypes(type, parameterTypes);
             Target = ctor.Invoke(arguments);
         }
+        /// <summary>
+        /// NOT IMPLEMENTED YET.
+        /// </summary>
         public ObjectAccessor(object target, string memberToAccess)
         {
             throw new NotImplementedException();
@@ -91,7 +94,7 @@ namespace SenseNet.OData.Accessors
         {
             var property = GetPropertyInfo(propertyName);
             var method = property.GetSetMethod(true) ?? property.GetSetMethod(false);
-            method.Invoke(Target, new object[] { value });
+            method.Invoke(Target, new [] { value });
         }
         private PropertyInfo GetPropertyInfo(string name, bool throwOnError = true)
         {
@@ -134,7 +137,7 @@ namespace SenseNet.OData.Accessors
             if (method == null)
                 throw new ApplicationException("The property does not have setter: " + memberName);
 
-            method.Invoke(Target, new object[] { value });
+            method.Invoke(Target, new [] { value });
         }
 
         public object Invoke(string name, params object[] args)
@@ -146,8 +149,13 @@ namespace SenseNet.OData.Accessors
         {
             var method = _targetType.GetMethod(name, _privateFlags, null, parameterTypes, null)
                 ?? _targetType.GetMethod(name, _publicFlags, null, parameterTypes, null);
+            if (method == null)
+                throw new ApplicationException("Method not found: " + name);
             return method.Invoke(Target, args);
         }
+        /// <summary>
+        /// NOT IMPLEMENTED YET.
+        /// </summary>
         public object Invoke(string name, Type[] parameterTypes, object[] args, Type[] typeArguments)
         {
             throw new NotImplementedException();

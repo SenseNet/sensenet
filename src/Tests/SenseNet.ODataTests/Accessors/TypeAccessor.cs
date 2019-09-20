@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace SenseNet.OData.Accessors
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Tests.Accessors
 {
-    public class TypeAccessor : Accessor
+    public class TypeAccessor
     {
         private BindingFlags _publicFlags = BindingFlags.Static | BindingFlags.Public;
         private BindingFlags _privateFlags = BindingFlags.Static | BindingFlags.NonPublic;
@@ -29,7 +28,7 @@ namespace SenseNet.OData.Accessors
                 throw new TypeLoadException("Unknown assembly: " + assemblyName);
 
             var tName = typeName;
-            var p = tName.IndexOf("[");
+            var p = tName.IndexOf("[", StringComparison.Ordinal);
             if (p > 0)
                 tName = tName.Substring(0, p);
 
@@ -68,7 +67,7 @@ namespace SenseNet.OData.Accessors
         {
             var property = GetProperty(propertyName);
             var method = property.GetSetMethod(true) ?? property.GetSetMethod(false);
-            method.Invoke(null, new object[] { value });
+            method.Invoke(null, new [] { value });
         }
         private PropertyInfo GetProperty(string name, bool throwOnError = true)
         {
@@ -111,7 +110,7 @@ namespace SenseNet.OData.Accessors
             if (method == null)
                 throw new ApplicationException("The property does not have setter: " + memberName);
 
-            method.Invoke(null, new object[] { value });
+            method.Invoke(null, new [] { value });
         }
 
         public object InvokeStatic(string name, params object[] args)
@@ -123,6 +122,8 @@ namespace SenseNet.OData.Accessors
         {
             var method = TargetType.GetMethod(name, _privateFlags, null, parameterTypes, null)
                 ?? TargetType.GetMethod(name, _publicFlags, null, parameterTypes, null);
+            if (method == null)
+                throw new ApplicationException("Method not found: " + name);
             return method.Invoke(null, args);
         }
 

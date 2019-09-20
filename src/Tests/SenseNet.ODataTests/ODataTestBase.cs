@@ -15,11 +15,11 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Volatile;
 using SenseNet.OData;
-using SenseNet.OData.Accessors;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
+using SenseNet.Tests.Accessors;
 
 // ReSharper disable InconsistentNaming
 
@@ -139,7 +139,7 @@ namespace SenseNet.ODataTests
         protected static ContentQuery CreateSafeContentQuery(string qtext)
         {
             var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
-            var cqueryAcc = Accessor.Create(cquery);
+            var cqueryAcc = new ObjectAccessor(cquery);
             cqueryAcc.SetFieldOrProperty("IsSafe", true);
             return cquery;
         }

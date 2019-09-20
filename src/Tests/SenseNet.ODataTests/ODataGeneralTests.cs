@@ -218,7 +218,61 @@ namespace SenseNet.ODataTests
             });
         }
 
-        //UNDONE:ODATA: Implement this test: public void OData_Getting_ContentList_NoProjection()
+        //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
+        /**/
+        //        //[TestMethod]
+        //        public void OData_Getting_ContentList_NoProjection()
+        //        {
+        //            Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
+
+        //            Test(() =>
+        //            {
+        //                CreateTestSite();
+
+        //                var testRoot = CreateTestRoot("ODataTestRoot");
+
+        //                string listDef = @"<?xml version='1.0' encoding='utf-8'?>
+        //<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'>
+        //	<Fields>
+        //		<ContentListField name='#ListField1' type='ShortText'/>
+        //		<ContentListField name='#ListField2' type='Integer'/>
+        //		<ContentListField name='#ListField3' type='Reference'/>
+        //	</Fields>
+        //</ContentListDefinition>
+        //";
+        //                string path = RepositoryPath.Combine(testRoot.Path, "Cars");
+        //                if (Node.Exists(path))
+        //                    Node.ForceDelete(path);
+        //                ContentList list = new ContentList(testRoot);
+        //                list.Name = "Cars";
+        //                list.ContentListDefinition = listDef;
+        //                list.AllowedChildTypes = new ContentType[] { ContentType.GetByName("Car") };
+        //                list.Save();
+
+        //                var car = Content.CreateNew("Car", list, "Car1");
+        //                car.Save();
+        //                car = Content.CreateNew("Car", list, "Car2");
+        //                car.Save();
+
+        //                var entities = ODataGET<ODataEntities>("/OData.svc" + list.Path, "");
+
+        //                var entity = entities.First();
+        //                var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
+
+        //                var allowedFieldNames = new List<string>();
+        //                allowedFieldNames.AddRange(ContentType.GetByName("Car").FieldSettings.Select(f => f.Name));
+        //                allowedFieldNames.AddRange(ContentType.GetByName("File").FieldSettings.Select(f => f.Name));
+        //                allowedFieldNames.AddRange(list.ListFieldNames);
+        //                allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder" });
+        //                allowedFieldNames = allowedFieldNames.Distinct().ToList();
+
+        //                var a = entityPropNames.Except(allowedFieldNames).ToArray();
+        //                var b = allowedFieldNames.Except(entityPropNames).ToArray();
+
+        //                Assert.IsTrue(a.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", a)));
+        //                Assert.IsTrue(b.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", b)));
+        //            });
+        //        }
 
         [TestMethod]
         public void OData_ContentQuery()
@@ -367,54 +421,55 @@ namespace SenseNet.ODataTests
             });
         }
 
+        //UNDONE:ODATA:TEST: Implement this test: OData_Select_AspectField
         /*[TestMethod]
-        public void OData_Select_AspectField()
-        {
-            Test(() =>
-            {
-                InstallCarContentType();
-                var site = CreateTestSite();
-                var allowedTypes = site.GetAllowedChildTypeNames().ToList();
-                allowedTypes.Add("Car");
-                site.AllowChildTypes(allowedTypes);
-                site.Save();
+          public void OData_Select_AspectField()
+          {
+              Test(() =>
+              {
+                  InstallCarContentType();
+                  var site = CreateTestSite();
+                  var allowedTypes = site.GetAllowedChildTypeNames().ToList();
+                  allowedTypes.Add("Car");
+                  site.AllowChildTypes(allowedTypes);
+                  site.Save();
 
-                var testRoot = CreateTestRoot("ODataTestRoot");
+                  var testRoot = CreateTestRoot("ODataTestRoot");
 
-                var aspect1 = EnsureAspect("Aspect1");
-                aspect1.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
-<Fields>
-    <AspectField name='Field1' type='ShortText' />
-  </Fields>
-</AspectDefinition>";
-                aspect1.Save();
+                  var aspect1 = EnsureAspect("Aspect1");
+                  aspect1.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
+  <Fields>
+      <AspectField name='Field1' type='ShortText' />
+    </Fields>
+  </AspectDefinition>";
+                  aspect1.Save();
 
-                var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                folder.Save();
+                  var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+                  folder.Save();
 
-                var content1 = Content.CreateNew("Car", folder, "Car1");
-                content1.AddAspects(aspect1);
-                content1["Aspect1.Field1"] = "asdf";
-                content1.Save();
+                  var content1 = Content.CreateNew("Car", folder, "Car1");
+                  content1.AddAspects(aspect1);
+                  content1["Aspect1.Field1"] = "asdf";
+                  content1.Save();
 
-                var content2 = Content.CreateNew("Car", folder, "Car2");
-                content2.AddAspects(aspect1);
-                content2["Aspect1.Field1"] = "qwer";
-                content2.Save();
+                  var content2 = Content.CreateNew("Car", folder, "Car2");
+                  content2.AddAspects(aspect1);
+                  content2["Aspect1.Field1"] = "qwer";
+                  content2.Save();
 
-                var entities = ODataGET<ODataEntities>("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1");
+                  var entities = ODataGET<ODataEntities>("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1");
 
-                Assert.IsTrue(entities.Count() == 2, string.Format("entities.Count is ({0}), expected: 2", entities.Count()));
-                Assert.IsTrue(entities[0].Name == "Car1", string.Format("entities[0].Name is ({0}), expected: 'Car1'", entities[0].Name));
-                Assert.IsTrue(entities[1].Name == "Car2", string.Format("entities[1].Name is ({0}), expected: 'Car2'", entities[0].Name));
-                Assert.IsTrue(entities[0].AllProperties.ContainsKey("Aspect1.Field1"), "entities[0] does not contain 'Aspect1.Field1'");
-                Assert.IsTrue(entities[1].AllProperties.ContainsKey("Aspect1.Field1"), "entities[1] does not contain 'Aspect1.Field1'");
-                var value1 = (string)((JValue)entities[0].AllProperties["Aspect1.Field1"]).Value;
-                var value2 = (string)((JValue)entities[1].AllProperties["Aspect1.Field1"]).Value;
-                Assert.IsTrue(value1 == "asdf", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'asdf'", value1));
-                Assert.IsTrue(value2 == "qwer", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'qwer'", value2));
-            });
-        }*/
+                  Assert.IsTrue(entities.Count() == 2, string.Format("entities.Count is ({0}), expected: 2", entities.Count()));
+                  Assert.IsTrue(entities[0].Name == "Car1", string.Format("entities[0].Name is ({0}), expected: 'Car1'", entities[0].Name));
+                  Assert.IsTrue(entities[1].Name == "Car2", string.Format("entities[1].Name is ({0}), expected: 'Car2'", entities[0].Name));
+                  Assert.IsTrue(entities[0].AllProperties.ContainsKey("Aspect1.Field1"), "entities[0] does not contain 'Aspect1.Field1'");
+                  Assert.IsTrue(entities[1].AllProperties.ContainsKey("Aspect1.Field1"), "entities[1] does not contain 'Aspect1.Field1'");
+                  var value1 = (string)((JValue)entities[0].AllProperties["Aspect1.Field1"]).Value;
+                  var value2 = (string)((JValue)entities[1].AllProperties["Aspect1.Field1"]).Value;
+                  Assert.IsTrue(value1 == "asdf", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'asdf'", value1));
+                  Assert.IsTrue(value2 == "qwer", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'qwer'", value2));
+              });
+          }*/
         private Aspect EnsureAspect(string name)
         {
             var aspect = Aspect.LoadAspectByName(name);
@@ -427,6 +482,7 @@ namespace SenseNet.ODataTests
         }
 
 
+        //UNDONE:ODATA:TEST: Implement this 10 tests
 
         /*[TestMethod]
         public void OData_Expand()
@@ -773,5 +829,63 @@ namespace SenseNet.ODataTests
             });
         }*/
 
+        //UNDONE:ODATA:TEST: Remove inconclusive test result and implement this test.
+        //[TestMethod]
+        public void OData_OrderByNumericDouble()
+        {
+            Assert.Inconclusive("OData_OrderByNumericDouble is commented out (uses LuceneManager)");
+
+            //            var testRoot = CreateTestRoot("ODataTestRoot");
+
+            //            var contentTypeName = "OData_OrderByNumericDouble_ContentType";
+
+            //            var ctd = @"<?xml version='1.0' encoding='utf-8'?>
+            //<ContentType name='" + contentTypeName + @"' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+            //  <DisplayName>$Ctd-Resource,DisplayName</DisplayName>
+            //  <Description>$Ctd-Resource,Description</Description>
+            //  <Icon>Resource</Icon>
+            //  <Fields>
+            //    <Field name='CustomIndex' type='Number'>
+            //      <DisplayName>CustomIndex</DisplayName>
+            //      <Description>CustomIndex</Description>
+            //      <Configuration />
+            //    </Field>
+            //  </Fields>
+            //</ContentType>";
+
+            //            ContentTypeInstaller.InstallContentType(ctd);
+            //            var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+            //            root.Save();
+
+            //            Content content;
+
+            //            content = Content.CreateNew(contentTypeName, root, "Content-1"); content["CustomIndex"] = 6.0; content.Save();
+            //            content = Content.CreateNew(contentTypeName, root, "Content-2"); content["CustomIndex"] = 3.0; content.Save();
+            //            content = Content.CreateNew(contentTypeName, root, "Content-3"); content["CustomIndex"] = 2.0; content.Save();
+            //            content = Content.CreateNew(contentTypeName, root, "Content-4"); content["CustomIndex"] = 4.0; content.Save();
+            //            content = Content.CreateNew(contentTypeName, root, "Content-5"); content["CustomIndex"] = 5.0; content.Save();
+            //            SenseNet.Search.Indexing.LuceneManager.Commit(true);
+
+            //            try
+            //            {
+            //                var queryResult = ContentQuery.Query("ParentId:" + root.Id + " .SORT:CustomIndex .AUTOFILTERS:OFF").Nodes;
+            //                var names = string.Join(", ", queryResult.Select(n => n.Name).ToArray());
+            //                var expectedNames = "Content-3, Content-2, Content-4, Content-5, Content-1";
+            //                Assert.AreEqual(expectedNames, names);
+
+            //                var entities = ODataGET<ODataEntities>("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
+            //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
+            //                Assert.AreEqual("Content-1, Content-2, Content-3, Content-4, Content-5", names);
+
+            //                entities = ODataGET<ODataEntities>("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=CustomIndex asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
+            //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
+            //                Assert.AreEqual(expectedNames, names);
+            //            }
+            //            finally
+            //            {
+            //                root.ForceDelete();
+            //                ContentTypeInstaller.RemoveContentType(contentTypeName);
+            //            }
+        }
     }
 }
