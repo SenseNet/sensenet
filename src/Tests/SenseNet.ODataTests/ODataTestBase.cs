@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -14,6 +15,8 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Volatile;
 using SenseNet.OData;
+using SenseNet.OData.Accessors;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
@@ -129,6 +132,59 @@ namespace SenseNet.ODataTests
 
             var odataRequest = ODataRequest.Parse(httpContext);
             return (T)odata.ProcessRequest(httpContext, odataRequest);
+        }
+
+        /* ========================================================================= TOOLS */
+
+        protected static ContentQuery CreateSafeContentQuery(string qtext)
+        {
+            var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
+            var cqueryAcc = Accessor.Create(cquery);
+            cqueryAcc.SetFieldOrProperty("IsSafe", true);
+            return cquery;
+        }
+
+        protected static readonly string CarContentType = @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='Car' parentType='ListItem' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <DisplayName>Car,DisplayName</DisplayName>
+  <Description>Car,Description</Description>
+  <Icon>Car</Icon>
+  <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <Fields>
+    <Field name='Name' type='ShortText'/>
+    <Field name='Make' type='ShortText'/>
+    <Field name='Model' type='ShortText'/>
+    <Field name='Style' type='Choice'>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>true</AllowExtraValue>
+        <Options>
+          <Option value='Sedan' selected='true'>Sedan</Option>
+          <Option value='Coupe'>Coupe</Option>
+          <Option value='Cabrio'>Cabrio</Option>
+          <Option value='Roadster'>Roadster</Option>
+          <Option value='SUV'>SUV</Option>
+          <Option value='Van'>Van</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name='StartingDate' type='DateTime'/>
+    <Field name='Color' type='Color'>
+      <Configuration>
+        <DefaultValue>#ff0000</DefaultValue>
+        <Palette>#ff0000;#f0d0c9;#e2a293;#d4735e;#65281a</Palette>
+      </Configuration>
+    </Field>
+    <Field name='EngineSize' type='ShortText'/>
+    <Field name='Power' type='ShortText'/>
+    <Field name='Price' type='Number'/>
+    <Field name='Description' type='LongText'/>
+  </Fields>
+</ContentType>
+";
+        protected static void InstallCarContentType()
+        {
+            ContentTypeInstaller.InstallContentType(CarContentType);
         }
 
     }
