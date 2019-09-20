@@ -17,6 +17,30 @@ namespace SenseNet.ODataTests
     public class BasicTests : ODataTestBase
     {
         [TestMethod]
+        public void OD_Getting_ServiceDocument()
+        {
+            ODataTest(() =>
+            {
+                var expectedNames = "Root";
+
+                var response = ODataGET<ODataServiceDocumentResponse>("/OData.svc", "");
+
+                Assert.AreEqual(ODataResponseType.ServiceDocument, response.Type);
+                var actualNames = string.Join(", ", response.Value.OrderBy(x => x).ToArray());
+                Assert.AreEqual(expectedNames, actualNames);
+            });
+        }
+        [TestMethod]
+        public void OD_Getting_MissingEntity()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataContentNotFoundResponse>("/OData.svc/Root('HiEveryBody')", "");
+
+                Assert.AreEqual(ODataResponseType.ContentNotFound, response.Type);
+            });
+        }
+        [TestMethod]
         public void OD_Getting_Entity()
         {
             ODataTest(() =>
