@@ -391,7 +391,7 @@ namespace SenseNet.OData
             var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
             if (req.CountOnly)
                 return ODataResponse.CreateCollectionCountResponse(count);
-            return ODataResponse.CreateChildrenCollectionResponse(contents);
+            return ODataResponse.CreateChildrenCollectionResponse(contents, count);
         }
         private IEnumerable<ODataContent> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {

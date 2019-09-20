@@ -54,9 +54,9 @@ namespace SenseNet.OData
         {
             return new ODataSingleContentResponse(fieldData);
         }
-        internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data)
+        internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data, int allCount)
         {
-            return new ODataChildrenCollectionResponse(data);
+            return new ODataChildrenCollectionResponse(data, allCount);
         }
         internal static ODataCollectionCountResponse CreateCollectionCountResponse(int count)
         {
