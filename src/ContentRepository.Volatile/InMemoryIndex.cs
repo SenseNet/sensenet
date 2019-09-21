@@ -268,13 +268,13 @@ namespace SenseNet.ContentRepository.Volatile
             StoredData.Clear();
         }
 
-        /* ========================================================================== Activity staus */
+        /* ========================================================================== Activity status */
 
-        private IndexingActivityStatus _activityStatux = new IndexingActivityStatus { LastActivityId = 0, Gaps = new int[0] };
+        private IndexingActivityStatus _activityStatus = new IndexingActivityStatus { LastActivityId = 0, Gaps = new int[0] };
 
         internal void WriteActivityStatus(IndexingActivityStatus status)
         {
-            _activityStatux = new IndexingActivityStatus
+            _activityStatus = new IndexingActivityStatus
             {
                 LastActivityId = status.LastActivityId,
                 Gaps = status.Gaps.ToArray()
@@ -283,7 +283,7 @@ namespace SenseNet.ContentRepository.Volatile
 
         internal IndexingActivityStatus ReadActivityStatus()
         {
-            return _activityStatux;
+            return _activityStatus;
         }
 
         internal static string IndexValueToString(IndexValue value)
