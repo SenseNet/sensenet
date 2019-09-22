@@ -9,6 +9,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.OData;
 using SenseNet.OData.Responses;
 using SenseNet.Portal;
@@ -31,8 +32,8 @@ namespace SenseNet.ODataTests
         private void EnsureTestStructure()
         {
             //  root
-            //      ODataChildrenTests
-            //          Test1
+            //      WSRoot
+            //          Workspace1
             //              F0
             //                  F00
             //                      F000
@@ -42,12 +43,12 @@ namespace SenseNet.ODataTests
 
             Cache.Reset();
 
-            var testRoot = Node.Load<SystemFolder>("/Root/ODataChildrenTests");
+            var testRoot = Node.Load<Folder>("/Root/WSRoot");
             if (testRoot != null)
                 return;
-            testRoot = new SystemFolder(Repository.Root) {Name = "ODataChildrenTests"};
+            testRoot = new Folder(Repository.Root) {Name = "WSRoot"};
             testRoot.Save();
-            var testFolder1 = new SystemFolder(testRoot) {Name = "Test1"};
+            var testFolder1 = new Workspace(testRoot) {Name = "Workspace1" };
             testFolder1.Save();
             var folder0 = new Folder(testFolder1) {Name = "F0"};
             folder0.Save();
@@ -71,7 +72,7 @@ namespace SenseNet.ODataTests
             ODataChildrenTest(() =>
             {
                 // ACTION
-                var response = ODataGET<ODataSingleContentResponse>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children");
+                var response = ODataGET<ODataSingleContentResponse>($"/OData.svc/Root/WSRoot('Workspace1')", "?metadata=no&$select=Id,Name,Children");
 
                 // ASSERT
                 var entity = response.Value;
@@ -86,7 +87,7 @@ namespace SenseNet.ODataTests
             ODataChildrenTest(() =>
             {
                 var response = ODataGET<ODataSingleContentResponse>(
-                    $"/OData.svc/Root/ODataChildrenTests('Test1')", 
+                    $"/OData.svc/Root/WSRoot('Workspace1')", 
                     "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
                 var entity = response.Value;
@@ -105,7 +106,7 @@ namespace SenseNet.ODataTests
             ODataChildrenTest(() =>
             {
                 var response = ODataGET<ODataSingleContentResponse>(
-                    $"/OData.svc/Root/ODataChildrenTests('Test1')",
+                    $"/OData.svc/Root/WSRoot('Workspace1')",
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
                 var entity = response.Value;
@@ -114,27 +115,33 @@ namespace SenseNet.ODataTests
                 var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
                 Assert.AreEqual(2, children.Length);
                 Assert.AreEqual(2, children[0].Count);
-                Assert.AreEqual("/Root/ODataChildrenTests/Test1/F0", children[0].Path);
+                Assert.AreEqual("/Root/WSRoot/Workspace1/F0", children[0].Path);
             });
         }
-        /*[TestMethod]
+        [TestMethod]
         public void OData_Children_Entity_SelectChildren_Filtered()
         {
-            Test(() =>
+            ODataChildrenTest(() =>
             {
                 // switch on autofilters
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
+                var response = ODataGET<ODataSingleContentResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')",
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
-                Assert.AreEqual(1, entity.Children.Length);
+                var entity = response.Value;
+                var propertyValue = entity["Children"];
+                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
+                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                Assert.AreEqual(1, children.Length);
             });
-        }*/
+        }
 
         /*[TestMethod]
         public void OData_Children_Property_Expand()
         {
             Test(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/ODataChildrenTests('Test1')/Children", "?metadata=no&$select=Id,Name,Children&$expand=Children");
+                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
                 Assert.AreEqual(2, entities.Length);
 
@@ -151,7 +158,7 @@ namespace SenseNet.ODataTests
         {
             Test(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/ODataChildrenTests('Test1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
+                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
                 Assert.AreEqual(2, entities.Length);
 
@@ -175,7 +182,7 @@ namespace SenseNet.ODataTests
         {
             Test(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/ODataChildrenTests('Test1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
+                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
 
                 Assert.AreEqual(2, entities.Length);
 
@@ -200,12 +207,12 @@ namespace SenseNet.ODataTests
             Test(() =>
             {
                 // switch on autofilters
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/ODataChildrenTests('Test1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
+                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
                 Assert.AreEqual(1, entities.Length);
 
                 // add a query filter
-                entities = ODataGET<ODataEntities>($"/OData.svc/Root/ODataChildrenTests('Test1')/Children", "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
+                entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
                 Assert.AreEqual(1, entities.Length);
                 Assert.IsTrue(entities[0].Name.StartsWith("SF"));
             });
