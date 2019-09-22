@@ -86,16 +86,16 @@ namespace SenseNet.ODataTests
         {
             ODataChildrenTest(() =>
             {
+                // ACTION
                 var response = ODataGET<ODataSingleContentResponse>(
                     $"/OData.svc/Root/WSRoot('Workspace1')", 
                     "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
+                // ASSERT
                 var entity = response.Value;
-                var propertyValue = entity["Children"];
-                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
-                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                var children = entity.Children;
                 Assert.AreEqual(2, children.Length);
-                Assert.IsTrue(children[0].Count > 20);
+                Assert.IsTrue(children[0].Count > 20); // AllPropertiesSelected
                 Assert.AreEqual("F0", children[0].Name);
                 Assert.AreEqual("SystemFolder", children[1].ContentType);
             });
@@ -105,14 +105,14 @@ namespace SenseNet.ODataTests
         {
             ODataChildrenTest(() =>
             {
+                // ACTION
                 var response = ODataGET<ODataSingleContentResponse>(
                     $"/OData.svc/Root/WSRoot('Workspace1')",
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
+                // ASSERT
                 var entity = response.Value;
-                var propertyValue = entity["Children"];
-                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
-                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                var children = entity.Children;
                 Assert.AreEqual(2, children.Length);
                 Assert.AreEqual(2, children[0].Count);
                 Assert.AreEqual("/Root/WSRoot/Workspace1/F0", children[0].Path);
@@ -123,100 +123,116 @@ namespace SenseNet.ODataTests
         {
             ODataChildrenTest(() =>
             {
-                // switch on autofilters
+                // ACTION: switch on autofilters
                 var response = ODataGET<ODataSingleContentResponse>(
                     $"/OData.svc/Root/WSRoot('Workspace1')",
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
                 var entity = response.Value;
-                var propertyValue = entity["Children"];
-                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
-                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                var children = entity.Children;
+                Assert.IsNotNull(children);
                 Assert.AreEqual(1, children.Length);
             });
         }
 
-        /*[TestMethod]
+        [TestMethod]
         public void OData_Children_Property_Expand()
         {
-            Test(() =>
+            ODataChildrenTest(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children&$expand=Children");
+                // ACTION
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')/Children",
+                    "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
+                // ASSERT
+                var entities = response.Value.ToArray();
                 Assert.AreEqual(2, entities.Length);
-
                 var f0 = entities.FirstOrDefault(e => e.Name == "F0");
-
                 Assert.IsNotNull(f0);
-                Assert.IsFalse(f0.AllPropertiesSelected);
-                Assert.AreEqual(2, f0.Children.Length);
-                Assert.IsTrue(f0.Children[0].AllPropertiesSelected);
+                Assert.AreEqual(3, f0.Count);
+                var f0Children = f0.Children;
+                Assert.IsNotNull(f0Children);
+                Assert.AreEqual(2, f0Children.Length);
+                Assert.IsTrue(f0Children[0].Count > 20); // AllPropertiesSelected
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Children_Property_ExpandAndSelect()
         {
-            Test(() =>
+            ODataChildrenTest(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
+                // ACTION
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')/Children",
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
+                // ASSERT
+                var entities = response.Value.ToArray();
                 Assert.AreEqual(2, entities.Length);
-
                 var f0 = entities.FirstOrDefault(e => e.Name == "F0");
-
                 Assert.IsNotNull(f0);
-                Assert.IsFalse(f0.AllPropertiesSelected);
+                Assert.AreEqual(3, f0.Count);
                 Assert.AreEqual(2, f0.Children.Length);
-
-                var f00Path = $"{TestSitePath}/F0/F00";
+                var f00Path = $"/Root/WSRoot/Workspace1/F0/F00";
                 var f00Node = Node.Load<Folder>(f00Path);
                 var f00 = f0.Children.FirstOrDefault(e => e.Id == f00Node.Id);
-
                 Assert.IsNotNull(f00);
                 Assert.AreEqual(null, f00.Name); // Name is not selected
                 Assert.AreEqual(f00Path, f00.Path);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Children_Property_ExpandAndSelect_Deep()
         {
-            Test(() =>
+            ODataChildrenTest(() =>
             {
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
+                // ACTION
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')/Children",
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
 
+                // ASSERT
+                var entities = response.Value.ToArray();
                 Assert.AreEqual(2, entities.Length);
-
-                var f00Path = $"{TestSitePath}/F0/F00";
-                var f000Path = $"{TestSitePath}/F0/F00/F000";
+                var f00Path = $"/Root/WSRoot/Workspace1/F0/F00";
+                var f000Path = $"/Root/WSRoot/Workspace1/F0/F00/F000";
                 var f00Node = Node.Load<Folder>(f00Path);
                 var f000Node = Node.Load<Folder>(f000Path);
-
                 var f000 = entities
                     .First(e => e.Name == "F0").Children
                     .First(e => e.Id == f00Node.Id).Children
                     .First(e => e.Id == f000Node.Id);
-
                 Assert.IsNotNull(f000);
-                Assert.IsFalse(f000.AllPropertiesSelected);
+                Assert.AreEqual(2, f000.Count);
                 Assert.IsNull(f000.Children); // Children property is not selected on the 3rd level
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Children_Property_Filtered()
         {
-            Test(() =>
+            ODataChildrenTest(() =>
             {
-                // switch on autofilters
-                var entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
+                // ACTION-1: switch on autofilters
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')/Children",
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
+                // ASSERT-1
+                var entities = response.Value.ToArray();
                 Assert.AreEqual(1, entities.Length);
 
-                // add a query filter
-                entities = ODataGET<ODataEntities>($"/OData.svc/Root/WSRoot('Workspace1')/Children", "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
+                // ACTION-2: add a query filter
+                response = ODataGET<ODataChildrenCollectionResponse>(
+                    $"/OData.svc/Root/WSRoot('Workspace1')/Children",
+                    "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
+
+                // ASSERT-2
+                entities = response.Value.ToArray();
                 Assert.AreEqual(1, entities.Length);
                 Assert.IsTrue(entities[0].Name.StartsWith("SF"));
             });
-        }*/
+        }
 
     }
 }

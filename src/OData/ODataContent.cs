@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace SenseNet.OData
@@ -16,6 +17,8 @@ namespace SenseNet.OData
         public string Path => _properties.TryGetValue(nameof(Path), out var value) ? (string)value : null;
         [JsonIgnore]
         public string ContentType => _properties.TryGetValue("Type", out var value) ? (string) value : null;
+        [JsonIgnore]
+        internal ODataContent[] Children => _properties.TryGetValue("Children", out var value) ? ((IEnumerable<ODataContent>)value).ToArray() : null;
 
         #region IDictionary<string, object> implementation
         public int Count => _properties.Count;
