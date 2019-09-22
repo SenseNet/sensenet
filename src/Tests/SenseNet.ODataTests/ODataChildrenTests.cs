@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.OData;
+using SenseNet.OData.Responses;
 using SenseNet.Portal;
 
 namespace SenseNet.ODataTests
@@ -10,48 +13,65 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataChildrenTests : ODataTestBase
     {
-        /*[TestMethod]
+        [TestMethod]
         public void OData_Children_Entity_SelectChildren_NoExpand()
+        {
+            ODataTest(() =>
+            {
+                // ARRANGE
+                EnsureTestStructure();
+
+                // ACTION
+                var response = ODataGET<ODataSingleContentResponse>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children");
+
+                // ASSERT
+                var entity = response.Value;
+                var propertyValue = entity["Children"];
+                // ODataReference will be serialized as "__deferred"
+                Assert.IsTrue(propertyValue is ODataReference);
+            });
+        }
+        [TestMethod]
+        public void OData_Children_Entity_SelectChildren_Expand()
         {
             ODataTest(() =>
             {
                 EnsureTestStructure();
 
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children");
+                var response = ODataGET<ODataSingleContentResponse>(
+                    $"/OData.svc/Root/ODataChildrenTests('Test1')", 
+                    "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
-                Assert.IsTrue(ODataEntity.Create((JObject) entity.AllProperties["Children"]).IsDeferred);
+                var entity = response.Value;
+                var propertyValue = entity["Children"];
+                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
+                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                Assert.AreEqual(2, children.Length);
+                Assert.IsTrue(children[0].Count > 20);
+                Assert.AreEqual("F0", children[0].Name);
+                Assert.AreEqual("SystemFolder", children[1].ContentType);
             });
-        }*/
-        /*[TestMethod]
-        public void OData_Children_Entity_SelectChildren_Expand()
-        {
-            Test(() =>
-            {
-                EnsureTestStructure();
-
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children&$expand=Children");
-                
-                Assert.AreEqual(2, entity.Children.Length);
-                Assert.IsTrue(entity.Children[0].AllPropertiesSelected);
-                Assert.AreEqual("F0", entity.Children[0].Name);
-                Assert.AreEqual("SystemFolder", entity.Children[1].ContentType.Name);
-            });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Children_Entity_SelectChildren_ExpandAndSelect()
         {
-            Test(() =>
+            ODataTest(() =>
             {
                 EnsureTestStructure();
 
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/ODataChildrenTests('Test1')", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
+                var response = ODataGET<ODataSingleContentResponse>(
+                    $"/OData.svc/Root/ODataChildrenTests('Test1')",
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
-                Assert.AreEqual(2, entity.Children.Length);
-                Assert.IsFalse(entity.Children[0].AllPropertiesSelected);
-                Assert.AreEqual(null, entity.Children[0].Name);
-                Assert.AreEqual($"{TestSitePath}/F0", entity.Children[0].Path);
+                var entity = response.Value;
+                var propertyValue = entity["Children"];
+                Assert.IsTrue(propertyValue is IEnumerable<ODataContent>);
+                var children = ((IEnumerable<ODataContent>)propertyValue).ToArray();
+                Assert.AreEqual(2, children.Length);
+                Assert.AreEqual(2, children[0].Count);
+                Assert.AreEqual("/Root/ODataChildrenTests/Test1/F0", children[0].Path);
             });
-        }*/
+        }
         /*[TestMethod]
         public void OData_Children_Entity_SelectChildren_Filtered()
         {
@@ -168,28 +188,26 @@ namespace SenseNet.ODataTests
             //              SF1(SYSTEM)
             //                  F10
 
-            var testFolder1 = Node.Load<SystemFolder>("/Root/ODataChildrenTests/Test1");
-            if (testFolder1 == null)
-            {
-                var testRoot = Node.Load<SystemFolder>("/Root/ODataChildrenTests");
-                if (testRoot == null)
-                {
-                    testRoot = new SystemFolder(Repository.Root) { Name = "ODataChildrenTests" };
-                    testRoot.Save();
-                }
-                testFolder1 = new SystemFolder(Repository.Root) { Name = "Test1" };
-            }
-            var folder0 = new Folder(testFolder1) { Name = "F0" };
+            Cache.Reset();
+
+            var testRoot = Node.Load<SystemFolder>("/Root/ODataChildrenTests");
+            if (testRoot != null)
+                return;
+            testRoot = new SystemFolder(Repository.Root) {Name = "ODataChildrenTests"};
+            testRoot.Save();
+            var testFolder1 = new SystemFolder(testRoot) {Name = "Test1"};
+            testFolder1.Save();
+            var folder0 = new Folder(testFolder1) {Name = "F0"};
             folder0.Save();
-            var folder00 = new Folder(folder0) { Name = "F00" };
+            var folder00 = new Folder(folder0) {Name = "F00"};
             folder00.Save();
-            var folder000 = new Folder(folder00) { Name = "F000" };
+            var folder000 = new Folder(folder00) {Name = "F000"};
             folder000.Save();
-            var systemFolder01 = new SystemFolder(folder0) { Name = "SF01" };
+            var systemFolder01 = new SystemFolder(folder0) {Name = "SF01"};
             systemFolder01.Save();
-            var systemFolder1 = new SystemFolder(testFolder1) { Name = "SF1" };
+            var systemFolder1 = new SystemFolder(testFolder1) {Name = "SF1"};
             systemFolder1.Save();
-            var folder10 = new Folder(systemFolder1) { Name = "F10" };
+            var folder10 = new Folder(systemFolder1) {Name = "F10"};
             folder10.Save();
         }
     }

@@ -29,7 +29,7 @@ namespace SenseNet.ODataTests
     {
         #region Infrastructure
 
-        private RepositoryInstance _repository;
+        private static RepositoryInstance _repositoryForGet;
 
         protected static RepositoryBuilder CreateRepositoryBuilder()
         {
@@ -102,21 +102,31 @@ namespace SenseNet.ODataTests
         [ClassCleanup]
         public void CleanupClass()
         {
-            _repository?.Dispose();
+            _repositoryForGet?.Dispose();
         }
         #endregion
 
         protected void ODataTest(Action callback)
         {
-            if (_repository == null)
+            if (_repositoryForGet == null)
             {
                 var repoBuilder = CreateRepositoryBuilder();
                 DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
                 Indexing.IsOuterSearchEngineEnabled = true;
-                _repository = Repository.Start(repoBuilder);
+                _repositoryForGet = Repository.Start(repoBuilder);
             }
 
-            using(new SystemAccount())
+            using (new SystemAccount())
+                callback();
+        }
+
+        protected void IsolatedODataTest(Action callback)
+        {
+            var repoBuilder = CreateRepositoryBuilder();
+            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(repoBuilder))
+            using (new SystemAccount())
                 callback();
         }
 
