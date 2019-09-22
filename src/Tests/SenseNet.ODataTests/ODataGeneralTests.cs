@@ -14,7 +14,7 @@ using SenseNet.OData.Responses;
 namespace SenseNet.ODataTests
 {
     [TestClass]
-    public class BasicTests : ODataTestBase
+    public class ODataGeneralTests : ODataTestBase
     {
         [TestMethod]
         public void OD_Getting_ServiceDocument()
@@ -277,7 +277,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OData_ContentQuery()
         {
-            ODataTest(() =>
+            IsolatedODataTest(() =>
             {
                 var folderName = "OData_ContentQuery";
                 InstallCarContentType();
@@ -327,7 +327,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OData_ContentQuery_Nested()
         {
-            ODataTest(() =>
+            IsolatedODataTest(() =>
             {
                 var managers = new User[3];
                 var resources = new User[9];

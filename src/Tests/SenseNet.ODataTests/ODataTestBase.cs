@@ -25,7 +25,7 @@ using SenseNet.Tests.Accessors;
 
 namespace SenseNet.ODataTests
 {
-    public class ODataTestBase
+    public  class ODataTestBase
     {
         #region Infrastructure
 
@@ -108,7 +108,18 @@ namespace SenseNet.ODataTests
 
         protected void ODataTest(Action callback)
         {
-            if (_repositoryForGet == null)
+            ODataTest(callback, true);
+        }
+
+        protected void IsolatedODataTest(Action callback)
+        {
+            ODataTest(callback, false);
+        }
+
+        private void ODataTest(Action callback, bool reused)
+        {
+
+            if (!reused || _repositoryForGet == null)
             {
                 var repoBuilder = CreateRepositoryBuilder();
                 DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
@@ -118,16 +129,12 @@ namespace SenseNet.ODataTests
 
             using (new SystemAccount())
                 callback();
-        }
 
-        protected void IsolatedODataTest(Action callback)
-        {
-            var repoBuilder = CreateRepositoryBuilder();
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
-            Indexing.IsOuterSearchEngineEnabled = true;
-            using (Repository.Start(repoBuilder))
-            using (new SystemAccount())
-                callback();
+            if (!reused)
+            {
+                _repositoryForGet?.Dispose();
+                _repositoryForGet = null;
+            }
         }
 
         internal static T ODataGET<T>(string resource, string queryString) where T : ODataResponse
