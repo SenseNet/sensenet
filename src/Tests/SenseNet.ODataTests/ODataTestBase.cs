@@ -29,7 +29,7 @@ namespace SenseNet.ODataTests
     {
         #region Infrastructure
 
-        private static RepositoryInstance _repositoryForGet;
+        private static RepositoryInstance _repository;
 
         protected static RepositoryBuilder CreateRepositoryBuilder()
         {
@@ -90,19 +90,24 @@ namespace SenseNet.ODataTests
         private static InMemoryIndex _initialIndex;
         protected static InMemoryIndex GetInitialIndex()
         {
-            if (_initialIndex == null)
-            {
-                var index = new InMemoryIndex();
-                index.Load(new StringReader(InitialTestIndex.Index));
-                _initialIndex = index;
-            }
-            return _initialIndex.Clone();
+            //UNDONE:ODATA: TEST:BUG: Commented out lines maybe wrong
+            //if (_initialIndex == null)
+            //{
+            //    var index = new InMemoryIndex();
+            //    index.Load(new StringReader(InitialTestIndex.Index));
+            //    _initialIndex = index;
+            //}
+            //return _initialIndex.Clone();
+            var index = new InMemoryIndex();
+            index.Load(new StringReader(InitialTestIndex.Index));
+            _initialIndex = index;
+            return _initialIndex;
         }
 
         [ClassCleanup]
         public void CleanupClass()
         {
-            _repositoryForGet?.Dispose();
+            _repository?.Dispose();
         }
         #endregion
 
@@ -118,13 +123,14 @@ namespace SenseNet.ODataTests
 
         private void ODataTest(Action callback, bool reused)
         {
+            Cache.Reset();
 
-            if (!reused || _repositoryForGet == null)
+            if (!reused || _repository == null)
             {
                 var repoBuilder = CreateRepositoryBuilder();
                 DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
                 Indexing.IsOuterSearchEngineEnabled = true;
-                _repositoryForGet = Repository.Start(repoBuilder);
+                _repository = Repository.Start(repoBuilder);
             }
 
             using (new SystemAccount())
@@ -132,8 +138,8 @@ namespace SenseNet.ODataTests
 
             if (!reused)
             {
-                _repositoryForGet?.Dispose();
-                _repositoryForGet = null;
+                _repository?.Dispose();
+                _repository = null;
             }
         }
 
