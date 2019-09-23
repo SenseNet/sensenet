@@ -56,7 +56,7 @@ namespace SenseNet.ODataTest.WebApp
                         var r = httpContext.GetODataResponse();
                         if(httpContext.GetODataResponse() is ODataCollectionCountResponse response)
                         {
-                            response.Value++;
+                            response.Count++;
                             //httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
                         }
                         return Task.CompletedTask;

@@ -3,6 +3,6 @@
     public class ODataNoContentResponse : ODataResponse
     {
         public override ODataResponseType Type => ODataResponseType.NoContent;
-        public override object GetValue() => null;
+        public override object Value => null;
     }
 }

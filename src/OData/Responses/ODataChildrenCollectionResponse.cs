@@ -7,12 +7,12 @@ namespace SenseNet.OData.Responses
         public override ODataResponseType Type => ODataResponseType.ChildrenCollection;
 
         public int AllCount { get; set; }
-        public IEnumerable<ODataContent> Value { get; set; }
-        public override object GetValue() => Value;
+        public IEnumerable<ODataContent> Entities { get; set; }
+        public override object Value => Entities;
 
         public ODataChildrenCollectionResponse(IEnumerable<ODataContent> value, int allCount)
         {
-            Value = value;
+            Entities = value;
             AllCount = allCount;
         }
     }

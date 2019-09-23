@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -26,10 +28,34 @@ namespace SenseNet.ODataTests
                 var response = ODataGET<ODataServiceDocumentResponse>("/OData.svc", "");
 
                 Assert.AreEqual(ODataResponseType.ServiceDocument, response.Type);
-                var actualNames = string.Join(", ", response.Value.OrderBy(x => x).ToArray());
+                var actualNames = string.Join(", ", response.RootNames.OrderBy(x => x).ToArray());
                 Assert.AreEqual(expectedNames, actualNames);
             });
         }
+
+        [TestMethod]
+        public void OData_Metadata_Global()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataMetadataResponse>("/OData.svc/$metadata", "");
+
+                Assert.IsNotNull(response);
+                Assert.IsNull(response.Value);
+            });
+        }
+        [TestMethod]
+        public void OData_Metadata_Entity()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataMetadataResponse>("/OData.svc/Root/IMS/Portal/$metadata", "");
+
+                Assert.IsNotNull(response);
+                Assert.AreEqual("/Root/IMS/Portal", (string)response.Value);
+            });
+        }
+
         [TestMethod]
         public void OD_Getting_MissingEntity()
         {
@@ -49,11 +75,11 @@ namespace SenseNet.ODataTests
 
                 var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "");
 
-                var odataContent = response.Value;
+                var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
-                Assert.AreEqual(content.Id, odataContent.Id);
-                Assert.AreEqual(content.Name, odataContent.Name);
-                Assert.AreEqual(content.Path, odataContent.Path);
+                Assert.AreEqual(content.Id, entity.Id);
+                Assert.AreEqual(content.Name, entity.Name);
+                Assert.AreEqual(content.Path, entity.Path);
                 ////Assert.AreEqual(content.ContentType.Name, odataContent.Name);
             });
         }
@@ -64,7 +90,7 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/IMS/BuiltIn/Portal", "");
 
-                var entities = response.Value;
+                var entities = response.Entities;
                 var origIds = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal").Children.Select(f => f.Id).ToArray();
                 var ids = entities.Select(e => e.Id).ToArray();
 
@@ -81,7 +107,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGET<ODataMultipleContentResponse>("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "");
 
                 Assert.AreEqual(ODataResponseType.MultipleContent, response.Type);
-                var items = response.Value;
+                var items = response.Entities;
                 var origIds = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Administrators").Members.Select(f => f.Id).ToArray();
                 var ids = items.Select(e => e.Id).ToArray();
 
@@ -98,9 +124,9 @@ namespace SenseNet.ODataTests
 
                 var response1 = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')/Id", "");
 
-                var value = response1.Value;
+                var entity = response1.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response1.Type);
-                Assert.AreEqual(imsId, value.Id);
+                Assert.AreEqual(imsId, entity.Id);
 
                 var response2 = ODataGET<ODataRawResponse>("/OData.svc/Root('IMS')/Id/$value", "");
 
@@ -118,12 +144,12 @@ namespace SenseNet.ODataTests
 
                 var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Content(" + id + ")", "");
 
-                var odataContent = response.Value;
+                var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
-                Assert.AreEqual(id, odataContent.Id);
-                Assert.AreEqual(content.Path, odataContent.Path);
-                Assert.AreEqual(content.Name, odataContent.Name);
-                Assert.AreEqual(content.ContentType.Name, odataContent.ContentType);
+                Assert.AreEqual(id, entity.Id);
+                Assert.AreEqual(content.Path, entity.Path);
+                Assert.AreEqual(content.Name, entity.Name);
+                Assert.AreEqual(content.ContentType.Name, entity.ContentType);
             });
         }
         [TestMethod]
@@ -133,7 +159,7 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataErrorResponse>("/OData.svc/Content(qwer)", "");
 
-                var exception = response.Value;
+                var exception = response.Exception;
                 Assert.AreEqual(ODataResponseType.Error, response.Type);
                 Assert.AreEqual(ODataExceptionCode.InvalidId, exception.ODataExceptionCode);
             });
@@ -147,9 +173,9 @@ namespace SenseNet.ODataTests
 
                 var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Content(" + content.Id + ")/Name", "");
 
-                var value = response.Value;
+                var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
-                Assert.AreEqual(content.Name, value.Name);
+                Assert.AreEqual(content.Name, entity.Name);
             });
         }
         [TestMethod]
@@ -159,17 +185,17 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/IMS/BuiltIn/Portal", "?$select=Id,Name");
 
-                var items = response.Value;
+                var entities = response.Entities;
                 Assert.AreEqual(ODataResponseType.ChildrenCollection, response.Type);
                 var itemIndex = 0;
-                foreach (var item in items)
+                foreach (var entity in entities)
                 {
-                    Assert.AreEqual(3, item.Count);
-                    Assert.IsTrue(item.ContainsKey("__metadata"));
-                    Assert.IsTrue(item.ContainsKey("Id"));
-                    Assert.IsTrue(item.ContainsKey("Name"));
-                    Assert.IsNull(item.Path);
-                    Assert.IsNull(item.ContentType);
+                    Assert.AreEqual(3, entity.Count);
+                    Assert.IsTrue(entity.ContainsKey("__metadata"));
+                    Assert.IsTrue(entity.ContainsKey("Id"));
+                    Assert.IsTrue(entity.ContainsKey("Name"));
+                    Assert.IsNull(entity.Path);
+                    Assert.IsNull(entity.ContentType);
                     itemIndex++;
                 }
             });
@@ -181,14 +207,14 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "?$select=Id,Name");
 
-                var odataContent = response.Value;
+                var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
 
-                Assert.IsTrue(odataContent.ContainsKey("__metadata"));
-                Assert.IsTrue(odataContent.ContainsKey("Id"));
-                Assert.IsTrue(odataContent.ContainsKey("Name"));
-                Assert.IsNull(odataContent.Path);
-                Assert.IsNull(odataContent.ContentType);
+                Assert.IsTrue(entity.ContainsKey("__metadata"));
+                Assert.IsTrue(entity.ContainsKey("Id"));
+                Assert.IsTrue(entity.ContainsKey("Name"));
+                Assert.IsNull(entity.Path);
+                Assert.IsNull(entity.ContentType);
             });
         }
         [TestMethod]
@@ -198,7 +224,7 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "");
 
-                var odataContent = response.Value;
+                var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
 
                 var allowedFieldNames = new List<string>();
@@ -208,7 +234,7 @@ namespace SenseNet.ODataTests
                 allowedFieldNames.AddRange(fieldNames);
                 allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder", "Children" });
 
-                var entityPropNames = odataContent.Select(y => y.Key).ToArray();
+                var entityPropNames = entity.Select(y => y.Key).ToArray();
 
                 var a = entityPropNames.Except(allowedFieldNames).ToArray();
                 var b = allowedFieldNames.Except(entityPropNames).ToArray();
@@ -315,12 +341,12 @@ namespace SenseNet.ODataTests
 
                 var response1 = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
 
-                var realGlobal = string.Join(", ", response1.Value.Select(e => e.Id));
+                var realGlobal = string.Join(", ", response1.Entities.Select(e => e.Id));
                 Assert.AreEqual(realGlobal, expectedGlobal);
 
                 var response2 = ODataGET<ODataChildrenCollectionResponse>($"/OData.svc/Root/{site.Name}/{folderName}", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
 
-                var realLocal = string.Join(", ", response2.Value.Select(e => e.Id));
+                var realLocal = string.Join(", ", response2.Entities.Select(e => e.Id));
                 Assert.AreEqual(realLocal, expectedLocal);
             });
         }
@@ -365,7 +391,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root", "?$select=Name&query=" + odataQueryText);
 
                 // ASSERT
-                var resultNamesOData = response.Value.Select(x => x.Name).ToArray();
+                var resultNamesOData = response.Entities.Select(x => x.Name).ToArray();
                 Assert.AreEqual("User1, User4, User7", string.Join(", ", resultNamesOData));
             });
         }
@@ -376,7 +402,7 @@ namespace SenseNet.ODataTests
             {
                 var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/System/Schema/ContentTypes/GenericContent", "?$orderby=Name desc&$skip=4&$top=3&$inlinecount=allpages");
 
-                var ids = response.Value.Select(e => e.Id);
+                var ids = response.Entities.Select(e => e.Id);
                 var origIds = CreateSafeContentQuery(
                     "+InFolder:/Root/System/Schema/ContentTypes/GenericContent .REVERSESORT:Name .SKIP:4 .TOP:3 .AUTOFILTERS:OFF")
                     .Execute().Nodes.Select(n => n.Id);
@@ -416,8 +442,9 @@ namespace SenseNet.ODataTests
 
                 var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc" + path, "?metadata=no&$orderby=Name asc&$select=Id,Id,Name,Name,Path");
 
-                Assert.AreEqual(nodecount, response.Value.Count());
-                Assert.AreEqual("Id,Name,Path", string.Join(",", response.Value.First().Keys.ToArray()));
+                var entities = response.Entities.ToArray();
+                Assert.AreEqual(nodecount, entities.Length);
+                Assert.AreEqual("Id,Name,Path", string.Join(",", entities[0].Keys.ToArray()));
             });
         }
 

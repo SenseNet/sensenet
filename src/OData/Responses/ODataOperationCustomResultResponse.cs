@@ -5,12 +5,12 @@
         public override ODataResponseType Type => ODataResponseType.OperationCustomResult;
 
         public int? AllCount { get; set; }
-        public object Value { get; set; }
-        public override object GetValue() => Value;
+        public object ResultValue { get; set; }
+        public override object Value => ResultValue;
 
         public ODataOperationCustomResultResponse(object value, int? allCount)
         {
-            Value = value;
+            ResultValue = value;
             AllCount = allCount;
         }
     }

@@ -4,12 +4,12 @@
     {
         public override ODataResponseType Type => ODataResponseType.ActionsPropertyRaw;
 
-        public ODataActionItem[] Value { get; set; }
-        public override object GetValue() => Value;
+        public ODataActionItem[] Actions { get; set; }
+        public override object Value => Actions;
 
         public ODataActionsPropertyRawResponse(ODataActionItem[] value)
         {
-            Value = value;
+            Actions = value;
         }
     }
 }

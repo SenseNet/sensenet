@@ -20,7 +20,7 @@ namespace SenseNet.OData
     }
 
     /// <summary>
-    /// Represents an immutable response object for <see cref="ODataRequest"/>.
+    /// Represents a response object for <see cref="ODataRequest"/>.
     /// </summary>
     public abstract class ODataResponse
     {
@@ -30,9 +30,18 @@ namespace SenseNet.OData
         public static readonly string Key = "SnODataResponse";
 
         public abstract ODataResponseType Type { get; }
-        public abstract object GetValue();
+        public abstract object Value { get; }
 
         /* ====================================================================== Internal factory methods */
+
+        internal static ODataServiceDocumentResponse CreateServiceDocumentResponse(string[] topLevelNames)
+        {
+            return new ODataServiceDocumentResponse(topLevelNames);
+        }
+        public static ODataResponse CreateMetadataResponse(string entityPath)
+        {
+            return new ODataMetadataResponse(entityPath == "/" ? null : entityPath);
+        }
 
         internal static ODataNoContentResponse CreateNoContentResponse()
         {
@@ -45,10 +54,6 @@ namespace SenseNet.OData
         internal static ODataErrorResponse CreateErrorResponse(ODataException exception)
         {
             return new ODataErrorResponse(exception);
-        }
-        internal static ODataServiceDocumentResponse CreateServiceDocumentResponse(string[] topLevelNames)
-        {
-            return new ODataServiceDocumentResponse(topLevelNames);
         }
         internal static ODataSingleContentResponse CreateSingleContentResponse(ODataContent fieldData)
         {
@@ -90,6 +95,7 @@ namespace SenseNet.OData
         {
             return new ODataOperationCustomResultResponse(result, allCount);
         }
+
     }
 
 }

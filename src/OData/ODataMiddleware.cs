@@ -109,7 +109,7 @@ namespace SenseNet.OData
             var changedResponse = httpContext.GetODataResponse();
             if (changedResponse != null)
             {
-                var stringValue = changedResponse.GetValue()?.ToString() ?? "{null}";
+                var stringValue = changedResponse.Value?.ToString() ?? "{null}";
                 httpContext.Response.ContentType = "text/plain";
                 await httpContext.Response.WriteAsync($"{changedResponse.Type}: {stringValue}");
             }
@@ -169,7 +169,7 @@ namespace SenseNet.OData
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
-                            formatter.WriteMetadata(httpContext, odataRequest);
+                            return ODataResponse.CreateMetadataResponse(odataRequest.RepositoryPath);
                         }
                         else
                         {

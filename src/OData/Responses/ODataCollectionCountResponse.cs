@@ -4,12 +4,12 @@
     {
         public override ODataResponseType Type => ODataResponseType.CollectionCount;
 
-        public int Value { get; set; }
-        public override object GetValue() => Value;
+        public int Count { get; set; }
+        public override object Value => Count;
 
         public ODataCollectionCountResponse(int value)
         {
-            Value = value;
+            Count = value;
         }
     }
 }

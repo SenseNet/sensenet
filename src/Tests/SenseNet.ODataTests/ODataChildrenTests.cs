@@ -75,7 +75,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGET<ODataSingleContentResponse>($"/OData.svc/Root/WSRoot('Workspace1')", "?metadata=no&$select=Id,Name,Children");
 
                 // ASSERT
-                var entity = response.Value;
+                var entity = response.Entity;
                 var propertyValue = entity["Children"];
                 // ODataReference will be serialized as "__deferred"
                 Assert.IsTrue(propertyValue is ODataReference);
@@ -92,7 +92,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
                 // ASSERT
-                var entity = response.Value;
+                var entity = response.Entity;
                 var children = entity.Children;
                 Assert.AreEqual(2, children.Length);
                 Assert.IsTrue(children[0].Count > 20); // AllPropertiesSelected
@@ -111,7 +111,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
                 // ASSERT
-                var entity = response.Value;
+                var entity = response.Entity;
                 var children = entity.Children;
                 Assert.AreEqual(2, children.Length);
                 Assert.AreEqual(2, children[0].Count);
@@ -128,7 +128,7 @@ namespace SenseNet.ODataTests
                     $"/OData.svc/Root/WSRoot('Workspace1')",
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
-                var entity = response.Value;
+                var entity = response.Entity;
                 var children = entity.Children;
                 Assert.IsNotNull(children);
                 Assert.AreEqual(1, children.Length);
@@ -146,7 +146,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children&$expand=Children");
 
                 // ASSERT
-                var entities = response.Value.ToArray();
+                var entities = response.Entities.ToArray();
                 Assert.AreEqual(2, entities.Length);
                 var f0 = entities.FirstOrDefault(e => e.Name == "F0");
                 Assert.IsNotNull(f0);
@@ -168,7 +168,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
 
                 // ASSERT
-                var entities = response.Value.ToArray();
+                var entities = response.Entities.ToArray();
                 Assert.AreEqual(2, entities.Length);
                 var f0 = entities.FirstOrDefault(e => e.Name == "F0");
                 Assert.IsNotNull(f0);
@@ -193,7 +193,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
 
                 // ASSERT
-                var entities = response.Value.ToArray();
+                var entities = response.Entities.ToArray();
                 Assert.AreEqual(2, entities.Length);
                 var f00Path = $"/Root/WSRoot/Workspace1/F0/F00";
                 var f000Path = $"/Root/WSRoot/Workspace1/F0/F00/F000";
@@ -219,7 +219,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
                 // ASSERT-1
-                var entities = response.Value.ToArray();
+                var entities = response.Entities.ToArray();
                 Assert.AreEqual(1, entities.Length);
 
                 // ACTION-2: add a query filter
@@ -228,7 +228,7 @@ namespace SenseNet.ODataTests
                     "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
 
                 // ASSERT-2
-                entities = response.Value.ToArray();
+                entities = response.Entities.ToArray();
                 Assert.AreEqual(1, entities.Length);
                 Assert.IsTrue(entities[0].Name.StartsWith("SF"));
             });

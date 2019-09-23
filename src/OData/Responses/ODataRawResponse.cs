@@ -4,12 +4,12 @@
     {
         public override ODataResponseType Type => ODataResponseType.RawData;
 
-        public object Value { get; set; }
-        public override object GetValue() => Value;
+        public object RawValue { get; set; }
+        public override object Value => RawValue;
 
         public ODataRawResponse(object value)
         {
-            Value = value;
+            RawValue = value;
         }
     }
 }

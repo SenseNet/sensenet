@@ -4,12 +4,12 @@
     {
         public override ODataResponseType Type => ODataResponseType.Error;
 
-        public ODataException Value { get; set; }
-        public override object GetValue() => Value;
+        public ODataException Exception { get; set; }
+        public override object Value => Exception;
 
         public ODataErrorResponse(ODataException value)
         {
-            Value = value;
+            Exception = value;
         }
     }
 }

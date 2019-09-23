@@ -3,6 +3,6 @@
     public class ODataContentNotFoundResponse : ODataResponse
     {
         public override ODataResponseType Type => ODataResponseType.ContentNotFound;
-        public override object GetValue() => null;
+        public override object Value => null;
     }
 }
