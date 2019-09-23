@@ -31,6 +31,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0, ids.Except(origIds).Count());
             });
         }
+
         [TestMethod]
         public void OData_Filter_EndsWithEqTrue()
         {
@@ -52,6 +53,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0, ids.Except(origIds).Count());
             });
         }
+
         [TestMethod]
         public void OData_Filter_SubstringOfEqTrue()
         {
@@ -154,11 +156,11 @@ namespace SenseNet.ODataTests
                 InstallCarContentType();
                 var testRoot = CreateTestRoot();
 
-                var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+                var folder = new Folder(testRoot) {Name = Guid.NewGuid().ToString()};
                 folder.Save();
-                var folder1 = new Folder(folder) { Name = "Folder1" };
+                var folder1 = new Folder(folder) {Name = "Folder1"};
                 folder1.Save();
-                var folder2 = new Folder(folder) { Name = "Folder2" };
+                var folder2 = new Folder(folder) {Name = "Folder2"};
                 folder2.Save();
                 var content = Content.CreateNew("Car", folder, null);
                 content.Save();
@@ -181,103 +183,124 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(content.Id, entities[0].Id);
             });
         }
-        //        [TestMethod]
-        //        public void OData_Filter_IsOfEqTrue()
-        //        {
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
-        //                var entities = ODataGET<ODataEntities>("/OData.svc/Root", "$filter=isof('Folder') eq true");
 
-        //                var origIds = Repository.Root.Children
-        //                    .Where(x => x.NodeType.IsInstaceOfOrDerivedFrom("Folder"))
-        //                    .Select(f => f.Id)
-        //                    .ToArray();
-        //                var Ids = entities.Select(e => e.Id);
+        [TestMethod]
+        public void OData_Filter_IsOfEqTrue()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc/Root",
+                    "?$filter=isof('Folder') eq true");
 
-        //                Assert.IsTrue(origIds.Length > 0);
-        //                Assert.AreEqual(0, origIds.Except(Ids).Count());
-        //                Assert.AreEqual(0, Ids.Except(origIds).Count());
-        //            });
-        //        }
+                var origIds = Repository.Root.Children
+                    .Where(x => x.NodeType.IsInstaceOfOrDerivedFrom("Folder"))
+                    .Select(f => f.Id)
+                    .ToArray();
 
-        //        [TestMethod]
-        //        public void OData_Filter_ContentField()
-        //        {
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
-        //                InstallCarContentType();
-        //                var testRoot = CreateTestRoot("ODataTestRoot");
+                var entities = response.Entities.ToArray();
+                var ids = entities.Select(e => e.Id);
 
-        //                foreach (var item in new[] { "Ferrari", "Porsche", "Ferrari", "Mercedes" })
-        //                {
-        //                    var car = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-        //                    car["Make"] = item;
-        //                    car.Save();
-        //                }
+                Assert.IsTrue(origIds.Length > 0);
+                Assert.AreEqual(0, origIds.Except(ids).Count());
+                Assert.AreEqual(0, ids.Except(origIds).Count());
+            });
+        }
 
-        //                var entities = ODataGET<ODataEntities>("/OData.svc" + testRoot.Path, "$filter=Make eq 'Ferrari'&enableautofilters=false");
-        //                Assert.AreEqual(2, entities.Length);
-        //            });
-        //        }
+        [TestMethod]
+        public void OData_Filter_ContentField()
+        {
+            ODataTest(() =>
+            {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot();
+
+                foreach (var item in new[] {"Ferrari", "Porsche", "Ferrari", "Mercedes"})
+                {
+                    var car = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
+                    car["Make"] = item;
+                    car.Save();
+                }
+
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc" + testRoot.Path,
+                    "?$filter=Make eq 'Ferrari'&enableautofilters=false");
+
+                var entities = response.Entities.ToArray();
+                Assert.AreEqual(2, entities.Length);
+            });
+        }
 
 
-        //        [TestMethod]
-        //        public void OData_Filter_InFolder()
-        //        {
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
-        //                var entities = ODataGET<ODataEntities>("/OData.svc/Root/IMS/BuiltIn/Portal", "$orderby=Id&$filter=Id lt (9 sub 2)");
-        //                Assert.AreEqual(2, entities.Length);
-        //                Assert.AreEqual(1, entities[0].Id);
-        //                Assert.AreEqual(6, entities[1].Id);
-        //            });
-        //        }
-        //        [TestMethod]
-        //        public void OData_Filter_IsFolder()
-        //        {
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
-        //                InstallCarContentType();
-        //                var testRoot = CreateTestRoot("ODataTestRoot");
+        [TestMethod]
+        public void OData_Filter_InFolder()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc/Root/IMS/BuiltIn/Portal",
+                    "?$orderby=Id&$filter=Id lt (9 sub 2)");
 
-        //                var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-        //                folder.Save();
-        //                var folder1 = new Folder(folder) { Name = "Folder1" };
-        //                folder1.Save();
-        //                var folder2 = new Folder(folder) { Name = "Folder2" };
-        //                folder2.Save();
+                var entities = response.Entities.ToArray();
+                Assert.AreEqual(2, entities.Length);
+                Assert.AreEqual(1, entities[0].Id);
+                Assert.AreEqual(6, entities[1].Id);
+            });
+        }
 
-        //                var content = Content.CreateNew("Car", folder, null);
-        //                content.Save();
+        [TestMethod]
+        public void OData_Filter_IsFolder()
+        {
+            ODataTest(() =>
+            {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot();
 
-        //                var entities = ODataGET<ODataEntities>("/OData.svc" + folder.Path, "&$filter=IsFolder eq true");
+                var folder = new Folder(testRoot) {Name = Guid.NewGuid().ToString()};
+                folder.Save();
+                var folder1 = new Folder(folder) {Name = "Folder1"};
+                folder1.Save();
+                var folder2 = new Folder(folder) {Name = "Folder2"};
+                folder2.Save();
 
-        //                Assert.AreEqual(2, entities.Length);
-        //                Assert.AreEqual(folder1.Id, entities[0].Id);
-        //                Assert.AreEqual(folder2.Id, entities[1].Id);
+                var content = Content.CreateNew("Car", folder, null);
+                content.Save();
 
-        //                entities = ODataGET<ODataEntities>("/OData.svc" + folder.Path, "&$filter=IsFolder eq false");
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc" + folder.Path,
+                    "?$filter=IsFolder eq true");
 
-        //                Assert.AreEqual(1, entities.Length);
-        //                Assert.AreEqual(content.Id, entities[0].Id);
-        //            });
-        //        }
+                var entities = response.Entities.ToArray();
+                Assert.AreEqual(2, entities.Length);
+                Assert.AreEqual(folder1.Id, entities[0].Id);
+                Assert.AreEqual(folder2.Id, entities[1].Id);
 
-        //        [TestMethod]
-        //        public void OData_Filter_NamespaceAndMemberChain()
-        //        {
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
-        //                var entities = ODataGET<ODataEntities>("/OData.svc/Root/IMS/BuiltIn/Portal", "$filter=SenseNet.Services.OData.Tests.ODataFilterTestHelper/TestValue eq Name");
+                response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc" + folder.Path,
+                    "?$filter=IsFolder eq false");
 
-        //                Assert.AreEqual(1, entities.Count());
-        //                Assert.AreEqual(Group.Administrators.Path, entities.First().Path);
-        //            });
-        //        }
+                entities = response.Entities.ToArray();
+                Assert.AreEqual(1, entities.Length);
+                Assert.AreEqual(content.Id, entities[0].Id);
+            });
+        }
+
+        [TestMethod]
+        public void OData_Filter_NamespaceAndMemberChain()
+        {
+            ODataTest(() =>
+            {
+                var name = typeof(ODataFilterTestHelper).FullName;
+
+                var response = ODataGET<ODataChildrenCollectionResponse>(
+                    "/OData.svc/Root/IMS/BuiltIn/Portal",
+                    $"?$filter={name}/TestValue eq Name");
+
+                var entities = response.Entities.ToArray();
+                Assert.AreEqual(1, entities.Count());
+                Assert.AreEqual(Group.Administrators.Path, entities.First().Path);
+            });
+
+        }
     }
 }
