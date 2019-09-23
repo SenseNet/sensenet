@@ -19,7 +19,7 @@ namespace SenseNet.ODataTests
     public class ODataGeneralTests : ODataTestBase
     {
         [TestMethod]
-        public void OD_Getting_ServiceDocument()
+        public void OD_GET_ServiceDocument()
         {
             ODataTest(() =>
             {
@@ -34,7 +34,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OData_Metadata_Global()
+        public void OD_GET_Metadata_Global()
         {
             ODataTest(() =>
             {
@@ -45,19 +45,30 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Metadata_Entity()
+        public void OD_GET_Metadata_Entity()
         {
             ODataTest(() =>
             {
-                var response = ODataGET<ODataMetadataResponse>("/OData.svc/Root/IMS/Portal/$metadata", "");
+                var response = ODataGET<ODataMetadataResponse>("/OData.svc/Root/IMS/BuiltIn/Portal/$metadata", "");
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual("/Root/IMS/Portal", (string)response.Value);
+                Assert.AreEqual("/Root/IMS/BuiltIn/Portal", response.EntityPath);
+            });
+        }
+        [TestMethod]
+        public void OD_GET_Metadata_MissingEntity()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGET<ODataMetadataResponse>("/OData.svc/Root/HiEveryBody/$metadata", "");
+
+                Assert.IsNotNull(response);
+                Assert.AreEqual(null, response.EntityPath);
             });
         }
 
         [TestMethod]
-        public void OD_Getting_MissingEntity()
+        public void OD_GET_MissingEntity()
         {
             ODataTest(() =>
             {
@@ -67,7 +78,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_Entity()
+        public void OD_GET_Entity()
         {
             ODataTest(() =>
             {
@@ -84,7 +95,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_ChildrenCollection()
+        public void OD_GET_ChildrenCollection()
         {
             ODataTest(() =>
             {
@@ -100,7 +111,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_CollectionViaProperty()
+        public void OD_GET_CollectionViaProperty()
         {
             ODataTest(() =>
             {
@@ -116,7 +127,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_SimplePropertyAndRaw()
+        public void OD_GET_SimplePropertyAndRaw()
         {
             ODataTest(() =>
             {
@@ -135,7 +146,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_GetEntityById()
+        public void OD_GET_GetEntityById()
         {
             ODataTest(() =>
             {
@@ -153,7 +164,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_GetEntityById_InvalidId()
+        public void OD_GET_GetEntityById_InvalidId()
         {
             ODataTest(() =>
             {
@@ -165,7 +176,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_GetPropertyOfEntityById()
+        public void OD_GET_GetPropertyOfEntityById()
         {
             ODataTest(() =>
             {
@@ -179,7 +190,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_Collection_Projection()
+        public void OD_GET_Collection_Projection()
         {
             ODataTest(() =>
             {
@@ -201,7 +212,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OD_Getting_Entity_Projection()
+        public void OD_GET_Entity_Projection()
         {
             ODataTest(() =>
             {
@@ -218,7 +229,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Getting_Entity_NoProjection()
+        public void OD_GET_Entity_NoProjection()
         {
             ODataTest(() =>
             {
@@ -247,7 +258,7 @@ namespace SenseNet.ODataTests
         //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
         /**/
         //        //[TestMethod]
-        //        public void OData_Getting_ContentList_NoProjection()
+        //        public void OD_GET_ContentList_NoProjection()
         //        {
         //            Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
@@ -301,7 +312,7 @@ namespace SenseNet.ODataTests
         //        }
 
         [TestMethod]
-        public void OData_ContentQuery()
+        public void OD_GET_ContentQuery()
         {
             IsolatedODataTest(() =>
             {
@@ -351,7 +362,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_ContentQuery_Nested()
+        public void OD_GET_ContentQuery_Nested()
         {
             IsolatedODataTest(() =>
             {
@@ -396,7 +407,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Getting_Collection_OrderTopSkipCount()
+        public void OD_GET_Collection_OrderTopSkipCount()
         {
             ODataTest(() =>
             {
@@ -413,7 +424,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Getting_Collection_Count()
+        public void OD_GET_Collection_Count()
         {
             ODataTest(() =>
             {
@@ -424,7 +435,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Getting_Collection_CountTop()
+        public void OD_GET_Collection_CountTop()
         {
             ODataTest(() =>
             {
@@ -433,7 +444,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Select_FieldMoreThanOnce()
+        public void OD_GET_Select_FieldMoreThanOnce()
         {
             ODataTest(() =>
             {
@@ -450,7 +461,7 @@ namespace SenseNet.ODataTests
 
         //UNDONE:ODATA:TEST: Implement this test: OData_Select_AspectField
         /*[TestMethod]
-          public void OData_Select_AspectField()
+          public void OD_GET_Select_AspectField()
           {
               Test(() =>
               {
@@ -552,7 +563,7 @@ namespace SenseNet.ODataTests
         }*/
 
         /*[TestMethod]
-        public void OData_Expand_Level2_Noselect()
+        public void OD_GET_Expand_Level2_Noselect()
         {
             Test(() =>
             {
@@ -572,7 +583,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_Expand_Level2_Select_Level1()
+        public void OD_GET_Expand_Level2_Select_Level1()
         {
             Test(() =>
             {
@@ -591,7 +602,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_Expand_Level2_Select_Level2()
+        public void OD_GET_Expand_Level2_Select_Level2()
         {
             Test(() =>
             {
@@ -610,7 +621,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_Expand_Level2_Select_Level3()
+        public void OD_GET_Expand_Level2_Select_Level3()
         {
             Test(() =>
             {
@@ -631,7 +642,7 @@ namespace SenseNet.ODataTests
         }*/
 
         /*[TestMethod]
-        public void OData_UserAvatarByRef()
+        public void OD_GET_UserAvatarByRef()
         {
             Test(() =>
             {
@@ -669,7 +680,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_UserAvatarUpdateRef()
+        public void OD_GET_UserAvatarUpdateRef()
         {
             Test(() =>
             {
@@ -719,7 +730,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_UserAvatarUpdateRefByPath()
+        public void OD_GET_UserAvatarUpdateRefByPath()
         {
             Test(() =>
             {
@@ -769,7 +780,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_UserAvatarByInnerData()
+        public void OD_GET_UserAvatarByInnerData()
         {
             Test(() =>
             {
@@ -809,7 +820,7 @@ namespace SenseNet.ODataTests
             });
         }*/
         /*[TestMethod]
-        public void OData_UserAvatarUpdateInnerDataToRef()
+        public void OD_GET_UserAvatarUpdateInnerDataToRef()
         {
             Test(() =>
             {
@@ -858,7 +869,7 @@ namespace SenseNet.ODataTests
 
         //UNDONE:ODATA:TEST: Remove inconclusive test result and implement this test.
         //[TestMethod]
-        public void OData_OrderByNumericDouble()
+        public void OD_GET_OrderByNumericDouble()
         {
             Assert.Inconclusive("OData_OrderByNumericDouble is commented out (uses LuceneManager)");
 

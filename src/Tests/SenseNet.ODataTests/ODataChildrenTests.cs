@@ -67,7 +67,7 @@ namespace SenseNet.ODataTests
         #endregion
 
         [TestMethod]
-        public void OData_Children_Entity_SelectChildren_NoExpand()
+        public void OD_GET_Children_Entity_SelectChildren_NoExpand()
         {
             ODataChildrenTest(() =>
             {
@@ -82,7 +82,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Entity_SelectChildren_Expand()
+        public void OD_GET_Children_Entity_SelectChildren_Expand()
         {
             ODataChildrenTest(() =>
             {
@@ -101,7 +101,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Entity_SelectChildren_ExpandAndSelect()
+        public void OD_GET_Children_Entity_SelectChildren_ExpandAndSelect()
         {
             ODataChildrenTest(() =>
             {
@@ -119,7 +119,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Entity_SelectChildren_Filtered()
+        public void OD_GET_Children_Entity_SelectChildren_Filtered()
         {
             ODataChildrenTest(() =>
             {
@@ -136,7 +136,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OData_Children_Property_Expand()
+        public void OD_GET_Children_Property_Expand()
         {
             ODataChildrenTest(() =>
             {
@@ -158,7 +158,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Property_ExpandAndSelect()
+        public void OD_GET_Children_Property_ExpandAndSelect()
         {
             ODataChildrenTest(() =>
             {
@@ -183,7 +183,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Property_ExpandAndSelect_Deep()
+        public void OD_GET_Children_Property_ExpandAndSelect_Deep()
         {
             ODataChildrenTest(() =>
             {
@@ -209,7 +209,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Children_Property_Filtered()
+        public void OD_GET_Children_Property_Filtered()
         {
             ODataChildrenTest(() =>
             {

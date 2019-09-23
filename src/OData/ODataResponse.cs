@@ -38,22 +38,9 @@ namespace SenseNet.OData
         {
             return new ODataServiceDocumentResponse(topLevelNames);
         }
-        public static ODataResponse CreateMetadataResponse(string entityPath)
+        internal static ODataResponse CreateMetadataResponse(string entityPath)
         {
             return new ODataMetadataResponse(entityPath == "/" ? null : entityPath);
-        }
-
-        internal static ODataNoContentResponse CreateNoContentResponse()
-        {
-            return new ODataNoContentResponse();
-        }
-        internal static ODataContentNotFoundResponse CreateContentNotFoundResponse()
-        {
-            return new ODataContentNotFoundResponse();
-        }
-        internal static ODataErrorResponse CreateErrorResponse(ODataException exception)
-        {
-            return new ODataErrorResponse(exception);
         }
         internal static ODataSingleContentResponse CreateSingleContentResponse(ODataContent fieldData)
         {
@@ -62,6 +49,10 @@ namespace SenseNet.OData
         internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data, int allCount)
         {
             return new ODataChildrenCollectionResponse(data, allCount);
+        }
+        internal static ODataMultipleContentResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
+        {
+            return new ODataMultipleContentResponse(items, allCount);
         }
         internal static ODataCollectionCountResponse CreateCollectionCountResponse(int count)
         {
@@ -79,9 +70,18 @@ namespace SenseNet.OData
         {
             return new ODataRawResponse(data);
         }
-        internal static ODataMultipleContentResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
+
+        internal static ODataNoContentResponse CreateNoContentResponse()
         {
-            return new ODataMultipleContentResponse(items, allCount);
+            return new ODataNoContentResponse();
+        }
+        internal static ODataContentNotFoundResponse CreateContentNotFoundResponse()
+        {
+            return new ODataContentNotFoundResponse();
+        }
+        internal static ODataErrorResponse CreateErrorResponse(ODataException exception)
+        {
+            return new ODataErrorResponse(exception);
         }
 
         /// <summary>

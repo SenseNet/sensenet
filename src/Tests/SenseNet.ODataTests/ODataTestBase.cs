@@ -210,5 +210,16 @@ namespace SenseNet.ODataTests
             ContentTypeInstaller.InstallContentType(CarContentType);
         }
 
+        protected static SystemFolder CreateTestRoot(string name = null)
+        {
+            return CreateTestRoot(null, name);
+        }
+        protected static SystemFolder CreateTestRoot(Node parent, string name = null)
+        {
+            var systemFolder = new SystemFolder(parent ?? Repository.Root) { Name = name ?? Guid.NewGuid().ToString() };
+            systemFolder.Save();
+            return systemFolder;
+        }
+
     }
 }

@@ -169,13 +169,11 @@ namespace SenseNet.OData
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
-                            return ODataResponse.CreateMetadataResponse(odataRequest.RepositoryPath);
+                            return ODataResponse.CreateMetadataResponse(exists ? odataRequest.RepositoryPath : "/");
                         }
                         else
                         {
-                            if (!exists)
-                                return ODataResponse.CreateContentNotFoundResponse();
-                            else if (odataRequest.IsCollection)
+                            if (odataRequest.IsCollection)
                                 return GetChildrenCollectionResponse(requestedContent, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
                                 return GetContentPropertyResponse(requestedContent, odataRequest.PropertyName,
@@ -184,7 +182,6 @@ namespace SenseNet.OData
                                 return ODataResponse.CreateSingleContentResponse(
                                     GetSingleContent(httpContext, odataRequest, requestedContent));
                         }
-                        break;
                     case "PUT": // update
                         if (odataRequest.IsMemberRequest)
                         {
