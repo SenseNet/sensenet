@@ -155,7 +155,7 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="fields">A Dictionary&lt;string, object&gt; that will be written.</param>
-        protected abstract void WriteSingleContent(HttpContext httpContext, ODataContent fields);
+        protected abstract void WriteSingleContent(HttpContext httpContext, ODataEntity fields);
 
         #region internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
         //internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
@@ -205,7 +205,7 @@ namespace SenseNet.OData
             var projector = Projector.Create(req, true);
             if (node != null)
             {
-                var contents = new List<ODataContent>
+                var contents = new List<ODataEntity>
                 {
                     CreateFieldDictionary(Content.Create(node), projector,httpContext)
                 };
@@ -220,7 +220,7 @@ namespace SenseNet.OData
                     var allcount = 0;
                     var count = 0;
                     var realcount = 0;
-                    var contents = new List<ODataContent>();
+                    var contents = new List<ODataEntity>();
                     if (req.HasFilter)
                     {
                         var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
@@ -276,7 +276,7 @@ namespace SenseNet.OData
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="contents">A List&lt;Dictionary&lt;string, object&gt;&gt; that will be written.</param>
         /// <param name="count">Count of contents. This value can be different from the count of the written content list if the request has restrictions in connection with cardinality (e.g. "$top=10") but specifies the total count of the collection ("$inlinecount=allpages").</param>
-        protected abstract void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataContent> contents, int count);
+        protected abstract void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count);
         /// <summary>
         /// Writes only the count of the requested resource to the webresponse.
         /// Activated if the URI of the requested resource contains the "$count" segment.
@@ -329,7 +329,7 @@ namespace SenseNet.OData
         //        }
         //        else if (!rawValue)
         //        {
-        //            WriteSingleContent(httpContext, new ODataContent { { propertyName, field.GetData() } });
+        //            WriteSingleContent(httpContext, new ODataEntity { { propertyName, field.GetData() } });
         //        }
         //        else
         //        {
@@ -530,7 +530,7 @@ namespace SenseNet.OData
                 return false;
             return response;
         }
-        private IEnumerable<ODataContent> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
+        private IEnumerable<ODataEntity> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {
             var queryText = qdef.ContentQuery;
             if (queryText.Contains("}}"))
@@ -580,7 +580,7 @@ namespace SenseNet.OData
                 return null;
             }
 
-            var contents = new List<ODataContent>();
+            var contents = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             var missingIds = new List<int>();
 
@@ -606,7 +606,7 @@ namespace SenseNet.OData
                 // index anomaly: there are ids in the index that could not be loaded from the database
                 SnLog.WriteWarning("Missing ids found in the index that could not be loaded from the database. See id list below.",
                     EventId.Indexing,
-                    properties: new ODataContent
+                    properties: new ODataEntity
                     {
                         {"MissingIds", string.Join(", ", missingIds.OrderBy(id => id))}
                     });
@@ -614,17 +614,17 @@ namespace SenseNet.OData
 
             return contents;
         }
-        private List<ODataContent> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+        private List<ODataEntity> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(input.Keys, req, out var totalCount);
 
-            var output = new List<ODataContent>();
+            var output = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
                 var fields = CreateFieldDictionary(content, projector, httpContext);
-                var item = new ODataContent
+                var item = new ODataEntity
                 {
                     {"key", fields},
                     {"value", input[content]}
@@ -636,12 +636,12 @@ namespace SenseNet.OData
                 return null;
             return output;
         }
-        private List<ODataContent> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+        private List<ODataEntity> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(inputContents, req, out var totalCount);
 
-            var outContents = new List<ODataContent>();
+            var outContents = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
@@ -890,11 +890,11 @@ namespace SenseNet.OData
             }
             return values;
         }
-        private ODataContent CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
+        private ODataEntity CreateFieldDictionary(Content content, Projector projector, HttpContext httpContext)
         {
             return projector.Project(content, httpContext);
         }
-        private ODataContent CreateFieldDictionary(Content content, bool isCollectionItem, HttpContext httpContext)
+        private ODataEntity CreateFieldDictionary(Content content, bool isCollectionItem, HttpContext httpContext)
         {
             var projector = Projector.Create(this.ODataRequest, isCollectionItem, content);
             return projector.Project(content, httpContext);

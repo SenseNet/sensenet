@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace SenseNet.OData
 {
-    public class ODataContent : IDictionary<string, object>
+    public class ODataEntity : IDictionary<string, object>
     {
         private readonly Dictionary<string, object> _properties = new Dictionary<string, object>();
 
@@ -18,7 +18,7 @@ namespace SenseNet.OData
         [JsonIgnore]
         public string ContentType => _properties.TryGetValue("Type", out var value) ? (string) value : null;
         [JsonIgnore]
-        internal ODataContent[] Children => _properties.TryGetValue("Children", out var value) ? ((IEnumerable<ODataContent>)value).ToArray() : null;
+        internal ODataEntity[] Children => _properties.TryGetValue("Children", out var value) ? ((IEnumerable<ODataEntity>)value).ToArray() : null;
 
         #region IDictionary<string, object> implementation
         public int Count => _properties.Count;

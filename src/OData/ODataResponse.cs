@@ -37,10 +37,10 @@ namespace SenseNet.OData
             var value = Value;
             if (value != null)
             {
-                if (value is IEnumerable<ODataContent> enumerable)
+                if (value is IEnumerable<ODataEntity> enumerable)
                 {
                     var sb = new StringBuilder();
-                    await httpContext.Response.WriteAsync($"{Type}\n------------------\n");
+                    sb.AppendLine($"{Type}\n------------------");
                     foreach (var item in enumerable)
                         sb.AppendLine(item.Name);
                     await httpContext.Response.WriteAsync($"{sb}");
@@ -63,15 +63,15 @@ namespace SenseNet.OData
         {
             return new ODataMetadataResponse(entityPath == "/" ? null : entityPath);
         }
-        internal static ODataSingleContentResponse CreateSingleContentResponse(ODataContent fieldData)
+        internal static ODataSingleContentResponse CreateSingleContentResponse(ODataEntity fieldData)
         {
             return new ODataSingleContentResponse(fieldData);
         }
-        internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataContent> data, int allCount)
+        internal static ODataChildrenCollectionResponse CreateChildrenCollectionResponse(IEnumerable<ODataEntity> data, int allCount)
         {
             return new ODataChildrenCollectionResponse(data, allCount);
         }
-        internal static ODataMultipleContentResponse CreateMultipleContentResponse(IEnumerable<ODataContent> items, int allCount)
+        internal static ODataMultipleContentResponse CreateMultipleContentResponse(IEnumerable<ODataEntity> items, int allCount)
         {
             return new ODataMultipleContentResponse(items, allCount);
         }

@@ -341,7 +341,7 @@ namespace SenseNet.OData
 
         /* ==== */
 
-        private ODataContent GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
+        private ODataEntity GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
         {
             return CreateFieldDictionary(httpContext, odataRequest, content, false);
         }
@@ -382,7 +382,7 @@ namespace SenseNet.OData
                 return ODataResponse.CreateCollectionCountResponse(count);
             return ODataResponse.CreateChildrenCollectionResponse(contents, count);
         }
-        private IEnumerable<ODataContent> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
+        private IEnumerable<ODataEntity> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
         {
             var queryText = qdef.ContentQuery;
             if (queryText.Contains("}}"))
@@ -432,7 +432,7 @@ namespace SenseNet.OData
                 return null;
             }
 
-            var contents = new List<ODataContent>();
+            var contents = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             var missingIds = new List<int>();
 
@@ -471,13 +471,13 @@ namespace SenseNet.OData
         {
             if (references == null)
                 //UNDONE:ODATA: Empty or null?
-                return ODataResponse.CreateMultipleContentResponse(new ODataContent[0], 0);
+                return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
 
             var node = references as Node;
             var projector = Projector.Create(req, true);
             if (node != null)
             {
-                var contents = new List<ODataContent>
+                var contents = new List<ODataEntity>
                 {
                     CreateFieldDictionary(httpContext, Content.Create(node), projector)
                 };
@@ -491,7 +491,7 @@ namespace SenseNet.OData
                 var allcount = 0;
                 var count = 0;
                 var realcount = 0;
-                var contents = new List<ODataContent>();
+                var contents = new List<ODataEntity>();
                 if (req.HasFilter)
                 {
                     var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
@@ -517,7 +517,7 @@ namespace SenseNet.OData
                 return ODataResponse.CreateMultipleContentResponse(contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
             }
             //UNDONE:ODATA: Empty or null?
-            return ODataResponse.CreateMultipleContentResponse(new ODataContent[0], 0);
+            return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
         }
         private ODataResponse GetSingleRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
         {
@@ -570,7 +570,7 @@ namespace SenseNet.OData
                     return GetMultiRefContentResponse(actField.GetData(), httpContext, req);
 
                 if (!rawValue)
-                    return ODataResponse.CreateSingleContentResponse(new ODataContent {{propertyName, field.GetData()}});
+                    return ODataResponse.CreateSingleContentResponse(new ODataEntity {{propertyName, field.GetData()}});
 
                 return ODataResponse.CreateRawResponse(field.GetData());
             }
@@ -677,17 +677,17 @@ namespace SenseNet.OData
                 return false;
             return response;
         }
-        private IEnumerable<ODataContent> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+        private IEnumerable<ODataEntity> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(input.Keys, req, out var totalCount);
 
-            var output = new List<ODataContent>();
+            var output = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
                 var fields = CreateFieldDictionary(httpContext, content, projector);
-                var item = new ODataContent
+                var item = new ODataEntity
                 {
                     {"key", fields},
                     {"value", input[content]}
@@ -699,12 +699,12 @@ namespace SenseNet.OData
                 return null;
             return output;
         }
-        private IEnumerable<ODataContent> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+        private IEnumerable<ODataEntity> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
             ODataRequest req, HttpContext httpContext, out int count)
         {
             var x = ProcessODataFilters(inputContents, req, out var totalCount);
 
-            var outContents = new List<ODataContent>();
+            var outContents = new List<ODataEntity>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
@@ -884,11 +884,11 @@ namespace SenseNet.OData
 
         /* ----------------------------------------------------------------------------------- */
 
-        private ODataContent CreateFieldDictionary(HttpContext httpContext, Content content, Projector projector)
+        private ODataEntity CreateFieldDictionary(HttpContext httpContext, Content content, Projector projector)
         {
             return projector.Project(content, httpContext);
         }
-        private ODataContent CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
+        private ODataEntity CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
             bool isCollectionItem)
         {
             var projector = Projector.Create(odataRequest, isCollectionItem, content);

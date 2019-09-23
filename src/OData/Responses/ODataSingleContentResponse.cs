@@ -4,10 +4,10 @@
     {
         public override ODataResponseType Type => ODataResponseType.SingleContent;
 
-        public ODataContent Entity { get; }
+        public ODataEntity Entity { get; }
         public override object Value => Entity;
 
-        public ODataSingleContentResponse(ODataContent value)
+        public ODataSingleContentResponse(ODataEntity value)
         {
             Entity = value;
         }

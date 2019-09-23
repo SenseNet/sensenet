@@ -34,7 +34,7 @@ namespace SenseNet.OData
             return prj;
         }
         internal abstract void Initialize(Content container);
-        internal abstract ODataContent Project(Content content, HttpContext httpContext);
+        internal abstract ODataEntity Project(Content content, HttpContext httpContext);
 
         protected string GetSelfUrl(Content content)
         {

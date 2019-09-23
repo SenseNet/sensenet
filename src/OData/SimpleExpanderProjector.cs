@@ -63,13 +63,13 @@ namespace SenseNet.OData
                     prop = prop.EnsureChild(chain[i]);
             }
         }
-        internal override ODataContent Project(Content content, HttpContext httpContext)
+        internal override ODataEntity Project(Content content, HttpContext httpContext)
         {
             return Project(content, _expandTree, httpContext);
         }
-        private ODataContent Project(Content content, List<Property> expandTree, HttpContext httpContext)
+        private ODataEntity Project(Content content, List<Property> expandTree, HttpContext httpContext)
         {
-            var outfields = new ODataContent();
+            var outfields = new ODataEntity();
             var selfurl = GetSelfUrl(content);
             if (this.Request.EntityMetadata != MetadataFormat.None)
                 outfields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata, httpContext));
@@ -144,9 +144,9 @@ namespace SenseNet.OData
                 ? ProjectMultiRefContents(refField.GetData(), expansion, httpContext)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion, httpContext);
         }
-        private List<ODataContent> ProjectMultiRefContents(object references, List<Property> expansion, HttpContext httpContext)
+        private List<ODataEntity> ProjectMultiRefContents(object references, List<Property> expansion, HttpContext httpContext)
         {
-            var contents = new List<ODataContent>();
+            var contents = new List<ODataEntity>();
             if (references != null)
             {
                 if (references is Node node)
@@ -170,7 +170,7 @@ namespace SenseNet.OData
             }
             return contents;
         }
-        private ODataContent ProjectSingleRefContent(object references, List<Property> expansion, HttpContext httpContext)
+        private ODataEntity ProjectSingleRefContent(object references, List<Property> expansion, HttpContext httpContext)
         {
             if (references == null)
                 return null;

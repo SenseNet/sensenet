@@ -15,9 +15,9 @@ namespace SenseNet.OData
         {
             // do nothing
         }
-        internal override ODataContent Project(Content content, HttpContext httpContext)
+        internal override ODataEntity Project(Content content, HttpContext httpContext)
         {
-            var fields = new ODataContent();
+            var fields = new ODataEntity();
             var selfurl = GetSelfUrl(content);
             if (Request.EntityMetadata != MetadataFormat.None)
                 fields.Add("__metadata", GetMetadata(content, selfurl, Request.EntityMetadata, httpContext));
