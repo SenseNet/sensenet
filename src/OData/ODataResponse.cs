@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SenseNet.OData.Responses;
 
 namespace SenseNet.OData
@@ -24,13 +28,30 @@ namespace SenseNet.OData
     /// </summary>
     public abstract class ODataResponse
     {
-        /// <summary>
-        /// Key name in the HttpContext.Items
-        /// </summary>
-        public static readonly string Key = "SnODataResponse";
-
         public abstract ODataResponseType Type { get; }
         public abstract object Value { get; }
+
+        //UNDONE:ODATA: Make "Write" abstract and implement in every response type.
+        public async Task WriteAsync(HttpContext httpContext, ODataFormatter formatter)
+        {
+            var value = Value;
+            if (value != null)
+            {
+                if (value is IEnumerable<ODataContent> enumerable)
+                {
+                    var sb = new StringBuilder();
+                    await httpContext.Response.WriteAsync($"{Type}\n------------------\n");
+                    foreach (var item in enumerable)
+                        sb.AppendLine(item.Name);
+                    await httpContext.Response.WriteAsync($"{sb}");
+                    return;
+                }
+            }
+
+            var stringValue = value?.ToString() ?? "{null}";
+            httpContext.Response.ContentType = "text/plain";
+            await httpContext.Response.WriteAsync($"{Type}: {stringValue}");
+        }
 
         /* ====================================================================== Internal factory methods */
 
@@ -95,7 +116,6 @@ namespace SenseNet.OData
         {
             return new ODataOperationCustomResultResponse(result, allCount);
         }
-
     }
 
 }

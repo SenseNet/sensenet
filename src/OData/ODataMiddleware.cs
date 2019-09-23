@@ -31,23 +31,6 @@ using STT = System.Threading.Tasks;
 
 namespace SenseNet.OData
 {
-    public static class SenseNetODataExtensions
-    {
-        public static IApplicationBuilder UseSenseNetOdata(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ODataMiddleware>();
-        }
-
-        public static ODataResponse GetODataResponse(this HttpContext httpContext)
-        {
-            return httpContext.Items[ODataResponse.Key] as ODataResponse;
-        }
-        public static void SetODataResponse(this HttpContext httpContext, ODataResponse value)
-        {
-            httpContext.Items[ODataResponse.Key] = value;
-        }
-    }
-
     /// <summary>
     /// AN ASP.NET Core middleware to process the OData requests.
     /// </summary>
@@ -98,21 +81,35 @@ namespace SenseNet.OData
 
         public async STT.Task Invoke(HttpContext httpContext)
         {
+            // CREATE ODATA-RESPONSE STRATEGY
+
             var odataRequest = ODataRequest.Parse(httpContext);
+            httpContext.SetODataRequest(odataRequest);
             //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
             using (new SystemAccount())
-                httpContext.SetODataResponse(ProcessRequest(httpContext, odataRequest));
+                httpContext.SetODataResponse(await ProcessRequestAsync(httpContext, odataRequest));
+
+            // ENABLE CUSTOMIZATION FOR NEXT MIDDLEWARE
 
             await _next(httpContext);
 
+            // WRITE PREDEFINED ODATA-RESPONSE
+
+            var formatter = httpContext.GetODataFormatter();
+            if (formatter == null)
+                formatter = ODataFormatter.Create("json");
+            formatter.Initialize(odataRequest);
+
             //UNDONE:ODATA: Let to know whether ODataResponse is changed or not
-            var changedResponse = httpContext.GetODataResponse();
-            if (changedResponse != null)
-            {
-                var stringValue = changedResponse.Value?.ToString() ?? "{null}";
-                httpContext.Response.ContentType = "text/plain";
-                await httpContext.Response.WriteAsync($"{changedResponse.Type}: {stringValue}");
-            }
+            var odataResponse = httpContext.GetODataResponse();
+            if (odataResponse != null)
+                await odataResponse.WriteAsync(httpContext, formatter);
+        }
+
+        internal STT.Task<ODataResponse> ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
+        {
+            var response = ProcessRequest(httpContext, odataRequest);
+            return STT.Task.FromResult(response);
         }
 
         internal ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
@@ -121,25 +118,21 @@ namespace SenseNet.OData
             var httpMethod = request.Method;
             var inputStream = request.Body;
 
-            ODataFormatter formatter = null;
             try
             {
                 Content content;
                 if (odataRequest == null)
-                {
-                    formatter = ODataFormatter.Create("json");
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
-                }
+
 
                 this.ODataRequest = odataRequest;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                formatter = ODataFormatter.Create(httpContext, odataRequest);
+                var formatter = ODataFormatter.Create(httpContext, odataRequest);
                 if (formatter == null)
-                {
-                    formatter = ODataFormatter.Create("json");
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
-                }
+
+                httpContext.SetODataFormatter(formatter);
 
                 if (requestError != null)
                 {
@@ -151,7 +144,6 @@ namespace SenseNet.OData
                 }
 
                 odataRequest.Format = formatter.FormatName;
-                formatter.Initialize(odataRequest);
 
                 var requestedContent = LoadContentByVersionRequest(odataRequest.RepositoryPath, httpContext);
 

@@ -13,8 +13,9 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       //"launchUrl": "api/values",
-      //"launchUrl": /*"api/values"*/ "odata.svc/Root/Sites('MySite')?metadata=no&$select=Name,DisplayName",
-      "launchUrl": /*"api/values"*/ "odata.svc/Root/IMS/$count",
+      //"launchUrl": "odata.svc/Root/Sites('MySite')?metadata=no&$select=Name,DisplayName",
+      //"launchUrl": "odata.svc/Root/IMS/$count",
+      "launchUrl": "odata.svc/Root/IMS/Builtin/Portal?metadata=no",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
