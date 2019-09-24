@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
 using System.Text;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
@@ -63,25 +64,38 @@ namespace SenseNet.ContentRepository.Volatile
 
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
-            _log.AppendLine($"ExecuteQuery: {query}");
+            using (var op = SnTrace.Query.StartOperation("InMemoryQueryEngine: ExecuteQuery: {0}", query))
+            {
+                _log.AppendLine($"ExecuteQuery: {query}");
 
-            var interpreter = new SnQueryInterpreter(this.Index);
-            var result = interpreter.Execute(query, filter, out var totalCount);
+                var interpreter = new SnQueryInterpreter(this.Index);
+                var result = interpreter.Execute(query, filter, out var totalCount);
 
-            var nodeIds = result.Select(h => h.NodeId).ToArray();
-            var queryResult = new QueryResult<int>(nodeIds, totalCount);
-            return queryResult;
+                var nodeIds = result.Select(h => h.NodeId).ToArray();
+                var queryResult = new QueryResult<int>(nodeIds, totalCount);
+
+                op.Successful = true;
+                return queryResult;
+            }
         }
-        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+
+        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
+            IQueryContext context)
         {
-            _log.AppendLine($"ExecuteQueryAndProject: {query}");
+            using (var op = SnTrace.Query.StartOperation("InMemoryQueryEngine: ExecuteQueryAndProject: {0}", query))
+            {
+                _log.AppendLine($"ExecuteQueryAndProject: {query}");
 
-            var interpreter = new SnQueryInterpreter(this.Index);
-            var result = interpreter.Execute(query, filter, out var totalCount);
+                var interpreter = new SnQueryInterpreter(this.Index);
+                var result = interpreter.Execute(query, filter, out var totalCount);
 
-            var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();
-            var queryResult = new QueryResult<string>(projectedValues, totalCount);
-            return queryResult;
+                var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();
+                var queryResult = new QueryResult<string>(projectedValues, totalCount);
+
+                op.Successful = true;
+                return queryResult;
+            }
+
         }
 
         private readonly StringBuilder _log = new StringBuilder();
