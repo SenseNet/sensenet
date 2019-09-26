@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.OData.Responses;
 
@@ -54,11 +55,16 @@ namespace SenseNet.ODataTest.WebApp
                     appBranch.Use((httpContext, next) =>
                     {
                         var r = httpContext.GetODataResponse();
-                        if(httpContext.GetODataResponse() is ODataCollectionCountResponse response)
+                        if(httpContext.GetODataResponse() is ODataChildrenCollectionResponse response)
                         {
-                            response.Count++;
                             //httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
+SnTrace.Write("#### AppMiddleware: modify response.Source.");
+                            response.Source = response.Source.OrderBy(x => x.Name).Take(5);
+
+SnTrace.Write("#### AppMiddleware: modify response.Entities.");
+                            response.Entities = response.Entities.Select(x => { x["Name"] = (x.Name ?? "") + "*"; return x; });
                         }
+SnTrace.Write("#### AppMiddleware: finish.");
                         return Task.CompletedTask;
                     });
                 });

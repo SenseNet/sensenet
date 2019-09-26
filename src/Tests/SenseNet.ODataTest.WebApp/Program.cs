@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Volatile;
+using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
@@ -33,8 +34,10 @@ namespace SenseNet.ODataTest.WebApp
             var repoBuilder = CreateRepositoryBuilder();
             Indexing.IsOuterSearchEngineEnabled = true;
 
+            SnTrace.EnableAll();
             using (Repository.Start(repoBuilder))
             {
+                SnTrace.EnableAll();
                 host.Run();
             }
         }
