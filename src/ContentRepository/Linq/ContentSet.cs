@@ -7,6 +7,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
@@ -88,7 +89,7 @@ namespace SenseNet.ContentRepository.Linq
             ChildrenDefinition = childrenDef;
             ContextPath = contextPath;
         }
-        internal ContentSet(ChildrenDefinition childrenDef, string contextPath)
+        public ContentSet(ChildrenDefinition childrenDef, string contextPath)
         {
             ChildrenDefinition = childrenDef;
             ContextPath = contextPath;
@@ -103,6 +104,7 @@ namespace SenseNet.ContentRepository.Linq
         public virtual IEnumerator<T> GetEnumerator()
         {
             // in most cases we work with a content query
+SnTrace.Write("#### ContentSet: GetEnumerator");
             if (this.ExecuteQuery)
                 return new LinqContentEnumerator<T>(this);
             
