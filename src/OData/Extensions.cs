@@ -23,15 +23,6 @@ namespace SenseNet.OData
             httpContext.Items[ODataRequestKey] = value;
         }
 
-        public static ODataResponse GetODataResponse(this HttpContext httpContext)
-        {
-            return httpContext.Items[ODataResponseKey] as ODataResponse;
-        }
-        public static void SetODataResponse(this HttpContext httpContext, ODataResponse value)
-        {
-            httpContext.Items[ODataResponseKey] = value;
-        }
-
         public static ODataFormatter GetODataFormatter(this HttpContext httpContext)
         {
             return httpContext.Items[ODataFormatterKey] as ODataFormatter;

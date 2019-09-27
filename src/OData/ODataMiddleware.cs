@@ -85,39 +85,29 @@ namespace SenseNet.OData
 
             var odataRequest = ODataRequest.Parse(httpContext);
             httpContext.SetODataRequest(odataRequest);
-            //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
-            using (new SystemAccount())
-                httpContext.SetODataResponse(await ProcessRequestAsync(httpContext, odataRequest));
 
             // ENABLE CUSTOMIZATION FOR NEXT MIDDLEWARE
 
             await _next(httpContext);
 
-            // WRITE PREDEFINED ODATA-RESPONSE
-
-            var formatter = httpContext.GetODataFormatter();
-            if (formatter == null)
-                formatter = ODataFormatter.Create("json");
-            formatter.Initialize(odataRequest);
-
-            //UNDONE:ODATA: Let to know whether ODataResponse is changed or not
-            var odataResponse = httpContext.GetODataResponse();
-            if (odataResponse != null)
-                await odataResponse.WriteAsync(httpContext, formatter);
+            // WRITE RESPONSE
+            //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
+            using (new SystemAccount())
+                await ProcessRequestAsync(httpContext, odataRequest);
         }
 
-        internal STT.Task<ODataResponse> ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
+        internal STT.Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
         {
-            var response = ProcessRequest(httpContext, odataRequest);
-            return STT.Task.FromResult(response);
+            ProcessRequest(httpContext, odataRequest);
+            return STT.Task.CompletedTask;
         }
 
-        internal ODataResponse ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
+        internal void ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
         {
             var request = httpContext.Request;
             var httpMethod = request.Method;
             var inputStream = request.Body;
-
+            ODataFormatter formatter = null;
             try
             {
                 Content content;
@@ -128,7 +118,7 @@ namespace SenseNet.OData
                 this.ODataRequest = odataRequest;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                var formatter = ODataFormatter.Create(httpContext, odataRequest);
+                formatter = ODataFormatter.Create(httpContext, odataRequest);
                 if (formatter == null)
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
 
@@ -149,7 +139,10 @@ namespace SenseNet.OData
 
                 var exists = requestedContent != null;
                 if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
-                    return ODataResponse.CreateContentNotFoundResponse();//404
+                {
+                    ContentNotFound(httpContext);
+                    return;
+                }
 
                 JObject model;
                 switch (httpMethod)
@@ -157,23 +150,26 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataRequest.IsServiceDocumentRequest)
                         {
-                            return ODataResponse.CreateServiceDocumentResponse(GetServiceDocument(httpContext, odataRequest));
+                            formatter.WriteServiceDocument(httpContext, odataRequest);
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
-                            return ODataResponse.CreateMetadataResponse(exists ? odataRequest.RepositoryPath : "/");
+                            //return ODataResponse.CreateMetadataResponse(exists ? odataRequest.RepositoryPath : "/");
+                            formatter.WriteMetadata(httpContext, odataRequest);
                         }
                         else
                         {
-                            if (odataRequest.IsCollection)
-                                return GetChildrenCollectionResponse(requestedContent, httpContext, odataRequest);
+                            if (!Node.Exists(odataRequest.RepositoryPath))
+                                ContentNotFound(httpContext);
+                            else if (odataRequest.IsCollection)
+                                formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
-                                return GetContentPropertyResponse(requestedContent, odataRequest.PropertyName,
+                                formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
-                                return ODataResponse.CreateSingleContentResponse(
-                                    GetSingleContent(httpContext, odataRequest, requestedContent));
+                                formatter.WriteSingleContent(requestedContent, httpContext);
                         }
+                        break;
                     case "PUT": // update
                         if (odataRequest.IsMemberRequest)
                         {
@@ -186,12 +182,13 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
-                                return ODataResponse.CreateContentNotFoundResponse();
+                                ContentNotFound(httpContext);
+                                return;
                             }
 
                             ResetContent(content);
                             UpdateContent(content, model, odataRequest);
-                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
+                            formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "MERGE":
@@ -208,11 +205,12 @@ namespace SenseNet.OData
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
-                                return ODataResponse.CreateContentNotFoundResponse();
+                                ContentNotFound(httpContext);
+                                return;
                             }
 
                             UpdateContent(content, model, odataRequest);
-                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, content));
+                            formatter.WriteSingleContent(content, httpContext);
                         }
                         break;
                     case "POST": // invoke an action, create content
@@ -226,11 +224,12 @@ namespace SenseNet.OData
                             //UNDONE:ODATA: unnecessary check (?)
                             if (!Node.Exists(odataRequest.RepositoryPath))
                             {
-                                return ODataResponse.CreateContentNotFoundResponse();
+                                ContentNotFound(httpContext);
+                                return;
                             }
                             model = Read(inputStream);
                             var newContent = CreateNewContent(model, odataRequest);
-                            return ODataResponse.CreateSingleContentResponse(GetSingleContent(httpContext, odataRequest, newContent));
+                            formatter.WriteSingleContent(newContent, httpContext);
                         }
                         break;
                     case "DELETE":
@@ -251,13 +250,13 @@ namespace SenseNet.OData
             catch (ContentNotFoundException e)
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                return ODataResponse.CreateErrorResponse(oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
-                return ODataResponse.CreateErrorResponse(e);
+                formatter?.WriteErrorResponse(httpContext, e);
             }
             catch (SenseNetSecurityException e)
             {
@@ -271,7 +270,8 @@ namespace SenseNet.OData
                     var head = NodeHead.Get(odataRequest.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
-                        return ODataResponse.CreateContentNotFoundResponse();
+                        ContentNotFound(httpContext);
+                        return;
                     }
                 }
 
@@ -279,7 +279,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                return ODataResponse.CreateErrorResponse(oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (InvalidContentActionException ex)
             {
@@ -288,13 +288,13 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                return ODataResponse.CreateErrorResponse(oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                return ODataResponse.CreateErrorResponse(oe);
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
             //UNDONE:ODATA: ?? ThreadAbortException does not occur in this technology.
@@ -314,8 +314,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                return ODataResponse.CreateErrorResponse(oe);
-
+                formatter?.WriteErrorResponse(httpContext, oe);
             }
             finally
             {
@@ -325,258 +324,246 @@ namespace SenseNet.OData
                 //await _next(httpContext);
                 //_next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
             }
-
-            return ODataResponse.CreateNoContentResponse();
         }
 
         /* ==== */
 
-        private string[] GetServiceDocument(HttpContext httpContext, ODataRequest req)
-        {
-            var rootContent = Content.Load(req.RepositoryPath);
-            var topLevelNames = rootContent?.Children.Select(n => n.Name).ToArray() ?? new[] {Repository.RootName};
-
-            return topLevelNames;
-        }
+        //private ODataEntity GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
+        //{
+        //    return CreateFieldDictionary(httpContext, odataRequest, content, false);
+        //}
 
         /* ==== */
 
-        private ODataEntity GetSingleContent(HttpContext httpContext, ODataRequest odataRequest, Content content)
-        {
-            return CreateFieldDictionary(httpContext, odataRequest, content, false);
-        }
+        //private ODataResponse GetChildrenCollectionResponse(Content content, HttpContext httpContext, ODataRequest req)
+        //{
+        //    var chdef = content.ChildrenDefinition;
+        //    if (req.HasContentQuery)
+        //    {
+        //        chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", content.Path, "'"), LogicalOperator.And);
+
+        //        if (req.AutofiltersEnabled != FilterStatus.Default)
+        //            chdef.EnableAutofilters = req.AutofiltersEnabled;
+        //        if (req.LifespanFilterEnabled != FilterStatus.Default)
+        //            chdef.EnableLifespanFilter = req.LifespanFilterEnabled;
+        //        if (req.QueryExecutionMode != QueryExecutionMode.Default)
+        //            chdef.QueryExecutionMode = req.QueryExecutionMode;
+        //        if (req.Top > 0)
+        //            chdef.Top = req.Top;
+        //        if (req.Skip > 0)
+        //            chdef.Skip = req.Skip;
+        //        if (req.Sort.Any())
+        //            chdef.Sort = req.Sort;
+        //    }
+        //    else
+        //    {
+        //        chdef.EnableAutofilters = FilterStatus.Disabled;
+        //        if (string.IsNullOrEmpty(chdef.ContentQuery))
+        //        {
+        //            chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", content.Path, "'"), LogicalOperator.And);
+        //        }
+        //    }
+
+        //    var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+        //    if (req.CountOnly)
+        //        return ODataResponse.CreateCollectionCountResponse(count);
+        //    return ODataResponse.CreateChildrenCollectionResponse(contents, count);
+        //}
+        //private IEnumerable<ODataEntity> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
+        //{
+        //    var queryText = qdef.ContentQuery;
+        //    if (queryText.Contains("}}"))
+        //    {
+        //        queryText = ContentQuery.ResolveInnerQueries(qdef.ContentQuery, new QuerySettings
+        //        {
+        //            EnableAutofilters = qdef.EnableAutofilters,
+        //            EnableLifespanFilter = qdef.EnableLifespanFilter,
+        //            QueryExecutionMode = qdef.QueryExecutionMode,
+        //            Sort = qdef.Sort
+        //        });
+        //    }
+
+        //    var cdef = new ChildrenDefinition
+        //    {
+        //        PathUsage = qdef.PathUsage,
+        //        ContentQuery = queryText,
+        //        Top = req.Top > 0 ? req.Top : qdef.Top,
+        //        Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
+        //        Sort = req.Sort != null && req.Sort.Any() ? req.Sort : qdef.Sort,
+        //        CountAllPages = req.HasInlineCount ? req.InlineCount == InlineCount.AllPages : qdef.CountAllPages,
+        //        EnableAutofilters = req.AutofiltersEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableAutofilters,
+        //        EnableLifespanFilter = req.LifespanFilterEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableLifespanFilter,
+        //        QueryExecutionMode = req.QueryExecutionMode != QueryExecutionMode.Default ? req.QueryExecutionMode : qdef.QueryExecutionMode,
+        //    };
+
+        //    var snQuery = SnExpression.BuildQuery(req.Filter, typeof(Content), null, cdef);
+        //    if (cdef.EnableAutofilters != FilterStatus.Default)
+        //        snQuery.EnableAutofilters = cdef.EnableAutofilters;
+        //    if (cdef.EnableLifespanFilter != FilterStatus.Default)
+        //        snQuery.EnableLifespanFilter = cdef.EnableLifespanFilter;
+        //    if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
+        //        snQuery.QueryExecutionMode = cdef.QueryExecutionMode;
+
+        //    var result = snQuery.Execute(new SnQueryContext(null, User.Current.Id));
+        //    // for optimization purposes this combined condition is examined separately
+        //    if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
+        //    {
+        //        count = result.TotalCount;
+        //        return null;
+        //    }
+
+        //    var ids = result.Hits.ToArray();
+        //    count = req.InlineCount == InlineCount.AllPages ? result.TotalCount : ids.Length;
+        //    if (req.CountOnly)
+        //    {
+        //        return null;
+        //    }
+
+        //    var contents = new List<ODataEntity>();
+        //    var projector = Projector.Create(req, true);
+        //    var missingIds = new List<int>();
+
+        //    foreach (var id in ids)
+        //    {
+        //        var content = Content.Load(id);
+        //        if (content == null)
+        //        {
+        //            // collect missing ids for logging purposes
+        //            missingIds.Add(id);
+        //            continue;
+        //        }
+
+        //        var fields = CreateFieldDictionary(httpContext, content, projector);
+        //        contents.Add(fields);
+        //    }
+
+        //    if (missingIds.Count > 0)
+        //    {
+        //        // subtract missing count from result count
+        //        count = Math.Max(0, count - missingIds.Count);
+
+        //        // index anomaly: there are ids in the index that could not be loaded from the database
+        //        SnLog.WriteWarning("Missing ids found in the index that could not be loaded from the database. See id list below.",
+        //            EventId.Indexing,
+        //            properties: new Dictionary<string, object>
+        //            {
+        //                {"MissingIds", string.Join(", ", missingIds.OrderBy(id => id))}
+        //            });
+        //    }
+
+        //    return contents;
+        //}
+
+        //private ODataResponse GetMultiRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
+        //{
+        //    if (references == null)
+        //        //UNDONE:ODATA: Empty or null?
+        //        return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
+
+        //    var node = references as Node;
+        //    var projector = Projector.Create(req, true);
+        //    if (node != null)
+        //    {
+        //        var contents = new List<ODataEntity>
+        //        {
+        //            CreateFieldDictionary(httpContext, Content.Create(node), projector)
+        //        };
+        //        //TODO: ODATA: multiref item: get available types from reference property
+        //        return ODataResponse.CreateMultipleContentResponse(contents, 1);
+        //    }
+
+        //    if (references is IEnumerable enumerable)
+        //    {
+        //        var skipped = 0;
+        //        var allcount = 0;
+        //        var count = 0;
+        //        var realcount = 0;
+        //        var contents = new List<ODataEntity>();
+        //        if (req.HasFilter)
+        //        {
+        //            var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
+        //            foreach (Node item in filtered)
+        //                contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
+        //            allcount = filtered.AllCount;
+        //            realcount = contents.Count;
+        //        }
+        //        else
+        //        {
+        //            foreach (Node item in enumerable)
+        //            {
+        //                allcount++;
+        //                if (skipped++ < req.Skip)
+        //                    continue;
+        //                if (req.Top == 0 || count++ < req.Top)
+        //                {
+        //                    contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
+        //                    realcount++;
+        //                }
+        //            }
+        //        }
+        //        return ODataResponse.CreateMultipleContentResponse(contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
+        //    }
+        //    //UNDONE:ODATA: Empty or null?
+        //    return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
+        //}
+        //private ODataResponse GetSingleRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
+        //{
+        //    if (references != null)
+        //    {
+        //        if (references is Node node)
+        //            return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req, Content.Create(node), false));
+
+        //        if (references is IEnumerable enumerable)
+        //            foreach (Node item in enumerable)
+        //                // Only the first item plays
+        //                return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req,
+        //                    Content.Create(item), false));
+        //    }
+        //    //UNDONE:ODATA: Empty or null?
+        //    return null;
+        //}
 
         /* ==== */
 
-        private ODataResponse GetChildrenCollectionResponse(Content content, HttpContext httpContext, ODataRequest req)
-        {
-            var chdef = content.ChildrenDefinition;
-            if (req.HasContentQuery)
-            {
-                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", content.Path, "'"), LogicalOperator.And);
+        //internal ODataResponse GetContentPropertyResponse(Content content, string propertyName, bool rawValue,
+        //    HttpContext httpContext, ODataRequest req)
+        //{
+        //    if (propertyName == ODataMiddleware.ActionsPropertyName)
+        //    {
+        //        var items = ODataTools.GetActionItems(content, req, httpContext).ToArray();
+        //        return rawValue
+        //            ? (ODataResponse)ODataResponse.CreateActionsPropertyRawResponse(items)
+        //            : ODataResponse.CreateActionsPropertyResponse(items);
+        //    }
+        //    if (propertyName == ODataMiddleware.ChildrenPropertyName)
+        //    {
+        //        return GetChildrenCollectionResponse(content, httpContext, req);
+        //    }
 
-                if (req.AutofiltersEnabled != FilterStatus.Default)
-                    chdef.EnableAutofilters = req.AutofiltersEnabled;
-                if (req.LifespanFilterEnabled != FilterStatus.Default)
-                    chdef.EnableLifespanFilter = req.LifespanFilterEnabled;
-                if (req.QueryExecutionMode != QueryExecutionMode.Default)
-                    chdef.QueryExecutionMode = req.QueryExecutionMode;
-                if (req.Top > 0)
-                    chdef.Top = req.Top;
-                if (req.Skip > 0)
-                    chdef.Skip = req.Skip;
-                if (req.Sort.Any())
-                    chdef.Sort = req.Sort;
-            }
-            else
-            {
-                chdef.EnableAutofilters = FilterStatus.Disabled;
-                if (string.IsNullOrEmpty(chdef.ContentQuery))
-                {
-                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", content.Path, "'"), LogicalOperator.And);
-                }
-            }
+        //    if (content.Fields.TryGetValue(propertyName, out var field))
+        //    {
+        //        if (field is ReferenceField refField)
+        //        {
+        //            var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
+        //            var isMultiRef = true;
+        //            if (refFieldSetting != null)
+        //                isMultiRef = refFieldSetting.AllowMultiple == true;
+        //            return isMultiRef
+        //                ? GetMultiRefContentResponse(refField.GetData(), httpContext, req)
+        //                : GetSingleRefContentResponse(refField.GetData(), httpContext, req);
+        //        }
 
-            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
-            if (req.CountOnly)
-                return ODataResponse.CreateCollectionCountResponse(count);
-            return ODataResponse.CreateChildrenCollectionResponse(contents, count);
-        }
-        private IEnumerable<ODataEntity> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, HttpContext httpContext, out int count)
-        {
-            var queryText = qdef.ContentQuery;
-            if (queryText.Contains("}}"))
-            {
-                queryText = ContentQuery.ResolveInnerQueries(qdef.ContentQuery, new QuerySettings
-                {
-                    EnableAutofilters = qdef.EnableAutofilters,
-                    EnableLifespanFilter = qdef.EnableLifespanFilter,
-                    QueryExecutionMode = qdef.QueryExecutionMode,
-                    Sort = qdef.Sort
-                });
-            }
+        //        if (field is AllowedChildTypesField actField)
+        //            return GetMultiRefContentResponse(actField.GetData(), httpContext, req);
 
-            var cdef = new ChildrenDefinition
-            {
-                PathUsage = qdef.PathUsage,
-                ContentQuery = queryText,
-                Top = req.Top > 0 ? req.Top : qdef.Top,
-                Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
-                Sort = req.Sort != null && req.Sort.Any() ? req.Sort : qdef.Sort,
-                CountAllPages = req.HasInlineCount ? req.InlineCount == InlineCount.AllPages : qdef.CountAllPages,
-                EnableAutofilters = req.AutofiltersEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableAutofilters,
-                EnableLifespanFilter = req.LifespanFilterEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableLifespanFilter,
-                QueryExecutionMode = req.QueryExecutionMode != QueryExecutionMode.Default ? req.QueryExecutionMode : qdef.QueryExecutionMode,
-            };
+        //        if (!rawValue)
+        //            return ODataResponse.CreateSingleContentResponse(new ODataEntity {{propertyName, field.GetData()}});
 
-            var snQuery = SnExpression.BuildQuery(req.Filter, typeof(Content), null, cdef);
-            if (cdef.EnableAutofilters != FilterStatus.Default)
-                snQuery.EnableAutofilters = cdef.EnableAutofilters;
-            if (cdef.EnableLifespanFilter != FilterStatus.Default)
-                snQuery.EnableLifespanFilter = cdef.EnableLifespanFilter;
-            if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
-                snQuery.QueryExecutionMode = cdef.QueryExecutionMode;
+        //        return ODataResponse.CreateRawResponse(field.GetData());
+        //    }
 
-            var result = snQuery.Execute(new SnQueryContext(null, User.Current.Id));
-            // for optimization purposes this combined condition is examined separately
-            if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
-            {
-                count = result.TotalCount;
-                return null;
-            }
-
-            var ids = result.Hits.ToArray();
-            count = req.InlineCount == InlineCount.AllPages ? result.TotalCount : ids.Length;
-            if (req.CountOnly)
-            {
-                return null;
-            }
-
-            var contents = new List<ODataEntity>();
-            var projector = Projector.Create(req, true);
-            var missingIds = new List<int>();
-
-            foreach (var id in ids)
-            {
-                var content = Content.Load(id);
-                if (content == null)
-                {
-                    // collect missing ids for logging purposes
-                    missingIds.Add(id);
-                    continue;
-                }
-
-                var fields = CreateFieldDictionary(httpContext, content, projector);
-                contents.Add(fields);
-            }
-
-            if (missingIds.Count > 0)
-            {
-                // subtract missing count from result count
-                count = Math.Max(0, count - missingIds.Count);
-
-                // index anomaly: there are ids in the index that could not be loaded from the database
-                SnLog.WriteWarning("Missing ids found in the index that could not be loaded from the database. See id list below.",
-                    EventId.Indexing,
-                    properties: new Dictionary<string, object>
-                    {
-                        {"MissingIds", string.Join(", ", missingIds.OrderBy(id => id))}
-                    });
-            }
-
-            return contents;
-        }
-
-        private ODataResponse GetMultiRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
-        {
-            if (references == null)
-                //UNDONE:ODATA: Empty or null?
-                return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
-
-            var node = references as Node;
-            var projector = Projector.Create(req, true);
-            if (node != null)
-            {
-                var contents = new List<ODataEntity>
-                {
-                    CreateFieldDictionary(httpContext, Content.Create(node), projector)
-                };
-                //TODO: ODATA: multiref item: get available types from reference property
-                return ODataResponse.CreateMultipleContentResponse(contents, 1);
-            }
-
-            if (references is IEnumerable enumerable)
-            {
-                var skipped = 0;
-                var allcount = 0;
-                var count = 0;
-                var realcount = 0;
-                var contents = new List<ODataEntity>();
-                if (req.HasFilter)
-                {
-                    var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
-                    foreach (Node item in filtered)
-                        contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
-                    allcount = filtered.AllCount;
-                    realcount = contents.Count;
-                }
-                else
-                {
-                    foreach (Node item in enumerable)
-                    {
-                        allcount++;
-                        if (skipped++ < req.Skip)
-                            continue;
-                        if (req.Top == 0 || count++ < req.Top)
-                        {
-                            contents.Add(CreateFieldDictionary(httpContext, Content.Create(item), projector));
-                            realcount++;
-                        }
-                    }
-                }
-                return ODataResponse.CreateMultipleContentResponse(contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
-            }
-            //UNDONE:ODATA: Empty or null?
-            return ODataResponse.CreateMultipleContentResponse(new ODataEntity[0], 0);
-        }
-        private ODataResponse GetSingleRefContentResponse(object references, HttpContext httpContext, ODataRequest req)
-        {
-            if (references != null)
-            {
-                if (references is Node node)
-                    return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req, Content.Create(node), false));
-
-                if (references is IEnumerable enumerable)
-                    foreach (Node item in enumerable)
-                        // Only the first item plays
-                        return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, req,
-                            Content.Create(item), false));
-            }
-            //UNDONE:ODATA: Empty or null?
-            return null;
-        }
-
-        /* ==== */
-
-        internal ODataResponse GetContentPropertyResponse(Content content, string propertyName, bool rawValue,
-            HttpContext httpContext, ODataRequest req)
-        {
-            if (propertyName == ODataMiddleware.ActionsPropertyName)
-            {
-                var items = ODataTools.GetActionItems(content, req, httpContext).ToArray();
-                return rawValue
-                    ? (ODataResponse)ODataResponse.CreateActionsPropertyRawResponse(items)
-                    : ODataResponse.CreateActionsPropertyResponse(items);
-            }
-            if (propertyName == ODataMiddleware.ChildrenPropertyName)
-            {
-                return GetChildrenCollectionResponse(content, httpContext, req);
-            }
-
-            if (content.Fields.TryGetValue(propertyName, out var field))
-            {
-                if (field is ReferenceField refField)
-                {
-                    var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
-                    var isMultiRef = true;
-                    if (refFieldSetting != null)
-                        isMultiRef = refFieldSetting.AllowMultiple == true;
-                    return isMultiRef
-                        ? GetMultiRefContentResponse(refField.GetData(), httpContext, req)
-                        : GetSingleRefContentResponse(refField.GetData(), httpContext, req);
-                }
-
-                if (field is AllowedChildTypesField actField)
-                    return GetMultiRefContentResponse(actField.GetData(), httpContext, req);
-
-                if (!rawValue)
-                    return ODataResponse.CreateSingleContentResponse(new ODataEntity {{propertyName, field.GetData()}});
-
-                return ODataResponse.CreateRawResponse(field.GetData());
-            }
-
-            return ExecuteFunction(httpContext, req, content);
-        }
+        //    return ExecuteFunction(httpContext, req, content);
+        //}
 
         /* ==== */
 
@@ -584,316 +571,316 @@ namespace SenseNet.OData
         /// Handles GET operations. Parameters come from the URL or the request stream.
         /// </summary>
         // orig name:  GetOperationResultResponse
-        internal ODataResponse ExecuteFunction(HttpContext httpContext, ODataRequest odataReq, Content content)
-        {
-            //var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
-            //if (content == null)
-            //    throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
+        //internal ODataResponse ExecuteFunction(HttpContext httpContext, ODataRequest odataReq, Content content)
+        //{
+        //    //var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
+        //    //if (content == null)
+        //    //    throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
-            if (action == null)
-            {
-                // check if this is a versioning action (e.g. a checkout)
-                SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
+        //    var action = ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+        //    if (action == null)
+        //    {
+        //        // check if this is a versioning action (e.g. a checkout)
+        //        SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
-                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
-            }
+        //        throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
+        //    }
 
-            if (!action.IsODataOperation)
-                throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
-            if (action.CausesStateChange)
-                throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
+        //    if (!action.IsODataOperation)
+        //        throw new ODataException("Not an OData operation.", ODataExceptionCode.IllegalInvoke);
+        //    if (action.CausesStateChange)
+        //        throw new ODataException("OData action cannot be invoked with HTTP GET.", ODataExceptionCode.IllegalInvoke);
 
-            if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
-                throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
+        //    if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
+        //        throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var parameters = GetOperationParameters(action, httpContext.Request);
-            var response = action.Execute(content, parameters);
+        //    var parameters = GetOperationParameters(action, httpContext.Request);
+        //    var response = action.Execute(content, parameters);
 
-            if (response is Content responseAsContent)
-            {
-                return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, responseAsContent, false));
-                //WriteSingleContent(responseAsContent, httpContext);
-                //return;
-            }
+        //    if (response is Content responseAsContent)
+        //    {
+        //        return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, responseAsContent, false));
+        //        //WriteSingleContent(responseAsContent, httpContext);
+        //        //return;
+        //    }
 
-            response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
-            return GetOperationResultResponse(response, httpContext, odataReq, count);
-        }
+        //    response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
+        //    return GetOperationResultResponse(response, httpContext, odataReq, count);
+        //}
 
-        private ODataResponse GetOperationResultResponse(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
-        {
-            //UNDONE:ODATA: is this test unnecessary?
-            if (result is Content content)
-                return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, content, false));
+        //private ODataResponse GetOperationResultResponse(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
+        //{
+        //    //UNDONE:ODATA: is this test unnecessary?
+        //    if (result is Content content)
+        //        return ODataResponse.CreateSingleContentResponse(CreateFieldDictionary(httpContext, odataReq, content, false));
 
-            //UNDONE:ODATA: is this test unnecessary?
-            if (result is IEnumerable<Content> enumerable)
-                return GetMultiRefContentResponse(enumerable, httpContext, odataReq);
+        //    //UNDONE:ODATA: is this test unnecessary?
+        //    if (result is IEnumerable<Content> enumerable)
+        //        return GetMultiRefContentResponse(enumerable, httpContext, odataReq);
 
-            return ODataResponse.CreateOperationCustomResultResponse(result, odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null);
-        }
-
-
-
-        private object ProcessOperationResponse(object response, ODataRequest odataReq, HttpContext httpContext, out int count)
-        {
-            if (response is ChildrenDefinition qdef)
-                return ProcessOperationQueryResponse(qdef, odataReq, httpContext, out count);
-
-            if (response is IEnumerable<Content> coll)
-                return ProcessOperationCollectionResponse(coll, odataReq, httpContext, out count);
-
-            if (response is IDictionary dict)
-            {
-                count = dict.Count;
-                var targetTypized = new Dictionary<Content, object>();
-                foreach (var item in dict.Keys)
-                {
-                    if (!(item is Content content))
-                        return response;
-                    targetTypized.Add(content, dict[content]);
-                }
-                return ProcessOperationDictionaryResponse(targetTypized, odataReq, httpContext, out count);
-            }
-
-            // get real count from an enumerable
-            if (response is IEnumerable enumerable)
-            {
-                var c = 0;
-                // ReSharper disable once UnusedVariable
-                foreach (var x in enumerable)
-                    c++;
-                count = c;
-            }
-            else
-            {
-                count = 1;
-            }
-
-            if (response != null && response.ToString() == "{ PreviewAvailable = True }")
-                return true;
-            if (response != null && response.ToString() == "{ PreviewAvailable = False }")
-                return false;
-            return response;
-        }
-        private IEnumerable<ODataEntity> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
-            ODataRequest req, HttpContext httpContext, out int count)
-        {
-            var x = ProcessODataFilters(input.Keys, req, out var totalCount);
-
-            var output = new List<ODataEntity>();
-            var projector = Projector.Create(req, true);
-            foreach (var content in x)
-            {
-                var fields = CreateFieldDictionary(httpContext, content, projector);
-                var item = new ODataEntity
-                {
-                    {"key", fields},
-                    {"value", input[content]}
-                };
-                output.Add(item);
-            }
-            count = totalCount ?? output.Count;
-            if (req.CountOnly)
-                return null;
-            return output;
-        }
-        private IEnumerable<ODataEntity> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
-            ODataRequest req, HttpContext httpContext, out int count)
-        {
-            var x = ProcessODataFilters(inputContents, req, out var totalCount);
-
-            var outContents = new List<ODataEntity>();
-            var projector = Projector.Create(req, true);
-            foreach (var content in x)
-            {
-                var fields = CreateFieldDictionary(httpContext, content, projector);
-                outContents.Add(fields);
-            }
-
-            count = totalCount ?? outContents.Count;
-            if (req.CountOnly)
-                return null;
-            return outContents;
-        }
-        private IEnumerable<Content> ProcessODataFilters(IEnumerable<Content> inputContents, ODataRequest req, out int? totalCount)
-        {
-            var x = inputContents;
-            if (req.HasFilter)
-            {
-                if (x is IQueryable<Content> y)
-                {
-                    x = y.Where((Expression<Func<Content, bool>>)req.Filter);
-                }
-                else
-                {
-                    var filter = SnExpression.GetCaseInsensitiveFilter(req.Filter);
-                    var lambdaExpr = (LambdaExpression)filter;
-                    x = x.Where((Func<Content, bool>)lambdaExpr.Compile());
-                }
-            }
-            if (req.HasSort)
-                x = AddSortToCollectionExpression(x, req.Sort);
-
-            if (req.InlineCount == InlineCount.AllPages)
-            {
-                x = x.ToList();
-                totalCount = ((IList)x).Count;
-            }
-            else
-            {
-                totalCount = null;
-            }
-
-            if (req.HasSkip)
-                x = x.Skip(req.Skip);
-            if (req.HasTop)
-                x = x.Take(req.Top);
-
-            return x;
-        }
-        private IEnumerable<Content> AddSortToCollectionExpression(IEnumerable<Content> contents, IEnumerable<SortInfo> sort)
-        {
-            IOrderedEnumerable<Content> sortedContents = null;
-            var contentArray = contents as Content[] ?? contents.ToArray();
-            foreach (var sortInfo in sort)
-            {
-                if (sortedContents == null)
-                {
-                    sortedContents = sortInfo.Reverse
-                        ? contentArray.OrderByDescending(c => c[sortInfo.FieldName])
-                        : contentArray.OrderBy(c => c[sortInfo.FieldName]);
-                }
-                else
-                {
-                    sortedContents = sortInfo.Reverse
-                        ? sortedContents.ThenByDescending(c => c[sortInfo.FieldName])
-                        : sortedContents.ThenBy(c => c[sortInfo.FieldName]);
-                }
-            }
-            return sortedContents ?? contents;
-        }
+        //    return ODataResponse.CreateOperationCustomResultResponse(result, odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null);
+        //}
 
 
 
-        private object[] GetOperationParameters(ActionBase action, HttpRequest request)
-        {
-            if ((action.ActionParameters?.Length ?? 0) == 0)
-                return ActionParameter.EmptyValues;
+        //private object ProcessOperationResponse(object response, ODataRequest odataReq, HttpContext httpContext, out int count)
+        //{
+        //    if (response is ChildrenDefinition qdef)
+        //        return ProcessOperationQueryResponse(qdef, odataReq, httpContext, out count);
 
-            Debug.Assert(action.ActionParameters != null, "action.ActionParameters != null");
-            var values = new object[action.ActionParameters.Length];
+        //    if (response is IEnumerable<Content> coll)
+        //        return ProcessOperationCollectionResponse(coll, odataReq, httpContext, out count);
 
-            var parameters = action.ActionParameters;
-            if (parameters.Length == 1 && parameters[0].Name == null)
-            {
-                throw new ArgumentException("Cannot parse unnamed parameter from URL. This operation expects POST verb.");
-            }
-            else
-            {
-                var i = 0;
-                foreach (var parameter in parameters)
-                {
-                    var name = parameter.Name;
-                    var type = parameter.Type;
-                    var val = request.Query[name];
-                    if (val == StringValues.Empty)
-                    {
-                        if (parameter.Required)
-                            throw new ArgumentNullException(parameter.Name);
-                    }
-                    else
-                    {
-                        var valStr = (string)val;
+        //    if (response is IDictionary dict)
+        //    {
+        //        count = dict.Count;
+        //        var targetTypized = new Dictionary<Content, object>();
+        //        foreach (var item in dict.Keys)
+        //        {
+        //            if (!(item is Content content))
+        //                return response;
+        //            targetTypized.Add(content, dict[content]);
+        //        }
+        //        return ProcessOperationDictionaryResponse(targetTypized, odataReq, httpContext, out count);
+        //    }
 
-                        if (type == typeof(string))
-                        {
-                            values[i] = valStr;
-                        }
-                        else if (type == typeof(bool))
-                        {
-                            // we handle "True", "true" and "1" as boolean true values
-                            values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
-                        }
-                        else if (type.IsEnum)
-                        {
-                            values[i] = Enum.Parse(type, valStr, true);
-                        }
-                        else if (type == typeof(string[]))
-                        {
-                            var parsed = false;
-                            try
-                            {
-                                values[i] = JsonConvert.DeserializeObject(valStr, type);
-                                parsed = true;
-                            }
-                            catch // recompute
-                            {
-                                // ignored
-                            }
-                            if (!parsed)
-                            {
-                                if (valStr.StartsWith("'"))
-                                    values[i] = GetStringArrayFromString(name, valStr, '\'');
-                                else if (valStr.StartsWith("\""))
-                                    values[i] = GetStringArrayFromString(name, valStr, '"');
-                                else
-                                    values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
-                            }
-                        }
-                        else
-                        {
-                            values[i] = JsonConvert.DeserializeObject(valStr, type);
-                        }
-                    }
-                    i++;
-                }
-            }
-            return values;
-        }
-        private string[] GetStringArrayFromString(string paramName, string src, char stringEnvelope)
-        {
-            var result = new List<string>();
-            int startPos = -1;
-            bool started = false;
-            for (int i = 0; i < src.Length; i++)
-            {
-                var c = src[i];
-                if (c == stringEnvelope)
-                {
-                    if (!started)
-                    {
-                        started = true;
-                        startPos = i + 1;
-                    }
-                    else
-                    {
-                        started = false;
-                        result.Add(src.Substring(startPos, i - startPos));
-                    }
-                }
-                else if (!started)
-                {
-                    if (c != ' ' && c != ',')
-                        throw new ODataException("Parameter error: cannot parse a string array. Name: " + paramName, ODataExceptionCode.NotSpecified);
-                }
-            }
-            return result.ToArray();
-        }
+        //    // get real count from an enumerable
+        //    if (response is IEnumerable enumerable)
+        //    {
+        //        var c = 0;
+        //        // ReSharper disable once UnusedVariable
+        //        foreach (var x in enumerable)
+        //            c++;
+        //        count = c;
+        //    }
+        //    else
+        //    {
+        //        count = 1;
+        //    }
+
+        //    if (response != null && response.ToString() == "{ PreviewAvailable = True }")
+        //        return true;
+        //    if (response != null && response.ToString() == "{ PreviewAvailable = False }")
+        //        return false;
+        //    return response;
+        //}
+        //private IEnumerable<ODataEntity> ProcessOperationDictionaryResponse(IDictionary<Content, object> input,
+        //    ODataRequest req, HttpContext httpContext, out int count)
+        //{
+        //    var x = ProcessODataFilters(input.Keys, req, out var totalCount);
+
+        //    var output = new List<ODataEntity>();
+        //    var projector = Projector.Create(req, true);
+        //    foreach (var content in x)
+        //    {
+        //        var fields = CreateFieldDictionary(httpContext, content, projector);
+        //        var item = new ODataEntity
+        //        {
+        //            {"key", fields},
+        //            {"value", input[content]}
+        //        };
+        //        output.Add(item);
+        //    }
+        //    count = totalCount ?? output.Count;
+        //    if (req.CountOnly)
+        //        return null;
+        //    return output;
+        //}
+        //private IEnumerable<ODataEntity> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents,
+        //    ODataRequest req, HttpContext httpContext, out int count)
+        //{
+        //    var x = ProcessODataFilters(inputContents, req, out var totalCount);
+
+        //    var outContents = new List<ODataEntity>();
+        //    var projector = Projector.Create(req, true);
+        //    foreach (var content in x)
+        //    {
+        //        var fields = CreateFieldDictionary(httpContext, content, projector);
+        //        outContents.Add(fields);
+        //    }
+
+        //    count = totalCount ?? outContents.Count;
+        //    if (req.CountOnly)
+        //        return null;
+        //    return outContents;
+        //}
+        //private IEnumerable<Content> ProcessODataFilters(IEnumerable<Content> inputContents, ODataRequest req, out int? totalCount)
+        //{
+        //    var x = inputContents;
+        //    if (req.HasFilter)
+        //    {
+        //        if (x is IQueryable<Content> y)
+        //        {
+        //            x = y.Where((Expression<Func<Content, bool>>)req.Filter);
+        //        }
+        //        else
+        //        {
+        //            var filter = SnExpression.GetCaseInsensitiveFilter(req.Filter);
+        //            var lambdaExpr = (LambdaExpression)filter;
+        //            x = x.Where((Func<Content, bool>)lambdaExpr.Compile());
+        //        }
+        //    }
+        //    if (req.HasSort)
+        //        x = AddSortToCollectionExpression(x, req.Sort);
+
+        //    if (req.InlineCount == InlineCount.AllPages)
+        //    {
+        //        x = x.ToList();
+        //        totalCount = ((IList)x).Count;
+        //    }
+        //    else
+        //    {
+        //        totalCount = null;
+        //    }
+
+        //    if (req.HasSkip)
+        //        x = x.Skip(req.Skip);
+        //    if (req.HasTop)
+        //        x = x.Take(req.Top);
+
+        //    return x;
+        //}
+        //private IEnumerable<Content> AddSortToCollectionExpression(IEnumerable<Content> contents, IEnumerable<SortInfo> sort)
+        //{
+        //    IOrderedEnumerable<Content> sortedContents = null;
+        //    var contentArray = contents as Content[] ?? contents.ToArray();
+        //    foreach (var sortInfo in sort)
+        //    {
+        //        if (sortedContents == null)
+        //        {
+        //            sortedContents = sortInfo.Reverse
+        //                ? contentArray.OrderByDescending(c => c[sortInfo.FieldName])
+        //                : contentArray.OrderBy(c => c[sortInfo.FieldName]);
+        //        }
+        //        else
+        //        {
+        //            sortedContents = sortInfo.Reverse
+        //                ? sortedContents.ThenByDescending(c => c[sortInfo.FieldName])
+        //                : sortedContents.ThenBy(c => c[sortInfo.FieldName]);
+        //        }
+        //    }
+        //    return sortedContents ?? contents;
+        //}
+
+
+
+        //private object[] GetOperationParameters(ActionBase action, HttpRequest request)
+        //{
+        //    if ((action.ActionParameters?.Length ?? 0) == 0)
+        //        return ActionParameter.EmptyValues;
+
+        //    Debug.Assert(action.ActionParameters != null, "action.ActionParameters != null");
+        //    var values = new object[action.ActionParameters.Length];
+
+        //    var parameters = action.ActionParameters;
+        //    if (parameters.Length == 1 && parameters[0].Name == null)
+        //    {
+        //        throw new ArgumentException("Cannot parse unnamed parameter from URL. This operation expects POST verb.");
+        //    }
+        //    else
+        //    {
+        //        var i = 0;
+        //        foreach (var parameter in parameters)
+        //        {
+        //            var name = parameter.Name;
+        //            var type = parameter.Type;
+        //            var val = request.Query[name];
+        //            if (val == StringValues.Empty)
+        //            {
+        //                if (parameter.Required)
+        //                    throw new ArgumentNullException(parameter.Name);
+        //            }
+        //            else
+        //            {
+        //                var valStr = (string)val;
+
+        //                if (type == typeof(string))
+        //                {
+        //                    values[i] = valStr;
+        //                }
+        //                else if (type == typeof(bool))
+        //                {
+        //                    // we handle "True", "true" and "1" as boolean true values
+        //                    values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
+        //                }
+        //                else if (type.IsEnum)
+        //                {
+        //                    values[i] = Enum.Parse(type, valStr, true);
+        //                }
+        //                else if (type == typeof(string[]))
+        //                {
+        //                    var parsed = false;
+        //                    try
+        //                    {
+        //                        values[i] = JsonConvert.DeserializeObject(valStr, type);
+        //                        parsed = true;
+        //                    }
+        //                    catch // recompute
+        //                    {
+        //                        // ignored
+        //                    }
+        //                    if (!parsed)
+        //                    {
+        //                        if (valStr.StartsWith("'"))
+        //                            values[i] = GetStringArrayFromString(name, valStr, '\'');
+        //                        else if (valStr.StartsWith("\""))
+        //                            values[i] = GetStringArrayFromString(name, valStr, '"');
+        //                        else
+        //                            values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    values[i] = JsonConvert.DeserializeObject(valStr, type);
+        //                }
+        //            }
+        //            i++;
+        //        }
+        //    }
+        //    return values;
+        //}
+        //private string[] GetStringArrayFromString(string paramName, string src, char stringEnvelope)
+        //{
+        //    var result = new List<string>();
+        //    int startPos = -1;
+        //    bool started = false;
+        //    for (int i = 0; i < src.Length; i++)
+        //    {
+        //        var c = src[i];
+        //        if (c == stringEnvelope)
+        //        {
+        //            if (!started)
+        //            {
+        //                started = true;
+        //                startPos = i + 1;
+        //            }
+        //            else
+        //            {
+        //                started = false;
+        //                result.Add(src.Substring(startPos, i - startPos));
+        //            }
+        //        }
+        //        else if (!started)
+        //        {
+        //            if (c != ' ' && c != ',')
+        //                throw new ODataException("Parameter error: cannot parse a string array. Name: " + paramName, ODataExceptionCode.NotSpecified);
+        //        }
+        //    }
+        //    return result.ToArray();
+        //}
 
         /* ----------------------------------------------------------------------------------- */
 
-        private ODataEntity CreateFieldDictionary(HttpContext httpContext, Content content, Projector projector)
-        {
-            return projector.Project(content, httpContext);
-        }
-        private ODataEntity CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
-            bool isCollectionItem)
-        {
-            var projector = Projector.Create(odataRequest, isCollectionItem, content);
-            return projector.Project(content, httpContext);
-        }
+        //private ODataEntity CreateFieldDictionary(HttpContext httpContext, Content content, Projector projector)
+        //{
+        //    return projector.Project(content, httpContext);
+        //}
+        //private ODataEntity CreateFieldDictionary(HttpContext httpContext, ODataRequest odataRequest, Content content,
+        //    bool isCollectionItem)
+        //{
+        //    var projector = Projector.Create(odataRequest, isCollectionItem, content);
+        //    return projector.Project(content, httpContext);
+        //}
 
         /* =================================================================================== */
 

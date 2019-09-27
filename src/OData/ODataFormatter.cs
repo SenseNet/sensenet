@@ -14,6 +14,7 @@ using System.Web;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading;
 //using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -106,6 +107,21 @@ namespace SenseNet.OData
 
         // --------------------------------------------------------------------------------------------------------------- metadata
 
+        internal void WriteServiceDocument(HttpContext httpContext, ODataRequest req)
+        {
+            WriteServiceDocument(httpContext, GetTopLevelNames(req));
+
+            var mimeType = this.MimeType;
+            if (mimeType != null)
+                httpContext.Response.ContentType = mimeType;
+        }
+        private string[] GetTopLevelNames(ODataRequest req)
+        {
+            var rootContent = Content.Load(req.RepositoryPath);
+            var topLevelNames = rootContent?.Children.Select(n => n.Name).ToArray() ?? new[] { Repository.RootName };
+
+            return topLevelNames;
+        }
         /// <summary>
         /// Writes the OData service document with the given root names to the webresponse.
         /// </summary>
@@ -157,45 +173,43 @@ namespace SenseNet.OData
         /// <param name="fields">A Dictionary&lt;string, object&gt; that will be written.</param>
         protected abstract void WriteSingleContent(HttpContext httpContext, ODataEntity fields);
 
-        #region internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
-        //internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
-        //{
-        //    var content = Content.Load(path);
-        //    var chdef = content.ChildrenDefinition;
-        //    if (req.HasContentQuery)
-        //    {
-        //        chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), LogicalOperator.And);
+        internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
+        {
+            var content = Content.Load(path);
+            var chdef = content.ChildrenDefinition;
+            if (req.HasContentQuery)
+            {
+                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), LogicalOperator.And);
 
-        //        if (req.AutofiltersEnabled != FilterStatus.Default)
-        //            chdef.EnableAutofilters = req.AutofiltersEnabled;
-        //        if (req.LifespanFilterEnabled != FilterStatus.Default)
-        //            chdef.EnableLifespanFilter = req.LifespanFilterEnabled;
-        //        if (req.QueryExecutionMode != QueryExecutionMode.Default)
-        //            chdef.QueryExecutionMode = req.QueryExecutionMode;
-        //        if (req.Top > 0)
-        //            chdef.Top = req.Top;
-        //        if (req.Skip > 0)
-        //            chdef.Skip = req.Skip;
-        //        if (req.Sort.Any())
-        //            chdef.Sort = req.Sort;
-        //    }
-        //    else
-        //    {
-        //        chdef.EnableAutofilters = FilterStatus.Disabled;
-        //        if (string.IsNullOrEmpty(chdef.ContentQuery))
-        //        {
-        //            chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), LogicalOperator.And);
-        //        }
-        //    }
+                if (req.AutofiltersEnabled != FilterStatus.Default)
+                    chdef.EnableAutofilters = req.AutofiltersEnabled;
+                if (req.LifespanFilterEnabled != FilterStatus.Default)
+                    chdef.EnableLifespanFilter = req.LifespanFilterEnabled;
+                if (req.QueryExecutionMode != QueryExecutionMode.Default)
+                    chdef.QueryExecutionMode = req.QueryExecutionMode;
+                if (req.Top > 0)
+                    chdef.Top = req.Top;
+                if (req.Skip > 0)
+                    chdef.Skip = req.Skip;
+                if (req.Sort.Any())
+                    chdef.Sort = req.Sort;
+            }
+            else
+            {
+                chdef.EnableAutofilters = FilterStatus.Disabled;
+                if (string.IsNullOrEmpty(chdef.ContentQuery))
+                {
+                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), LogicalOperator.And);
+                }
+            }
 
 
-        //    var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
-        //    if (req.CountOnly)
-        //        WriteCount(httpContext, count);
-        //    else
-        //        WriteMultipleContent(httpContext, contents, count);
-        //}
-        #endregion
+            var contents = ProcessOperationQueryResponse(chdef, req, httpContext, out var count);
+            if (req.CountOnly)
+                WriteCount(httpContext, count);
+            else
+                WriteMultipleContent(httpContext, contents, count);
+        }
         private void WriteMultiRefContents(object references, HttpContext httpContext, ODataRequest req)
         {
             if (references == null)
@@ -247,29 +261,27 @@ namespace SenseNet.OData
                 }
             }
         }
-        #region private void WriteSingleRefContent(object references, HttpContext httpContext)
-        //private void WriteSingleRefContent(object references, HttpContext httpContext)
-        //{
-        //    if (references != null)
-        //    {
-        //        if (references is Node node)
-        //        {
-        //            WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext));
-        //        }
-        //        else
-        //        {
-        //            if (references is IEnumerable enumerable)
-        //            {
-        //                foreach (Node item in enumerable)
-        //                {
-        //                    WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext));
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-        #endregion
+        private void WriteSingleRefContent(object references, HttpContext httpContext)
+        {
+            if (references != null)
+            {
+                if (references is Node node)
+                {
+                    WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext));
+                }
+                else
+                {
+                    if (references is IEnumerable enumerable)
+                    {
+                        foreach (Node item in enumerable)
+                        {
+                            WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Writes the given Content list to the webresponse.
         /// </summary>
@@ -285,63 +297,61 @@ namespace SenseNet.OData
         /// <param name="count"></param>
         protected abstract void WriteCount(HttpContext httpContext, int count);
 
-        #region internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
-        //internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
-        //{
-        //    var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
-        //    if (content == null)
-        //    {
-        //        ODataMiddleware.ContentNotFound(httpContext);
-        //        return;
-        //    }
+        internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
+        {
+            var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
+            if (content == null)
+            {
+                ODataMiddleware.ContentNotFound(httpContext);
+                return;
+            }
 
-        //    if (propertyName == ODataMiddleware.ActionsPropertyName)
-        //    {
-        //        WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue);
-        //        return;
-        //    }
-        //    if (propertyName == ODataMiddleware.ChildrenPropertyName)
-        //    {
-        //        WriteChildrenCollection(path, httpContext, req);
-        //        return;
-        //    }
+            if (propertyName == ODataMiddleware.ActionsPropertyName)
+            {
+                WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue);
+                return;
+            }
+            if (propertyName == ODataMiddleware.ChildrenPropertyName)
+            {
+                WriteChildrenCollection(path, httpContext, req);
+                return;
+            }
 
-        //    if (content.Fields.TryGetValue(propertyName, out var field))
-        //    {
-        //        if (field is ReferenceField refField)
-        //        {
-        //            var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
-        //            var isMultiRef = true;
-        //            if (refFieldSetting != null)
-        //                isMultiRef = refFieldSetting.AllowMultiple == true;
-        //            if (isMultiRef)
-        //            {
-        //                WriteMultiRefContents(refField.GetData(), httpContext, req);
-        //            }
-        //            else
-        //            {
-        //                WriteSingleRefContent(refField.GetData(), httpContext);
-        //            }
-        //        }
-        //        else if (field is AllowedChildTypesField actField)
-        //        {
-        //            WriteMultiRefContents(actField.GetData(), httpContext, req);
-        //        }
-        //        else if (!rawValue)
-        //        {
-        //            WriteSingleContent(httpContext, new ODataEntity { { propertyName, field.GetData() } });
-        //        }
-        //        else
-        //        {
-        //            WriteRaw(field.GetData(), httpContext);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        WriteOperationResult(httpContext, req);
-        //    }
-        //}
-        #endregion
+            if (content.Fields.TryGetValue(propertyName, out var field))
+            {
+                if (field is ReferenceField refField)
+                {
+                    var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
+                    var isMultiRef = true;
+                    if (refFieldSetting != null)
+                        isMultiRef = refFieldSetting.AllowMultiple == true;
+                    if (isMultiRef)
+                    {
+                        WriteMultiRefContents(refField.GetData(), httpContext, req);
+                    }
+                    else
+                    {
+                        WriteSingleRefContent(refField.GetData(), httpContext);
+                    }
+                }
+                else if (field is AllowedChildTypesField actField)
+                {
+                    WriteMultiRefContents(actField.GetData(), httpContext, req);
+                }
+                else if (!rawValue)
+                {
+                    WriteSingleContent(httpContext, new ODataEntity { { propertyName, field.GetData() } });
+                }
+                else
+                {
+                    WriteRaw(field.GetData(), httpContext);
+                }
+            }
+            else
+            {
+                WriteOperationResult(httpContext, req);
+            }
+        }
         /// <summary>
         /// Writes the available actions of the current <see cref="Content"/> to the webresponse.
         /// </summary>
@@ -351,38 +361,36 @@ namespace SenseNet.OData
         protected abstract void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw);
 
 
-        #region internal void WriteErrorResponse(HttpContext context, ODataException oe)
-        //        internal void WriteErrorResponse(HttpContext context, ODataException oe)
-        //        {
-        //            var error = new Error
-        //            {
-        //                Code = string.IsNullOrEmpty(oe.ErrorCode) ? Enum.GetName(typeof(ODataExceptionCode), oe.ODataExceptionCode) : oe.ErrorCode,
-        //                ExceptionType = oe.InnerException?.GetType().Name ?? oe.GetType().Name,
-        //                Message = new ErrorMessage
-        //                {
-        //                    Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
-        //                    Value = SNSR.GetString(oe.Message).Replace(Environment.NewLine, "\\n").Replace('"', ' ').Replace('\'', ' ').Replace(" \\ ", " ")
-        //                },
-        //                InnerError =
-        //#if DEBUG
-        //new StackInfo
-        //{
-        //    Trace = Utility.CollectExceptionMessages(oe)
-        //}
-        //#else
-        //                HttpContext.Current != null && HttpContext.Current.IsDebuggingEnabled 
-        //                    ? new StackInfo { Trace = Utility.CollectExceptionMessages(oe) }
-        //                    : null
-        //#endif
-        //            };
-        //            context.Response.ContentType = "application/json";
-        //            WriteError(context, error);
-        //            context.Response.StatusCode = oe.HttpStatusCode;
-        //            //UNDONE:ODATA: Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors
-        //            //context.Response.TrySkipIisCustomErrors = true;
+        internal void WriteErrorResponse(HttpContext context, ODataException oe)
+        {
+            var error = new Error
+            {
+                Code = string.IsNullOrEmpty(oe.ErrorCode) ? Enum.GetName(typeof(ODataExceptionCode), oe.ODataExceptionCode) : oe.ErrorCode,
+                ExceptionType = oe.InnerException?.GetType().Name ?? oe.GetType().Name,
+                Message = new ErrorMessage
+                {
+                    Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                    Value = SNSR.GetString(oe.Message).Replace(Environment.NewLine, "\\n").Replace('"', ' ').Replace('\'', ' ').Replace(" \\ ", " ")
+                },
+                InnerError =
+#if DEBUG
+        new StackInfo
+        {
+            Trace = Utility.CollectExceptionMessages(oe)
+        }
+#else
+                        HttpContext.Current != null && HttpContext.Current.IsDebuggingEnabled 
+                            ? new StackInfo { Trace = Utility.CollectExceptionMessages(oe) }
+                            : null
+#endif
+            };
+            context.Response.ContentType = "application/json";
+            WriteError(context, error);
+            context.Response.StatusCode = oe.HttpStatusCode;
+            //UNDONE:ODATA: Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors
+            //context.Response.TrySkipIisCustomErrors = true;
 
-        //        }
-        #endregion
+        }
         /// <summary>
         /// Writes the given <see cref="Error"/> instance to the webresponse.
         /// </summary>

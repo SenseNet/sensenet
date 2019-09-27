@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Diagnostics;
 using SenseNet.OData;
-using SenseNet.OData.Responses;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -56,7 +55,6 @@ namespace SenseNet.ODataTest.WebApp
                     {
                         // middleware by app developer
                         var request = httpContext.GetODataRequest();
-                        var response = httpContext.GetODataResponse();
                         return Task.CompletedTask;
                     });
                 });
