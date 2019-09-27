@@ -54,17 +54,9 @@ namespace SenseNet.ODataTest.WebApp
                     appBranch.UseSenseNetOdata();
                     appBranch.Use((httpContext, next) =>
                     {
-                        var r = httpContext.GetODataResponse();
-                        if(httpContext.GetODataResponse() is ODataChildrenCollectionResponse response)
-                        {
-                            //httpContext.SetODataResponse(new ODataResponse(ODataResponseType.Int, (int)response.Value * 2));
-SnTrace.Write("#### AppMiddleware: modify response.Source.");
-                            response.Source = response.Source.OrderBy(x => x.Name).Take(5);
-
-SnTrace.Write("#### AppMiddleware: modify response.Entities.");
-                            response.Entities = response.Entities.Select(x => { x["Name"] = (x.Name ?? "") + "*"; return x; });
-                        }
-SnTrace.Write("#### AppMiddleware: finish.");
+                        // middleware by app developer
+                        var request = httpContext.GetODataRequest();
+                        var response = httpContext.GetODataResponse();
                         return Task.CompletedTask;
                     });
                 });

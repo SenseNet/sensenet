@@ -32,13 +32,6 @@ namespace SenseNet.ContentRepository.Linq
         {
             return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef, out elementSelection);
         }
-        public static SnQuery BuildQuery(Expression expression1, Expression expression2, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef, out string elementSelection)
-        {
-            var query1 = BuildSnQuery(expression1, sourceCollectionItemType, contextPath, childrenDef, out elementSelection);
-            var query2 = BuildSnQuery(expression2, sourceCollectionItemType, null, ChildrenDefinition.Default, out elementSelection);
-            query1.AddAndClause(query2.QueryTree);
-            return query1;
-        }
         private static SnQuery BuildSnQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef, out string elementSelection)
         {
             SnQueryPredicate q0 = null;
