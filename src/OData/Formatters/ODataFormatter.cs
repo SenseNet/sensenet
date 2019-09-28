@@ -360,7 +360,7 @@ namespace SenseNet.OData.Formatters
         protected abstract void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw);
 
 
-        internal async Task WriteErrorResponse(HttpContext httpContext, ODataException oe)
+        internal async Task WriteErrorResponseAsync(HttpContext httpContext, ODataException oe)
         {
             var error = new Error
             {

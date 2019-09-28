@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -14,8 +14,10 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
+using SenseNet.ContentRepository;
 using SenseNet.OData.Formatters;
-using STT = System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
+
 // ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.OData
@@ -68,7 +70,7 @@ namespace SenseNet.OData
         }
 
 
-        public async STT.Task Invoke(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext)
         {
             // CREATE ODATA-RESPONSE STRATEGY
 
@@ -85,14 +87,8 @@ namespace SenseNet.OData
                 await ProcessRequestAsync(httpContext, odataRequest);
         }
 
-        internal STT.Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
-        {
-            ProcessRequest(httpContext, odataRequest);
-            //httpContext.Response.Body.Flush();
-            return STT.Task.CompletedTask;
-        }
-
-        internal void ProcessRequest(HttpContext httpContext, ODataRequest odataRequest)
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
+        internal async Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
         {
             var request = httpContext.Request;
             var httpMethod = request.Method;
@@ -110,7 +106,11 @@ namespace SenseNet.OData
 
                 formatter = ODataFormatter.Create(httpContext, odataRequest);
                 if (formatter == null)
+                {
+                    formatter = new JsonFormatter();
+                    formatter.Initialize(odataRequest);
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
+                }
                 formatter.Initialize(odataRequest);
 
                 httpContext.SetODataFormatter(formatter);
@@ -141,115 +141,118 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataRequest.IsServiceDocumentRequest)
                         {
-                            /*await*/ formatter.WriteServiceDocumentAsync(httpContext, odataRequest)
-                                .ConfigureAwait(false).GetAwaiter().GetResult();
+                            await formatter.WriteServiceDocumentAsync(httpContext, odataRequest);
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
-                            //return ODataResponse.CreateMetadataResponse(exists ? odataRequest.RepositoryPath : "/");
-                            /*await*/ formatter.WriteMetadataAsync(httpContext, odataRequest)
-                                .ConfigureAwait(false).GetAwaiter().GetResult();
+                            await formatter.WriteMetadataAsync(httpContext, odataRequest);
                         }
                         else
                         {
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 ContentNotFound(httpContext);
                             else if (odataRequest.IsCollection)
+                                //UNDONE:ODATA:! ASYNC
                                 formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
+                                //UNDONE:ODATA:! ASYNC
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
-                                /*await*/ formatter.WriteSingleContentAsync(requestedContent, httpContext).ConfigureAwait(false);
+                                await formatter.WriteSingleContentAsync(requestedContent, httpContext).ConfigureAwait(false);
                         }
                         break;
                     case "PUT": // update
-                        if (odataRequest.IsMemberRequest)
-                        {
-                            throw new ODataException("Cannot access a member with HTTP PUT.",
-                                ODataExceptionCode.IllegalInvoke);
-                        }
-                        else
-                        {
-                            model = Read(inputStream);
-                            content = LoadContentOrVirtualChild(odataRequest);
-                            if (content == null)
-                            {
-                                ContentNotFound(httpContext);
-                                return;
-                            }
+                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
+                        //if (odataRequest.IsMemberRequest)
+                        //{
+                        //    throw new ODataException("Cannot access a member with HTTP PUT.",
+                        //        ODataExceptionCode.IllegalInvoke);
+                        //}
+                        //else
+                        //{
+                        //    model = Read(inputStream);
+                        //    content = LoadContentOrVirtualChild(odataRequest);
+                        //    if (content == null)
+                        //    {
+                        //        ContentNotFound(httpContext);
+                        //        return;
+                        //    }
 
-                            ResetContent(content);
-                            UpdateContent(content, model, odataRequest);
-                            /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
-                        }
-                        break;
+                        //    ResetContent(content);
+                        //    UpdateContent(content, model, odataRequest);
+                        //    /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
+                        //}
+                        //break;
                     case "MERGE":
                     case "PATCH": // update
-                        if (odataRequest.IsMemberRequest)
-                        {
-                            throw new ODataException(
-                                String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
-                                ODataExceptionCode.IllegalInvoke);
-                        }
-                        else
-                        {
-                            model = Read(inputStream);
-                            content = LoadContentOrVirtualChild(odataRequest);
-                            if (content == null)
-                            {
-                                ContentNotFound(httpContext);
-                                return;
-                            }
+                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
+                        //if (odataRequest.IsMemberRequest)
+                        //{
+                        //    throw new ODataException(
+                        //        String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
+                        //        ODataExceptionCode.IllegalInvoke);
+                        //}
+                        //else
+                        //{
+                        //    model = Read(inputStream);
+                        //    content = LoadContentOrVirtualChild(odataRequest);
+                        //    if (content == null)
+                        //    {
+                        //        ContentNotFound(httpContext);
+                        //        return;
+                        //    }
 
-                            UpdateContent(content, model, odataRequest);
-                            /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
-                        }
-                        break;
+                        //    UpdateContent(content, model, odataRequest);
+                        //    /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
+                        //}
+                        //break;
                     case "POST": // invoke an action, create content
-                        if (odataRequest.IsMemberRequest)
-                        {
-                            formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
-                        }
-                        else
-                        {
-                            // parent must exist
-                            //UNDONE:ODATA: unnecessary check (?)
-                            if (!Node.Exists(odataRequest.RepositoryPath))
-                            {
-                                ContentNotFound(httpContext);
-                                return;
-                            }
-                            model = Read(inputStream);
-                            var newContent = CreateNewContent(model, odataRequest);
-                            /*await*/ formatter.WriteSingleContentAsync(newContent, httpContext).ConfigureAwait(false);
-                        }
-                        break;
+                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
+                        //if (odataRequest.IsMemberRequest)
+                        //{
+                        //    formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
+                        //}
+                        //else
+                        //{
+                        //    // parent must exist
+                        //    //UNDONE:ODATA: unnecessary check (?)
+                        //    if (!Node.Exists(odataRequest.RepositoryPath))
+                        //    {
+                        //        ContentNotFound(httpContext);
+                        //        return;
+                        //    }
+                        //    model = Read(inputStream);
+                        //    var newContent = CreateNewContent(model, odataRequest);
+                        //    /*await*/ formatter.WriteSingleContentAsync(newContent, httpContext).ConfigureAwait(false);
+                        //}
+                        //break;
                     case "DELETE":
-                        if (odataRequest.IsMemberRequest)
-                        {
-                            throw new ODataException(
-                                String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
-                                ODataExceptionCode.IllegalInvoke);
-                        }
-                        else
-                        {
-                            content = LoadContentOrVirtualChild(odataRequest);
-                            content?.Delete();
-                        }
-                        break;
+                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
+                        //if (odataRequest.IsMemberRequest)
+                        //{
+                        //    throw new ODataException(
+                        //        String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
+                        //        ODataExceptionCode.IllegalInvoke);
+                        //}
+                        //else
+                        //{
+                        //    content = LoadContentOrVirtualChild(odataRequest);
+                        //    content?.Delete();
+                        //}
+                        //break;
                 }
             }
             catch (ContentNotFoundException e)
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                formatter?.WriteErrorResponse(httpContext, oe);
+                await formatter.WriteErrorResponseAsync(httpContext, oe).ConfigureAwait(false);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
-                formatter?.WriteErrorResponse(httpContext, e);
+                await formatter.WriteErrorResponseAsync(httpContext, e).ConfigureAwait(false);
             }
             catch (SenseNetSecurityException e)
             {
@@ -272,7 +275,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                await formatter.WriteErrorResponseAsync(httpContext, oe).ConfigureAwait(false);
             }
             catch (InvalidContentActionException ex)
             {
@@ -281,13 +284,13 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                formatter?.WriteErrorResponse(httpContext, oe);
+                await formatter.WriteErrorResponseAsync(httpContext, oe).ConfigureAwait(false);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                await formatter.WriteErrorResponseAsync(httpContext, oe).ConfigureAwait(false);
             }
             //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
             //UNDONE:ODATA: ?? ThreadAbortException does not occur in this technology.
@@ -296,7 +299,7 @@ namespace SenseNet.OData
             //    if (!httpContext.Response.IsRequestBeingRedirected)
             //    {
             //        var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-            //        //formatter?.WriteErrorResponse(httpContext, oe);
+            //        //await formatter.WriteErrorResponse(httpContext, oe);
             //        return ODataResponse.CreateErrorResponse(oe);
             //    }
             //    // specific redirect response so do nothing
@@ -307,7 +310,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                formatter?.WriteErrorResponse(httpContext, oe);
+                await formatter.WriteErrorResponseAsync(httpContext, oe).ConfigureAwait(false);
             }
             //finally
             //{
