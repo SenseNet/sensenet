@@ -25,6 +25,7 @@ using SenseNet.Security.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Accessors;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ODataTests
 {
@@ -257,12 +258,35 @@ namespace SenseNet.ODataTests
         }
 
 
-        protected static ODataEntityResponse GetEntity(string text)
+        protected static ODataEntityResponse GetEntity(ODataResponse response)
         {
+            var text = response.Result;
             var result = new Dictionary<string, object>();
             var jo = (JObject)Deserialize(text);
             return ODataEntityResponse.Create((JObject)jo["d"]);
         }
+        protected static ODataErrorResponse GetError(ODataResponse response)
+        {
+            var text = response.Result;
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            var json = Deserialize(text);
+            if (json == null)
+                throw new InvalidOperationException("Deserialized text is null.");
+            if (!(json["error"] is JObject error))
+                throw new Exception("Object is not an error");
+
+            var code = error["code"]?.Value<string>() ?? string.Empty;
+            var exceptionType = error["exceptiontype"]?.Value<string>() ?? string.Empty;
+            var message = error["message"] as JObject;
+            var value = message?["value"]?.Value<string>() ?? string.Empty;
+            var innerError = error["innererror"] as JObject;
+            var trace = innerError?["trace"]?.Value<string>() ?? string.Empty;
+            Enum.TryParse<ODataExceptionCode>(code, out var oeCode);
+            return new ODataErrorResponse { Code = oeCode, ExceptionType = exceptionType, Message = value, StackTrace = trace };
+        }
+
         protected static JContainer Deserialize(string text)
         {
             if (string.IsNullOrEmpty(text))

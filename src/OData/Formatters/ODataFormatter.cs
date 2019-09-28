@@ -294,7 +294,7 @@ namespace SenseNet.OData.Formatters
         /// <param name="count"></param>
         protected abstract void WriteCount(HttpContext httpContext, int count);
 
-        internal void WriteContentProperty(String path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
+        internal void WriteContentProperty(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
@@ -949,11 +949,9 @@ namespace SenseNet.OData.Formatters
         /// </summary>
         /// <param name="response">The object that will be written.</param>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
-        protected virtual Task WriteRawAsync(object response, HttpContext httpContext)
+        protected virtual async Task WriteRawAsync(object response, HttpContext httpContext)
         {
-            //var resp = httpContext.Response;
-            //resp.Write(response);
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
+            await httpContext.Response.WriteAsync(response.ToString()).ConfigureAwait(false);
         }
 
     }

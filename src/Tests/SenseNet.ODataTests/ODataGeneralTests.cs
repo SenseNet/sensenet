@@ -1,7 +1,10 @@
-﻿using System.Xml;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 
@@ -105,7 +108,7 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync("/OData.svc/Root('IMS')", "");
 
-                var entity = GetEntity(response.Result);
+                var entity = GetEntity(response);
                 Assert.AreEqual(content.Id, entity.Id);
                 Assert.AreEqual(content.Name, entity.Name);
                 Assert.AreEqual(content.Path, entity.Path);
@@ -144,26 +147,28 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0, ids.Except(origIds).Count());
             });
         }*/
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_GET_SimplePropertyAndRaw()
         {
             await ODataTestAsync(async () =>
             {
                 var imsId = Repository.ImsFolder.Id;
 
+                // ACTION 1
                 var response1 = await ODataGetAsync("/OData.svc/Root('IMS')/Id", "");
 
-                var entity = response1.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response1.Type);
+                // ASSERT 1
+                var entity = GetEntity(response1);
                 Assert.AreEqual(imsId, entity.Id);
 
+                // ACTION 2
                 var response2 = await ODataGetAsync("/OData.svc/Root('IMS')/Id/$value", "");
 
-                Assert.AreEqual(ODataResponseType.RawData, response2.Type);
-                Assert.AreEqual(imsId, response2.Value);
+                // ASSERT 2
+                Assert.AreEqual(imsId.ToString(), response2.Result);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public async Task OD_GET_GetEntityById()
         {
             await ODataTestAsync(async () =>
@@ -173,27 +178,25 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync("/OData.svc/Content(" + id + ")", "");
 
-                var entity = response.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
+                var entity = GetEntity(response);
                 Assert.AreEqual(id, entity.Id);
                 Assert.AreEqual(content.Path, entity.Path);
                 Assert.AreEqual(content.Name, entity.Name);
-                Assert.AreEqual(content.ContentType.Name, entity.ContentType);
+                Assert.AreEqual(content.ContentType, entity.ContentType);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public async Task OD_GET_GetEntityById_InvalidId()
         {
             await ODataTestAsync(async () =>
             {
                 var response = await ODataGetAsync("/OData.svc/Content(qwer)", "");
 
-                var exception = response.Exception;
-                Assert.AreEqual(ODataResponseType.Error, response.Type);
-                Assert.AreEqual(ODataExceptionCode.InvalidId, exception.ODataExceptionCode);
+                var exception = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.InvalidId, exception.Code);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public async Task OD_GET_GetPropertyOfEntityById()
         {
             await ODataTestAsync(async () =>
@@ -202,11 +205,10 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync("/OData.svc/Content(" + content.Id + ")/Name", "");
 
-                var entity = response.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
+                var entity = GetEntity(response);
                 Assert.AreEqual(content.Name, entity.Name);
             });
-        }*/
+        }
         /*[TestMethod]
         public async Task OD_GET_Collection_Projection()
         {
@@ -229,32 +231,29 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_GET_Entity_Projection()
         {
             await ODataTestAsync(async () =>
             {
                 var response = await ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id,Name");
 
-                var entity = response.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
+                var entity = GetEntity(response);
 
-                Assert.IsTrue(entity.ContainsKey("__metadata"));
-                Assert.IsTrue(entity.ContainsKey("Id"));
-                Assert.IsTrue(entity.ContainsKey("Name"));
-                Assert.IsNull(entity.Path);
-                Assert.IsNull(entity.ContentType);
+                Assert.AreEqual(3, entity.AllProperties.Count);
+                Assert.IsTrue(entity.AllProperties.ContainsKey("__metadata"));
+                Assert.IsTrue(entity.AllProperties.ContainsKey("Id"));
+                Assert.IsTrue(entity.AllProperties.ContainsKey("Name"));
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public async Task OD_GET_Entity_NoProjection()
         {
             await ODataTestAsync(async () =>
             {
                 var response = await ODataGetAsync("/OData.svc/Root('IMS')", "");
 
-                var entity = response.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
+                var entity = GetEntity(response);
 
                 var allowedFieldNames = new List<string>();
                 var c = Content.Load("/Root/IMS");
@@ -263,7 +262,7 @@ namespace SenseNet.ODataTests
                 allowedFieldNames.AddRange(fieldNames);
                 allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder", "Children" });
 
-                var entityPropNames = entity.Select(y => y.Key).ToArray();
+                var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
 
                 var a = entityPropNames.Except(allowedFieldNames).ToArray();
                 var b = allowedFieldNames.Except(entityPropNames).ToArray();
@@ -271,7 +270,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0, a.Length);
                 Assert.AreEqual(0, b.Length);
             });
-        }*/
+        }
 
         //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
         /**/
