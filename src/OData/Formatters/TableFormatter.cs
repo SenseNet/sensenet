@@ -1,161 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Web;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using SenseNet.ContentRepository.OData;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
-namespace SenseNet.OData
+namespace SenseNet.OData.Formatters
 {
-    /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData metadata in XML format.
-    /// </summary>
-    public class XmlFormatter : ODataFormatter
-    {
-        /// <inheritdoc />
-        /// <remarks>Returns with "xml" in this case.</remarks>
-        public override string FormatName => "xml";
-
-        /// <inheritdoc />
-        /// <remarks>Returns with "application/xml" in this case.</remarks>
-        public override string MimeType => "application/xml";
-
-        /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
-        {
-            string result;
-            using (var writer = new StringWriter())
-            {
-                edmx.WriteXml(writer);
-                result = writer.GetStringBuilder().ToString();
-            }
-            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
-        }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteError(HttpContext context, Error error) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count) { throw new SnNotSupportedException(); }
-        /// <inheritdoc />
-        protected override void WriteCount(HttpContext httpContext, int count)
-        {
-            WriteRaw(count, httpContext);
-        }
-    }
-    /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in JSON format.
-    /// </summary>
-    public class JsonFormatter : ODataFormatter
-    {
-        /// <inheritdoc />
-        /// <remarks>Returns with "json" in this case.</remarks>
-        public override string FormatName => "json";
-
-        /// <inheritdoc />
-        /// <remarks>Returns with "application/json" in this case.</remarks>
-        public override string MimeType => "application/json";
-
-        /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
-        {
-            string result;
-            using (var writer = new StringWriter())
-            {
-                edmx.WriteJson(writer);
-                result = writer.GetStringBuilder().ToString();
-            }
-            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
-        }
-        /// <inheritdoc />
-        protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
-        {
-            using (var writer = new StringWriter())
-            {
-                var x = new { d = new { EntitySets = names } };
-                JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
-                    .Serialize(writer, x);
-
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString());
-            }
-        }
-        /// <inheritdoc />
-        protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields)
-        {
-            Write(new ODataSingleContent { FieldData = fields }, httpContext);
-        }
-        /// <inheritdoc />
-        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
-        {
-            Write(ODataMultipleContent.Create(contents, count), httpContext);
-        }
-        /// <inheritdoc />
-        protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw)
-        {
-            if(raw)
-                Write(actions, httpContext);
-            else
-                Write(new ODataSingleContent { FieldData = new ODataEntity { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext);
-        }
-        /// <inheritdoc />
-        protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
-        {
-            if (result is IEnumerable<ODataEntity> dictionaryList)
-            {
-                Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count()), httpContext);
-                return;
-            }
-            if (result is IEnumerable<ODataObject> customContentList)
-            {
-                Write(ODataMultipleContent.Create(customContentList, allCount ?? 0), httpContext);
-                return;
-            }
-
-            Write(result, httpContext);
-        }
-        /// <inheritdoc />
-        protected override void WriteCount(HttpContext httpContext, int count)
-        {
-            WriteRaw(count, httpContext);
-        }
-        /// <inheritdoc />
-        protected override void WriteError(HttpContext context, Error error)
-        {
-            //var settings = new JsonSerializerSettings
-            //{
-            //    DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            //    Formatting = Formatting.Indented,
-            //    Converters = ODataMiddleware.JsonConverters
-            //};
-
-            //var serializer = JsonSerializer.Create(settings);
-            //serializer.Serialize(context.Response.Output, new Dictionary<string, object> { { "error", error } });
-            //context.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
-        }
-    }
-    /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in verbose JSON format.
-    /// </summary>
-    public class VerbodeJsonFormatter : JsonFormatter
-    {
-        /// <inheritdoc />
-        /// <remarks>Returns with "verbosejson" in this case.</remarks>
-        public override string FormatName => "verbosejson";
-
-        /// <inheritdoc />
-        /// <remarks>Returns with "application/json;odata=verbose" in this case.</remarks>
-        public override string MimeType => "application/json;odata=verbose";
-    }
     /// <summary>
     /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData objects in a simple HTML TABLE format.
     /// Designed for debug and test purposes only.
@@ -364,10 +215,12 @@ namespace SenseNet.OData
         /// <inheritdoc />
         protected override void WriteCount(HttpContext httpContext, int count)
         {
-            WriteRaw(count, httpContext);
+            /*await*/
+            WriteRawAsync(count, httpContext).ConfigureAwait(false)
+      .GetAwaiter().GetResult();
         }
         /// <inheritdoc />
-        protected override void WriteError(HttpContext context, Error error)
+        protected override Task WriteErrorAsync(HttpContext context, Error error)
         {
             //var resp = context.Response;
             //resp.ContentType = "text/html";
@@ -387,30 +240,30 @@ namespace SenseNet.OData
 
         private static void WriteStart(HttpResponse resp)
         {
-//            resp.Write("<!DOCTYPE html>\n");
-//            resp.Write("<html>\n");
-//            resp.Write("<head>\n");
-//            resp.Write("<style>\n");
+            //            resp.Write("<!DOCTYPE html>\n");
+            //            resp.Write("<html>\n");
+            //            resp.Write("<head>\n");
+            //            resp.Write("<style>\n");
 
-//            resp.Write(@"
-//.MainTable { margin:0px;padding:0px; width:100%; border:1px solid #7f7f7f; }
-//.MainTable table { border-collapse: collapse; border-spacing: 0; width:100%; /*height:100%;*/ margin:0px;padding:0px; }
-//.MainTable tr:nth-child(odd)  { background-color:#e5e5e5; }
-//.MainTable tr:nth-child(even) { background-color:#ffffff; }
-//.MainTable td                            { border-width:0px 1px 1px 0px; vertical-align:middle; border:1px solid #7f7f7f; text-align:left; padding:4px; font-size:12px; font-family:Arial; font-weight:normal; color:#000000;}
-//.MainTable tr:last-child td              { border-width:0px 1px 0px 0px;}
-//.MainTable tr td:last-child              { border-width:0px 0px 1px 0px;}
-//.MainTable tr:last-child td:last-child   { border-width:0px 0px 0px 0px;}
-//.MainTable tr:first-child td             { border-width:0px 0px 1px 1px; background-color:#4c4c4c; border:0px solid #7f7f7f; font-size:16px; font-family:Arial; font-weight:bold; color:#ffffff;}
-//.MainTable tr:first-child td:first-child { border-width:0px 0px 1px 0px;}
-//.MainTable tr:first-child td:last-child  { border-width:0px 0px 1px 1px;}
-//");
-//            resp.Write("</style>\n");
-//            resp.Write("</head>\n");
+            //            resp.Write(@"
+            //.MainTable { margin:0px;padding:0px; width:100%; border:1px solid #7f7f7f; }
+            //.MainTable table { border-collapse: collapse; border-spacing: 0; width:100%; /*height:100%;*/ margin:0px;padding:0px; }
+            //.MainTable tr:nth-child(odd)  { background-color:#e5e5e5; }
+            //.MainTable tr:nth-child(even) { background-color:#ffffff; }
+            //.MainTable td                            { border-width:0px 1px 1px 0px; vertical-align:middle; border:1px solid #7f7f7f; text-align:left; padding:4px; font-size:12px; font-family:Arial; font-weight:normal; color:#000000;}
+            //.MainTable tr:last-child td              { border-width:0px 1px 0px 0px;}
+            //.MainTable tr td:last-child              { border-width:0px 0px 1px 0px;}
+            //.MainTable tr:last-child td:last-child   { border-width:0px 0px 0px 0px;}
+            //.MainTable tr:first-child td             { border-width:0px 0px 1px 1px; background-color:#4c4c4c; border:0px solid #7f7f7f; font-size:16px; font-family:Arial; font-weight:bold; color:#ffffff;}
+            //.MainTable tr:first-child td:first-child { border-width:0px 0px 1px 0px;}
+            //.MainTable tr:first-child td:last-child  { border-width:0px 0px 1px 1px;}
+            //");
+            //            resp.Write("</style>\n");
+            //            resp.Write("</head>\n");
 
-//            resp.Write("<body>\n");
-//            resp.Write("  <div class=\"MainTable\">\n");
-//            resp.Write("    <table>\n");
+            //            resp.Write("<body>\n");
+            //            resp.Write("  <div class=\"MainTable\">\n");
+            //            resp.Write("    <table>\n");
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         private static void WriteStartError(HttpResponse resp)

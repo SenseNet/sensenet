@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Primitives;
 using SenseNet.ContentRepository.Linq;
+using SenseNet.OData.Formatters;
 using SenseNet.OData.Metadata;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -122,6 +123,7 @@ namespace SenseNet.OData
                 formatter = ODataFormatter.Create(httpContext, odataRequest);
                 if (formatter == null)
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
+                formatter.Initialize(odataRequest);
 
                 httpContext.SetODataFormatter(formatter);
 

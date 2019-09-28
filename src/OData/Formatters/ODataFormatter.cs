@@ -1,32 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
-using SenseNet.ContentRepository.Fields;
-using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.Search;
-using SenseNet.ApplicationModel;
-using SenseNet.ContentRepository.Linq;
-using System.Web;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-//using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
-using SenseNet.Diagnostics;
+using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Linq;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+//using System.Net.Http;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier
 
-namespace SenseNet.OData
+namespace SenseNet.OData.Formatters
 {
     /// <summary>
     /// Defines a base class for serializing the OData response object to various formats.
@@ -110,11 +108,10 @@ namespace SenseNet.OData
 
         internal async Task WriteServiceDocumentAsync(HttpContext httpContext, ODataRequest req)
         {
-            await WriteServiceDocumentAsync(httpContext, GetTopLevelNames(req)).ConfigureAwait(false);
-
             var mimeType = this.MimeType;
             if (mimeType != null)
                 httpContext.Response.ContentType = mimeType;
+            await WriteServiceDocumentAsync(httpContext, GetTopLevelNames(req)).ConfigureAwait(false);
         }
         private string[] GetTopLevelNames(ODataRequest req)
         {
@@ -140,11 +137,11 @@ namespace SenseNet.OData
                 ? MetaGenerator.GetMetadata()
                 : MetaGenerator.GetMetadata(content, req.IsCollection);
 
-            await WriteMetadataAsync(httpContext, metadata);
-
             var mimeType = this.MimeType;
             if (mimeType != null)
                 httpContext.Response.ContentType = mimeType;
+
+            await WriteMetadataAsync(httpContext, metadata);
         }
         /// <summary>
         /// Writes the OData service metadata to the current web-response.
@@ -342,7 +339,8 @@ namespace SenseNet.OData
                 }
                 else
                 {
-                    WriteRaw(field.GetData(), httpContext);
+                    /*await*/ WriteRawAsync(field.GetData(), httpContext).ConfigureAwait(false)
+                        .GetAwaiter().GetResult();
                 }
             }
             else
@@ -359,7 +357,7 @@ namespace SenseNet.OData
         protected abstract void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw);
 
 
-        internal void WriteErrorResponse(HttpContext context, ODataException oe)
+        internal async Task WriteErrorResponse(HttpContext httpContext, ODataException oe)
         {
             var error = new Error
             {
@@ -382,19 +380,19 @@ namespace SenseNet.OData
                             : null
 #endif
             };
-            context.Response.ContentType = "application/json";
-            WriteError(context, error);
-            context.Response.StatusCode = oe.HttpStatusCode;
+
             //UNDONE:ODATA: Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors
             //context.Response.TrySkipIisCustomErrors = true;
-
+            httpContext.Response.ContentType = "application/json";
+            httpContext.Response.StatusCode = oe.HttpStatusCode;
+            await WriteErrorAsync(httpContext, error).ConfigureAwait(false);
         }
         /// <summary>
         /// Writes the given <see cref="Error"/> instance to the webresponse.
         /// </summary>
         /// <param name="context">The current <see cref="HttpContext"/> instance.</param>
         /// <param name="error">The <see cref="Error"/> instance that will be written.</param>
-        protected abstract void WriteError(HttpContext context, Error error);
+        protected abstract Task WriteErrorAsync(HttpContext context, Error error);
 
         // --------------------------------------------------------------------------------------------------------------- operations
 
@@ -944,43 +942,11 @@ namespace SenseNet.OData
         }
 
         /// <summary>
-        /// Writes an object to the webresponse.
-        /// </summary>
-        /// <param name="response">The object that will be written.</param>
-        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
-        protected void Write(object response, HttpContext httpContext)
-        {
-            //var resp = httpContext.Response;
-
-            //if (response == null)
-            //{
-            //    resp.StatusCode = 204;
-            //    return;
-            //}
-
-            //if (response is string)
-            //{
-            //    WriteRaw(response, httpContext);
-            //    return;
-            //}
-
-            //var settings = new JsonSerializerSettings
-            //{
-            //    DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            //    Formatting = Formatting.Indented,
-            //    Converters = ODataMiddleware.JsonConverters
-            //};
-            //var serializer = JsonSerializer.Create(settings);
-            //serializer.Serialize(httpContext.Response.Output, response);
-            //resp.ContentType = "application/json;odata=verbose;charset=utf-8";
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
-        }
-        /// <summary>
         /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
         /// </summary>
         /// <param name="response">The object that will be written.</param>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
-        protected void WriteRaw(object response, HttpContext httpContext)
+        protected virtual Task WriteRawAsync(object response, HttpContext httpContext)
         {
             //var resp = httpContext.Response;
             //resp.Write(response);

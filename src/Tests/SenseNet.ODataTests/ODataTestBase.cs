@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -16,6 +18,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Volatile;
 using SenseNet.OData;
+using SenseNet.ODataTests.Responses;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -25,6 +28,11 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
 {
+    public class ODataResponse
+    {
+        public int StatusCode { get; set; }
+        public string Result { get; set; }
+    }
     public class ODataTestBase
     {
         #region Infrastructure
@@ -143,7 +151,7 @@ namespace SenseNet.ODataTests
             }
         }
 
-        internal static async Task<string> ODataGetAsync(string resource, string queryString)
+        internal static async Task<ODataResponse> ODataGetAsync(string resource, string queryString)
         {
             var httpContext = new DefaultHttpContext();
             var request = httpContext.Request;
@@ -162,7 +170,7 @@ namespace SenseNet.ODataTests
             using (var reader = new StreamReader(responseOutput))
                 output = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-            return output;
+            return new ODataResponse {Result = output, StatusCode = httpContext.Response.StatusCode};
         }
         //internal static T ODataGET<T>(string resource, string queryString) where T : ODataResponse
         //{
@@ -246,6 +254,36 @@ namespace SenseNet.ODataTests
             var systemFolder = new SystemFolder(parent ?? Repository.Root) { Name = name ?? Guid.NewGuid().ToString() };
             systemFolder.Save();
             return systemFolder;
+        }
+
+
+        protected static ODataEntityResponse GetEntity(string text)
+        {
+            var result = new Dictionary<string, object>();
+            var jo = (JObject)Deserialize(text);
+            return ODataEntityResponse.Create((JObject)jo["d"]);
+        }
+        protected static JContainer Deserialize(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return null;
+
+            JContainer json;
+            using (var reader = new StringReader(text))
+                json = Deserialize(reader);
+            return json;
+        }
+        protected static JContainer Deserialize(TextReader reader)
+        {
+            var models = reader?.ReadToEnd() ?? string.Empty;
+            var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
+            var serializer = JsonSerializer.Create(settings);
+            if (serializer == null)
+                throw new InvalidOperationException("Serializer could not be created from settings.");
+
+            var jreader = new JsonTextReader(new StringReader(models));
+            var x = (JContainer)serializer.Deserialize(jreader);
+            return x;
         }
 
     }

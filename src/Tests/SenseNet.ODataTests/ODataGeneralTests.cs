@@ -19,7 +19,7 @@ namespace SenseNet.ODataTests
                 var response = await ODataGetAsync("/OData.svc", "");
 
                 // ASSERT
-                Assert.AreEqual("{\"d\":{\"EntitySets\":[\"Root\"]}}", response);
+                Assert.AreEqual("{\"d\":{\"EntitySets\":[\"Root\"]}}", response.Result);
             });
         }
 
@@ -32,7 +32,7 @@ namespace SenseNet.ODataTests
                 var response = await ODataGetAsync("/OData.svc/$metadata", "").ConfigureAwait(false);
 
                 // ASSERT
-                var metaXml = GetMetadataXml(response, out var nsmgr);
+                var metaXml = GetMetadataXml(response.Result, out var nsmgr);
 
                 Assert.IsNotNull(metaXml);
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
@@ -63,7 +63,7 @@ namespace SenseNet.ODataTests
                 var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal/$metadata", "").ConfigureAwait(false);
 
                 // ASSERT
-                var metaXml = GetMetadataXml(response, out var nsmgr);
+                var metaXml = GetMetadataXml(response.Result, out var nsmgr);
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
                 Assert.IsTrue(allTypes.Count < ContentType.GetContentTypes().Length);
             });
@@ -77,7 +77,7 @@ namespace SenseNet.ODataTests
                 var response = await ODataGetAsync("/OData.svc/Root/HiEveryBody/$metadata", "").ConfigureAwait(false);
 
                 // ASSERT: full metadata
-                var metaXml = GetMetadataXml(response, out var nsmgr);
+                var metaXml = GetMetadataXml(response.Result, out var nsmgr);
 
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
                 Assert.IsNotNull(allTypes);
@@ -85,39 +85,39 @@ namespace SenseNet.ODataTests
             });
         }
 
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_GET_MissingEntity()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataContentNotFoundResponse>("/OData.svc/Root('HiEveryBody')", "");
+                var response = await ODataGetAsync("/OData.svc/Root('HiEveryBody')", "").ConfigureAwait(false);
 
-                Assert.AreEqual(ODataResponseType.ContentNotFound, response.Type);
+                Assert.AreEqual(404, response.StatusCode);
+                Assert.AreEqual("", response.Result);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public async Task OD_GET_Entity()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
                 var content = Content.Load("/Root/IMS");
 
-                var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "");
+                var response = await ODataGetAsync("/OData.svc/Root('IMS')", "");
 
-                var entity = response.Entity;
-                Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
+                var entity = GetEntity(response.Result);
                 Assert.AreEqual(content.Id, entity.Id);
                 Assert.AreEqual(content.Name, entity.Name);
                 Assert.AreEqual(content.Path, entity.Path);
                 ////Assert.AreEqual(content.ContentType.Name, odataContent.Name);
             });
-        }*/
+        }
         /*[TestMethod]
         public async Task OD_GET_ChildrenCollection()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/IMS/BuiltIn/Portal", "");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal", "");
 
                 var entities = response.Entities;
                 var origIds = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal").Children.Select(f => f.Id).ToArray();
@@ -131,9 +131,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_CollectionViaProperty()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataMultipleContentResponse>("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "");
 
                 Assert.AreEqual(ODataResponseType.MultipleContent, response.Type);
                 var items = response.Entities;
@@ -147,17 +147,17 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_SimplePropertyAndRaw()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
                 var imsId = Repository.ImsFolder.Id;
 
-                var response1 = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')/Id", "");
+                var response1 = await ODataGetAsync("/OData.svc/Root('IMS')/Id", "");
 
                 var entity = response1.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response1.Type);
                 Assert.AreEqual(imsId, entity.Id);
 
-                var response2 = ODataGET<ODataRawResponse>("/OData.svc/Root('IMS')/Id/$value", "");
+                var response2 = await ODataGetAsync("/OData.svc/Root('IMS')/Id/$value", "");
 
                 Assert.AreEqual(ODataResponseType.RawData, response2.Type);
                 Assert.AreEqual(imsId, response2.Value);
@@ -166,12 +166,12 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_GetEntityById()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
                 var content = Content.Load(1);
                 var id = content.Id;
 
-                var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Content(" + id + ")", "");
+                var response = await ODataGetAsync("/OData.svc/Content(" + id + ")", "");
 
                 var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
@@ -184,9 +184,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_GetEntityById_InvalidId()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataErrorResponse>("/OData.svc/Content(qwer)", "");
+                var response = await ODataGetAsync("/OData.svc/Content(qwer)", "");
 
                 var exception = response.Exception;
                 Assert.AreEqual(ODataResponseType.Error, response.Type);
@@ -196,11 +196,11 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_GetPropertyOfEntityById()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
                 var content = Content.Load(1);
 
-                var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Content(" + content.Id + ")/Name", "");
+                var response = await ODataGetAsync("/OData.svc/Content(" + content.Id + ")/Name", "");
 
                 var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
@@ -210,9 +210,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Collection_Projection()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/IMS/BuiltIn/Portal", "?$select=Id,Name");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal", "?$select=Id,Name");
 
                 var entities = response.Entities;
                 Assert.AreEqual(ODataResponseType.ChildrenCollection, response.Type);
@@ -232,9 +232,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Entity_Projection()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "?$select=Id,Name");
+                var response = await ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id,Name");
 
                 var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
@@ -249,9 +249,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Entity_NoProjection()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataSingleContentResponse>("/OData.svc/Root('IMS')", "");
+                var response = await ODataGetAsync("/OData.svc/Root('IMS')", "");
 
                 var entity = response.Entity;
                 Assert.AreEqual(ODataResponseType.SingleContent, response.Type);
@@ -309,7 +309,7 @@ namespace SenseNet.ODataTests
         //                car = Content.CreateNew("Car", list, "Car2");
         //                car.Save();
 
-        //                var entities = ODataGET<ODataEntities>("/OData.svc" + list.Path, "");
+        //                var entities = await ODataGetAsync("/OData.svc" + list.Path, "");
 
         //                var entity = entities.First();
         //                var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
@@ -332,7 +332,7 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_ContentQuery()
         {
-            Isolatedawait ODataTestAsync(() =>
+            Isolatedawait ODataTestAsync(async () =>
             {
                 var folderName = "OData_ContentQuery";
                 InstallCarContentType();
@@ -368,12 +368,12 @@ namespace SenseNet.ODataTests
                 var expectedQueryLocal = $"asdf AND Type:Car AND InTree:'{folder.Path}' .SORT:Path .AUTOFILTERS:OFF";
                 var expectedLocal = string.Join(", ", CreateSafeContentQuery(expectedQueryLocal).Execute().Nodes.Select(n => n.Id.ToString()));
 
-                var response1 = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
+                var response1 = await ODataGetAsync("/OData.svc/Root", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
 
                 var realGlobal = string.Join(", ", response1.Entities.Select(e => e.Id));
                 Assert.AreEqual(realGlobal, expectedGlobal);
 
-                var response2 = ODataGET<ODataChildrenCollectionResponse>($"/OData.svc/Root/{site.Name}/{folderName}", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
+                var response2 = await ODataGetAsync($"/OData.svc/Root/{site.Name}/{folderName}", "?$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF");
 
                 var realLocal = string.Join(", ", response2.Entities.Select(e => e.Id));
                 Assert.AreEqual(realLocal, expectedLocal);
@@ -382,7 +382,7 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_ContentQuery_Nested()
         {
-            Isolatedawait ODataTestAsync(() =>
+            Isolatedawait ODataTestAsync(async () =>
             {
                 var managers = new User[3];
                 var resources = new User[9];
@@ -417,7 +417,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("User1, User4, User7", string.Join(", ", resultNamesCql));
 
                 // ACTION
-                var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root", "?$select=Name&query=" + odataQueryText);
+                var response = await ODataGetAsync("/OData.svc/Root", "?$select=Name&query=" + odataQueryText);
 
                 // ASSERT
                 var resultNamesOData = response.Entities.Select(x => x.Name).ToArray();
@@ -427,9 +427,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Collection_OrderTopSkipCount()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc/Root/System/Schema/ContentTypes/GenericContent", "?$orderby=Name desc&$skip=4&$top=3&$inlinecount=allpages");
+                var response = await ODataGetAsync("/OData.svc/Root/System/Schema/ContentTypes/GenericContent", "?$orderby=Name desc&$skip=4&$top=3&$inlinecount=allpages");
 
                 var ids = response.Entities.Select(e => e.Id);
                 var origIds = CreateSafeContentQuery(
@@ -444,9 +444,9 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Collection_Count()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var response = ODataGET<ODataCollectionCountResponse>("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "");
 
                 var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
                 Assert.AreEqual(folder.Children.Count().ToString(), response.Value.ToString());
@@ -455,21 +455,21 @@ namespace SenseNet.ODataTests
         /*[TestMethod]
         public async Task OD_GET_Collection_CountTop()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
-                var result = ODataGET<ODataCollectionCountResponse>("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "?$top=3");
+                var result = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "?$top=3");
                 Assert.AreEqual("3", result.Value.ToString());
             });
         }*/
         /*[TestMethod]
         public async Task OD_GET_Select_FieldMoreThanOnce()
         {
-            await ODataTestAsync(() =>
+            await ODataTestAsync(async () =>
             {
                 var path = User.Administrator.Parent.Path;
                 var nodecount = CreateSafeContentQuery($"InFolder:{path} .AUTOFILTERS:OFF .COUNTONLY").Execute().Count;
 
-                var response = ODataGET<ODataChildrenCollectionResponse>("/OData.svc" + path, "?metadata=no&$orderby=Name asc&$select=Id,Id,Name,Name,Path");
+                var response = await ODataGetAsync("/OData.svc" + path, "?metadata=no&$orderby=Name asc&$select=Id,Id,Name,Name,Path");
 
                 var entities = response.Entities.ToArray();
                 Assert.AreEqual(nodecount, entities.Length);
@@ -513,7 +513,7 @@ namespace SenseNet.ODataTests
                   content2["Aspect1.Field1"] = "qwer";
                   content2.Save();
 
-                  var entities = ODataGET<ODataEntities>("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1");
+                  var entities = await ODataGetAsync("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1");
 
                   Assert.IsTrue(entities.Count() == 2, string.Format("entities.Count is ({0}), expected: 2", entities.Count()));
                   Assert.IsTrue(entities[0].Name == "Car1", string.Format("entities[0].Name is ({0}), expected: 'Car1'", entities[0].Name));
@@ -572,7 +572,7 @@ namespace SenseNet.ODataTests
   }
 }";
 
-                var jsonText = ODataGET<ODataRaw>("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')", "?$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal");
+                var jsonText = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')", "?$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal");
 
                 var raw = jsonText.ToString().Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
@@ -589,7 +589,7 @@ namespace SenseNet.ODataTests
 
                 EnsureManagerOfAdmin();
 
-                var entity = ODataGET<ODataEntity>("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager");
+                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager");
 
                 var createdBy = entity.CreatedBy;
                 var createdBy_manager = createdBy.Manager;
@@ -609,7 +609,7 @@ namespace SenseNet.ODataTests
 
                 EnsureManagerOfAdmin();
 
-                var entity = ODataGET<ODataEntity>("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy");
+                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy");
 
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.AllPropertiesSelected);
@@ -628,7 +628,7 @@ namespace SenseNet.ODataTests
 
                 EnsureManagerOfAdmin();
 
-                var entity = ODataGET<ODataEntity>("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager");
+                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager");
 
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsFalse(entity.CreatedBy.AllPropertiesSelected);
@@ -647,7 +647,7 @@ namespace SenseNet.ODataTests
 
                 EnsureManagerOfAdmin();
 
-                var entity = ODataGET<ODataEntity>("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager/Id");
+                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager/Id");
 
                 var id = entity.CreatedBy.Manager.Id;
                 Assert.IsFalse(entity.AllPropertiesSelected);
@@ -688,7 +688,7 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                var entity = await ODataGetAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
                     "?metadata=no&$select=Avatar");
 
                 // ASSERT
@@ -828,7 +828,7 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                var entity = await ODataGetAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
                     "?metadata=no&$select=Avatar,ImageRef,ImageData");
 
                 // ASSERT
@@ -929,11 +929,11 @@ namespace SenseNet.ODataTests
         //    //                var expectedNames = "Content-3, Content-2, Content-4, Content-5, Content-1";
         //    //                Assert.AreEqual(expectedNames, names);
 
-        //    //                var entities = ODataGET<ODataEntities>("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
+        //    //                var entities = await ODataGetAsync("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
         //    //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
         //    //                Assert.AreEqual("Content-1, Content-2, Content-3, Content-4, Content-5", names);
 
-        //    //                entities = ODataGET<ODataEntities>("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=CustomIndex asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
+        //    //                entities = await ODataGetAsync("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=CustomIndex asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no");
         //    //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
         //    //                Assert.AreEqual(expectedNames, names);
         //    //            }

@@ -736,25 +736,9 @@ namespace SenseNet.ODataTests
     //                Assert.AreEqual(origIds, Ids);
     //            });
     //        }
-    //        [TestMethod]
+    //        //[TestMethod]
     //        public void OData_Getting_Entity()
     //        {
-    //            Test(() =>
-    //            {
-    //                CreateTestSite();
-
-    //                ODataEntity entity;
-    //                using (var output = new StringWriter())
-    //                {
-    //                    var pc = CreatePortalContext("/OData.svc/Root('IMS')", "", output);
-    //                    var handler = new ODataHandler();
-    //                    handler.ProcessRequest(pc.OwnerHttpContext);
-    //                    entity = GetEntity(output);
-    //                }
-    //                var nodeHead = NodeHead.Get(entity.Path);
-    //                Assert.IsTrue(nodeHead.Id == entity.Id,
-    //                    string.Format("nodeHead.Id ({0}) and entity.Id ({1}) are not equal", nodeHead.Id, entity.Id));
-    //            });
     //        }
     //        [TestMethod]
     //        public void OData_Getting_NotExistentEntity()
