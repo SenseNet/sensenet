@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using SenseNet.ContentRepository;
 using System.IO;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -18,10 +17,12 @@ using System.Threading;
 //using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier
 
@@ -107,9 +108,9 @@ namespace SenseNet.OData
 
         // --------------------------------------------------------------------------------------------------------------- metadata
 
-        internal void WriteServiceDocument(HttpContext httpContext, ODataRequest req)
+        internal async Task WriteServiceDocumentAsync(HttpContext httpContext, ODataRequest req)
         {
-            WriteServiceDocument(httpContext, GetTopLevelNames(req));
+            await WriteServiceDocumentAsync(httpContext, GetTopLevelNames(req)).ConfigureAwait(false);
 
             var mimeType = this.MimeType;
             if (mimeType != null)
@@ -127,33 +128,30 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="names">Root names.</param>
-        protected abstract void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names);
+        protected abstract Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names);
 
-        internal void WriteMetadata(HttpContext httpContext, ODataRequest req)
+        internal async Task WriteMetadataAsync(HttpContext httpContext, ODataRequest req)
         {
-            //var content = ODataMiddleware.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
+            var content = ODataMiddleware.LoadContentByVersionRequest(req.RepositoryPath, httpContext);
 
             //var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
-            //if (isRoot)
-            //    MetaGenerator.WriteMetadata(httpContext.Response.Output, this);
-            //else
-            //    MetaGenerator.WriteMetadata(httpContext.Response.Output, this, content, req.IsCollection);
+            var isRoot = content == null;
+            var metadata = isRoot
+                ? MetaGenerator.GetMetadata()
+                : MetaGenerator.GetMetadata(content, req.IsCollection);
 
-            //var mimeType = this.MimeType;
-            //if (mimeType != null)
-            //    httpContext.Response.ContentType = mimeType;
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
-        }
-        internal void WriteMetadataInternal(TextWriter writer, Metadata.Edmx edmx)
-        {
-            WriteMetadata(writer, edmx);
+            await WriteMetadataAsync(httpContext, metadata);
+
+            var mimeType = this.MimeType;
+            if (mimeType != null)
+                httpContext.Response.ContentType = mimeType;
         }
         /// <summary>
-        /// Writes the OData service metadata to the given text writer
+        /// Writes the OData service metadata to the current web-response.
         /// </summary>
-        /// <param name="writer">Output writer.</param>
+        /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="edmx">Metadata that will be written.</param>
-        protected abstract void WriteMetadata(TextWriter writer, Metadata.Edmx edmx);
+        protected abstract Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx);
 
         /* ---------------------------------------------------------------------------------------------------- content requests */
 

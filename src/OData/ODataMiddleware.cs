@@ -99,6 +99,7 @@ namespace SenseNet.OData
         internal STT.Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
         {
             ProcessRequest(httpContext, odataRequest);
+            //httpContext.Response.Body.Flush();
             return STT.Task.CompletedTask;
         }
 
@@ -150,12 +151,14 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataRequest.IsServiceDocumentRequest)
                         {
-                            formatter.WriteServiceDocument(httpContext, odataRequest);
+                            /*await*/ formatter.WriteServiceDocumentAsync(httpContext, odataRequest)
+                                .ConfigureAwait(false).GetAwaiter().GetResult();
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
                             //return ODataResponse.CreateMetadataResponse(exists ? odataRequest.RepositoryPath : "/");
-                            formatter.WriteMetadata(httpContext, odataRequest);
+                            /*await*/ formatter.WriteMetadataAsync(httpContext, odataRequest)
+                                .ConfigureAwait(false).GetAwaiter().GetResult();
                         }
                         else
                         {

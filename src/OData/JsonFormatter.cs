@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.OData;
+using System.Threading.Tasks;
 
 namespace SenseNet.OData
 {
@@ -22,12 +24,18 @@ namespace SenseNet.OData
         public override string MimeType => "application/xml";
 
         /// <inheritdoc />
-        protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
         {
-            edmx.WriteXml(writer);
+            string result;
+            using (var writer = new StringWriter())
+            {
+                edmx.WriteXml(writer);
+                result = writer.GetStringBuilder().ToString();
+            }
+            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
+        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
@@ -58,19 +66,27 @@ namespace SenseNet.OData
         public override string MimeType => "application/json";
 
         /// <inheritdoc />
-        protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
         {
-            edmx.WriteJson(writer);
+            string result;
+            using (var writer = new StringWriter())
+            {
+                edmx.WriteJson(writer);
+                result = writer.GetStringBuilder().ToString();
+            }
+            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
         }
         /// <inheritdoc />
-        protected override void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names)
+        protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
         {
-            //var resp = httpContext.Response;
+            using (var writer = new StringWriter())
+            {
+                var x = new { d = new { EntitySets = names } };
+                JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
+                    .Serialize(writer, x);
 
-            //var x = new { d = new { EntitySets = names } };
-            //JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
-            //    .Serialize(resp.Output, x);
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
+                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString());
+            }
         }
         /// <inheritdoc />
         protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields)
@@ -155,12 +171,12 @@ namespace SenseNet.OData
         public override string MimeType => "text/html";
 
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
+        protected override Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
         {
             throw new SnNotSupportedException("Table formatter does not support metadata writing.");
         }
         /// <inheritdoc />
-        protected override void WriteServiceDocument(HttpContext httpContext, IEnumerable<string> names)
+        protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
         {
             //var resp = httpContext.Response;
 

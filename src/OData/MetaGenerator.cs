@@ -26,14 +26,13 @@ namespace SenseNet.OData
         internal static readonly ContentType ContentListContentType = ContentType.GetByName("ContentList");
         private static readonly IEnumerable<FieldSetting> EmtpyFieldSettings = new FieldSetting[0];
 
-        public static void WriteMetadata(TextWriter writer, ODataFormatter formatter)
+        public static Edmx GetMetadata()
         {
-            formatter.WriteMetadataInternal(writer, CreateEdmx());
+            return CreateEdmx();
         }
-        public static void WriteMetadata(TextWriter writer, ODataFormatter formatter, Content content, bool isCollection)
+        public static Edmx GetMetadata(Content content, bool isCollection)
         {
-            var edmx = CreateEdmx(content, isCollection);
-            formatter.WriteMetadataInternal(writer, edmx);
+            return CreateEdmx(content, isCollection);
         }
 
         private static Edmx CreateEdmx(Content content, bool isCollection)
