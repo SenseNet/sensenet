@@ -156,17 +156,17 @@ namespace SenseNet.OData.Formatters
         //{
         //    WriteSingleContent(ODataMiddleware.LoadContentByVersionRequest(path, httpContext), httpContext);
         //}
-        internal void WriteSingleContent(Content content, HttpContext httpContext)
+        internal async Task WriteSingleContentAsync(Content content, HttpContext httpContext)
         {
             var fields = CreateFieldDictionary(content, false, httpContext);
-            WriteSingleContent(httpContext, fields);
+            await WriteSingleContentAsync(httpContext, fields).ConfigureAwait(false);
         }
         /// <summary>
         /// Writes the given fields of a Content to the webresponse.
         /// </summary>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="fields">A Dictionary&lt;string, object&gt; that will be written.</param>
-        protected abstract void WriteSingleContent(HttpContext httpContext, ODataEntity fields);
+        protected abstract Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields);
 
         internal void WriteChildrenCollection(String path, HttpContext httpContext, ODataRequest req)
         {
@@ -262,7 +262,8 @@ namespace SenseNet.OData.Formatters
             {
                 if (references is Node node)
                 {
-                    WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext));
+                    WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext)).ConfigureAwait(false)
+                        .GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -270,7 +271,8 @@ namespace SenseNet.OData.Formatters
                     {
                         foreach (Node item in enumerable)
                         {
-                            WriteSingleContent(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext));
+                            /*await*/ WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext)).ConfigureAwait(false)
+                                .GetAwaiter().GetResult();
                             break;
                         }
                     }
@@ -335,7 +337,8 @@ namespace SenseNet.OData.Formatters
                 }
                 else if (!rawValue)
                 {
-                    WriteSingleContent(httpContext, new ODataEntity { { propertyName, field.GetData() } });
+                    /*await*/ WriteSingleContentAsync(httpContext, new ODataEntity { { propertyName, field.GetData() } }).ConfigureAwait(false)
+                        .GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -427,7 +430,7 @@ namespace SenseNet.OData.Formatters
 
             if (response is Content responseAsContent)
             {
-                WriteSingleContent(responseAsContent, httpContext);
+                /*await*/ WriteSingleContentAsync(responseAsContent, httpContext).ConfigureAwait(false);
                 return;
             }
 
@@ -461,7 +464,7 @@ namespace SenseNet.OData.Formatters
 
             if (response is Content responseAsContent)
             {
-                WriteSingleContent(responseAsContent, httpContext);
+                /*await*/ WriteSingleContentAsync(responseAsContent, httpContext).ConfigureAwait(false);
                 return;
             }
 
@@ -472,7 +475,7 @@ namespace SenseNet.OData.Formatters
         {
             if (result is Content content)
             {
-                WriteSingleContent(content, httpContext);
+                /*await*/ WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
                 return;
             }
 

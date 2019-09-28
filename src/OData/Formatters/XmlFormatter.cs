@@ -32,7 +32,7 @@ namespace SenseNet.OData.Formatters
         /// <summary>This method is not supported in this formatter.</summary>
         protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
+        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>

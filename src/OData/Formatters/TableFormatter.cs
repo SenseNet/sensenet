@@ -43,7 +43,7 @@ namespace SenseNet.OData.Formatters
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields)
+        protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields)
         {
             //var resp = httpContext.Response;
             //resp.ContentType = "text/html";

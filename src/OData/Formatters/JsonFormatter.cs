@@ -45,10 +45,9 @@ namespace SenseNet.OData.Formatters
             }
         }
         /// <inheritdoc />
-        protected override void WriteSingleContent(HttpContext httpContext, ODataEntity fields)
+        protected override async Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields)
         {
-            /*await*/ WriteAsync(new ODataSingleContent { FieldData = fields }, httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+            await WriteAsync(new ODataSingleContent { FieldData = fields }, httpContext).ConfigureAwait(false);
         }
         /// <inheritdoc />
         protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)

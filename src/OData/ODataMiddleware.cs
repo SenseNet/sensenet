@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Web;
-using System.Xml.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -18,15 +13,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.Extensions.Primitives;
-using SenseNet.ContentRepository.Linq;
 using SenseNet.OData.Formatters;
-using SenseNet.OData.Metadata;
-using SenseNet.Search;
-using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
 // ReSharper disable ArrangeThisQualifier
 
@@ -172,7 +160,7 @@ namespace SenseNet.OData
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
                                     odataRequest.IsRawValueRequest, httpContext, odataRequest);
                             else
-                                formatter.WriteSingleContent(requestedContent, httpContext);
+                                /*await*/ formatter.WriteSingleContentAsync(requestedContent, httpContext).ConfigureAwait(false);
                         }
                         break;
                     case "PUT": // update
@@ -193,7 +181,7 @@ namespace SenseNet.OData
 
                             ResetContent(content);
                             UpdateContent(content, model, odataRequest);
-                            formatter.WriteSingleContent(content, httpContext);
+                            /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
                         }
                         break;
                     case "MERGE":
@@ -215,7 +203,7 @@ namespace SenseNet.OData
                             }
 
                             UpdateContent(content, model, odataRequest);
-                            formatter.WriteSingleContent(content, httpContext);
+                            /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
                         }
                         break;
                     case "POST": // invoke an action, create content
@@ -234,7 +222,7 @@ namespace SenseNet.OData
                             }
                             model = Read(inputStream);
                             var newContent = CreateNewContent(model, odataRequest);
-                            formatter.WriteSingleContent(newContent, httpContext);
+                            /*await*/ formatter.WriteSingleContentAsync(newContent, httpContext).ConfigureAwait(false);
                         }
                         break;
                     case "DELETE":
@@ -321,14 +309,12 @@ namespace SenseNet.OData
 
                 formatter?.WriteErrorResponse(httpContext, oe);
             }
-            finally
-            {
-                //httpContext.Response.End();
-
-                //UNDONE:ODATA: async
-                //await _next(httpContext);
-                //_next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
+            //finally
+            //{
+            //    //httpContext.Response.End();
+            //    //await _next(httpContext);
+            //    //_next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
+            //}
         }
 
         /* ==== */
