@@ -50,10 +50,9 @@ namespace SenseNet.OData.Formatters
             await WriteAsync(new ODataSingleContent { FieldData = fields }, httpContext).ConfigureAwait(false);
         }
         /// <inheritdoc />
-        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
+        protected override async Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
         {
-            /*await*/ WriteAsync(ODataMultipleContent.Create(contents, count), httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+            await WriteAsync(ODataMultipleContent.Create(contents, count), httpContext).ConfigureAwait(false);
         }
         /// <inheritdoc />
         protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw)
@@ -85,10 +84,9 @@ namespace SenseNet.OData.Formatters
                 .GetAwaiter().GetResult();
         }
         /// <inheritdoc />
-        protected override void WriteCount(HttpContext httpContext, int count)
+        protected override Task WriteCountAsync(HttpContext httpContext, int count)
         {
-            /*await*/ WriteRawAsync(count, httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+            return WriteRawAsync(count, httpContext);
         }
 
         /// <inheritdoc />

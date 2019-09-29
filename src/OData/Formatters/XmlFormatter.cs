@@ -40,13 +40,11 @@ namespace SenseNet.OData.Formatters
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count) { throw new SnNotSupportedException(); }
+        protected override Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count) { throw new SnNotSupportedException(); }
         /// <inheritdoc />
-        protected override void WriteCount(HttpContext httpContext, int count)
+        protected override Task WriteCountAsync(HttpContext httpContext, int count)
         {
-            /*await*/
-            WriteRawAsync(count, httpContext).ConfigureAwait(false)
-      .GetAwaiter().GetResult();
+            return WriteRawAsync(count, httpContext);
         }
     }
 }

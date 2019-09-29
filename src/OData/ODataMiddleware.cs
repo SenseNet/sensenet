@@ -153,7 +153,7 @@ namespace SenseNet.OData
                                 ContentNotFound(httpContext);
                             else if (odataRequest.IsCollection)
                                 //UNDONE:ODATA:! ASYNC
-                                formatter.WriteChildrenCollection(odataRequest.RepositoryPath, httpContext, odataRequest);
+                                await formatter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest);
                             else if (odataRequest.IsMemberRequest)
                                 //UNDONE:ODATA:! ASYNC
                                 formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,

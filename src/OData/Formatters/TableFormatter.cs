@@ -89,7 +89,7 @@ namespace SenseNet.OData.Formatters
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteMultipleContent(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
+        protected override Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> contents, int count)
         {
             //var resp = httpContext.Response;
             //var colNames = new List<string> {"Nr."};
@@ -205,7 +205,8 @@ namespace SenseNet.OData.Formatters
                 {"Forbidden", x.Forbidden}
             }).ToList();
 
-            WriteMultipleContent(httpContext, data, actions.Length);
+            /*await*/ WriteMultipleContentAsync(httpContext, data, actions.Length).ConfigureAwait(false)
+                .GetAwaiter().GetResult();
         }
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
@@ -213,11 +214,9 @@ namespace SenseNet.OData.Formatters
             throw new NotSupportedException("TableFormatter supports only a Content or an IEnumerable<Content> as an operation result.");
         }
         /// <inheritdoc />
-        protected override void WriteCount(HttpContext httpContext, int count)
+        protected override Task WriteCountAsync(HttpContext httpContext, int count)
         {
-            /*await*/
-            WriteRawAsync(count, httpContext).ConfigureAwait(false)
-      .GetAwaiter().GetResult();
+            return WriteRawAsync(count, httpContext);
         }
         /// <inheritdoc />
         protected override Task WriteErrorAsync(HttpContext context, Error error)
