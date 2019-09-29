@@ -265,6 +265,20 @@ namespace SenseNet.ODataTests
             var jo = (JObject)Deserialize(text);
             return ODataEntityResponse.Create((JObject)jo["d"]);
         }
+        protected static ODataEntitiesResponse GetEntities(ODataResponse response)
+        {
+            var text = response.Result;
+
+            var result = new List<ODataEntityResponse>();
+            var jo = (JObject)Deserialize(text);
+            var d = (JObject)jo["d"];
+            var count = d["__count"].Value<int>();
+            var jarray = (JArray)d["results"];
+            for (int i = 0; i < jarray.Count; i++)
+                result.Add(ODataEntityResponse.Create((JObject)jarray[i]));
+            return new ODataEntitiesResponse(result.ToList(), count);
+        }
+
         protected static ODataErrorResponse GetError(ODataResponse response)
         {
             var text = response.Result;
