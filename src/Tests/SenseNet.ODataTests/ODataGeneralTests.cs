@@ -539,12 +539,12 @@ namespace SenseNet.ODataTests
         }
 
 
-        //UNDONE:ODATA:TEST: Implement this 10 tests
 
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_Expand
         /*[TestMethod]
-        public void OData_Expand()
+        public async Task OD_GET_Expand()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 CreateTestSite();
 
@@ -578,20 +578,21 @@ namespace SenseNet.ODataTests
                 var raw = jsonText.ToString().Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(exp, raw);
-            });
+            }).ConfigureAwait(false);
         }*/
 
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_GET_Expand_Level2_Noselect()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                CreateTestSite();
-
                 EnsureManagerOfAdmin();
 
-                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager");
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root/IMS/BuiltIn('Portal')",
+                    "?$expand=CreatedBy/Manager");
 
+                var entity = GetEntity(response);
                 var createdBy = entity.CreatedBy;
                 var createdBy_manager = createdBy.Manager;
                 Assert.IsTrue(entity.AllPropertiesSelected);
@@ -599,57 +600,56 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(createdBy_manager.AllPropertiesSelected);
                 Assert.IsTrue(createdBy.Manager.CreatedBy.IsDeferred);
                 Assert.IsTrue(createdBy.Manager.Manager.IsDeferred);
-            });
-        }*/
-        /*[TestMethod]
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async Task OD_GET_Expand_Level2_Select_Level1()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                CreateTestSite();
-
                 EnsureManagerOfAdmin();
 
-                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy");
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root/IMS/BuiltIn('Portal')",
+                    "?$expand=CreatedBy/Manager&$select=CreatedBy");
 
+                var entity = GetEntity(response);
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.CreatedBy.IsDeferred);
                 Assert.IsTrue(entity.CreatedBy.Manager.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.Manager.CreatedBy.IsDeferred);
                 Assert.IsTrue(entity.CreatedBy.Manager.Manager.IsDeferred);
-            });
-        }*/
-        /*[TestMethod]
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async Task OD_GET_Expand_Level2_Select_Level2()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                CreateTestSite();
-
                 EnsureManagerOfAdmin();
 
-                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager");
 
+                var entity = GetEntity(response);
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsFalse(entity.CreatedBy.AllPropertiesSelected);
                 Assert.IsNull(entity.CreatedBy.CreatedBy);
                 Assert.IsTrue(entity.CreatedBy.Manager.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.Manager.CreatedBy.IsDeferred);
                 Assert.IsTrue(entity.CreatedBy.Manager.Manager.IsDeferred);
-            });
-        }*/
-        /*[TestMethod]
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async Task OD_GET_Expand_Level2_Select_Level3()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                CreateTestSite();
-
                 EnsureManagerOfAdmin();
 
-                var entity = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager/Id");
+                var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn('Portal')", "?$expand=CreatedBy/Manager&$select=CreatedBy/Manager/Id");
 
+                var entity = GetEntity(response);
                 var id = entity.CreatedBy.Manager.Id;
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsFalse(entity.CreatedBy.AllPropertiesSelected);
@@ -657,13 +657,14 @@ namespace SenseNet.ODataTests
                 Assert.IsFalse(entity.CreatedBy.Manager.AllPropertiesSelected);
                 Assert.IsTrue(entity.CreatedBy.Manager.Id > 0);
                 Assert.IsNull(entity.CreatedBy.Manager.Path);
-            });
-        }*/
+            }).ConfigureAwait(false);
+        }
 
+        //UNDONE:ODATA:TEST: Implement this 5 tests
         /*[TestMethod]
         public async Task OD_GET_UserAvatarByRef()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -696,12 +697,12 @@ namespace SenseNet.ODataTests
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
-            });
+            }).ConfigureAwait(false);
         }*/
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateRef()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -746,12 +747,12 @@ namespace SenseNet.ODataTests
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
-            });
+            }).ConfigureAwait(false);
         }*/
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateRefByPath()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -796,12 +797,12 @@ namespace SenseNet.ODataTests
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
-            });
+            }).ConfigureAwait(false);
         }*/
         /*[TestMethod]
         public async Task OD_GET_UserAvatarByInnerData()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -836,12 +837,12 @@ namespace SenseNet.ODataTests
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains($"/binaryhandler.ashx?nodeid={testUser.Id}&propertyname=ImageData"));
-            });
+            }).ConfigureAwait(false);
         }*/
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -883,7 +884,7 @@ namespace SenseNet.ODataTests
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
-            });
+            }).ConfigureAwait(false);
         }*/
 
         //UNDONE:ODATA:TEST: Remove inconclusive test result and implement this test.

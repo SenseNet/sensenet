@@ -246,6 +246,16 @@ namespace SenseNet.ODataTests
             ContentTypeInstaller.InstallContentType(CarContentType);
         }
 
+        protected static void EnsureManagerOfAdmin()
+        {
+            var content = Content.Create(User.Administrator);
+            if (((IEnumerable<Node>)content["Manager"]).Count() > 0)
+                return;
+            content["Manager"] = User.Administrator;
+            content["Email"] = "anybody@somewhere.com";
+            content.Save();
+        }
+
         protected static SystemFolder CreateTestRoot(string name = null)
         {
             return CreateTestRoot(null, name);
