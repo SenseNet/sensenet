@@ -75,7 +75,10 @@ namespace SenseNet.ODataTests
             await ODataChildrenTest(async () =>
             {
                 // ACTION
-                var response = await ODataGetAsync($"/OData.svc/Root/WSRoot('Workspace1')", "?metadata=no&$select=Id,Name,Children");
+                var response = await ODataGetAsync(
+                    $"/OData.svc/Root/WSRoot('Workspace1')",
+                    "?metadata=no&$select=Id,Name,Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entity = GetEntity(response);
@@ -93,7 +96,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')",
-                    "?metadata=no&$select=Id,Name,Children&$expand=Children");
+                    "?metadata=no&$select=Id,Name,Children&$expand=Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entity = GetEntity(response);
@@ -112,7 +116,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')",
-                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entity = GetEntity(response);
@@ -130,7 +135,8 @@ namespace SenseNet.ODataTests
                 // ACTION: switch on autofilters
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')",
-                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true")
+                    .ConfigureAwait(false);
 
                 var entity = GetEntity(response);
                 var children = entity.Children;
@@ -147,7 +153,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')/Children",
-                    "?metadata=no&$select=Id,Name,Children&$expand=Children");
+                    "?metadata=no&$select=Id,Name,Children&$expand=Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entities = GetEntities(response);
@@ -169,7 +176,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')/Children",
-                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children");
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entities = GetEntities(response);
@@ -194,7 +202,8 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')/Children",
-                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children");
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path,Children/Children/Id,Children/Children/Path&$expand=Children,Children/Children")
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 var entities = GetEntities(response);
@@ -220,7 +229,8 @@ namespace SenseNet.ODataTests
                 // ACTION-1: switch on autofilters
                 var response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')/Children",
-                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
+                    "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true")
+                    .ConfigureAwait(false);
 
                 // ASSERT-1
                 var entities = GetEntities(response);
@@ -229,7 +239,8 @@ namespace SenseNet.ODataTests
                 // ACTION-2: add a query filter
                 response = await ODataGetAsync(
                     $"/OData.svc/Root/WSRoot('Workspace1')/Children",
-                    "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
+                    "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true")
+                    .ConfigureAwait(false);
 
                 // ASSERT-2
                 entities = GetEntities(response);

@@ -20,7 +20,8 @@ namespace SenseNet.ODataTests
             {
                 var response = await ODataGetAsync(
                     "/OData.svc/Root",
-                    "?$filter=startswith(Name, 'IM') eq true");
+                    "?$filter=startswith(Name, 'IM') eq true")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
                 var origIds = Repository.Root.Children
@@ -41,7 +42,8 @@ namespace SenseNet.ODataTests
             {
                 var response = await ODataGetAsync(
                     "/OData.svc/Root",
-                    "?$filter=endswith(Name, 'MS') eq true");
+                    "?$filter=endswith(Name, 'MS') eq true")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
                 var origIds = Repository.Root.Children
@@ -63,7 +65,8 @@ namespace SenseNet.ODataTests
             {
                 var response = await ODataGetAsync(
                     "/OData.svc/Root",
-                    "?$filter=substringof('yste', Name) eq true");
+                    "?$filter=substringof('yste', Name) eq true")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
                 var origIds = Repository.Root.Children
@@ -136,14 +139,20 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(origIds.Length > 0);
 
                 // get ids by filter
-                var response1 = await ODataGetAsync("/OData.svc" + list.Path, "enableautofilters=false&$filter=substringof('asdf', #CustomField) eq true");
+                var response1 = await ODataGetAsync(
+                    "/OData.svc" + list.Path,
+                    "enableautofilters=false&$filter=substringof('asdf', #CustomField) eq true")
+                    .ConfigureAwait(false);
                 var entities1 = GetEntities(response1);
                 var ids1 = entities1.Select(e => e.Id).ToArray();
                 Assert.AreEqual(0, origIds.Except(ids1).Count());
                 Assert.AreEqual(0, ids1.Except(origIds).Count());
 
                 // get ids by filter URLencoded
-                var response2 = await ODataGetAsync("/OData.svc" + list.Path, "enableautofilters=false&$filter=substringof('asdf', %23CustomField) eq true");
+                var response2 = await ODataGetAsync(
+                    "/OData.svc" + list.Path,
+                    "enableautofilters=false&$filter=substringof('asdf', %23CustomField) eq true")
+                    .ConfigureAwait(false);
                 var entities2 = GetEntities(response1);
                 var ids2 = entities2.Select(e => e.Id).ToArray();
                 Assert.AreEqual(0, origIds.Except(ids2).Count());
@@ -170,7 +179,8 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
-                    "?$filter=isof('Folder')");
+                    "?$filter=isof('Folder')")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(2, entities.Length);
@@ -179,7 +189,8 @@ namespace SenseNet.ODataTests
 
                 response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
-                    "?&$filter=not isof('Folder')");
+                    "?&$filter=not isof('Folder')")
+                    .ConfigureAwait(false);
 
                 entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Length);
@@ -194,7 +205,8 @@ namespace SenseNet.ODataTests
             {
                 var response = await ODataGetAsync(
                     "/OData.svc/Root",
-                    "?$filter=isof('Folder') eq true");
+                    "?$filter=isof('Folder') eq true")
+                    .ConfigureAwait(false);
 
                 var origIds = Repository.Root.Children
                     .Where(x => x.NodeType.IsInstaceOfOrDerivedFrom("Folder"))
@@ -227,7 +239,8 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + testRoot.Path,
-                    "?$filter=Make eq 'Ferrari'&enableautofilters=false");
+                    "?$filter=Make eq 'Ferrari'&enableautofilters=false")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(2, entities.Length);
@@ -242,7 +255,8 @@ namespace SenseNet.ODataTests
             {
                 var response = await ODataGetAsync(
                     "/OData.svc/Root/IMS/BuiltIn/Portal",
-                    "?$orderby=Id&$filter=Id lt (9 sub 2)");
+                    "?$orderby=Id&$filter=Id lt (9 sub 2)")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(2, entities.Length);
@@ -271,7 +285,8 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
-                    "?$filter=IsFolder eq true");
+                    "?$filter=IsFolder eq true")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(2, entities.Length);
@@ -280,7 +295,8 @@ namespace SenseNet.ODataTests
 
                 response = await ODataGetAsync(
                     "/OData.svc" + folder.Path,
-                    "?$filter=IsFolder eq false");
+                    "?$filter=IsFolder eq false")
+                    .ConfigureAwait(false);
 
                 entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Length);
@@ -297,7 +313,8 @@ namespace SenseNet.ODataTests
 
                 var response = await ODataGetAsync(
                     "/OData.svc/Root/IMS/BuiltIn/Portal",
-                    $"?$filter={name}/TestValue eq Name");
+                    $"?$filter={name}/TestValue eq Name")
+                    .ConfigureAwait(false);
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Count());
