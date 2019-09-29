@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿// ReSharper disable StringLiteralTypo
 namespace SenseNet.OData.Formatters
 {
     /// <summary>
     /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in verbose JSON format.
     /// </summary>
-    public class VerbodeJsonFormatter : JsonFormatter
+    public class VerboseJsonFormatter : JsonFormatter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "verbosejson" in this case.</remarks>
