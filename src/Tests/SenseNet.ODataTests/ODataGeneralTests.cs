@@ -26,7 +26,7 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 Assert.AreEqual("{\"d\":{\"EntitySets\":[\"Root\"]}}", response.Result);
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace SenseNet.ODataTests
                     var hasId = node.SelectSingleNode("x:Property[@Name = 'Id']", nsmgr) != null;
                     Assert.IsFalse(hasKey);
                 }
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Metadata_Entity()
@@ -72,7 +72,7 @@ namespace SenseNet.ODataTests
                 var metaXml = GetMetadataXml(response.Result, out var nsmgr);
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
                 Assert.IsTrue(allTypes.Count < ContentType.GetContentTypes().Length);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Metadata_MissingEntity()
@@ -88,7 +88,7 @@ namespace SenseNet.ODataTests
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
                 Assert.IsNotNull(allTypes);
                 Assert.AreEqual(ContentType.GetContentTypes().Length, allTypes.Count);
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ namespace SenseNet.ODataTests
 
                 Assert.AreEqual(404, response.StatusCode);
                 Assert.AreEqual("", response.Result);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Entity()
@@ -115,7 +115,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(content.Id, entity.Id);
                 Assert.AreEqual(content.Name, entity.Name);
                 Assert.AreEqual(content.Path, entity.Path);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
 
@@ -131,7 +131,7 @@ namespace SenseNet.ODataTests
 
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_CollectionViaProperty()
@@ -146,7 +146,7 @@ namespace SenseNet.ODataTests
 
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_SimplePropertyAndRaw()
@@ -167,7 +167,7 @@ namespace SenseNet.ODataTests
 
                 // ASSERT 2
                 Assert.AreEqual(imsId.ToString(), response2.Result);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_GetEntityById()
@@ -184,7 +184,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(content.Path, entity.Path);
                 Assert.AreEqual(content.Name, entity.Name);
                 Assert.AreEqual(content.ContentType, entity.ContentType);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_GetEntityById_InvalidId()
@@ -195,7 +195,7 @@ namespace SenseNet.ODataTests
 
                 var exception = GetError(response);
                 Assert.AreEqual(ODataExceptionCode.InvalidId, exception.Code);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_GetPropertyOfEntityById()
@@ -208,7 +208,7 @@ namespace SenseNet.ODataTests
 
                 var entity = GetEntity(response);
                 Assert.AreEqual(content.Name, entity.Name);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Collection_Projection()
@@ -226,7 +226,7 @@ namespace SenseNet.ODataTests
                     Assert.IsTrue(entity.AllProperties.ContainsKey("Name"));
                     Assert.IsNull(entity.Path);
                 }
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Entity_Projection()
@@ -241,7 +241,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(entity.AllProperties.ContainsKey("__metadata"));
                 Assert.IsTrue(entity.AllProperties.ContainsKey("Id"));
                 Assert.IsTrue(entity.AllProperties.ContainsKey("Name"));
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Entity_NoProjection()
@@ -266,7 +266,7 @@ namespace SenseNet.ODataTests
 
                 Assert.AreEqual(0, a.Length);
                 Assert.AreEqual(0, b.Length);
-            });
+            }).ConfigureAwait(false);
         }
 
         //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
@@ -322,7 +322,7 @@ namespace SenseNet.ODataTests
 
         //                Assert.IsTrue(a.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", a)));
         //                Assert.IsTrue(b.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", b)));
-        //            });
+        //            }).ConfigureAwait(false);
         //        }
 
         [TestMethod]
@@ -375,7 +375,7 @@ namespace SenseNet.ODataTests
                 var entities2 = GetEntities(response2);
                 var realLocal = string.Join(", ", entities2.Select(e => e.Id));
                 Assert.AreEqual(realLocal, expectedLocal);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_ContentQuery_Nested()
@@ -421,7 +421,7 @@ namespace SenseNet.ODataTests
                 var entities = GetEntities(response);
                 var resultNamesOData = entities.Select(x => x.Name).ToArray();
                 Assert.AreEqual("User1, User4, User7", string.Join(", ", resultNamesOData));
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Collection_OrderTopSkipCount()
@@ -439,7 +439,7 @@ namespace SenseNet.ODataTests
                 var actual = String.Join(", ", ids);
                 Assert.AreEqual(expected, actual);
                 Assert.AreEqual(ContentType.GetByName("GenericContent").ChildTypes.Count, entities.TotalCount);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Collection_Count()
@@ -450,7 +450,7 @@ namespace SenseNet.ODataTests
 
                 var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
                 Assert.AreEqual(folder.Children.Count().ToString(), response.Result);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Collection_CountTop()
@@ -460,7 +460,7 @@ namespace SenseNet.ODataTests
                 var response = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "?$top=3");
 
                 Assert.AreEqual("3", response.Result);
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_GET_Select_FieldMoreThanOnce()
@@ -475,7 +475,7 @@ namespace SenseNet.ODataTests
                 var entities = GetEntities(response);
                 Assert.AreEqual(nodecount, entities.Length);
                 Assert.AreEqual("Id,Name,Path", string.Join(",", entities[0].AllProperties.Keys.ToArray()));
-            });
+            }).ConfigureAwait(false);
         }
 
         //UNDONE:ODATA:TEST: Implement this test: OData_Select_AspectField

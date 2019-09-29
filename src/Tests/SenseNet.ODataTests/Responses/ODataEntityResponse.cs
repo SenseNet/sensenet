@@ -53,7 +53,8 @@ namespace SenseNet.ODataTests.Responses
                 if (_data.TryGetValue("__metadata", out var meta))
                     typeName = (string) ((JValue) ((JObject) meta)["type"]).Value;
                 else if (_data.TryGetValue("Type", out var typeValue))
-                    typeName = (string)typeValue;
+                    //typeName = (string)typeValue;
+                    typeName = typeValue.ToString();
 
                 if (string.IsNullOrEmpty(typeName))
                     return null;

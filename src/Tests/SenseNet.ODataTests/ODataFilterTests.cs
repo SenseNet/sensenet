@@ -32,7 +32,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(origIds.Length > 0);
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
         [TestMethod]
         public async Task OD_Filter_EndsWithEqTrue()
@@ -53,7 +53,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(origIds.Length > 0);
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(origIds.Length > 0);
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
 
         //TODO: Remove inconclusive test result and implement this test.
@@ -148,7 +148,7 @@ namespace SenseNet.ODataTests
                 var ids2 = entities2.Select(e => e.Id).ToArray();
                 Assert.AreEqual(0, origIds.Except(ids2).Count());
                 Assert.AreEqual(0, ids2.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -184,7 +184,7 @@ namespace SenseNet.ODataTests
                 entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Length);
                 Assert.AreEqual(content.Id, entities[0].Id);
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -207,7 +207,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(origIds.Length > 0);
                 Assert.AreEqual(0, origIds.Except(ids).Count());
                 Assert.AreEqual(0, ids.Except(origIds).Count());
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -231,7 +231,7 @@ namespace SenseNet.ODataTests
 
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(2, entities.Length);
-            });
+            }).ConfigureAwait(false);
         }
 
 
@@ -248,7 +248,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(2, entities.Length);
                 Assert.AreEqual(1, entities[0].Id);
                 Assert.AreEqual(6, entities[1].Id);
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -285,7 +285,7 @@ namespace SenseNet.ODataTests
                 entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Length);
                 Assert.AreEqual(content.Id, entities[0].Id);
-            });
+            }).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -302,8 +302,7 @@ namespace SenseNet.ODataTests
                 var entities = GetEntities(response).ToArray();
                 Assert.AreEqual(1, entities.Count());
                 Assert.AreEqual(Group.Administrators.Path, entities.First().Path);
-            });
-
+            }).ConfigureAwait(false);
         }
     }
 }
