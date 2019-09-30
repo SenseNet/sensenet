@@ -120,6 +120,14 @@ namespace SenseNet.ODataTests
         }
         #endregion
 
+        protected void ODataTest(Action callback)
+        {
+            ODataTestAsync(() =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
         protected Task ODataTestAsync(Func<Task> callback)
         {
             return ODataTestAsync(callback, true);
@@ -154,7 +162,7 @@ namespace SenseNet.ODataTests
 
         internal static async Task<ODataResponse> ODataGetAsync(string resource, string queryString)
         {
-            var httpContext = new DefaultHttpContext();
+            var httpContext = CreateHttpContext(resource, queryString);
             var request = httpContext.Request;
             request.Method = "GET";
             request.Path = resource;
@@ -173,25 +181,17 @@ namespace SenseNet.ODataTests
 
             return new ODataResponse {Result = output, StatusCode = httpContext.Response.StatusCode};
         }
-        //internal static T ODataGET<T>(string resource, string queryString) where T : ODataResponse
-        //{
-        //    var httpContext = new DefaultHttpContext();
-        //    var request = httpContext.Request;
-        //    request.Method = "GET";
-        //    request.Path = resource;
-        //    request.QueryString = new QueryString(queryString);
 
-        //    var responseOutput = httpContext.Response.Body;
-        //    responseOutput.Seek(0, SeekOrigin.Begin);
-        //    string output;
-        //    using (var reader = new StreamReader(responseOutput))
-        //        output = reader.ReadToEndAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-
-        //    var odata = new ODataMiddleware(null);
-
-        //    var odataRequest = ODataRequest.Parse(httpContext);
-        //    return (T)odata.ProcessRequest(httpContext, odataRequest);
-        //}
+        internal static HttpContext CreateHttpContext(string resource, string queryString)
+        {
+            var httpContext = new DefaultHttpContext();
+            var request = httpContext.Request;
+            request.Method = "GET";
+            request.Path = resource;
+            request.QueryString = new QueryString(queryString);
+            httpContext.Response.Body = new MemoryStream();
+            return httpContext;
+        }
 
         /* ========================================================================= TOOLS */
 
