@@ -188,6 +188,23 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
+        public async Task OD_GET_UnknownProperty()
+        {
+            await ODataTestAsync(async () =>
+            {
+                var imsId = Repository.ImsFolder.Id;
+
+                // ACTION
+                var response1 = await ODataGetAsync(
+                        "/OData.svc/Root('IMS')/__unknownProperty__", "")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var error = GetError(response1);
+                Assert.AreEqual("InvalidContentActionException", error.ExceptionType);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async Task OD_GET_GetEntityById()
         {
             await ODataTestAsync(async () =>
