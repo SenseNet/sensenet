@@ -98,7 +98,10 @@ namespace SenseNet.OData
             {
                 Content content;
                 if (odataRequest == null)
+                {
+                    formatter = new JsonFormatter();
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
+                }
 
 
                 this.ODataRequest = odataRequest;

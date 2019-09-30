@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -16,6 +18,38 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataGeneralTests : ODataTestBase
     {
+        [TestMethod]
+        public async Task OD_GET_NoRequest()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ALIGN
+                var httpContext = new DefaultHttpContext();
+                var request = httpContext.Request;
+                request.Method = "GET";
+                httpContext.Response.Body = new MemoryStream();
+
+                // ACTION
+                var odata = new ODataMiddleware(null);
+                await odata.ProcessRequestAsync(httpContext, null).ConfigureAwait(false);
+
+                // ASSERT
+                var responseOutput = httpContext.Response.Body;
+                responseOutput.Seek(0, SeekOrigin.Begin);
+                string output;
+                using (var reader = new StreamReader(responseOutput))
+                    output = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+                var response = new ODataResponse { Result = output, StatusCode = httpContext.Response.StatusCode };
+
+                var error = GetError(response);
+                Assert.AreEqual("The Request is not an OData request.", error.Message);
+                Assert.AreEqual("ODataException", error.ExceptionType);
+                Assert.AreEqual(400, response.StatusCode);
+
+            }).ConfigureAwait(false);
+        }
+
         [TestMethod]
         public async Task OD_GET_ServiceDocument()
         {
