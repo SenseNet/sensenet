@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.OData;
+using SenseNet.Search;
+
 // ReSharper disable CommentTypo
 
 namespace SenseNet.ODataTests
@@ -72,299 +76,212 @@ namespace SenseNet.ODataTests
             });
         }
 
-        /*[TestMethod]
+        [TestMethod]
         public void OData_Parsing_InvalidSkip()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
-
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$skip=-4");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.AreEqual(ODataExceptionCode.NegativeSkipParameter, code);
-                }
+                var httpContext = CreateHttpContext("/OData.svc/Root", "?$skip=-4");
+                var odataRequest = ODataRequest.Parse(httpContext);
+                var code = GetExceptionCode(odataRequest);
+                Assert.AreEqual(ODataExceptionCode.NegativeSkipParameter, code);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Parsing_InlineCount()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                HttpContext httpContext;
+                ODataRequest odataRequest;
 
-                PortalContext pc;
-                ODataHandler handler;
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=none");
+                odataRequest = ODataRequest.Parse(httpContext);
+                Assert.AreEqual(InlineCount.None, odataRequest.InlineCount);
+                Assert.IsTrue(!odataRequest.HasInlineCount);
 
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=none");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.AreEqual(InlineCount.None, odataRequest.InlineCount);
-                    Assert.IsTrue(!odataRequest.HasInlineCount);
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=0");
+                odataRequest = ODataRequest.Parse(httpContext);
+                Assert.AreEqual(InlineCount.None, odataRequest.InlineCount);
+                Assert.IsTrue(!odataRequest.HasInlineCount);
 
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=0");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.AreEqual(InlineCount.None, odataRequest.InlineCount);
-                    Assert.IsTrue(!odataRequest.HasInlineCount);
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=allpages");
+                odataRequest = ODataRequest.Parse(httpContext);
+                Assert.AreEqual(InlineCount.AllPages, odataRequest.InlineCount);
+                Assert.IsTrue(odataRequest.HasInlineCount);
 
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=allpages");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.AreEqual(InlineCount.AllPages, odataRequest.InlineCount);
-                    Assert.IsTrue(odataRequest.HasInlineCount);
-                }
-
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=1");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.AreEqual(InlineCount.AllPages, odataRequest.InlineCount);
-                    Assert.IsTrue(odataRequest.HasInlineCount);
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=1");
+                odataRequest = ODataRequest.Parse(httpContext);
+                Assert.AreEqual(InlineCount.AllPages, odataRequest.InlineCount);
+                Assert.IsTrue(odataRequest.HasInlineCount);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Parsing_InvalidInlineCount()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                var httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=asdf");
+                var odataRequest = ODataRequest.Parse(httpContext);
+                var code = GetExceptionCode(odataRequest);
+                Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
 
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=asdf");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
-                }
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=2");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$inlinecount=2");
+                odataRequest = ODataRequest.Parse(httpContext);
+                code = GetExceptionCode(odataRequest);
+                Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Parsing_OrderBy()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                HttpContext httpContext;
+                ODataRequest odataRequest;
+                SortInfo[] sort;
 
-                PortalContext pc;
-                ODataHandler handler;
+                //----------------------------------------------------------------------------- sorting: -
+                httpContext = CreateHttpContext("/OData.svc/Root", "");
+                odataRequest = ODataRequest.Parse(httpContext);
+                sort = odataRequest.Sort.ToArray();
+                Assert.IsFalse(odataRequest.HasSort);
+                Assert.AreEqual(0, sort.Length);
 
-                    //----------------------------------------------------------------------------- sorting: -
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = odataRequest.Sort.ToArray();
-                    Assert.IsFalse(odataRequest.HasSort);
-                    Assert.AreEqual(0, sort.Length);
-                }
+                //----------------------------------------------------------------------------- sorting: Id
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=Id");
+                odataRequest = ODataRequest.Parse(httpContext);
+                sort = odataRequest.Sort.ToArray();
+                Assert.IsTrue(odataRequest.HasSort);
+                Assert.AreEqual(1, sort.Length);
+                Assert.AreEqual("Id", sort[0].FieldName);
+                Assert.IsFalse(sort[0].Reverse);
 
-                    //----------------------------------------------------------------------------- sorting: Id
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=Id");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = odataRequest.Sort.ToArray();
-                    Assert.IsTrue(odataRequest.HasSort);
-                    Assert.AreEqual(1, sort.Length);
-                    Assert.AreEqual("Id", sort[0].FieldName);
-                    Assert.IsFalse(sort[0].Reverse);
-                }
+                //----------------------------------------------------------------------------- sorting: Name asc
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=Name asc");
+                odataRequest = ODataRequest.Parse(httpContext);
+                sort = odataRequest.Sort.ToArray();
+                Assert.IsTrue(odataRequest.HasSort);
+                Assert.IsTrue(sort.Length == 1);
+                Assert.IsTrue(sort[0].FieldName == "Name");
+                Assert.IsTrue(sort[0].Reverse == false);
 
-                    //----------------------------------------------------------------------------- sorting: Name asc
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=Name asc");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = odataRequest.Sort.ToArray();
-                    Assert.IsTrue(odataRequest.HasSort);
-                    Assert.IsTrue(sort.Length == 1);
-                    Assert.IsTrue(sort[0].FieldName == "Name");
-                    Assert.IsTrue(sort[0].Reverse == false);
-                }
+                //----------------------------------------------------------------------------- sorting: DisplayName desc
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=DisplayName desc");
+                odataRequest = ODataRequest.Parse(httpContext);
+                sort = odataRequest.Sort.ToArray();
+                Assert.IsTrue(odataRequest.HasSort);
+                Assert.AreEqual(1, sort.Length);
+                Assert.AreEqual("DisplayName", sort[0].FieldName);
+                Assert.IsTrue(sort[0].Reverse);
 
-                    //----------------------------------------------------------------------------- sorting: DisplayName desc
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=DisplayName desc");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = odataRequest.Sort.ToArray();
-                    Assert.IsTrue(odataRequest.HasSort);
-                    Assert.AreEqual(1, sort.Length);
-                    Assert.AreEqual("DisplayName", sort[0].FieldName);
-                    Assert.IsTrue(sort[0].Reverse);
-                }
-
-                    //----------------------------------------------------------------------------- sorting: ModificationDate desc, Category, Name
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=   ModificationDate desc    ,   Category   ,    Name");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = odataRequest.Sort.ToArray();
-                    Assert.IsTrue(odataRequest.HasSort);
-                    Assert.AreEqual(3, sort.Length);
-                    Assert.AreEqual("ModificationDate", sort[0].FieldName);
-                    Assert.IsTrue(sort[0].Reverse);
-                    Assert.AreEqual("Category", sort[1].FieldName);
-                    Assert.IsFalse(sort[1].Reverse);
-                    Assert.AreEqual("Name", sort[2].FieldName);
-                    Assert.IsFalse(sort[2].Reverse);
-                }
+                //----------------------------------------------------------------------------- sorting: ModificationDate desc, Category, Name
+                httpContext = CreateHttpContext("/OData.svc/Root",
+                    "?$orderby=   ModificationDate desc    ,   Category   ,    Name");
+                odataRequest = ODataRequest.Parse(httpContext);
+                sort = odataRequest.Sort.ToArray();
+                Assert.IsTrue(odataRequest.HasSort);
+                Assert.AreEqual(3, sort.Length);
+                Assert.AreEqual("ModificationDate", sort[0].FieldName);
+                Assert.IsTrue(sort[0].Reverse);
+                Assert.AreEqual("Category", sort[1].FieldName);
+                Assert.IsFalse(sort[1].Reverse);
+                Assert.AreEqual("Name", sort[2].FieldName);
+                Assert.IsFalse(sort[2].Reverse);
             });
-        }*/
-        /*[TestMethod]
+        }
+        [TestMethod]
         public void OData_Parsing_InvalidOrderBy()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                var httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=asdf asd");
+                var odataRequest = ODataRequest.Parse(httpContext);
+                var code = GetExceptionCode(odataRequest);
+                Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByDirectionParameter);
 
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=asdf asd");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByDirectionParameter);
-                }
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=asdf asc desc");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByParameter);
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$orderby=asdf asc desc");
+                odataRequest = ODataRequest.Parse(httpContext);
+                code = GetExceptionCode(odataRequest);
+                Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByParameter);
             });
-        }*/
-        /*[TestMethod]
+        }
+
+        [TestMethod]
         public void OData_Parsing_Format()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                var httpContext = CreateHttpContext("/OData.svc/Root", "?$format=json");
+                var odataRequest = ODataRequest.Parse(httpContext);
+                Assert.IsTrue(odataRequest.Format == "json");
 
-                PortalContext pc;
-                ODataHandler handler;
-
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$format=json");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(odataRequest.Format == "json");
-                }
-
-                using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$format=verbosejson");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(odataRequest.Format == "verbosejson");
-                }
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$format=verbosejson");
+                odataRequest = ODataRequest.Parse(httpContext);
+                Assert.IsTrue(odataRequest.Format == "verbosejson");
             });
-        }*/
-        /*[TestMethod]
-        public void OData_Parsing_InvalidFormat()
+        }
+        [TestMethod]
+        public async Task OData_Parsing_InvalidFormat()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                CreateTestSite();
+                // ACTION 1
+                var response = await ODataGetAsync("/OData.svc/Root", "?$format=atom")
+                    .ConfigureAwait(false);
 
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$format=atom");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter);
-                }
+                // ASSERT 1 
+                var error = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.InvalidFormatParameter, error.Code);
 
-                using (var output = new StringWriter())
-                {
-                    var httpContext = CreateHttpContext("/OData.svc/Root", "?$format=xxx");
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter);
-                }
-            });
-        }*/
-        /*[TestMethod]
+                // ACTION 2
+                response = await ODataGetAsync("/OData.svc/Root", "?$format=xxx")
+                    .ConfigureAwait(false);
+
+                // ASSERT 2
+                error = GetError(response);
+                Assert.AreEqual(ODataExceptionCode.InvalidFormatParameter, error.Code);
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public void OData_Parsing_Select()
         {
-            Test(() =>
+            ODataTest(() =>
             {
-                CreateTestSite();
+                HttpContext httpContext;
+                ODataRequest odataRequest;
+                List<string> select;
 
-                PortalContext pc;
-                ODataHandler handler;
+                //----------------------------------------------------------------------------- select: -
+                httpContext = CreateHttpContext("/OData.svc/Root", "");
 
-                    //----------------------------------------------------------------------------- select: -
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = odataRequest.Select;
-                    Assert.IsTrue(odataRequest.HasSelect == false);
-                    Assert.IsTrue(select.Count == 0);
-                }
+                odataRequest = ODataRequest.Parse(httpContext);
+                select = odataRequest.Select;
+                Assert.IsTrue(odataRequest.HasSelect == false);
+                Assert.IsTrue(select.Count == 0);
 
-                    //----------------------------------------------------------------------------- select: Id, DisplayName, ModificationDate
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root",
-                        "?$select=    Id  ,\tDisplayName\r\n\t,   ModificationDate   ");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = odataRequest.Select;
-                    Assert.IsTrue(odataRequest.HasSelect);
-                    Assert.IsTrue(select.Count == 3);
-                    Assert.IsTrue(select[0] == "Id");
-                    Assert.IsTrue(select[1] == "DisplayName");
-                    Assert.IsTrue(select[2] == "ModificationDate");
-                }
+                //----------------------------------------------------------------------------- select: Id, DisplayName, ModificationDate
+                httpContext = CreateHttpContext("/OData.svc/Root",
+                    "?$select=    Id  ,\tDisplayName\r\n\t,   ModificationDate   ");
 
-                    //----------------------------------------------------------------------------- select: *
-                    using (var output = new StringWriter())
-                {
-                    httpContext = CreateHttpContext("/OData.svc/Root", "?$select=*");
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = odataRequest.Select;
-                    Assert.IsTrue(odataRequest.HasSelect == false);
-                    Assert.IsTrue(select.Count == 0);
-                }
+                odataRequest = ODataRequest.Parse(httpContext);
+                select = odataRequest.Select;
+                Assert.IsTrue(odataRequest.HasSelect);
+                Assert.IsTrue(select.Count == 3);
+                Assert.IsTrue(select[0] == "Id");
+                Assert.IsTrue(select[1] == "DisplayName");
+                Assert.IsTrue(select[2] == "ModificationDate");
+
+                //----------------------------------------------------------------------------- select: *
+                httpContext = CreateHttpContext("/OData.svc/Root", "?$select=*");
+
+                odataRequest = ODataRequest.Parse(httpContext);
+                select = odataRequest.Select;
+                Assert.IsTrue(odataRequest.HasSelect == false);
+                Assert.IsTrue(select.Count == 0);
             });
-        }*/
+        }
 
         /* ======================================================================== TOOLS */
 
