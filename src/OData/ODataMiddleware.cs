@@ -166,50 +166,48 @@ namespace SenseNet.OData
                         }
                         break;
                     case "PUT": // update
-                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
-                        //if (odataRequest.IsMemberRequest)
-                        //{
-                        //    throw new ODataException("Cannot access a member with HTTP PUT.",
-                        //        ODataExceptionCode.IllegalInvoke);
-                        //}
-                        //else
-                        //{
-                        //    model = Read(inputStream);
-                        //    content = LoadContentOrVirtualChild(odataRequest);
-                        //    if (content == null)
-                        //    {
-                        //        ContentNotFound(httpContext);
-                        //        return;
-                        //    }
+                        if (odataRequest.IsMemberRequest)
+                        {
+                            throw new ODataException("Cannot access a member with HTTP PUT.",
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else
+                        {
+                            model = Read(inputStream);
+                            content = LoadContentOrVirtualChild(odataRequest);
+                            if (content == null)
+                            {
+                                ContentNotFound(httpContext);
+                                return;
+                            }
 
-                        //    ResetContent(content);
-                        //    UpdateContent(content, model, odataRequest);
-                        //    /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
-                        //}
-                        //break;
+                            ResetContent(content);
+                            UpdateContent(content, model, odataRequest);
+                            await formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
+                        }
+                        break;
                     case "MERGE":
                     case "PATCH": // update
-                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
-                        //if (odataRequest.IsMemberRequest)
-                        //{
-                        //    throw new ODataException(
-                        //        String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
-                        //        ODataExceptionCode.IllegalInvoke);
-                        //}
-                        //else
-                        //{
-                        //    model = Read(inputStream);
-                        //    content = LoadContentOrVirtualChild(odataRequest);
-                        //    if (content == null)
-                        //    {
-                        //        ContentNotFound(httpContext);
-                        //        return;
-                        //    }
+                        if (odataRequest.IsMemberRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else
+                        {
+                            model = Read(inputStream);
+                            content = LoadContentOrVirtualChild(odataRequest);
+                            if (content == null)
+                            {
+                                ContentNotFound(httpContext);
+                                return;
+                            }
 
-                        //    UpdateContent(content, model, odataRequest);
-                        //    /*await*/ formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
-                        //}
-                        //break;
+                            UpdateContent(content, model, odataRequest);
+                            await formatter.WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
+                        }
+                        break;
                     case "POST": // invoke an action, create content
                         throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
                         //if (odataRequest.IsMemberRequest)

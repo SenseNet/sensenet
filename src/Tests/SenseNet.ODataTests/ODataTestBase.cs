@@ -164,13 +164,29 @@ namespace SenseNet.ODataTests
             }
         }
 
-        internal static async Task<ODataResponse> ODataGetAsync(string resource, string queryString)
+        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString)
+        {
+            return ODataProcessRequestAsync(resource, queryString, null, "GET");
+        }
+        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson)
+        {
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT");
+        }
+        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson)
+        {
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH");
+        }
+        private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
+            string requestBodyJson, string httpMethod)
         {
             var httpContext = CreateHttpContext(resource, queryString);
             var request = httpContext.Request;
-            request.Method = "GET";
+            request.Method = httpMethod;
             request.Path = resource;
             request.QueryString = new QueryString(queryString);
+            if(requestBodyJson != null)
+                request.Body = CreateRequestStream(requestBodyJson);
+
             httpContext.Response.Body = new MemoryStream();
 
             var odata = new ODataMiddleware(null);
@@ -183,7 +199,7 @@ namespace SenseNet.ODataTests
             using (var reader = new StreamReader(responseOutput))
                 output = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-            return new ODataResponse {Result = output, StatusCode = httpContext.Response.StatusCode};
+            return new ODataResponse { Result = output, StatusCode = httpContext.Response.StatusCode };
         }
 
         internal static HttpContext CreateHttpContext(string resource, string queryString)
@@ -308,7 +324,7 @@ namespace SenseNet.ODataTests
             return new ODataEntitiesResponse(result.ToList(), count);
         }
 
-        protected static ODataErrorResponse GetError(ODataResponse response)
+        protected static ODataErrorResponse GetError(ODataResponse response, bool throwOnError = true)
         {
             var text = response.Result;
             if (text == null)
@@ -316,9 +332,18 @@ namespace SenseNet.ODataTests
 
             var json = Deserialize(text);
             if (json == null)
-                throw new InvalidOperationException("Deserialized text is null.");
+            {
+                if (throwOnError)
+                    throw new InvalidOperationException("Deserialized text is null.");
+                return null;
+            }
+
             if (!(json["error"] is JObject error))
-                throw new Exception("Object is not an error");
+            {
+                if (throwOnError)
+                    throw new Exception("Object is not an error");
+                return null;
+            }
 
             var code = error["code"]?.Value<string>() ?? string.Empty;
             var exceptionType = error["exceptiontype"]?.Value<string>() ?? string.Empty;
@@ -328,6 +353,12 @@ namespace SenseNet.ODataTests
             var trace = innerError?["trace"]?.Value<string>() ?? string.Empty;
             Enum.TryParse<ODataExceptionCode>(code, out var oeCode);
             return new ODataErrorResponse { Code = oeCode, ExceptionType = exceptionType, Message = value, StackTrace = trace };
+        }
+        protected void AssertNoError(ODataResponse response)
+        {
+            var error = GetError(response, false);
+            if (error != null)
+                Assert.Fail(error.Message);
         }
 
         protected static JContainer Deserialize(string text)
@@ -353,5 +384,14 @@ namespace SenseNet.ODataTests
             return x;
         }
 
+        private static Stream CreateRequestStream(string request)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(request);
+            writer.Flush();
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
     }
 }
