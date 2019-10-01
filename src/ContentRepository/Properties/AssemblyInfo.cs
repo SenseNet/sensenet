@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Volatile")]
 [assembly: InternalsVisibleTo("SenseNet.Storage.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ODataTests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]

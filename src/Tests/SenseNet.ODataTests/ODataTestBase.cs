@@ -145,6 +145,9 @@ namespace SenseNet.ODataTests
 
             if (!reused || _repository == null)
             {
+                _repository?.Dispose();
+                _repository = null;
+
                 var repoBuilder = CreateRepositoryBuilder();
                 await DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).ConfigureAwait(false);
                 Indexing.IsOuterSearchEngineEnabled = true;
@@ -258,7 +261,7 @@ namespace SenseNet.ODataTests
         }
 
 
-        protected static Workspace CreateWorkspace()
+        protected static Workspace CreateWorkspace(string name = null)
         {
             var workspaces = Node.LoadNode("/Root/Workspaces");
             if (workspaces == null)
@@ -267,7 +270,7 @@ namespace SenseNet.ODataTests
                 workspaces.Save();
             }
 
-            var workspace = new Workspace(workspaces) { Name = Guid.NewGuid().ToString() };
+            var workspace = new Workspace(workspaces) { Name = name ?? Guid.NewGuid().ToString() };
             workspace.Save();
 
             return workspace;

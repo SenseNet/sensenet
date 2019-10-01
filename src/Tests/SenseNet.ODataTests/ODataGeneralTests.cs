@@ -423,11 +423,6 @@ namespace SenseNet.ODataTests
                 var site = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
                 site.Save();
 
-                //var allowedTypes = site.GetAllowedChildTypeNames().ToList();
-                //allowedTypes.Add("Car");
-                //site.AllowChildTypes(allowedTypes);
-                //site.Save();
-
                 var folder = Node.Load<Folder>(RepositoryPath.Combine(site.Path, folderName));
                 if (folder == null)
                 {
@@ -587,9 +582,26 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
+        public async Task OData_Filter_AspectField_AspectNotFound()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var workspace = CreateWorkspace("Workspace1");
+
+                var response = await ODataGetAsync(
+                        "/OData.svc" + workspace.Path,
+                        "?metadata=no&$orderby=Index&$filter=Aspect1/Field1 eq 'Value1'")
+                    .ConfigureAwait(false);
+
+                var error = GetError(response);
+                Assert.IsTrue(error.Message.Contains("Field not found"));
+            });
+        }
+
+        [TestMethod]
         public async Task OD_GET_Select_AspectField()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var workspace = CreateWorkspace();
@@ -647,6 +659,115 @@ namespace SenseNet.ODataTests
                 aspect = new Aspect(Repository.AspectsFolder) { Name = name };
                 aspect.Save();
             }
+            return aspect;
+        }
+
+        [TestMethod]
+        public async Task OData_Filter_AspectField()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var aspectName = "Aspect1";
+                var fieldName = "Field1";
+                var aspect = CreateAspectAndField(aspectName, fieldName);
+
+                var aspectFieldName = $"{aspectName}.{fieldName}";
+                var aspectFieldODataName = $"{aspectName}/{fieldName}";
+
+                var workspace = CreateWorkspace("Workspace1");
+                var content1 = Content.CreateNew("SystemFolder", workspace, "Content1");
+                content1.Index = 1;
+                content1.Save();
+                var content2 = Content.CreateNew("SystemFolder", workspace, "Content2");
+                content2.Index = 2;
+                content2.Save();
+                var content3 = Content.CreateNew("SystemFolder", workspace, "Content3");
+                content3.Index = 3;
+                content3.Save();
+                var content4 = Content.CreateNew("SystemFolder", workspace, "Content4");
+                content4.Index = 4;
+                content4.Save();
+
+                content2.AddAspects(aspect);
+                content2[aspectFieldName] = "Value2";
+                content2.Save();
+                content3.AddAspects(aspect);
+                content3[aspectFieldName] = "Value3";
+                content3.Save();
+                content4.AddAspects(aspect);
+                content4[aspectFieldName] = "Value2";
+                content4.Save();
+
+                // ACTION
+                var response = await ODataGetAsync(
+                        "/OData.svc" + workspace.Path,
+                        "?metadata=no&$orderby=Index&$filter=" + aspectFieldODataName + " eq 'Value2'")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(4, workspace.Children.Count());
+                var entities = GetEntities(response);
+                var expected = string.Join(", ", (new[] { content2.Name, content4.Name }));
+                var names = string.Join(", ", entities.Select(e => e.Name));
+                Assert.AreEqual(expected, names);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OData_Filter_AspectField_FieldNotFound()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var aspectName = "Aspect1";
+                var fieldName = "Field1";
+                CreateAspectAndField(aspectName, fieldName);
+
+                var workspace = CreateWorkspace("Workspace1");
+
+                var response = await ODataGetAsync(
+                        "/OData.svc" + workspace.Path,
+                        "?metadata=no&$orderby=Index&$filter=" + aspectName + "/Field2 eq 'Value2'")
+                    .ConfigureAwait(false);
+
+                var error = GetError(response);
+                Assert.IsTrue(error.Message.Contains("Field not found"));
+            });
+        }
+        [TestMethod]
+        public async Task OData_Filter_AspectField_FieldNotFoundButAspectFound()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var aspectName = "Aspect1";
+                var fieldName = "Field1";
+                CreateAspectAndField(aspectName, fieldName);
+
+                var workspace = CreateWorkspace("Workspace1");
+
+                var response = await ODataGetAsync(
+                        "/OData.svc" + workspace.Path,
+                        "?metadata=no&$orderby=Index&$filter=" + aspectName + " eq 'Value2'")
+                    .ConfigureAwait(false);
+
+                var error = GetError(response);
+                Assert.IsTrue(error.Message.Contains("Field not found"));
+
+            });
+        }
+        private Aspect CreateAspectAndField(string aspectName, string fieldName)
+        {
+            var aspect = new Aspect(Repository.AspectsFolder) { Name = aspectName };
+            aspect.AddFields(new FieldInfo
+            {
+                Name = fieldName,
+                DisplayName = fieldName + " DisplayName",
+                Description = fieldName + " description",
+                Type = "ShortText",
+                Indexing = new IndexingInfo
+                {
+                    IndexHandler = "SenseNet.Search.Indexing.LowerStringIndexHandler"
+                }
+            });
             return aspect;
         }
 
