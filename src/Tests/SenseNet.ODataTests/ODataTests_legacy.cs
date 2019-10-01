@@ -333,79 +333,6 @@ namespace SenseNet.ODataTests
         /* --------------------------------------------------------------------------------------------------- */
 
         /*[TestMethod]
-        public void OData_ExpandErrors()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                // ---------------------------------------------------------------------------------------------------
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal",
-                        "$expand=Members&$select=Members1/Id", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var error = GetError(output);
-                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
-                    Assert.IsTrue(error.Message == "Bad item in $select: Members1/Id");
-                }
-
-                // ---------------------------------------------------------------------------------------------------
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "&$select=Members/Id", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var error = GetError(output);
-                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
-                    Assert.IsTrue(error.Message == "Bad item in $select: Members/Id");
-                }
-            });
-        }*/
-        /*[TestMethod]
-        public void OData_Expand_Actions()
-        {
-            Test(() =>
-            {
-                EnsureCleanAdministratorsGroup();
-
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
-                {
-                    ODataEntity entity;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
-                            "metadata=no&$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions",
-                            output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext);
-                        entity = GetEntity(output);
-                    }
-                    var members = entity.AllProperties["Members"] as JArray;
-                    Assert.IsNotNull(members);
-                    var member = members.FirstOrDefault() as JObject;
-                    Assert.IsNotNull(member);
-                    var actionsProperty = member.Property("Actions");
-                    var actions = actionsProperty.Value as JArray;
-                    Assert.IsNotNull(actions);
-                    Assert.IsTrue(actions.Any());
-                }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
-                }
-            });
-        }*/
-
-        /* --------------------------------------------------------------------------------------------------- */
-
-        /*[TestMethod]
         public void OData_Invoking_Actions()
         {
             Test(() =>
@@ -2850,44 +2777,6 @@ namespace SenseNet.ODataTests
                 }
                 Assert.AreEqual(testString, result);
             });
-        }*/
-
-        /*[TestMethod]
-        public void OData_FIX_AutoFiltersInQueryAndParams()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-                var urls = new[]
-                {
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type&enableautofilters=false",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type&enableautofilters=false",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type&enableautofilters=false",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type&enableautofilters=true",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type&enableautofilters=true",
-                        "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type&enableautofilters=true"
-                };
-
-                var actual = String.Join(" ",
-                    urls.Select(u => GetResultFor_OData_FIX_AutoFiltersInQueryAndParams(u) == "0" ? "0" : "1"));
-                Assert.AreEqual("0 1 0 1 1 1 0 0 0", actual);
-            });
-        }*/
-        /*private string GetResultFor_OData_FIX_AutoFiltersInQueryAndParams(string url)
-        {
-            string result = null;
-            var sides = url.Split('?');
-            using (var output = new StringWriter())
-            {
-                var pc = CreatePortalContext(sides[0], sides[1], output);
-                var handler = new ODataHandler();
-                handler.ProcessRequest(pc.OwnerHttpContext);
-                result = GetStringResult(output);
-            }
-            return result;
         }*/
 
         //TODO: Remove inconclusive test result and implement this test.

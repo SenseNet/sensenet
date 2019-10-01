@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -784,8 +785,58 @@ namespace SenseNet.ODataTests
                 Assert.IsNull(entity.CreatedBy.Manager.Path);
             }).ConfigureAwait(false);
         }
+        [TestMethod]
+        public async Task OData_ExpandErrors()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION 1
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal",
+                        "?$expand=Members&$select=Members1/Id")
+                    .ConfigureAwait(false);
 
-        //UNDONE:ODATA:TEST: Implement this 5 tests
+                // ASSERT 1
+                var error = GetError(response);
+                Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
+                Assert.IsTrue(error.Message == "Bad item in $select: Members1/Id");
+
+                // ACTION 2
+                response = await ODataGetAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal",
+                        "?&$select=Members/Id")
+                    .ConfigureAwait(false);
+
+                // ASSERT 2
+                error = GetError(response);
+                Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
+                Assert.IsTrue(error.Message == "Bad item in $select: Members/Id");
+            });
+        }
+        [TestMethod]
+        public async Task OData_Expand_Actions()
+        {
+            await ODataTestAsync(async () =>
+            {
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
+                        "?metadata=no&$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions")
+                    .ConfigureAwait(false);
+
+                var entity = GetEntity(response);
+
+                var members = entity.AllProperties["Members"] as JArray;
+                Assert.IsNotNull(members);
+                var member = members.FirstOrDefault() as JObject;
+                Assert.IsNotNull(member);
+                var actionsProperty = member.Property("Actions");
+                var actions = actionsProperty.Value as JArray;
+                Assert.IsNotNull(actions);
+                Assert.IsTrue(actions.Any());
+            });
+        }
+
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarByRef
         /*[TestMethod]
         public async Task OD_GET_UserAvatarByRef()
         {
@@ -824,6 +875,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
             }).ConfigureAwait(false);
         }*/
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateRef
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateRef()
         {
@@ -874,6 +926,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
         }*/
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateRefByPath
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateRefByPath()
         {
@@ -924,6 +977,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
         }*/
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarByInnerData
         /*[TestMethod]
         public async Task OD_GET_UserAvatarByInnerData()
         {
@@ -964,6 +1018,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains($"/binaryhandler.ashx?nodeid={testUser.Id}&propertyname=ImageData"));
             }).ConfigureAwait(false);
         }*/
+        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateInnerDataToRef
         /*[TestMethod]
         public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
         {
@@ -1083,6 +1138,38 @@ namespace SenseNet.ODataTests
                     ContentTypeInstaller.RemoveContentType(contentTypeName);
                 }
             }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OData_FIX_AutoFiltersInQueryAndParams()
+        {
+            await ODataTestAsync(() =>
+            {
+                var urls = new[]
+                {
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type&enableautofilters=false",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type&enableautofilters=false",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type&enableautofilters=false",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder&$select=Path,Type&enableautofilters=true",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:OFF&$select=Path,Type&enableautofilters=true",
+                    "/OData.svc/Root/System/$count?metadata=no&query=TypeIs:Folder .AUTOFILTERS:ON&$select=Path,Type&enableautofilters=true"
+                };
+
+                var actual = String.Join(" ",
+                    urls.Select(u => GetResultFor_OData_FIX_AutoFiltersInQueryAndParams(u).ConfigureAwait(false).GetAwaiter().GetResult() == "0" ? "0" : "1"));
+                Assert.AreEqual("0 1 0 1 1 1 0 0 0", actual);
+
+                return Task.CompletedTask;
+            }).ConfigureAwait(false);
+        }
+        private async Task<string> GetResultFor_OData_FIX_AutoFiltersInQueryAndParams(string url)
+        {
+            var sides = url.Split('?');
+            var response = await ODataGetAsync(sides[0], "?" + sides[1]);
+            return response.Result;
         }
 
         /* ============================================================================ TOOLS */
