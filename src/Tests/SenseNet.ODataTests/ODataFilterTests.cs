@@ -14,7 +14,7 @@ namespace SenseNet.ODataTests
     public class ODataFilterTests : ODataTestBase
     {
         [TestMethod]
-        public async Task OD_Filter_StartsWithEqTrue()
+        public async Task OD_GET_Filter_StartsWithEqTrue()
         {
             await ODataTestAsync(async () =>
             {
@@ -36,7 +36,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async Task OD_Filter_EndsWithEqTrue()
+        public async Task OD_GET_Filter_EndsWithEqTrue()
         {
             await ODataTestAsync(async () =>
             {
@@ -59,7 +59,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_SubstringOfEqTrue()
+        public async Task OD_GET_Filter_SubstringOfEqTrue()
         {
             await ODataTestAsync(async () =>
             {
@@ -83,7 +83,7 @@ namespace SenseNet.ODataTests
 
         //TODO: Remove inconclusive test result and implement this test.
         //[TestMethod]
-        public async Task OD_Filter_SubstringOfEqListField()
+        public async Task OD_GET_Filter_SubstringOfEqListField()
         {
             //Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
@@ -161,7 +161,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_IsOf()
+        public async Task OD_GET_Filter_IsOf()
         {
             await ODataTestAsync(async () =>
             {
@@ -199,7 +199,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_IsOfEqTrue()
+        public async Task OD_GET_Filter_IsOfEqTrue()
         {
             await ODataTestAsync(async () =>
             {
@@ -223,7 +223,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_ContentField()
+        public async Task OD_GET_Filter_ContentField()
         {
             await ODataTestAsync(async () =>
             {
@@ -249,7 +249,7 @@ namespace SenseNet.ODataTests
 
 
         [TestMethod]
-        public async Task OD_Filter_InFolder()
+        public async Task OD_GET_Filter_InFolder()
         {
             await ODataTestAsync(async () =>
             {
@@ -266,7 +266,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_IsFolder()
+        public async Task OD_GET_Filter_IsFolder()
         {
             await ODataTestAsync(async () =>
             {
@@ -305,7 +305,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_Filter_NamespaceAndMemberChain()
+        public async Task OD_GET_Filter_NamespaceAndMemberChain()
         {
             await ODataTestAsync(async () =>
             {

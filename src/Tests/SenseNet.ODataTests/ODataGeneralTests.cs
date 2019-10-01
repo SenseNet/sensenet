@@ -582,7 +582,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_Filter_AspectField_AspectNotFound()
+        public async Task OD_GET_Filter_AspectField_AspectNotFound()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -665,7 +665,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_Filter_AspectField()
+        public async Task OD_GET_Filter_AspectField()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -716,7 +716,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async Task OData_Filter_AspectField_FieldNotFound()
+        public async Task OD_GET_Filter_AspectField_FieldNotFound()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -739,7 +739,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public async Task OData_Filter_AspectField_FieldNotFoundButAspectFound()
+        public async Task OD_GET_Filter_AspectField_FieldNotFoundButAspectFound()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -780,7 +780,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_Filter_ThroughReference()
+        public async Task OD_GET_Filter_ThroughReference()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -807,7 +807,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_Filter_ThroughReference_TopSkip()
+        public async Task OD_GET_Filter_ThroughReference_TopSkip()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -992,7 +992,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public async Task OData_ExpandErrors()
+        public async Task OD_GET_ExpandErrors()
         {
             await ODataTestAsync(async () =>
             {
@@ -1020,7 +1020,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public async Task OData_Expand_Actions()
+        public async Task OD_GET_Expand_Actions()
         {
             await ODataTestAsync(async () =>
             {
@@ -1347,7 +1347,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_FIX_AutoFiltersInQueryAndParams()
+        public async Task OD_GET_FIX_AutoFiltersInQueryAndParams()
         {
             await ODataTestAsync(() =>
             {

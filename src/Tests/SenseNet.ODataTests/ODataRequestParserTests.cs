@@ -16,7 +16,7 @@ namespace SenseNet.ODataTests
     public class ODataRequestParserTests : ODataTestBase
     {
         [TestMethod]
-        public void OData_Parsing_TopSkip()
+        public void OD_GET_Parsing_TopSkip()
         {
             ODataTest(() =>
             {
@@ -65,7 +65,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OData_Parsing_InvalidTop()
+        public void OD_GET_Parsing_InvalidTop()
         {
             ODataTest(() =>
             {
@@ -77,7 +77,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OData_Parsing_InvalidSkip()
+        public void OD_GET_Parsing_InvalidSkip()
         {
             ODataTest(() =>
             {
@@ -88,7 +88,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Parsing_InlineCount()
+        public void OD_GET_Parsing_InlineCount()
         {
             ODataTest(() =>
             {
@@ -117,7 +117,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Parsing_InvalidInlineCount()
+        public void OD_GET_Parsing_InvalidInlineCount()
         {
             ODataTest(() =>
             {
@@ -133,7 +133,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Parsing_OrderBy()
+        public void OD_GET_Parsing_OrderBy()
         {
             ODataTest(() =>
             {
@@ -191,7 +191,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public void OData_Parsing_InvalidOrderBy()
+        public void OD_GET_Parsing_InvalidOrderBy()
         {
             ODataTest(() =>
             {
@@ -208,7 +208,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OData_Parsing_Format()
+        public void OD_GET_Parsing_Format()
         {
             ODataTest(() =>
             {
@@ -222,7 +222,7 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
-        public async Task OData_Parsing_InvalidFormat()
+        public async Task OD_GET_Parsing_InvalidFormat()
         {
             await ODataTestAsync(async () =>
             {
@@ -245,7 +245,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-        public void OData_Parsing_Select()
+        public void OD_GET_Parsing_Select()
         {
             ODataTest(() =>
             {
