@@ -83,13 +83,13 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public Task OData_Put_Modifying()
+        public Task OD_PUT_Modifying()
         {
             return ModifyingTest("PUT", false);
         }
 
         [TestMethod]
-        public Task OData_Put_ModifyingById()
+        public Task OD_PUT_ModifyingById()
         {
             return ModifyingTest("PUT", true);
         }
@@ -164,12 +164,12 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public Task OData_Patch_Modifying()
+        public Task OD_PATCH_Modifying()
         {
             return ModifyingTest("PATCH", false);
         }
         [TestMethod]
-        public Task OData_Patch_ModifyingById()
+        public Task OD_PATCH_ModifyingById()
         {
             return ModifyingTest("PATCH", true);
         }
@@ -266,12 +266,12 @@ namespace SenseNet.ODataTests
         /* ===================================================================== MERGE */
 
         [TestMethod]
-        public Task OData_Merge_Modifying()
+        public Task OD_MERGE_Modifying()
         {
             return ModifyingTest("MERGE", false);
         }
         [TestMethod]
-        public Task OData_Merge_ModifyingById()
+        public Task OD_MERGE_ModifyingById()
         {
             return ModifyingTest("MERGE", true);
         }
@@ -307,16 +307,17 @@ namespace SenseNet.ODataTests
 
                 // ACTION
                 ODataResponse response;
+                var queryString = "?metadata=no&$select=Id,Name,Path";
                 switch (httpMethod)
                 {
                     case "PUT":
-                        response = await ODataPutAsync(resource, "", json);
+                        response = await ODataPutAsync(resource, queryString, json);
                         break;
                     case "PATCH":
-                        response = await ODataPatchAsync(resource, "", json);
+                        response = await ODataPatchAsync(resource, queryString, json);
                         break;
                     case "MERGE":
-                        response = await ODataMergeAsync(resource, "", json);
+                        response = await ODataMergeAsync(resource, queryString, json);
                         break;
                     default:
                         throw new NotImplementedException($"HttpMethod {httpMethod} is not implemented.");
@@ -324,6 +325,11 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 AssertNoError(response);
+                var entity = GetEntity(response);
+                Assert.AreEqual(3, entity.AllProperties.Count);
+                Assert.AreEqual(id, entity.Id);
+                Assert.AreEqual(name, entity.Name);
+                Assert.AreEqual(path, entity.Path);
 
                 var c = Content.Load(id);
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
