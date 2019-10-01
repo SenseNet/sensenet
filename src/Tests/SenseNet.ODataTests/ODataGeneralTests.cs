@@ -174,7 +174,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var response = await ODataGetAsync(
-                    "/OData.svc/Root/IMS/BuiltIn/Portal", "")
+                    "/OData.svc/Root/IMS/BuiltIn/Portal", "?metadata=no")
                     .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
@@ -295,7 +295,7 @@ namespace SenseNet.ODataTests
             await ODataTestAsync(async () =>
             {
                 var response = await ODataGetAsync(
-                    "/OData.svc/Root/IMS/BuiltIn/Portal", "?$select=Id,Name")
+                    "/OData.svc/Root/IMS/BuiltIn/Portal", "?metadata=minimal&$select=Id,Name")
                     .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
@@ -505,7 +505,7 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                     "/OData.svc/Root",
-                    "?$select=Name&query=" + odataQueryText)
+                    "?metadata=no&$select=Name&query=" + odataQueryText)
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -636,7 +636,9 @@ namespace SenseNet.ODataTests
                 content2.Save();
 
                 var response =
-                    await ODataGetAsync("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1")
+                    await ODataGetAsync(
+                            "/OData.svc" + folder.Path,
+                            "?metadata=no&$orderby=Name asc&$select=Name,Aspect1.Field1")
                         .ConfigureAwait(false);
 
                 var entities = GetEntities(response);
@@ -718,17 +720,20 @@ namespace SenseNet.ODataTests
         {
             await IsolatedODataTestAsync(async () =>
             {
+                // ARRANGE
                 var aspectName = "Aspect1";
                 var fieldName = "Field1";
                 CreateAspectAndField(aspectName, fieldName);
 
                 var workspace = CreateWorkspace("Workspace1");
 
+                // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc" + workspace.Path,
                         "?metadata=no&$orderby=Index&$filter=" + aspectName + "/Field2 eq 'Value2'")
                     .ConfigureAwait(false);
 
+                // ASSERT
                 var error = GetError(response);
                 Assert.IsTrue(error.Message.Contains("Field not found"));
             });
@@ -738,17 +743,20 @@ namespace SenseNet.ODataTests
         {
             await IsolatedODataTestAsync(async () =>
             {
+                // ARRANGE
                 var aspectName = "Aspect1";
                 var fieldName = "Field1";
                 CreateAspectAndField(aspectName, fieldName);
 
                 var workspace = CreateWorkspace("Workspace1");
 
+                // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc" + workspace.Path,
                         "?metadata=no&$orderby=Index&$filter=" + aspectName + " eq 'Value2'")
                     .ConfigureAwait(false);
 
+                // ASSERT
                 var error = GetError(response);
                 Assert.IsTrue(error.Message.Contains("Field not found"));
 
@@ -769,6 +777,83 @@ namespace SenseNet.ODataTests
                 }
             });
             return aspect;
+        }
+
+        [TestMethod]
+        public async Task OData_Filter_ThroughReference()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                EnsureReferenceTestStructure(testRoot);
+                var workspace = CreateWorkspace("Workspace1");
+
+                // ACTION
+                var resourcePath = ODataMiddleware.GetEntityUrl(testRoot.Path + "/Referrer");
+                var url = $"/OData.svc{resourcePath}/References";
+                var response = await ODataGetAsync(
+                        url,
+                        "?metadata=no&$orderby=Index&$filter=Index lt 5 and Index gt 2")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var entities = GetEntities(response);
+                Assert.IsTrue(entities.Length == 2);
+                Assert.IsTrue(entities[0].Index == 3);
+                Assert.IsTrue(entities[1].Index == 4);
+
+            });
+        }
+
+        [TestMethod]
+        public async Task OData_Filter_ThroughReference_TopSkip()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                EnsureReferenceTestStructure(testRoot);
+
+                // ACTION
+                var resourcePath = ODataMiddleware.GetEntityUrl(testRoot.Path + "/Referrer");
+                var url = $"/OData.svc{resourcePath}/References";
+                var response = await ODataGetAsync(
+                        url,
+                        "?metadata=no&$orderby=Index&$filter=Index lt 10&$top=3&$skip=1")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var entities = GetEntities(response);
+                var actual = String.Join(",", entities.Select(e => e.Index).ToArray());
+                Assert.AreEqual("2,3,4", actual);
+            });
+        }
+        private static void EnsureReferenceTestStructure(Node testRoot)
+        {
+            if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
+
+            if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
+
+            var referrercontent = Content.Load(RepositoryPath.Combine(testRoot.Path, "Referrer"));
+            if (referrercontent == null)
+            {
+                var nodes = new Node[5];
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
+                    content.Index = i + 1;
+                    content.Save();
+                    nodes[i] = content.ContentHandler;
+                }
+
+                referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
+                var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
+                referrer.References = nodes;
+                referrercontent.Save();
+            }
         }
 
         [TestMethod]
@@ -1234,7 +1319,7 @@ namespace SenseNet.ODataTests
                     // ACTION 1
                     var response = await ODataGetAsync(
                         "/OData.svc" + root.Path,
-                        "?enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no")
+                        "?metadata=no&enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no")
                         .ConfigureAwait(false);
 
                     // ASSERT 1

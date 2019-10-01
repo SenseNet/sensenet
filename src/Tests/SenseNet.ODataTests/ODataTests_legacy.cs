@@ -52,7 +52,7 @@ namespace SenseNet.ODataTests
     public class OData_Filter_ThroughReference_ContentHandler : GenericContent
     {
         public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
-    <ContentType name='OData_Filter_ThroughReference_ContentHandler' parentType='GenericContent' handler='SenseNet.Services.OData.Tests.OData_Filter_ThroughReference_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <ContentType name='OData_Filter_ThroughReference_ContentHandler' parentType='GenericContent' handler='SenseNet.ODataTests.OData_Filter_ThroughReference_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
       <Fields>
         <Field name='References' type='Reference'>
           <Configuration>
@@ -82,7 +82,7 @@ namespace SenseNet.ODataTests
     public class OData_ReferenceTest_ContentHandler : GenericContent
     {
         public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
-    <ContentType name='OData_ReferenceTest_ContentHandler' parentType='GenericContent' handler='SenseNet.Services.OData.Tests.OData_ReferenceTest_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <ContentType name='OData_ReferenceTest_ContentHandler' parentType='GenericContent' handler='SenseNet.ODataTests.OData_ReferenceTest_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
       <Fields>
         <Field name='Reference' type='Reference'>
           <Configuration>
@@ -181,7 +181,7 @@ namespace SenseNet.ODataTests
             {
                 rootAppsGenericContent_ParameterEcho = new GenericODataApplication(rootAppsGenericContentFolder);
                 rootAppsGenericContent_ParameterEcho.Name = "ParameterEcho";
-                rootAppsGenericContent_ParameterEcho.ClassName = "SenseNet.Services.OData.Tests.ODataTestsCustomActions";
+                rootAppsGenericContent_ParameterEcho.ClassName = "SenseNet.ODataTests.ODataTestsCustomActions";
                 rootAppsGenericContent_ParameterEcho.MethodName = "ParameterEcho";
                 rootAppsGenericContent_ParameterEcho.Parameters = "string testString";
                 rootAppsGenericContent_ParameterEcho.Save();
@@ -202,32 +202,6 @@ namespace SenseNet.ODataTests
             content.Save();
         }
 
-        private static void EnsureReferenceTestStructure(Node testRoot)
-        {
-            if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
-                ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
-
-            if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
-                ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
-
-            var referrercontent = Content.Load(RepositoryPath.Combine(testRoot.Path, "Referrer"));
-            if (referrercontent == null)
-            {
-                var nodes = new Node[5];
-                for (int i = 0; i < nodes.Length; i++)
-                {
-                    var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
-                    content.Index = i + 1;
-                    content.Save();
-                    nodes[i] = content.ContentHandler;
-                }
-
-                referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
-                var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
-                referrer.References = nodes;
-                referrercontent.Save();
-            }
-        }
 
         #endregion
 
@@ -1821,56 +1795,6 @@ namespace SenseNet.ODataTests
         }*/
 
         /* --------------------------------------------------------------------------------------------------- */
-
-        /*[TestMethod]
-        public void OData_Filter_ThroughReference()
-        {
-            Test(() =>
-            {
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
-                EnsureReferenceTestStructure(testRoot);
-
-                ODataEntities entities;
-                using (var output = new StringWriter())
-                {
-                    var resourcePath = ODataHandler.GetEntityUrl(testRoot.Path + "/Referrer");
-                    var url = String.Format("/OData.svc{0}/References", resourcePath);
-                    var pc = CreatePortalContext(url, "$orderby=Index&$filter=Index lt 5 and Index gt 2", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
-                Assert.IsTrue(entities.Length == 2);
-                Assert.IsTrue(entities[0].Index == 3);
-                Assert.IsTrue(entities[1].Index == 4);
-
-            });
-        }*/
-
-        /*[TestMethod]
-        public void OData_Filter_ThroughReference_TopSkip()
-        {
-            Test(() =>
-            {
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
-                EnsureReferenceTestStructure(testRoot);
-
-                ODataEntities entities;
-                using (var output = new StringWriter())
-                {
-                    var resourcePath = ODataHandler.GetEntityUrl(testRoot.Path + "/Referrer");
-                    var url = String.Format("/OData.svc{0}/References", resourcePath);
-                    var pc = CreatePortalContext(url, "$orderby=Index&$filter=Index lt 10&$top=3&$skip=1", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
-                var actual = String.Join(",", entities.Select(e => e.Index).ToArray());
-                Assert.AreEqual("2,3,4", actual);
-            });
-        }*/
 
         /*[TestMethod]
         public void OData_FilteringAndPartitioningOperationResult_ChildrenDefinition()
