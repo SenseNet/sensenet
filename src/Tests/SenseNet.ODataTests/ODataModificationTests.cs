@@ -2,7 +2,10 @@
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 
@@ -174,94 +177,80 @@ namespace SenseNet.ODataTests
             return ModifyingTest("PATCH", true);
         }
 
-        /*[TestMethod]
-        public void OData_NameEncoding_CreateAndRename()
-        {
-            Test(() =>
-            {
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
+        //UNDONE:ODATA: Fix test: OD_FIX_NameEncoding_CreateAndRename
+        /**/
+        //[TestMethod]
+        //public async Task OD_FIX_NameEncoding_CreateAndRename()
+        //{
+        //    await IsolatedODataTestAsync(async () =>
+        //    {
+        //        var testRoot = CreateTestRoot("ODataTestRoot");
 
-                var guid = Guid.NewGuid().ToString().Replace("-", "");
-                var name = "*_|" + guid;
-                var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
-                var newName = ContentNamingProvider.GetNameFromDisplayName("___" + guid);
+        //        var guid = Guid.NewGuid().ToString().Replace("-", "");
+        //        var name = "*_|" + guid;
+        //        var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
+        //        var newName = ContentNamingProvider.GetNameFromDisplayName("___" + guid);
 
-                    // creating
+        //        // ACTION 1: Create
+        //        var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
+        //        var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json);
 
-                    var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
+        //        // ASSERT 1
+        //        AssertNoError(response);
+        //        var entity = GetEntity(response);
+        //        Assert.AreEqual(encodedName, entity.Name);
 
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
+        //        // ACTION 2: Rename
+        //        json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
+        //        response = await ODataPatchAsync("/OData.svc/" + testRoot.Path, "", json);
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                CheckError(output);
-                var entity = GetEntity(output);
-                Assert.AreEqual(encodedName, entity.Name);
+        //        // ASSERT 2
+        //        AssertNoError(response);
+        //        entity = GetEntity(response);
+        //        var node = Node.LoadNode(entity.Id);
+        //        Assert.AreEqual(newName, node.Name);
+        //    });
+        //}
+        //UNDONE:ODATA: Fix test: OD_FIX_ModifyWithInvisibleParent
+        /**/
+        //[TestMethod]
+        //public async Task OD_FIX_ModifyWithInvisibleParent()
+        //{
+        //    await IsolatedODataTestAsync(async () =>
+        //    {
+        //        var testRoot = CreateTestRoot("ODataTestRoot");
+        //        var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+        //        root.Save();
+        //        var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
+        //        node.Save();
 
-                    // renaming
+        //        SecurityHandler.CreateAclEditor()
+        //            .BreakInheritance(root.Id, new[] { EntryType.Normal })
+        //            .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
+        //            .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
+        //            .Apply();
 
-                    json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
+        //        var savedUser = User.Current;
 
-                output = new StringWriter();
-                pc = CreatePortalContext("/OData.svc/" + entity.Path, "", output);
-                handler = new ODataHandler();
-                stream = CreateRequestStream(json);
+        //        try
+        //        {
+        //            User.Current = User.Visitor;
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", stream);
-                CheckError(output);
+        //            var json = @"models=[{""Index"": 42}]";
+        //            var response = await ODataPatchAsync("/OData.svc" + node.Path, "", json);
 
-                var node = Node.LoadNode(entity.Id);
-                Assert.AreEqual(newName, node.Name);
-            });
-        }*/
-        /*[TestMethod]
-        public void OData_FIX_ModifyWithInvisibleParent()
-        {
-            Test(() =>
-            {
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                root.Save();
-                var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
-                node.Save();
-
-                SecurityHandler.CreateAclEditor()
-                    .BreakInheritance(root.Id, new[] { EntryType.Normal })
-                    .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
-                    .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
-                    .Apply();
-
-                var savedUser = User.Current;
-
-                CreateTestSite();
-                try
-                {
-                    User.Current = User.Visitor;
-
-                    ODataEntity entity;
-                    using (var output = new StringWriter())
-                    {
-                        var json = String.Concat(@"models=[{""Index"": 42}]");
-                        var pc = CreatePortalContext("/OData.svc" + node.Path, "", output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream(json);
-                        handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", stream);
-                        CheckError(output);
-                        entity = GetEntity(output);
-                    }
-                    node = Node.Load<Folder>(node.Id);
-                    Assert.AreEqual(42, entity.Index);
-                    Assert.AreEqual(42, node.Index);
-                }
-                finally
-                {
-                    User.Current = savedUser;
-                }
-            });
-        }*/
+        //            AssertNoError(response);
+        //            var entity = GetEntity(response);
+        //            node = Node.Load<Folder>(node.Id);
+        //            Assert.AreEqual(42, entity.Index);
+        //            Assert.AreEqual(42, node.Index);
+        //        }
+        //        finally
+        //        {
+        //            User.Current = savedUser;
+        //        }
+        //    });
+        //}
 
         /* ===================================================================== MERGE */
 
