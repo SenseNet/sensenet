@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ODataTests
 {
@@ -81,95 +82,17 @@ namespace SenseNet.ODataTests
             });
         }
 
-        /*[TestMethod]
-public void OData_Put_Modifying()
-{
-    Test(() =>
-    {
-        InstallCarContentType();
-        var testRoot = CreateTestRoot("ODataTestRoot");
-        CreateTestSite();
-
-        var name = Guid.NewGuid().ToString();
-        var content = Content.CreateNew("Car", testRoot, name);
-        content.DisplayName = "vadalma";
-        var defaultMake = (string)content["Make"];
-        content["Make"] = "Not default";
-        content.Save();
-        var id = content.Id;
-        var path = content.Path;
-        var url = GetUrl(content.Path);
-
-        var newDisplayName = "szelídgesztenye";
-
-        var json = String.Concat(@"models=[{
-""DisplayName"": """, newDisplayName, @""",
-""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-""Index"": 42
-}]");
-
-        var output = new StringWriter();
-        var pc = CreatePortalContext("/OData.svc/" + path, "", output);
-        var handler = new ODataHandler();
-        var stream = CreateRequestStream(json);
-
-        handler.ProcessRequest(pc.OwnerHttpContext, "PUT", stream);
-
-        var c = Content.Load(id);
-        var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-        var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-
-        Assert.IsTrue(c.DisplayName == newDisplayName);
-        Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
-        Assert.IsTrue(c.ContentHandler.Index == 42);
-        Assert.IsTrue((string)c["Make"] == null);
-    });
-}*/
-        /*[TestMethod]
-        public void OData_Put_ModifyingById()
+        [TestMethod]
+        public Task OData_Put_Modifying()
         {
-            Test(() =>
-            {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
+            return ModifyingTest("PUT", false);
+        }
 
-                var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", testRoot, name);
-                content.DisplayName = "vadalma";
-                var defaultMake = (string)content["Make"];
-                content["Make"] = "Not default";
-                content.Save();
-                var id = content.Id;
-                var path = content.Path;
-                var url = GetUrl(content.Path);
-
-                var newDisplayName = "szelídgesztenye";
-
-                var json = String.Concat(@"models=[{
-      ""DisplayName"": """, newDisplayName, @""",
-      ""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-      ""Index"": 42
-    }]");
-
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
-
-                handler.ProcessRequest(pc.OwnerHttpContext, "PUT", stream);
-
-                var c = Content.Load(id);
-                var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-                var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-
-                Assert.IsTrue(c.DisplayName == newDisplayName);
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
-                Assert.IsTrue(c.ContentHandler.Index == 42);
-                Assert.IsTrue((string)c["Make"] == null);
-
-            });
-        }*/
+        [TestMethod]
+        public Task OData_Put_ModifyingById()
+        {
+            return ModifyingTest("PUT", true);
+        }
 
         /* ===================================================================== PATCH */
 
@@ -240,95 +163,17 @@ public void OData_Put_Modifying()
             });
         }
 
-        /*[TestMethod]
-       public void OData_Patch_Modifying()
-       {
-           Test(() =>
-           {
-               InstallCarContentType();
-               var testRoot = CreateTestRoot("ODataTestRoot");
-               CreateTestSite();
+        [TestMethod]
+        public Task OData_Patch_Modifying()
+        {
+            return ModifyingTest("PATCH", false);
+        }
+        [TestMethod]
+        public Task OData_Patch_ModifyingById()
+        {
+            return ModifyingTest("PATCH", true);
+        }
 
-               var name = Guid.NewGuid().ToString();
-               var content = Content.CreateNew("Car", testRoot, name);
-               content.DisplayName = "vadalma";
-               var defaultMake = (string)content["Make"];
-               content["Make"] = "Not default";
-               content.Save();
-               var id = content.Id;
-               var path = content.Path;
-               var url = GetUrl(content.Path);
-
-               var newDisplayName = "szelídgesztenye";
-
-               var json = String.Concat(@"models=[{
-     ""DisplayName"": """, newDisplayName, @""",
-     ""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-     ""Index"": 42
-   }]");
-
-               var output = new StringWriter();
-               var pc = CreatePortalContext("/OData.svc/" + path, "", output);
-               var handler = new ODataHandler();
-               var stream = CreateRequestStream(json);
-
-               handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", stream);
-
-               var c = Content.Load(id);
-               var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-               var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-
-               Assert.IsTrue(c.DisplayName == newDisplayName);
-               Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
-               Assert.IsTrue(c.ContentHandler.Index == 42);
-               Assert.IsTrue((string)c["Make"] == "Not default");
-           });
-       }*/
-        /*[TestMethod]
-         public void OData_Patch_ModifyingById()
-         {
-             Test(() =>
-             {
-                 InstallCarContentType();
-                 var testRoot = CreateTestRoot("ODataTestRoot");
-                 CreateTestSite();
-
-                 var name = Guid.NewGuid().ToString();
-                 var content = Content.CreateNew("Car", testRoot, name);
-                 content.DisplayName = "vadalma";
-                 var defaultMake = (string)content["Make"];
-                 content["Make"] = "Not default";
-                 content.Save();
-                 var id = content.Id;
-                 var path = content.Path;
-                 var url = GetUrl(content.Path);
-
-                 var newDisplayName = "szelídgesztenye";
-
-                 var json = String.Concat(@"models=[{
-       ""DisplayName"": """, newDisplayName, @""",
-       ""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-       ""Index"": 42
-     }]");
-
-                 var output = new StringWriter();
-                 var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
-                 var handler = new ODataHandler();
-                 var stream = CreateRequestStream(json);
-
-                 handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", stream);
-
-                 var c = Content.Load(id);
-                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-
-                 Assert.IsTrue(c.DisplayName == newDisplayName);
-                 Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
-                 Assert.IsTrue(c.ContentHandler.Index == 42);
-                 Assert.IsTrue((string)c["Make"] == "Not default");
-
-             });
-         }*/
         /*[TestMethod]
         public void OData_NameEncoding_CreateAndRename()
         {
@@ -420,58 +265,26 @@ public void OData_Put_Modifying()
 
         /* ===================================================================== MERGE */
 
-        /*[TestMethod]
-public void OData_Merge_Modifying()
-{
-    Test(() =>
-    {
-        InstallCarContentType();
-        var testRoot = CreateTestRoot("ODataTestRoot");
-        CreateTestSite();
-
-        var name = Guid.NewGuid().ToString();
-        var content = Content.CreateNew("Car", testRoot, name);
-        content.DisplayName = "vadalma";
-        var defaultMake = (string)content["Make"];
-        content["Make"] = "Not default";
-        content.Save();
-        var id = content.Id;
-        var path = content.Path;
-        var url = GetUrl(content.Path);
-
-        var newDisplayName = "szelídgesztenye";
-
-        var json = String.Concat(@"models=[{
-""DisplayName"": """, newDisplayName, @""",
-""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-""Index"": 42
-}]");
-
-        var output = new StringWriter();
-        var pc = CreatePortalContext("/OData.svc/" + path, "", output);
-        var handler = new ODataHandler();
-        var stream = CreateRequestStream(json);
-
-        handler.ProcessRequest(pc.OwnerHttpContext, "MERGE", stream);
-
-        var c = Content.Load(id);
-        var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-        var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
-
-        Assert.IsTrue(c.DisplayName == newDisplayName);
-        Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
-        Assert.IsTrue(c.ContentHandler.Index == 42);
-        Assert.IsTrue((string)c["Make"] == "Not default");
-    });
-}*/
-        /*[TestMethod]
-        public void OData_Merge_ModifyingById()
+        [TestMethod]
+        public Task OData_Merge_Modifying()
         {
-            Test(() =>
+            return ModifyingTest("MERGE", false);
+        }
+        [TestMethod]
+        public Task OData_Merge_ModifyingById()
+        {
+            return ModifyingTest("MERGE", true);
+        }
+
+        /* ===================================================================== Common */
+
+        private async Task ModifyingTest(string httpMethod, bool byId)
+        {
+            await IsolatedODataTestAsync(async () =>
             {
+                // ARRANGE
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
                 var content = Content.CreateNew("Car", testRoot, name);
@@ -481,22 +294,36 @@ public void OData_Merge_Modifying()
                 content.Save();
                 var id = content.Id;
                 var path = content.Path;
-                var url = GetUrl(content.Path);
 
                 var newDisplayName = "szelídgesztenye";
 
                 var json = String.Concat(@"models=[{
-      ""DisplayName"": """, newDisplayName, @""",
-      ""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
-      ""Index"": 42
-    }]");
+""DisplayName"": """, newDisplayName, @""",
+""ModificationDate"": ""2012-10-11T03:52:01.637Z"",
+""Index"": 42
+}]");
 
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
+                var resource = byId ? "/OData.svc/content(" + id + ")" : "/OData.svc" + path;
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "MERGE", stream);
+                // ACTION
+                ODataResponse response;
+                switch (httpMethod)
+                {
+                    case "PUT":
+                        response = await ODataPutAsync(resource, "", json);
+                        break;
+                    case "PATCH":
+                        response = await ODataPatchAsync(resource, "", json);
+                        break;
+                    case "MERGE":
+                        response = await ODataMergeAsync(resource, "", json);
+                        break;
+                    default:
+                        throw new NotImplementedException($"HttpMethod {httpMethod} is not implemented.");
+                }
+
+                // ASSERT
+                AssertNoError(response);
 
                 var c = Content.Load(id);
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
@@ -505,9 +332,12 @@ public void OData_Merge_Modifying()
                 Assert.IsTrue(c.DisplayName == newDisplayName);
                 Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
                 Assert.IsTrue(c.ContentHandler.Index == 42);
-                Assert.IsTrue((string)c["Make"] == "Not default");
-
+                if(httpMethod == "PUT")
+                    Assert.IsTrue((string)c["Make"] == null);
+                else
+                    Assert.IsTrue((string)c["Make"] == "Not default");
             });
-        }*/
+        }
+
     }
 }
