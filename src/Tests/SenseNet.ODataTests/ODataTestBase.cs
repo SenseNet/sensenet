@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Volatile;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Search;
@@ -256,6 +257,21 @@ namespace SenseNet.ODataTests
             content.Save();
         }
 
+
+        protected static Workspace CreateWorkspace()
+        {
+            var workspaces = Node.LoadNode("/Root/Workspaces");
+            if (workspaces == null)
+            {
+                workspaces = new Folder(Repository.Root) { Name = "Workspaces" };
+                workspaces.Save();
+            }
+
+            var workspace = new Workspace(workspaces) { Name = Guid.NewGuid().ToString() };
+            workspace.Save();
+
+            return workspace;
+        }
         protected static SystemFolder CreateTestRoot(string name = null)
         {
             return CreateTestRoot(null, name);

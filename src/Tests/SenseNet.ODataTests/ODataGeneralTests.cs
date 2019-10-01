@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -12,6 +13,7 @@ using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
+// ReSharper disable CommentTypo
 
 namespace SenseNet.ODataTests
 {
@@ -582,55 +584,59 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        //UNDONE:ODATA:TEST: Implement this test: OData_Select_AspectField
-        /*[TestMethod]
-          public async Task OD_GET_Select_AspectField()
-          {
-              Test(() =>
-              {
-                  InstallCarContentType();
-                  var site = CreateTestSite();
-                  var allowedTypes = site.GetAllowedChildTypeNames().ToList();
-                  allowedTypes.Add("Car");
-                  site.AllowChildTypes(allowedTypes);
-                  site.Save();
+        [TestMethod]
+        public async Task OD_GET_Select_AspectField()
+        {
+            await ODataTestAsync(async () =>
+            {
+                InstallCarContentType();
+                var workspace = CreateWorkspace();
 
-                  var testRoot = CreateTestRoot("ODataTestRoot");
+                var allowedTypes = workspace.GetAllowedChildTypeNames().ToList();
+                allowedTypes.Add("Car");
+                workspace.AllowChildTypes(allowedTypes);
+                workspace.Save();
 
-                  var aspect1 = EnsureAspect("Aspect1");
-                  aspect1.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                var aspect1 = EnsureAspect("Aspect1");
+                aspect1.AspectDefinition =
+                    @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
   <Fields>
       <AspectField name='Field1' type='ShortText' />
     </Fields>
   </AspectDefinition>";
-                  aspect1.Save();
+                aspect1.Save();
 
-                  var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-                  folder.Save();
+                var folder = new Folder(testRoot) {Name = Guid.NewGuid().ToString()};
+                folder.Save();
 
-                  var content1 = Content.CreateNew("Car", folder, "Car1");
-                  content1.AddAspects(aspect1);
-                  content1["Aspect1.Field1"] = "asdf";
-                  content1.Save();
+                var content1 = Content.CreateNew("Car", folder, "Car1");
+                content1.AddAspects(aspect1);
+                content1["Aspect1.Field1"] = "asdf";
+                content1.Save();
 
-                  var content2 = Content.CreateNew("Car", folder, "Car2");
-                  content2.AddAspects(aspect1);
-                  content2["Aspect1.Field1"] = "qwer";
-                  content2.Save();
+                var content2 = Content.CreateNew("Car", folder, "Car2");
+                content2.AddAspects(aspect1);
+                content2["Aspect1.Field1"] = "qwer";
+                content2.Save();
 
-                  var entities = await ODataGetAsync("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1").ConfigureAwait(false);
+                var response =
+                    await ODataGetAsync("/OData.svc" + folder.Path, "?$orderby=Name asc&$select=Name,Aspect1.Field1")
+                        .ConfigureAwait(false);
 
-                  Assert.IsTrue(entities.Count() == 2, string.Format("entities.Count is ({0}), expected: 2", entities.Count()));
-                  Assert.IsTrue(entities[0].Name == "Car1", string.Format("entities[0].Name is ({0}), expected: 'Car1'", entities[0].Name));
-                  Assert.IsTrue(entities[1].Name == "Car2", string.Format("entities[1].Name is ({0}), expected: 'Car2'", entities[0].Name));
-                  Assert.IsTrue(entities[0].AllProperties.ContainsKey("Aspect1.Field1"), "entities[0] does not contain 'Aspect1.Field1'");
-                  Assert.IsTrue(entities[1].AllProperties.ContainsKey("Aspect1.Field1"), "entities[1] does not contain 'Aspect1.Field1'");
-                  var value1 = (string)((JValue)entities[0].AllProperties["Aspect1.Field1"]).Value;
-                  var value2 = (string)((JValue)entities[1].AllProperties["Aspect1.Field1"]).Value;
-                  Assert.IsTrue(value1 == "asdf", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'asdf'", value1));
-                  Assert.IsTrue(value2 == "qwer", string.Format("entities[0].AllProperties[\"Aspect1.Field1\"] is ({0}), expected: 'qwer'", value2));
-              });
-          }*/
+                var entities = GetEntities(response);
+                Assert.AreEqual(2, entities.Count());
+                Assert.AreEqual("Car1", entities[0].Name);
+                Assert.AreEqual("Car2", entities[1].Name);
+                Assert.IsTrue(entities[0].AllProperties.ContainsKey("Aspect1.Field1"));
+                Assert.IsTrue(entities[1].AllProperties.ContainsKey("Aspect1.Field1"));
+                var value1 = (string) ((JValue) entities[0].AllProperties["Aspect1.Field1"]).Value;
+                var value2 = (string) ((JValue) entities[1].AllProperties["Aspect1.Field1"]).Value;
+                Assert.AreEqual("asdf", value1);
+                Assert.AreEqual("qwer", value2);
+            });
+        }
         private Aspect EnsureAspect(string name)
         {
             var aspect = Aspect.LoadAspectByName(name);
@@ -642,21 +648,16 @@ namespace SenseNet.ODataTests
             return aspect;
         }
 
-
-
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_Expand
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_GET_Expand()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
-                CreateTestSite();
+                //EnsureCleanAdministratorsGroup();
+                //var count = CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .COUNTONLY").Execute().Count;
 
-                EnsureCleanAdministratorsGroup();
-
-                var count = CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .COUNTONLY").Execute().Count;
-                var expectedJson = @"
-{
+                #region expectedJson = @"{
+                var expectedJson = @"{
   ""d"": {
     ""__metadata"": {
       ""uri"": ""/odata.svc/Root/IMS/BuiltIn/Portal('Administrators')"",
@@ -671,20 +672,31 @@ namespace SenseNet.ODataTests
         },
         ""Id"": 1,
         ""Name"": ""Admin""
+      },
+      {
+        ""__metadata"": {
+          ""uri"": ""/odata.svc/Root/IMS/BuiltIn/Portal('Developers')"",
+          ""type"": ""Group""
+        },
+        ""Id"": 1198,
+        ""Name"": ""Developers""
       }
     ],
     ""Name"": ""Administrators""
   }
 }";
+                #endregion
 
-                var jsonText = await ODataGetAsync("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')", "?$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal").ConfigureAwait(false);
+                var response = await ODataGetAsync(
+                    "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
+                    "?$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal")
+                    .ConfigureAwait(false);
 
-                var raw = jsonText.ToString().Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var raw = response.Result.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(exp, raw);
             }).ConfigureAwait(false);
-        }*/
-
+        }
         [TestMethod]
         public async Task OD_GET_Expand_Level2_Noselect()
         {
