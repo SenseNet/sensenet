@@ -333,55 +333,6 @@ namespace SenseNet.ODataTests
         /* --------------------------------------------------------------------------------------------------- */
 
         /*[TestMethod]
-        public void OData_Expand()
-        {
-            EnsureCleanAdministratorsGroup();
-
-            var count = ContentQuery.Query("InFolder:/Root/IMS/BuiltIn/Portal .COUNTONLY").Count;
-            var expectedJson = String.Concat(@"
-        {
-          ""d"": {
-            ""__metadata"": {
-              ""uri"": ""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')"",
-              ""type"": ""Group""
-            },
-            ""Id"": 7,
-            ""Members"": [
-              {
-                ""__metadata"": {
-                  ""uri"": ""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')"",
-                  ""type"": ""User""
-                },
-                ""Id"": 1,
-                ""Name"": ""Admin""
-              }
-            ],
-            ""Name"": ""Administrators""
-          }
-        }");
-
-            CreateTestSite();
-            try
-            {
-                string jsonText;
-                using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')", "$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    jsonText = GetStringResult(output);
-                }
-                var raw = jsonText.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                Assert.IsTrue(raw == exp, String.Format("Result and expected are not equal. Result: {0}, expected: {1}", raw, exp));
-            }
-            finally
-            {
-                CleanupTestSite();
-            }
-        }*/
-
-        /*[TestMethod]
         public void OData_ExpandErrors()
         {
             Test(() =>

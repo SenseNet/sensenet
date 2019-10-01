@@ -14,6 +14,7 @@ using Task = System.Threading.Tasks.Task;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 // ReSharper disable CommentTypo
+// ReSharper disable JoinDeclarationAndInitializer
 
 namespace SenseNet.ODataTests
 {
@@ -25,7 +26,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                // ALIGN
+                // ARRANGE
                 var httpContext = new DefaultHttpContext();
                 var request = httpContext.Request;
                 request.Method = "GET";
@@ -355,60 +356,60 @@ namespace SenseNet.ODataTests
         }
 
         //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
-        /**/
-        //        //[TestMethod]
-        //        public async Task OD_GET_ContentList_NoProjection()
-        //        {
-        //            Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
+        /*[TestMethod]
+        public async Task OD_GET_ContentList_NoProjection()
+        {
+            //Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
-        //            Test(() =>
-        //            {
-        //                CreateTestSite();
+            await IsolatedODataTestAsync(async () =>
+            {
+                InstallCarContentType();
 
-        //                var testRoot = CreateTestRoot("ODataTestRoot");
+                var testRoot = CreateTestRoot("ODataTestRoot");
 
-        //                string listDef = @"<?xml version='1.0' encoding='utf-8'?>
-        //<ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'>
-        //	<Fields>
-        //		<ContentListField name='#ListField1' type='ShortText'/>
-        //		<ContentListField name='#ListField2' type='Integer'/>
-        //		<ContentListField name='#ListField3' type='Reference'/>
-        //	</Fields>
-        //</ContentListDefinition>
-        //";
-        //                string path = RepositoryPath.Combine(testRoot.Path, "Cars");
-        //                if (Node.Exists(path))
-        //                    Node.ForceDelete(path);
-        //                ContentList list = new ContentList(testRoot);
-        //                list.Name = "Cars";
-        //                list.ContentListDefinition = listDef;
-        //                list.AllowedChildTypes = new ContentType[] { ContentType.GetByName("Car") };
-        //                list.Save();
+                string listDef = @"<?xml version='1.0' encoding='utf-8'?>
+        <ContentListDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition'>
+        	<Fields>
+        		<ContentListField name='#ListField1' type='ShortText'/>
+        		<ContentListField name='#ListField2' type='Integer'/>
+        		<ContentListField name='#ListField3' type='Reference'/>
+        	</Fields>
+        </ContentListDefinition>
+        ";
+                string path = RepositoryPath.Combine(testRoot.Path, "Cars");
+                if (Node.Exists(path))
+                    Node.ForceDelete(path);
+                ContentList list = new ContentList(testRoot);
+                list.Name = "Cars";
+                list.ContentListDefinition = listDef;
+                list.AllowedChildTypes = new ContentType[] { ContentType.GetByName("Car") };
+                list.Save();
 
-        //                var car = Content.CreateNew("Car", list, "Car1");
-        //                car.Save();
-        //                car = Content.CreateNew("Car", list, "Car2");
-        //                car.Save();
+                var car = Content.CreateNew("Car", list, "Car1");
+                car.Save();
+                car = Content.CreateNew("Car", list, "Car2");
+                car.Save();
 
-        //                var entities = await ODataGetAsync("/OData.svc" + list.Path, "").ConfigureAwait(false);
+                var response = await ODataGetAsync("/OData.svc" + list.Path, "").ConfigureAwait(false);
 
-        //                var entity = entities.First();
-        //                var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
+                var entities = GetEntities(response);
+                var entity = entities.First();
+                var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
 
-        //                var allowedFieldNames = new List<string>();
-        //                allowedFieldNames.AddRange(ContentType.GetByName("Car").FieldSettings.Select(f => f.Name));
-        //                allowedFieldNames.AddRange(ContentType.GetByName("File").FieldSettings.Select(f => f.Name));
-        //                allowedFieldNames.AddRange(list.ListFieldNames);
-        //                allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder" });
-        //                allowedFieldNames = allowedFieldNames.Distinct().ToList();
+                var allowedFieldNames = new List<string>();
+                allowedFieldNames.AddRange(ContentType.GetByName("Car").FieldSettings.Select(f => f.Name));
+                allowedFieldNames.AddRange(ContentType.GetByName("File").FieldSettings.Select(f => f.Name));
+                allowedFieldNames.AddRange(list.ListFieldNames);
+                allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder" });
+                allowedFieldNames = allowedFieldNames.Distinct().ToList();
 
-        //                var a = entityPropNames.Except(allowedFieldNames).ToArray();
-        //                var b = allowedFieldNames.Except(entityPropNames).ToArray();
+                var a = entityPropNames.Except(allowedFieldNames).ToArray();
+                var b = allowedFieldNames.Except(entityPropNames).ToArray();
 
-        //                Assert.IsTrue(a.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", a)));
-        //                Assert.IsTrue(b.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", b)));
-        //            }).ConfigureAwait(false);
-        //        }
+                Assert.IsTrue(a.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", a)));
+                Assert.IsTrue(b.Length == 0, String.Format("Expected empty but contains: '{0}'", string.Join("', '", b)));
+            }).ConfigureAwait(false);
+        }*/
 
         [TestMethod]
         public async Task OD_GET_ContentQuery()
@@ -1011,64 +1012,78 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }*/
 
-        //UNDONE:ODATA:TEST: Remove inconclusive test result and implement this test.
-        /*[TestMethod]
-        //public async Task OD_GET_OrderByNumericDouble()
-        //{
-        //    Assert.Inconclusive("OData_OrderByNumericDouble is commented out (uses LuceneManager)");
+        [TestMethod]
+        public async Task OD_GET_OrderByNumericDouble()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var testRoot = CreateTestRoot("ODataTestRoot");
 
-        //    //            var testRoot = CreateTestRoot("ODataTestRoot");
+                var contentTypeName = "OData_OrderByNumericDouble_ContentType";
 
-        //    //            var contentTypeName = "OData_OrderByNumericDouble_ContentType";
+                var ctd = @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='" + contentTypeName + @"' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <DisplayName>$Ctd-Resource,DisplayName</DisplayName>
+  <Description>$Ctd-Resource,Description</Description>
+  <Icon>Resource</Icon>
+  <Fields>
+    <Field name='CustomIndex' type='Number'>
+      <DisplayName>CustomIndex</DisplayName>
+      <Description>CustomIndex</Description>
+      <Configuration />
+    </Field>
+  </Fields>
+</ContentType>";
 
-        //    //            var ctd = @"<?xml version='1.0' encoding='utf-8'?>
-        //    //<ContentType name='" + contentTypeName + @"' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
-        //    //  <DisplayName>$Ctd-Resource,DisplayName</DisplayName>
-        //    //  <Description>$Ctd-Resource,Description</Description>
-        //    //  <Icon>Resource</Icon>
-        //    //  <Fields>
-        //    //    <Field name='CustomIndex' type='Number'>
-        //    //      <DisplayName>CustomIndex</DisplayName>
-        //    //      <Description>CustomIndex</Description>
-        //    //      <Configuration />
-        //    //    </Field>
-        //    //  </Fields>
-        //    //</ContentType>";
+                ContentTypeInstaller.InstallContentType(ctd);
+                var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+                root.Save();
 
-        //    //            ContentTypeInstaller.InstallContentType(ctd);
-        //    //            var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-        //    //            root.Save();
+                Content content;
 
-        //    //            Content content;
+                content = Content.CreateNew(contentTypeName, root, "Content-1"); content["CustomIndex"] = 6.0; content.Save();
+                content = Content.CreateNew(contentTypeName, root, "Content-2"); content["CustomIndex"] = 3.0; content.Save();
+                content = Content.CreateNew(contentTypeName, root, "Content-3"); content["CustomIndex"] = 2.0; content.Save();
+                content = Content.CreateNew(contentTypeName, root, "Content-4"); content["CustomIndex"] = 4.0; content.Save();
+                content = Content.CreateNew(contentTypeName, root, "Content-5"); content["CustomIndex"] = 5.0; content.Save();
 
-        //    //            content = Content.CreateNew(contentTypeName, root, "Content-1"); content["CustomIndex"] = 6.0; content.Save();
-        //    //            content = Content.CreateNew(contentTypeName, root, "Content-2"); content["CustomIndex"] = 3.0; content.Save();
-        //    //            content = Content.CreateNew(contentTypeName, root, "Content-3"); content["CustomIndex"] = 2.0; content.Save();
-        //    //            content = Content.CreateNew(contentTypeName, root, "Content-4"); content["CustomIndex"] = 4.0; content.Save();
-        //    //            content = Content.CreateNew(contentTypeName, root, "Content-5"); content["CustomIndex"] = 5.0; content.Save();
-        //    //            SenseNet.Search.Indexing.LuceneManager.Commit(true);
+                try
+                {
+                    var queryResult = CreateSafeContentQuery("ParentId:" + root.Id + " .SORT:CustomIndex .AUTOFILTERS:OFF").Execute().Nodes;
+                    var names = string.Join(", ", queryResult.Select(n => n.Name).ToArray());
+                    var expectedNames = "Content-3, Content-2, Content-4, Content-5, Content-1";
+                    Assert.AreEqual(expectedNames, names);
 
-        //    //            try
-        //    //            {
-        //    //                var queryResult = ContentQuery.Query("ParentId:" + root.Id + " .SORT:CustomIndex .AUTOFILTERS:OFF").Nodes;
-        //    //                var names = string.Join(", ", queryResult.Select(n => n.Name).ToArray());
-        //    //                var expectedNames = "Content-3, Content-2, Content-4, Content-5, Content-1";
-        //    //                Assert.AreEqual(expectedNames, names);
+                    // ACTION 1
+                    var response = await ODataGetAsync(
+                        "/OData.svc" + root.Path,
+                        "?enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no")
+                        .ConfigureAwait(false);
 
-        //    //                var entities = await ODataGetAsync("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=Name asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no").ConfigureAwait(false);
-        //    //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
-        //    //                Assert.AreEqual("Content-1, Content-2, Content-3, Content-4, Content-5", names);
+                    // ASSERT 1
+                    var entities = GetEntities(response);
+                    names = string.Join(", ", entities.Select(e => e.Name).ToArray());
+                    Assert.AreEqual("Content-1, Content-2, Content-3, Content-4, Content-5", names);
 
-        //    //                entities = await ODataGetAsync("/OData.svc" + root.Path, "enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=CustomIndex asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no").ConfigureAwait(false);
-        //    //                names = string.Join(", ", entities.Select(e => e.Name).ToArray());
-        //    //                Assert.AreEqual(expectedNames, names);
-        //    //            }
-        //    //            finally
-        //    //            {
-        //    //                root.ForceDelete();
-        //    //                ContentTypeInstaller.RemoveContentType(contentTypeName);
-        //    //            }
-        //}*/
+                    // ACTION 2
+                    response = await ODataGetAsync(
+                        "/OData.svc" + root.Path,
+                        "?enableautofilters=false$select=Id,Path,Name,CustomIndex&$expand=,CheckedOutTo&$orderby=CustomIndex asc&$filter=(ContentType eq '" + contentTypeName + "')&$top=20&$skip=0&$inlinecount=allpages&metadata=no")
+                        .ConfigureAwait(false);
+
+                    // ASSERT 2
+                    entities = GetEntities(response);
+                    names = string.Join(", ", entities.Select(e => e.Name).ToArray());
+                    Assert.AreEqual(expectedNames, names);
+                }
+                finally
+                {
+                    root.ForceDelete();
+                    ContentTypeInstaller.RemoveContentType(contentTypeName);
+                }
+            }).ConfigureAwait(false);
+        }
 
         /* ============================================================================ TOOLS */
 
