@@ -176,6 +176,14 @@ namespace SenseNet.ODataTests
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH");
         }
+        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson)
+        {
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE");
+        }
+        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson)
+        {
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST");
+        }
         private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
             string requestBodyJson, string httpMethod)
         {

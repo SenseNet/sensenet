@@ -209,25 +209,25 @@ namespace SenseNet.OData
                         }
                         break;
                     case "POST": // invoke an action, create content
-                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
-                        //if (odataRequest.IsMemberRequest)
-                        //{
-                        //    formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
-                        //}
-                        //else
-                        //{
-                        //    // parent must exist
-                        //    //UNDONE:ODATA: unnecessary check (?)
-                        //    if (!Node.Exists(odataRequest.RepositoryPath))
-                        //    {
-                        //        ContentNotFound(httpContext);
-                        //        return;
-                        //    }
-                        //    model = Read(inputStream);
-                        //    var newContent = CreateNewContent(model, odataRequest);
-                        //    /*await*/ formatter.WriteSingleContentAsync(newContent, httpContext).ConfigureAwait(false);
-                        //}
-                        //break;
+                        if (odataRequest.IsMemberRequest)
+                        {
+                            // MEMBER REQUEST
+                            formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
+                        }
+                        else
+                        {
+                            // CREATION
+                            if (!Node.Exists(odataRequest.RepositoryPath))
+                            {
+                                // parent does not exist
+                                ContentNotFound(httpContext);
+                                return;
+                            }
+                            model = Read(inputStream);
+                            var newContent = CreateNewContent(model, odataRequest);
+                            await formatter.WriteSingleContentAsync(newContent, httpContext).ConfigureAwait(false);
+                        }
+                        break;
                     case "DELETE":
                         throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
                         //if (odataRequest.IsMemberRequest)
