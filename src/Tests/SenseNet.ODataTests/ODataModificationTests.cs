@@ -189,81 +189,76 @@ namespace SenseNet.ODataTests
             return ModifyingTest("PATCH", true);
         }
 
-        //UNDONE:ODATA: Fix test: OD_FIX_NameEncoding_CreateAndRename
-        /**/
-        //[TestMethod]
-        //public async Task OD_FIX_NameEncoding_CreateAndRename()
-        //{
-        //    await IsolatedODataTestAsync(async () =>
-        //    {
-        //        var testRoot = CreateTestRoot("ODataTestRoot");
+        [TestMethod]
+        public async Task OD_FIX_NameEncoding_CreateAndRename()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var testRoot = CreateTestRoot("ODataTestRoot");
 
-        //        var guid = Guid.NewGuid().ToString().Replace("-", "");
-        //        var name = "*_|" + guid;
-        //        var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
-        //        var newName = ContentNamingProvider.GetNameFromDisplayName("___" + guid);
+                var guid = Guid.NewGuid().ToString().Replace("-", "");
+                var name = "*_|" + guid;
+                var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
+                var newName = ContentNamingProvider.GetNameFromDisplayName("___" + guid);
 
-        //        // ACTION 1: Create
-        //        var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
-        //        var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false);;
+                // ACTION 1: Create
+                var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
+                var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false); ;
 
-        //        // ASSERT 1
-        //        AssertNoError(response);
-        //        var entity = GetEntity(response);
-        //        Assert.AreEqual(encodedName, entity.Name);
+                // ASSERT 1
+                AssertNoError(response);
+                var entity = GetEntity(response);
+                Assert.AreEqual(encodedName, entity.Name);
 
-        //        // ACTION 2: Rename
-        //        json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
-        //        response = await ODataPatchAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false);;
+                // ACTION 2: Rename
+                json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
+                response = await ODataPatchAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false); ;
 
-        //        // ASSERT 2
-        //        AssertNoError(response);
-        //        entity = GetEntity(response);
-        //        var node = Node.LoadNode(entity.Id);
-        //        Assert.AreEqual(newName, node.Name);
-        //    }).ConfigureAwait(false);;
-        //}
-        /**/
-        //UNDONE:ODATA: Fix test: OD_FIX_ModifyWithInvisibleParent
-        /**/
-        //[TestMethod]
-        //public async Task OD_FIX_ModifyWithInvisibleParent()
-        //{
-        //    await IsolatedODataTestAsync(async () =>
-        //    {
-        //        var testRoot = CreateTestRoot("ODataTestRoot");
-        //        var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
-        //        root.Save();
-        //        var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
-        //        node.Save();
+                // ASSERT 2
+                AssertNoError(response);
+                entity = GetEntity(response);
+                var node = Node.LoadNode(entity.Id);
+                Assert.AreEqual(newName, node.Name);
+            }).ConfigureAwait(false); ;
+        }
+        [TestMethod]
+        public async Task OD_FIX_ModifyWithInvisibleParent()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
+                root.Save();
+                var node = new Folder(root) { Name = Guid.NewGuid().ToString() };
+                node.Save();
 
-        //        SecurityHandler.CreateAclEditor()
-        //            .BreakInheritance(root.Id, new[] { EntryType.Normal })
-        //            .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
-        //            .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
-        //            .Apply();
+                SecurityHandler.CreateAclEditor()
+                    .BreakInheritance(root.Id, new[] { EntryType.Normal })
+                    .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
+                    .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
+                    .Apply();
 
-        //        var savedUser = User.Current;
+                var savedUser = User.Current;
 
-        //        try
-        //        {
-        //            User.Current = User.Visitor;
+                try
+                {
+                    User.Current = User.Visitor;
 
-        //            var json = @"models=[{""Index"": 42}]";
-        //            var response = await ODataPatchAsync("/OData.svc" + node.Path, "", json).ConfigureAwait(false);;
+                    var json = @"models=[{""Index"": 42}]";
+                    var response = await ODataPatchAsync("/OData.svc" + node.Path, "", json).ConfigureAwait(false); ;
 
-        //            AssertNoError(response);
-        //            var entity = GetEntity(response);
-        //            node = Node.Load<Folder>(node.Id);
-        //            Assert.AreEqual(42, entity.Index);
-        //            Assert.AreEqual(42, node.Index);
-        //        }
-        //        finally
-        //        {
-        //            User.Current = savedUser;
-        //        }
-        //    }).ConfigureAwait(false);;
-        //}
+                    AssertNoError(response);
+                    var entity = GetEntity(response);
+                    node = Node.Load<Folder>(node.Id);
+                    Assert.AreEqual(42, entity.Index);
+                    Assert.AreEqual(42, node.Index);
+                }
+                finally
+                {
+                    User.Current = savedUser;
+                }
+            }).ConfigureAwait(false); ;
+        }
 
         /* ===================================================================== MERGE */
 
