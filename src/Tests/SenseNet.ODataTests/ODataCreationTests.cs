@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
@@ -19,22 +22,60 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
                 var name = "Content1";
-                var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
+                var displayName = "Content-1 display name";
+                var path = RepositoryPath.Combine(testRoot.Path, name);
 
-                // ACTION 1: Create
-                var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
-                var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false); ;
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/" + testRoot.Path, 
+                    "",
+                    $@"models=[{{""Name"":""{name}"",""DisplayName"":""{displayName}"",""Index"":42}}]")
+                    .ConfigureAwait(false);
 
-                // ASSERT 1
+                // ASSERT
+                var fileContentType = ContentType.GetByName("File");
                 AssertNoError(response);
                 var entity = GetEntity(response);
-                Assert.AreEqual(encodedName, entity.Name);
-                var node = Node.LoadNode(entity.Id);
-                Assert.AreEqual(name, node.Name);
+                Assert.AreEqual(name, entity.Name);
+                Assert.AreEqual(fileContentType, entity.ContentType);
+                Assert.IsTrue(entity.AllPropertiesSelected);
+                Assert.IsTrue(entity.AllProperties.ContainsKey("__metadata"));
+
+                var content = Content.Load(path);
+                Assert.AreEqual(displayName, content.DisplayName);
+                Assert.AreEqual(42, content.Index);
+                Assert.AreEqual(fileContentType, content.ContentType);
             }).ConfigureAwait(false); ;
         }
         [TestMethod]
-        public async Task OD_POST_CreationMissingParent()
+        public async Task OD_POST_Creation_ShortenedResponse()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                var name = "Content1";
+                var displayName = "Content-1 display name";
+                var path = RepositoryPath.Combine(testRoot.Path, name);
+
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/" + testRoot.Path,
+                    "?metadata=no&$select=Name,Index",
+                    $@"models=[{{""Name"":""{name}"",""DisplayName"":""{displayName}"",""Index"":42}}]")
+                    .ConfigureAwait(false); ;
+
+                // ASSERT
+                var fileContentType = ContentType.GetByName("File");
+                AssertNoError(response);
+                var entity = GetEntity(response);
+                Assert.IsFalse(entity.AllProperties.ContainsKey("__metadata"));
+                Assert.AreEqual(name, entity.Name);
+                Assert.AreEqual(2, entity.AllProperties.Count);
+            }).ConfigureAwait(false); ;
+        }
+        [TestMethod]
+        public async Task OD_POST_Creation_MissingParent()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -49,88 +90,62 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(404, response.StatusCode);
             }).ConfigureAwait(false); ;
         }
-        /*[TestMethod]
-        public void OData_Posting_Creating()
+        [TestMethod]
+        public async Task OD_POST_Creation_ExplicitType()
         {
-            Test(() =>
-            {
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
-
-                var name = Guid.NewGuid().ToString();
-                var displayName = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(testRoot.Path, name);
-                    //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
-                    var json = string.Concat(@"models=[{""Name"":""", name, @""",""DisplayName"":""", displayName,
-                    @""",""Index"":41}]");
-
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
-
-                handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-
-                var content = Content.Load(path);
-                Assert.IsTrue(content.DisplayName == displayName);
-            });
-        }*/
-        /*[TestMethod]
-        public void OData_Posting_Creating_ExplicitType()
-        {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
 
-                var name = Guid.NewGuid().ToString();
+                var name = "Content1";
                 var path = RepositoryPath.Combine(testRoot.Path, name);
-                    //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
-                    var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
 
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/" + testRoot.Path,
+                    "",
+                    $@"models=[{{""__ContentType"":""Car"",""Name"":""{name}""}}]")
+                    .ConfigureAwait(false); ;
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
+                // ASSERT
+                AssertNoError(response);
+                var carContentType = ContentType.GetByName("Car");
+                var entity = GetEntity(response);
+                Assert.AreEqual(name, entity.Name);
+                Assert.AreEqual(carContentType, entity.ContentType);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.ContentType.Name == "Car");
-                Assert.IsTrue(content.Name == name);
-            });
-        }*/
-        /*[TestMethod]
-        public void OData_Post_References()
+                Assert.AreEqual(carContentType, content.ContentType);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_POST_Creation_References()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 EnsureReferenceTestStructure(testRoot);
-                CreateTestSite();
                 var refs = new[] { Repository.Root, Repository.ImsFolder };
 
-                var name1 = Guid.NewGuid().ToString();
+                var name1 = "Content1";
                 var path1 = RepositoryPath.Combine(testRoot.Path, name1);
 
                 var pathRefs = "[" + String.Join(",", refs.Select(n => "\"" + n.Path + "\"")) + "]";
                 var idRefs = "[" + String.Join(",", refs.Select(n => n.Id)) + "]";
                 var simpleRefNode = Node.LoadNode(4);
 
-                var json1 = string.Concat(
-                    @"models=[{""__ContentType"":""OData_ReferenceTest_ContentHandler"",""Name"":""", name1,
-                    @""",""Reference"":", pathRefs, @",""References"":", pathRefs, @",""Reference2"":""",
-                    simpleRefNode.Path, @"""}]");
+                // ACTION-1
+                var response = await ODataPostAsync(
+                        "/OData.svc/" + testRoot.Path,
+                        "",
+                        $@"models=[{{""__ContentType"":""OData_ReferenceTest_ContentHandler"","
+                            + $@"""Name"":""{name1}"",""Reference"":{pathRefs},"
+                            + $@"""References"":{pathRefs},""Reference2"":""{simpleRefNode.Path}""}}]")
+                    .ConfigureAwait(false);
 
-                var output1 = new StringWriter();
-                var pc1 = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output1);
-                var handler1 = new ODataHandler();
-                var stream1 = CreateRequestStream(json1);
-
-                handler1.ProcessRequest(pc1.OwnerHttpContext, "POST", stream1);
-                CheckError(output1);
-
+                // ASSERT-1
+                AssertNoError(response);
                 var node1 = Node.Load<OData_ReferenceTest_ContentHandler>(path1);
                 var reloadedRefs1 = "[" + String.Join(",", node1.References.Select(n => +n.Id)) + "]";
                 Assert.AreEqual(idRefs, reloadedRefs1);
@@ -139,87 +154,82 @@ namespace SenseNet.ODataTests
 
                 //--------------------------------------------------------------
 
-                var name2 = Guid.NewGuid().ToString();
+                var name2 = "Content2";
                 var path2 = RepositoryPath.Combine(testRoot.Path, name2);
 
-                var json2 = string.Concat(
-                    @"models=[{""__ContentType"":""OData_ReferenceTest_ContentHandler"",""Name"":""", name2,
-                    @""",""Reference"":", idRefs, @",""References"":", idRefs, @",""Reference2"":", simpleRefNode.Id,
-                    @"}]");
+                // ACTION-2
+                response = await ODataPostAsync(
+                        "/OData.svc/" + testRoot.Path,
+                        "",
+                        $@"models=[{{""__ContentType"":""OData_ReferenceTest_ContentHandler"","
+                            + $@"""Name"":""{name2}"",""Reference"":{idRefs},"
+                            + $@"""References"":{idRefs},""Reference2"":{simpleRefNode.Id}}}]")
+                    .ConfigureAwait(false);
 
-                var output2 = new StringWriter();
-                var pc2 = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output2);
-                var handler2 = new ODataHandler();
-                var stream2 = CreateRequestStream(json2);
-
-                handler2.ProcessRequest(pc2.OwnerHttpContext, "POST", stream2);
-                CheckError(output2);
-
+                // ASSERT-2
+                AssertNoError(response);
                 var node2 = Node.Load<OData_ReferenceTest_ContentHandler>(path2);
                 var reloadedRefs2 = "[" + String.Join(",", node2.References.Select(n => n.Id)) + "]";
                 Assert.AreEqual(idRefs, reloadedRefs2);
                 Assert.AreEqual(refs[0].Id, node2.Reference.Id);
                 Assert.AreEqual(simpleRefNode.Id, node2.Reference2.Id);
             });
-        }*/
-
-        /*[TestMethod]
-        public void OData_Posting_Creating_UnderById()
+        }
+        [TestMethod]
+        public async Task OD_POST_Creation_UnderById()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
 
-                var name = Guid.NewGuid().ToString();
-                var displayName = Guid.NewGuid().ToString();
+                var name = "Content1";
+                var displayName = "Content1 display name";
                 var path = RepositoryPath.Combine(testRoot.Path, name);
-                    //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
-                    var json = string.Concat(@"models=[{""Name"":""", name, @""",""DisplayName"":""", displayName,
-                    @""",""Index"":41}]");
 
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + testRoot.Id + ")", "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
+                // ACTION
+                var response = await ODataPostAsync(
+                        "/OData.svc/content(" + testRoot.Id + ")",
+                        "?metadata=no&$select=Name,Type",
+                        $@"models=[{{""Name"":""{name}"",""DisplayName"":""{displayName}"",""Index"":41}}]")
+                    .ConfigureAwait(false);
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
+                // ASSERT
+                AssertNoError(response);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.DisplayName == displayName);
+                Assert.AreEqual(displayName, content.DisplayName);
+                Assert.AreEqual(ContentType.GetByName("File"), content.ContentType);
 
-            });
-        }*/
-        /*[TestMethod]
-        public void OData_Posting_Creating_ExplicitType_UnderById()
+            }).ConfigureAwait(false); ;
+        }
+        [TestMethod]
+        public async Task OD_POST_Creation_ExplicitType_UnderById()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateTestSite();
 
-                var name = Guid.NewGuid().ToString();
+                var name = "Content1";
                 var path = RepositoryPath.Combine(testRoot.Path, name);
-                    //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
-                    var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
 
-                var output = new StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + testRoot.Id + ")", "", output);
-                var handler = new ODataHandler();
-                var stream = CreateRequestStream(json);
+                // ACTION
+                var response = await ODataPostAsync(
+                        "/OData.svc/content(" + testRoot.Id + ")",
+                        "?metadata=no&$select=Name,Type",
+                        $@"models=[{{""__ContentType"":""Car"",""Name"":""{name}""}}]")
+                    .ConfigureAwait(false);
 
-                handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-
+                // ASSERT
+                AssertNoError(response);
                 var content = Content.Load(path);
-                Assert.IsTrue(content.ContentType.Name == "Car");
-                Assert.IsTrue(content.Name == name);
+                Assert.IsNotNull(content);
+                Assert.AreEqual(ContentType.GetByName("Car"), content.ContentType);
 
-            });
-        }*/
-
+            }).ConfigureAwait(false); ;
+        }
         [TestMethod]
-        public async Task OD_POST_CreateFromTemplate()
+        public async Task OD_POST_Creation_FromTemplate()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -227,15 +237,15 @@ namespace SenseNet.ODataTests
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 EnsureTemplateStructure();
 
-                var name = Guid.NewGuid().ToString();
+                var name = "Content1";
                 var path = RepositoryPath.Combine(testRoot.Path, name);
-                var requestBody = string.Concat(
-                    @"models=[{""__ContentType"":""Car"",""__ContentTemplate"":""Template3"",""Name"":""", name,
-                    @""",""EngineSize"":""3.5 l""}]");
 
                 // ACTION
                 var response = await ODataPostAsync(
-                        "/OData.svc" + testRoot.Path, "", requestBody)
+                        "/OData.svc" + testRoot.Path,
+                        "",
+                        $@"models=[{{""__ContentType"":""Car"",""__ContentTemplate"":""Template3"","
+                        + $@"""Name"":""{name}"",""EngineSize"":""3.5 l""}}]")
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -249,6 +259,39 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("3.5 l", content["EngineSize"]);
             }).ConfigureAwait(false);
         }
+
+        [TestMethod]
+        public async Task OD_POST_Creation_FIX_InconsistentNameAfterCreation()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                var name = "Car";
+
+                // ACTION
+                var names = new string[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    var response = await ODataPostAsync(
+                            String.Concat("/OData.svc", ODataMiddleware.GetEntityUrl(testRoot.Path)),
+                            "?metadata=no&$select=Name",
+                            $@"models=[{{""__ContentType"":""Car"",""Name"":""{name}""}}]")
+                        .ConfigureAwait(false);
+                    var entity = GetEntity(response);
+                    names[i] = entity.Name;
+                }
+
+                // ASSERT
+                Assert.AreNotEqual(names[0], names[1]);
+                Assert.AreNotEqual(names[0], names[2]);
+                Assert.AreNotEqual(names[1], names[2]);
+            });
+        }
+
+        /* ====================================================================== TOOLS */
+
         private void EnsureTemplateStructure()
         {
             //global template folder
@@ -283,44 +326,31 @@ namespace SenseNet.ODataTests
 
         }
 
-        /*[TestMethod]
-        public void OData_FIX_InconsistentNameAfterCreating()
+        private static void EnsureReferenceTestStructure(Node testRoot)
         {
-            Test(() =>
+            if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
+
+            if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
+
+            var referrerContent = Content.Load(RepositoryPath.Combine(testRoot.Path, "Referrer"));
+            if (referrerContent == null)
             {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-
-                var name = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(testRoot.Path, name);
-                var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
-
-                ODataEntity entity;
-                    //string result;
-                    CreateTestSite();
-
-                var names = new string[3];
-                for (int i = 0; i < 3; i++)
+                var nodes = new Node[5];
+                for (int i = 0; i < nodes.Length; i++)
                 {
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(String.Concat("/OData.svc", ODataHandler.GetEntityUrl(testRoot.Path)),
-                            "", output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream(json);
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        output.Flush();
-                            //result = GetStringResult(output);
-                            entity = GetEntity(output);
-                    }
-                    names[i] = entity.Name;
+                    var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
+                    content.Index = i + 1;
+                    content.Save();
+                    nodes[i] = content.ContentHandler;
                 }
 
-                Assert.AreNotEqual(names[0], names[1]);
-                Assert.AreNotEqual(names[0], names[2]);
-                Assert.AreNotEqual(names[1], names[2]);
-            });
-        }*/
-
+                referrerContent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
+                var referrer = (OData_Filter_ThroughReference_ContentHandler)referrerContent.ContentHandler;
+                referrer.References = nodes;
+                referrerContent.Save();
+            }
+        }
     }
 }
