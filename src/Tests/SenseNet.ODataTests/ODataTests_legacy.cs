@@ -207,8 +207,8 @@ namespace SenseNet.ODataTests
 
         #region [TestMethod] 2 SnJsonConverterTest_
 
-        /*[TestMethod]
-        public void SnJsonConverterTest_SimpleProjection()
+        /*[TestMethod]*/
+        /*public void SnJsonConverterTest_SimpleProjection()
         {
             Test(() =>
             {
@@ -237,8 +237,8 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(jobj["Price"].Value<decimal>(), content["Price"]);
             });
         }*/
-        /*[TestMethod]
-        public void SnJsonConverterTest_WithExpand()
+        /*[TestMethod]*/
+        /*public void SnJsonConverterTest_WithExpand()
         {
             Test(() =>
             {
@@ -275,8 +275,8 @@ namespace SenseNet.ODataTests
         #endregion
 
 
-        /*[TestMethod]
-        public void OData_Urls_CurrentSite()
+        /*[TestMethod]*/
+        /*public void OData_Urls_CurrentSite()
         {
             Test(() =>
             {
@@ -306,8 +306,8 @@ namespace SenseNet.ODataTests
 
         /* --------------------------------------------------------------------------------------------------- */
 
-        /*[TestMethod]
-        public void OData_Invoking_Actions()
+        /*[TestMethod]*/
+        /*public void OData_Invoking_Actions()
         {
             Test(() =>
             {
@@ -344,8 +344,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Invoking_Actions_NoContent()
+        /*[TestMethod]*/
+        /*public void OData_Invoking_Actions_NoContent()
         {
             Test(() =>
             {
@@ -597,8 +597,8 @@ namespace SenseNet.ODataTests
 
         /* --------------------------------------------------------------------------------------------------- */
 
-        /*[TestMethod]
-        public void OData_Security_GetPermissions_ACL()
+        /*[TestMethod]*/
+        /*public void OData_Security_GetPermissions_ACL()
         {
             Test(() =>
             {
@@ -639,8 +639,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_GetPermissions_ACE()
+        /*[TestMethod]*/
+        /*public void OData_Security_GetPermissions_ACE()
         {
             Test(() =>
             {
@@ -681,8 +681,8 @@ namespace SenseNet.ODataTests
             });
         }*/
 
-        /*[TestMethod]
-        public void OData_Security_HasPermission_Administrator()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_Administrator()
         {
             Test(() =>
             {
@@ -725,8 +725,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_Visitor()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_Visitor()
         {
             Test(() =>
             {
@@ -761,8 +761,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_NullUser()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_NullUser()
         {
             Test(() =>
             {
@@ -795,8 +795,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_WithoutUser()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_WithoutUser()
         {
             Test(() =>
             {
@@ -829,8 +829,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_Error_IdentityNotFound()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_Error_IdentityNotFound()
         {
             Test(() =>
             {
@@ -866,8 +866,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_Error_UnknownPermission()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_Error_UnknownPermission()
         {
             Test(() =>
             {
@@ -901,8 +901,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_HasPermission_Error_MissingParameter()
+        /*[TestMethod]*/
+        /*public void OData_Security_HasPermission_Error_MissingParameter()
         {
             Test(() =>
             {
@@ -937,8 +937,8 @@ namespace SenseNet.ODataTests
             });
         }*/
 
-        /*[TestMethod]
-        public void OData_Security_SetPermissions()
+        /*[TestMethod]*/
+        /*public void OData_Security_SetPermissions()
         {
             Test(() =>
             {
@@ -980,8 +980,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_SetPermissions_NotPropagates()
+        /*[TestMethod]*/
+        /*public void OData_Security_SetPermissions_NotPropagates()
         {
             Test(() =>
             {
@@ -1032,8 +1032,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_Break()
+        /*[TestMethod]*/
+        /*public void OData_Security_Break()
         {
             Test(() =>
             {
@@ -1069,8 +1069,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_Unbreak()
+        /*[TestMethod]*/
+        /*public void OData_Security_Unbreak()
         {
             Test(() =>
             {
@@ -1106,8 +1106,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_Error_MissingStream()
+        /*[TestMethod]*/
+        /*public void OData_Security_Error_MissingStream()
         {
             Test(() =>
             {
@@ -1143,8 +1143,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_Error_BothParameters()
+        /*[TestMethod]*/
+        /*public void OData_Security_Error_BothParameters()
         {
             Test(() =>
             {
@@ -1184,8 +1184,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_Security_Error_InvalidInheritanceParam()
+        /*[TestMethod]*/
+        /*public void OData_Security_Error_InvalidInheritanceParam()
         {
             Test(() =>
             {
@@ -1228,7 +1228,7 @@ namespace SenseNet.ODataTests
 
         //TODO: Remove inconclusive test result and implement this test.
         /*//[TestMethod]
-        public void OData_Metadata_Instance_Entity()
+        /*public void OData_Metadata_Instance_Entity()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
@@ -1283,7 +1283,7 @@ namespace SenseNet.ODataTests
 
         //TODO: Remove inconclusive test result and implement this test.
         /*//[TestMethod]
-        public void OData_Metadata_Instance_Collection()
+        /*public void OData_Metadata_Instance_Collection()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 
@@ -1336,8 +1336,8 @@ namespace SenseNet.ODataTests
 
         /* --------------------------------------------------------------------------------------------------- */
 
-        /*[TestMethod]
-        public void OData_FilteringAndPartitioningOperationResult_ChildrenDefinition()
+        /*[TestMethod]*/
+        /*public void OData_FilteringAndPartitioningOperationResult_ChildrenDefinition()
         {
             Test(() =>
             {
@@ -1369,8 +1369,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_FilteringAndPartitioningOperationResult_ContentCollection()
+        /*[TestMethod]*/
+        /*public void OData_FilteringAndPartitioningOperationResult_ContentCollection()
         {
             Test(() =>
             {
@@ -1404,8 +1404,8 @@ namespace SenseNet.ODataTests
             });
         }*/
 
-        /*[TestMethod]
-        public void OData_FilteringCollection_IsOf()
+        /*[TestMethod]*/
+        /*public void OData_FilteringCollection_IsOf()
         {
             Test(() =>
             {
@@ -1455,8 +1455,8 @@ namespace SenseNet.ODataTests
             });
         }*/
 
-        /*[TestMethod]
-        public void OData_InvokeAction_Post_GetPutMergePatchDelete()
+        /*[TestMethod]*/
+        /*public void OData_InvokeAction_Post_GetPutMergePatchDelete()
         {
             Test(() =>
             {
@@ -1504,8 +1504,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_InvokeFunction_PostGet_PutMergePatchDelete()
+        /*[TestMethod]*/
+        /*public void OData_InvokeFunction_PostGet_PutMergePatchDelete()
         {
             Test(() =>
             {
@@ -1560,8 +1560,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_InvokeDictionaryHandlerFunction()
+        /*[TestMethod]*/
+        /*public void OData_InvokeDictionaryHandlerFunction()
         {
             Test(() =>
             {
@@ -1594,8 +1594,8 @@ namespace SenseNet.ODataTests
 
         /* ============================================================================== Bug reproductions */
 
-        /*[TestMethod]
-        public void OData_SortingByMappedDateTimeAspectField()
+        /*[TestMethod]*/
+        /*public void OData_SortingByMappedDateTimeAspectField()
         {
             Test(() =>
             {
@@ -1760,8 +1760,8 @@ namespace SenseNet.ODataTests
 
         /* ============================================================================== Bug reproductions 2 */
 
-        /*[TestMethod]
-        public void OData_FIX_DoNotUrlDecodeTheRequestStream()
+        /*[TestMethod]*/
+        /*public void OData_FIX_DoNotUrlDecodeTheRequestStream()
         {
             Test(() =>
             {
@@ -1790,7 +1790,7 @@ namespace SenseNet.ODataTests
 
         //TODO: Remove inconclusive test result and implement this test.
         /*//[TestMethod]
-        public void OData_FIX_Move_RightExceptionIfTargetExists()
+        /*public void OData_FIX_Move_RightExceptionIfTargetExists()
         {
             Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");
 
@@ -1828,8 +1828,8 @@ namespace SenseNet.ODataTests
                 }
             });
         }*/
-        /*[TestMethod]
-        public void OData_FIX_Copy_RightExceptionIfTargetExists()
+        /*[TestMethod]*/
+        /*public void OData_FIX_Copy_RightExceptionIfTargetExists()
         {
             Test(() =>
             {
