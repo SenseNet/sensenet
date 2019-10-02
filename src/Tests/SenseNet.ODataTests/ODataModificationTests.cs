@@ -41,7 +41,9 @@ namespace SenseNet.ODataTests
                         }]");
 
                 // ACTION
-                var response = await ODataPutAsync("/OData.svc" + content.Path, "", requestBody);
+                var response = await ODataPutAsync(
+                    "/OData.svc" + content.Path, "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 AssertNoError(response);
@@ -51,7 +53,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(newDisplayName, content1.DisplayName);
                 // Default value because of PUT
                 Assert.AreEqual(0, content1.Index);
-            });
+            }).ConfigureAwait(false); ;
         }
         [TestMethod]
         public async Task OD_PUT_RenameMissing()
@@ -62,11 +64,13 @@ namespace SenseNet.ODataTests
                 var requestBody = @"models=[{""Name"": ""newName"", ""DisplayName"": ""newDisplayName""}]";
 
                 // ACTION
-                var response = await ODataPutAsync("/OData.svc/Root('UnknownContent')'", "", requestBody);
+                var response = await ODataPutAsync(
+                    "/OData.svc/Root('UnknownContent')'", "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 Assert.AreEqual(404, response.StatusCode);
-            });
+            }).ConfigureAwait(false); ;
         }
         [TestMethod]
         public async Task OD_PUT_IllegalInvoke()
@@ -77,12 +81,14 @@ namespace SenseNet.ODataTests
                 var requestBody = @"models=[{""Name"": ""newName"", ""DisplayName"": ""newDisplayName""}]";
 
                 // ACTION
-                var response = await ODataPutAsync("/OData.svc/Root('UnknownContent')/Id'", "", requestBody);
+                var response = await ODataPutAsync(
+                    "/OData.svc/Root('UnknownContent')/Id'", "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 var error = GetError(response);
                 Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code);
-            });
+            }).ConfigureAwait(false); ;
         }
 
         [TestMethod]
@@ -124,7 +130,9 @@ namespace SenseNet.ODataTests
                         }]");
 
                 // ACTION
-                var response = await ODataPatchAsync("/OData.svc" + content.Path, "", requestBody);
+                var response = await ODataPatchAsync(
+                    "/OData.svc" + content.Path, "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 AssertNoError(response);
@@ -132,7 +140,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(newName, content1.Name);
                 Assert.AreEqual(newDisplayName, content1.DisplayName);
                 Assert.AreEqual(42, content1.Index);
-            });
+            }).ConfigureAwait(false); ;
         }
         [TestMethod]
         public async Task OD_PATCH_RenameMissing()
@@ -143,11 +151,13 @@ namespace SenseNet.ODataTests
                 var requestBody = @"models=[{""Name"": ""newName"", ""DisplayName"": ""newDisplayName""}]";
 
                 // ACTION
-                var response = await ODataPatchAsync("/OData.svc/Root('UnknownContent')'", "", requestBody);
+                var response = await ODataPatchAsync(
+                    "/OData.svc/Root('UnknownContent')'", "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 Assert.AreEqual(404, response.StatusCode);
-            });
+            }).ConfigureAwait(false); ;
         }
         [TestMethod]
         public async Task OD_PATCH_IllegalInvoke()
@@ -158,12 +168,14 @@ namespace SenseNet.ODataTests
                 var requestBody = @"models=[{""Name"": ""newName"", ""DisplayName"": ""newDisplayName""}]";
 
                 // ACTION
-                var response = await ODataPatchAsync("/OData.svc/Root('UnknownContent')/Id'", "", requestBody);
+                var response = await ODataPatchAsync(
+                    "/OData.svc/Root('UnknownContent')/Id'", "", requestBody)
+                    .ConfigureAwait(false); ;
 
                 // ASSERT
                 var error = GetError(response);
                 Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code);
-            });
+            }).ConfigureAwait(false); ;
         }
 
         [TestMethod]
@@ -193,7 +205,7 @@ namespace SenseNet.ODataTests
 
         //        // ACTION 1: Create
         //        var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
-        //        var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json);
+        //        var response = await ODataPostAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false);;
 
         //        // ASSERT 1
         //        AssertNoError(response);
@@ -202,15 +214,16 @@ namespace SenseNet.ODataTests
 
         //        // ACTION 2: Rename
         //        json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
-        //        response = await ODataPatchAsync("/OData.svc/" + testRoot.Path, "", json);
+        //        response = await ODataPatchAsync("/OData.svc/" + testRoot.Path, "", json).ConfigureAwait(false);;
 
         //        // ASSERT 2
         //        AssertNoError(response);
         //        entity = GetEntity(response);
         //        var node = Node.LoadNode(entity.Id);
         //        Assert.AreEqual(newName, node.Name);
-        //    });
+        //    }).ConfigureAwait(false);;
         //}
+        /**/
         //UNDONE:ODATA: Fix test: OD_FIX_ModifyWithInvisibleParent
         /**/
         //[TestMethod]
@@ -237,7 +250,7 @@ namespace SenseNet.ODataTests
         //            User.Current = User.Visitor;
 
         //            var json = @"models=[{""Index"": 42}]";
-        //            var response = await ODataPatchAsync("/OData.svc" + node.Path, "", json);
+        //            var response = await ODataPatchAsync("/OData.svc" + node.Path, "", json).ConfigureAwait(false);;
 
         //            AssertNoError(response);
         //            var entity = GetEntity(response);
@@ -249,7 +262,7 @@ namespace SenseNet.ODataTests
         //        {
         //            User.Current = savedUser;
         //        }
-        //    });
+        //    }).ConfigureAwait(false);;
         //}
 
         /* ===================================================================== MERGE */
@@ -300,13 +313,13 @@ namespace SenseNet.ODataTests
                 switch (httpMethod)
                 {
                     case "PUT":
-                        response = await ODataPutAsync(resource, queryString, json);
+                        response = await ODataPutAsync(resource, queryString, json).ConfigureAwait(false); ;
                         break;
                     case "PATCH":
-                        response = await ODataPatchAsync(resource, queryString, json);
+                        response = await ODataPatchAsync(resource, queryString, json).ConfigureAwait(false); ;
                         break;
                     case "MERGE":
-                        response = await ODataMergeAsync(resource, queryString, json);
+                        response = await ODataMergeAsync(resource, queryString, json).ConfigureAwait(false); ;
                         break;
                     default:
                         throw new NotImplementedException($"HttpMethod {httpMethod} is not implemented.");
@@ -331,7 +344,7 @@ namespace SenseNet.ODataTests
                     Assert.IsTrue((string)c["Make"] == null);
                 else
                     Assert.IsTrue((string)c["Make"] == "Not default");
-            });
+            }).ConfigureAwait(false); ;
         }
 
     }
