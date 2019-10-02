@@ -229,19 +229,25 @@ namespace SenseNet.OData
                         }
                         break;
                     case "DELETE":
-                        throw new NotImplementedException(); //UNDONE:ODATA:! NOTIMPLEMENTED
-                        //if (odataRequest.IsMemberRequest)
-                        //{
-                        //    throw new ODataException(
-                        //        String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
-                        //        ODataExceptionCode.IllegalInvoke);
-                        //}
-                        //else
-                        //{
-                        //    content = LoadContentOrVirtualChild(odataRequest);
-                        //    content?.Delete();
-                        //}
-                        //break;
+                        if (odataRequest.IsMemberRequest)
+                        {
+                            throw new ODataException(
+                                String.Concat("Cannot access a member with HTTP ", httpMethod, "."),
+                                ODataExceptionCode.IllegalInvoke);
+                        }
+                        else
+                        {
+                            content = LoadContentOrVirtualChild(odataRequest);
+                            if(content != null)
+                            {
+                                var x = httpContext.Request.Query["permanent"].ToString();
+                                if (x.Equals("true", StringComparison.OrdinalIgnoreCase))
+                                    content.DeletePhysical();
+                                else
+                                    content.Delete();
+                            }
+                        }
+                        break;
                 }
             }
             catch (ContentNotFoundException e)

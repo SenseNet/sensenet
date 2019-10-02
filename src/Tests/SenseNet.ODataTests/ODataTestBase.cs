@@ -168,6 +168,10 @@ namespace SenseNet.ODataTests
         {
             return ODataProcessRequestAsync(resource, queryString, null, "GET");
         }
+        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString)
+        {
+            return ODataProcessRequestAsync(resource, queryString, null, "DELETE");
+        }
         internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson)
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT");
