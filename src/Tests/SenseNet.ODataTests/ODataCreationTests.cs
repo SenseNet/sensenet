@@ -218,9 +218,8 @@ namespace SenseNet.ODataTests
             });
         }*/
 
-        //UNDONE:ODATA:TEST Fix AclEditor OD_POST_TemplatedCreation
-        /*[TestMethod]
-        public async Task OD_POST_TemplatedCreation()
+        [TestMethod]
+        public async Task OD_POST_CreateFromTemplate()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -234,16 +233,10 @@ namespace SenseNet.ODataTests
                     @"models=[{""__ContentType"":""Car"",""__ContentTemplate"":""Template3"",""Name"":""", name,
                     @""",""EngineSize"":""3.5 l""}]");
 
-                //var output = new StringWriter();
-                //var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
-                //var handler = new ODataHandler();
-                //var stream = CreateRequestStream(json);
-                //handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-
                 // ACTION
                 var response = await ODataPostAsync(
                         "/OData.svc" + testRoot.Path, "", requestBody)
-                    .ConfigureAwait(false); ;
+                    .ConfigureAwait(false);
 
                 // ASSERT
                 AssertNoError(response);
@@ -255,7 +248,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("Template3", content["Model"]);
                 Assert.AreEqual("3.5 l", content["EngineSize"]);
             }).ConfigureAwait(false);
-        }*/
+        }
         private void EnsureTemplateStructure()
         {
             //global template folder

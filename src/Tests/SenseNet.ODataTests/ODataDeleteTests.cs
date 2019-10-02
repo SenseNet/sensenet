@@ -9,8 +9,7 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataDeleteTests : ODataTestBase
     {
-        //UNDONE:ODATA:TEST Fix AclEditor OD_DELETE_Entity
-        /*[TestMethod]
+        [TestMethod]
         public async Task OD_DELETE_Entity()
         {
             await IsolatedODataTestAsync(async () =>
@@ -32,7 +31,7 @@ namespace SenseNet.ODataTests
                 AssertNoError(response);
                 Assert.IsFalse(Node.Exists(repoPath));
             }).ConfigureAwait(false);
-        }*/
+        }
         [TestMethod]
         public async Task OD_DELETE_Entity_Permanent()
         {
@@ -110,7 +109,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_DeletingById()
+        public async Task OD_DELETE_ById()
         {
             await IsolatedODataTestAsync(async () =>
             {
