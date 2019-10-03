@@ -95,7 +95,6 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-
         [TestMethod]
         public async Task OD_OP_InvokeFunction_PostGet_PutMergePatchDelete()
         {
@@ -139,9 +138,8 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-
         [TestMethod]
-        public async Task OData_InvokeDictionaryHandlerFunction()
+        public async Task OD_OP_InvokeFunction_DictionaryHandler()
         {
             await ODataTestAsync(async () =>
             {
@@ -162,7 +160,7 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        /* =========================================================================== ACTION RESOLVER */
+        #region /* ===================================================================== ACTION RESOLVER */
 
         private class ActionResolverSwindler : IDisposable
         {
@@ -408,5 +406,6 @@ namespace SenseNet.ODataTests
                 DeleteLocalAppAction
                 ExploreAction
         */
+        #endregion
     }
 }
