@@ -160,6 +160,41 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task OD_OP_InvokeAction_Errors()
+        {
+            await ODataTestAsync(async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
+                {
+                    var testCases = new[]
+                    {
+                        new { request = "ContentNotFound", errorCode = ODataExceptionCode.ResourceNotFound },
+                        new { request = "SenseNetSecurityException", errorCode = ODataExceptionCode.NotSpecified },
+                        new { request = "InvalidContentActionException", errorCode = ODataExceptionCode.NotSpecified },
+                        new { request = "NodeAlreadyExistsException", errorCode = ODataExceptionCode.ContentAlreadyExists },
+                        new { request = "UnknownError", errorCode = ODataExceptionCode.NotSpecified },
+                    };
+
+                    foreach (var testCase in testCases)
+                    {
+                        // ACTION
+                        var response = await ODataPostAsync(
+                            "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataError",
+                            "",
+                            $@"{{""errorType"":""{testCase.request}""}}")
+                            .ConfigureAwait(false);
+
+                        // ASSERT
+                        var error = GetError(response);
+                        Assert.AreEqual(testCase.errorCode, error.Code);
+
+                    }
+                }
+            }).ConfigureAwait(false);
+        }
+
+        // 
         #region /* ===================================================================== ACTION RESOLVER */
 
         private class ActionResolverSwindler : IDisposable
@@ -302,6 +337,40 @@ namespace SenseNet.ODataTests
                     return "ODataFunction executed.";
                 }
             }
+            internal class ODataErrorAction : ActionBase
+            {
+                public override string Icon { get => "ODataErrorAction"; set { } }
+                public override string Name { get => "ODataErrorAction"; set { } }
+                public override string Uri => "ODataErrorAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
+                public override ActionParameter[] ActionParameters { get; } = {
+                    new ActionParameter("errorType", typeof (string)),
+                };
+
+                public override object Execute(Content content, params object[] parameters)
+                {
+                    var errorType = parameters.FirstOrDefault()?.ToString();
+                    switch (errorType)
+                    {
+                        case null:
+                            return null;
+                        case "ContentNotFound":
+                            throw new SenseNet.ContentRepository.Storage.ContentNotFoundException("42");
+                        case "SenseNetSecurityException":
+                            throw new SenseNet.ContentRepository.Storage.Security.SenseNetSecurityException("");
+                        case "InvalidContentActionException":
+                            throw new SenseNet.ContentRepository.InvalidContentActionException("");
+                        case "NodeAlreadyExistsException":
+                            throw new SenseNet.ContentRepository.Storage.Data.NodeAlreadyExistsException("");
+                        case "UnknownError":
+                            throw new DivideByZeroException("");
+                    }
+                    return "ODataFunction executed.";
+                }
+            }
             internal class ODataGetParentChainAction : ActionBase
             {
                 public override string Icon { get => ""; set { } }
@@ -359,7 +428,7 @@ namespace SenseNet.ODataTests
 
                     case "ODataAction": return new ODataActionAction();
                     case "ODataFunction": return new ODataFunctionAction();
-
+                    case "ODataError": return new ODataErrorAction();
                     case "ODataGetParentChainAction": return new ODataGetParentChainAction();
 
                     //case "CopyTo": return new CopyToAction();
