@@ -15,33 +15,34 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataOperationTests : ODataTestBase
     {
+        private class ActionResolverSwindler : IDisposable
+        {
+            private readonly IActionResolver _original;
+            public ActionResolverSwindler(IActionResolver actionResolver)
+            {
+                _original = ODataMiddleware.ActionResolver;
+                ODataMiddleware.ActionResolver = actionResolver;
+            }
+
+            public void Dispose()
+            {
+                ODataMiddleware.ActionResolver = _original;
+            }
+        }
+
         [TestMethod]
-        public async Task OData_Invoking_Actions()
+        public async Task OD_OP_Invoke_Action()
         {
             await ODataTestAsync(async () =>
             {
-                var odataHandlerAcc = new TypeAccessor(typeof(ODataMiddleware));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                var expectedJson = @"
-    {
-      ""d"": {
-        ""message"":""Action3 executed""
-      }
-    }";
-
-                try
+                using (new ActionResolverSwindler(new TestActionResolver()))
                 {
-                    //string jsonText;
-                    //using (var output = new StringWriter())
-                    //{
-                    //    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action3", "",
-                    //        output);
-                    //    var handler = new ODataHandler();
-                    //    handler.ProcessRequest(pc.OwnerHttpContext, "POST", Stream.Null);
-                    //    jsonText = GetStringResult(output);
-                    //}
+                    var expectedJson = @"
+                        {
+                          ""d"": {
+                            ""message"":""Action3 executed""
+                          }
+                        }";
 
                     // ACTION
                     var response = await ODataPostAsync(
@@ -54,10 +55,6 @@ namespace SenseNet.ODataTests
                     var raw = jsonText.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                     var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                     Assert.IsTrue(raw == exp);
-                }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
                 }
             }).ConfigureAwait(false);
         }

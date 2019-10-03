@@ -28,6 +28,7 @@ namespace SenseNet.OData
     public class ODataMiddleware
     {
         // Do not remove setter.
+        //UNDONE:ODATA: Inject IActionResolver instance into ProcessRequestAsync (with a default implementation)
         internal static IActionResolver ActionResolver { get; set; }
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
