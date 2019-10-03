@@ -9,29 +9,15 @@ using SenseNet.OData;
 using SenseNet.Search;
 using SenseNet.Tests.Accessors;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ODataTests
 {
     [TestClass]
     public class ODataOperationTests : ODataTestBase
     {
-        private class ActionResolverSwindler : IDisposable
-        {
-            private readonly IActionResolver _original;
-            public ActionResolverSwindler(IActionResolver actionResolver)
-            {
-                _original = ODataMiddleware.ActionResolver;
-                ODataMiddleware.ActionResolver = actionResolver;
-            }
-
-            public void Dispose()
-            {
-                ODataMiddleware.ActionResolver = _original;
-            }
-        }
-
         [TestMethod]
-        public async Task OD_OP_Invoke_Action()
+        public async Task OD_OP_InvokeAction()
         {
             await ODataTestAsync(async () =>
             {
@@ -58,174 +44,140 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-        /*[TestMethod]*/
-        /*public void OData_Invoking_Actions_NoContent()
+        [TestMethod]
+        public async Task OD_OP_InvokeAction_NoContent()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
+                using (new ActionResolverSwindler(new TestActionResolver()))
                 {
-                    HttpResponse response;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action4", "",
-                            output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", Stream.Null);
-                        response = pc.OwnerHttpContext.Response;
-                    }
+                    // ACTION
+                    var response = await ODataPostAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action4",
+                        "",
+                        null).ConfigureAwait(false);
+
+                    // ASSERT
                     Assert.IsTrue(response.StatusCode == 204);
                 }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
-                }
-            });
-        }*/
-
-        /*[TestMethod]*/
-        /*public void OData_InvokeAction_Post_GetPutMergePatchDelete()
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_InvokeAction_Post_GetPutMergePatchDelete()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
+                using (new ActionResolverSwindler(new TestActionResolver()))
                 {
-                    string result = null;
-                    ODataError error;
+                    // ACTION POST
+                    var response = await ODataPostAsync(
+                        "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataAction",
+                        "",
+                        null).ConfigureAwait(false);
 
-                        //------------------------------------------------------------ POST: ok
-                        using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
-                        result = GetStringResult(output);
-                    }
-                    Assert.AreEqual("ODataAction executed.", result);
+                    // ASSERT: POST Ok
+                    Assert.AreEqual("ODataAction executed.", response.Result);
 
-                        //------------------------------------------------------------ GET PUT MERGE PATCH DELETE: error
-                        var verbs = new[] { "GET", "PUT", "MERGE", "PATCH", "DELETE" };
+                    var verbs = new[] {"GET", "PUT", "MERGE", "PATCH", "DELETE"};
                     foreach (var verb in verbs)
                     {
-                        using (var output = new StringWriter())
-                        {
-                            var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
-                            var handler = new ODataHandler();
-                            handler.ProcessRequest(pc.OwnerHttpContext, verb, MemoryStream.Null);
-                            error = GetError(output);
-                            if (error == null)
-                                Assert.Fail("Exception was not thrown: " + verb);
-                        }
-                        Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code, String.Format(
-                            "Error code is {0}, expected: {1}, verb: {2}"
-                            , error.Code, ODataExceptionCode.IllegalInvoke, verb));
+                        // ACTION: GET PUT MERGE PATCH DELETE: error
+                        response = await ODataCallAsync(
+                            "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataAction",
+                            "",
+                            null,
+                            verb).ConfigureAwait(false);
+
+                        // ASSERT: error
+                        var error = GetError(response);
+                        Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code);
                     }
                 }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
-                }
-            });
-        }*/
-        /*[TestMethod]*/
-        /*public void OData_InvokeFunction_PostGet_PutMergePatchDelete()
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_OP_InvokeFunction_PostGet_PutMergePatchDelete()
         {
-            Test(() =>
+            await ODataTestAsync(async () =>
             {
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
+                using (new ActionResolverSwindler(new TestActionResolver()))
                 {
-                    string result = null;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataFunction", "", output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
-                        result = GetStringResult(output);
-                    }
-                    Assert.AreEqual("ODataFunction executed.", result);
+                    // ACTION: POST
+                    var response = await ODataPostAsync(
+                        "/OData.svc/Root('IMS')/ODataFunction",
+                        "",
+                        null).ConfigureAwait(false);
 
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataFunction", "", output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "GET", MemoryStream.Null);
-                        result = GetStringResult(output);
-                    }
-                    Assert.AreEqual("ODataFunction executed.", result);
+                    // ASSERT: POST ok
+                    Assert.AreEqual("ODataFunction executed.", response.Result);
 
-                        //------------------------------------------------------------ GET PUT MERGE PATCH DELETE: error
-                        var verbs = new[] { "PUT", "MERGE", "PATCH", "DELETE" };
+                    // ACTION: GET
+                    response = await ODataGetAsync(
+                        "/OData.svc/Root('IMS')/ODataFunction",
+                        "")
+                        .ConfigureAwait(false);
+
+                    // ASSERT: GET ok
+                    Assert.AreEqual("ODataFunction executed.", response.Result);
+
+                    //------------------------------------------------------------ GET PUT MERGE PATCH DELETE: error
+                    var verbs = new[] {"PUT", "MERGE", "PATCH", "DELETE"};
                     foreach (var verb in verbs)
                     {
-                        ODataError error = null;
-                        using (var output = new StringWriter())
-                        {
-                            var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
-                            var handler = new ODataHandler();
-                            handler.ProcessRequest(pc.OwnerHttpContext, verb, MemoryStream.Null);
-                            error = GetError(output);
-                            if (error == null)
-                                Assert.Fail("Exception was not thrown: " + verb);
-                        }
-                        Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code, String.Format(
-                            "Error code is {0}, expected: {1}, verb: {2}"
-                            , error.Code, ODataExceptionCode.IllegalInvoke, verb));
-                    }
-                }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
-                }
-            });
-        }*/
-        /*[TestMethod]*/
-        /*public void OData_InvokeDictionaryHandlerFunction()
-        {
-            Test(() =>
-            {
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
+                        // ACTION: PUT MERGE PATCH DELETE
+                        response = await ODataCallAsync(
+                            "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataAction",
+                            "",
+                            null,
+                            verb).ConfigureAwait(false);
 
-                CreateTestSite();
-                try
-                {
-                    ODataEntities result = null;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(
-                            "/OData.svc/Root/System/Schema/ContentTypes/GenericContent('FieldSettingContent')/ODataGetParentChainAction"
-                            , "metadata=no&$select=Id,Name&$top=2&$inlinecount=allpages", output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
-                        result = GetEntities(output);
+                        // ASSERT: error
+                        var error = GetError(response);
+                        Assert.AreEqual(ODataExceptionCode.IllegalInvoke, error.Code);
                     }
-                    Assert.AreEqual(6, result.TotalCount);
-                    Assert.AreEqual(2, result.Length);
                 }
-                finally
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OData_InvokeDictionaryHandlerFunction()
+        {
+            await ODataTestAsync(async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
                 {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
+                    // ACTION
+                    var response = await ODataPostAsync(
+                        "/OData.svc/Root/System/Schema/ContentTypes/GenericContent('FieldSettingContent')/ODataGetParentChainAction",
+                        "?metadata=no&$select=Id,Name&$top=2&$inlinecount=allpages",
+                        null)
+                        .ConfigureAwait(false);
+
+                    // ASSERT: POST ok
+                    var entities = GetEntities(response);
+                    Assert.AreEqual(6, entities.TotalCount);
+                    Assert.AreEqual(2, entities.Length);
                 }
-            });
-        }*/
+            }).ConfigureAwait(false);
+        }
 
         /* =========================================================================== ACTION RESOLVER */
+
+        private class ActionResolverSwindler : IDisposable
+        {
+            private readonly IActionResolver _original;
+            public ActionResolverSwindler(IActionResolver actionResolver)
+            {
+                _original = ODataMiddleware.ActionResolver;
+                ODataMiddleware.ActionResolver = actionResolver;
+            }
+
+            public void Dispose()
+            {
+                ODataMiddleware.ActionResolver = _original;
+            }
+        }
 
         internal class TestActionResolver : IActionResolver
         {

@@ -188,6 +188,10 @@ namespace SenseNet.ODataTests
         {
             return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST");
         }
+        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod)
+        {
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod);
+        }
         private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
             string requestBodyJson, string httpMethod)
         {
