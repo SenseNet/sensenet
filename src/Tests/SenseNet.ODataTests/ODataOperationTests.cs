@@ -214,6 +214,103 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public async Task OD_OP_FilteringAndPartitioningOperationResult_ChildrenDefinition()
+        {
+            await ODataTestAsync(async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
+                {
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            "/OData.svc/Root('IMS')/ChildrenDefinitionFilteringTest",
+                            "",
+                            null)
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    AssertNoError(response);
+                    var entities = GetEntities(response);
+                    var ids = String.Join(", ", entities.Select(e => e.Id));
+                    var expids = String.Join(", ",
+                        CreateSafeContentQuery(
+                                "InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:2 .TOP:3")
+                            .Execute().Identifiers);
+                    // 8, 9, 7
+                    Assert.AreEqual(expids, ids);
+                }
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_FilteringAndPartitioningOperationResult_ContentCollection()
+        {
+            await ODataTestAsync(async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
+                {
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            "/OData.svc/Root('IMS')/CollectionFilteringTest",
+                            "?$skip=1&$top=3&$orderby=Name desc&$select=Id,Name&$filter=Id ne 10&metadata=no",
+                            null)
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    AssertNoError(response);
+                    var entities = GetEntities(response);
+                    var ids = String.Join(", ", entities.Select(e => e.Id));
+                    var expids = String.Join(", ",
+                        CreateSafeContentQuery(
+                                "+InFolder:/Root/IMS/BuiltIn/Portal -Id:10 .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:1 .TOP:3")
+                            .Execute().Identifiers);
+                    // 8, 9, 7
+                    Assert.AreEqual(expids, ids);
+                }
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_FilteringCollection_IsOf()
+        {
+            await ODataTestAsync(async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
+                {
+                    // ACTION 1: Select users
+                    var response = await ODataPostAsync(
+                            "/OData.svc/Root('IMS')/CollectionFilteringTest",
+                            "?&$select=Id,Name&metadata=no&$filter=isof('User')",
+                            null)
+                        .ConfigureAwait(false);
+
+                    // ASSERT 1: Ids: 1, 6, 10, 12, 1205
+                    AssertNoError(response);
+                    var entities = GetEntities(response);
+                    var ids = String.Join(", ",
+                        entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
+                    var expids = String.Join(", ",
+                        CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal +TypeIs:User .AUTOFILTERS:OFF")
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
+                    Assert.AreEqual(expids, ids);
+
+                    // ACTION 2: Select not users
+                    response = await ODataPostAsync(
+                            "/OData.svc/Root('IMS')/CollectionFilteringTest",
+                            "?$select=Id,Name&metadata=no&$filter=not isof('User')",
+                            null)
+                        .ConfigureAwait(false);
+
+                    // ASSERT 2: Ids: 7, 8, 9, 11, 1197, 1198, 1199, 1200, 1201, 1202, 1203, 1204
+                    AssertNoError(response);
+                    entities = GetEntities(response);
+                    ids = String.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
+                    expids = String.Join(", ",
+                        CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal -TypeIs:User .AUTOFILTERS:OFF")
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
+                    Assert.AreEqual(expids, ids);
+                }
+            }).ConfigureAwait(false);
+        }
+
         // 
         #region /* ===================================================================== ACTION RESOLVER */
 
