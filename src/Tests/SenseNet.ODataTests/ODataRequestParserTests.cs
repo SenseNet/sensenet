@@ -12,7 +12,7 @@ using SenseNet.Search;
 
 namespace SenseNet.ODataTests
 {
-    //[TestClass]
+    [TestClass]
     public class ODataRequestParserTests : ODataTestBase
     {
         [TestMethod]

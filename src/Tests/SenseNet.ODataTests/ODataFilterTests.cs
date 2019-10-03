@@ -10,7 +10,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
 {
-    //[TestClass]
+    [TestClass]
     public class ODataFilterTests : ODataTestBase
     {
         [TestMethod]

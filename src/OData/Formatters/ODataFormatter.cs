@@ -205,7 +205,7 @@ namespace SenseNet.OData.Formatters
             else
                 await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
         }
-        private void WriteMultiRefContents(object references, HttpContext httpContext, ODataRequest req)
+        private async Task WriteMultiRefContentsAsync(object references, HttpContext httpContext, ODataRequest req)
         {
             if (references == null)
                 return;
@@ -219,8 +219,8 @@ namespace SenseNet.OData.Formatters
                     CreateFieldDictionary(Content.Create(node), projector,httpContext)
                 };
                 //TODO: ODATA: multiref item: get available types from reference property
-                /*await*/ WriteMultipleContentAsync(httpContext, contents, 1).ConfigureAwait(false)
-                    .GetAwaiter().GetResult();
+                await WriteMultipleContentAsync(httpContext, contents, 1)
+                    .ConfigureAwait(false);
             }
             else
             {
@@ -253,19 +253,19 @@ namespace SenseNet.OData.Formatters
                             }
                         }
                     }
-                    /*await*/ WriteMultipleContentAsync(httpContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount).ConfigureAwait(false)
-                        .GetAwaiter().GetResult();
+                    await WriteMultipleContentAsync(httpContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount)
+                        .ConfigureAwait(false);
                 }
             }
         }
-        private void WriteSingleRefContent(object references, HttpContext httpContext)
+        private async Task WriteSingleRefContentAsync(object references, HttpContext httpContext)
         {
             if (references != null)
             {
                 if (references is Node node)
                 {
-                    /*await*/ WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext)).ConfigureAwait(false)
-                        .GetAwaiter().GetResult();
+                    await WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(node), false, httpContext))
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -273,8 +273,8 @@ namespace SenseNet.OData.Formatters
                     {
                         foreach (Node item in enumerable)
                         {
-                            /*await*/ WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext)).ConfigureAwait(false)
-                                .GetAwaiter().GetResult();
+                            await WriteSingleContentAsync(httpContext, CreateFieldDictionary(Content.Create(item), false, httpContext))
+                                .ConfigureAwait(false);
                             break;
                         }
                     }
@@ -296,7 +296,7 @@ namespace SenseNet.OData.Formatters
         /// <param name="count"></param>
         protected abstract Task WriteCountAsync(HttpContext httpContext, int count);
 
-        internal void WriteContentProperty(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
+        internal async Task WriteContentPropertyAsync(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
@@ -307,14 +307,15 @@ namespace SenseNet.OData.Formatters
 
             if (propertyName == ODataMiddleware.ActionsPropertyName)
             {
-                WriteActionsProperty(httpContext, ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue);
+                await WriteActionsPropertyAsync(httpContext, 
+                    ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue)
+                    .ConfigureAwait(false);
                 return;
             }
             if (propertyName == ODataMiddleware.ChildrenPropertyName)
             {
-                /*await*/ WriteChildrenCollectionAsync(path, httpContext, req).ConfigureAwait(false)
-                    .GetAwaiter().GetResult();
-                return;
+                await WriteChildrenCollectionAsync(path, httpContext, req)
+                    .ConfigureAwait(false);
             }
 
             if (content.Fields.TryGetValue(propertyName, out var field))
@@ -327,31 +328,35 @@ namespace SenseNet.OData.Formatters
                         isMultiRef = refFieldSetting.AllowMultiple == true;
                     if (isMultiRef)
                     {
-                        WriteMultiRefContents(refField.GetData(), httpContext, req);
+                        await WriteMultiRefContentsAsync(refField.GetData(), httpContext, req)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        WriteSingleRefContent(refField.GetData(), httpContext);
+                        await WriteSingleRefContentAsync(refField.GetData(), httpContext)
+                            .ConfigureAwait(false);
                     }
                 }
                 else if (field is AllowedChildTypesField actField)
                 {
-                    WriteMultiRefContents(actField.GetData(), httpContext, req);
+                    await WriteMultiRefContentsAsync(actField.GetData(), httpContext, req)
+                        .ConfigureAwait(false);
                 }
                 else if (!rawValue)
                 {
-                    /*await*/ WriteSingleContentAsync(httpContext, new ODataEntity { { propertyName, field.GetData() } }).ConfigureAwait(false)
-                        .GetAwaiter().GetResult();
+                    await WriteSingleContentAsync(httpContext, new ODataEntity {{propertyName, field.GetData()}})
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    /*await*/ WriteRawAsync(field.GetData(), httpContext).ConfigureAwait(false)
-                        .GetAwaiter().GetResult();
+                    await WriteRawAsync(field.GetData(), httpContext)
+                        .ConfigureAwait(false);
                 }
             }
             else
             {
-                WriteOperationResult(httpContext, req);
+                await WriteOperationResultAsync(httpContext, req)
+                    .ConfigureAwait(false);
             }
         }
         /// <summary>
@@ -360,7 +365,7 @@ namespace SenseNet.OData.Formatters
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="actions">Array of <see cref="ODataActionItem"/> that will be written.</param>
         /// <param name="raw"></param>
-        protected abstract void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw);
+        protected abstract Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw);
 
 
         internal async Task WriteErrorResponseAsync(HttpContext httpContext, ODataException oe)
@@ -405,7 +410,7 @@ namespace SenseNet.OData.Formatters
         /// <summary>
         /// Handles GET operations. Parameters come from the URL or the request stream.
         /// </summary>
-        internal void WriteOperationResult(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WriteOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
@@ -433,17 +438,19 @@ namespace SenseNet.OData.Formatters
 
             if (response is Content responseAsContent)
             {
-                /*await*/ WriteSingleContentAsync(responseAsContent, httpContext).ConfigureAwait(false);
+                await WriteSingleContentAsync(responseAsContent, httpContext)
+                    .ConfigureAwait(false);
                 return;
             }
 
             response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
-            WriteOperationResult(response, httpContext, odataReq, count);
+            await WriteOperationResultAsync(response, httpContext, odataReq, count)
+                .ConfigureAwait(false);
         }
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal void WriteOperationResult(Stream inputStream, HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WriteOperationResultAsync(Stream inputStream, HttpContext httpContext, ODataRequest odataReq)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
@@ -467,28 +474,34 @@ namespace SenseNet.OData.Formatters
 
             if (response is Content responseAsContent)
             {
-                /*await*/ WriteSingleContentAsync(responseAsContent, httpContext).ConfigureAwait(false);
+                await WriteSingleContentAsync(responseAsContent, httpContext)
+                    .ConfigureAwait(false);
                 return;
             }
 
             response = ProcessOperationResponse(response, odataReq, httpContext, out var count);
-            WriteOperationResult(response, httpContext, odataReq, count);
+            await WriteOperationResultAsync(response, httpContext, odataReq, count)
+                .ConfigureAwait(false);
         }
-        private void WriteOperationResult(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
+        private async Task WriteOperationResultAsync(object result, HttpContext httpContext, ODataRequest odataReq, int allCount)
         {
             if (result is Content content)
             {
-                /*await*/ WriteSingleContentAsync(content, httpContext).ConfigureAwait(false);
+                await WriteSingleContentAsync(content, httpContext)
+                    .ConfigureAwait(false);
                 return;
             }
 
             if (result is IEnumerable<Content> enumerable)
             {
-                WriteMultiRefContents(enumerable, httpContext, odataReq);
+                await WriteMultiRefContentsAsync(enumerable, httpContext, odataReq)
+                    .ConfigureAwait(false);
                 return;
             }
 
-            WriteOperationCustomResult(httpContext, result, odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null);
+            await WriteOperationCustomResultAsync(httpContext, result,
+                    odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null)
+                .ConfigureAwait(false);
         }
         /// <summary>
         /// Writes a custom operations's result object to the webresponse.
@@ -497,7 +510,7 @@ namespace SenseNet.OData.Formatters
         /// <param name="result">The object that will be written.</param>
         /// <param name="allCount">A nullable int that contains the count of items in the result object 
         /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
-        protected abstract void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount);
+        protected abstract Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount);
 
         private object ProcessOperationResponse(object response, ODataRequest odataReq, HttpContext httpContext, out int count)
         {

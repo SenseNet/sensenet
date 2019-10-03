@@ -27,8 +27,8 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
+        /*UNDONE:ODATA: Inject IActionResolver instance into ProcessRequestAsync (with a default implementation)*/
         // Do not remove setter.
-        //UNDONE:ODATA: Inject IActionResolver instance into ProcessRequestAsync (with a default implementation)
         internal static IActionResolver ActionResolver { get; set; }
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
@@ -161,8 +161,10 @@ namespace SenseNet.OData
                                 await formatter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest)
                                     .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
-                                formatter.WriteContentProperty(odataRequest.RepositoryPath, odataRequest.PropertyName,
-                                    odataRequest.IsRawValueRequest, httpContext, odataRequest);
+                                await formatter.WriteContentPropertyAsync(
+                                        odataRequest.RepositoryPath, odataRequest.PropertyName,
+                                        odataRequest.IsRawValueRequest, httpContext, odataRequest)
+                                    .ConfigureAwait(false);
                             else
                                 await formatter.WriteSingleContentAsync(requestedContent, httpContext)
                                     .ConfigureAwait(false);
@@ -217,8 +219,8 @@ namespace SenseNet.OData
                         if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
-                            //UNDONE:ODATA:! ASYNC
-                            formatter.WriteOperationResult(inputStream, httpContext, odataRequest);
+                            await formatter.WriteOperationResultAsync(inputStream, httpContext, odataRequest)
+                                .ConfigureAwait(false);
                         }
                         else
                         {

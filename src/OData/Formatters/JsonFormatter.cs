@@ -55,33 +55,33 @@ namespace SenseNet.OData.Formatters
             await WriteAsync(ODataMultipleContent.Create(contents, count), httpContext).ConfigureAwait(false);
         }
         /// <inheritdoc />
-        protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw)
+        protected override async Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw)
         {
             if(raw)
-                /*await*/ WriteAsync(actions, httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+                await WriteAsync(actions, httpContext)
+                .ConfigureAwait(false);
             else
-                /*await*/ WriteAsync(new ODataSingleContent { FieldData = new ODataEntity { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+                await WriteAsync(new ODataSingleContent { FieldData = new ODataEntity { { ODataMiddleware.ActionsPropertyName, actions } } }, httpContext)
+                .ConfigureAwait(false);
         }
         /// <inheritdoc />
-        protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
+        protected override async Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount)
         {
             if (result is IEnumerable<ODataEntity> dictionaryList)
             {
-                /*await*/ WriteAsync(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count()), httpContext).ConfigureAwait(false)
-                    .GetAwaiter().GetResult();
+                await WriteAsync(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count()), httpContext)
+                    .ConfigureAwait(false);
                 return;
             }
             if (result is IEnumerable<ODataObject> customContentList)
             {
-                /*await*/ WriteAsync(ODataMultipleContent.Create(customContentList, allCount ?? 0), httpContext).ConfigureAwait(false)
-                    .GetAwaiter().GetResult();
+                await WriteAsync(ODataMultipleContent.Create(customContentList, allCount ?? 0), httpContext)
+                    .ConfigureAwait(false);
                 return;
             }
 
-            /*await*/ WriteAsync(result, httpContext).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+            await WriteAsync(result, httpContext)
+                .ConfigureAwait(false);
         }
         /// <inheritdoc />
         protected override Task WriteCountAsync(HttpContext httpContext, int count)

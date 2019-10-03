@@ -11,7 +11,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
 {
-    //[TestClass]
+    [TestClass]
     public class ODataCreationTests : ODataTestBase
     {
         [TestMethod]

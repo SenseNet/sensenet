@@ -191,7 +191,7 @@ namespace SenseNet.OData.Formatters
             throw new NotImplementedException(); //UNDONE:ODATA: Not implemented.
         }
         /// <inheritdoc />
-        protected override void WriteActionsProperty(HttpContext httpContext, ODataActionItem[] actions, bool raw)
+        protected override async Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw)
         {
             // raw parameter isn't used
             var data = actions.Select(x => new ODataEntity{
@@ -205,11 +205,11 @@ namespace SenseNet.OData.Formatters
                 {"Forbidden", x.Forbidden}
             }).ToList();
 
-            /*await*/ WriteMultipleContentAsync(httpContext, data, actions.Length).ConfigureAwait(false)
-                .GetAwaiter().GetResult();
+            await WriteMultipleContentAsync(httpContext, data, actions.Length)
+                .ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this formatter.</summary>
-        protected override void WriteOperationCustomResult(HttpContext httpContext, object result, int? allCount)
+        protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount)
         {
             throw new NotSupportedException("TableFormatter supports only a Content or an IEnumerable<Content> as an operation result.");
         }
