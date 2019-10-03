@@ -183,12 +183,13 @@ namespace SenseNet.ODataTests
         {
             internal class Action1 : ActionBase
             {
-                public override string Icon { get { return "ActionIcon1"; } set { } }
-                public override string Name { get { return "Action1"; } set { } }
-                public override string Uri { get { return "ActionIcon1_URI"; } }
-                public override bool IsHtmlOperation { get { return true; } }
-                public override bool IsODataOperation { get { return false; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ActionIcon1"; set { } }
+                public override string Name { get => "Action1"; set { } }
+                public override string Uri => "ActionIcon1_URI";
+                public override bool IsHtmlOperation => true;
+                public override bool IsODataOperation => false;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return new Dictionary<string, object> { { "d", new Dictionary<string, object> { { "message", "Action1 executed" } } } };
@@ -196,12 +197,13 @@ namespace SenseNet.ODataTests
             }
             internal class Action2 : ActionBase
             {
-                public override string Icon { get { return "ActionIcon2"; } set { } }
-                public override string Name { get { return "Action2"; } set { } }
-                public override string Uri { get { return "ActionIcon2_URI"; } }
-                public override bool IsHtmlOperation { get { return true; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return false; } }
+                public override string Icon { get => "ActionIcon2"; set { } }
+                public override string Name { get => "Action2"; set { } }
+                public override string Uri => "ActionIcon2_URI";
+                public override bool IsHtmlOperation => true;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return new Dictionary<string, object> { { "d", new Dictionary<string, object> { { "message", "Action2 executed" } } } };
@@ -209,12 +211,13 @@ namespace SenseNet.ODataTests
             }
             internal class Action3 : ActionBase
             {
-                public override string Icon { get { return "ActionIcon3"; } set { } }
-                public override string Name { get { return "Action3"; } set { } }
-                public override string Uri { get { return "ActionIcon3_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ActionIcon3"; set { } }
+                public override string Name { get => "Action3"; set { } }
+                public override string Uri => "ActionIcon3_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return new Dictionary<string, object> { { "d", new Dictionary<string, object> { { "message", "Action3 executed" } } } };
@@ -222,12 +225,13 @@ namespace SenseNet.ODataTests
             }
             internal class Action4 : ActionBase
             {
-                public override string Icon { get { return "ActionIcon4"; } set { } }
-                public override string Name { get { return "Action4"; } set { } }
-                public override string Uri { get { return "ActionIcon4_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ActionIcon4"; set { } }
+                public override string Name { get => "Action4"; set { } }
+                public override string Uri => "ActionIcon4_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return null;
@@ -236,12 +240,13 @@ namespace SenseNet.ODataTests
 
             internal class ChildrenDefinitionFilteringTestAction : ActionBase
             {
-                public override string Icon { get { return "ChildrenDefinitionFilteringTestAction"; } set { } }
-                public override string Name { get { return "ChildrenDefinitionFilteringTestAction"; } set { } }
-                public override string Uri { get { return "ChildrenDefinitionFilteringTestAction_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ChildrenDefinitionFilteringTestAction"; set { } }
+                public override string Name { get => "ChildrenDefinitionFilteringTestAction"; set { } }
+                public override string Uri => "ChildrenDefinitionFilteringTestAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return new ChildrenDefinition
@@ -257,12 +262,13 @@ namespace SenseNet.ODataTests
             }
             internal class CollectionFilteringTestAction : ActionBase
             {
-                public override string Icon { get { return "ActionIcon4"; } set { } }
-                public override string Name { get { return "Action4"; } set { } }
-                public override string Uri { get { return "ActionIcon4_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ActionIcon4"; set { } }
+                public override string Name { get => "Action4"; set { } }
+                public override string Uri => "ActionIcon4_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF")
@@ -272,12 +278,13 @@ namespace SenseNet.ODataTests
 
             internal class ODataActionAction : ActionBase
             {
-                public override string Icon { get { return "ODataActionAction"; } set { } }
-                public override string Name { get { return "ODataActionAction"; } set { } }
-                public override string Uri { get { return "ODataActionAction_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return true; } }
+                public override string Icon { get => "ODataActionAction"; set { } }
+                public override string Name { get => "ODataActionAction"; set { } }
+                public override string Uri => "ODataActionAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => true;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return "ODataAction executed.";
@@ -285,12 +292,13 @@ namespace SenseNet.ODataTests
             }
             internal class ODataFunctionAction : ActionBase
             {
-                public override string Icon { get { return "ODataFunctionAction"; } set { } }
-                public override string Name { get { return "ODataFunctionAction"; } set { } }
-                public override string Uri { get { return "ODataFunctionAction_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return false; } }
+                public override string Icon { get => "ODataFunctionAction"; set { } }
+                public override string Name { get => "ODataFunctionAction"; set { } }
+                public override string Uri => "ODataFunctionAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     return "ODataFunction executed.";
@@ -298,12 +306,13 @@ namespace SenseNet.ODataTests
             }
             internal class ODataGetParentChainAction : ActionBase
             {
-                public override string Icon { get { return ""; } set { } }
-                public override string Name { get { return "ODataGetParentChainAction"; } set { } }
-                public override string Uri { get { return "ODataContentDictionaryFunctionAction_URI"; } }
-                public override bool IsHtmlOperation { get { return false; } }
-                public override bool IsODataOperation { get { return true; } }
-                public override bool CausesStateChange { get { return false; } }
+                public override string Icon { get => ""; set { } }
+                public override string Name { get => "ODataGetParentChainAction"; set { } }
+                public override string Uri => "ODataContentDictionaryFunctionAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
                 public override object Execute(Content content, params object[] parameters)
                 {
                     var result = new List<Content>();
