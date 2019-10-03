@@ -123,23 +123,40 @@ namespace SenseNet.ODataTests
 
         protected void ODataTest(Action callback)
         {
-            ODataTestAsync(() =>
+            ODataTestAsync(null, () =>
             {
                 callback();
                 return Task.CompletedTask;
             }, true).ConfigureAwait(false).GetAwaiter().GetResult();
         }
+        protected void ODataTest(IUser user, Action callback)
+        {
+            ODataTestAsync(user, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
         protected Task ODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(callback, true);
+            return ODataTestAsync(null, callback, true);
+        }
+        protected Task ODataTestAsync(IUser user, Func<Task> callback)
+        {
+            return ODataTestAsync(user, callback, true);
         }
 
         protected Task IsolatedODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(callback, false);
+            return ODataTestAsync(null, callback, false);
+        }
+        protected Task IsolatedODataTestAsync(IUser user, Func<Task> callback)
+        {
+            return ODataTestAsync(user, callback, false);
         }
 
-        private async Task ODataTestAsync(Func<Task> callback, bool reused)
+        private async Task ODataTestAsync(IUser user, Func<Task> callback, bool reused)
         {
             Cache.Reset();
 
@@ -154,8 +171,25 @@ namespace SenseNet.ODataTests
                 _repository = Repository.Start(repoBuilder);
             }
 
-            using (new SystemAccount())
-                await callback().ConfigureAwait(false);
+            if (user == null)
+            {
+                using (new SystemAccount())
+                    await callback().ConfigureAwait(false);
+            }
+            else
+            {
+                IUser backup = null;
+                try
+                {
+                    backup = User.Current;
+                    User.Current = user;
+                    await callback().ConfigureAwait(false);
+                }
+                finally
+                {
+                    User.Current = backup;
+                }
+            }
 
             if (!reused)
             {

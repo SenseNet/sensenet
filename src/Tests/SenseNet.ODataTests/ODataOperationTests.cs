@@ -4,10 +4,10 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
 using SenseNet.Search;
-using SenseNet.Tests.Accessors;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
 
@@ -180,9 +180,9 @@ namespace SenseNet.ODataTests
                     {
                         // ACTION
                         var response = await ODataPostAsync(
-                            "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataError",
-                            "",
-                            $@"{{""errorType"":""{testCase.request}""}}")
+                                "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataError",
+                                "",
+                                $@"{{""errorType"":""{testCase.request}""}}")
                             .ConfigureAwait(false);
 
                         // ASSERT
@@ -190,6 +190,26 @@ namespace SenseNet.ODataTests
                         Assert.AreEqual(testCase.errorCode, error.Code);
 
                     }
+                }
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_InvokeAction_SecurityErrorVisitor()
+        {
+            await ODataTestAsync(new TestUser("Visitor", Identifiers.VisitorUserId), async () =>
+            {
+                using (new ActionResolverSwindler(new TestActionResolver()))
+                {
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/ODataError",
+                            "",
+                            $@"{{""errorType"":""SenseNetSecurityException""}}")
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    AssertNoError(response);
+                    Assert.AreEqual(404, response.StatusCode);
                 }
             }).ConfigureAwait(false);
         }
