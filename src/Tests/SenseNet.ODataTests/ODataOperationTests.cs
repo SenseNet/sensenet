@@ -7,6 +7,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
+using SenseNet.OData.Operations;
 using SenseNet.Search;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
@@ -314,7 +315,7 @@ namespace SenseNet.ODataTests
         // 
         #region /* ===================================================================== ACTION RESOLVER */
 
-        private class ActionResolverSwindler : IDisposable
+        internal class ActionResolverSwindler : IDisposable
         {
             private readonly IActionResolver _original;
             public ActionResolverSwindler(IActionResolver actionResolver)
@@ -530,7 +531,7 @@ namespace SenseNet.ODataTests
                     case "Action2": return new Action2();
                     case "Action3": return new Action3();
                     case "Action4": return new Action4();
-                    //case "GetPermissions": return new GetPermissionsAction();
+                    case "GetPermissions": return new GetPermissionsAction();
                     //case "SetPermissions": return new SenseNet.Portal.ApplicationModel.SetPermissionsAction();
                     //case "HasPermission": return new SenseNet.Portal.ApplicationModel.HasPermissionAction();
                     //case "AddAspects": return new SenseNet.ApplicationModel.AspectActions.AddAspectsAction();
