@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.Security;
@@ -277,50 +278,43 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-        /*[TestMethod]*/
-        /*public async Task OD_Security_SetPermissions_NotPropagates()
+
+        [TestMethod]
+        public async Task OD_Security_SetPermissions_NotPropagates()
         {
             await IsolatedODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                    //URL: /OData.svc/workspaces/Project/budapestprojectworkspace('Document_Library')/SetPermission
-                    //Stream: {r:[{identity:"/Root/IMS/BuiltIn/Portal/Visitor", OpenMinor:"allow", Save:"deny"},{identity:"/Root/IMS/BuiltIn/Portal/Creators", Custom16:"A", Custom17:"1"}]}
-                    //result: (nothing)
-
                     InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Folder", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var folderPath = ODataHandler.GetEntityUrl(content.Path);
-                var folderRepoPath = content.Path;
-                content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var carRepoPath = content.Path;
+                    var testRoot = CreateTestRoot("ODataTestRoot");
+                    var content = Content.CreateNew("Folder", testRoot, Guid.NewGuid().ToString());
+                    content.Save();
+                    var folderPath = ODataMiddleware.GetEntityUrl(content.Path);
+                    var folderRepoPath = content.Path;
+                    content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
+                    content.Save();
+                    var carRepoPath = content.Path;
 
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/{folderPath}/SetPermissions",
+                            "",
+                            "{r:[{identity:\"/Root/IMS/BuiltIn/Portal/Visitor\"," +
+                            " OpenMinor:\"allow\", propagates:false}]}")
+                        .ConfigureAwait(false);
 
-                
-                    string result;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", folderPath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        var stream =
-                            CreateRequestStream(
-                                "{r:[{identity:\"/Root/IMS/BuiltIn/Portal/Visitor\", OpenMinor:\"allow\", propagates:false}]}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        result = GetStringResult(output);
-                    }
-                    Assert.IsTrue(result.Length == 0);
+                    // ASSERT
+                    Assert.AreEqual(0, response.Result.Length);
+                    Assert.AreEqual(204, response.StatusCode);
                     var folder = Node.LoadNode(folderRepoPath);
                     var car = Node.LoadNode(carRepoPath);
 
-                    Assert.IsTrue(folder.Security.HasPermission((IUser)User.Visitor, PermissionType.OpenMinor));
-                    Assert.IsFalse(car.Security.HasPermission((IUser)User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsTrue(folder.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsFalse(car.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor));
                 }
             }).ConfigureAwait(false);
-        }*/
+        }
         /*[TestMethod]*/
         /*public async Task OD_Security_Break()
         {

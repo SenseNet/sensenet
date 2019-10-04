@@ -74,18 +74,16 @@ namespace SenseNet.OData
         public async Task InvokeAsync(HttpContext httpContext)
         {
             // CREATE ODATA-RESPONSE STRATEGY
-
             var odataRequest = ODataRequest.Parse(httpContext);
             httpContext.SetODataRequest(odataRequest);
-
-            // ENABLE CUSTOMIZATION FOR NEXT MIDDLEWARE
-
-            await _next(httpContext).ConfigureAwait(false);
 
             // WRITE RESPONSE
             //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
             using (new SystemAccount())
                 await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+
+            // ENABLE CUSTOMIZATION FOR NEXT MIDDLEWARE
+            await _next(httpContext).ConfigureAwait(false);
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
