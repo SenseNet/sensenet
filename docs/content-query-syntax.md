@@ -271,7 +271,7 @@ The following list contains the units you may use in an expression (with a short
 seconds (s), minutes (m), hours (h), days (d), workdays, months, weeks, years (y)
 ```
 
-> **For developers**: it is possible to define your own query template parameters by writing a custom query template replacer.}}
+> **For developers**: it is possible to define your own query template parameters by writing a custom query template replacer.
 
 ## Inner query
 There are cases when you want to filter content by their [reference fields](https://github.com/SenseNet/sensenet/blob/master/docs/reference-field.md). For example you want to look for books whose authors live in the UK. This query cannot be designed as a simple query for books, because the origin of an author is stored (therefore indexed) on the author content. First you'll have to collect all the authors that live in the UK than execute a second query for books of these authors. This is where **inner query** comes in: it is possible to construct and execute a query like this in a single, compact statement.
