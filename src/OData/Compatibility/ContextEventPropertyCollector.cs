@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using SenseNet.Configuration;
-using SenseNet.Diagnostics;
 
 namespace SenseNet.Diagnostics
 {

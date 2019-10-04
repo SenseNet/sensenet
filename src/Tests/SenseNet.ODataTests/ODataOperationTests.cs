@@ -532,8 +532,8 @@ namespace SenseNet.ODataTests
                     case "Action3": return new Action3();
                     case "Action4": return new Action4();
                     case "GetPermissions": return new GetPermissionsAction();
-                    //case "SetPermissions": return new SenseNet.Portal.ApplicationModel.SetPermissionsAction();
-                    //case "HasPermission": return new SenseNet.Portal.ApplicationModel.HasPermissionAction();
+                    case "SetPermissions": return new SetPermissionsAction();
+                    case "HasPermission": return new HasPermissionAction();
                     //case "AddAspects": return new SenseNet.ApplicationModel.AspectActions.AddAspectsAction();
                     //case "RemoveAspects": return new SenseNet.ApplicationModel.AspectActions.RemoveAspectsAction();
                     //case "RemoveAllAspects": return new SenseNet.ApplicationModel.AspectActions.RemoveAllAspectsAction();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace SenseNet.ContentRepository.Security
+namespace Compatibility.SenseNet.ContentRepository.Security
 {
     public class UserAccessProvider : AccessProvider
     {

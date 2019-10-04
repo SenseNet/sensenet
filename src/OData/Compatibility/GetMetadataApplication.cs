@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Portal.Handlers
+namespace Compatibility.SenseNet.Portal.Handlers
 {
     /// <summary>
     /// System handler for serving metadata (e.g. generated TypeScript classes) on-the-fly.

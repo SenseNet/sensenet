@@ -1,4 +1,6 @@
-﻿namespace SenseNet.ApplicationModel
+﻿using SenseNet.ApplicationModel;
+
+namespace Compatibility.SenseNet.ApplicationModel
 {
     public abstract class PortalAction : ActionBase
     {

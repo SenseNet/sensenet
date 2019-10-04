@@ -10,7 +10,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ApplicationModel;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Portal.Handlers
+namespace Compatibility.SenseNet.Portal.Handlers
 {
     [ContentHandler]
     public class HttpHandlerApplication : Application

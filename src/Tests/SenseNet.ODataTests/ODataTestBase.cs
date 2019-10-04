@@ -388,6 +388,13 @@ namespace SenseNet.ODataTests
                 return null;
             }
 
+            if(json is JArray)
+            {
+                if (throwOnError)
+                    throw new InvalidOperationException("Object is not an error");
+                return null;
+            }
+
             if (!(json["error"] is JObject error))
             {
                 if (throwOnError)

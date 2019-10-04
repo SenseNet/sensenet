@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Compatibility.SenseNet.ApplicationModel;
+using Compatibility.SenseNet.Portal.ApplicationModel;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
-using SenseNet.Portal.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
 using SenseNet.Tools;
 
-namespace SenseNet.ApplicationModel
+namespace Compatibility.SenseNet.ApplicationModel
 {
     public class GenericODataOperation : PortalAction
     {

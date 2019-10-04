@@ -1,8 +1,9 @@
-﻿using SenseNet.ApplicationModel;
+﻿using Compatibility.SenseNet.ApplicationModel;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 
-namespace SenseNet.Portal.ApplicationModel
+namespace Compatibility.SenseNet.Portal.ApplicationModel
 {
     [ContentHandler]
     public class GenericODataApplication : Application

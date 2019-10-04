@@ -10,7 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage.Schema;
 
-namespace SenseNet.Services
+namespace Compatibility.SenseNet.Services
 {
     [ContentHandler]
     public class RssApplication : Application
