@@ -33,7 +33,9 @@ namespace Compatibility.SenseNet.ApplicationModel
                 //}
 
                 //return uri;
-                throw new SnNotSupportedException("##"); //UNDONE:ODATA: UrlAction.Uri is not supported
+                if (Content == null || this.Forbidden)
+                    return string.Empty;
+                return Content.Path;
             }
         }
     }

@@ -25,15 +25,6 @@ namespace SenseNet.ODataTests
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                    //Result: {
-                    //    "id": 42,
-                    //    "path": "/Root/....",
-                    //    "inherits": true,
-                    //    "entries": [
-                    //        {
-                    //            "identity": { "path": "/Root/...", ...
-                    //            "permissions": {
-                    //                "See": {...
                     SnAclEditor.Create(new SnSecurityContext(User.Current))
                         .Allow(2, 1, false, PermissionType.Custom01)
                         .Apply();
@@ -133,7 +124,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_Visitor()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -152,7 +143,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_NullUser()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -171,7 +162,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_WithoutUser()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -190,7 +181,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_Error_IdentityNotFound()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -212,7 +203,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_Error_UnknownPermission()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -233,7 +224,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_Security_HasPermission_Error_MissingParameter()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
@@ -359,98 +350,74 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-        /*[TestMethod]*/
-        /*public async Task OD_Security_Error_MissingStream()
+
+        [TestMethod]
+        public async Task OD_Security_Error_MissingStream()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var resourcePath = ODataHandler.GetEntityUrl(content.Path);
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/Root('IMS')/SetPermissions",
+                            "",
+                            null)
+                        .ConfigureAwait(false);
 
-
-                    ODataError error;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", null);
-                        error = GetError(output);
-                    }
-                    var expectedMessage = "Value cannot be null.\\nParameter name: stream";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
-                    Assert.IsTrue(error.Message == expectedMessage);
+                    // ASSERT
+                    var error = GetError(response);
+                    Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+                    Assert.AreEqual(nameof(ArgumentNullException), error.ExceptionType);
                 }
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_Security_Error_BothParameters()
+        }
+
+        [TestMethod]
+        public async Task OD_Security_Error_BothParameters()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var resourcePath = ODataHandler.GetEntityUrl(content.Path);
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/Root('IMS')/SetPermissions",
+                            "",
+                            "{r:[{identity:\"/Root/IMS/BuiltIn/Portal/Visitor\", OpenMinor:\"allow\"}], inheritance:\"break\"}")
+                        .ConfigureAwait(false);
 
-
-                    ODataError error;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        var stream =
-                            CreateRequestStream(
-                                "{r:[{identity:\"/Root/IMS/BuiltIn/Portal/Visitor\", OpenMinor:\"allow\"}], inheritance:\"break\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        error = GetError(output);
-                    }
+                    // ASSERT
+                    var error = GetError(response);
                     var expectedMessage = "Cannot use  r  and  inheritance  parameters at the same time.";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
-                    Assert.IsTrue(error.Message == expectedMessage);
+                    Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+                    Assert.AreEqual(expectedMessage, error.Message);
                 }
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_Security_Error_InvalidInheritanceParam()
+        }
+
+        [TestMethod]
+        public async Task OD_Security_Error_InvalidInheritanceParam()
         {
-            await IsolatedODataTestAsync(async () =>
+            await ODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var resourcePath = ODataHandler.GetEntityUrl(content.Path);
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/Root('IMS')/SetPermissions",
+                            "",
+                            "{inheritance:\"dance\"}")
+                        .ConfigureAwait(false);
 
-
-                
-                    ODataError error;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream("{inheritance:\"dance\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        error = GetError(output);
-                    }
+                    // ASSERT
+                    var error = GetError(response);
                     var expectedMessage = "The value of the  inheritance  must be  break  or  unbreak .";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
-                    Assert.IsTrue(error.Message == expectedMessage);
+                    Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
+                    Assert.AreEqual(expectedMessage, error.Message);
                 }
             }).ConfigureAwait(false);
-        }*/
+        }
 
     }
 }

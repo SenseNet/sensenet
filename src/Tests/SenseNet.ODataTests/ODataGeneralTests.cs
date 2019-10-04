@@ -1024,13 +1024,15 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
+                // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
                         "?metadata=no&$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions")
                     .ConfigureAwait(false);
 
+                // ASSERT
+                AssertNoError(response);
                 var entity = GetEntity(response);
-
                 var members = entity.AllProperties["Members"] as JArray;
                 Assert.IsNotNull(members);
                 var member = members.FirstOrDefault() as JObject;
