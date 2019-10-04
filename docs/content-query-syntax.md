@@ -1,5 +1,5 @@
 ---
-title:  "Content Query Syntax "
+title:  "Content Query Syntax"
 source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/content-query-syntax.md'
 category: Concepts
 version: v6.0
@@ -9,7 +9,7 @@ tags: [content, query, syntax]
 # Content Query Syntax 
 
 ## Overview
-Sense/Net uses the *Lucene search engine* for indexing and searching for content. We fully support the original [Lucene syntax](http://lucene.apache.org/java/2_9_1/queryparsersyntax.html), but extended it with our own keywords for sorting and filtering, thus forming the content query language (CQL). For the overview of the concept of querying in Sense/Net, visit the [Content Query](https://github.com/SenseNet/sensenet/blob/master/docs/field-setting.md) page.
+sensenet uses the *Lucene search engine* for indexing and searching for content. We fully support the original [Lucene syntax](http://lucene.apache.org/java/2_9_1/queryparsersyntax.html), but extended it with our own keywords for sorting and filtering, thus forming the content query language (CQL). For the overview of the concept of querying in sensenet, visit the [Content Query](https://github.com/SenseNet/sensenet/blob/master/docs/field-setting.md) page.
 
 Almost everywhere in the portal if you come across a search box - e.g. on the main search page, portlet property window or launching the Content Picker - you can use the Content Query Language.
 
@@ -56,7 +56,7 @@ ModificationDate:>'2010-09-01 12:00:00'
 If you want to know more about how fields are indexed, visit the [Field Indexing](https://github.com/SenseNet/sensenet/blob/master/docs/field-indexing.md)  article.
 
 ### Common search-related fields
-Sense/Net has lots of built-in fields that you can use to make more precise queries. These fields are related to type or place of the content:
+sensenet has lots of built-in fields that you can use to make more precise queries. These fields are related to type or place of the content:
 
 | **Name**		| **Comment**													| **Example**						|
 | -------------	| ------------------------------------------------------------- | ---------------------------------	|
@@ -65,7 +65,7 @@ Sense/Net has lots of built-in fields that you can use to make more precise quer
 | **Type**		| Returns1 all content that is of the given type				| Type:Article						|
 | **TypeIs**	| Returns all content that is of the given type or any subtype	| TypeIs:WebContent					|
 
-> It is usually advised to use quotation marks when querying paths, since paths containing spaces and other special characters like '-' or '_' could cause trouble and "split up" the expression into two separate expressions instead of handling it as one query for path.}}
+> It is usually advised to use quotation marks when querying paths, since paths containing spaces and other special characters like '-' or '\_' could cause trouble and "split up" the expression into two separate expressions instead of handling it as one query for path.}}
 
 ### Content List fields
 It is possible to execute a query that contains a condition for Content List fields. The syntax of this is the following: you have to use the *#* sign when searching for a content list field. For example if there is a Document Library with the added field **Contract type**, the query will look like:
@@ -77,7 +77,7 @@ Another example for a date query:
 +TypeIs:CustomContract +#ContractDeadline:<'2011-09-01 12:00:00'
 ```
 ## Keywords
-In Sense/Net query language there are several keywords that you can use to make the query more specific, define ordering or paging.
+In sensenet query language there are several keywords that you can use to make the query more specific, define ordering or paging.
 
 All keywords must be specified using the following syntax: *.KEYWORD:VALUE*
 
@@ -151,7 +151,7 @@ If you want to display only the first 5 content, you can use the keyword **TOP**
 InFolder:/Root/MyContents .TOP:5
 ```
 
-> Always use the TOP keyword whenever limiting result count is possible. TOP limits the size of temporary result arrays used in background query execution logic. Not providing .TOP keyword may result in unnecessary memory consumption and unreasonably high intensity GC usage! See Query Optimization for details.}}
+> Always use the TOP keyword whenever limiting result count is possible. TOP limits the size of temporary result arrays used in background query execution logic. Not providing .TOP keyword may result in unnecessary memory consumption and unreasonably high intensity GC usage! See Query Optimization for details.
 
 In case you want to display a few content but not the first ones (for example in a box showing related articles or you create a user interface that lets the user choose a page), use the keyword **SKIP**. The query below will skip the first 3 results and will return the second 3:
 ```bash
@@ -171,7 +171,7 @@ CreationDate:>'2010-08-30'
 CreationDate:<='2010-10-30'
 ```
 ## Filter keywords
-Sense/Net has several types of filters that automatically filter the results. These filters are **switched ON** by default, but you can decide to switch them off.
+sensenet has several types of filters that automatically filter the results. These filters are **switched ON** by default, but you can decide to switch them off.
 
 ### AUTOFILTERS
 If Autofilters is on, result list will not contain system or deleted content. For example content in (apps) or any other system folder will not be returned. If you want to switch this filter off, do it this way:
