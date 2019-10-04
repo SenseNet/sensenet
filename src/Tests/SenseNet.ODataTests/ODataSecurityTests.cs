@@ -10,6 +10,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable CommentTypo
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ODataTests
 {
@@ -315,64 +317,48 @@ namespace SenseNet.ODataTests
                 }
             }).ConfigureAwait(false);
         }
-        /*[TestMethod]*/
-        /*public async Task OD_Security_Break()
+
+        [TestMethod]
+        public async Task OD_Security_Break()
         {
             await IsolatedODataTestAsync(async () =>
             {
                 using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var resourcePath = ODataHandler.GetEntityUrl(content.Path);
+                    InstallCarContentType();
+                    var testRoot = CreateTestRoot("ODataTestRoot");
+                    var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
+                    content.Save();
+                    var resourcePath = ODataMiddleware.GetEntityUrl(content.Path);
 
+                    // ACTION 1: Break
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/{resourcePath}/SetPermissions",
+                            "",
+                            "{inheritance:\"break\"}")
+                        .ConfigureAwait(false);
 
-                
-                    string result;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream("{inheritance:\"break\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        result = GetStringResult(output);
-                    }
-                    Assert.IsTrue(result.Length == 0);
+                    // ASSERT 1: Not inherited
+                    Assert.AreEqual(0, response.Result.Length);
+                    Assert.AreEqual(204, response.StatusCode);
+                    var node = Node.LoadNode(content.Id);
+                    Assert.IsFalse(node.Security.IsInherited);
+
+                    // ACTION 2: Unbreak
+                    response = await ODataPostAsync(
+                            $"/OData.svc/{resourcePath}/SetPermissions",
+                            "",
+                            "{inheritance:\"unbreak\"}")
+                        .ConfigureAwait(false);
+
+                    // ASSERT 2: Inherited
+                    Assert.AreEqual(0, response.Result.Length);
+                    Assert.AreEqual(204, response.StatusCode);
+                    node = Node.LoadNode(content.Id);
+                    Assert.IsTrue(node.Security.IsInherited);
                 }
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_Security_Unbreak()
-        {
-            await IsolatedODataTestAsync(async () =>
-            {
-                using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
-                {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
-                content.Save();
-                var resourcePath = ODataHandler.GetEntityUrl(content.Path);
-
-
-                
-                    string result;
-                    using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
-                            output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream("{inheritance:\"unbreak\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                        result = GetStringResult(output);
-                    }
-                    Assert.IsTrue(result.Length == 0);
-                }
-            }).ConfigureAwait(false);
-        }*/
+        }
         /*[TestMethod]*/
         /*public async Task OD_Security_Error_MissingStream()
         {
