@@ -1,5 +1,5 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+We pride ourselves in being the first Open Source Enterprise Content Management platform for .NET! 
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
@@ -10,7 +10,7 @@ The first Open Source Enterprise Content Management platform for .NET!
 
 If you need...
 - a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
-- an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to sensenet*, a unified *Content layer* - and many more),
+- an extendable .Net **development platform** with many features developers will like, such as (*OData REST API* with a .Net client SDK, *LINQ to sensenet*, a unified *Content layer* - and many more),
 - a flexible **security** layer with customizable content permissions, honored by the query engine,
 - a scalable enterprise architecture with NLB and background task management,
 - *workspaces*, *lists* and *libraries* to make collaboration easier
@@ -26,7 +26,7 @@ If you need...
 - a central Content Repository for all kinds of custom content
 - an integration point between your (or your clients') existing applications
 
-Let us know which part you're intrested in most!
+Let us know which part interests you the most!
 
 ## License
 sensenet is available in two editions:
@@ -59,7 +59,7 @@ There is also a number of other built-in and 3rd party [components and plugins](
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
 #### After installing sensenet ECM
-After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
+After you install [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
@@ -78,4 +78,4 @@ If you are new to sensenet, it is worth checking out these introductory articles
 - [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
 
 ## Contributing
-All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
+All kinds of contributions are welcome! We are happy if you have an idea, bugfix or a feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
