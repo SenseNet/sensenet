@@ -3,18 +3,18 @@ Thank you for checking out our project! :star2: :sunny: :deciduous_tree: :earth_
 
 All kinds of contributions are welcome, including ideas, requests for improvement (be it code or [documentation](http://wiki.sensenet.com)), bugfixes or features. We are happy if you simply use these projects, but it is marvelous :sparkling_heart: if you decide to make your changes public for the benefit of others.
 
-Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet) or in one of the [smaller ones](https://github.com/SenseNet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
+Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet/issues) or in one of the [smaller ones](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+org%3Asensenet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
 
 ## Enterprise customers
 sensenet ECM has an *Enterprise Edition* containing all the modules in the *Community Edition*. The source code is identical in case of these editions - and it is published here on GitHub.
 
 > The Enterprise Edition may contain some additional modules that are not published here. If you have an issue with one of those, please contact us to sort it out. 
 
-If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue here on GitHub, if you are OK with discussing it in public.
+If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue [here on GitHub](https://github.com/SenseNet/sensenet/issues/new), if you are OK with discussing it in public.
 
 If you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place and will be included in the next patch.
 
-## sensenet and its components
+## SenseNet and its components
 This is a huge project that consists of multiple repositories:
 - main [sensenet github repository](https://github.com/SenseNet/sensenet) for the core product
 - many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main prodoct
