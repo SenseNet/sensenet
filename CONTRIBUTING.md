@@ -43,7 +43,8 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 5. We have a list of [Coding Conventions](http://wiki.sensenet.com/Coding_Conventions) for sensenet projects. Please try to follow that guide when you write code (it contains the usual stuff: code formatting, best practices and common mistakes).
 6. Unit tests are nice, please execute existing tests and add new ones if possible.
 7. You may also use our [benchmark tool](https://github.com/SenseNet/sn-benchmark) to measure the performance of the product before and after the change, if necessary.
-7. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
+8. Please sign the Contributor License Agreement (CLA) [here](https://cla-assistant.io/SenseNet/sensenet) when making the pull request
+9. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
 
 Please be patient if we do not accept the pull request immediately or ask for changes. We'll try to justify our change requests so that you know our intentions. It may speed up the process, if you [allow us to modify your branch](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when you create the pull request.
 
