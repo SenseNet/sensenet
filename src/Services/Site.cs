@@ -227,7 +227,7 @@ namespace SenseNet.Portal
         }
         private bool IsValidSiteUrl(string url)
         {
-            var absUrl = "http://" + url;
+            var absUrl = ("http://" + url).ToLower();
             if (!Uri.IsWellFormedUriString(absUrl, UriKind.Absolute))
                 return false;
             try
