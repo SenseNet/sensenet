@@ -1,3 +1,11 @@
+---
+title:  "Content Template for Developers "
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/content-template-for-developers.md'
+category: Developers
+version: v6.0
+tags: [content, content template]
+---
+
 # Overview 
 Content templates are predefined templates for creating new content. You can access the templated creation functionality from code as well. 
 
@@ -74,11 +82,3 @@ if (template.Count() < 1)
     throw new InvalidOperationException(String.Format("There is no template with {0} name for {1} contentType.", templateName, contentTypeName));
 var templateNode = template.FirstOrDefault();
 ```
-
-## Related links 
-[Content - for Developers](http://wiki.sensenet.com/Content_-_for_Developers)
-[Node - for Developers](http://wiki.sensenet.com/Node_-_for_Developers)
-[Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
-
-## References
-There are no related external articles for this article. 
