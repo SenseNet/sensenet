@@ -2,7 +2,7 @@
 
 Most of the operations done on [Content](content.md) in sensenet ECM is governed via Actions. An Action is basically a command, instructing the system to use a specific component, a so-called [Application](application.md), to display or modify the [Content](content.md) item addressed. To read more on the mechanisms and structure of [Applications](application.md), see the page on the [Smart Application Model](smart-application-model.md).
 
->**Prerequisites**: some of the features described in this article (about displaying content using Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and url generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
+>**Prerequisites**: some of the features described in this article (about displaying content using Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and URL generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
 There are several kinds of actions in sensenet ECM: there are **HTML actions** that lead the user to an actual page (e.g. the Edit page of a content, where you can modify its properties); there are **client-side actions** that do something in *JavaScript* (e.g. display a popup dialog for picking a content); there are **service actions** that do something with the content and redirect you to a different page; and there are the **OData actions** that make the foundation of the [REST API](odata-rest-api.md) in sensenet ECM.
 
@@ -32,11 +32,11 @@ Actions are basically unlimited in number, builders can create [Applications](ap
 
 Some action links do not navigate the current page to an application defined for the specified [Content](content.md), but rather process data in the background and return or navigate to a custom page. An action link can run custom JavaScript code on the client side. A good example for this is the _Copy selected..._ action link that when initialized from a list in [Content Explorer](content-explorer.md) it pops up a Content Picker where the destination folder can be selected, and the actual copy operation only takes place after the destination has been selected.
 
-The type of rendered Action is controlled by the application it referes to. The [Application's](application.md) `ActionTypeName` property defines the type (.Net class) of action to be rendered. 
+The type of rendered Action is controlled by the application it refers to. The [Application's](application.md) `ActionTypeName` property defines the type (.Net class) of action to be rendered.
 
 ### OData actions
 
-The [REST API](odata-rest-api.md) of sensenet ECM is built on OData actions, and you can create your own custom ones too to extend this API.
+The [REST API](odata-rest-api.md) of sensenet ECM is built on OData actions, and you can create your custom ones too to extend this API.
 
 #### Action classes and methods
 In most cases it is sufficient to implement a custom operation as a simple method, the same way as you would write an ASP.NET **Web API** method. After putting a placeholder **GenericODataApplication** application in the appropriate folder in the Content Repository, you can start creating your custom method in your project. For the details, please check this article:
@@ -52,7 +52,7 @@ A **Scenario** is a group of actions one usually displays together. You can thin
 
 The Action URL can contain a parameter called `back`. The portal uses this value when there is a need to **return (redirect) to the previous page** after an operation - e.g. editing content properties. It is possible for portal builders to control the behavior of actions: whether to include the backurl or not. The default behavior of the portal is the following: all actions contain the `backurl` parameter except the *Browse* action.
 
-You can control the visibility of the back url parameter in the following places:
+You can control the visibility of the back URL parameter in the following places:
 
 - **Application property**: when you create an application in the repository, you can set the value of the `IncludeBackUrl` field to Default, True or False.
 - **ActionLinkButton control**: when you put a control to a content view there is an `IncludeBackUrl` property that you can set. This overrides the value that is given in the application.
@@ -99,6 +99,6 @@ In our example, the applications for Posts and Topics are distributed as such:
   - **Lock** - /Root/Sites/MySite/Forum/(apps)/ForumTopic/Lock
   - **Move** - /Root/(apps)/GenericContent/Move
 
-  You simply enter the `ForumAdmin` keyword in the *Scenario* field of all the applications above. Now the appropriate actions will be displayed for moderators when they open the admin console. Note however, that you placed the **Delete** action for GenericContent in the Scenario, which means it will also display for Topics. To hide it, you simply need to deny the Delete permission on Topics for the moderator group. This way, the Delete action on Topics will become unaccessible, and will not show up in the menu.
+  You simply enter the `ForumAdmin` keyword in the *Scenario* field of all the applications above. Now the appropriate actions will be displayed for moderators when they open the admin console. Note however, that you placed the **Delete** action for GenericContent in the Scenario, which means it will also display for Topics. To hide it, you simply need to deny the Delete permission on Topics for the moderator group. This way, the Delete action on Topics will become inaccessible, and will not show up in the menu.
 
   This also helps make your system more secure. Simply not showing a command in a menu does not offer real protection. To deny a certain action for a group of users, the preferred way is to use [User rights management](user-rights-management.md).
