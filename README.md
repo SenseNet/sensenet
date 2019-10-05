@@ -26,7 +26,7 @@ If you need...
 - a central Content Repository for all kinds of custom content
 - an integration point between your (or your clients') existing applications
 
-Let us know which part you're intrested in most!
+Let us know which part you're interested in most!
 
 ## License
 sensenet is available in two editions:
