@@ -58,6 +58,10 @@ There is also a number of other built-in and 3rd party [components and plugins](
 - [Awesome list of components and plugins](https://github.com/SenseNet/awesome-sensenet)
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
+#### Background Operations Image
+
+
+
 #### After installing sensenet ECM
 After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
 
