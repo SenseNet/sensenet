@@ -60,6 +60,9 @@ There is also a number of other built-in and 3rd party [components and plugins](
 
 #### Background Operations Image
 
+![Taskmanagement-taskmonitor](https://user-images.githubusercontent.com/47710382/66274181-8590a400-e899-11e9-932e-69e2a5f548e9.png)
+
+
 
 
 #### After installing sensenet ECM
