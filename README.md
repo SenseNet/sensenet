@@ -1,5 +1,5 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+The first Open Source Enterprise Content Management platform for .NET!
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
@@ -26,7 +26,7 @@ If you need...
 - a central Content Repository for all kinds of custom content
 - an integration point between your (or your clients') existing applications
 
-Let us know which part you're intrested in most!
+Let us know which part you're interested in most!
 
 ## License
 sensenet is available in two editions:
@@ -59,7 +59,7 @@ There is also a number of other built-in and 3rd party [components and plugins](
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
 #### After installing sensenet ECM
-After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
+After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site.
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
