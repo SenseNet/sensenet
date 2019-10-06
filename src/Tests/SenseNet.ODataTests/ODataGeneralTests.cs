@@ -1150,9 +1150,8 @@ namespace SenseNet.ODataTests
             });
         }
 
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarByRef
-        /*[TestMethod]
-        public async Task OD_GET_UserAvatarByRef()
+        /*[TestMethod]*/
+        /*public async Task OD_GET_UserAvatarByRef()
         {
             await ODataTestAsync(async () =>
             {
@@ -1189,9 +1188,8 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
             }).ConfigureAwait(false);
         }*/
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateRef
-        /*[TestMethod]
-        public async Task OD_GET_UserAvatarUpdateRef()
+        /*[TestMethod]*/
+        /*public async Task OD_GET_UserAvatarUpdateRef()
         {
             await ODataTestAsync(async () =>
             {
@@ -1240,9 +1238,8 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
         }*/
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateRefByPath
-        /*[TestMethod]
-        public async Task OD_GET_UserAvatarUpdateRefByPath()
+        /*[TestMethod]*/
+        /*public async Task OD_GET_UserAvatarUpdateRefByPath()
         {
             await ODataTestAsync(async () =>
             {
@@ -1291,9 +1288,8 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
         }*/
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarByInnerData
-        /*[TestMethod]
-        public async Task OD_GET_UserAvatarByInnerData()
+        /*[TestMethod]*/
+        /*public async Task OD_GET_UserAvatarByInnerData()
         {
             await ODataTestAsync(async () =>
             {
@@ -1332,9 +1328,8 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(avatarString.Contains($"/binaryhandler.ashx?nodeid={testUser.Id}&propertyname=ImageData"));
             }).ConfigureAwait(false);
         }*/
-        //UNDONE:ODATA:TEST: Implement this test: OD_GET_UserAvatarUpdateInnerDataToRef
-        /*[TestMethod]
-        public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
+        /*[TestMethod]*/
+        /*public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
         {
             await ODataTestAsync(async () =>
             {
@@ -1776,7 +1771,7 @@ namespace SenseNet.ODataTests
 
 
         //TODO: Remove inconclusive test result and implement this test.
-        /*//[TestMethod]
+        /*//[TestMethod]*/
         /*public void OData_FIX_Move_RightExceptionIfTargetExists()
         {
             Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");
