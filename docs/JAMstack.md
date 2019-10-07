@@ -1,4 +1,4 @@
-#What is **JAMstack**?
+## What is **JAMstack**?
   
   
 **JAM** stands for JAVA, API and Markup.
@@ -10,22 +10,51 @@ This simple guide will help you understand why it exists and how to get started.
    ![JAMstack](https://cdn-media-1.freecodecamp.org/images/uHGkEXe8lXJsmj6cZNQmIW3bpsEzn0mU9Eun)
 
 
-**JavaScript**
+- **JavaScript**
 
--JS is the first foundation of the whole stack. You can love it or you can hate it but you have to admit that JavaScript is one of the most popular programming languages these days with an incredibly vibrant community. The request and response cycles are based on client side thanks to this technology. You can use either pure JavaScript or use any other framework or library available on the market such as React or Vue.
+JS is the first foundation of the whole stack. You can love it or you can hate it but you have to admit that JavaScript is one of the most popular programming languages these days with an incredibly vibrant community. The request and response cycles are based on client side thanks to this technology. You can use either pure JavaScript or use any other framework or library available on the market such as React or Vue.
 
-**APIs**
+- **APIs**
 
--Though we did mention the static websites, the next foundation of the JAMstack are APIs. Thanks to it you can use backend functionality without having a database or the backend engine on your own server. You still have backend, yes,  but deploy only a static website. You can use any API you want, public or private. There are many third-part sites you can choose from. You can also connect to the other backend app that you have created.
+Though we did mention the static websites, the next foundation of the JAMstack are APIs. Thanks to it you can use backend functionality without having a database or the backend engine on your own server. You still have backend, yes,  but deploy only a static website. You can use any API you want, public or private. There are many third-part sites you can choose from. You can also connect to the other backend app that you have created.
 
-**Markup**
+- **Markup**
 
--The presentation layer of your website. With the JAMstack ecosystem usually, it’s a static site generator where templated markup is prebuilt at the build time. You can write your own HTML and CSS code or use a framework such as Hugo, Jekyll or Gatsby, which will greatly improve the time of template development.
-
-
+The presentation layer of your website. With the JAMstack ecosystem usually, it’s a static site generator where templated markup is prebuilt at the build time. You can write your own HTML and CSS code or use a framework such as Hugo, Jekyll or Gatsby, which will greatly improve the time of template development.
 
 
-##**WORKFLOW**
+
+### Demo App
+
+
+``` javascript
+//app.js
+var buildSite = require('./build-site')
+buildSite()
+var express = require('express')
+var app = express()
+app.set('port', process.env.PORT || 3000)
+app.use(express.static('build'))
+app.get('/rebuild-site', (req, res) => {
+  buildSite()
+  res.end('Site rebuilt!')
+})
+app.post('/rebuild-site', (req, res) => {
+  buildSite()
+  res.end('Site rebuilt!')
+})
+app.get('*', (req, res) => {
+  res.redirect('/404')
+})
+app.listen(app.get('port') || 3000, () => {
+  console.info('==> 🌎  Go to http://localhost:%s', app.get('port'))
+})
+```
+
+
+
+
+### **WORKFLOW**
 
 Here's how an ideal JAMstack workflow would look like
 
@@ -33,7 +62,7 @@ Here's how an ideal JAMstack workflow would look like
 
 
 
-##**BENEFITS**
+### **BENEFITS**
 
 Here are the main benefits provided by the JAMstack.
 
@@ -49,7 +78,7 @@ Here are the main benefits provided by the JAMstack.
 
 
 
-##**BEST PRACTICES**
+### **BEST PRACTICES**
 
 The following tips will help you leverage the best out of the stack.
 
@@ -62,6 +91,3 @@ The following tips will help you leverage the best out of the stack.
 - Everything in version control **->>** Your codebase lives in Version Control System, such as Git. The main benefits are: change history of every file, collaborators and traceability.
 
 - Automated builds **->>** Your server is notified when a new build is required, typically via webhooks. Server builds the project, updates the CDNs and the site is live.
-
-
-
