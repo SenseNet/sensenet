@@ -19,7 +19,7 @@ namespace SenseNet.ODataTests
         [TestCategory("Metadata")]
         public async Task OD_ClientMetadataProvider_ExistingType()
         {
-            await ODataTestAsync(async () =>
+            await ODataTestAsync(() =>
             {
                 var fileClass = new Class(ContentType.GetByName("File"));
                 var fileTypeObject = ClientMetadataProvider.Instance.GetClientMetaClass(fileClass) as JObject;
@@ -34,6 +34,8 @@ namespace SenseNet.ODataTests
                 Assert.IsNotNull(fileTypeObject["AllowIncrementalNaming"]);
                 Assert.IsNotNull(fileTypeObject["AllowedChildTypes"]);
                 Assert.IsNotNull(fileTypeObject["FieldSettings"]);
+
+                return Task.CompletedTask;
             }).ConfigureAwait(false);
         }
 
@@ -44,7 +46,7 @@ namespace SenseNet.ODataTests
             var contentTypeName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             var fieldName1 = "Field123456";
 
-            await IsolatedODataTestAsync(async () =>
+            await IsolatedODataTestAsync(() =>
             {
                 var myType = ContentType.GetByName(contentTypeName);
                 Assert.IsNull(myType);
@@ -68,9 +70,12 @@ namespace SenseNet.ODataTests
                 Assert.IsNotNull(myTypeObject);
                 Assert.AreEqual(contentTypeName, myTypeObject["ContentTypeName"].Value<string>());
 
-                var field = myTypeObject["FieldSettings"].Values<JToken>().First(f => f["Name"].Value<string>() == fieldName1);
+                var field = myTypeObject["FieldSettings"].Values<JToken>()
+                    .First(f => f["Name"].Value<string>() == fieldName1);
 
                 Assert.AreEqual("ShortTextFieldSetting", field["Type"].Value<string>());
+
+                return Task.CompletedTask;
             }).ConfigureAwait(false);
         }
 
@@ -78,7 +83,7 @@ namespace SenseNet.ODataTests
         [TestCategory("Metadata")]
         public async Task OD_ClientMetadataProvider_GetSchema_AllTypes()
         {
-            await ODataTestAsync(async () =>
+            await ODataTestAsync(() =>
             {
                 var allTypeObjects = ClientMetadataProvider.GetSchema(null) as object[];
 
@@ -86,8 +91,12 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(allTypeObjects.Length > 1);
 
                 // check a few unrelated types
-                Assert.IsTrue(allTypeObjects.Cast<JObject>().Any(jo => jo["ContentTypeName"].Value<string>() == "File"));
-                Assert.IsTrue(allTypeObjects.Cast<JObject>().Any(jo => jo["ContentTypeName"].Value<string>() == "Folder"));
+                Assert.IsTrue(allTypeObjects.Cast<JObject>()
+                    .Any(jo => jo["ContentTypeName"].Value<string>() == "File"));
+                Assert.IsTrue(allTypeObjects.Cast<JObject>()
+                    .Any(jo => jo["ContentTypeName"].Value<string>() == "Folder"));
+
+                return Task.CompletedTask;
             }).ConfigureAwait(false);
         }
 
@@ -95,7 +104,7 @@ namespace SenseNet.ODataTests
         [TestCategory("Metadata")]
         public async Task OD_ClientMetadataProvider_GetSchema_SingleType()
         {
-            await ODataTestAsync(async () =>
+            await ODataTestAsync(() =>
             {
                 var typeObjects = ClientMetadataProvider.GetSchema(null, "File") as object[];
 
@@ -106,6 +115,8 @@ namespace SenseNet.ODataTests
 
                 Assert.IsNotNull(tpyeJObject);
                 Assert.AreEqual("File", tpyeJObject["ContentTypeName"].Value<string>());
+
+                return Task.CompletedTask;
             }).ConfigureAwait(false);
         }
 
@@ -115,7 +126,7 @@ namespace SenseNet.ODataTests
         {
             // make sure that null values are not rendered to save time and bandwidth
 
-            await ODataTestAsync(async () =>
+            await ODataTestAsync(() =>
             {
                 var allTypeObjects = ClientMetadataProvider.GetSchema(null) as object[];
 
@@ -128,6 +139,8 @@ namespace SenseNet.ODataTests
                         AssertNullValue(property.Value, property.Key);
                     }
                 }
+
+                return Task.CompletedTask;
             }).ConfigureAwait(false);
 
             // check property values recursively for null
@@ -155,6 +168,21 @@ namespace SenseNet.ODataTests
                     }
                 }
             }
+        }
+
+        /*[TestMethod]*/
+        /*[TestCategory("Metadata")]*/
+        public async Task OD_ClientMetadataProvider_GetSchema_Request()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync("/OData.svc/('Root')/GetSchema", "")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(200, response.StatusCode);
+            });
         }
     }
 }
