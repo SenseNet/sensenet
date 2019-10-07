@@ -1,7 +1,7 @@
 ## What is **JAMstack**?
   
   
-**JAM** stands for JAVA, API and Markup.
+**JAM** stands for JavaScript, API and Markup.
 
 JAMstack is revolutionising the way we think about workflow by providing a simpler developer experience, better performance, lower cost and greater scalability.
 This simple guide will help you understand why it exists and how to get started.
