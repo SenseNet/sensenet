@@ -44,7 +44,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 - Enterprise support: http://support.sensenet.com
 
 <a name="GettingStarted"></a>
-## Getting started
+## Getting started Guide
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
 ### sensenet ECM 7.0
