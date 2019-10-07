@@ -469,7 +469,7 @@ namespace SenseNet.OData.Formatters
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var parameters = GetOperationParameters(action, inputStream);
+            var parameters = GetOperationParameters(action, inputStream, httpContext, odataReq);
             var response = action.Execute(content, parameters);
 
             if (response is Content responseAsContent)
@@ -842,7 +842,8 @@ namespace SenseNet.OData.Formatters
             }
             return result.ToArray();
         }
-        private object[] GetOperationParameters(ActionBase action, Stream inputStream)
+        private object[] GetOperationParameters(ActionBase action, Stream inputStream,
+            HttpContext httpContext, ODataRequest odataRequest)
         {
             if (action.ActionParameters.Length == 0)
                 return ActionParameter.EmptyValues;
@@ -877,35 +878,46 @@ namespace SenseNet.OData.Formatters
                 {
                     var name = parameter.Name;
                     var type = parameter.Type;
-                    var val = model?[name];
-                    if (val == null)
+                    if (type == typeof(HttpContext))
                     {
-                        if (parameter.Required)
-                        {
-                            throw new ArgumentNullException(parameter.Name);
-                        }
-                        values[i] = Type.Missing;
+                        values[i] = httpContext;
+                    }
+                    else if (type == typeof(ODataRequest))
+                    {
+                        values[i] = odataRequest;
                     }
                     else
                     {
-                        var valStr = val.ToString();
-
-                        if (type == typeof(string))
+                        var val = model?[name];
+                        if (val == null)
                         {
-                            values[i] = valStr;
-                        }
-                        else if (type == typeof(Boolean))
-                        {
-                            // we handle "True", "true" and "1" as boolean true values
-                            values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
-                        }
-                        else if (type.IsEnum)
-                        {
-                            values[i] = Enum.Parse(type, valStr, true);
+                            if (parameter.Required)
+                            {
+                                throw new ArgumentNullException(parameter.Name);
+                            }
+                            values[i] = Type.Missing;
                         }
                         else
                         {
-                            values[i] = JsonConvert.DeserializeObject(valStr, type);
+                            var valStr = val.ToString();
+
+                            if (type == typeof(string))
+                            {
+                                values[i] = valStr;
+                            }
+                            else if (type == typeof(Boolean))
+                            {
+                                // we handle "True", "true" and "1" as boolean true values
+                                values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
+                            }
+                            else if (type.IsEnum)
+                            {
+                                values[i] = Enum.Parse(type, valStr, true);
+                            }
+                            else
+                            {
+                                values[i] = JsonConvert.DeserializeObject(valStr, type);
+                            }
                         }
                     }
                     i++;

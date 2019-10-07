@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using SenseNet.ContentRepository;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.i18n;
 
 namespace SenseNet.ApplicationModel
 {
+    [DebuggerDisplay("{Name}:{Type.Name}")]
     public class ActionParameter
     {
         [JsonIgnore]

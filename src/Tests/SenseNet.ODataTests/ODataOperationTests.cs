@@ -11,12 +11,48 @@ using SenseNet.OData.Operations;
 using SenseNet.Search;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
+// ReSharper disable IdentifierTypo
 
 namespace SenseNet.ODataTests
 {
     [TestClass]
     public class ODataOperationTests : ODataTestBase
     {
+        [ODataFunction]
+        public static string Function1(Content content, HttpContext httpContext, ODataRequest request, string param1)
+        {
+            return "## Function1 called." +
+                   $" Query: {httpContext.Request.QueryString}." +
+                   $" Format: {request.Format}." +
+                   $" Path: {(content?.Path ?? "[null]")}";
+        }
+
+        /* ============================================================= OPERATION RESULT TESTS */
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function1",
+                    "?param2=value2",
+                    "{param1:\"asdf\"}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = "## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+
+        /* ============================================================= OPERATION RESULT TESTS */
+        /*                 (these tests use old style app resolution via mocked ActionResolver) */
+
         [TestMethod]
         public async Task OD_OP_InvokeAction()
         {
