@@ -313,15 +313,3 @@ protected override T GetValueFromBinary<T>(string key, T defaultValue)
     //TODO: parse the binary stream and return the value for the given key
 }
 ```
-
-## Related links
-
-- [Content Repository](docs/content-repository.md)
-- [Content Handler](docs/content-handler.md)
-- [Field](docs/field.md)
-- [How to configure Sense/Net in NLB](http://wiki.sensenet.com/How_to_configure_Sense/Net_in_NLB)
-- [OData](http://wiki.sensenet.com/How_to_configure_Sense/Net_in_NLB)
-- [How to create a custom OData action](http://wiki.sensenet.com/How_to_create_a_custom_OData_action)
-
-## References
-There are no related external articles for this article.
