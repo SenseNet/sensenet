@@ -32,11 +32,11 @@ Actions are basically unlimited in number, builders can create [Applications](ap
 
 Some action links do not navigate the current page to an application defined for the specified [Content](content.md), but rather process data in the background and return or navigate to a custom page. An action link can run custom JavaScript code on the client-side. A good example for this is the _Copy selected..._ action link that when initialized from a list in [Content Explorer](content-explorer.md) it pops up a Content Picker where the destination folder can be selected, and the actual copy operation only takes place after the destination has been selected.
 
-The type of rendered Action is controlled by the application it referes to. The [Application's](application.md) `ActionTypeName` property defines the type (.Net class) of action to be rendered. 
+The type of rendered Action is controlled by the application it refers to. The [Application's](application.md) `ActionTypeName` property defines the type (.Net class) of action to be rendered.
 
 ### OData actions
 
-The [REST API](odata-rest-api.md) of sensenet ECM is built on OData actions, and you can create your own custom ones too to extend this API.
+The [REST API](odata-rest-api.md) of sensenet ECM is built on OData actions, and you can create your custom ones too to extend this API.
 
 #### Action classes and methods
 In most cases, it is sufficient to implement a custom operation as a simple method, the same way as you would write an ASP.NET **Web API** method. After putting a placeholder **GenericODataApplication** application in the appropriate folder in the Content Repository, you can start creating your custom method in your project. For the details, please check this article:
@@ -99,6 +99,6 @@ In our example, the applications for Posts and Topics are distributed as such:
   - **Lock** - /Root/Sites/MySite/Forum/(apps)/ForumTopic/Lock
   - **Move** - /Root/(apps)/GenericContent/Move
 
-  You simply enter the `ForumAdmin` keyword in the *Scenario* field of all the applications above. Now the appropriate actions will be displayed for moderators when they open the admin console. Note, however, that you placed the **Delete** action for GenericContent in the Scenario, which means it will also display for Topics. To hide it, you simply need to deny the Delete permission on Topics for the moderator group. This way, the Delete action on Topics will become inaccessible, and will not show up in the menu.
+  You simply enter the `ForumAdmin` keyword in the *Scenario* field of all the applications above. Now the appropriate actions will be displayed for moderators when they open the admin console. Note however, that you placed the **Delete** action for GenericContent in the Scenario, which means it will also display for Topics. To hide it, you simply need to deny the Delete permission on Topics for the moderator group. This way, the Delete action on Topics will become inaccessible, and will not show up in the menu.
 
   This also helps make your system more secure. Simply not showing a command in a menu does not offer real protection. To deny a certain action for a group of users, the preferred way is to use [User rights management](user-rights-management.md).

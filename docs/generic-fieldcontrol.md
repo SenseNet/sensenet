@@ -12,7 +12,7 @@ tags: [field control, field, generic]
 
 The Generic Field Control is a special [Field Control](field-control.md) that renders the default Field Controls for the Fields of the displayed Content. The default Field Control for a Field is defined by the Field implementation (see supported Field Controls section for each [Field](field.md)) and can be overridden in the [Content Type Definition](ctd.md) of the displayed Content.
 
-The Generic Field Control automatically resolves the default Field Control for a given Field and renders it. Not only does it render a single Field Control, but Field Controls for all Fields defined in the CTD of the Content - except when explicitely given to skip specific Field Controls. This makes it a useful tool when creating [Content Views](content-view.md) that use a generic layout for the Field Controls.
+The Generic Field Control automatically resolves the default Field Control for a given Field and renders it. Not only does it render a single Field Control, but Field Controls for all Fields defined in the CTD of the Content - except when explicitly given to skip specific Field Controls. This makes it a useful tool when creating [Content Views](content-view.md) that use a generic layout for the Field Controls.
 
 ### Field controls
 
