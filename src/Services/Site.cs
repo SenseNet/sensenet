@@ -42,7 +42,7 @@ namespace SenseNet.Portal
         protected Site(NodeToken nt) : base(nt) { }
 
         /// <summary>
-        /// Gets or stes the temporary language code of this <see cref="Site"/> (e.g. "en-us").
+        /// Gets or sets the temporary language code of this <see cref="Site"/> (e.g. "en-us").
         /// </summary>
         [RepositoryProperty("PendingUserLang")]
         public string PendingUserLang
@@ -277,7 +277,7 @@ namespace SenseNet.Portal
         }
         /// <summary>
         /// Returns parsed data of the given URL list that can be a JSON or an XML fragment.
-        /// For exmple:
+        /// For example:
         ///   &lt;Url authType="Forms"&gt;localhost:1315/&lt;/Url&gt;
         ///   &lt;Url authType="Windows"&gt;name.server.xy&lt;/Url&gt;
         /// or JSON:
@@ -332,7 +332,7 @@ namespace SenseNet.Portal
         }
         /// <summary>
         /// Returns the XML representation of the given URL list.
-        /// For exmple:
+        /// For example:
         ///   &lt;Url authType="Forms"&gt;localhost:1315/&lt;/Url&gt;
         ///   &lt;Url authType="Windows"&gt;name.server.xy&lt;/Url&gt;
         /// </summary>

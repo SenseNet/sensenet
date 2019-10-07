@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage
 				internal static string Msg_ParameterValueCannotBeZero = "The value of parameter cannot be zero.";
 
 				internal static string Msg_InvalidPath_1 = "The path is invalid: {0}";
-				internal static string Msg_PathTooLong = "Path exceeds the maximum lenght allowed";
+				internal static string Msg_PathTooLong = "Path exceeds the maximum length allowed";
 				internal static string Msg_ParentNodeDoesNotExists = "Parent Node does not exists";
 				internal static string Msg_NameCannotBeEmpty = "Name cannot be Empty";
 				internal static string Msg_InvalidName = "The Name is invalid";

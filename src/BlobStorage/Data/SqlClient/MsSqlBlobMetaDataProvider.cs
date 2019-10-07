@@ -211,7 +211,7 @@ SELECT CAST(@@IDENTITY AS int)
         #endregion
 
         /// <summary>
-        /// Inserts a new binary record into the metadata database containing an already exising file id,
+        /// Inserts a new binary record into the metadata database containing an already existing file id,
         /// removing the previous record if the content is not new.
         /// </summary>
         /// <param name="value">Binary data to insert.</param>

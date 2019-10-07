@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="isNewNode">Whether this value belongs to a new or an existing node.</param>
         void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode);
         /// <summary>
-        /// Inserts a new binary record into the metadata database containing an already exising file id,
+        /// Inserts a new binary record into the metadata database containing an already existing file id,
         /// removing the previous record if the content is not new.
         /// </summary>
         /// <param name="value">Binary data to insert.</param>

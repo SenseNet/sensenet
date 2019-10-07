@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Storage
 
         /// <summary>
         /// Gets a value that states if indexing is enabled for this content item. By default this is true
-        /// but can be overidden in derived classes. Determines whether an indexing activity and index
+        /// but can be overridden in derived classes. Determines whether an indexing activity and index
         /// document will be created for this content.
         /// </summary>
         protected internal virtual bool IsIndexingEnabled => true;
@@ -1373,7 +1373,7 @@ namespace SenseNet.ContentRepository.Storage
 
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
-        /// The proerty is identified by the given name.
+        /// The property is identified by the given name.
         /// </summary>
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(string propertyName, IEnumerable<T> nodes) where T : Node
@@ -1388,7 +1388,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
-        /// The proerty is identified by the given <see cref="PropertyType"/>.
+        /// The property is identified by the given <see cref="PropertyType"/>.
         /// </summary>
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(PropertyType property, IEnumerable<T> nodes) where T : Node
@@ -1857,7 +1857,7 @@ namespace SenseNet.ContentRepository.Storage
         // ----------------------------------------------------------------------------- Static single loaders
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given id.
+        /// Loads the appropriate <see cref="Node"/> by the given id.
         /// </summary>
         /// <typeparam name="T">The desired return type.</typeparam>
         /// <param name="nodeId">The requested id.</param>
@@ -1866,7 +1866,7 @@ namespace SenseNet.ContentRepository.Storage
             return (T)LoadNode(nodeId);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given id and version.
+        /// Loads the appropriate <see cref="Node"/> by the given id and version.
         /// </summary>
         /// <typeparam name="T">The desired return type.</typeparam>
         /// <param name="nodeId">The requested id.</param>
@@ -1876,7 +1876,7 @@ namespace SenseNet.ContentRepository.Storage
             return (T)LoadNode(nodeId, version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path.
+        /// Loads the appropriate <see cref="Node"/> by the given path.
         /// </summary>
         /// <typeparam name="T">The desired return type.</typeparam>
         /// <param name="path">The requested path.</param>
@@ -1885,7 +1885,7 @@ namespace SenseNet.ContentRepository.Storage
             return (T)LoadNode(path);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path and version.
+        /// Loads the appropriate <see cref="Node"/> by the given path and version.
         /// </summary>
         /// <typeparam name="T">The desired return type.</typeparam>
         /// <param name="path">The requested path.</param>
@@ -1897,7 +1897,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path.
+        /// Loads the appropriate <see cref="Node"/> by the given path.
         /// </summary>
         /// <example>How to load a <see cref="Node"/> by passing the sensenet Content Repository path.
         /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the latest 
@@ -1912,7 +1912,7 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(path, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path and version.
+        /// Loads the appropriate <see cref="Node"/> by the given path and version.
         /// </summary>
         /// <example>How to load version 2.0 of a <see cref="Node"/> by passing the sensenet Content Repository path.
         /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the provided 
@@ -1930,7 +1930,7 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(DataBackingStore.GetNodeHead(path), version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given Id.
+        /// Loads the appropriate <see cref="Node"/> by the given Id.
         /// </summary>
         /// <example>How to load the latest version of the <see cref="Node"/> identified by the Id 132. 
         /// In this case you will get a <see cref="Node"/> named node filled with the data of the latest version of <see cref="Node"/> 132.
@@ -1944,7 +1944,7 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(nodeId, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given Id and version number.
+        /// Loads the appropriate <see cref="Node"/> by the given Id and version number.
         /// </summary>
         /// <example>How to load version 2.0 of the <see cref="Node"/> identified by the Id 132. In this case you will 
         /// get a <see cref="Node"/> named "node" filled with the data of the given version of <see cref="Node"/> 132.
@@ -1959,14 +1959,14 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(DataBackingStore.GetNodeHead(nodeId), version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.
+        /// Loads the appropriate <see cref="Node"/> by the given <see cref="NodeHead"/>.
         /// </summary>
         public static Node LoadNode(NodeHead head)
         {
             return LoadNode(head, null);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
+        /// Loads the appropriate <see cref="Node"/> by the given <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
         /// </summary>
         public static Node LoadNode(NodeHead head, VersionNumber version)
         {
@@ -2034,7 +2034,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given parameter that can be a path or an id as a string.
+        /// Loads the appropriate <see cref="Node"/> by the given parameter that can be a path or an id as a string.
         /// </summary>
         /// <param name="idOrPath">Id (e.g. "42") or path (e.g. "/Root/System").</param>
         public static Node LoadNodeByIdOrPath(string idOrPath)
@@ -2257,7 +2257,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given versionId.
+        /// Loads the appropriate <see cref="Node"/> by the given versionId.
         /// </summary>
         public static Node LoadNodeByVersionId(int versionId)
         {
@@ -2952,7 +2952,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Moves the <see cref="Node"/> indentified by the source path to another location. 
+        /// Moves the <see cref="Node"/> identified by the source path to another location. 
         /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
         /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
@@ -2970,7 +2970,7 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.MoveTo(targetNode);
         }
         /// <summary>
-        /// Moves the <see cref="Node"/> instance to another loacation. The new location is a <see cref="Node"/> instance 
+        /// Moves the <see cref="Node"/> instance to another location. The new location is a <see cref="Node"/> instance 
         /// that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void MoveTo(Node target)
@@ -3122,7 +3122,7 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Copy methods
 
         /// <summary>
-        /// Copy the <see cref="Node"/> indentified by the source path to another location. 
+        /// Copy the <see cref="Node"/> identified by the source path to another location. 
         /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
         /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
@@ -3710,7 +3710,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Batch delete.
         /// </summary>
         /// <param name="nodeList">Represents an Id collection which holds the identifiers of the <see cref="Node"/>s will be deleted.</param>
-        /// <param name="errors">If any error occures, it is added to the errors collection passed by errors parameter.</param>
+        /// <param name="errors">If any error occurres, it is added to the errors collection passed by errors parameter.</param>
         /// <exception cref="ArgumentNullException">You must specify a list collection instance.</exception>
         public static void Delete(List<int> nodeList, ref List<Exception> errors)
         {
@@ -3911,14 +3911,14 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public event EventHandler<NodeOperationEventArgs> Copied;
         /// <summary>
-        /// Occurs before this <see cref="Node"/> instance's permision setting is changed.
+        /// Occurs before this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
         [Obsolete("Do not use this event anymore.")]
         public event CancellableNodeEventHandler PermissionChanging;
 #pragma warning restore 67
         /// <summary>
-        /// Occurs after this <see cref="Node"/> instance's permision setting is changed.
+        /// Occurs after this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
         [Obsolete("Do not use this event anymore.")]
@@ -4253,7 +4253,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Returns the level of hierachy the <see cref="Node"/> is located at. The virtual Root <see cref="Node"/> has a level of 0.
+        /// Returns the level of hierarchy the <see cref="Node"/> is located at. The virtual Root <see cref="Node"/> has a level of 0.
         /// </summary>
         /// <param name="node"></param>
         public int NodeLevel()

@@ -6,7 +6,7 @@ namespace SenseNet.Configuration
         private const string SectionName = "sensenet/data";
 
         /// <summary>
-        /// Gets the configured Sql command timeout value in seconds.
+        /// Gets the configured SQL command timeout value in seconds.
         /// </summary>
         public static int SqlCommandTimeout { get; internal set; } = GetInt(SectionName, "SqlCommandTimeout", 120, 5);
         /// <summary>

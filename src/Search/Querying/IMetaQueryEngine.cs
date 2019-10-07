@@ -7,7 +7,7 @@
     {
         /// <summary>
         /// Returns with the permitted hit collection defined in the query.
-        /// If there is any problem or the query is not executable in this compinent, returns with null.
+        /// If there is any problem or the query is not executable in this component, returns with null.
         /// </summary>
         /// <param name="query">Defines the query.</param>
         /// <param name="filter">Supports mermission check methods.</param>
@@ -22,7 +22,7 @@
         /// <summary>
         /// Returns with the permitted hit collection defined in the query.
         /// Every hit is the matched content's field defined in the query's Projection property.
-        /// If there is any problem or the query is not executable in this compinent, returns with null.
+        /// If there is any problem or the query is not executable in this component, returns with null.
         /// </summary>
         /// <param name="query">Defines the query.</param>
         /// <param name="filter">Supports mermission check methods.</param>
