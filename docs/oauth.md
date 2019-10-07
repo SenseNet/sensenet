@@ -11,7 +11,7 @@ When new users come to the site, they will be able to sign in by clicking the Go
 - The client **receives a token from the service**. 
 - The client sends the token to the sensenet ECM server, where the appropriate **OAuth provider verifies the token**.
 - If the token has been verified, we load or create the corresponding *User* content in the Content Repository. User content items are connected to the 3rd party service by storing the unique user identifier in a provider-specific separate field (e.g. *GoogleUserId*).
-- sensenet ECM asssembles a [JWT token](https://community.sensenet.com/docs/web-token-authentication) for the client and consideres the user as correctly signed in.
+- sensenet ECM assembles a [JWT token](https://community.sensenet.com/docs/web-token-authentication) for the client and consideres the user as correctly signed in.
 
 From that point on the user will be able to use the application as a regular user.
 
