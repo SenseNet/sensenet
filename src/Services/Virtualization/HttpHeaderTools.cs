@@ -382,7 +382,7 @@ namespace SenseNet.Portal.Virtualization
                     template = template.Replace(":*", "(:[\\d]+){0,1}");
 
                 // subdomain wildcard
-                template = template.Replace("*", "[\\da-z.]+");
+                template = template.Replace("*", "[\\da-z.-]+");
 
                 var regex = new Regex($"^{template}$", RegexOptions.Singleline | RegexOptions.IgnoreCase);
                 return regex.IsMatch(originDomain);
