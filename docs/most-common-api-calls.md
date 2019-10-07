@@ -11,17 +11,17 @@ tags: [API, .NET API, API calls, OData Rest API]
 ## Overview 
 This article shows how to solve common scenarios using **Sense/Net ECMS** APIs. It lists only the most widely used development tools, but it is a good place to start if you want to work with sensenet.
 > Please note that this article is about **server-side** programming. If you are interested in client-side code, you have the following options:
-> - There is a constantly growing [OData REST API](http://wiki.sensenet.com/OData_REST_API) that you may use to access any content in the [Content Repository](http://wiki.sensenet.com/Content_Repository) from **JavaScript**.
-> - There is a *client SDK* ([Client library](http://wiki.sensenet.com/Client_library)) for *.Net developers* to manage content stored in the Content Repository. This is built on top of the OData REST API above.)
+> - There is a constantly growing [OData REST API](/OData_REST_API) that you may use to access any content in the [Content Repository](/Content_Repository) from **JavaScript**.
+> - There is a *client SDK* ([Client library](/Client_library)) for *.Net developers* to manage content stored in the Content Repository. This is built on top of the OData REST API above.)
 
 
 ## Details
 Before you start developing, please check the following article for the basic concepts of sensenet development.
 
-- [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
+- [Getting started - developing applications](getting-started-developing-applications)
 
 To build your development environment, please follow the steps listed in this article:
-- [How to set up development environment](http://wiki.sensenet.com/How_to_set_up_development_environment)
+- [How to set up development environment](how-to-set-up-development_environment)
 
 ### Where can I write code?
 When you have a convenient development environment, you may try one of the following development use cases. You can use the code samples below in several scenarios:
@@ -76,16 +76,16 @@ if (!Login("Builtin", "Admin", "admin"))
 
 ## Loading content
 Development usually starts with loading one or more content items. In this section you will see a couple of examples for basic operations. For more examples please visit this article:
-- [Content - for Developers](http://wiki.sensenet.com/Content_-_for_Developers)
+- [Content - for Developers](/content-for-developers)
 
 ### Single content
-Loading a single content from the [Content Repository](http://wiki.sensenet.com/Content_Repository) looks like this:
+Loading a single content from the [Content Repository](/content-repository) looks like this:
 
 ```c#
 var content = Content.Load(path);
 ```
 
-As a result, you will get a [Content](http://wiki.sensenet.com/Content) object that you can use to display its metadata or load or create other related content.
+As a result, you will get a [Content](/content) object that you can use to display its metadata or load or create other related content.
 
 ### Children
 
@@ -97,7 +97,7 @@ foreach(var child in parent.Children)
 ```
 
 ### Referenced content
-Any content may have a [Reference Field](http://wiki.sensenet.com/Reference_Field) (e.g. *Author* of a book or *Members* of a group). If you want to load referenced content, you would do so like this:
+Any content may have a [Reference Field](/reference-field) (e.g. *Author* of a book or *Members* of a group). If you want to load referenced content, you would do so like this:
 
 ```c#
 var members = groupContent["Members"] as IEnumerable<Node>;
@@ -107,7 +107,7 @@ foreach(var member in members)
 }
 ```
 
-> Please take a look at [this article](http://wiki.sensenet.com/Node_-_for_Developers#Operations_with_nodes) for detailed examples on how to work with strongly typed objects and reference fields.
+> Please take a look at [this article](/node-for-developers) for detailed examples on how to work with strongly typed objects and reference fields.
 
 
 ## Creating a Folder
@@ -172,7 +172,7 @@ var user = CreateUser("Builtin", "MyUser", "MyUserPass", "My user", true);
 ## Creating a Workspace
 Creating a Workspace is a bit different from what you have seen at creating a simple user, since a Workspace usually consists of a main content - the Workspace content - and a couple of child elements like Document Libraries, MemoLists, etc. Therefore we will use a [Content Template](http://wiki.sensenet.com/Content_Template) to create a Workspace. You can define your own templates at /Root/ContentTemplates.
 
-A possible implementation of a function that creates a workspace could look like the following. We recieve the target path including the name in the first parameter. We can use the *RepositoryPath* object to get the parent path and the name from this string. We will load the specified template and create a Workspace from this template using the [Content Template](http://wiki.sensenet.com/Content_Template) API. We will set the name and other Field values, and save the created Workspace:
+A possible implementation of a function that creates a workspace could look like the following. We recieve the target path including the name in the first parameter. We can use the *RepositoryPath* object to get the parent path and the name from this string. We will load the specified template and create a Workspace from this template using the [Content Template](/content-template) API. We will set the name and other Field values, and save the created Workspace:
 
 ```c#
 private static Content CreateWorkspace(string targetPath, string templatePath, Dictionary<string, object> properties = null)
@@ -235,15 +235,15 @@ var file = CreateFile(folder, "c:\\temp.txt");
 
 
 ## Working with permissions
-For examples and details about how to work with permissions and how to edit group membership please check the [Permission API](http://wiki.sensenet.com/Permission_API) article.
+For examples and details about how to work with permissions and how to edit group membership please check the [Permission API](/permission-API) article.
 
 
 ## Searching workspaces
-We can use the [Query API](http://wiki.sensenet.com/Query_API) to search workspaces. This function will return with the list of all workspaces as Nodes. We switch off the AutoFilters option during the query execution, so even workspaces under SystemFolders will be returned:
+We can use the [Query API](query-API) to search workspaces. This function will return with the list of all workspaces as Nodes. We switch off the AutoFilters option during the query execution, so even workspaces under SystemFolders will be returned:
 
 ```c#
 var workspaces = ContentQuery.Query("TypeIs:Workspace", new QuerySettings { EnableAutofilters = false }).Nodes;
 ```
 
-> Please also take a look at the [LINQ to sensenet](http://wiki.sensenet.com/LINQ_to_
+> Please also take a look at the [LINQ to sensenet](/LINQ-to-sensenet
 ) API that offers a similar way to query the repository using well-known developer techniques.
