@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
 using SenseNet.OData.Operations;
 using SenseNet.Search;
@@ -551,6 +552,64 @@ namespace SenseNet.ODataTests
                 }
             }
 
+            internal class ParameterEchoAction : ActionBase
+            {
+                public override string Icon { get => ""; set { } }
+                public override string Name { get => "ParameterEchoAction"; set { } }
+                public override string Uri => "ParameterEchoAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
+                public override ActionParameter[] ActionParameters { get; } = {
+                    new ActionParameter("testString", typeof (string)),
+                };
+
+                public override object Execute(Content content, params object[] parameters)
+                {
+                    return parameters[0].ToString();
+                }
+            }
+
+            internal class TestCopyToAction : ActionBase
+            {
+                public override string Icon { get => ""; set { } }
+                public override string Name { get => "TestCopyToAction"; set { } }
+                public override string Uri => "TestCopyToAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
+                public override ActionParameter[] ActionParameters { get; } = {
+                    new ActionParameter("targetPath", typeof (string)),
+                };
+
+                public override object Execute(Content content, params object[] parameters)
+                {
+                    Node.Copy(content.Path, (string)parameters[0]);
+                    return null;
+                }
+            }
+            internal class TestMoveToAction : ActionBase
+            {
+                public override string Icon { get => ""; set { } }
+                public override string Name { get => "TestMoveToAction"; set { } }
+                public override string Uri => "TestMoveToAction_URI";
+                public override bool IsHtmlOperation => false;
+                public override bool IsODataOperation => true;
+                public override bool CausesStateChange => false;
+
+                public override ActionParameter[] ActionParameters { get; } = {
+                    new ActionParameter("targetPath", typeof (string)),
+                };
+
+                public override object Execute(Content content, params object[] parameters)
+                {
+                    Node.Move(content.Path, (string)parameters[0]);
+                    return null;
+                }
+            }
+
             public GenericScenario GetScenario(string name, string parameters, HttpContext httpContext)
             {
                 return null;
@@ -586,8 +645,10 @@ namespace SenseNet.ODataTests
                     case "ODataError": return new ODataErrorAction();
                     case "ODataGetParentChainAction": return new ODataGetParentChainAction();
 
-                    //case "CopyTo": return new CopyToAction();
-                    //case "MoveTo": return new MoveToAction();
+                    case "ParameterEcho": return new ParameterEchoAction();
+
+                    case "TestCopyTo": return new TestCopyToAction(); //UNDONE:ODATA:OPERATION: Create a right operation.
+                    case "TestMoveTo": return new TestMoveToAction(); //UNDONE:ODATA:OPERATION: Create a right operation.
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace SenseNet.ODataTests
     public class ODataSetFieldTests : ODataTestBase
     {
         [TestMethod]
-        public async Task OData_AllowedChildTypes_Post()
+        public async Task OD_AllowedChildTypes_Post()
         {
             await IsolatedODataTestAsync(async () =>
             {
@@ -57,7 +57,7 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OData_AllowedChildTypes_Patch()
+        public async Task OD_AllowedChildTypes_Patch()
         {
             await IsolatedODataTestAsync(async () =>
             {

@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
+using Compatibility.SenseNet.Portal.ApplicationModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -1494,61 +1496,63 @@ namespace SenseNet.ODataTests
 
         /* ============================================================================ OTHER TESTS */
 
-        /*[TestMethod]*/
-        /*public void SnJsonConverterTest_SimpleProjection()
+        [TestMethod]
+        public async Task OD_SnJsonConverterTest_SimpleProjection()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(() =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
-                    // Create, save
-                    var content = Content.CreateNew("Car", testRoot, "MyCar1");
+                // Create, save
+                var content = Content.CreateNew("Car", testRoot, "MyCar1");
                 content["Make"] = "Citroen";
                 content["Model"] = "C100";
                 content["Price"] = 2399999.99;
                 content.Save();
 
-                    // Reload
-                    content = Content.Load(content.Path);
-                    // Generate JSON
-                    var generatedJson = content.ToJson(new[] { "Id", "Path", "Name", "Make", "Model", "Price" }, null);
+                // Reload
+                content = Content.Load(content.Path);
+                // Generate JSON
+                var generatedJson = content.ToJson(null, new[] {"Id", "Path", "Name", "Make", "Model", "Price"}, null);
 
-                    // Run assertions
-                    var jobj = JObject.Parse(generatedJson);
+                // Run assertions
+                var jobj = JObject.Parse(generatedJson);
                 Assert.AreEqual(jobj["Id"], content.Id);
                 Assert.AreEqual(jobj["Path"], content.Path);
                 Assert.AreEqual(jobj["Name"], content.Name);
                 Assert.AreEqual(jobj["Make"].Value<string>(), content["Make"]);
                 Assert.AreEqual(jobj["Model"].Value<string>(), content["Model"]);
                 Assert.AreEqual(jobj["Price"].Value<decimal>(), content["Price"]);
+
+                return Task.CompletedTask;
             });
-        }*/
-        /*[TestMethod]*/
-        /*public void SnJsonConverterTest_WithExpand()
+        }
+        [TestMethod]
+        public async Task OD_SnJsonConverterTest_WithExpand()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(() =>
             {
                 InstallCarContentType();
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
-                    // Create, save
-                    var content = Content.CreateNew("Car", testRoot, "MyCar2");
+                // Create, save
+                var content = Content.CreateNew("Car", testRoot, "MyCar2");
                 content["Make"] = "Citroen";
                 content["Model"] = "C101";
                 content["Price"] = 4399999.99;
                 content.Save();
 
-                    // Reload
-                    content = Content.Load(content.Path);
-                    // Generate JSON
-                    var generatedJson =
-                    content.ToJson(
-                        new[] { "Id", "Path", "Name", "Make", "Model", "Price", "CreatedBy/Id", "CreatedBy/Path" },
-                        new[] { "CreatedBy" });
+                // Reload
+                content = Content.Load(content.Path);
+                // Generate JSON
+                var generatedJson =
+                    content.ToJson(null,
+                        new[] {"Id", "Path", "Name", "Make", "Model", "Price", "CreatedBy/Id", "CreatedBy/Path"},
+                        new[] {"CreatedBy"});
 
-                    // Run assertions
-                    var jobj = JObject.Parse(generatedJson);
+                // Run assertions
+                var jobj = JObject.Parse(generatedJson);
                 Assert.AreEqual(jobj["Id"], content.Id);
                 Assert.AreEqual(jobj["Path"], content.Path);
                 Assert.AreEqual(jobj["Name"], content.Name);
@@ -1557,50 +1561,51 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(jobj["Price"].Value<decimal>(), content["Price"]);
                 Assert.AreEqual(jobj["CreatedBy"]["Id"], content.ContentHandler.CreatedBy.Id);
                 Assert.AreEqual(jobj["CreatedBy"]["Path"], content.ContentHandler.CreatedBy.Path);
-            });
-        }*/
 
-        /*[TestMethod]*/
-        /*public void OData_Urls_CurrentSite()
+                return Task.CompletedTask;
+            });
+        }
+
+        [TestMethod]
+        public async Task OD_GET_Urls_CurrentSite()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
-                var site = CreateTestSite();
+                var site = CreateWorkspace();
                 var siteParentPath = RepositoryPath.GetParentPath(site.Path);
                 var siteName = RepositoryPath.GetFileName(site.Path);
 
                 string expectedJson = string.Concat(@"{""d"":{
-                        ""__metadata"":{                    ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')"",""type"":""Site""},
+                        ""__metadata"":{                    ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')"",""type"":""Workspace""},
                         ""Manager"":{""__deferred"":{       ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/Manager""}},
                         ""CreatedBy"":{""__deferred"":{     ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/CreatedBy""}},
                         ""ModifiedBy"":{""__deferred"":{    ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/ModifiedBy""}}}}")
                     .Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
-                string json;
-                using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext(ODataTools.GetODataUrl(site.Path),
-                        "$select=Manager,CreatedBy,ModifiedBy&metadata=minimal", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    json = GetStringResult(output);
-                }
-                var result = json.Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
+
+                // ACTION
+                var response = await ODataGetAsync(
+                        ODataTools.GetODataUrl(site.Path),
+                        "?$select=Manager,CreatedBy,ModifiedBy&metadata=minimal")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var result = response.Result.Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(expectedJson, result);
             });
-        }*/
+        }
 
-        /*[TestMethod]*/
-        /*public void OData_SortingByMappedDateTimeAspectField()
+        [TestMethod]
+        public async Task OD_SortingByMappedDateTimeAspectField()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
                 InstallCarContentType();
-                CreateTestSite();
                 var testRoot = CreateTestRoot("ODataTestRoot");
 
-                    // Create an aspect with date field that is mapped to CreationDate
-                    var aspect1Name = "OData_SortingByMappedDateTimeAspectField";
-                var aspect1Definition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
+                // Create an aspect with date field that is mapped to CreationDate
+                var aspect1Name = "OData_SortingByMappedDateTimeAspectField";
+                var aspect1Definition =
+                    @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
     <Fields>
         <AspectField name='Field1' type='DateTime'>
             <!-- not bound -->
@@ -1625,28 +1630,28 @@ namespace SenseNet.ODataTests
                 var field2Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
                 var field3Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field3");
 
-                var container = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
+                var container = new SystemFolder(testRoot) {Name = Guid.NewGuid().ToString()};
                 container.Save();
 
                 var today = DateTime.Now;
-                (new[] { 3, 1, 5, 2, 4 }).Select(i =>
-                      {
+                (new[] {3, 1, 5, 2, 4}).Select(i =>
+                {
                     var content = Content.CreateNew("Car", container, "Car-" + i + "-" + Guid.NewGuid());
                     content.AddAspects(aspect1);
 
                     content[field1Name] = today.AddDays(-5 + i);
-                        //content[field2Name] = today.AddDays(-i);
-                        //content[field3Name] = today.AddDays(-i);
-                        content.CreationDate = today.AddDays(-i);
+                    //content[field2Name] = today.AddDays(-i);
+                    //content[field3Name] = today.AddDays(-i);
+                    content.CreationDate = today.AddDays(-i);
                     content.ModificationDate = today.AddDays(-i);
 
                     content.Save();
                     return i;
                 }).ToArray();
 
-                    // check prerequisits
+                // check prerequisits
 
-                    var r1 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                var r1 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
                     .OrderBy(c => c[field1Name]).ToArray();
                 var result1 = String.Join(",", r1.Select(x => x.Name[4]));
                 Assert.AreEqual("1,2,3,4,5", result1);
@@ -1671,193 +1676,158 @@ namespace SenseNet.ODataTests
                 var result6 = String.Join(",", r6.Select(x => x.Name[4]));
                 Assert.AreEqual("1,2,3,4,5", result6);
 
-                    //------------------------------------------
 
-                    ODataEntities entities;
+                // ACTION-1: Field1 ASC
+                var response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field1Name + " asc")
+                    .ConfigureAwait(false);
 
-                    // Field1 ASC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " asc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
-                Assert.AreEqual(5, entities.Length);
-                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
-
-                    // Field1 DESC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " desc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
-                Assert.AreEqual(5, entities.Length);
-                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
-
-
-
-                    // Field2 ASC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
-                Assert.AreEqual(5, entities.Length);
-                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
-
-                    // Field2 DESC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
+                // ASSERT-1
+                var entities = GetEntities(response);
                 Assert.AreEqual(5, entities.Length);
                 Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
 
 
+                // ACTION-2: Field1 DESC
+                response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field1Name + " desc")
+                    .ConfigureAwait(false);
 
-                    // Field3 ASC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
+                // ASSERT-2
+                entities = GetEntities(response);
                 Assert.AreEqual(5, entities.Length);
                 Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
 
-                    // Field3 DESC
-                    using (var output = new StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc",
-                        output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    entities = GetEntities(output);
-                }
+
+                // ACTION-3: Field2 ASC
+                response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field2Name + " asc")
+                    .ConfigureAwait(false);
+
+                // ASSERT-3
+                entities = GetEntities(response);
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+
+
+                // ACTION-4: Field2 DESC
+                response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field2Name + " desc")
+                    .ConfigureAwait(false);
+
+                // ASSERT-4
+                entities = GetEntities(response);
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
+
+
+                // ACTION-5: Field3 ASC
+                response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field3Name + " asc")
+                    .ConfigureAwait(false);
+
+                // ASSERT-5
+                entities = GetEntities(response);
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+
+
+                // ACTION-6: Field3 DESC
+                response = await ODataGetAsync(
+                        "/OData.svc/" + container.Path,
+                        "?$orderby=" + field3Name + " desc")
+                    .ConfigureAwait(false);
+
+                // ASSERT-6
+                entities = GetEntities(response);
                 Assert.AreEqual(5, entities.Length);
                 Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
             });
-        }*/
-        /*[TestMethod]*/
-        /*public void OData_FIX_DoNotUrlDecodeTheRequestStream()
+        }
+
+        [TestMethod]
+        public async Task OD_FIX_DoNotUrlDecodeTheRequestStream()
         {
-            Test(() =>
+            await IsolatedODataTestAsync(async () =>
             {
-                    //var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                    //var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                    //odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-                    CreateGlobalActions();
-                CreateTestSite();
-
-                var testString = "a&b c+d%20e";
-                string result = null;
-                    //------------------------------------------------------------ POST: ok
-                    using (var output = new StringWriter())
+                using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                        //"{iii: 42, sss: 'asdf' }"
-                        var json = $"{{testString: \'{testString}\' }}";
-                    var stream = CreateRequestStream(json);
-                    var pc = CreatePortalContext("/OData.svc/Root('IMS')/ParameterEcho", "", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-                    result = GetStringResult(output);
-                }
-                Assert.AreEqual(testString, result);
-            });
-        }*/
+                    var testString = "a&b c+d%20e";
 
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            "/OData.svc/Root('IMS')/ParameterEcho",
+                            "",
+                            $"{{testString: \'{testString}\' }}")
+                        .ConfigureAwait(false);
 
-        //TODO: Remove inconclusive test result and implement this test.
-        /*//[TestMethod]*/
-        /*public void OData_FIX_Move_RightExceptionIfTargetExists()
-        {
-            Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");
-
-            Test(() =>
-            {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath, out var targetContainerPath);
-
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
-                {
-                        //------------------------------------------------------------------------------------------------------------------------ test 1
-                        using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(
-                            string.Format("/OData.svc/{0}('{1}')/MoveTo", RepositoryPath.GetParentPath(sourcePath),
-                                RepositoryPath.GetFileName(sourcePath)), "", output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream("{\"targetPath\":\"" + targetContainerPath + "\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
-
-                        var error = GetError(output);
-                        Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
-                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot move the content"));
-                    }
-                }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
+                    // ASSERT
+                    Assert.AreEqual(testString, response.Result);
                 }
             });
-        }*/
-        /*[TestMethod]*/
-        /*public void OData_FIX_Copy_RightExceptionIfTargetExists()
+        }
+
+        [TestMethod]
+        public async Task OD_FIX_Move_RightExceptionIfTargetExists()
         {
-            Test(() =>
+            //Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");
+
+            await IsolatedODataTestAsync(async () =>
             {
-                InstallCarContentType();
-                var testRoot = CreateTestRoot("ODataTestRoot");
-                CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath, out var targetContainerPath);
-
-                var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
-                var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
-                odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
-
-                CreateTestSite();
-                try
+                using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
                 {
-                        //------------------------------------------------------------------------------------------------------------------------ test 1
-                        using (var output = new StringWriter())
-                    {
-                        var pc = CreatePortalContext(
-                            string.Format("/OData.svc/{0}('{1}')/CopyTo", RepositoryPath.GetParentPath(sourcePath),
-                                RepositoryPath.GetFileName(sourcePath)), "", output);
-                        var handler = new ODataHandler();
-                        var stream = CreateRequestStream("{\"targetPath\":\"" + targetContainerPath + "\"}");
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
+                    InstallCarContentType();
+                    var testRoot = CreateTestRoot("ODataTestRoot");
+                    CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath,
+                        out var targetContainerPath);
 
-                        var error = GetError(output);
-                        Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
-                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot copy the content"));
-                    }
-                }
-                finally
-                {
-                    odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/{RepositoryPath.GetParentPath(sourcePath)}" +
+                            $"('{RepositoryPath.GetFileName(sourcePath)}')/TestMoveTo",
+                            "",
+                            "{\"targetPath\":\"" + targetContainerPath + "\"}")
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    var error = GetError(response);
+                    Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
+                    Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot move the content"));
                 }
             });
-        }*/
+        }
+        [TestMethod]
+        public async Task OD_FIX_Copy_RightExceptionIfTargetExists()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                using (new ODataOperationTests.ActionResolverSwindler(new ODataOperationTests.TestActionResolver()))
+                {
+                    InstallCarContentType();
+                    var testRoot = CreateTestRoot("ODataTestRoot");
+                    CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath,
+                        out var targetContainerPath);
+
+                    // ACTION
+                    var response = await ODataPostAsync(
+                            $"/OData.svc/{RepositoryPath.GetParentPath(sourcePath)}" +
+                                    $"('{RepositoryPath.GetFileName(sourcePath)}')/TestCopyTo",
+                            "",
+                            "{\"targetPath\":\"" + targetContainerPath + "\"}")
+                        .ConfigureAwait(false);
+
+                    // ASSERT
+                    var error = GetError(response);
+                    Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
+                    Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot copy the content"));
+                }
+            });
+        }
         public void CreateStructureFor_RightExceptionIfTargetExistsTests(Node testRoot, out string sourcePath, out string targetContainerPath)
         {
             var sourceFolder = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
