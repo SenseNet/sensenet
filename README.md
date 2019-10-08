@@ -47,6 +47,30 @@ Whether you're a community member or enterprise customer, feel free to visit our
 ## Getting started
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
+### sensenet Services 7.6.4
+
+This is a minor release containing the following feature.
+
+## Features
+
+CORS port setting with wildcards: from now on you can define CORS domains with wildcard as the port to let a wide range of origin domains access the repository.
+
+### Installation
+
+To get started please follow the instructions in the [Install sensenet from NuGet article](https://community.sensenet.com/docs/install-sn-from-nuget/).
+
+###  sensenet Services 7.6.3
+
+## Client changes
+
+- As part of a cleanup we refactored the generated TypeScript schema.
+
+## Bug fixes
+
+- Office Online actions take [action type](https://github.com/sensenet/sensenet/issues/627) (e.g. edit or view) into account when serving WOPI actions to the client. This is important in cases when a file (e.g. a doc file) can be viewed but not edited.
+
+- From now on it is possible to define [allowed origin domains](https://community.sensenet.com/docs/cors/) with a [port number](https://github.com/sensenet/sensenet/issues/258).
+
 ### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
