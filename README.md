@@ -11,7 +11,7 @@ The first Open Source Enterprise Content Management platform for .NET!
 If you need...
 - a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
 - an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to sensenet*, a unified *Content layer* - and many more),
-- a flexible **security** layer with customizable content permissions, honored by the query engine,
+- a flexible **security** layer with customizable content permissions, assisted by the query engine,
 - a scalable enterprise architecture with NLB and background task management,
 - *workspaces*, *lists* and *libraries* to make collaboration easier
 
