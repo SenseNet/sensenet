@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.OData.Operations;
 using SenseNet.Tools;
 // ReSharper disable CheckNamespace
 
@@ -99,62 +95,10 @@ namespace SenseNet.ApplicationModel
                 }
             }
 
-            if (_actionCache.TryGetValue(name, out Type actionType))
-                return (ActionBase)Activator.CreateInstance(actionType);
+            if (!_actionCache.TryGetValue(name, out Type actionType))
+                return null;
 
-            return GetMethodBasedAction(name);
-        }
-
-        private static Dictionary<string, MethodBasedOperation> _methodBasedOperationCache;
-        private static ActionBase GetMethodBasedAction(string name)
-        {
-            if (_methodBasedOperationCache == null)
-                _methodBasedOperationCache = GetAvailableMethodBasedOperations();
-            if (_methodBasedOperationCache.TryGetValue(name, out var action))
-                return action;
-            return null;
-        }
-
-        private static Dictionary<string, MethodBasedOperation> GetAvailableMethodBasedOperations()
-        {
-            var result = new Dictionary<string, MethodBasedOperation>();
-
-            var decoratedMethods = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .SelectMany(t => t.GetMethods())
-                .Where(m => m.IsStatic && m.GetCustomAttributes(true).Length > 0)
-                .ToArray();
-
-            foreach (var method in decoratedMethods)
-            {
-                var attributes = method.GetCustomAttributes(true);
-                var actionAttr = attributes.FirstOrDefault(a => a is ODataAction);
-                var functionAttr = attributes.FirstOrDefault(a => a is ODataFunction);
-
-                var operationAttr = (ODataOperation)(actionAttr ?? functionAttr);
-                if (null == operationAttr)
-                    continue;
-
-                if (result.ContainsKey(method.Name))
-                {
-                    int q = 1;
-                }
-                else
-                {
-                    var methodParams = method.GetParameters();
-                    var parameters = (methodParams.Length > 0 ?  methodParams.Skip(1) : methodParams)
-                            .Select(p => new ActionParameter(p.Name, p.ParameterType, p.IsOptional))
-                            .ToArray();
-
-                    result.Add(method.Name, new MethodBasedOperation(
-                        method,
-                        actionAttr != null,
-                        parameters,
-                        operationAttr.Description));
-                }
-            }
-
-            return result;
+            return (ActionBase)Activator.CreateInstance(actionType);
         }
     }
 }
