@@ -10,7 +10,7 @@ tags: [content, ctd, child types, field]
 
 The sensenet [Content Repository](content-repository.md) stores different [Content Types](content-type.md). One of the major differences between a file system and the Content Repository, is that in a file system you can store any tpye (file or folder) anywhere, whereas in the sensenet Content Repository it is possible to define restrictions on what Content Types the different containers can contain. This allows portal builders to create a much more precisely defined [Content](content.md) structure and provide the users a better user experience when creating new content under different places in the Content Repository.
 
-You can configure Allowed Child Types in the Content Type Definition of the different types. For example a MemoList can only contain Memos, a Document Library can only contain Folders and Files, etc. These settings can be overridden on the specific Content, for example you can modify any of your Document Libraries to contain Images, too. There are also some special types that behave differently: a Folder for example can never define child types, it will always inherit its parent settings. A SystemFolder will allow every type by default and can be created anywhere in the repository.
+You can configure Allowed Child Types in the Content Type Definition of the different types. For example, a MemoList can only contain Memos, a Document Library can only contain Folders and Files, etc. These settings can be overridden on the specific Content, for example you can modify any of your Document Libraries to contain Images, too. There are also some special types that behave differently: a Folder for example, can never define child types, it will always inherit its parent settings. A SystemFolder will allow every type by default and can be created anywhere in the repository.
 
 ## CTD settings
 
@@ -26,7 +26,7 @@ The above settings will ensure that whenever you create a new Content of this sp
 
 ## Content settings
 
-Allowed Child Types can also be defined on Content instances. When types are locally defined for a specific Content it means that the CTD settings of its type will no longer be in effect. This way you can freely modify Allowed Child Type settings for a specific Content, and modifications in CTD will not affect the child type settings of that Content in any ways. The local allowed child type settings of a Content is stored in the *AllowedChildTypes* field.
+Allowed Child Types can also be defined on Content instances. When types are locally defined for a specific Content it means that the CTD settings of its type will no longer be in effect. This way you can freely modify Allowed Child Type settings for a specific Content, and modifications in CTD will not affect the child type settings of that Content in any ways. The local allowed child type settings of a Content are stored in the *AllowedChildTypes* field.
 
 To modify allowed child types of a Content, simply open the edit page and modify the *Content Types* list:
 
@@ -44,7 +44,7 @@ To undo these changes and remove local settings so that allowed child types list
 
 ### Explicit and effective allowed child types
 
-The **AllowedChildTypes** field itself does not always store the values you see in the user interface. For example Folders and Pages cannot have their own setting (see below), they always inherit from their parent. Other containers may inherit their allowed child types list from their content type (CTD). If you as a developer need the actual list of types that your users will be able to create in a container, use the **EffectiveAllowedChildTypes** read only field based on the read only property with the same name.
+The **AllowedChildTypes** field itself does not always store the values you see in the user interface. For example ,  Folders and Pages cannot have their own setting (see below), they always inherit from their parent. Other containers may inherit their allowed child types list from their content type (CTD). If you as a developer need the actual list of types that your users will be able to create in a container, use the **EffectiveAllowedChildTypes** read only field based on the read only property with the same name.
 
 ## Creating new content
 
@@ -54,7 +54,7 @@ The allowed child types definition on a content (whether it comes from CTD or fr
 
 ## Permissions for creating a type
 
-A Content Type in the new menu will only show up if the user has See permissions on the Content Type node. For example to create a new Car anywhere you need to have **See** permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
+A Content Type in the new menu will only show up if the user has See permissions on the Content Type node. For Example , to create a new Car anywhere you need to have **See** permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
 
 ## Content allowing all types
 
@@ -70,7 +70,7 @@ If the user is not a member of any enlisted group he/she will not be able to cre
 
 ## Inheriting types: Folder, Page
 
-A Folder or a Page always inherits these settings from its parent Content. You cannot set the allowed child types property of any Folder or Page (even if you make the corresponding control visible on the surface, it will have no effect), not even in CTD. Therefore whatever allowed child types settings you specify for a list containing a Folder, these settings will also apply for the children of the Folder placed in this list. This ensures that if you build structures in a content list using folders, your list settings will never be overridden on a lower level.
+A Folder or a Page always inherits these settings from its parent Content. You cannot set the allowed child types property of any Folder or Page (even if you make the corresponding control visible on the surface, it will have no effect), not even in CTD. Therefore , whatever allowed child types settings you specify for a list containing a Folder, these settings will also apply for the children of the Folder placed in this list. This ensures that if you build structures in a content list using folders, your list settings will never be overridden on a lower level.
 
 ## Special type: SystemFolder
 

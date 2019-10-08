@@ -61,7 +61,7 @@ Content in the Repository can have several non-numeric version states:
 |P      | PENDING  | When approval is enabled in a folder or list, then contents cannot be published without approval. After sending a content for approval it remains in pending for approval state, until somebody with sufficient rights approves it. |
 |R      | REJECTED | If a content is not correct, the user with approving rights can reject it. This means it is not published and should be refined.   |
 
-### Content behavior if versioning is enabled
+### Content behaviour if versioning is enabled
 
 #### Major only mode
 
