@@ -30,7 +30,7 @@ namespace SenseNet.ODataTests
 
         /* ============================================================= OPERATION RESULT TESTS */
 
-        [TestMethod]
+        /*[TestMethod]*/
         public async Task OD_MBOP_Invoke()
         {
             await ODataTestAsync(async () =>

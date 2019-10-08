@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
@@ -1150,10 +1151,10 @@ namespace SenseNet.ODataTests
             });
         }
 
-        /*[TestMethod]*/
-        /*public async Task OD_GET_UserAvatarByRef()
+        [TestMethod]
+        public async Task OD_GET_UserAvatarByRef()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1161,7 +1162,9 @@ namespace SenseNet.ODataTests
                 var testUser = new User(testDomain) { Name = "User1" };
                 testUser.Save();
 
-                var testSite = CreateTestSite();
+                var testSite = CreateWorkspace();
+                testSite.AllowChildType("Image");
+                testSite.Save();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
                 testAvatars.Save();
@@ -1179,19 +1182,22 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var entity = await ODataGetAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
-                    "?metadata=no&$select=Avatar").ConfigureAwait(false);
+                var response = await ODataGetAsync(
+                    $"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "?metadata=no&$select=Avatar")
+                    .ConfigureAwait(false);
 
                 // ASSERT
+                var entity = GetEntity(response);
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_GET_UserAvatarUpdateRef()
+        }
+        [TestMethod]
+        public async Task OD_GET_UserAvatarUpdateRef()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1199,7 +1205,9 @@ namespace SenseNet.ODataTests
                 var testUser = new User(testDomain) { Name = "User1" };
                 testUser.Save();
 
-                var testSite = CreateTestSite();
+                var testSite = CreateWorkspace();
+                testSite.AllowChildType("Image");
+                testSite.Save();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
                 testAvatars.Save();
@@ -1222,26 +1230,23 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
-                    "metadata=no&$select=Avatar,ImageRef,ImageData",
-                    $"(models=[{{\"Avatar\": {testAvatar2.Id}}}])");
+                var response = await ODataPatchAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "?metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": {testAvatar2.Id}}}])")
+                    .ConfigureAwait(false);
 
                 // ASSERT
-                if (result is ODataError error)
-                    Assert.AreEqual("", error.Message);
-                var entity = result as ODataEntity;
-                if (entity == null)
-                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
-
+                AssertNoError(response);
+                var entity = GetEntity(response);
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_GET_UserAvatarUpdateRefByPath()
+        }
+        [TestMethod]
+        public async Task OD_GET_UserAvatarUpdateRefByPath()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1249,7 +1254,9 @@ namespace SenseNet.ODataTests
                 var testUser = new User(testDomain) { Name = "User1" };
                 testUser.Save();
 
-                var testSite = CreateTestSite();
+                var testSite = CreateWorkspace();
+                testSite.AllowChildType("Image");
+                testSite.Save();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
                 testAvatars.Save();
@@ -1272,26 +1279,24 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
-                    "metadata=no&$select=Avatar,ImageRef,ImageData",
-                    $"(models=[{{\"Avatar\": \"{testAvatar2.Path}\"}}])");
+                var response = await ODataPatchAsync(
+                    $"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "?metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": \"{testAvatar2.Path}\"}}])")
+                    .ConfigureAwait(false);
 
                 // ASSERT
-                if (result is ODataError error)
-                    Assert.AreEqual("", error.Message);
-                var entity = result as ODataEntity;
-                if (entity == null)
-                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
-
+                AssertNoError(response);
+                var entity = GetEntity(response);
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_GET_UserAvatarByInnerData()
+        }
+        [TestMethod]
+        public async Task OD_GET_UserAvatarByInnerData()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1299,7 +1304,9 @@ namespace SenseNet.ODataTests
                 var testUser = new User(testDomain) { Name = "User1" };
                 testUser.Save();
 
-                var testSite = CreateTestSite();
+                var testSite = CreateWorkspace();
+                testSite.AllowChildType("Image");
+                testSite.Save();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
                 testAvatars.Save();
@@ -1319,19 +1326,23 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var entity = await ODataGetAsync($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
-                    "?metadata=no&$select=Avatar,ImageRef,ImageData").ConfigureAwait(false);
+                var response = await ODataGetAsync(
+                    $"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "?metadata=no&$select=Avatar,ImageRef,ImageData")
+                    .ConfigureAwait(false);
 
                 // ASSERT
+                AssertNoError(response);
+                var entity = GetEntity(response);
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains($"/binaryhandler.ashx?nodeid={testUser.Id}&propertyname=ImageData"));
             }).ConfigureAwait(false);
-        }*/
-        /*[TestMethod]*/
-        /*public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
+        }
+        [TestMethod]
+        public async Task OD_GET_UserAvatarUpdateInnerDataToRef()
         {
-            await ODataTestAsync(async () =>
+            await IsolatedODataTestAsync(async () =>
             {
                 var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
                 testDomain.Save();
@@ -1339,7 +1350,9 @@ namespace SenseNet.ODataTests
                 var testUser = new User(testDomain) { Name = "User1" };
                 testUser.Save();
 
-                var testSite = CreateTestSite();
+                var testSite = CreateWorkspace();
+                testSite.AllowChildType("Image");
+                testSite.Save();
 
                 var testAvatars = new Folder(testSite) { Name = "demoavatars" };
                 testAvatars.Save();
@@ -1359,22 +1372,20 @@ namespace SenseNet.ODataTests
                 userContent.Save();
 
                 // ACTION
-                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
-                    "metadata=no&$select=Avatar,ImageRef,ImageData",
-                    $"(models=[{{\"Avatar\": {testAvatar.Id}}}])");
+                var response = await ODataPatchAsync(
+                    $"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "?metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": {testAvatar.Id}}}])")
+                    .ConfigureAwait(false);
 
                 // ASSERT
-                if (result is ODataError error)
-                    Assert.AreEqual("", error.Message);
-                var entity = result as ODataEntity;
-                if (entity == null)
-                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
-
+                AssertNoError(response);
+                var entity = GetEntity(response);
                 var avatarString = entity.AllProperties["Avatar"].ToString();
                 Assert.IsTrue(avatarString.Contains("Url"));
                 Assert.IsTrue(avatarString.Contains(testAvatar.Path));
             }).ConfigureAwait(false);
-        }*/
+        }
 
         [TestMethod]
         public async Task OD_GET_OrderByNumericDouble()
