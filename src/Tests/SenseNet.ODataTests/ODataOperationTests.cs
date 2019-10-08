@@ -24,7 +24,8 @@ namespace SenseNet.ODataTests
             return "## Function1 called." +
                    $" Query: {httpContext.Request.QueryString}." +
                    $" Format: {request.Format}." +
-                   $" Path: {(content?.Path ?? "[null]")}";
+                   $" Path: {(content?.Path ?? "[null]")}." + 
+                   $" Param1: {param1}.";
         }
 
         /* ============================================================= OPERATION RESULT TESTS */
@@ -41,7 +42,7 @@ namespace SenseNet.ODataTests
                     "{param1:\"asdf\"}").ConfigureAwait(false);
 
                 // ASSERT
-                var expected = "## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS";
+                var expected = "## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS. Param1: asdf.";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
