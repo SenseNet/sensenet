@@ -54,7 +54,7 @@ The allowed child types definition on a content (whether it comes from CTD or fr
 
 ## Permissions for creating a type
 
-A Content Type in the new menu will only show up if the user has See permissions on the Content Type node.  , to create a new Car anywhere you need to have **See** permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
+A Content Type in the new menu will only show up if the user has See permissions on the Content Type node. For Example , to create a new Car anywhere you need to have **See** permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
 
 ## Content allowing all types
 
