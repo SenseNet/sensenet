@@ -1,14 +1,8 @@
-﻿//UNDONE:ODATA:TEST: Implement 2 ODataSetFieldTests
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Workspaces;
-using SenseNet.Diagnostics;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests

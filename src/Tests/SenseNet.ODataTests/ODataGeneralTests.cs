@@ -277,7 +277,6 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
-
         public async Task OD_GET_ChildrenCollection()
         {
             await ODataTestAsync(async () =>
@@ -465,9 +464,9 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        //UNDONE:ODATA:TEST: Implement this test: OData_Getting_ContentList_NoProjection
-        /*[TestMethod]
-        public async Task OD_GET_ContentList_NoProjection()
+        //TODO: Remove inconclusive test result and implement this test.
+        /*//[TestMethod]*/
+        /*public async Task OD_GET_ContentList_NoProjection()
         {
             //Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
 

@@ -278,7 +278,6 @@ namespace SenseNet.OData
                 // requested content (because security exception could be thrown by an action or something else too).
                 if (odataRequest != null && User.Current.Id == Identifiers.VisitorUserId)
                 {
-                    //UNDONE:ODATA: Use loaded content
                     var head = NodeHead.Get(odataRequest.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))
                     {
