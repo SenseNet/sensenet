@@ -115,8 +115,6 @@ namespace SenseNet.OData
                 }
                 odataWriter.Initialize(odataRequest);
 
-                httpContext.SetODataFormatter(odataWriter);
-
                 if (requestError != null)
                 {
                     var innerOdataError = requestError as ODataException;
