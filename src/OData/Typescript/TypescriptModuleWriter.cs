@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema.Metadata;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 
 namespace SenseNet.OData.Typescript
 {

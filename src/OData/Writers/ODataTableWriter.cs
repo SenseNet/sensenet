@@ -6,13 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace SenseNet.OData.Formatters
+namespace SenseNet.OData.Writers
 {
     /// <summary>
     /// Defines an inherited <see cref="ODataWriter"/> class for writing OData objects in a simple HTML TABLE format.
     /// Designed for debug and test purposes only.
     /// </summary>
-    public class TableFormatter : ODataWriter
+    public class ODataTableWriter : ODataWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "table" in this case.</remarks>

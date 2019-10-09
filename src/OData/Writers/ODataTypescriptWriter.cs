@@ -9,12 +9,12 @@ using SenseNet.OData.Typescript;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
 
-namespace SenseNet.OData.Formatters
+namespace SenseNet.OData.Writers
 {
     /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData metadata in TypeScript format.
+    /// Defines an inherited <see cref="ODataWriter"/> class for writing OData metadata in TypeScript format.
     /// </summary>
-    public class TypescriptFormatter : JsonFormatter
+    public class ODataTypescriptWriter : ODataJsonWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "typescript" in this case.</remarks>

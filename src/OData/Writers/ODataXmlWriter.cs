@@ -3,12 +3,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace SenseNet.OData.Formatters
+namespace SenseNet.OData.Writers
 {
     /// <summary>
     /// Defines an inherited <see cref="ODataWriter"/> class for writing OData metadata in XML format.
     /// </summary>
-    public class XmlFormatter : ODataWriter
+    public class ODataXmlWriter : ODataWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "xml" in this case.</remarks>

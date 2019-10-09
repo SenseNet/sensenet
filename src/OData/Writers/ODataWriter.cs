@@ -24,7 +24,7 @@ using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier
 
-namespace SenseNet.OData.Formatters
+namespace SenseNet.OData.Writers
 {
     /// <summary>
     /// Defines a base class for serializing the OData response object to various formats.

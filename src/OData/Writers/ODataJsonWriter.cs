@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.OData;
 
-namespace SenseNet.OData.Formatters
+namespace SenseNet.OData.Writers
 {
     /// <summary>
     /// Defines an inherited <see cref="ODataWriter"/> class for writing any OData response in JSON format.
     /// </summary>
-    public class JsonFormatter : ODataWriter
+    public class ODataJsonWriter : ODataWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "json" in this case.</remarks>

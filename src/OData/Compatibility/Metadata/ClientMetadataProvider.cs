@@ -9,7 +9,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Diagnostics;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 using SenseNet.OData.Typescript;
 
 namespace SenseNet.Services.Metadata

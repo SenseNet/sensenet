@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 
 namespace SenseNet.OData
 {

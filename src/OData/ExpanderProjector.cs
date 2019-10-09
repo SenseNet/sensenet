@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 using SenseNet.Search;
 // ReSharper disable ArrangeThisQualifier
 

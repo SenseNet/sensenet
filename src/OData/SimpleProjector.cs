@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 
 namespace SenseNet.OData
 {

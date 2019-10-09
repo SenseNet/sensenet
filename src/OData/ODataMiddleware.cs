@@ -15,7 +15,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
-using SenseNet.OData.Formatters;
+using SenseNet.OData.Writers;
 using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable ArrangeThisQualifier
@@ -98,7 +98,7 @@ namespace SenseNet.OData
                 Content content;
                 if (odataRequest == null)
                 {
-                    odataWriter = new JsonFormatter();
+                    odataWriter = new ODataJsonWriter();
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
@@ -109,7 +109,7 @@ namespace SenseNet.OData
                 odataWriter = ODataWriter.Create(httpContext, odataRequest);
                 if (odataWriter == null)
                 {
-                    odataWriter = new JsonFormatter();
+                    odataWriter = new ODataJsonWriter();
                     odataWriter.Initialize(odataRequest);
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
                 }
