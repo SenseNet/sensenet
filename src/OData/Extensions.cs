@@ -24,11 +24,11 @@ namespace SenseNet.OData
             httpContext.Items[ODataRequestKey] = value;
         }
 
-        public static ODataFormatter GetODataFormatter(this HttpContext httpContext)
+        public static ODataWriter GetODataFormatter(this HttpContext httpContext)
         {
-            return httpContext.Items[ODataFormatterKey] as ODataFormatter;
+            return httpContext.Items[ODataFormatterKey] as ODataWriter;
         }
-        public static void SetODataFormatter(this HttpContext httpContext, ODataFormatter value)
+        public static void SetODataFormatter(this HttpContext httpContext, ODataWriter value)
         {
             httpContext.Items[ODataFormatterKey] = value;
         }

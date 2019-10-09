@@ -9,9 +9,9 @@ using SenseNet.ContentRepository.OData;
 namespace SenseNet.OData.Formatters
 {
     /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in JSON format.
+    /// Defines an inherited <see cref="ODataWriter"/> class for writing any OData response in JSON format.
     /// </summary>
-    public class JsonFormatter : ODataFormatter
+    public class JsonFormatter : ODataWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "json" in this case.</remarks>

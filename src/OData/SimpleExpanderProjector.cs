@@ -93,14 +93,14 @@ namespace SenseNet.OData
                 else
                 {
                     outfields.Add(propertyName,
-                        base.IsAllowedField(content, field.Name) ? ODataFormatter.GetJsonObject(field, selfurl) : null);
+                        base.IsAllowedField(content, field.Name) ? ODataWriter.GetJsonObject(field, selfurl) : null);
                 }
             }
 
             AddField(content, expandTree, outfields, ACTIONSPROPERTY, httpContext, GetActions);
             AddField(content, expandTree, outfields, ODataMiddleware.ChildrenPropertyName, httpContext, (c, ctx) =>
             {
-                // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
+                // disable autofilters by default the same way as in ODataWriter.WriteChildrenCollection
                 c.ChildrenDefinition.EnableAutofilters =
                     Request.AutofiltersEnabled != FilterStatus.Default
                         ? Request.AutofiltersEnabled

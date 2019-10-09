@@ -159,7 +159,7 @@ namespace SenseNet.OData
                             AddField(content, expansion, outfields, ODataMiddleware.ChildrenPropertyName, httpContext,
                                 (c, ctx) =>
                                 {
-                                    // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
+                                    // disable autofilters by default the same way as in ODataWriter.WriteChildrenCollection
                                     c.ChildrenDefinition.EnableAutofilters =
                                         Request.AutofiltersEnabled != FilterStatus.Default
                                             ? Request.AutofiltersEnabled
@@ -192,7 +192,7 @@ namespace SenseNet.OData
                         {
                             outfields.Add(propertyName,
                                 IsAllowedField(content, field.Name)
-                                    ? ODataFormatter.GetJsonObject(field, selfurl)
+                                    ? ODataWriter.GetJsonObject(field, selfurl)
                                     : null);
                         }
                     }
@@ -210,7 +210,7 @@ namespace SenseNet.OData
                     outfields.Add(propertyName,
                         expansion != null
                             ? Project(contentField, expansion.Children, Property.JokerList, httpContext)
-                            : ODataFormatter.GetJsonObject(contentField, selfurl));
+                            : ODataWriter.GetJsonObject(contentField, selfurl));
                 }
             }
 

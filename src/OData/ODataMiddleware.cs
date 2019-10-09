@@ -92,13 +92,13 @@ namespace SenseNet.OData
             var request = httpContext.Request;
             var httpMethod = request.Method;
             var inputStream = request.Body;
-            ODataFormatter formatter = null;
+            ODataWriter odataWriter = null;
             try
             {
                 Content content;
                 if (odataRequest == null)
                 {
-                    formatter = new JsonFormatter();
+                    odataWriter = new JsonFormatter();
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
@@ -106,16 +106,16 @@ namespace SenseNet.OData
                 this.ODataRequest = odataRequest;
                 Exception requestError = this.ODataRequest.RequestError;
 
-                formatter = ODataFormatter.Create(httpContext, odataRequest);
-                if (formatter == null)
+                odataWriter = ODataWriter.Create(httpContext, odataRequest);
+                if (odataWriter == null)
                 {
-                    formatter = new JsonFormatter();
-                    formatter.Initialize(odataRequest);
+                    odataWriter = new JsonFormatter();
+                    odataWriter.Initialize(odataRequest);
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
                 }
-                formatter.Initialize(odataRequest);
+                odataWriter.Initialize(odataRequest);
 
-                httpContext.SetODataFormatter(formatter);
+                httpContext.SetODataFormatter(odataWriter);
 
                 if (requestError != null)
                 {
@@ -126,7 +126,7 @@ namespace SenseNet.OData
                     throw new ODataException(message, code, requestError);
                 }
 
-                odataRequest.Format = formatter.FormatName;
+                odataRequest.Format = odataWriter.FormatName;
 
                 var requestedContent = LoadContentByVersionRequest(odataRequest.RepositoryPath, httpContext);
 
@@ -143,12 +143,12 @@ namespace SenseNet.OData
                     case "GET":
                         if (odataRequest.IsServiceDocumentRequest)
                         {
-                            await formatter.WriteServiceDocumentAsync(httpContext, odataRequest)
+                            await odataWriter.WriteServiceDocumentAsync(httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
                         else if (odataRequest.IsMetadataRequest)
                         {
-                            await formatter.WriteMetadataAsync(httpContext, odataRequest)
+                            await odataWriter.WriteMetadataAsync(httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
                         else
@@ -156,15 +156,15 @@ namespace SenseNet.OData
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 ContentNotFound(httpContext);
                             else if (odataRequest.IsCollection)
-                                await formatter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest)
+                                await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest)
                                     .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
-                                await formatter.WriteContentPropertyAsync(
+                                await odataWriter.WriteContentPropertyAsync(
                                         odataRequest.RepositoryPath, odataRequest.PropertyName,
                                         odataRequest.IsRawValueRequest, httpContext, odataRequest)
                                     .ConfigureAwait(false);
                             else
-                                await formatter.WriteSingleContentAsync(requestedContent, httpContext)
+                                await odataWriter.WriteSingleContentAsync(requestedContent, httpContext)
                                     .ConfigureAwait(false);
                         }
                         break;
@@ -186,7 +186,7 @@ namespace SenseNet.OData
 
                             ResetContent(content);
                             UpdateContent(content, model, odataRequest);
-                            await formatter.WriteSingleContentAsync(content, httpContext)
+                            await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
                         break;
@@ -209,7 +209,7 @@ namespace SenseNet.OData
                             }
 
                             UpdateContent(content, model, odataRequest);
-                            await formatter.WriteSingleContentAsync(content, httpContext)
+                            await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
                         break;
@@ -217,7 +217,7 @@ namespace SenseNet.OData
                         if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
-                            await formatter.WriteOperationResultAsync(inputStream, httpContext, odataRequest)
+                            await odataWriter.WriteOperationResultAsync(inputStream, httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
                         else
@@ -231,7 +231,7 @@ namespace SenseNet.OData
                             }
                             model = Read(inputStream);
                             var newContent = CreateNewContent(model, odataRequest);
-                            await formatter.WriteSingleContentAsync(newContent, httpContext)
+                            await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
                         }
                         break;
@@ -260,14 +260,14 @@ namespace SenseNet.OData
             catch (ContentNotFoundException e)
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
-                await formatter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
-                await formatter.WriteErrorResponseAsync(httpContext, e)
+                await odataWriter.WriteErrorResponseAsync(httpContext, e)
                     .ConfigureAwait(false);
             }
             catch (SenseNetSecurityException e)
@@ -290,7 +290,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                await formatter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             catch (InvalidContentActionException ex)
@@ -300,14 +300,14 @@ namespace SenseNet.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                await formatter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                await formatter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
@@ -317,7 +317,7 @@ namespace SenseNet.OData
             //    if (!httpContext.Response.IsRequestBeingRedirected)
             //    {
             //        var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-            //        //await formatter.WriteErrorResponse(httpContext, oe);
+            //        //await odataWriter.WriteErrorResponse(httpContext, oe);
             //        return ODataResponse.CreateErrorResponse(oe);
             //    }
             //    // specific redirect response so do nothing
@@ -328,7 +328,7 @@ namespace SenseNet.OData
 
                 SnLog.WriteException(oe);
 
-                await formatter.WriteErrorResponseAsync(httpContext, oe)
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             //finally

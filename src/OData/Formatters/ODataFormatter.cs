@@ -29,7 +29,7 @@ namespace SenseNet.OData.Formatters
     /// <summary>
     /// Defines a base class for serializing the OData response object to various formats.
     /// </summary>
-    public abstract class ODataFormatter
+    public abstract class ODataWriter
     {
         /// <summary>
         /// Gets the name of the format that is used in the "$format" parameter of the OData webrequest.
@@ -42,45 +42,45 @@ namespace SenseNet.OData.Formatters
 
         internal ODataRequest ODataRequest { get; private set; }
 
-        private static readonly object FormatterTypeLock = new object();
-        private static Dictionary<string, Type> _formatterTypes;
-        internal static Dictionary<string, Type> FormatterTypes
+        private static readonly object ODataWriterTypeLock = new object();
+        private static Dictionary<string, Type> _odataWriterTypes;
+        internal static Dictionary<string, Type> ODataWriterTypes
         {
             get
             {
-                if (_formatterTypes == null)
+                if (_odataWriterTypes == null)
                 {
-                    lock(FormatterTypeLock)
+                    lock(ODataWriterTypeLock)
                     {
-                        if (_formatterTypes == null)
+                        if (_odataWriterTypes == null)
                         {
-                            _formatterTypes = LoadFormatterTypes();
+                            _odataWriterTypes = LoadODataWriterTypes();
 
-                            SnLog.WriteInformation("OData formatter types loaded: " +
-                                string.Join(", ", _formatterTypes.Values.Select(t => t.FullName)));
+                            SnLog.WriteInformation("ODataWriter types loaded: " +
+                                string.Join(", ", _odataWriterTypes.Values.Select(t => t.FullName)));
                         }
                     }
                 }
 
-                return _formatterTypes;
+                return _odataWriterTypes;
             }
         }
 
-        private static Dictionary<string, Type> LoadFormatterTypes()
+        private static Dictionary<string, Type> LoadODataWriterTypes()
         {
-            var formatterTypes = new Dictionary<string, Type>();
-            var types = TypeResolver.GetTypesByBaseType(typeof(ODataFormatter));
+            var writerTypes = new Dictionary<string, Type>();
+            var types = TypeResolver.GetTypesByBaseType(typeof(ODataWriter));
 
             foreach (var type in types)
             {
-                var protoType = (ODataFormatter)Activator.CreateInstance(type);
-                formatterTypes[protoType.FormatName] = type;
+                var protoType = (ODataWriter)Activator.CreateInstance(type);
+                writerTypes[protoType.FormatName] = type;
             }
 
-            return formatterTypes;
+            return writerTypes;
         }
 
-        internal static ODataFormatter Create(HttpContext httpContext, ODataRequest odataReq)
+        internal static ODataWriter Create(HttpContext httpContext, ODataRequest odataReq)
         {
             var formatName = httpContext.Request.Query["$format"].ToString();
             if (string.IsNullOrEmpty(formatName))
@@ -90,13 +90,13 @@ namespace SenseNet.OData.Formatters
 
             return Create(formatName);
         }
-        internal static ODataFormatter Create(string formatName)
+        internal static ODataWriter Create(string formatName)
         {
-            if (!FormatterTypes.TryGetValue(formatName, out var formatterType))
+            if (!ODataWriterTypes.TryGetValue(formatName, out var writerType))
                 return null;
 
-            var formatter = (ODataFormatter)Activator.CreateInstance(formatterType);
-            return formatter;
+            var writer = (ODataWriter)Activator.CreateInstance(writerType);
+            return writer;
         }
 
         internal void Initialize(ODataRequest odataRequest)

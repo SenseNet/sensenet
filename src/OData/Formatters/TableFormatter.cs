@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Http;
 namespace SenseNet.OData.Formatters
 {
     /// <summary>
-    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData objects in a simple HTML TABLE format.
+    /// Defines an inherited <see cref="ODataWriter"/> class for writing OData objects in a simple HTML TABLE format.
     /// Designed for debug and test purposes only.
     /// </summary>
-    public class TableFormatter : ODataFormatter
+    public class TableFormatter : ODataWriter
     {
         /// <inheritdoc />
         /// <remarks>Returns with "table" in this case.</remarks>
@@ -22,10 +22,10 @@ namespace SenseNet.OData.Formatters
         /// <remarks>Returns with "application/html" in this case.</remarks>
         public override string MimeType => "text/html";
 
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
         {
-            throw new SnNotSupportedException("Table formatter does not support metadata writing.");
+            throw new SnNotSupportedException("Table writer does not support metadata writing.");
         }
         /// <inheritdoc />
         protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
@@ -223,10 +223,10 @@ namespace SenseNet.OData.Formatters
             await WriteMultipleContentAsync(httpContext, data, actions.Length)
                 .ConfigureAwait(false);
         }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount)
         {
-            throw new NotSupportedException("TableFormatter supports only a Content or an IEnumerable<Content> as an operation result.");
+            throw new NotSupportedException("ODataTableWriter supports only a Content or an IEnumerable<Content> as an operation result.");
         }
         /// <inheritdoc />
         protected override Task WriteCountAsync(HttpContext httpContext, int count)

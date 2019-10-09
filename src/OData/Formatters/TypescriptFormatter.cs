@@ -63,15 +63,15 @@ namespace SenseNet.OData.Formatters
 
             await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString());
         }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteSingleContentAsync(HttpContext httpContext, ODataEntity fields) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteActionsPropertyAsync(HttpContext httpContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteOperationCustomResultAsync(HttpContext httpContext, object result, int? allCount) { throw new SnNotSupportedException(); }
-        /// <summary>This method is not supported in this formatter.</summary>
+        /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteMultipleContentAsync(HttpContext httpContext, IEnumerable<ODataEntity> content, int count) { throw new SnNotSupportedException(); }
     }
 }
