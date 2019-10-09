@@ -3,7 +3,7 @@ Thank you for checking out our project! :star2: :sunny: :deciduous_tree: :earth_
 
 All kinds of contributions are welcome, including ideas, requests for improvement (be it code or [documentation](http://wiki.sensenet.com)), bugfixes or features. We are happy if you simply use these projects, but it is marvelous :sparkling_heart: if you decide to make your changes public for the benefit of others.
 
-Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet) or in one of the [smaller ones](https://github.com/SenseNet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
+Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet/issues) or in one of the [smaller ones](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+org%3Asensenet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
 
 ## Enterprise customers
 sensenet ECM has an *Enterprise Edition* containing all the modules in the *Community Edition*. The source code is identical in case of these editions - and it is published here on GitHub.
@@ -28,7 +28,10 @@ When creating a bug report, please:
 - Provide a short, clear **title** and **description**.
 - State the exact **version number** of the project you are using (look for it in dll properties or *AssemblyInfo.cs* files if you have the source code).
 - Provide some details on the environment (browser type in case of client-side issues, dev machine or server, stuff like that).
-- List the steps you took (where did you click? what input did you provide? which method did you call?).
+- List the steps you took
+  - where did you click? 
+  - what input did you provide? 
+  - which method did you call?
 - Code samples, screenshots, **log entries** (Event log, [SnTrace](https://github.com/SenseNet/sn-tools/tree/master/src/SenseNet.Tools/Diagnostics), UI error messages in text format) are welcome!
 
 ## Participate in the discussion
@@ -43,7 +46,8 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 5. We have a list of [Coding Conventions](http://wiki.sensenet.com/Coding_Conventions) for sensenet projects. Please try to follow that guide when you write code (it contains the usual stuff: code formatting, best practices and common mistakes).
 6. Unit tests are nice, please execute existing tests and add new ones if possible.
 7. You may also use our [benchmark tool](https://github.com/SenseNet/sn-benchmark) to measure the performance of the product before and after the change, if necessary.
-7. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
+8. Please sign the Contributor License Agreement (CLA) [here](https://cla-assistant.io/SenseNet/sensenet) when making the pull request
+9. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
 
 Please be patient if we do not accept the pull request immediately or ask for changes. We'll try to justify our change requests so that you know our intentions. It may speed up the process, if you [allow us to modify your branch](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when you create the pull request.
 
