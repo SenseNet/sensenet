@@ -280,7 +280,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                             ctx.CreateParameter("@CreatingInProgress", DbType.Byte, nodeHeadData.CreatingInProgress ? (byte) 1 : 0),
                             ctx.CreateParameter("@IsDeleted", DbType.Byte, nodeHeadData.IsDeleted ? (byte) 1 : 0),
                             ctx.CreateParameter("@IsInherited", DbType.Byte, (byte)0),
-                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.ParentNodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
+                            ctx.CreateParameter("@ParentNodeId", DbType.Int32, nodeHeadData.NodeId == Identifiers.PortalRootId ? (object)DBNull.Value : nodeHeadData.ParentNodeId),
                             ctx.CreateParameter("@Name", DbType.String, 450, nodeHeadData.Name),
                             ctx.CreateParameter("@DisplayName", DbType.String, 450, (object)nodeHeadData.DisplayName ?? DBNull.Value),
                             ctx.CreateParameter("@Path", DbType.String, 450, nodeHeadData.Path),
