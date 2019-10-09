@@ -6,7 +6,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryIndexingEngine : IIndexingEngine
     {

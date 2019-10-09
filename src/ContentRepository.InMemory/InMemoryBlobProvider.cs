@@ -10,7 +10,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryBlobProviderSelector : IBlobProviderSelector
     {

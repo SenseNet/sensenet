@@ -17,7 +17,7 @@ using SenseNet.Diagnostics;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryDataProvider : DataProvider
     {

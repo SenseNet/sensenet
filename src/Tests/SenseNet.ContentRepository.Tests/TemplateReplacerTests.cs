@@ -6,7 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Volatile;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 

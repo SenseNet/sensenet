@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Volatile;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests

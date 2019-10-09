@@ -11,7 +11,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     //TODO: Known issue: this class is not thread safe (sometimes there is an ArgumentOutOfRangeException in the InMemoryIndex.cs line 194).
     public class InMemoryIndex
