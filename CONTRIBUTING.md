@@ -10,7 +10,7 @@ sensenet ECM has an *Enterprise Edition* containing all the modules in the *Comm
 
 > The Enterprise Edition may contain some additional modules that are not published here. If you have an issue with one of those, please contact us to sort it out. 
 
-If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue [here on GitHub](https://github.com/SenseNet/sensenet/issues/new), if you are OK with discussing it in public.
+If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue here on GitHub if you are OK with discussing it in public.
 
 If you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place and will be included in the next patch.
 
@@ -39,10 +39,10 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 
 ## Making a change
 
-1. Github has a cool [overview](https://guides.github.com) of the workflows and basic git stuff, please check it out if you are not familar with how things work here :ok_hand:.
-2. If possible, avoid making broad changes (e.g. a huge refactor) before talking to us; the more files you change, the harder it is for us to review and merge the commit.
+1. Github has a cool [overview](https://guides.github.com) of the workflows and basic git stuff, please check it out if you are not familiar with how things work here :ok_hand:.
+2. If possible, avoid making broad changes (e.g. a huge refactor) before talking to us; the more files you change, the harder it is to review and merge the commit.
 3. Start work by [forking](https://help.github.com/articles/working-with-forks) the repository you want to improve, then make a *branch* for the fix/feature.
-4. The dev environment is usually not complicated in case of smaller components (for example [sensenet Tools](https://github.com/SenseNet/sn-tools) or [Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) - just build it, and you're good to go. In case of bigger components you may install them in a web application, build a custom library and try it out in your environment.
+4. The dev environment is usually not complicated in case of smaller components (for example [sensenet Tools](https://github.com/SenseNet/sn-tools) or [Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) - just build it, and you're good to go. In case of bigger components, you may install them in a web application, build a custom library and try it out in your environment.
 5. We have a list of [Coding Conventions](http://wiki.sensenet.com/Coding_Conventions) for sensenet projects. Please try to follow that guide when you write code (it contains the usual stuff: code formatting, best practices and common mistakes).
 6. Unit tests are nice, please execute existing tests and add new ones if possible.
 7. You may also use our [benchmark tool](https://github.com/SenseNet/sn-benchmark) to measure the performance of the product before and after the change, if necessary.
@@ -59,7 +59,7 @@ Please follow these guidelines in your repo to make your stuff more accessible (
 - please provide a short description for your project on the top so that others can see at a glance what your tool does
 - write a detailed README file that contains essential stuff for the community:
   - the problem you solved
-  - the technology you used (is it a Javascript plugin, a server component or a command line tool?)
+  - the technology you used (is it a Javascript plugin, a server component or a command-line tool?)
   - an install guide: is it just a NuGet or npm package, or do we have to compile the source or execute additional steps - e.g. install a sensenet SnAdmin package - before using it?
   - a few source code examples (if there is coding involved) so that other developers have something to start with
 
