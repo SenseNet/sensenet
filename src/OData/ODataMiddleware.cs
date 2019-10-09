@@ -75,7 +75,6 @@ namespace SenseNet.OData
         {
             // CREATE ODATA-RESPONSE STRATEGY
             var odataRequest = ODataRequest.Parse(httpContext);
-            httpContext.SetODataRequest(odataRequest);
 
             // WRITE RESPONSE
             //UNDONE:ODATA: Remove SystemAccount when the authentication is finished

@@ -54,7 +54,6 @@ namespace SenseNet.ODataTest.WebApp
                     appBranch.Use((httpContext, next) =>
                     {
                         // middleware by app developer
-                        var request = httpContext.GetODataRequest();
                         return Task.CompletedTask;
                     });
                 });
