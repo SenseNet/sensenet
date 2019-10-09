@@ -12,7 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.OData.Formatters;
 using SenseNet.OData.Typescript;
 
-namespace Compatibility.SenseNet.Services.Metadata
+namespace SenseNet.Services.Metadata
 {
     /// <summary>
     /// Metadata provider with a built-in cache that converts content types 

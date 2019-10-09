@@ -3,7 +3,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 
-namespace Compatibility.SenseNet.Portal.ApplicationModel
+namespace SenseNet.Portal.ApplicationModel
 {
     [ContentHandler]
     public class GenericODataApplication : Application

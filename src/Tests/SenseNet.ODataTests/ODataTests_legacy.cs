@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Xml;
-using Compatibility.SenseNet.Portal.ApplicationModel;
+using SenseNet.Portal.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.OData;
 using SenseNet.Security;

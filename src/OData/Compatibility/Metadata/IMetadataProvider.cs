@@ -1,6 +1,6 @@
 ﻿using SenseNet.ContentRepository.Schema.Metadata;
 
-namespace Compatibility.SenseNet.Services.Metadata
+namespace SenseNet.Services.Metadata
 {
     /// <summary>
     /// Defines methods for a metadata provider that converts and possibly stores schema

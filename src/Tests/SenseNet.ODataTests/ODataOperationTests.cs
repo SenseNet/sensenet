@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
 using SenseNet.OData.Operations;
@@ -51,6 +55,39 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        /* ============================================================= OPERATION RESULT TESTS */
+
+        [TestMethod]
+        public async Task OD_OP_GetSchema()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                    "/OData.svc/('Root')/GetSchema",
+                    "").ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var serializerSettings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                    Formatting = Formatting.Indented
+                };
+                object deserialized;
+                using (var reader = new StringReader(response.Result))
+                    deserialized = JsonSerializer.Create(serializerSettings).Deserialize(new JsonTextReader(reader));
+                var items = deserialized as JArray;
+                if (items == null)
+                    Assert.Fail("Result is not an array");
+
+                var names = items.ToArray().Select(x => x["ContentTypeName"].ToString()).ToList();
+                Assert.IsTrue(names.Contains("GenericContent"));
+                Assert.IsTrue(names.Contains("Folder"));
+                Assert.IsTrue(names.Contains("File"));
+            }).ConfigureAwait(false);
+        }
 
         /* ============================================================= OPERATION RESULT TESTS */
         /*                 (these tests use old style app resolution via mocked ActionResolver) */
@@ -351,7 +388,7 @@ namespace SenseNet.ODataTests
         }
 
         // 
-        #region /* ===================================================================== ACTION RESOLVER */
+        #region /* ===================================================================== ACTION RESOLVER MOCK */
 
         internal class ActionResolverSwindler : IDisposable
         {
