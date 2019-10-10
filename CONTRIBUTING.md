@@ -20,7 +20,7 @@ This is a huge project that consists of multiple repositories:
 - many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main product
 - an [awesome list](https://github.com/SenseNet/awesome-sensenet) of sensenet-related tools and plugins
 
-These components have their own version number and they are developed and released independently from the main product. Some of them (e.g. [Tools](https://github.com/SenseNet/sn-tools) or [Task Management](https://github.com/SenseNet/sn-taskmanagement)) can be used in any project, others (e.g. [sensenet Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) are more closely tied to the core product.
+These components have their own version number and they are developed and released independently of the main product. Some of them (e.g. [Tools](https://github.com/SenseNet/sn-tools) or [Task Management](https://github.com/SenseNet/sn-taskmanagement)) can be used in any project, others (e.g. [sensenet Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) are more closely tied to the core product.
 
 ## Reporting a bug
 When creating a bug report, please:
@@ -55,9 +55,9 @@ Please be patient if we do not accept the pull request immediately or ask for ch
 Do you have a sensenet-related tool, plugin or sample library? We would be happy to include it in our awesome [awesome list](https://github.com/SenseNet/awesome-sensenet)! We collect all sensenet components and cool 3rd party repos there that make our community strong. Just drop us a message and let us share your magic with others!
 
 Please follow these guidelines in your repo to make your stuff more accessible (a good example for an informative readme is the [Client JS repo](https://github.com/SenseNet/sn-client-js)):
-- when creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
-- please provide a short description for your project on the top so that others can see at a glance what your tool does
-- write a detailed README file that contains essential stuff for the community:
+- When creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
+- Please provide a short description for your project on the top so that others can see at a glance what your tool does
+- Write a detailed README file that contains essential stuff for the community:
   - the problem you solved
   - the technology you used (is it a Javascript plugin, a server component or a command-line tool?)
   - an install guide: is it just a NuGet or npm package, or do we have to compile the source or execute additional steps - e.g. install a sensenet SnAdmin package - before using it?
