@@ -286,7 +286,7 @@ namespace SenseNet.ContentRepository
 
             // Try to find the aspect in cache
             var cacheKey = "SN_AspectCacheByName_" + name;
-            var aspect = DistributedApplication.Cache.Get(cacheKey) as Aspect;
+            var aspect = Cache.Get(cacheKey) as Aspect;
 
             if (aspect == null)
             {
@@ -301,7 +301,7 @@ namespace SenseNet.ContentRepository
 
                 // Store in cache
                 var dependency = CacheDependencyFactory.CreateNodeDependency(aspect);
-                DistributedApplication.Cache.Insert(cacheKey, aspect, dependency);
+                Cache.Insert(cacheKey, aspect, dependency);
             }
 
             return aspect;

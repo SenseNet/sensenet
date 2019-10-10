@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>2.3.0</Version>
     <AssemblyName>SenseNet.Search</AssemblyName>
     <RootNamespace>SenseNet.Search</RootNamespace>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
-    <Version>2.1</Version>
     <Company>Sense/Net Inc.</Company>
     <Description>General library for the sensenet platform containing interfaces and indexing-related classes.</Description>
     <PackageId>SenseNet.Search</PackageId>
@@ -29,8 +27,8 @@
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="SenseNet.Tools" Version="3.0.0" />
-    <PackageReference Include="SenseNet.Security" Version="4.0.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.0" />
+    <PackageReference Include="SenseNet.Security" Version="4.1.0" />
   </ItemGroup>
 
 </Project>

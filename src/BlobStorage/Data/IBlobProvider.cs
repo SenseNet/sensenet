@@ -1,5 +1,7 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -18,7 +20,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// the folder).
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
-        void Allocate(BlobStorageContext context);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken);
         /// <summary>
         /// Writes a set of bytes into the blob storage. The offset must point to the
         /// start of one of the internal chunks. The buffer may contain bytes
@@ -27,21 +31,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="context">A context object that holds information about the binary data.</param>
         /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
         /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
-        void Write(BlobStorageContext context, long offset, byte[] buffer);
-        /// <summary>
-        /// Writes a set of bytes into the blob storage. The offset must point to the
-        /// start of one of the internal chunks. The buffer may contain bytes
-        /// for multiple internal chunks.
-        /// </summary>
-        /// <param name="context">A context object that holds information about the binary data.</param>
-        /// <param name="offset">Start position in the full stream where the buffer will be written.</param>
-        /// <param name="buffer">The set of bytes to be written to the blob storage.</param>
-        Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken);
         /// <summary>
         /// Deletes a binary from the storage related to a binary record in the database.
         /// </summary>
         /// <param name="context">A context object that holds information about the binary data.</param>
-        void Delete(BlobStorageContext context);
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken);
         /// <summary>
         /// Returns a stream that serves bytes from the blob storage. This stream cannot be used to
         /// write bytes to the storage, it is a readonly stream, but it supports Seek.

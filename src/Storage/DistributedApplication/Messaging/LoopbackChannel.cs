@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SenseNet.Communication.Messaging
 {
@@ -11,16 +9,18 @@ namespace SenseNet.Communication.Messaging
             ClusterMemberInfo clusterMemberInfo) : base(formatter, clusterMemberInfo)
         {
         }
-        protected override void InternalSend(System.IO.Stream messageBody, bool isDebugMessage)
+        protected override Task InternalSendAsync(System.IO.Stream messageBody, bool isDebugMessage, CancellationToken cancellationToken)
         {
             this.OnMessageReceived(messageBody);
+            return Task.CompletedTask;
         }
-        public override bool RestartingAllChannels { get { return false; } }
-        public override void RestartAllChannels()
+        public override bool RestartingAllChannels => false;
+
+        public override Task RestartAllChannelsAsync(CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
-
     }
 
     /// <summary>
@@ -32,14 +32,17 @@ namespace SenseNet.Communication.Messaging
             ClusterMemberInfo clusterMemberInfo) : base(formatter, clusterMemberInfo)
         {
         }
-        protected override void InternalSend(System.IO.Stream messageBody, bool isDebugMessage)
+        protected override Task InternalSendAsync(System.IO.Stream messageBody, bool isDebugMessage, CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
-        public override bool RestartingAllChannels { get { return false; } }
-        public override void RestartAllChannels()
+        public override bool RestartingAllChannels => false;
+
+        public override Task RestartAllChannelsAsync(CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
     }
 }

@@ -5,15 +5,13 @@ using System.Text;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Communication.Messaging;
 using System.Diagnostics;
 using SenseNet.Search;
 using SafeQueries = SenseNet.ContentRepository.SafeQueries;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ApplicationModel
 {
@@ -772,17 +770,18 @@ namespace SenseNet.ApplicationModel
         [Serializable]
         internal class ApplicationStorageInvalidateDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 if (onRemote && isFromMe)
-                    return;
+                    return Task.CompletedTask;
                 ApplicationStorage.InvalidatePrivate();
+                return Task.CompletedTask;
             }
         }
 
         private static void DistributedInvalidate()
         {
-            new ApplicationStorageInvalidateDistributedAction().Execute();
+            new ApplicationStorageInvalidateDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private static void InvalidatePrivate()

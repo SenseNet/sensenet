@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SenseNet.ContentRepository.Storage.Schema
 {
@@ -20,62 +21,62 @@ namespace SenseNet.ContentRepository.Storage.Schema
                 return sche;
             });
 
-            DataProvider.Current.AssertSchemaTimestampAndWriteModificationDate(this.SchemaTimestamp);
-            SchemaWriter schemaWriter = DataProvider.Current.CreateSchemaWriter();
-            RegisterSchema(origSchema, this, schemaWriter);
+            var schemaLock = DataStore.StartSchemaUpdateAsync(this.SchemaTimestamp, CancellationToken.None).GetAwaiter().GetResult();
+            var schemaWriter = DataStore.CreateSchemaWriter();
+            try
+            {
+                RegisterSchema(origSchema, this, schemaWriter);
+            }
+            finally
+            {
+                DataStore.FinishSchemaUpdateAsync(schemaLock, CancellationToken.None).GetAwaiter().GetResult();
+            }
         }
 
         private static void RegisterSchema(SchemaEditor origSchema, SchemaEditor newSchema, SchemaWriter schemaWriter)
         {
-            using (var op = SnTrace.Database.StartOperation("Write storage schema modifications."))
+            if (schemaWriter.CanWriteDifferences)
             {
-                // Ensure transaction encapsulation
-                bool isLocalTransaction = !TransactionScope.IsActive;
-                if (isLocalTransaction)
-                    TransactionScope.Begin();
-                try
+                using (var op = SnTrace.Database.StartOperation("Write storage schema modifications."))
                 {
-                    List<PropertySet> modifiedPropertySets = new List<PropertySet>();
-                    schemaWriter.Open();
-                    WriteSchemaModifications(origSchema, newSchema, schemaWriter, modifiedPropertySets);
-                    foreach (PropertySet modifiedPropertySet in modifiedPropertySets)
-                    {
-                        NodeTypeDependency.FireChanged(modifiedPropertySet.Id);
-                    }
-                    schemaWriter.Close();
-                    if (isLocalTransaction)
-                        TransactionScope.Commit();
-                    ActiveSchema.Reset();
-                    op.Successful = true;
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex, null, EventId.RepositoryRuntime);
-                    throw new SchemaEditorCommandException("Error during schema registration.", ex);
-                }
-                finally
-                {
-                    IDisposable unmanagedWriter = schemaWriter as IDisposable;
-                    if (unmanagedWriter != null)
-                        unmanagedWriter.Dispose();
                     try
                     {
-                        if (isLocalTransaction && TransactionScope.IsActive)
-                            TransactionScope.Rollback();
-                    }
-                    catch (Exception ex2)
-                    {
-                        // This catch block will handle any errors that may have occurred 
-                        // on the server that would cause the rollback to fail, such as 
-                        // a closed connection (MSDN).
-                        const string msg = "Error during schema transaction rollback.";
-                        SnLog.WriteException(ex2, msg, EventId.RepositoryRuntime);
+                        var modifiedPropertySets = new List<PropertySet>();
 
-                        throw new SchemaEditorCommandException(msg, ex2);
+                        schemaWriter.Open();
+                        WriteSchemaModifications(origSchema, newSchema, schemaWriter, modifiedPropertySets);
+
+                        foreach (var modifiedPropertySet in modifiedPropertySets)
+                            NodeTypeDependency.FireChanged(modifiedPropertySet.Id);
+
+                        schemaWriter.Close();
+                        ActiveSchema.Reset();
+
+                        op.Successful = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex, null, EventId.RepositoryRuntime);
+                        throw new SchemaEditorCommandException("Error during schema registration.", ex);
+                    }
+                    finally
+                    {
+                        if (schemaWriter is IDisposable unmanagedWriter)
+                            unmanagedWriter.Dispose();
                     }
                 }
             }
+            else
+            {
+                using (var op = SnTrace.Database.StartOperation("Update storage schema."))
+                {
+                    schemaWriter.WriteSchemaAsync(newSchema.ToRepositorySchemaData()).GetAwaiter().GetResult();
+                    ActiveSchema.Reset();
+                    op.Successful = true;
+                }
+            }
         }
+
         private static void WriteSchemaModifications(SchemaEditor origSchema, SchemaEditor newSchema, SchemaWriter writer, List<PropertySet> modifiedPropertySets)
         {
             // #1: Delete types

@@ -4,6 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -35,7 +39,8 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (_versions == null)
                 {
-                    _versions = DataBackingStore.GetNodeVersions(this.Id);
+                    _versions = DataStore.GetVersionNumbersAsync(this.Id, CancellationToken.None).GetAwaiter().GetResult()
+                        .ToArray();
                     //TODO: After GetNodeVersions: check changes
                 }
                 return _versions;
@@ -60,7 +65,7 @@ namespace SenseNet.ContentRepository.Storage
         public int LastModifierId { get; private set; }
         public int Index { get; private set; }
         public int LockerId { get; private set; }
-        public long Timestamp { get; private set; }
+        public long Timestamp { get; internal set; }
 
         internal NodeHead() { }
 
@@ -91,7 +96,7 @@ namespace SenseNet.ContentRepository.Storage
 
             LoadDate = DateTime.UtcNow;
         }
-        internal static NodeHead CreateFromNode(Node node, int lastMinorVersionId, int lastMajorVersionId)
+        internal static NodeHead CreateFromNode(NodeData node, int lastMinorVersionId, int lastMajorVersionId)
         {
             return new NodeHead
             {
@@ -132,19 +137,35 @@ namespace SenseNet.ContentRepository.Storage
 
         public static NodeHead Get(int nodeId)
         {
-            return DataBackingStore.GetNodeHead(nodeId);
+            return DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<NodeHead> GetAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadAsync(nodeId, cancellationToken);
         }
         public static NodeHead GetByVersionId(int versionId)
         {
-            return DataBackingStore.GetNodeHeadByVersionId(versionId);
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<NodeHead> GetByVersionIdAsync(int versionId, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
         public static NodeHead Get(string path)
         {
-            return DataBackingStore.GetNodeHead(path);
+            return DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<NodeHead> GetAsync(string path, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadAsync(path, cancellationToken);
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<int> idArray)
         {
-            return DataBackingStore.GetNodeHeads(idArray);
+            return DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<IEnumerable<NodeHead>> GetAsync(IEnumerable<int> idArray, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadsAsync(idArray, cancellationToken);
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<string> pathSet)
         {
@@ -164,6 +185,32 @@ namespace SenseNet.ContentRepository.Storage
         public NodeVersion GetLastMinorVersion()
         {
             return Versions.Where(v => v.VersionId == LastMinorVersionId).FirstOrDefault();
+        }
+
+        internal NodeHeadData GetNodeHeadData()
+        {
+            return new NodeHeadData
+            {
+                NodeId = Id,
+                NodeTypeId = NodeTypeId,
+                ContentListTypeId = ContentListTypeId,
+                ContentListId = ContentListId,
+                ParentNodeId = ParentId,
+                Name = Name,
+                DisplayName = DisplayName,
+                Path = Path,
+                Index = Index,
+                Locked = LockerId != 0,
+                LockedById = LockerId,
+                LastMinorVersionId = LastMinorVersionId,
+                LastMajorVersionId = LastMajorVersionId,
+                CreationDate = CreationDate,
+                CreatedById = CreatorId,
+                ModificationDate = ModificationDate,
+                ModifiedById = LastModifierId,
+                OwnerId = OwnerId,
+                Timestamp = Timestamp,
+            };
         }
 
     }

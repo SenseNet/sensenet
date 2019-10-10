@@ -1,7 +1,9 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tests;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -91,6 +93,38 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(2, managers.Length);
                 Assert.AreEqual(admin.Id, managers[0].Id);
                 Assert.AreEqual(admin.Id, managers[1].Id);
+            });
+        }
+
+        [TestMethod, TestCategory("NODE, LOAD")]
+        public async STT.Task Node_Load()
+        {
+            await Test(async () =>
+            {
+                var admin = User.Administrator;
+                var visitor = User.Visitor;
+
+                var a1 = await Content.LoadAsync(admin.Id, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a1.Path);
+                var a2 = await Content.LoadAsync(admin.Path, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a2.Path);
+
+                var a3 = await Content.LoadByIdOrPathAsync($"{admin.Id}", CancellationToken.None);
+                Assert.AreEqual(admin.Path, a3.Path);
+                var a4 = await Content.LoadByIdOrPathAsync(admin.Path, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a4.Path);
+
+                var a5 = await Node.LoadNodeAsync(admin.Id, VersionNumber.LastFinalized, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a5.Path);
+
+                var a6 = await Node.LoadAsync<User>(admin.Id, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a6.Path);
+                var a7 = await Node.LoadAsync<User>(admin.Path, CancellationToken.None);
+                Assert.AreEqual(admin.Path, a7.Path);
+
+                var nodes1 = await Node.LoadNodesAsync(new [] {admin.Id, visitor.Id}, CancellationToken.None);
+                Assert.AreEqual(admin.Id, nodes1[0].Id);
+                Assert.AreEqual(visitor.Id, nodes1[1].Id);
             });
         }
     }

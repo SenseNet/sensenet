@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -581,7 +582,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -590,7 +591,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -608,7 +609,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -645,7 +646,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -655,7 +656,7 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -677,7 +678,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -688,7 +689,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -697,7 +698,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -710,7 +711,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -721,7 +722,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -771,7 +772,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "CheckedOut");
                 AssertHeader(response.Headers, "X-WOPI-Lock", "");
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -786,7 +787,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
                 
@@ -829,7 +830,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -840,7 +841,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(existingLock, actualLock);
             });
         }
@@ -880,7 +881,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
 
-                SharedLock.Lock(file.Id, expectedLock);
+                SharedLock.Lock(file.Id, expectedLock, CancellationToken.None);
                 file.CheckOut();
 
                 SetSharedLockCreationDate(file.Id, DateTime.UtcNow.AddMinutes(-10.0d));
@@ -907,7 +908,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -916,7 +917,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -936,7 +937,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -949,7 +950,7 @@ namespace SenseNet.Services.Tests
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
                 Assert.AreNotEqual(existingLock, expectedLock);
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -960,7 +961,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(actualLock, existingLock);
             });
         }
@@ -999,7 +1000,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -1009,7 +1010,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -1024,7 +1025,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1034,7 +1035,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -1057,7 +1058,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.IsNull(actualLock);
             });
         }
@@ -1069,7 +1070,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1081,7 +1082,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(actualLock, existingLock);
             });
         }
@@ -1124,7 +1125,7 @@ namespace SenseNet.Services.Tests
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var expectedLock = "LCK_" + Guid.NewGuid();
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 file.CheckOut();
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
@@ -1135,7 +1136,7 @@ namespace SenseNet.Services.Tests
                 }, null);
 
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                var actualLock = SharedLock.GetLock(file.Id);
+                var actualLock = SharedLock.GetLock(file.Id, CancellationToken.None);
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
@@ -1342,7 +1343,7 @@ namespace SenseNet.Services.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
                 var existingLock = "LCK_" + Guid.NewGuid();
-                SharedLock.Lock(file.Id, existingLock);
+                SharedLock.Lock(file.Id, existingLock, CancellationToken.None);
                 var newContent = "new filecontent2";
 
                 var response = WopiPost($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
@@ -1576,7 +1577,7 @@ namespace SenseNet.Services.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
             var portalContextAcc = new PrivateType(typeof(PortalContext));
             portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
@@ -1628,7 +1629,7 @@ namespace SenseNet.Services.Tests
         }
         private void WopiTestPrivate(Action callback1, Action<Site> callback2)
         {
-            SharedLock.RemoveAllLocks();
+            SharedLock.RemoveAllLocks(CancellationToken.None);
             var site = CreateTestSite();
             try
             {
@@ -1648,21 +1649,25 @@ namespace SenseNet.Services.Tests
             Assert.AreEqual(expectedValue, actualValue);
         }
 
+        private ISharedLockDataProviderExtension GetDataProvider()
+        {
+            return DataStore.GetDataProviderExtension<ISharedLockDataProviderExtension>();
+        }
         private void SetSharedLockCreationDate(int nodeId, DateTime value)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            if (!(provider is InMemoryTestingDataProvider))
+                throw new PlatformNotSupportedException();
 
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            sharedLockRow.CreationDate = value;
+            provider.SetSharedLockCreationDate(nodeId, value);
         }
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
-            if (!(DataProvider.GetExtension<ISharedLockDataProviderExtension>() is InMemorySharedLockDataProvider dataProvider))
-                throw new InvalidOperationException("InMemorySharedLockDataProvider not configured.");
+            var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
+            if (!(provider is InMemoryTestingDataProvider))
+                throw new PlatformNotSupportedException();
 
-            var sharedLockRow = dataProvider.SharedLocks.First(x => x.ContentId == nodeId);
-            return sharedLockRow.CreationDate;
+            return provider.GetSharedLockCreationDate(nodeId);
         }
     }
 }

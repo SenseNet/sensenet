@@ -1,140 +1,139 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Tests.Implementations
 {
+    /// <summary> 
+    /// This is an in-memory implementation of the <see cref="ISharedLockDataProviderExtension"/> interface.
+    /// It requires the main data provider to be an <see cref="InMemoryDataProvider"/>.
+    /// </summary>
     public class InMemorySharedLockDataProvider : ISharedLockDataProviderExtension
     {
-        public class SharedLockRow
+        public DataCollection<SharedLockDoc> GetSharedLocks()
         {
-            public int SharedLockId;
-            public int ContentId;
-            public string Lock;
-            public DateTime CreationDate;
-
-            public SharedLockRow Clone()
-            {
-                return new SharedLockRow
-                {
-                    SharedLockId = SharedLockId,
-                    ContentId = ContentId,
-                    Lock = Lock,
-                    CreationDate = CreationDate
-                };
-            }
+            return ((InMemoryDataProvider)DataStore.DataProvider).DB.GetCollection<SharedLockDoc>();
         }
 
-        public DataProvider MainProvider { get; set; }
-        public List<SharedLockRow> SharedLocks { get; set; } = new List<SharedLockRow>();
 
         public TimeSpan SharedLockTimeout { get; } = TimeSpan.FromMinutes(30d);
 
-        public void DeleteAllSharedLocks()
+        public Task DeleteAllSharedLocksAsync(CancellationToken cancellationToken)
         {
-            SharedLocks.Clear();
+            GetSharedLocks().Clear();
+            return Task.CompletedTask;
         }
 
-        public void CreateSharedLock(int contentId, string @lock)
+        public Task CreateSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
+            var sharedLocks = GetSharedLocks();
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            var row = SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            var row = sharedLocks.FirstOrDefault(x => x.ContentId == contentId);
             if (row != null && row.CreationDate < timeLimit)
             {
-                SharedLocks.Remove(row);
+                sharedLocks.Remove(row);
                 row = null;
             }
 
             if (row == null)
             {
-                var newSharedLockId = SharedLocks.Count == 0 ? 1 : SharedLocks.Max(t => t.SharedLockId) + 1;
-                SharedLocks.Add(new SharedLockRow
+                var newSharedLockId = sharedLocks.Count == 0 ? 1 : sharedLocks.Max(t => t.SharedLockId) + 1;
+                sharedLocks.Insert(new SharedLockDoc
                 {
                     SharedLockId = newSharedLockId,
                     ContentId = contentId,
                     Lock = @lock,
                     CreationDate = DateTime.UtcNow
                 });
-                return;
+                return Task.CompletedTask;
             }
 
             if (row.Lock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
 
             row.CreationDate = DateTime.UtcNow;
+            return Task.CompletedTask;
         }
 
-        public string RefreshSharedLock(int contentId, string @lock)
+        public Task<string> RefreshSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
             DeleteTimedOutItems();
 
-            var row = SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            var row = GetSharedLocks().FirstOrDefault(x => x.ContentId == contentId);
             if (row == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (row.Lock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
             row.CreationDate = DateTime.UtcNow;
-            return row.Lock;
+            return Task.FromResult(row.Lock);
         }
 
-        public string ModifySharedLock(int contentId, string @lock, string newLock)
+        public Task<string> ModifySharedLockAsync(int contentId, string @lock, string newLock, CancellationToken cancellationToken)
         {
+            var sharedLocks = GetSharedLocks();
+
             DeleteTimedOutItems();
 
-            var existingItem = SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            var existingItem = sharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
             if (existingItem != null)
             {
                 existingItem.Lock = newLock;
-                return null;
+                return Task.FromResult<string>(null);
             }
-            var existingLock = SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            var existingLock = sharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
-            return existingLock;
+            return Task.FromResult(existingLock);
         }
 
-        public string GetSharedLock(int contentId)
+        public Task<string> GetSharedLockAsync(int contentId, CancellationToken cancellationToken)
         {
             var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            return SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock;
+            return Task.FromResult(GetSharedLocks()
+                .FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock);
         }
 
-        public string DeleteSharedLock(int contentId, string @lock)
+        public Task<string> DeleteSharedLockAsync(int contentId, string @lock, CancellationToken cancellationToken)
         {
+            var sharedLocks = GetSharedLocks();
+
             DeleteTimedOutItems();
 
-            var existingItem = SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            var existingItem = sharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
             if (existingItem != null)
             {
-                SharedLocks.Remove(existingItem);
-                return null;
+                sharedLocks.Remove(existingItem);
+                return Task.FromResult<string>(null);
             }
-            var existingLock = SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            var existingLock = sharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
             if (existingLock == null)
                 throw new SharedLockNotFoundException("Content is unlocked");
             if (existingLock != @lock)
                 throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
-            return existingLock;
+            return Task.FromResult(existingLock);
         }
 
-        public void CleanupSharedLocks()
+        public Task CleanupSharedLocksAsync(CancellationToken cancellationToken)
         {
             // do nothing
+            return Task.CompletedTask;
         }
 
 
         private void DeleteTimedOutItems()
         {
-            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
-            var timedOutItems = SharedLocks.Where(x => x.CreationDate < timeLimit).ToArray();
-            foreach (var item in timedOutItems)
-                SharedLocks.Remove(item);
-        }
+            var sharedLocks = GetSharedLocks();
 
+            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
+            var timedOutItems = sharedLocks.Where(x => x.CreationDate < timeLimit).ToArray();
+            foreach (var item in timedOutItems)
+                sharedLocks.Remove(item);
+        }
     }
 }

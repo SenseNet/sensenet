@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
@@ -10,125 +13,116 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         private static class DataHandler
         {
-            internal static void InstallTables()
+            internal static void InstallTables(CancellationToken cancellationToken)
             {
-                // proc CreateTable
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTables))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTables).GetAwaiter().GetResult();
             }
-            internal static void StartBackgroundTasks()
+            internal static void StartBackgroundTasks(CancellationToken cancellationToken)
             {
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTasks))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.CreateTasks).GetAwaiter().GetResult();
             }
 
-            internal static int[] AssignTasks(int taskCount, int timeoutInMinutes, out int remainingTasks)
+            internal class AssignedTaskResult
+            {
+                public int[] VersionIds;
+                public int RemainingTaskCount;
+            }
+            internal static AssignedTaskResult AssignTasks(int taskCount, int timeoutInMinutes, CancellationToken cancellationToken)
             {
                 var result = new List<int>();
-
-                // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks)
-                    .AddParameter("@AssignedTaskCount", taskCount)
-                    .AddParameter("@TimeOutInMinutes", timeoutInMinutes))
+                int remainingTasks = 0;
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    cmd.CommandType = CommandType.Text;
-                    using (var reader = cmd.ExecuteReader())
+                    ctx.ExecuteReaderAsync(SqlScripts.AssignTasks, cmd =>
                     {
-                        while (reader.Read())
+                        cmd.Parameters.Add("@AssignedTaskCount", SqlDbType.Int, taskCount);
+                        cmd.Parameters.Add("@TimeOutInMinutes", SqlDbType.Int, timeoutInMinutes);
+                    }, async (reader, cancel) =>
+                    {
+                        while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                             result.Add(reader.GetInt32(0));
-                        reader.NextResult();
+                        await reader.NextResultAsync(cancel).ConfigureAwait(false);
 
-                        reader.Read();
+                        await reader.ReadAsync(cancel).ConfigureAwait(false);
                         remainingTasks = reader.GetInt32(0);
-                    }
+
+                        return Task.FromResult(0);
+                    }).GetAwaiter().GetResult();
                 }
 
-                return result.ToArray();
+                return new AssignedTaskResult {VersionIds = result.ToArray(), RemainingTaskCount = remainingTasks};
             }
 
-            internal static void FinishTask(int versionId)
+            internal static void FinishTask(int versionId, CancellationToken cancellationToken)
             {
-                // proc FinishTask(@VersionId int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask)
-                    .AddParameter("@VersionId", versionId))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    {
+                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                    }).GetAwaiter().GetResult();
             }
 
             /* ========================================================================================= */
 
-            public static void CreateTempTask(int versionId, int rank)
+            public static void CreateTempTask(int versionId, int rank, CancellationToken cancellationToken)
             {
-                // proc CreateTempTask(@VersionId int, @Rank int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask)
-                    .AddParameter("@VersionId", versionId)
-                    .AddParameter("@Rank", rank))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.FinishTask, cmd =>
+                    {
+                        cmd.Parameters.Add("@VersionId", SqlDbType.Int, versionId);
+                        cmd.Parameters.Add("@Rank", SqlDbType.Int, rank);
+                    }).GetAwaiter().GetResult();
             }
 
-            public static List<int> GetAllNodeIds()
+            public static List<int> GetAllNodeIds(CancellationToken cancellationToken)
             {
-                var result = new List<int>();
-
-                // proc GetAllNodeIds(@From int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.GetAllNodeIds))
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    cmd.CommandType = CommandType.Text;
-
-                    using (var reader = cmd.ExecuteReader())
+                    return ctx.ExecuteReaderAsync(SqlScripts.GetAllNodeIds, (reader, cancel) =>
+                    {
+                        var result = new List<int>();
                         while (reader.Read())
                             result.Add(reader.GetInt32(0));
+                        return Task.FromResult(result);
+                    }).GetAwaiter().GetResult();
                 }
-
-                return result;
             }
 
-            public static void DropTables()
+            public static void DropTables(CancellationToken cancellationToken)
             {
-                // proc DropTables
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.DropTables))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.ExecuteNonQuery();
-                }
+                using (var ctx = new MsSqlDataContext(cancellationToken))
+                    ctx.ExecuteNonQueryAsync(SqlScripts.DropTables).GetAwaiter().GetResult();
             }
 
-            public static bool CheckFeature()
+            public static bool CheckFeature(CancellationToken cancellationToken)
             {
                 try
                 {
-                    // proc DropTables
-                    using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CheckFeature))
+                    using (var ctx = new MsSqlDataContext(cancellationToken))
                     {
-                        cmd.CommandType = CommandType.Text;
-                        var result = cmd.ExecuteScalar();
+                        var result = ctx.ExecuteScalarAsync(SqlScripts.CheckFeature).GetAwaiter().GetResult();
                         return Convert.ToInt32(result) != 0;
                     }
                 }
-                catch(NotSupportedException)
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerException is NotSupportedException)
+                        return false;
+                    throw;
+                }
+                catch (NotSupportedException)
                 {
                     return false;
                 }
             }
 
-            public static DateTime LoadTimeLimit()
+            public static DateTime LoadTimeLimit(CancellationToken cancellationToken)
             {
-                // proc GetTimeLimit
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.SelectTimeLimit))
+                using (var ctx = new MsSqlDataContext(cancellationToken))
                 {
-                    cmd.CommandType = CommandType.Text;
-                    var result = cmd.ExecuteScalar();
+                    var result = ctx.ExecuteScalarAsync(SqlScripts.SelectTimeLimit).GetAwaiter().GetResult();
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;

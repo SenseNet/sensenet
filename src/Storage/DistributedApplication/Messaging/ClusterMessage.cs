@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 
 namespace SenseNet.Communication.Messaging
@@ -17,9 +17,9 @@ namespace SenseNet.Communication.Messaging
 
 		public ClusterMemberInfo SenderInfo { get; internal set; }
 
-        public void Send()
+        public Task SendAsync(CancellationToken cancellationToken)
         {
-            DistributedApplication.ClusterChannel.Send(this);
+            return DistributedApplication.ClusterChannel.SendAsync(this, cancellationToken);
         }
 
         protected TimeSpan _messageLifeTime;

@@ -12,25 +12,25 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         /// Event for a node id change.
         /// </summary>
         public readonly CacheEvent<int> NodeIdChanged =
-            new CacheEvent<int>(Cache.NodeIdDependencyEventPartitions);
+            new CacheEvent<int>(CacheConfiguration.NodeIdDependencyEventPartitions);
 
         /// <summary>
         /// Event for a node type change.
         /// </summary>
         public readonly CacheEvent<int> NodeTypeChanged =
-            new CacheEvent<int>(Cache.NodeTypeDependencyEventPartitions);
+            new CacheEvent<int>(CacheConfiguration.NodeTypeDependencyEventPartitions);
 
         /// <summary>
         /// Event for a node path change.
         /// </summary>
         public readonly CacheEvent<string> PathChanged =
-            new CacheEvent<string>(Cache.PathDependencyEventPartitions);
+            new CacheEvent<string>(CacheConfiguration.PathDependencyEventPartitions);
 
         /// <summary>
         /// Event for a portlet change.
         /// </summary>
         public readonly CacheEvent<string> PortletChanged =
-            new CacheEvent<string>(Cache.PortletDependencyEventPartitions);
+            new CacheEvent<string>(CacheConfiguration.PortletDependencyEventPartitions);
 
         /// <summary>
         /// Gets the subscription counts for all well-known event types.

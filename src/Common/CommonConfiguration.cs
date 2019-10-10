@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SenseNet.Configuration;
+// ReSharper disable CheckNamespace
 #pragma warning disable 1591
 
 namespace SenseNet.ContentRepository
@@ -16,7 +17,8 @@ namespace SenseNet.ContentRepository
         [Obsolete("After V6.5 PATCH 9: Use the Configuration.Common.IsWebEnvironment instead.")]
         public static bool IsWebEnvironment => Configuration.Common.IsWebEnvironment;
 
-        public static int SqlCommandTimeout => Data.SqlCommandTimeout;
+        [Obsolete("Use Configuration.Data.DbCommandTimeout instead.", true)]
+        public static int SqlCommandTimeout => Data.DbCommandTimeout;
         public static double TransactionTimeout => Data.TransactionTimeout;
         public static double LongTransactionTimeout => Data.LongTransactionTimeout;
     }

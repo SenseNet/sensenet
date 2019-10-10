@@ -1,204 +1,1128 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Querying;
-using SenseNet.Security;
+using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests.Implementations
 {
-    public partial class InMemoryDataProvider : DataProvider
+    public class InMemoryDataProvider : DataProvider
     {
-        internal const int StringPageSize = 80;
-        internal const int IntPageSize = 40;
-        internal const int DateTimePageSize = 25;
-        internal const int CurrencyPageSize = 15;
+        // ReSharper disable once InconsistentNaming
+        public InMemoryDataBase DB { get; } = new InMemoryDataBase();
 
-        public override IMetaQueryEngine MetaQueryEngine => null;
+        /* =============================================================================================== Nodes */
 
-        private int _contentListStartPage;
-        private Dictionary<DataType, int> _contentListMappingOffsets;
-
-        protected internal override int ContentListStartPage => _contentListStartPage;
-        public override Dictionary<DataType, int> ContentListMappingOffsets => _contentListMappingOffsets;
-
-        #region NOT IMPLEMENTED
-
-
-        public override string DatabaseName => throw new NotImplementedException();
-
-        #endregion
-
-        public override DateTime DateTimeMaxValue => DateTime.MaxValue;
-
-        public override DateTime DateTimeMinValue => DateTime.MinValue;
-
-        public override decimal DecimalMaxValue => decimal.MaxValue;
-
-        public override decimal DecimalMinValue => decimal.MinValue;
-
-        public override int PathMaxLength => 150;
-
-        #region NOT IMPLEMENTED
-
-        public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
+        public override STT.Task InsertNodeAsync(NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData,
+            CancellationToken cancellationToken)
         {
-            //TODO: TEST: AssertSchemaTimestampAndWriteModificationDate is not implemented in the InMemoryDataProvider
-            // do nothimg
-        }
-        #endregion
-
-        public override ITransactionProvider CreateTransaction()
-        {
-            return new TestTransaction();
-        }
-
-        public override void DeleteAllIndexingActivities()
-        {
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
             {
-                _db.IndexingActivities.Clear();
+                try
+                {
+                    // Check unique keys.
+                    if (DB.Nodes.Any(n => n.Path.Equals(nodeHeadData.Path, StringComparison.OrdinalIgnoreCase)))
+                        throw new NodeAlreadyExistsException();
+
+                    var nodeId = DB.Nodes.GetNextId();
+                    nodeHeadData.NodeId = nodeId;
+
+                    var versionId = DB.Versions.GetNextId();
+                    versionData.VersionId = versionId;
+                    dynamicData.VersionId = versionId;
+                    versionData.NodeId = nodeId;
+
+                    var versionDoc = CreateVersionDocSafe(versionData, dynamicData);
+                    DB.Versions.Insert(versionDoc);
+                    versionData.Timestamp = versionDoc.Timestamp;
+
+                    // Manage LongTextProperties
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
+
+                    // Manage BinaryProperties
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, true, true);
+
+                    // Manage last versionIds and timestamps
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeId);
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Insert(nodeDoc);
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task UpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            CancellationToken cancellationToken, string originalPath = null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
+            {
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new ContentNotFoundException(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+
+                    // Get VersionDoc and update
+                    var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionData.VersionId);
+                    if (versionDoc == null)
+                        throw new ContentNotFoundException(
+                            $"Version not found. VersionId: {versionData.VersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var updatedVersionDoc = CloneVersionDocSafe(versionDoc);
+                    var versionId = versionData.VersionId;
+                    dynamicData.VersionId = versionData.VersionId;
+                    UpdateVersionDocSafe(updatedVersionDoc, versionData, dynamicData);
+                    DB.Versions.Remove(versionDoc);
+                    DB.Versions.Insert(updatedVersionDoc);
+
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete);
+
+                    // Update NodeDoc (create a new nodeDoc instance)
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Insert(nodeDoc);
+
+                    // Manage LongTextProperties
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextPropertySafe(versionId, item.Key.Id, item.Value);
+
+                    // Manage BinaryProperties
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryPropertySafe(item.Value, versionId, item.Key.Id, false, false);
+
+                    // Update subtree if needed
+                    if (originalPath != null)
+                        UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
+
+                    versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
+                }
+                catch(Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task CopyAndUpdateNodeAsync(
+            NodeHeadData nodeHeadData, VersionData versionData, DynamicPropertyData dynamicData, IEnumerable<int> versionIdsToDelete,
+            CancellationToken cancellationToken, int expectedVersionId = 0, string originalPath = null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
+            {
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new ContentNotFoundException(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+
+                    // Get existing VersionDoc and update
+                    var sourceVersionId = versionData.VersionId;
+                    var currentVersionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == sourceVersionId);
+                    if (currentVersionDoc == null)
+                        throw new ContentNotFoundException(
+                            $"Version not found. VersionId: {sourceVersionId} NodeId: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    var targetVersionId = expectedVersionId == 0 ? DB.Versions.GetNextId() : expectedVersionId;
+                    var versionDoc = CloneVersionDocSafe(currentVersionDoc);
+                    versionDoc.VersionId = targetVersionId;
+                    versionData.VersionId = targetVersionId;
+                    dynamicData.VersionId = targetVersionId;
+                    UpdateVersionDocSafe(versionDoc, versionData, dynamicData);
+
+                    // Add or change updated VersionDoc
+                    DB.Versions.Remove(targetVersionId);
+                    DB.Versions.Insert(versionDoc);
+
+                    // Manage LongTextProperties
+                    CopyLongTextPropertiesSafe(sourceVersionId, targetVersionId);
+                    foreach (var item in dynamicData.LongTextProperties)
+                        SaveLongTextPropertySafe(targetVersionId, item.Key.Id, item.Value);
+
+                    // Manage BinaryProperties
+                    // (copy old values is unnecessary because all binary properties were loaded before save).
+                    foreach (var item in dynamicData.BinaryProperties)
+                        SaveBinaryPropertySafe(item.Value, targetVersionId, item.Key.Id, false, true);
+
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete);
+
+                    // UpdateNodeDoc
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData);
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Insert(nodeDoc);
+
+                    // Update subtree if needed
+                    if (originalPath != null)
+                        UpdateSubTreePathSafe(originalPath, nodeHeadData.Path);
+
+                    versionData.Timestamp = versionDoc.Timestamp;
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task UpdateNodeHeadAsync(NodeHeadData nodeHeadData, IEnumerable<int> versionIdsToDelete,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
+            {
+                try
+                {
+                    var existingNodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeHeadData.NodeId);
+                    if (existingNodeDoc == null)
+                        throw new ContentNotFoundException(
+                            $"Cannot update a deleted Node. Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+                    if (existingNodeDoc.Timestamp != nodeHeadData.Timestamp)
+                        throw new NodeIsOutOfDateException(
+                            $"Node is out of date Id: {nodeHeadData.NodeId}, path: {nodeHeadData.Path}.");
+
+                    // Delete unnecessary versions
+                    DeleteVersionsSafe(versionIdsToDelete);
+
+                    // Update NodeDoc (create a new nodeDoc instance)
+                    var nodeDoc = CreateNodeDocSafe(nodeHeadData); 
+                    (int lastMajorVersionId, int lastMinorVersionId) = LoadLastVersionIdsSafe(nodeHeadData.NodeId);
+                    nodeDoc.LastMajorVersionId = lastMajorVersionId;
+                    nodeDoc.LastMinorVersionId = lastMinorVersionId;
+                    DB.Nodes.Remove(existingNodeDoc);
+                    DB.Nodes.Insert(nodeDoc);
+
+                    // Update return values
+                    nodeHeadData.Timestamp = nodeDoc.Timestamp;
+                    nodeHeadData.LastMajorVersionId = lastMajorVersionId;
+                    nodeHeadData.LastMinorVersionId = lastMinorVersionId;
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        private void UpdateSubTreePathSafe(string oldPath, string newPath)
+        {
+            foreach (var nodeDoc in DB.Nodes
+                .Where(n => n.Path.StartsWith(oldPath + "/", StringComparison.OrdinalIgnoreCase))
+                .ToArray())
+            {
+                // Do not update directly to ensure transactionality
+                var updated = nodeDoc.Clone();
+                updated.Path = newPath + updated.Path.Substring(oldPath.Length);
+                DB.Nodes.Remove(nodeDoc);
+                DB.Nodes.Insert(updated);
             }
         }
 
-        public override int GetLastIndexingActivityId()
+        public override Task<IEnumerable<NodeData>> LoadNodesAsync(int[] versionIdArray, CancellationToken cancellationToken)
         {
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
             {
-                return _db.IndexingActivities.Count == 0 ? 0 : _db.IndexingActivities.Max(r => r.IndexingActivityId);
+                List<NodeData> result = new List<NodeData>();
+                foreach (var versionId in versionIdArray)
+                {
+                    // Do not load deleted doc
+                    var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                    if (versionDoc == null)
+                        continue;
+                    // Do not load node by orphaned version
+                    var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == versionDoc.NodeId);
+                    if (nodeDoc == null)
+                        continue;
+
+                    var nodeData = new NodeData(nodeDoc.NodeTypeId, nodeDoc.ContentListTypeId)
+                    {
+                        Id = nodeDoc.NodeId,
+                        NodeTypeId = nodeDoc.NodeTypeId,
+                        ContentListId = nodeDoc.ContentListId,
+                        ContentListTypeId = nodeDoc.ContentListTypeId,
+                        CreatingInProgress = nodeDoc.CreatingInProgress,
+                        IsDeleted = nodeDoc.IsDeleted,
+                        ParentId = nodeDoc.ParentNodeId,
+                        Name = nodeDoc.Name,
+                        DisplayName = nodeDoc.DisplayName,
+                        Path = nodeDoc.Path,
+                        Index = nodeDoc.Index,
+                        Locked = nodeDoc.Locked,
+                        LockedById = nodeDoc.LockedById,
+                        ETag = nodeDoc.ETag,
+                        LockType = nodeDoc.LockType,
+                        LockTimeout = nodeDoc.LockTimeout,
+                        LockDate = nodeDoc.LockDate,
+                        LockToken = nodeDoc.LockToken,
+                        LastLockUpdate = nodeDoc.LastLockUpdate,
+                        VersionId = versionId,
+                        Version = versionDoc.Version,
+                        CreationDate = nodeDoc.CreationDate,
+                        CreatedById = nodeDoc.CreatedById,
+                        ModificationDate = nodeDoc.ModificationDate,
+                        ModifiedById = nodeDoc.ModifiedById,
+                        IsSystem = nodeDoc.IsSystem,
+                        OwnerId = nodeDoc.OwnerId,
+                        SavingState = nodeDoc.SavingState,
+                        ChangedData = versionDoc.ChangedData,
+                        VersionCreationDate = versionDoc.CreationDate,
+                        VersionCreatedById = versionDoc.CreatedById,
+                        VersionModificationDate = versionDoc.ModificationDate,
+                        VersionModifiedById = versionDoc.ModifiedById,
+                        NodeTimestamp = nodeDoc.Timestamp,
+                        VersionTimestamp = versionDoc.Timestamp
+                    };
+
+                    var dynamicProps = versionDoc.DynamicProperties;
+                    foreach (var propertyType in nodeData.PropertyTypes)
+                        if (dynamicProps.TryGetValue(propertyType.Name, out var value))
+                            nodeData.SetDynamicRawData(propertyType, GetCloneSafe(value, propertyType.DataType));
+
+                    // Load BinaryProperties skipped
+
+                    // Load appropriate LongTextProperties
+                    var longTextPropertyTypeIds = nodeData.PropertyTypes
+                        .Where(p => p.DataType == DataType.Text)
+                        .Select(p => p.Id)
+                        .ToArray();
+                    var longTextProps = DB.LongTextProperties
+                        .Where(x => x.VersionId == versionId &&
+                                    longTextPropertyTypeIds.Contains(x.PropertyTypeId) &&
+                                    x.Length < DataStore.TextAlternationSizeLimit)
+                        .ToDictionary(x => ActiveSchema.PropertyTypes.GetItemById(x.PropertyTypeId), x => x);
+                    foreach (var item in longTextProps)
+                        nodeData.SetDynamicRawData(item.Key, GetCloneSafe(item.Value.Value, DataType.Text));
+
+                    result.Add(nodeData);
+                }
+                return STT.Task.FromResult((IEnumerable<NodeData>)result);
             }
         }
 
-        public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
+        public override STT.Task DeleteNodeAsync(NodeHeadData nodeHeadData, CancellationToken cancellationToken)
         {
-            var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
-            var existingName = _db.Nodes
-                .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
-                .Select(n => n.Name.ToLowerInvariant())
-                .OrderByDescending(s => GetSuffix(s))
-                .FirstOrDefault();
-            return existingName;
-        }
-        private int GetSuffix(string name)
-        {
-            var p0 = name.LastIndexOf("(");
-            if (p0 < 0)
-                return 0;
-            var p1 = name.IndexOf(")", p0);
-            if (p1 < 0)
-                return 0;
-            var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
-            var order = int.Parse(suffix);
-            return order;
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
+            {
+                try
+                {
+                    var nodeId = nodeHeadData.NodeId;
+                    var timestamp = nodeHeadData.Timestamp;
+
+                    var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                    if (nodeDoc == null)
+                        return STT.Task.CompletedTask;
+
+                    if (nodeDoc.Timestamp != timestamp)
+                        throw new NodeIsOutOfDateException($"Cannot delete the node. It is out of date. NodeId:{nodeId}, " +
+                                                           $"Path:\"{nodeDoc.Path}\"");
+
+                    var path = nodeDoc.Path;
+                    var nodeIds = DB.Nodes
+                        .Where(n => n.Path.StartsWith(path, StringComparison.OrdinalIgnoreCase))
+                        .Select(n => n.NodeId)
+                        .ToArray();
+                    var versionIds = DB.Versions
+                        .Where(v => nodeIds.Contains(v.NodeId))
+                        .Select(v => v.VersionId)
+                        .ToArray();
+                    var longTextPropIds = DB.LongTextProperties
+                        .Where(l => versionIds.Contains(l.VersionId))
+                        .Select(l => l.LongTextPropertyId)
+                        .ToArray();
+
+                    BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
+
+                    foreach (var longTextPropId in longTextPropIds)
+                        DB.LongTextProperties.Remove(longTextPropId);
+
+
+                    foreach (var versionId in versionIds)
+                        DB.Versions.Remove(versionId);
+
+                    foreach (var nId in nodeIds)
+                        DB.Nodes.Remove(nId);
+
+                    // indicate invalidity and signal for the tests
+                    nodeHeadData.Timestamp = 0;
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
         }
 
-        #region NOT IMPLEMENTED
+        public override STT.Task MoveNodeAsync(NodeHeadData sourceNodeHeadData, int targetNodeId,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (var transaction = DB.BeginTransaction())
+            {
+                try
+                {
+                    var sourceNodeId = sourceNodeHeadData.NodeId;
+                    var sourceTimestamp = sourceNodeHeadData.Timestamp;
 
-        public override IEnumerable<string> GetScriptsForDatabaseBackup()
+                    var sourceNode = DB.Nodes.FirstOrDefault(x => x.NodeId == sourceNodeId);
+                    if (sourceNode == null)
+                        throw new ContentNotFoundException("Cannot move node, it does not exist.");
+
+                    var targetNode = DB.Nodes.FirstOrDefault(x => x.NodeId == targetNodeId);
+                    if (targetNode == null)
+                        throw new ContentNotFoundException("Cannot move node, target does not exist.");
+
+                    if (sourceTimestamp != sourceNode.Timestamp)
+                        throw new NodeIsOutOfDateException($"Cannot move the node. It is out of date. NodeId:{sourceNodeId}, " +
+                                                           $"Path:{sourceNode.Path}, TargetPath: {targetNode.Path}");
+
+                    // Update subtree (do not update directly to ensure transactionality)
+                    var originalPath = sourceNode.Path;
+                    var nodes = DB.Nodes
+                        .Where(n => n.Path.StartsWith(originalPath + RepositoryPath.PathSeparator, StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+                    var originalParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
+                    foreach (var node in nodes)
+                    {
+                        var clone = node.Clone();
+                        clone.Path = clone.Path.Replace(originalParentPath, targetNode.Path);
+                        DB.Nodes.Remove(node);
+                        DB.Nodes.Insert(clone);
+                    }
+
+                    // Update node head (do not update directly to ensure transactionality)
+                    var updatedSourceNode = sourceNode.Clone();
+                    updatedSourceNode.ParentNodeId = targetNodeId;
+                    updatedSourceNode.Path = updatedSourceNode.Path.Replace(originalParentPath, targetNode.Path);
+                    DB.Nodes.Remove(sourceNode);
+                    DB.Nodes.Insert(updatedSourceNode);
+
+                    sourceNodeHeadData.Timestamp = updatedSourceNode.Timestamp;
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw GetException(e);
+                }
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override Task<Dictionary<int, string>> LoadTextPropertyValuesAsync(int versionId, int[] propertiesToLoad,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.LongTextProperties
+                    .Where(x => x.VersionId == versionId && propertiesToLoad.Contains(x.PropertyTypeId))
+                    .ToDictionary(x => x.PropertyTypeId, x => x.Value);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<BinaryDataValue> LoadBinaryPropertyValueAsync(int versionId, int propertyTypeId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            lock (DB)
+            {
+                var result = BlobStorage.LoadBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
+                return Task.FromResult(result);
+            }
+        }
+
+        public override Task<bool> NodeExistsAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Nodes.Any(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        /* =============================================================================================== NodeHead */
+
+        public override Task<NodeHead> LoadNodeHeadAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                NodeHead result = null;
+                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                if (nodeDoc != null)
+                    result = NodeDocToNodeHeadSafe(nodeDoc);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<NodeHead> LoadNodeHeadAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                NodeHead result = null;
+                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                if (nodeDoc != null)
+                    result = NodeDocToNodeHeadSafe(nodeDoc);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<NodeHead> LoadNodeHeadByVersionIdAsync(int versionId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if (versionDoc == null)
+                    return STT.Task.FromResult(default(NodeHead));
+
+                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == versionDoc.NodeId);
+                if (nodeDoc == null)
+                    return STT.Task.FromResult(default(NodeHead));
+
+                return STT.Task.FromResult(NodeDocToNodeHeadSafe(nodeDoc));
+            }
+        }
+
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsAsync(IEnumerable<int> nodeIds, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var headIds = nodeIds.ToArray();
+                IEnumerable<NodeHead> result = DB.Nodes
+                    .Where(x => headIds.Contains(x.NodeId))
+                    .Select(NodeDocToNodeHeadSafe)
+                    .ToArray();
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var versions = DB.Versions.Where(r => r.NodeId == nodeId)
+                    .Select(r => new NodeHead.NodeVersion(r.Version, r.VersionId))
+                    .ToArray();
+                return STT.Task.FromResult((IEnumerable<NodeHead.NodeVersion>)versions);
+            }
+        }
+
+        public override Task<IEnumerable<NodeHead.NodeVersion>> GetVersionNumbersAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var node = DB.Nodes.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                if (node == null)
+                    return STT.Task.FromResult((IEnumerable<NodeHead.NodeVersion>)new NodeHead.NodeVersion[0]);
+                return GetVersionNumbersAsync(node.NodeId, cancellationToken);
+            }
+        }
+
+        public override Task<IEnumerable<NodeHead>> LoadNodeHeadsFromPredefinedSubTreesAsync(IEnumerable<string> paths, bool resolveAll, bool resolveChildren,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
-        #endregion
 
-        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        private NodeHead NodeDocToNodeHeadSafe(NodeDoc nodeDoc)
         {
-            if (path == null)
-                path = "/Root";
-
-            return _db.Versions.SelectMany(v => _db.Nodes.Where(n => n.NodeId == v.NodeId
-                                                                     && !excludedNodeTypeIds.Contains(n.NodeTypeId)
-                                                                     && string.Equals(path, n.Path, StringComparison.OrdinalIgnoreCase)),
-                (v, n) => new IndexIntegrityCheckerItem
-                {
-                    VersionId = v.VersionId,
-                    VersionTimestamp = v.VersionTimestamp,
-                    NodeId = n.NodeId,
-                    NodeTimestamp = n.NodeTimestamp,
-                    LastMajorVersionId = n.LastMajorVersionId,
-                    LastMinorVersionId = n.LastMinorVersionId
-                });
+            return new NodeHead(
+                nodeDoc.NodeId,
+                nodeDoc.Name,
+                nodeDoc.DisplayName,
+                nodeDoc.Path,
+                nodeDoc.ParentNodeId,
+                nodeDoc.NodeTypeId,
+                nodeDoc.ContentListTypeId,
+                nodeDoc.ContentListId,
+                nodeDoc.CreationDate,
+                nodeDoc.ModificationDate,
+                nodeDoc.LastMinorVersionId,
+                nodeDoc.LastMajorVersionId,
+                nodeDoc.OwnerId,
+                nodeDoc.CreatedById,
+                nodeDoc.ModifiedById,
+                nodeDoc.Index,
+                nodeDoc.LockedById,
+                nodeDoc.Timestamp);
         }
 
-        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        /* =============================================================================================== NodeQuery */
+
+        public override Task<int> InstanceCountAsync(int[] nodeTypeIds, CancellationToken cancellationToken)
         {
-            if (path == null)
-                path = "/Root";
-
-            return _db.Versions.SelectMany(v => _db.Nodes.Where(n => n.NodeId == v.NodeId
-                                                                && !excludedNodeTypeIds.Contains(n.NodeTypeId)
-                                                                && (string.Equals(path, n.Path, StringComparison.OrdinalIgnoreCase)
-                                                                    || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase)
-                                                                )),
-                (v, n) => new IndexIntegrityCheckerItem
-                {
-                    VersionId = v.VersionId,
-                    VersionTimestamp = v.VersionTimestamp,
-                    NodeId = n.NodeId,
-                    NodeTimestamp = n.NodeTimestamp,
-                    LastMajorVersionId = n.LastMajorVersionId,
-                    LastMinorVersionId = n.LastMinorVersionId
-                });
-        }
-
-        #region NOT IMPLEMENTED
-
-        public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
-        {
-            var result = new List<IIndexingActivity>();
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
             {
-                var activities = _db.IndexingActivities.Where(r => gaps.Contains(r.IndexingActivityId)).ToArray();
+                var result = DB.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
+                return STT.Task.FromResult(result);
+            }
+        }
+        public override Task<IEnumerable<int>> GetChildrenIdentifiersAsync(int parentId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Nodes.Where(n => n.ParentNodeId == parentId).Select(n => n.NodeId).ToArray();
+                return STT.Task.FromResult((IEnumerable<int>)result);
+            }
+        }
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndNameAsync(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                IEnumerable<NodeDoc> nodes = DB.Nodes;
+                if (nodeTypeIds != null)
+                    nodes = nodes
+                        .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                        .ToList();
+
+                if (name != null)
+                    nodes = nodes
+                        .Where(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                        .ToList();
+
+                if (pathStart != null && pathStart.Length > 0)
+                {
+                    var paths = pathStart.Select(p => p.EndsWith("/") ? p : p + "/").ToArray();
+                    nodes = nodes
+                        .Where(n => paths.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
+                        .ToList();
+                }
+
+                if (orderByPath)
+                    nodes = nodes
+                        .OrderBy(n => n.Path)
+                        .ToList();
+
+                var result = nodes.Select(n => n.NodeId).ToArray();
+                return STT.Task.FromResult((IEnumerable<int>)result);
+            }
+        }
+        public override Task<IEnumerable<int>> QueryNodesByTypeAndPathAndPropertyAsync(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                IEnumerable<NodeDoc> nodes = DB.Nodes;
+                if (nodeTypeIds != null)
+                    nodes = nodes
+                        .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                        .ToList();
+
+                if (pathStart != null)
+                {
+                    var path = pathStart.EndsWith("/") ? pathStart : pathStart + "/";
+                    nodes = nodes
+                        .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                        .ToList();
+                }
+
+                if (properties != null)
+                {
+                    var versionIds = nodes.Select(n => n.LastMinorVersionId).ToArray();
+                    var flatRows = DB.Versions.Where(f => versionIds.Contains(f.VersionId)).ToArray();
+                    var resultVersions = flatRows
+                        .Where(v =>
+                        {
+                            foreach (var property in properties)
+                            {
+                                if (property.QueryOperator != Operator.Equal)
+                                    //TODO: Partially implemented. Only "Operator.Equal" allowed.
+                                    throw new SnNotSupportedException($"NodeQuery by 'Operator.{property.QueryOperator}' property operator is not supported.");
+
+                                var pt = PropertyType.GetByName(property.PropertyName);
+                                if (pt == null)
+                                    throw new SnNotSupportedException($"NodeQuery by '{property.PropertyName}' property is not supported.");
+
+                                if (!v.DynamicProperties.TryGetValue(pt.Name, out var value))
+                                    return false;
+                                switch (pt.DataType)
+                                {
+                                    case DataType.String:
+                                        if ((string)value != (string)property.Value)
+                                            return false;
+                                        break;
+                                    case DataType.Int:
+                                        if ((int)value != (int)property.Value)
+                                            return false;
+                                        break;
+                                    case DataType.Currency:
+                                        if ((decimal)value != (decimal)property.Value)
+                                            return false;
+                                        break;
+                                    case DataType.DateTime:
+                                        if ((DateTime)value != (DateTime)property.Value)
+                                            return false;
+                                        break;
+                                    default:
+                                        //TODO: Partially implemented. The "Text", "Binary", "Reference" datatypes are not allowed.
+                                        throw new SnNotSupportedException($"NodeQuery by 'DataType.{ pt.DataType}' property data type is not supported.");
+                                }
+                            }
+                            return true;
+                        })
+                        .Select(f => f.VersionId)
+                        .ToArray();
+
+                    nodes = nodes
+                        .Where(n => resultVersions.Contains(n.LastMinorVersionId))
+                        .ToList();
+                }
+
+                if (orderByPath)
+                    nodes = nodes
+                        .OrderBy(n => n.Path)
+                        .ToList();
+
+                var ids = nodes.Select(n => n.NodeId);
+
+                return STT.Task.FromResult((IEnumerable<int>)ids.ToArray());
+            }
+        }
+        public override Task<IEnumerable<int>> QueryNodesByReferenceAndTypeAsync(string referenceName, int referredNodeId, int[] nodeTypeIds, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (referenceName == null)
+                    throw new ArgumentNullException(nameof(referenceName));
+                if (referenceName.Length == 0)
+                    throw new ArgumentException("Argument referenceName cannot be empty.", nameof(referenceName));
+                var referenceProperty = ActiveSchema.PropertyTypes[referenceName];
+                if (referenceProperty == null)
+                    throw new ArgumentException("PropertyType is not found: " + referenceName, nameof(referenceName));
+
+                IEnumerable<NodeDoc> nodes = (nodeTypeIds == null || nodeTypeIds.Length == 0)
+                    ? DB.Nodes
+                    : DB.Nodes.Where(n => nodeTypeIds.Contains(n.NodeTypeId));
+
+                var result = nodes
+                    .SelectMany(n => new[] { n.LastMajorVersionId, n.LastMinorVersionId })
+                    .Distinct()
+                    .Select(i => DB.Versions.FirstOrDefault(v => v.VersionId == i))
+                    .Where(v =>
+                    {
+                        if (v == null)
+                            return false;
+                        if (!v.DynamicProperties.TryGetValue(referenceName, out var refs))
+                            return false;
+                        return ((IEnumerable<int>)refs).Contains(referredNodeId);
+                    })
+                    .Select(v => v.NodeId)
+                    .ToArray();
+
+                return STT.Task.FromResult((IEnumerable<int>)result);
+            }
+        }
+
+        /* =============================================================================================== Tree */
+
+        public override Task<IEnumerable<NodeType>> LoadChildTypesToAllowAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var permeableList = new[] { "Folder", "Page" }
+                    .Select(x => ActiveSchema.NodeTypes[x])
+                    .Where(x => x != null)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                var typeIdList = new List<int>();
+
+                var nodeDoc = DB.Nodes.FirstOrDefault(x => x.NodeId == nodeId);
+                if (nodeDoc != null)
+                {
+                    typeIdList.Add(nodeDoc.NodeTypeId);
+                    CollectChildTypesToAllow(nodeDoc, permeableList, typeIdList, cancellationToken);
+                }
+                var result = typeIdList.Distinct().Select(x => ActiveSchema.NodeTypes.GetItemById(x)).ToArray();
+                return STT.Task.FromResult((IEnumerable<NodeType>)result);
+            }
+        }
+
+        public override Task<List<ContentListType>> GetContentListTypesInTreeAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Nodes
+                    .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
+                                n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                    .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
+                    .ToList();
+                return STT.Task.FromResult(result);
+            }
+        }
+        private void CollectChildTypesToAllow(NodeDoc root, List<int> permeableList, List<int> typeIdList, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                foreach (var child in DB.Nodes.Where(x => x.ParentNodeId == root.NodeId))
+                {
+                    typeIdList.Add(child.NodeTypeId);
+                    if (permeableList.Contains(child.NodeTypeId))
+                        CollectChildTypesToAllow(child, permeableList, typeIdList, cancellationToken);
+                }
+            }
+        }
+
+        /* =============================================================================================== TreeLock */
+
+        public override Task<int> AcquireTreeLockAsync(string path, DateTime timeLimit, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var parentChain = GetParentChainSafe(path);
+
+                if (DB.TreeLocks
+                    .Any(t => t.LockedAt > timeLimit &&
+                              (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
+                               t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))))
+                    return STT.Task.FromResult(0);
+
+                var newTreeLockId = DB.TreeLocks.GetNextId();
+                DB.TreeLocks.Insert(new TreeLockDoc
+                {
+                    TreeLockId = newTreeLockId,
+                    Path = path,
+                    LockedAt = DateTime.UtcNow
+                });
+
+                return STT.Task.FromResult(newTreeLockId);
+            }
+        }
+
+        public override Task<bool> IsTreeLockedAsync(string path, DateTime timeLimit, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var parentChain = GetParentChainSafe(path);
+
+                var result = DB.TreeLocks
+                    .Any(t => t.LockedAt > timeLimit &&
+                              (parentChain.Contains(t.Path, StringComparer.OrdinalIgnoreCase) ||
+                               t.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase)));
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override STT.Task ReleaseTreeLockAsync(int[] lockIds, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                foreach (var lockId in lockIds)
+                    DB.TreeLocks.Remove(lockId);
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override Task<Dictionary<int, string>> LoadAllTreeLocksAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        private string[] GetParentChainSafe(string path)
+        {
+            var paths = path.Split(RepositoryPath.PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
+            paths[0] = "/" + paths[0];
+            for (int i = 1; i < paths.Length; i++)
+                paths[i] = paths[i - 1] + "/" + paths[i];
+            return paths.Reverse().ToArray();
+        }
+
+        /* =============================================================================================== IndexDocument */
+
+        public override Task<long> SaveIndexDocumentAsync(int versionId, string indexDoc, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var timestamp = 0L;
+            lock (DB)
+            {
+                var versionDoc = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                if (versionDoc != null)
+                {
+                    versionDoc.IndexDocument = indexDoc;
+                    timestamp = versionDoc.Timestamp;
+                }
+            }
+            return STT.Task.FromResult(timestamp);
+        }
+
+        public override Task<IEnumerable<IndexDocumentData>> LoadIndexDocumentsAsync(IEnumerable<int> versionIds, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = versionIds.Select(LoadIndexDocumentByVersionIdSafe).Where(i => i != null).ToArray();
+                return STT.Task.FromResult((IEnumerable<IndexDocumentData>)result);
+            }
+        }
+        private IndexDocumentData LoadIndexDocumentByVersionIdSafe(int versionId)
+        {
+            var version = DB.Versions.FirstOrDefault(v => v.VersionId == versionId);
+            if (version == null)
+                return null;
+            var node = DB.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
+            if (node == null)
+                return null;
+            return CreateIndexDocumentDataSafe(node, version);
+        }
+
+        public override IEnumerable<IndexDocumentData> LoadIndexDocumentsAsync(string path, int[] excludedNodeTypes)
+        {
+            lock (DB)
+            {
+                var result = new List<IndexDocumentData>();
+                var pathExt = path + "/";
+
+                var collection = excludedNodeTypes == null || excludedNodeTypes.Length == 0
+                    ? DB.Nodes
+                    : DB.Nodes.Where(n => !excludedNodeTypes.Contains(n.NodeTypeId));
+
+                foreach (var node in collection.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
+                                                           n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
+                foreach (var version in DB.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
+                    result.Add(CreateIndexDocumentDataSafe(node, version));
+
+                return result;
+            }
+        }
+        private IndexDocumentData CreateIndexDocumentDataSafe(NodeDoc node, VersionDoc version)
+        {
+            var approved = version.Version.Status == VersionStatus.Approved;
+            var isLastMajor = node.LastMajorVersionId == version.VersionId;
+
+            return new IndexDocumentData(null, version.IndexDocument)
+            {
+                NodeTypeId = node.NodeTypeId,
+                VersionId = version.VersionId,
+                NodeId = node.NodeId,
+                ParentId = node.ParentNodeId,
+                Path = node.Path,
+                IsSystem = node.IsSystem,
+                IsLastDraft = node.LastMinorVersionId == version.VersionId,
+                IsLastPublic = approved && isLastMajor,
+                NodeTimestamp = node.Timestamp,
+                VersionTimestamp = version.Timestamp,
+            };
+        }
+
+        public override Task<IEnumerable<int>> LoadNotIndexedNodeIdsAsync(int fromId, int toId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Versions
+                    .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
+                    .Select(v => v.NodeId)
+                    .ToArray();
+                return STT.Task.FromResult((IEnumerable<int>)result);
+            }
+        }
+
+        /* =============================================================================================== IndexingActivity */
+
+        public override Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
+            {
+                var result = DB.IndexingActivities.Count == 0 ? 0 : DB.IndexingActivities.Max(r => r.IndexingActivityId);
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = new List<IIndexingActivity>();
+            lock (DB.IndexingActivities)
+            {
+                var activities = DB.IndexingActivities.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
                 foreach (var activityRecord in activities)
                 {
-                    var activity = LoadFullIndexingActivity(activityRecord, executingUnprocessedActivities, activityFactory);
+                    var activity = LoadFullIndexingActivitySafe(activityRecord, executingUnprocessedActivities, activityFactory);
                     if (activity != null)
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        #endregion
-
-        public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        public override Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = new List<IIndexingActivity>();
-            lock (_db.IndexingActivities)
+            lock (DB.IndexingActivities)
             {
-                var activities = _db.IndexingActivities.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
+                var activities = DB.IndexingActivities.Where(r => gaps.Contains(r.IndexingActivityId)).ToArray();
                 foreach (var activityRecord in activities)
                 {
-                    var activity = LoadFullIndexingActivity(activityRecord, executingUnprocessedActivities, activityFactory);
+                    var activity = LoadFullIndexingActivitySafe(activityRecord, executingUnprocessedActivities, activityFactory);
                     if (activity != null)
                         result.Add(activity);
                 }
             }
-            return result.ToArray();
+
+            return STT.Task.FromResult(result.ToArray());
         }
 
-        public override void RegisterIndexingActivity(IIndexingActivity activity)
+        public override Task<ExecutableIndexingActivitiesResult> LoadExecutableIndexingActivitiesAsync(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, CancellationToken cancellationToken)
         {
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds, cancellationToken);
+            lock (DB.IndexingActivities)
             {
-                var newId = _db.IndexingActivities.Count == 0 ? 1 : _db.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
+                var finishedActivitiyIds = DB.IndexingActivities
+                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
+                    .Select(x => x.IndexingActivityId)
+                    .ToArray();
+                return STT.Task.FromResult(new ExecutableIndexingActivitiesResult
+                {
+                    Activities = activities,
+                    FinishedActivitiyIds = finishedActivitiyIds
+                });
+            }
+        }
 
-                _db.IndexingActivities.Add(new IndexingActivityRecord
+        private IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory,
+            int maxCount, int runningTimeoutInSeconds, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var output = new List<IIndexingActivity>();
+            var recordsToStart = new List<IndexingActivityDoc>();
+            var timeLimit = DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds);
+            lock (DB.IndexingActivities)
+            {
+                foreach (var @new in DB.IndexingActivities
+                    .Where(x => x.RunningState == IndexingActivityRunningState.Waiting ||
+                                (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
+                    .OrderBy(x => x.IndexingActivityId))
+                {
+                    if (!DB.IndexingActivities.Any(old =>
+                        (old.IndexingActivityId < @new.IndexingActivityId) &&
+                        (
+                            (old.RunningState == IndexingActivityRunningState.Waiting ||
+                             old.RunningState == IndexingActivityRunningState.Running) &&
+                            (
+                                @new.NodeId == old.NodeId ||
+                                (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
+                                @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
+                                old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
+                            )
+                        )
+                    ))
+                        recordsToStart.Add(@new);
+                }
+
+                foreach (var record in recordsToStart.Take(maxCount))
+                {
+                    record.RunningState = IndexingActivityRunningState.Running;
+                    record.LockTime = DateTime.UtcNow;
+
+                    var activity = LoadFullIndexingActivitySafe(record, false, activityFactory);
+                    if (activity != null)
+                        output.Add(activity);
+                }
+            }
+
+            return output.ToArray();
+        }
+
+        public override STT.Task RegisterIndexingActivityAsync(IIndexingActivity activity, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
+            {
+                var newId = DB.IndexingActivities.GetNextId();
+
+                DB.IndexingActivities.Insert(new IndexingActivityDoc
                 {
                     IndexingActivityId = newId,
                     ActivityType = activity.ActivityType,
@@ -213,2823 +1137,724 @@ namespace SenseNet.Tests.Implementations
 
                 activity.Id = newId;
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
+        public override STT.Task UpdateIndexingActivityRunningStateAsync(int indexingActivityId, IndexingActivityRunningState runningState, CancellationToken cancellationToken)
         {
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
             {
-                var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
+                var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
                     activity.RunningState = runningState;
             }
+            return STT.Task.CompletedTask;
         }
-        public override void RefreshIndexingActivityLockTime(int[] waitingIds)
+
+        public override STT.Task RefreshIndexingActivityLockTimeAsync(int[] waitingIds, CancellationToken cancellationToken)
         {
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
             {
                 var now = DateTime.UtcNow;
                 foreach (var waitingId in waitingIds)
                 {
-                    var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == waitingId);
+                    var activity = DB.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == waitingId);
                     if (activity != null)
                         activity.LockTime = now;
                 }
             }
+            return STT.Task.CompletedTask;
         }
 
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public override STT.Task DeleteFinishedIndexingActivitiesAsync(CancellationToken cancellationToken)
         {
-            var output = new List<IIndexingActivity>();
-            var recordsToStart = new List<IndexingActivityRecord>();
-            var timeLimit = DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds);
-            lock (_db.IndexingActivities)
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
+                foreach(var existing in DB.IndexingActivities.Where(x => x.RunningState == IndexingActivityRunningState.Done).ToArray())
+                    DB.IndexingActivities.Remove(existing);
+            return STT.Task.CompletedTask;
+        }
+
+        public override STT.Task DeleteAllIndexingActivitiesAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB.IndexingActivities)
             {
-                foreach (var @new in _db.IndexingActivities
-                                        .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
-                                        .OrderBy(x => x.IndexingActivityId))
-                {
-                    if (!_db.IndexingActivities.Any(old =>
-                         (old.IndexingActivityId < @new.IndexingActivityId) &&
-                         (
-                             (old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
-                             (
-                                 @new.NodeId == old.NodeId ||
-                                 (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
-                                 @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
-                                 old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
-                             )
-                         )
-                    ))
-                        recordsToStart.Add(@new);
-                }
-
-                foreach (var record in recordsToStart.Take(maxCount))
-                {
-                    record.RunningState = IndexingActivityRunningState.Running;
-                    record.LockTime = DateTime.UtcNow;
-
-                    var activity = LoadFullIndexingActivity(record, false, activityFactory);
-                    if (activity != null)
-                        output.Add(activity);
-                }
+                DB.IndexingActivities.Clear();
             }
-            return output.ToArray();
+            return STT.Task.CompletedTask;
         }
-        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
-        {
-            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
-            lock (_db.IndexingActivities)
-            {
-                finishedActivitiyIds = _db.IndexingActivities
-                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x => x.IndexingActivityId)
-                    .ToArray();
-            }
-            return activities;
-        }
-        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityRecord activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
-        {
-            var nodeRecord = _db.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
-            var versionRecord = _db.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
-            var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
 
-            activity.Id = activityRecord.IndexingActivityId;
-            activity.ActivityType = activityRecord.ActivityType;
-            activity.CreationDate = activityRecord.CreationDate;
-            activity.RunningState = activityRecord.RunningState;
-            activity.LockTime = activityRecord.LockTime;
-            activity.NodeId = activityRecord.NodeId;
-            activity.VersionId = activityRecord.VersionId;
-            activity.Path = activityRecord.Path;
+        private IIndexingActivity LoadFullIndexingActivitySafe(IndexingActivityDoc activityDoc, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        {
+            var nodeDoc = DB.Nodes.FirstOrDefault(r => r.NodeId == activityDoc.NodeId);
+            var versionDoc = DB.Versions.FirstOrDefault(r => r.VersionId == activityDoc.VersionId);
+            var activity = activityFactory.CreateActivity(activityDoc.ActivityType);
+
+            activity.Id = activityDoc.IndexingActivityId;
+            activity.ActivityType = activityDoc.ActivityType;
+            activity.CreationDate = activityDoc.CreationDate;
+            activity.RunningState = activityDoc.RunningState;
+            activity.LockTime = activityDoc.LockTime;
+            activity.NodeId = activityDoc.NodeId;
+            activity.VersionId = activityDoc.VersionId;
+            activity.Path = activityDoc.Path;
             activity.FromDatabase = true;
             activity.IsUnprocessedActivity = executingUnprocessedActivities;
-            activity.Extension = activityRecord.Extension;
+            activity.Extension = activityDoc.Extension;
 
-            if (versionRecord?.IndexDocument != null && nodeRecord != null)
+            if (versionDoc?.IndexDocument != null && nodeDoc != null)
             {
-                activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
+                activity.IndexDocumentData = new IndexDocumentData(null, versionDoc.IndexDocument)
                 {
-                    NodeTypeId = nodeRecord.NodeTypeId,
+                    NodeTypeId = nodeDoc.NodeTypeId,
                     VersionId = activity.VersionId,
                     NodeId = activity.NodeId,
-                    ParentId = nodeRecord.ParentNodeId,
+                    ParentId = nodeDoc.ParentNodeId,
                     Path = activity.Path,
-                    IsSystem = nodeRecord.IsSystem,
-                    IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
-                    NodeTimestamp = nodeRecord.NodeTimestamp,
-                    VersionTimestamp = versionRecord.VersionTimestamp,
+                    IsSystem = nodeDoc.IsSystem,
+                    IsLastDraft = nodeDoc.LastMinorVersionId == activity.VersionId,
+                    IsLastPublic = versionDoc.Version.Status == VersionStatus.Approved && nodeDoc.LastMajorVersionId == activity.VersionId,
+                    NodeTimestamp = nodeDoc.Timestamp,
+                    VersionTimestamp = versionDoc.Timestamp,
                 };
             }
 
             return activity;
         }
 
-        public override void DeleteFinishedIndexingActivities()
+        /* =============================================================================================== Schema */
+
+        public override Task<RepositorySchemaData> LoadSchemaAsync(CancellationToken cancellationToken)
         {
-            lock (_db.IndexingActivities)
-                _db.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+                return STT.Task.FromResult(DB.Schema.Clone());
         }
+
+        public override SchemaWriter CreateSchemaWriter()
+        {
+            lock (DB)
+            {
+                var newSchema = DB.Schema.Clone();
+                return new InMemorySchemaWriter(newSchema, () =>
+                {
+                    newSchema.Timestamp = DB.Schema.Timestamp + 1L;
+                    DB.Schema = newSchema;
+                });
+            }
+        }
+
+        public override Task<string> StartSchemaUpdateAsync(long schemaTimestamp, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (schemaTimestamp != DB.Schema.Timestamp)
+                    throw new DataException("Storage schema is out of date.");
+                if (DB.SchemaLock != null)
+                    throw new DataException("Schema is locked by someone else.");
+                DB.SchemaLock = Guid.NewGuid().ToString();
+                return STT.Task.FromResult(DB.SchemaLock);
+            }
+        }
+
+        public override Task<long> FinishSchemaUpdateAsync(string schemaLock, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (schemaLock != DB.SchemaLock)
+                    throw new DataException("Schema is locked by someone else.");
+                DB.SchemaLock = null;
+                return STT.Task.FromResult(DB.Schema.Timestamp);
+            }
+        }
+
+        /* =============================================================================================== Logging */
+
+        public override STT.Task WriteAuditEventAsync(AuditEventInfo auditEvent, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var newId = DB.LogEntries.GetNextId();
+
+                DB.LogEntries.Insert(new LogEntryDoc
+                {
+                    LogId = newId,
+                    EventId = auditEvent.EventId,
+                    Category = auditEvent.Category,
+                    Priority = auditEvent.Priority,
+                    Severity = auditEvent.Severity,
+                    Title = auditEvent.Title,
+                    ContentId = auditEvent.ContentId,
+                    ContentPath = auditEvent.ContentPath,
+                    UserName = auditEvent.UserName,
+                    LogDate = auditEvent.Timestamp,
+                    MachineName = auditEvent.MachineName,
+                    AppDomainName = auditEvent.AppDomainName,
+                    ProcessId = auditEvent.ProcessId,
+                    ProcessName = auditEvent.ProcessName,
+                    ThreadName = auditEvent.ThreadName,
+                    Win32ThreadId = auditEvent.ThreadId,
+                    Message = auditEvent.Message,
+                    FormattedMessage = auditEvent.FormattedMessage,
+                });
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override Task<IEnumerable<AuditLogEntry>> LoadLastAuditEventsAsync(int count, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* =============================================================================================== Provider Tools */
 
         public override DateTime RoundDateTime(DateTime d)
         {
             return new DateTime(d.Ticks / 100000 * 100000);
         }
 
-        #region // ====================================================== Tree lock
-
-        protected internal override int AcquireTreeLock(string path)
+        public override bool IsCacheableText(string text)
         {
-            var parentChain = GetParentChain(path);
-            var timeMin = GetObsoleteLimitTime();
+            return text?.Length < DataStore.TextAlternationSizeLimit;
+        }
 
-            if (_db.TreeLocks
-                .Any(t => t.LockedAt > timeMin &&
-                          (parentChain.Contains(t.Path) ||
-                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
+        public override Task<string> GetNameOfLastNodeWithNameBaseAsync(int parentId, string namebase, string extension, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
+            var existingName = DB.Nodes
+                .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
+                .Select(n => n.Name.ToLowerInvariant())
+                .OrderByDescending(GetSuffix)
+                .FirstOrDefault();
+            return STT.Task.FromResult(existingName);
+        }
+        private int GetSuffix(string name)
+        {
+            var p0 = name.LastIndexOf("(", StringComparison.Ordinal);
+            if (p0 < 0)
                 return 0;
+            var p1 = name.IndexOf(")", p0, StringComparison.Ordinal);
+            if (p1 < 0)
+                return 0;
+            var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
+            var order = int.Parse(suffix);
+            return order;
+        }
 
-            var newTreeLockId = _db.TreeLocks.Count == 0 ? 1 : _db.TreeLocks.Max(t => t.TreeLockId) + 1;
-            _db.TreeLocks.Add(new TreeLockRow
+        public override Task<long> GetTreeSizeAsync(string path, bool includeChildren, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
             {
-                TreeLockId = newTreeLockId,
-                Path = path,
-                LockedAt = DateTime.Now
+                var collection = includeChildren
+                    ? DB.Nodes
+                        .Where(n => n.Path == path || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase))
+                    : DB.Nodes
+                        .Where(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(n => DB.Nodes.Where(n1 => n1.ParentNodeId == n.NodeId));
+
+                var result = collection
+                    .SelectMany(n => DB.Versions.Where(v => v.NodeId == n.NodeId))
+                    .SelectMany(v => DB.BinaryProperties.Where(b => b.VersionId == v.VersionId))
+                    .SelectMany(b => DB.Files.Where(f => f.FileId == b.FileId))
+                    .Select(f => f.Size).Sum();
+
+                return STT.Task.FromResult(result);
+            }
+        }
+
+        public override Task<int> GetNodeCountAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.Nodes.Count);
+
+                var count = DB.Nodes.Count(x => x.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase)
+                    || x.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+                return STT.Task.FromResult(count);
+            }
+        }
+
+        public override Task<int> GetVersionCountAsync(string path, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                    return STT.Task.FromResult(DB.Versions.Count);
+
+                var count = DB.Nodes.Join(DB.Versions, n => n.NodeId, v => v.NodeId,
+                        (node, version) => new { Node = node, Version = version })
+                    .Count(
+                        x =>
+                            x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
+                                StringComparison.InvariantCultureIgnoreCase)
+                            || x.Node.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+                return STT.Task.FromResult(count);
+            }
+        }
+
+        /* =============================================================================================== Installation */
+
+        public override STT.Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                DB.Schema = data.Schema.Clone();
+                ContentTypeManager.Reset();
+
+                foreach (var node in data.Nodes)
+                {
+                    var versionId = node.LastMajorVersionId;
+                    if (versionId != node.LastMinorVersionId)
+                        throw new NotSupportedException("Cannot install a node with more than one versions.");
+                    var version = data.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                    if (version == null)
+                        throw new NotSupportedException("Cannot install a node without a versions.");
+                    var props = data.DynamicProperties.FirstOrDefault(x => x.VersionId == versionId);
+                    InstallNodeSafe(node, version, props);
+                }
+                ContentTypeManager.Reset();
+            }
+            return STT.Task.CompletedTask;
+        }
+        private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData)
+        {
+            DB.Nodes.Insert(new NodeDoc
+            {
+                NodeId = nData.NodeId,
+                NodeTypeId = nData.NodeTypeId,
+                ParentNodeId = nData.ParentNodeId,
+                Name = nData.Name,
+                Path = nData.Path,
+                LastMinorVersionId = nData.LastMinorVersionId,
+                LastMajorVersionId = nData.LastMajorVersionId,
+
+                ContentListTypeId = nData.ContentListTypeId,
+                ContentListId = nData.ContentListId,
+                CreatingInProgress = nData.CreatingInProgress,
+                IsDeleted = nData.IsDeleted,
+                Index = nData.Index,
+                Locked = nData.Locked,
+                LockedById = nData.LockedById,
+                ETag = nData.ETag,
+                LockType = nData.LockType,
+                LockTimeout = nData.LockTimeout,
+                LockDate = nData.LockDate == default(DateTime)  ? new DateTime(1900, 1, 1): nData.LockDate,
+                LockToken = nData.LockToken ?? string.Empty,
+                LastLockUpdate = nData.LastLockUpdate == default(DateTime) ? new DateTime(1900, 1, 1) : nData.LastLockUpdate,
+                CreationDate = nData.CreationDate == default(DateTime) ? DateTime.UtcNow : nData.CreationDate,
+                CreatedById = nData.CreatedById == 0 ? 1 : nData.CreatedById,
+                ModificationDate = nData.ModificationDate == default(DateTime) ? DateTime.UtcNow : nData.ModificationDate,
+                ModifiedById = nData.ModifiedById == 0 ? 1 : nData.ModifiedById,
+                DisplayName = nData.DisplayName,
+                IsSystem = nData.IsSystem,
+                OwnerId = nData.OwnerId,
+                SavingState = nData.SavingState
             });
 
-            return newTreeLockId;
-        }
-        protected internal override bool IsTreeLocked(string path)
-        {
-            var parentChain = GetParentChain(path);
-            var timeMin = GetObsoleteLimitTime();
+            var dynamicProperties = dData?.DynamicProperties?.ToDictionary(x => x.Key.Name, x => x.Value)
+                ?? new Dictionary<string, object>();
+            if(dData?.ContentListProperties != null)
+                foreach (var contentListProperty in dData.ContentListProperties)
+                    dynamicProperties.Add(contentListProperty.Key.Name, contentListProperty.Value);
 
-            return _db.TreeLocks
-                .Any(t => t.LockedAt > timeMin &&
-                          (parentChain.Contains(t.Path) ||
-                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
-        }
-        protected internal override Dictionary<int, string> LoadAllTreeLocks()
-        {
-            return _db.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
-        }
-
-        private string[] GetParentChain(string path)
-        {
-            var paths = path.Split(RepositoryPath.PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
-            paths[0] = "/" + paths[0];
-            for (int i = 1; i < paths.Length; i++)
-                paths[i] = paths[i - 1] + "/" + paths[i];
-            return paths.Reverse().ToArray();
-        }
-        private DateTime GetObsoleteLimitTime()
-        {
-            return DateTime.Now.AddHours(-8.0);
-        }
-
-        #endregion
-        
-        #region NOT IMPLEMENTED
-
-        protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void CopyFromStream(int versionId, string token, Stream input)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static readonly string MagicCommandText = "Select something from anywhere";
-        public override IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
-        {
-            const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
-            if (commandText.StartsWith(getContentPathsWhereTheyAreAllowedChildren))
+            DB.Versions.Insert(new VersionDoc
             {
-                var names = commandText
-                    .Substring(0, commandText.IndexOf("]", StringComparison.Ordinal))
-                    .Replace(getContentPathsWhereTheyAreAllowedChildren, "")
-                    .Split(',')
-                    .Select(s=>s.Trim())
-                    .ToArray();
+                VersionId = vData.VersionId,
+                NodeId = vData.NodeId,
+                Version = vData.Version,
+                CreationDate = vData.CreationDate == default(DateTime) ? DateTime.UtcNow : vData.CreationDate,
+                CreatedById = vData.CreatedById == 0 ? 1 : vData.CreatedById,
+                ModificationDate = vData.ModificationDate == default(DateTime) ? DateTime.UtcNow : vData.ModificationDate,
+                ModifiedById = vData.ModifiedById == 0 ? 1 : vData.ModifiedById,
+                IndexDocument = null,
+                ChangedData = vData.ChangedData,
+                DynamicProperties = dynamicProperties
+            });
 
-                return new InMemoryDataProcedure<Tuple<string, string>>(() =>
+            if (dData?.LongTextProperties != null)
+            {
+                foreach (var longTextPropItem in dData.LongTextProperties)
                 {
-                    var propTypeId = ActiveSchema.PropertyTypes["AllowedChildTypes"].Id;
-                    var versionsAndValues = _db.TextProperties
-                        .Where(t => t.PropertyTypeId == propTypeId && t.Value != null &&t.Value.Split(' ').Intersect(names).Any())
-                        .Select(t => new Tuple<string, string>(
-                            _db.Nodes.First(n => n.NodeId ==
-                                _db.Versions.First(v => v.VersionId == t.VersionId).NodeId).Path,
-                            t.Value));
-                    return versionsAndValues;
+                    var propertyType = longTextPropItem.Key;
+                    var value = longTextPropItem.Value;
+
+                    DB.LongTextProperties.Insert(new LongTextPropertyDoc
+                    {
+                        LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                        VersionId = dData.VersionId,
+                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id,
+                        Length = value.Length,
+                        Value = value
+                    });
+                }
+            }
+
+            if (dData?.BinaryProperties != null)
+            {
+                foreach (var binPropItem in dData.BinaryProperties)
+                {
+                    var propertyType = binPropItem.Key;
+                    var binProp = binPropItem.Value;
+
+                    DB.BinaryProperties.Insert(new BinaryPropertyDoc
+                    {
+                        BinaryPropertyId = binProp.Id,
+                        FileId = binProp.FileId,
+                        VersionId = dData.VersionId,
+                        PropertyTypeId = ActiveSchema.PropertyTypes[propertyType.Name].Id
+                    });
+
+                    var blobProviderName = binProp.BlobProviderName;
+                    if (blobProviderName == null && binProp.BlobProviderData != null
+                        && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                    {
+                        //blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
+                        //    ? typeof(ContentTypeStringBlobProvider).FullName
+                        //    : typeof(FileSystemReaderBlobProvider).FullName;
+                        blobProviderName = typeof(InitialTestDataBlobProvider).FullName;
+                    }
+
+                    DB.Files.Insert(new FileDoc
+                    {
+                        FileId = binProp.FileId,
+                        FileNameWithoutExtension = binProp.FileName.FileNameWithoutExtension,
+                        Extension = "." + binProp.FileName.Extension,
+                        ContentType = binProp.ContentType,
+                        Size = binProp.Size,
+                        Timestamp = binProp.Timestamp,
+                        BlobProvider = blobProviderName,
+                        BlobProviderData = binProp.BlobProviderData,
+                    });
+                }
+            }
+        }
+
+        public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var result = DB.Nodes
+                    .OrderBy(n => n.Path)
+                    .Select(n => new EntityTreeNodeData
+                    {
+                        Id = n.NodeId,
+                        ParentId = n.ParentNodeId,
+                        OwnerId = n.OwnerId
+                    })
+                    .ToArray();
+                return STT.Task.FromResult((IEnumerable<EntityTreeNodeData>)result);
+            }
+        }
+
+        /* =============================================================================================== Tools */
+
+        public override bool IsDeadlockException(Exception exception)
+        {
+            return exception.Message == "Transaction was deadlocked.";
+        }
+
+        private void CopyLongTextPropertiesSafe(int sourceVersionId, int targetVersionId)
+        {
+            foreach (var existing in DB.LongTextProperties.Where(x => x.VersionId == targetVersionId).ToArray())
+                DB.LongTextProperties.Remove(existing);
+
+            foreach (var src in DB.LongTextProperties.Where(x => x.VersionId == sourceVersionId).ToArray())
+            {
+                DB.LongTextProperties.Insert(new LongTextPropertyDoc
+                {
+                    LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                    VersionId = targetVersionId,
+                    PropertyTypeId = src.PropertyTypeId,
+                    Length = src.Length,
+                    Value = src.Value
                 });
             }
-
-            if (commandText == MagicCommandText)
+        }
+        private void SaveLongTextPropertySafe(int versionId, int propertyTypeId, string value)
+        {
+            var existing = DB.LongTextProperties
+                .FirstOrDefault(x => x.VersionId == versionId && x.PropertyTypeId == propertyTypeId);
+            if (existing != null)
+                DB.LongTextProperties.Remove(existing);
+            if (value == null)
+                return;
+            DB.LongTextProperties.Insert(new LongTextPropertyDoc
             {
-                return new InMemoryDataProcedure<string>(() => new string[0]);
-            }
-
-            throw new SnNotSupportedException();
+                LongTextPropertyId = DB.LongTextProperties.GetNextId(),
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                Length = value.Length,
+                Value = value
+            });
+        }
+        private void SaveBinaryPropertySafe(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode, bool isNewProperty)
+        {
+            if (value == null || value.IsEmpty)
+                BlobStorage.DeleteBinaryPropertyAsync(versionId, propertyTypeId, null).GetAwaiter().GetResult();
+            else if (value.Id == 0 || isNewProperty/* || savingAlgorithm != SavingAlgorithm.UpdateSameVersion*/)
+                BlobStorage.InsertBinaryPropertyAsync(value, versionId, propertyTypeId, isNewNode, null).GetAwaiter().GetResult();
+            else
+                BlobStorage.UpdateBinaryPropertyAsync(value, null).GetAwaiter().GetResult();
         }
 
-        protected internal override INodeWriter CreateNodeWriter()
+        private (int, int) LoadLastVersionIdsSafe(int nodeId)
         {
-            return new InMemoryNodeWriter(_db);
-        }
-
-        protected internal override SchemaWriter CreateSchemaWriter()
-        {
-            return new InMemorySchemaWriter(_db.Schema);
-        }
-
-        protected internal override DataOperationResult DeleteNodeTree(int nodeId)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp)
-        {
-            var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-            if (nodeRec == null)
-                return DataOperationResult.Successful;
-
-            var path = nodeRec.Path;
-            var nodeIds = _db.Nodes
-                .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
-                .Select(n => n.NodeId)
-                .ToArray();
-            var versionIds = _db.Versions
-                .Where(v => nodeIds.Contains(v.VersionId))
-                .Select(v => v.VersionId)
-                .ToArray();
-            var fileIds = _db.BinaryProperties
-                .Where(b => versionIds.Contains(b.VersionId))
-                .Select(b => b.FileId)
-                .ToArray();
-
-            _db.BinaryProperties.RemoveAll(r => versionIds.Contains(r.VersionId));
-            _db.Files.RemoveAll(r => fileIds.Contains(r.FileId));
-            _db.TextProperties.RemoveAll(r => versionIds.Contains(r.VersionId));
-            _db.Versions.RemoveAll(r => versionIds.Contains(r.VersionId));
-            _db.Nodes.RemoveAll(r => nodeIds.Contains(r.NodeId));
-
-            return DataOperationResult.Successful;
-        }
-
-        protected internal override void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
-        {
-            /*
-            DECLARE @NodeId int
-            SELECT @NodeId = NodeId FROM Versions WHERE VersionId = @VersionId
-            DELETE FROM BinaryProperties WHERE VersionId = @VersionId
-            DELETE FROM TextPropertiesNText WHERE VersionId = @VersionId
-            DELETE FROM TextPropertiesNVarchar WHERE VersionId = @VersionId
-            DELETE FROM ReferenceProperties WHERE VersionId = @VersionId
-            DELETE FROM FlatProperties WHERE VersionId = @VersionId
-            UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
-            DELETE FROM Versions WHERE VersionId = @VersionId
-            EXEC proc_Node_SetLastVersion @NodeId = @NodeId
-            SELECT [Timestamp] as NodeTimestamp, LastMajorVersionId, LastMinorVersionId FROM Nodes WHERE NodeId = @NodeId
-            */
-            lastMajorVersionId = lastMinorVersionId = 0;
-
-            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
-            if (versionRow == null)
-                return;
-            var nodeRow = _db.Nodes.FirstOrDefault(r => r.NodeId == versionRow.NodeId);
-
-            _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId);
-            _db.TextProperties.RemoveAll(r => r.VersionId == versionId);
-            _db.ReferenceProperties.RemoveAll(r => r.VersionId == versionId);
-            _db.FlatProperties.RemoveAll(r => r.VersionId == versionId);
-            _db.Versions.Remove(versionRow);
-
-            if (nodeRow == null)
-                return;
-
-            SetLastVersionSlots(_db, nodeRow.NodeId, out lastMajorVersionId, out lastMinorVersionId, out long nodeTimeStamp);
-            nodeData.NodeTimestamp = nodeTimeStamp;
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected override string GetAppModelScriptPrivate(IEnumerable<string> paths, bool all, bool resolveChildren)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override IEnumerable<int> GetChildrenIdentfiers(int nodeId)
-        {
-            return _db.Nodes.Where(n => n.ParentNodeId == nodeId).Select(n => n.NodeId).ToArray();
-        }
-
-        protected internal override List<ContentListType> GetContentListTypesInTree(string path)
-        {
-            return _db.Nodes
-                .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
-                        n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
-                .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
-                .ToList();
-        }
-
-        protected internal override IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
-        {
-            return _db.Versions
-                .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
-                .Select(v => v.NodeId)
-                .ToArray();
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override IndexDocumentData GetIndexDocumentDataFromReader(DbDataReader reader)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
-        {
-            return _db.Versions
+            var allVersions = DB.Versions
                 .Where(v => v.NodeId == nodeId)
-                .Select(v => new NodeHead.NodeVersion(v.Version, v.VersionId))
+                .OrderBy(v => v.Version.Major)
+                .ThenBy(v => v.Version.Minor)
+                .ThenBy(v => v.Version.Status)
                 .ToArray();
-        }
-        
-        protected override PropertyMapping GetPropertyMappingInternal(PropertyType propType)
-        {
-            var storageSchema = PropertyStorageSchema.SingleColumn;
-            string tableName;
-            string columnName;
-            bool usePageIndex;
-            var page = 0;
+            var lastMinorVersion = allVersions.LastOrDefault();
+            var lastMinorVersionId = lastMinorVersion?.VersionId ?? 0;
 
-            switch (propType.DataType)
+            var majorVersions = allVersions
+                .Where(v => v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
+                .ToArray();
+
+            var lastMajorVersion = majorVersions.LastOrDefault();
+            var lastMajorVersionId = lastMajorVersion?.VersionId ?? 0;
+
+            return (lastMajorVersionId, lastMinorVersionId);
+        }
+
+        private NodeDoc CreateNodeDocSafe(NodeHeadData nodeHeadData)
+        {
+            return new NodeDoc
             {
-                case DataType.String:
-                    usePageIndex = true;
-                    tableName = "FlatProperties";
-                    columnName = SqlProvider.StringMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
-                    break;
-                case DataType.Text:
-                    usePageIndex = false;
-                    tableName = "TextPropertiesNVarchar, TextPropertiesNText";
-                    columnName = "Value";
-                    storageSchema = PropertyStorageSchema.MultiTable;
-                    break;
-                case DataType.Int:
-                    usePageIndex = true;
-                    tableName = "FlatProperties";
-                    columnName = SqlProvider.IntMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
-                    break;
-                case DataType.Currency:
-                    usePageIndex = true;
-                    tableName = "FlatProperties";
-                    columnName = SqlProvider.CurrencyMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
-                    break;
-                case DataType.DateTime:
-                    usePageIndex = true;
-                    tableName = "FlatProperties";
-                    columnName = SqlProvider.DateTimeMappingPrefix + GetColumnIndex(propType.DataType, propType.Mapping, out page);
-                    break;
-                case DataType.Binary:
-                    usePageIndex = false;
-                    tableName = "BinaryProperties";
-                    columnName = "ContentType, FileNameWithoutExtension, Extension, Size, Stream";
-                    storageSchema = PropertyStorageSchema.MultiColumn;
-                    break;
-                case DataType.Reference:
-                    usePageIndex = false;
-                    tableName = "ReferenceProperties";
-                    columnName = "ReferredNodeId";
-                    break;
-                default:
-                    throw new NotSupportedException("Unknown DataType" + propType.DataType);
-            }
-            return new PropertyMapping
-            {
-                StorageSchema = storageSchema,
-                TableName = tableName,
-                ColumnName = columnName,
-                PageIndex = page,
-                UsePageIndex = usePageIndex
+                NodeId = nodeHeadData.NodeId,
+                NodeTypeId = nodeHeadData.NodeTypeId,
+                ContentListTypeId = nodeHeadData.ContentListTypeId,
+                ContentListId = nodeHeadData.ContentListId,
+                CreatingInProgress = nodeHeadData.CreatingInProgress,
+                IsDeleted = nodeHeadData.IsDeleted,
+                //IsInherited = nodeHeadData.???,
+                ParentNodeId = nodeHeadData.ParentNodeId,
+                Name = nodeHeadData.Name,
+                Path = nodeHeadData.Path,
+                Index = nodeHeadData.Index,
+                Locked = nodeHeadData.Locked,
+                LockedById = nodeHeadData.LockedById,
+                ETag = nodeHeadData.ETag,
+                LockType = nodeHeadData.LockType,
+                LockTimeout = nodeHeadData.LockTimeout,
+                LockDate = nodeHeadData.LockDate,
+                LockToken = nodeHeadData.LockToken,
+                LastLockUpdate = nodeHeadData.LastLockUpdate,
+                //LastMinorVersionId will be set later.
+                //LastMajorVersionId will be set later.
+                CreationDate = nodeHeadData.CreationDate,
+                CreatedById = nodeHeadData.CreatedById,
+                ModificationDate = nodeHeadData.ModificationDate,
+                ModifiedById = nodeHeadData.ModifiedById,
+                DisplayName = nodeHeadData.DisplayName,
+                IsSystem = nodeHeadData.IsSystem,
+                OwnerId = nodeHeadData.OwnerId,
+                SavingState = nodeHeadData.SavingState,
+                // Timestamp handled by the new instance itself.
             };
         }
-        private static int GetColumnIndex(DataType dataType, int mapping, out int page)
+        private VersionDoc CreateVersionDocSafe(VersionData versionData, DynamicPropertyData dynamicData)
         {
-            int pageSize;
+            // Clone property values
+            var dynamicProperties = new Dictionary<string, object>();
+            foreach (var item in dynamicData.DynamicProperties)
+            {
+                var propertyType = item.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
+            }
+            foreach (var item in dynamicData.ContentListProperties)
+            {
+                var propertyType = item.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, dataType));
+            }
+
+            foreach (var item in dynamicData.ReferenceProperties)
+            {
+                var propertyType = item.Key;
+                if (EmptyReferencesFilterSafe(propertyType, item.Value))
+                    dynamicProperties.Add(propertyType.Name, GetCloneSafe(item.Value, propertyType.DataType));
+            }
+
+            return new VersionDoc
+            {
+                VersionId = versionData.VersionId,
+                NodeId = versionData.NodeId,
+                Version = versionData.Version.Clone(),
+                CreationDate = versionData.CreationDate,
+                CreatedById = versionData.CreatedById,
+                ModificationDate = versionData.ModificationDate,
+                ModifiedById = versionData.ModifiedById,
+                ChangedData = null, //TODO: Set clone of original
+                DynamicProperties = dynamicProperties,
+                // IndexDocument will be set later.
+                // Timestamp handled by the new instance itself.
+            };
+        }
+        private void UpdateVersionDocSafe(VersionDoc versionDoc, VersionData versionData, DynamicPropertyData dynamicData)
+        {
+            versionDoc.NodeId = versionData.NodeId;
+            versionDoc.Version = versionData.Version.Clone();
+            versionDoc.CreationDate = versionData.CreationDate;
+            versionDoc.CreatedById = versionData.CreatedById;
+            versionDoc.ModificationDate = versionData.ModificationDate;
+            versionDoc.ModifiedById = versionData.ModifiedById;
+            versionDoc.ChangedData = null; //TODO: Set clone of original
+
+            var target = versionDoc.DynamicProperties;
+            foreach (var sourceItem in dynamicData.DynamicProperties)
+            {
+                var propertyType = sourceItem.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                var clone = GetCloneSafe(sourceItem.Value, dataType);
+                target[propertyType.Name] = clone;
+            }
+            foreach (var sourceItem in dynamicData.ContentListProperties)
+            {
+                var propertyType = sourceItem.Key;
+                var dataType = propertyType.DataType;
+                if (dataType == DataType.Text || dataType == DataType.Binary || dataType == DataType.Reference)
+                    // Handled by higher level
+                    continue;
+                var clone = GetCloneSafe(sourceItem.Value, dataType);
+                target[propertyType.Name] = clone;
+            }
+            foreach (var sourceItem in dynamicData.ReferenceProperties)
+            {
+                var propertyType = sourceItem.Key;
+                var dataType = propertyType.DataType;
+                var clone = GetCloneSafe(sourceItem.Value, dataType);
+                if (dataType == DataType.Reference)
+                {
+                    // Remove empty references
+                    if (!((IEnumerable<int>)clone).Any())
+                    {
+                        target.Remove(propertyType.Name);
+                        continue;
+                    }
+                }
+                target[propertyType.Name] = clone;
+            }
+        }
+        private void DeleteVersionsSafe(IEnumerable<int> versionIdsToDelete)
+        {
+            var versionIds = versionIdsToDelete as int[] ?? versionIdsToDelete.ToArray();
+
+            BlobStorage.DeleteBinaryPropertiesAsync(versionIds, null).GetAwaiter().GetResult();
+
+            foreach (var versionId in versionIds)
+            {
+                foreach (var longTextPropId in DB.LongTextProperties
+                    .Where(x => x.VersionId == versionId)
+                    .Select(x => x.LongTextPropertyId)
+                    .ToArray())
+                {
+                    var item = DB.LongTextProperties.FirstOrDefault(x => x.LongTextPropertyId == longTextPropId);
+                    DB.LongTextProperties.Remove(item);
+                }
+                var versionItem = DB.Versions.FirstOrDefault(x => x.VersionId == versionId);
+                DB.Versions.Remove(versionItem);
+            }
+        }
+        private bool EmptyReferencesFilterSafe(PropertyType propertyType, object value)
+        {
+            if (propertyType.DataType != DataType.Reference)
+                return true;
+            if (value == null)
+                return false;
+            return ((IEnumerable<int>)value).Any();
+        }
+
+        private VersionDoc CloneVersionDocSafe(VersionDoc source)
+        {
+            return new VersionDoc
+            {
+                VersionId = source.VersionId,
+                NodeId = source.NodeId,
+                Version = source.Version.Clone(),
+                CreationDate = source.CreationDate,
+                CreatedById = source.CreatedById,
+                ModificationDate = source.ModificationDate,
+                ModifiedById = source.ModifiedById,
+                ChangedData = source.ChangedData,
+                DynamicProperties = CloneDynamicPropertiesSafe(source.DynamicProperties),
+                IndexDocument = source.IndexDocument
+                // Timestamp handled by the new instance itself.
+            };
+        }
+        private Dictionary<string, object> CloneDynamicPropertiesSafe(Dictionary<string, object> source)
+        {
+            return source.ToDictionary(x => x.Key, x => GetCloneSafe(x.Value, PropertyType.GetByName(x.Key).DataType));
+        }
+        private object GetCloneSafe(object value, DataType dataType)
+        {
+            if (value == null)
+                return null;
+
             switch (dataType)
             {
-                case DataType.String: pageSize = SqlProvider.StringPageSize; break;
-                case DataType.Int: pageSize = SqlProvider.IntPageSize; break;
-                case DataType.DateTime: pageSize = SqlProvider.DateTimePageSize; break;
-                case DataType.Currency: pageSize = SqlProvider.CurrencyPageSize; break;
+                case DataType.String:
+                case DataType.Text:
+                    return new string(value.ToString().ToCharArray());
+                case DataType.Int:
+                    return (int)value;
+                case DataType.Currency:
+                    return (decimal)value;
+                case DataType.DateTime:
+                    return new DateTime(((DateTime)value).Ticks);
+                case DataType.Binary:
+                    return CloneBinaryPropertySafe((BinaryDataValue)value);
+                case DataType.Reference:
+                    return ((IEnumerable<int>)value).ToList();
                 default:
-                    page = 0;
-                    return 0;
+                    throw new ArgumentOutOfRangeException();
             }
-
-            page = mapping / pageSize;
-            int index = mapping % pageSize;
-            return index + 1;
         }
-
-        #region NOT IMPLEMENTED
-        protected internal override long GetTreeSize(string path, bool includeChildren)
+        private BinaryDataValue CloneBinaryPropertySafe(BinaryDataValue original)
         {
-            throw new NotImplementedException();
-        }
-
-        protected internal override VersionNumber[] GetVersionNumbers(string path)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
-        {
-            var versions = _db.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
-            return versions;
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override bool HasChild(int nodeId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void InstallDefaultSecurityStructure()
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-        
-        protected internal override int InstanceCount(int[] nodeTypeIds)
-        {
-            return _db.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
-        }
-
-        protected internal override bool IsCacheableText(string text)
-        {
-            return false;
-        }
-
-        protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
-        {
-            return BlobStorage.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override byte[] LoadBinaryFragment(int fileId, long position, int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-        protected internal override BinaryDataValue LoadBinaryPropertyValue(int versionId, int propertyTypeId)
-        {
-            //ALTER PROCEDURE [dbo].[proc_BinaryProperty_LoadValue]
-            //	@VersionId int,
-            //	@PropertyTypeId int
-            //AS
-            //BEGIN
-            //	SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
-            //		F.Extension, F.[Size], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp], F.[BlobProvider], F.[BlobProviderData] 
-            //	FROM dbo.BinaryProperties B
-            //		JOIN dbo.Files F ON B.FileId = F.FileId
-            //	WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
-            //END
-
-            var binRec = _db.BinaryProperties
-                .FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
-            if (binRec == null)
-                return null;
-            var fileRec = _db.Files.FirstOrDefault(f => f.FileId == binRec.FileId);
-            if (fileRec == null)
-                return null;
-
-            string ext = fileRec.Extension ?? string.Empty;
-            if (ext.Length != 0)
-                ext = ext.Remove(0, 1); // Remove dot from the start if extension is not empty
-            string fn = fileRec.FileNameWithoutExtension ?? string.Empty;
-
             return new BinaryDataValue
             {
-                Id = binRec.BinaryPropertyId,
-                FileId = binRec.FileId,
-                Checksum = null, // not supported
-                FileName = new BinaryFileName(fn, ext),
-                ContentType = fileRec.ContentType,
-                Size = fileRec.Size,
-                Timestamp = 0L // not supported
+                Id = original.Id,
+                Stream = CloneStreamSafe(original.Stream),
+                FileId = original.FileId,
+                Size = original.Size,
+                FileName = original.FileName,
+                ContentType = original.ContentType,
+                Checksum = original.Checksum,
+                Timestamp = original.Timestamp,
+                BlobProviderName = original.BlobProviderName,
+                BlobProviderData = original.BlobProviderData,
             };
         }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override IEnumerable<NodeType> LoadChildTypesToAllow(int sourceNodeId)
+        private Stream CloneStreamSafe(Stream original)
         {
-            var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
-            if (sourceNode == null)
-                throw new DataException("Source node does not exist.");
-
-            var typesToAllow = new List<int> { sourceNode.NodeTypeId };
-            var folderTypeId = NodeTypeManager.Current.NodeTypes["Folder"]?.Id ?? 0;
-            var pageTypeId = NodeTypeManager.Current.NodeTypes["Page"]?.Id ?? 0;
-
-            // Recursive method for collecting child types in a subtree. Only calls itself
-            // on children if the child is a Folder or a Page, because those types are
-            // irrelevant in terms of the allowed child types feature.
-            void AddChildTypes(NodeRecord node, List<int> typeIds)
-            {
-                var children = _db.Nodes.Where(n => n.ParentNodeId == node.NodeId);
-
-                foreach (var childNode in children)
-                {
-                    if (!typeIds.Contains(childNode.NodeTypeId))
-                        typeIds.Add(childNode.NodeTypeId);
-
-                    // recursion: in case of folders and pages continue with the children
-                    if (childNode.NodeTypeId == folderTypeId || childNode.NodeTypeId == pageTypeId)
-                    {
-                        AddChildTypes(childNode, typeIds);
-                    }
-                }
-            }
-
-            AddChildTypes(sourceNode, typesToAllow);
-
-            return typesToAllow.Distinct().Select(ntid => NodeTypeManager.Current.NodeTypes.Single(nt => nt.Id == ntid)).ToArray();
-        }
-        #endregion
-
-        protected internal override IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
-        {
-            return versionId.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
-        }
-
-        protected internal override IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
-        {
-            var version = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
-            if (version == null)
-                return null;
-            var node = _db.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
-            if (node == null)
-                return null;
-
-            var approved = version.Version.Status == VersionStatus.Approved;
-            var isLastMajor = node.LastMajorVersionId == versionId;
-
-            var bytes = version.IndexDocument ?? new byte[0];
-
-            return new IndexDocumentData(null, bytes)
-            {
-                NodeTypeId = node.NodeTypeId,
-                VersionId = versionId,
-                NodeId = node.NodeId,
-                ParentId = node.ParentNodeId,
-                Path = node.Path,
-                IsSystem = node.IsSystem,
-                IsLastDraft = node.LastMinorVersionId == versionId,
-                IsLastPublic = approved && isLastMajor,
-                NodeTimestamp = node.NodeTimestamp,
-                VersionTimestamp = version.VersionTimestamp,
-            };
-        }
-        private IndexDocumentData CreateIndexDocumentData(NodeRecord node, VersionRecord version)
-        {
-            var approved = version.Version.Status == VersionStatus.Approved;
-            var isLastMajor = node.LastMajorVersionId == version.VersionId;
-
-            var bytes = version.IndexDocument ?? new byte[0];
-
-            return new IndexDocumentData(null, bytes)
-            {
-                NodeTypeId = node.NodeTypeId,
-                VersionId = version.VersionId,
-                NodeId = node.NodeId,
-                ParentId = node.ParentNodeId,
-                Path = node.Path,
-                IsSystem = node.IsSystem,
-                IsLastDraft = node.LastMinorVersionId == version.VersionId,
-                IsLastPublic = approved && isLastMajor,
-                NodeTimestamp = node.NodeTimestamp,
-                VersionTimestamp = version.VersionTimestamp,
-            };
-        }
-
-        protected internal override IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
-        {
-            var result = new List<IndexDocumentData>();
-            var pathExt = path + "/";
-
-            foreach (var node in _db.Nodes.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
-                                                      n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
-                foreach (var version in _db.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
-                    result.Add(CreateIndexDocumentData(node, version));
-
-            return result;
-        }
-
-        protected internal override NodeHead LoadNodeHead(int nodeId)
-        {
-            return CreateNodeHead(_db.Nodes.FirstOrDefault(r => r.NodeId == nodeId));
-        }
-        protected internal override NodeHead LoadNodeHead(string path)
-        {
-            return
-                CreateNodeHead(
-                    _db.Nodes.FirstOrDefault(r => string.Equals(r.Path, path, StringComparison.InvariantCultureIgnoreCase)));
-        }
-        private NodeHead CreateNodeHead(NodeRecord r)
-        {
-            return r == null
-                ? null
-                : new NodeHead(r.NodeId, r.Name, r.DisplayName, r.Path, r.ParentNodeId,
-                    r.NodeTypeId, r.ContentListTypeId, r.ContentListId, r.NodeCreationDate,
-                    r.NodeModificationDate, r.LastMinorVersionId, r.LastMajorVersionId, r.OwnerId,
-                    r.NodeCreatedById, r.NodeModifiedById, r.Index, r.LockedById, r.NodeTimestamp);
-        }
-
-        protected internal override NodeHead LoadNodeHeadByVersionId(int versionId)
-        {
-            var version = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
-            if (version == null)
-                return null;
-            return LoadNodeHead(version.NodeId);
-        }
-
-        protected internal override IEnumerable<NodeHead> LoadNodeHeads(IEnumerable<int> heads)
-        {
-            return _db.Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
-        }
-
-        protected internal override void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId)
-        {
-            foreach (var versionId in buildersByVersionId.Keys)
-            {
-                var version = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
-                if (version == null)
-                    continue;
-                var node = _db.Nodes.FirstOrDefault(r => r.NodeId == version.NodeId);
-                if (node == null)
-                    continue;
-
-                var builder = buildersByVersionId[versionId];
-                builder.SetCoreAttributes(node.NodeId, node.NodeTypeId, node.ContentListId, node.ContentListTypeId,
-                    node.CreatingInProgress, node.IsDeleted, node.ParentNodeId, node.Name, node.DisplayName, node.Path,
-                    node.Index, node.Locked, node.LockedById, node.ETag, node.LockType, node.LockTimeout, node.LockDate,
-                    node.LockToken, node.LastLockUpdate, versionId, version.Version, version.CreationDate,
-                    version.CreatedById, version.ModificationDate, version.ModifiedById, node.IsSystem, node.OwnerId,
-                    node.SavingState, version.ChangedData, node.NodeCreationDate, node.NodeCreatedById,
-                    node.NodeModificationDate, node.NodeModifiedById, node.NodeTimestamp, version.VersionTimestamp);
-
-                foreach (var flatPropertRow in _db.FlatProperties.Where(r => r.VersionId == versionId))
-                {
-                    foreach (PropertyType pt in builder.Token.AllPropertyTypes)
-                    {
-                        if (GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out var value))
-                            builder.AddDynamicProperty(pt, value);
-                    }
-                }
-
-                var referenceCollector = new Dictionary<int, List<int>>();
-                foreach (var row in _db.ReferenceProperties.Where(r => r.VersionId == versionId))
-                {
-                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out var refList))
-                        referenceCollector.Add(row.PropertyTypeId, refList = new List<int>());
-                    refList.Add(row.ReferredNodeId);
-                }
-                foreach (var item in referenceCollector)
-                    builder.AddDynamicProperty(item.Key, item.Value);
-            }
-
-            foreach (var builder in buildersByVersionId.Values)
-                builder.Finish();
-        }
-        private static bool GetDataSlot(FlatPropertyRow row, int queryedPage, PropertyType pt, out object value)
-        {
-            value = null;
-            int pageSize;
-            switch (pt.DataType)
-            {
-                case DataType.String:
-                    pageSize = SqlProvider.StringPageSize;
-                    break;
-                case DataType.Int:
-                    pageSize = SqlProvider.IntPageSize;
-                    break;
-                case DataType.DateTime:
-                    pageSize = SqlProvider.DateTimePageSize;
-                    break;
-                case DataType.Currency:
-                    pageSize = SqlProvider.CurrencyPageSize;
-                    break;
-                default:
-                    return false;
-            }
-
-            var mappingIndex = pt.Mapping;
-            var page = mappingIndex / pageSize;
-            if (page != queryedPage)
-                return false;
-
-            int index = mappingIndex - (page * pageSize);
-
-            switch (pt.DataType)
-            {
-                case DataType.String: value = row.Strings[index]; return true;
-                case DataType.Int: value = row.Integers[index]; return true;
-                case DataType.Currency: value = row.Decimals[index]; return true;
-                case DataType.DateTime: value = row.Datetimes[index]; return true;
-            }
-
-            return false;
-        }
-
-
-        protected internal override DataSet LoadSchema()
-        {
-            return SchemaRoot.BuildDataSetFromXml(_db.Schema);
-        }
-
-        #region NOT IMPLEMENTED
-
-        [Obsolete("Use GetStream method on a BinaryData instance instead.", true)]
-        protected internal override Stream LoadStream(int versionId, int propertyTypeId)
-        {
+            if (original is MemoryStream memStream)
+                return new MemoryStream(memStream.GetBuffer().ToArray());
             throw new NotImplementedException();
         }
-
-        protected internal override string LoadTextPropertyValue(int versionId, int propertyTypeId)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-        protected internal override Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
-        {
-            return _db.TextProperties
-                .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
-                .ToDictionary(t => t.PropertyTypeId, t => t.Value);
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0)
-        {
-            var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
-            if (sourceNode == null)
-                throw new DataException("Cannot move node, it does not exist.");
-
-            var targetNode = _db.Nodes.FirstOrDefault(n => n.NodeId == targetNodeId);
-            if (targetNode == null)
-                throw new DataException("Cannot move node, target does not exist.");
-
-            sourceNode.ParentNodeId = targetNodeId;
-
-            var path = sourceNode.Path;
-            var nodes = _db.Nodes
-                .Where(n => n.NodeId == sourceNode.NodeId || 
-                            n.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase))
-                .ToArray();
-
-            var sourceParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
-
-            foreach (var node in nodes)
-            {
-                node.Path = node.Path.Replace(sourceParentPath, targetNode.Path);
-            }
-
-            return DataOperationResult.Successful;
-        }
-        #endregion 
-
-        protected override int NodeCount(string path)
-        {
-            return (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
-                ? _db.Nodes.Count
-                : _db.Nodes.Count(
-                    n =>
-                        n.Path.StartsWith(path + RepositoryPath.PathSeparator,
-                            StringComparison.InvariantCultureIgnoreCase)
-                        || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
-        }
-
-        protected override bool NodeExistsInDatabase(string path)
-        {
-            return DB.Nodes.Any(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override IEnumerable<int> QueryNodesByType(int[] typeIds)
-        {
-            return QueryNodesByTypeAndPath(typeIds, new string[0], false);
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
-        {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, null);
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
-        {
-            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, name);
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
-        {
-            var nodes = _db.Nodes;
-            if (nodeTypeIds != null)
-                nodes = nodes
-                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
-                    .ToList();
-
-            if (name != null)
-                nodes = nodes
-                    .Where(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                    .ToList();
-
-            if (pathStart != null && pathStart.Length > 0)
-            {
-                var paths = pathStart.Select(p => p.EndsWith("/") ? p : p + "/").ToArray();
-                nodes = nodes
-                    .Where(n => paths.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
-                    .ToList();
-            }
-
-            if (orderByPath)
-                nodes = nodes
-                    .OrderBy(n => n.Path)
-                    .ToList();
-
-            var ids = nodes.Select(n => n.NodeId);
-            return ids.ToArray();
-        }
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties)
-        {
-            // Partially implemented. See SnNotSupportedExceptions
-
-            var nodes = _db.Nodes;
-            if (nodeTypeIds != null)
-                nodes = nodes
-                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
-                    .ToList();
-
-            if (pathStart != null)
-            {
-                var path = pathStart.EndsWith("/") ? pathStart : pathStart + "/";
-                nodes = nodes
-                    .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
-                    .ToList();
-            }
-
-            if (properties != null)
-            {
-                var versionIds = nodes.Select(n => n.LastMinorVersionId).ToArray();
-                var flatRows = DB.FlatProperties.Where(f => versionIds.Contains(f.VersionId)).ToArray();
-                var resultVersions = flatRows
-                    .Where(f =>
-                    {
-                        foreach (var property in properties)
-                        {
-                            if (property.QueryOperator != Operator.Equal)
-                                throw new SnNotSupportedException($"NodeQuery by 'Operator.{property.QueryOperator}' property operator is not supported.");
-
-                            var pt = PropertyType.GetByName(property.PropertyName);
-                            if(pt == null)
-                                throw new SnNotSupportedException($"NodeQuery by '{property.PropertyName}' property is not supported.");
-
-                            var pm = pt.GetDatabaseInfo();
-                            var colName = pm.ColumnName;
-                            var dt = pt.DataType;
-                            var index = int.Parse(colName.Split('_')[1]) - 1;
-                            switch (dt)
-                            {
-                                case DataType.String:
-                                    if (f.Strings[index] != (string) property.Value)
-                                        return false;
-                                    break;
-                                case DataType.Int:
-                                    if (f.Integers[index] != (int?)property.Value)
-                                        return false;
-                                    break;
-                                case DataType.Currency:
-                                    if (f.Decimals[index] != (decimal?)property.Value)
-                                        return false;
-                                    break;
-                                case DataType.DateTime:
-                                    if (f.Datetimes[index] != (DateTime)property.Value)
-                                        return false;
-                                    break;
-                                default:
-                                    throw new SnNotSupportedException($"NodeQuery by 'DataType.{dt}' property data type is not supported.");
-                            }
-                        }
-                        return true;
-                    })
-                    .Select(f=>f.VersionId)
-                    .ToArray();
-
-                nodes = nodes
-                    .Where(n => resultVersions.Contains(n.LastMinorVersionId))
-                    .ToList();
-            }
-
-            if (orderByPath)
-                nodes = nodes
-                    .OrderBy(n => n.Path)
-                    .ToList();
-
-            var ids = nodes.Select(n => n.NodeId);
-            return ids.ToArray();
-        }
-
-        protected internal override void ReleaseTreeLock(int[] lockIds)
-        {
-            foreach (var item in _db.TreeLocks.Where(t => lockIds.Contains(t.TreeLockId)).ToArray())
-                _db.TreeLocks.Remove(item);
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override void Reset()
-        {
-            // read the same method of the SqlProvider
-        }
-
-        protected internal override string StartChunk(int versionId, int propertyTypeId, long fullSize)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
-        {
-            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
-            if (versionRow == null)
-                return;
-            versionRow.IndexDocument = indexDocumentBytes;
-        }
-
-        protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
-        {
-            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == nodeData.VersionId);
-            if (versionRow == null)
-                return;
-            versionRow.IndexDocument = indexDocumentBytes;
-            nodeData.VersionTimestamp = versionRow.VersionTimestamp;
-        }
-
-        protected override int VersionCount(string path)
-        {
-            if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
-                return _db.Versions.Count;
-
-            var count = _db.Nodes.Join(_db.Versions, n => n.NodeId, v => v.NodeId,
-                    (node, version) => new { Node = node, Version = version })
-                .Count(
-                    x =>
-                        x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
-                            StringComparison.InvariantCultureIgnoreCase)
-                        || x.Node.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
-            return count;
-        }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-        /* ====================================================================================== */
-
-        public IEnumerable<StoredSecurityEntity> GetSecurityEntities()
-        {
-            return _db.Nodes.Select(n => new StoredSecurityEntity
-            {
-                Id = n.NodeId,
-                IsInherited = true,
-                nullableOwnerId = n.OwnerId,
-                nullableParentId = n.ParentNodeId
-            }).ToArray();
-        }
-
-        public int LastNodeId
-        {
-            get { return _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(n => n.NodeId); }
-        }
-
-        private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
-        {
-            var innerLastMinorVersionId = 0;
-            var innerLastMajorVersionId = 0;
-            var innerNodeTimeStamp = 0L;
-            // proc_Node_SetLastVersion
-            Retrier.Retry(3, 1, typeof(InvalidOperationException), () =>
-            {
-                var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
-                innerLastMinorVersionId = db.Versions
-                    .Where(v => v.NodeId == nodeId)
-                    .OrderByDescending(v => v.Version)
-                    .First()
-                    .VersionId;
-                nodeRow.LastMinorVersionId = innerLastMinorVersionId;
-
-                innerLastMajorVersionId = db.Versions
-                                         .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
-                                         .OrderByDescending(v => v.Version)
-                                         .FirstOrDefault()?
-                                         .VersionId ?? 0;
-                nodeRow.LastMajorVersionId = innerLastMajorVersionId;
-
-                innerNodeTimeStamp = nodeRow.NodeTimestamp;
-            });
-            lastMajorVersionId = innerLastMajorVersionId;
-            lastMinorVersionId = innerLastMinorVersionId;
-            nodeTimeStamp = innerNodeTimeStamp;
-        }
-
-        public override void WriteAuditEvent(AuditEventInfo auditEvent)
-        {
-            var newId = _db.LogEntries.Count == 0 ? 1 : _db.LogEntries.Max(r => r.LogId) + 1;
-
-            _db.LogEntries.Add(new LogEntriesRow
-            {
-                LogId = newId,
-                EventId = auditEvent.EventId,
-                Category = auditEvent.Category,
-                Priority = auditEvent.Priority,
-                Severity = auditEvent.Severity,
-                Title = auditEvent.Title,
-                ContentId = auditEvent.ContentId,
-                ContentPath = auditEvent.ContentPath,
-                UserName = auditEvent.UserName,
-                LogDate = auditEvent.Timestamp,
-                MachineName = auditEvent.MachineName,
-                AppDomainName = auditEvent.AppDomainName,
-                ProcessId = auditEvent.ProcessId,
-                ProcessName = auditEvent.ProcessName,
-                ThreadName = auditEvent.ThreadName,
-                Win32ThreadId = auditEvent.ThreadId,
-                Message = auditEvent.Message,
-                FormattedMessage = auditEvent.FormattedMessage,
-            });
-        }
-
-        public override AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            return _db.LogEntries
-                .OrderByDescending(e => e.LogId)
-                .Take(count)
-                .OrderBy(e => e.LogId)
-                .Select(e => new AuditLogEntry
-                {
-                    Id = e.LogId,
-                    EventId = e.EventId,
-                    Title = e.Title,
-                    ContentId = e.ContentId,
-                    ContentPath = e.ContentPath,
-                    UserName = e.UserName,
-                    LogDate = new DateTime(e.LogDate.Ticks),
-                    Message = e.Message,
-                    FormattedMessage = e.FormattedMessage
-                })
-                .ToArray();
-        }
-
-        /* ====================================================================================== Database */
-
-        #region CREATION
-
-        private static readonly Dictionary<string, byte[]> ContentTypeBytes;
-        private static readonly Dictionary<string, byte[]> ResourceBytes;
-
-        static InMemoryDataProvider()
-        {
-            // Preload CTD bytes from disk
-            ContentTypeBytes = new Dictionary<string, byte[]>();
-            foreach (var item in ContentTypeDefinitions.ContentTypes)
-            {
-                byte[] bytes;
-                using (var stream = new MemoryStream())
-                using (var writer = new StreamWriter(stream, Encoding.UTF8))
-                {
-                    writer.Write(item.Value);
-                    writer.Flush();
-                    stream.Position = 0;
-                    var buffer = stream.GetBuffer();
-                    bytes = new byte[stream.Length];
-                    Array.Copy(buffer, bytes, bytes.Length);
-                }
-
-                ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
-            }
-
-            // Preload resource bytes from disk
-            ResourceBytes = new Dictionary<string, byte[]>();
-            foreach (var item in ResourceXmls.Resources)
-            {
-                byte[] bytes;
-                using (var stream = new MemoryStream())
-                using (var writer = new StreamWriter(stream, Encoding.UTF8))
-                {
-                    writer.Write(item.Value);
-                    writer.Flush();
-                    stream.Position = 0;
-                    var buffer = stream.GetBuffer();
-                    bytes = new byte[stream.Length];
-                    Array.Copy(buffer, bytes, bytes.Length);
-                }
-
-                ResourceBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
-            }
-        }
-
-        private static byte[] GetContentTypeBytes(string name)
-        {
-            name = name.ToLowerInvariant();
-            if (!ContentTypeBytes.ContainsKey(name))
-            {
-                name = name + "ctd";
-                if (!ContentTypeBytes.ContainsKey(name))
-                    return new byte[0];
-            }
-            return ContentTypeBytes[name];
-        }
-        private static byte[] GetResourceBytes(string name)
-        {
-            name = name.ToLowerInvariant();
-            if (!ResourceBytes.ContainsKey(name))
-                return new byte[0];
-            return ResourceBytes[name];
-        }
-
-        private static Database _prototype;
-        private readonly Database _db;
-        public Database DB => _db;
-
-        public InMemoryDataProvider()
-        {
-            _contentListStartPage = 10000000;
-            _contentListMappingOffsets = new Dictionary<DataType, int>();
-            _contentListMappingOffsets.Add(DataType.String, StringPageSize * _contentListStartPage);
-            _contentListMappingOffsets.Add(DataType.Int, IntPageSize * _contentListStartPage);
-            _contentListMappingOffsets.Add(DataType.DateTime, DateTimePageSize * _contentListStartPage);
-            _contentListMappingOffsets.Add(DataType.Currency, CurrencyPageSize * _contentListStartPage);
-            _contentListMappingOffsets.Add(DataType.Binary, 0);
-            _contentListMappingOffsets.Add(DataType.Reference, 0);
-            _contentListMappingOffsets.Add(DataType.Text, 0);
-
-            if (_prototype == null)
-            {
-                // ReSharper disable once UseObjectOrCollectionInitializer
-                _db = new Database();
-
-                _db.Schema = new XmlDocument();
-                _db.Schema.LoadXml(_prototypeSchema);
-
-                _db.Nodes = BuildNodes(_prototypeNodes);
-                _db.Versions = BuildVersions();
-                _db.BinaryProperties = BuildBinaryProperties(_prototypeBinaryProperties);
-                _db.Files = BuildInitialFiles(_prototypeFiles);
-                _db.TextProperties = BuildTextProperties(_prototypeTextProperties);
-                _db.FlatProperties = BuildFlatProperties(_prototypeFlatPropertiesNvarchar, _prototypeFlatPropertiesInt, _prototypeFlatPropertiesDatetime, _prototypeFlatPropertiesDecimal);
-                _db.ReferenceProperties = BuildReferencProperties(_prototypeReferenceProperties);
-            }
-            else
-            {
-                _db = _prototype.Clone();
-            }
-        }
-        public void ResetDatabase()
-        {
-            _db.Schema = new XmlDocument();
-            _db.Schema.LoadXml(_initialSchema);
-
-            _db.Nodes = BuildNodes(_initialNodes);
-            _db.Versions = BuildVersions();
-            _db.BinaryProperties = BuildBinaryProperties(null);
-            _db.Files = BuildInitialFiles(null);
-            _db.TextProperties = BuildTextProperties(null);
-            _db.FlatProperties = BuildFlatProperties(null, null, null, null);
-            _db.ReferenceProperties = BuildReferencProperties(null);
-        }
-
-        private List<NodeRecord> BuildNodes(string tableData)
-        {
-            if(tableData == null)
-                return new List<NodeRecord>();
-
-            var skip = tableData.StartsWith("NodeId") ? 1 : 0;
-            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    return new NodeRecord
-                    {
-                        NodeId = int.Parse(record[0]),
-                        ParentNodeId = int.Parse(record[1]),
-                        NodeTypeId = int.Parse(record[2]),
-                        LastMajorVersionId = int.Parse(record[3]),
-                        LastMinorVersionId = int.Parse(record[4]),
-                        Index = int.Parse(record[5]),
-                        IsSystem = record[6] == "1",
-                        Name = record[7],
-                        DisplayName = record[8] == "\"\"\"\"" ? null : record[8],
-                        Path = record[9],
-                        NodeCreatedById = 1,
-                        NodeModifiedById = 1,
-                        OwnerId = 1,
-                        NodeCreationDate = DateTime.UtcNow,
-                        NodeModificationDate = DateTime.UtcNow,
-                    };
-                }).ToList();
-        }
-        private List<VersionRecord> BuildVersions()
-        {
-            return _db.Nodes.Select(n => new VersionRecord
-            {
-                VersionId = n.LastMajorVersionId,
-                NodeId = n.NodeId,
-                Version = VersionNumber.Parse("1.0.A"),
-                CreatedById = 1,
-                ModifiedById = 1,
-                CreationDate = DateTime.UtcNow,
-                ModificationDate = DateTime.UtcNow,
-            }).ToList();
-        }
-        private List<BinaryPropertyRecord> BuildBinaryProperties(string tableData)
-        {
-            if (tableData == null)
-                return new List<BinaryPropertyRecord>();
-
-            var skip = tableData.StartsWith("BinaryPropertyId") ? 1 : 0;
-            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    return new BinaryPropertyRecord
-                    {
-                        BinaryPropertyId = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        PropertyTypeId = int.Parse(record[2]),
-                        FileId = int.Parse(record[3])
-                    };
-                }).ToList();
-        }
-
-        private static string[] ResourceFileNames = new []{ "Content", "Exceptions", "Trash" };
-        private List<FileRecord> BuildInitialFiles(string tableData)
-        {
-            if (tableData == null)
-                return new List<FileRecord>();
-
-            var skip = tableData.StartsWith("FileId") ? 1 : 0;
-            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    var mimeType = record[1];
-                    var name = record[2];
-                    var ext = record[3];
-
-                    byte[] bytes;
-                    if (ext == ".ContentType")
-                        bytes = GetContentTypeBytes(name);
-                    else if(ext == ".xml" && mimeType == "text/xml" && (name.StartsWith("CtdResources") || ResourceFileNames.Contains(name)))
-                        bytes = GetResourceBytes(name);
-                    else
-                        bytes = new byte[0];
-
-                    return new FileRecord
-                    {
-                        FileId = int.Parse(record[0]),
-                        ContentType = record[1],
-                        FileNameWithoutExtension = name,
-                        Extension = ext,
-                        Size = bytes.LongLength,
-                        Stream = bytes
-                    };
-                }).ToList();
-        }
-        private List<TextPropertyRecord> BuildTextProperties(string tableData)
-        {
-            if (tableData == null)
-                return new List<TextPropertyRecord>();
-
-            var skip = tableData.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
-            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    var value = record[3].Replace(@"\n", Environment.NewLine).Replace(@"\t", "\t");
-                    return new TextPropertyRecord
-                    {
-                        Id = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        PropertyTypeId = int.Parse(record[2]),
-                        Value = value
-                    };
-                }).ToList();
-
-        }
-        private List<FlatPropertyRow> BuildFlatProperties(string tableDataNvarchar, string tableDataInt, string tableDataDatetime, string tableDataDecimal)
-        {
-            if (tableDataNvarchar == null)
-                return new List<FlatPropertyRow>();
-
-            // nvarchars
-            var skip = tableDataNvarchar.StartsWith("Id") ? 1 : 0;
-            var flatRows = tableDataNvarchar.Split("\r\n".ToCharArray(),
-                    StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    return new FlatPropertyRow
-                    {
-                        Id = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        Page = int.Parse(record[2]),
-                        Strings = record.Skip(3).Select(s => s == "NULL" ? null : s).ToArray(),
-                    };
-                }).ToDictionary(x => x.Id, x => x);
-
-            // integers
-            skip = tableDataInt.StartsWith("Id") ? 1 : 0;
-            foreach (var item in tableDataInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
-            {
-                var record = item.Split('\t');
-                var id = int.Parse(record[0]);
-                var intValues = record.Skip(3).Select(x => x == "NULL" ? (int?)null : int.Parse(x)).ToArray();
-
-                if (!flatRows.TryGetValue(id, out var row))
-                {
-                    row = new FlatPropertyRow
-                    {
-                        Id = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        Page = int.Parse(record[2]),
-                    };
-                    flatRows.Add(row.Id, row);
-                }
-                row.Integers = intValues;
-            }
-
-            // datetimes
-            skip = tableDataDatetime.StartsWith("Id") ? 1 : 0;
-            foreach (var item in tableDataDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
-            {
-                var record = item.Split('\t');
-                var id = int.Parse(record[0]);
-                var dateTimeValues = record.Skip(3).Select(x => x == "NULL" ? (DateTime?)null : DateTime.Parse(x)).ToArray();
-
-                if (!flatRows.TryGetValue(id, out var row))
-                {
-                    row = new FlatPropertyRow
-                    {
-                        Id = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        Page = int.Parse(record[2]),
-                    };
-                    flatRows.Add(row.Id, row);
-                }
-                row.Datetimes = dateTimeValues;
-            }
-
-            // decimals
-            skip = tableDataDecimal.StartsWith("Id") ? 1 : 0;
-            foreach (var item in tableDataDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
-            {
-                var record = item.Split('\t');
-                var id = int.Parse(record[0]);
-                var decimalValues = record.Skip(3).Select(x => x == "NULL" ? (decimal?)null : decimal.Parse(x, CultureInfo.InvariantCulture)).ToArray();
-
-                if (!flatRows.TryGetValue(id, out var row))
-                {
-                    row = new FlatPropertyRow
-                    {
-                        Id = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        Page = int.Parse(record[2]),
-                    };
-                    flatRows.Add(row.Id, row);
-                }
-                row.Decimals = decimalValues;
-            }
-
-            return flatRows.Values.ToList();
-        }
-        private List<ReferencePropertyRow> BuildReferencProperties(string tableData)
-        {
-            if (tableData == null)
-                return new List<ReferencePropertyRow>();
-
-            var skip = tableData.StartsWith("ReferencePropertyId") ? 1 : 0;
-            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Skip(skip)
-                .Select(l =>
-                {
-                    var record = l.Split('\t');
-                    return new ReferencePropertyRow
-                    {
-                        ReferencePropertyId = int.Parse(record[0]),
-                        VersionId = int.Parse(record[1]),
-                        PropertyTypeId = int.Parse(record[2]),
-                        ReferredNodeId = int.Parse(record[3])
-                    };
-                }).ToList();
-        }
-
-        public void CreateSnapshot()
-        {
-            _prototype = _db;
-        }
-
-        #endregion
-
-        #region Implementation classes
-
-        private class TestTransaction : ITransactionProvider
-        {
-            private static long _lastId;
-
-            public TestTransaction()
-            {
-                Id = Interlocked.Increment(ref _lastId);
-            }
-
-            public void Dispose()
-            {
-                // do nothing
-            }
-
-            public long Id { get; }
-            public DateTime Started { get; private set; }
-            public IsolationLevel IsolationLevel { get; private set; }
-            public void Begin(IsolationLevel isolationLevel)
-            {
-                IsolationLevel = isolationLevel;
-                Started = DateTime.Now;
-            }
-
-            public void Begin(IsolationLevel isolationLevel, TimeSpan timeout)
-            {
-                IsolationLevel = isolationLevel;
-                Started = DateTime.Now;
-            }
-
-            public void Commit()
-            {
-                // do nothing
-            }
-
-            public void Rollback()
-            {
-                //throw new NotSupportedException();
-            }
-        }
-        public class Database
-        {
-            public XmlDocument Schema { get; set; }
-
-            public List<NodeRecord> Nodes { get; set; }
-            public List<VersionRecord> Versions { get; set; }
-            public List<BinaryPropertyRecord> BinaryProperties { get; set; }
-            public List<FileRecord> Files { get; set; }
-            public List<TextPropertyRecord> TextProperties { get; set; }
-            public List<FlatPropertyRow> FlatProperties { get; set; }
-            public List<ReferencePropertyRow> ReferenceProperties { get; set; }
-            public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
-            public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
-            public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
-
-            public Database Clone()
-            {
-                using (var op = SnTrace.Database.StartOperation("Clone database."))
-                {
-                    var schema = new XmlDocument();
-                    schema.LoadXml(_prototypeSchema);
-                    var db = new Database()
-                    {
-                        Schema = schema,
-                        Nodes = Nodes.Select(r => r.Clone()).ToList(),
-                        Versions = Versions.Select(r => r.Clone()).ToList(),
-                        BinaryProperties = BinaryProperties.Select(r => r.Clone()).ToList(),
-                        Files = Files.Select(r => r.Clone()).ToList(),
-                        TextProperties = TextProperties.Select(r => r.Clone()).ToList(),
-                        FlatProperties = FlatProperties.Select(r => r.Clone()).ToList(),
-                        ReferenceProperties = ReferenceProperties.Select(r => r.Clone()).ToList(),
-                        IndexingActivities = IndexingActivities.Select(r => r.Clone()).ToList(),
-                        TreeLocks = TreeLocks.Select(r => r.Clone()).ToList(),
-                    };
-
-                    op.Successful = true;
-                    return db;
-                }
-            }
-        }
-        private class InMemoryNodeWriter : INodeWriter
-        {
-            private readonly Database _db;
-
-            public InMemoryNodeWriter(Database db)
-            {
-                _db = db;
-            }
-
-            public void Open()
-            {
-                // do nothing
-            }
-            public void Close()
-            {
-                // do nothing
-            }
-
-            /*============================================================================ Node Insert/Update */
-
-            public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
-            {
-                // Check unique keys.
-                if(_db.Nodes.Any(n=>n.Path.Equals(nodeData.Path, StringComparison.OrdinalIgnoreCase)))
-                    throw new NodeAlreadyExistsException();
-
-                // insert
-                var newNodeId = _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
-                lastMinorVersionId = newVersionId;
-                lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
-                var nodeRecord = new NodeRecord
-                {
-                    NodeId = newNodeId,
-                    NodeTypeId = nodeData.NodeTypeId,
-                    ContentListTypeId = nodeData.ContentListTypeId,
-                    ContentListId = nodeData.ContentListId,
-                    CreatingInProgress = nodeData.CreatingInProgress,
-                    IsDeleted = nodeData.IsDeleted,
-                    ParentNodeId = nodeData.ParentId,
-                    Name = nodeData.Name,
-                    DisplayName = nodeData.DisplayName,
-                    Path = nodeData.Path,
-                    Index = nodeData.Index,
-                    Locked = nodeData.Locked,
-                    LockedById = nodeData.LockedById,
-                    ETag = nodeData.ETag,
-                    LockType = nodeData.LockType,
-                    LockTimeout = nodeData.LockTimeout,
-                    LockDate = nodeData.LockDate,
-                    LockToken = nodeData.LockToken,
-                    LastLockUpdate = nodeData.LastLockUpdate,
-                    LastMinorVersionId = lastMinorVersionId,
-                    LastMajorVersionId = lastMajorVersionId,
-                    NodeCreationDate = nodeData.CreationDate,
-                    NodeCreatedById = nodeData.CreatedById,
-                    NodeModificationDate = nodeData.ModificationDate,
-                    NodeModifiedById = nodeData.ModifiedById,
-                    IsSystem = nodeData.IsSystem,
-                    OwnerId = nodeData.OwnerId,
-                    SavingState = nodeData.SavingState,
-                };
-                var versionRecord = new VersionRecord
-                {
-                    VersionId = newVersionId,
-                    NodeId = newNodeId,
-                    Version = nodeData.Version,
-                    CreationDate = nodeData.VersionCreationDate,
-                    CreatedById = nodeData.VersionCreatedById,
-                    ModificationDate = nodeData.VersionModificationDate,
-                    ModifiedById = nodeData.VersionModifiedById,
-                    ChangedData = nodeData.ChangedData,
-                };
-
-
-                _db.Nodes.Add(nodeRecord);
-                _db.Versions.Add(versionRecord);
-
-                nodeData.Id = newNodeId;
-                nodeData.VersionId = newVersionId;
-                nodeData.NodeTimestamp = nodeRecord.NodeTimestamp;
-                nodeData.VersionTimestamp = versionRecord.VersionTimestamp;
-            }
-
-            public void UpdateSubTreePath(string oldPath, string newPath)
-            {
-                var oldPathExt = oldPath + "/";
-                var newPathExt = newPath + "/";
-                foreach (var nodeRow in _db.Nodes.Where(n => n.Path.StartsWith(oldPathExt)))
-                    nodeRow.Path = nodeRow.Path.Replace(oldPathExt, newPathExt);
-            }
-            public void UpdateNodeRow(NodeData nodeData)
-            {
-                var nodeId = nodeData.Id;
-
-                var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if (nodeRec == null)
-                    throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
-                var parentRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeRec.ParentNodeId);
-
-                if (nodeRec.NodeTimestamp != nodeData.NodeTimestamp)
-                    throw new NodeIsOutOfDateException(nodeData.Id, nodeData.Path, nodeData.VersionId, nodeData.Version, null, nodeData.NodeTimestamp);
-
-                nodeRec.NodeTypeId = nodeData.NodeTypeId;
-                nodeRec.ContentListTypeId = nodeData.ContentListTypeId;
-                nodeRec.ContentListId = nodeData.ContentListId;
-                nodeRec.CreatingInProgress = nodeData.CreatingInProgress;
-                nodeRec.IsDeleted = nodeData.IsDeleted;
-                nodeRec.ParentNodeId = nodeData.ParentId;
-                nodeRec.Name = nodeData.Name;
-                nodeRec.DisplayName = nodeData.DisplayName;
-                nodeRec.Path = $"{parentRec?.Path ?? ""}/{nodeRec.Name}";
-                nodeRec.Index = nodeData.Index;
-                nodeRec.Locked = nodeData.Locked;
-                nodeRec.LockedById = nodeData.LockedById;
-                nodeRec.ETag = nodeData.ETag;
-                nodeRec.LockType = nodeData.LockType;
-                nodeRec.LockTimeout = nodeData.LockTimeout;
-                nodeRec.LockDate = nodeData.LockDate;
-                nodeRec.LockToken = nodeData.LockToken;
-                nodeRec.LastLockUpdate = nodeData.LastLockUpdate;
-                nodeRec.NodeCreationDate = nodeData.CreationDate;
-                nodeRec.NodeCreatedById = nodeData.CreatedById;
-                nodeRec.NodeModificationDate = nodeData.ModificationDate;
-                nodeRec.NodeModifiedById = nodeData.ModifiedById;
-                nodeRec.IsSystem = nodeData.IsSystem;
-                nodeRec.OwnerId = nodeData.OwnerId;
-                nodeRec.SavingState = nodeData.SavingState;
-
-                nodeData.NodeTimestamp = nodeRec.NodeTimestamp;
-            }
-
-            /*============================================================================ Version Insert/Update */
-
-            public void UpdateVersionRow(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
-            {
-                var versionId = nodeData.VersionId;
-                var nodeId = nodeData.Id;
-
-                var versionRec = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
-                if (versionRec == null)
-                    throw new InvalidOperationException("Version not found. VersionId:" + versionId);
-
-                versionRec.NodeId = nodeId;
-                versionRec.Version = nodeData.Version;
-                versionRec.CreationDate = nodeData.VersionCreationDate;
-                versionRec.CreatedById = nodeData.VersionCreatedById;
-                versionRec.ModificationDate = nodeData.VersionModificationDate;
-                versionRec.ModifiedById = nodeData.VersionModifiedById;
-                versionRec.ChangedData = nodeData.ChangedData;
-
-                var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if (nodeRec == null)
-                    throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
-
-                if (nodeData.IsPropertyChanged("Version"))
-                {
-                    nodeRec.LastMinorVersionId = _db.Versions
-                        .Where(v => v.NodeId == nodeId)
-                        .OrderByDescending(v => v.Version.Major)
-                        .ThenByDescending(v => v.Version.Minor)
-                        .First().VersionId;
-                    nodeRec.LastMajorVersionId = _db.Versions
-                        .Where(v => v.NodeId == nodeId && v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
-                        .OrderByDescending(v => v.Version.Major)
-                        .ThenByDescending(v => v.Version.Minor)
-                        .FirstOrDefault()?.VersionId ?? 0;
-                }
-
-                lastMajorVersionId = nodeRec.LastMajorVersionId;
-                lastMinorVersionId = nodeRec.LastMinorVersionId;
-
-                nodeData.NodeTimestamp = nodeRec.NodeTimestamp;
-                nodeData.VersionTimestamp = versionRec.VersionTimestamp;
-            }
-            public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
-                out int lastMinorVersionId)
-            {
-                CopyAndUpdateVersion(nodeData, previousVersionId, 0, out lastMajorVersionId, out lastMinorVersionId);
-            }
-            public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, int destinationVersionId, out int lastMajorVersionId,
-                out int lastMinorVersionId)
-            {
-                lastMajorVersionId = 0;
-                lastMinorVersionId = 0;
-
-                // proc_Version_CopyAndUpdate
-
-                int newVersionId;
-
-                // Before inserting set versioning status code from "Locked" to "Draft" on all older versions
-                foreach (var row in _db.Versions.Where(v => v.NodeId == nodeData.Id && v.Version.Status == VersionStatus.Locked))
-                    row.Version = new VersionNumber(row.Version.Major, row.Version.Minor, VersionStatus.Draft);
-
-                if (destinationVersionId == 0)
-                {
-                    // Insert version row
-                    newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
-                    var newVersionRow = new VersionRecord
-                    {
-                        VersionId = newVersionId,
-
-                        NodeId = nodeData.Id,
-                        Version = nodeData.Version,
-                        CreationDate = nodeData.VersionCreationDate,
-                        CreatedById = nodeData.VersionCreatedById,
-                        ModificationDate = nodeData.VersionModificationDate,
-                        ModifiedById = nodeData.VersionModifiedById,
-                        ChangedData = nodeData.ChangedData
-                    };
-                    _db.Versions.Add(newVersionRow);
-                    nodeData.VersionTimestamp = newVersionRow.VersionTimestamp;
-                }
-                else
-                {
-                    // Update existing version
-                    newVersionId = destinationVersionId;
-                    var versionRow = _db.Versions.First(v => v.VersionId == newVersionId);
-                    versionRow.NodeId = nodeData.Id;
-                    versionRow.Version = nodeData.Version;
-                    versionRow.CreationDate = nodeData.VersionCreationDate;
-                    versionRow.CreatedById = nodeData.VersionCreatedById;
-                    versionRow.ModificationDate = nodeData.VersionModificationDate;
-                    versionRow.ModifiedById = nodeData.VersionModifiedById;
-                    versionRow.ChangedData = nodeData.ChangedData;
-                    nodeData.VersionTimestamp = versionRow.VersionTimestamp;
-
-                    // Delete previous property values
-                    _db.BinaryProperties.RemoveAll(r => r.VersionId == newVersionId);
-                    _db.FlatProperties.RemoveAll(r => r.VersionId == newVersionId);
-                    _db.ReferenceProperties.RemoveAll(r => r.VersionId == newVersionId);
-                    _db.TextProperties.RemoveAll(r => r.VersionId == newVersionId);
-                }
-
-                // Copy properties
-                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(r => r.VersionId == previousVersionId).ToArray())
-                    _db.BinaryProperties.Add(new BinaryPropertyRecord
-                    {
-                        BinaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
-                        VersionId = newVersionId,
-                        PropertyTypeId = binaryPropertyRow.PropertyTypeId,
-                        FileId = binaryPropertyRow.FileId
-                    });
-                foreach (var flatPropertyRow in _db.FlatProperties.Where(r => r.VersionId == previousVersionId).ToArray())
-                    _db.FlatProperties.Add(new FlatPropertyRow
-                    {
-                        Id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1,
-                        VersionId = newVersionId,
-                        Page = flatPropertyRow.Page,
-                        Strings = flatPropertyRow.Strings.ToArray(),
-                        Integers = flatPropertyRow.Integers.ToArray(),
-                        Datetimes = flatPropertyRow.Datetimes.ToArray(),
-                        Decimals = flatPropertyRow.Decimals.ToArray()
-                    });
-                foreach (var referencePropertyRow in _db.ReferenceProperties.Where(r => r.VersionId == previousVersionId).ToArray())
-                    _db.ReferenceProperties.Add(new ReferencePropertyRow
-                    {
-                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
-                        VersionId = newVersionId,
-                        PropertyTypeId = referencePropertyRow.PropertyTypeId,
-                        ReferredNodeId = referencePropertyRow.ReferredNodeId
-                    });
-                foreach (var textPropertyRow in _db.TextProperties.Where(r => r.VersionId == previousVersionId).ToArray())
-                    _db.TextProperties.Add(new TextPropertyRecord
-                    {
-                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
-                        VersionId = newVersionId,
-                        PropertyTypeId = textPropertyRow.PropertyTypeId,
-                        Value = textPropertyRow.Value
-                    });
-
-                // Set last version pointers
-                SetLastVersionSlots(_db, nodeData.Id, out lastMajorVersionId, out lastMinorVersionId, out long nodeTimeStamp);
-
-                // update back the given nodeData
-                nodeData.VersionId = newVersionId;
-                nodeData.NodeTimestamp = nodeTimeStamp;
-                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(b => b.VersionId == newVersionId))
-                {
-                    var binaryData = (BinaryDataValue)nodeData.GetDynamicRawData(binaryPropertyRow.PropertyTypeId);
-                    binaryData.Id = binaryPropertyRow.BinaryPropertyId;
-                }
-            }
-
-            // ============================================================================ Property Insert/Update
-
-            public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
-            {
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out var mapping).Strings[mapping] = value;
-            }
-
-            public void SaveDateTimeProperty(int versionId, PropertyType propertyType, DateTime value)
-            {
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out var mapping).Datetimes[mapping] = value;
-            }
-            public void SaveIntProperty(int versionId, PropertyType propertyType, int value)
-            {
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out var mapping).Integers[mapping] = value;
-            }
-            public void SaveCurrencyProperty(int versionId, PropertyType propertyType, decimal value)
-            {
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out var mapping).Decimals[mapping] = value;
-            }
-            private FlatPropertyRow GetFlatPropertyRow(int versionId, int mapping, int pageSize, out int propertyIndex)
-            {
-                var page = mapping / pageSize;
-                propertyIndex = mapping % pageSize;
-                var row = _db.FlatProperties.FirstOrDefault(r => r.VersionId == versionId && r.Page == page);
-                if (row == null)
-                {
-                    var id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1;
-                    row = new FlatPropertyRow { Id = id, VersionId = versionId, Page = page };
-                    _db.FlatProperties.Add(row);
-                }
-                return row;
-            }
-
-            public void SaveTextProperty(int versionId, PropertyType propertyType, bool isLoaded, string value)
-            {
-                var row =
-                    _db.TextProperties.FirstOrDefault(
-                        r => r.VersionId == versionId && r.PropertyTypeId == propertyType.Id);
-                if (row == null)
-                    _db.TextProperties.Add(row = new TextPropertyRecord
-                    {
-                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
-                        VersionId = versionId,
-                        PropertyTypeId = propertyType.Id
-                    });
-                row.Value = value;
-            }
-
-            public void SaveReferenceProperty(int versionId, PropertyType propertyType, IEnumerable<int> value)
-            {
-                var rows =
-                    _db.ReferenceProperties.Where(r => r.VersionId == versionId && r.PropertyTypeId == propertyType.Id)
-                        .ToArray();
-                foreach (var row in rows)
-                    _db.ReferenceProperties.Remove(row);
-
-                foreach (var referredNodeId in value.Distinct())
-                    _db.ReferenceProperties.Add(new ReferencePropertyRow
-                    {
-                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
-                        VersionId = versionId,
-                        PropertyTypeId = propertyType.Id,
-                        ReferredNodeId = referredNodeId
-                    });
-            }
-
-            public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
-            {
-                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
-                return;
-
-                if (isNewNode)
-                    _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
-
-                var fileId = value.FileId;
-                if (fileId == 0 || value.Stream != null)
-                {
-                    fileId = _db.Files.Count == 0 ? 1 : _db.Files.Max(r => r.FileId) + 1;
-                    _db.Files.Add(new FileRecord
-                    {
-                        FileId = fileId,
-                        ContentType = value.ContentType,
-                        FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
-                        Extension = value.FileName.Extension,
-                        Size = value.Stream?.Length ?? 0L,
-                        Stream = GetBytes(value.Stream)
-                    });
-                    value.FileId = fileId;
-                }
-
-                var binaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
-                _db.BinaryProperties.Add(new BinaryPropertyRecord
-                {
-                    BinaryPropertyId = binaryPropertyId,
-                    VersionId = versionId,
-                    PropertyTypeId = propertyTypeId,
-                    FileId = fileId
-                });
-                value.Id = binaryPropertyId;
-            }
-            private byte[] GetBytes(Stream stream)
-            {
-                var buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                return buffer;
-            }
-
-            public void UpdateBinaryProperty(BinaryDataValue value)
-            {
-                BlobStorage.UpdateBinaryProperty(value);
-            }
-            public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
-            {
-                BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
-            }
-        }
-        private class InMemorySchemaWriter : SchemaWriter
-        {
-            private readonly XmlDocument _schemaXml;
-            private readonly string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
-            private readonly XmlNamespaceManager _nsmgr;
-
-            public InMemorySchemaWriter(XmlDocument schemaXml)
-            {
-                _schemaXml = schemaXml;
-                _nsmgr = new XmlNamespaceManager(_schemaXml.NameTable);
-                _nsmgr.AddNamespace("x", _xmlNamespace);
-            }
-
-            public override void Open()
-            {
-                // do nothing
-            }
-            public override void Close()
-            {
-                // do nothing
-            }
-
-            public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
-            {
-                if (isContentListProperty)
-                    throw new NotImplementedException(); //TODO: ContentListProperty creating is not implemented.
-
-                // ReSharper disable once AssignNullToNotNullAttribute
-                var ids =
-                    _schemaXml.SelectNodes("/x:StorageSchema/x:UsedPropertyTypes/x:PropertyType/@itemID", _nsmgr)
-                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
-                var id = ids.Max() + 1;
-
-                var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
-                element.SetAttribute("itemID", id.ToString());
-                element.SetAttribute("name", name);
-                element.SetAttribute("dataType", dataType.ToString());
-                element.SetAttribute("mapping", mapping.ToString());
-
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode("/x:StorageSchema/x:UsedPropertyTypes", _nsmgr);
-                // ReSharper disable once PossibleNullReferenceException
-                parentElement.AppendChild(element);
-            }
-            public override void DeletePropertyType(PropertyType propertyType)
-            {
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:UsedPropertyTypes", _nsmgr);
-                if (parentElement == null)
-                    throw new InvalidOperationException("Invalid schema xml.");
-
-                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
-                if (element != null)
-                    parentElement.RemoveChild(element);
-            }
-
-            public override void CreateContentListType(string name)
-            {
-                throw new NotImplementedException();
-            }
-            public override void DeleteContentListType(ContentListType contentListType)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void CreateNodeType(NodeType parent, string name, string className)
-            {
-                // ReSharper disable once AssignNullToNotNullAttribute
-                var ids = _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
-                         .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
-                var id = ids.Max() + 1;
-
-                var element = _schemaXml.CreateElement("NodeType", _xmlNamespace);
-                element.SetAttribute("itemID", id.ToString());
-                element.SetAttribute("name", name);
-                element.SetAttribute("className", className);
-
-                var parentElement = parent == null
-                    ? (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeTypeHierarchy", _nsmgr)
-                    : (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{parent.Name}']", _nsmgr);
-                parentElement.AppendChild(element);
-            }
-            public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
-            {
-                throw new NotImplementedException();
-            }
-            public override void DeleteNodeType(NodeType nodeType)
-            {
-                var element = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{nodeType.Name}']", _nsmgr);
-                var parentElement = (XmlElement)element.ParentNode;
-                parentElement.RemoveChild(element);
-            }
-
-            public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
-            {
-                if (!isDeclared)
-                    return;
-
-                var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
-                element.SetAttribute("name", propertyType.Name);
-
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
-                if (parentElement == null)
-                    throw new NotImplementedException(); //TODO: ContentList property adding is not implemented.
-                parentElement.AppendChild(element);
-            }
-            public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
-            {
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
-                if (parentElement == null)
-                    //throw new NotImplementedException(); //TODO: ContentList property removal is not implemented.
-                    return;
-
-                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
-                if (element != null)
-                    parentElement.RemoveChild(element);
-            }
-            public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class InMemoryDataProcedure<T> : IDataProcedure where T : class
-        {
-            private readonly Func<IEnumerable<T>> _function;
-
-            public InMemoryDataProcedure(Func<IEnumerable<T>> function)
-            {
-                _function = function;
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public CommandType CommandType { get; set; }
-            public string CommandText { get; set; }
-            public DbParameterCollection Parameters { get; } = new InMemoryDbParameterCollection();
-
-            public DbDataReader ExecuteReader()
-            {
-                return new InMemoryDbDataReader<T>(_function.Invoke());
-            }
-
-            public DbDataReader ExecuteReader(CommandBehavior behavior)
-            {
-                throw new NotImplementedException();
-            }
-
-            public object ExecuteScalar()
-            {
-                throw new NotImplementedException();
-            }
-
-            public int ExecuteNonQuery()
-            {
-                throw new NotImplementedException();
-            }
-
-            public IDataParameter CreateParameter()
-            {
-                return new InMemoryDbParameter();
-            }
-        }
-        public class InMemoryDbParameter : DbParameter
-        {
-            public override void ResetDbType()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override DbType DbType { get; set; }
-            public override ParameterDirection Direction { get; set; }
-            public override bool IsNullable { get; set; }
-            public override string ParameterName { get; set; }
-            public override string SourceColumn { get; set; }
-            public override object Value { get; set; }
-            public override bool SourceColumnNullMapping { get; set; }
-            public override int Size { get; set; }
-        }
-
-        private class InMemoryDbParameterCollection : DbParameterCollection
-        {
-            private readonly List<InMemoryDbParameter> _parameters = new List<InMemoryDbParameter>();
-
-            public override int Add(object value)
-            {
-                _parameters.Add((InMemoryDbParameter)value);
-                return _parameters.Count - 1;
-            }
-            public override bool Contains(object value)
-            {
-                throw new NotImplementedException();
-            }
-            public override void Clear()
-            {
-                throw new NotImplementedException();
-            }
-            public override int IndexOf(object value)
-            {
-                throw new NotImplementedException();
-            }
-            public override void Insert(int index, object value)
-            {
-                throw new NotImplementedException();
-            }
-            public override void Remove(object value)
-            {
-                throw new NotImplementedException();
-            }
-            public override void RemoveAt(int index)
-            {
-                throw new NotImplementedException();
-            }
-            public override void RemoveAt(string parameterName)
-            {
-                throw new NotImplementedException();
-            }
-            protected override void SetParameter(int index, DbParameter value)
-            {
-                throw new NotImplementedException();
-            }
-            protected override void SetParameter(string parameterName, DbParameter value)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int Count => _parameters.Count;
-            public override object SyncRoot { get; }
-            public override int IndexOf(string parameterName)
-            {
-                throw new NotImplementedException();
-            }
-            public override IEnumerator GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-            protected override DbParameter GetParameter(int index)
-            {
-                return _parameters[index];
-            }
-            protected override DbParameter GetParameter(string parameterName)
-            {
-                return _parameters.First(p => p.ParameterName == parameterName);
-            }
-            public override bool Contains(string value)
-            {
-                throw new NotImplementedException();
-            }
-            public override void CopyTo(Array array, int index)
-            {
-                throw new NotImplementedException();
-            }
-            public override void AddRange(Array values)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class InMemoryDbDataReader<T> : DbDataReader where T : class
-        {
-            private T[] _enumerable;
-            private int _currentIndex = -1;
-
-            public InMemoryDbDataReader(IEnumerable<T> enumerable)
-            {
-                _enumerable = enumerable.ToArray();
-            }
-
-            public override string GetName(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int GetValues(object[] values)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool IsDBNull(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int FieldCount { get; }
-
-            public override object this[int ordinal]
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public override object this[string name]
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public override bool HasRows => _enumerable.Length > 0;
-            public override bool IsClosed { get; }
-            public override int RecordsAffected => _enumerable.Length;
-
-            public override bool NextResult()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool Read()
-            {
-                return ++_currentIndex < _enumerable.Length;
-            }
-
-            public override int Depth { get; }
-
-            public override int GetOrdinal(string name)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool GetBoolean(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override byte GetByte(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override char GetChar(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override Guid GetGuid(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override short GetInt16(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int GetInt32(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override long GetInt64(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override DateTime GetDateTime(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override string GetString(int ordinal)
-            {
-                //TODO: Implement well
-                var record = _enumerable[_currentIndex] as Tuple<string, string>;
-                if(null == record)
-                    throw new NotImplementedException();
-
-                if (ordinal == 0)
-                    return record.Item1;
-                if (ordinal == 1)
-                    return record.Item2;
-
-                throw new NotImplementedException();
-            }
-
-            public override decimal GetDecimal(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override double GetDouble(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override float GetFloat(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override string GetDataTypeName(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override Type GetFieldType(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override object GetValue(int ordinal)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override IEnumerator GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-        }
-        #endregion
-
-        #region Data classes
-        public class NodeRecord
-        {
-            private int _nodeId;
-            private int _nodeTypeId;
-            private int _contentListTypeId;
-            private int _contentListId;
-            private bool _creatingInProgress;
-            private bool _isDeleted;
-            private int _parentNodeId;
-            private string _name;
-            private string _displayName;
-            private string _path;
-            private int _index;
-            private bool _locked;
-            private int _lockedById;
-            private string _eTag;
-            private int _lockType;
-            private int _lockTimeout;
-            private DateTime _lockDate;
-            private string _lockToken;
-            private DateTime _lastLockUpdate;
-            private int _lastMinorVersionId;
-            private int _lastMajorVersionId;
-            private DateTime _nodeCreationDate;
-            private int _nodeCreatedById;
-            private DateTime _nodeModificationDate;
-            private int _nodeModifiedById;
-            private bool _isSystem;
-            private int _ownerId;
-            private ContentSavingState _savingState;
-            private long _nodeTimestamp;
-
-            // ReSharper disable once ConvertToAutoProperty
-            public int NodeId
-            {
-                get => _nodeId;
-                set => _nodeId = value;
-            }
-            public int NodeTypeId { get => _nodeTypeId; set { _nodeTypeId = value; SetTimestamp(); } }
-            public int ContentListTypeId { get => _contentListTypeId; set { _contentListTypeId = value; SetTimestamp(); } }
-            public int ContentListId { get => _contentListId; set { _contentListId = value; SetTimestamp(); } }
-            public bool CreatingInProgress { get => _creatingInProgress; set { _creatingInProgress = value; SetTimestamp(); } }
-            public bool IsDeleted { get => _isDeleted; set { _isDeleted = value; SetTimestamp(); } }
-            public int ParentNodeId { get => _parentNodeId; set { _parentNodeId = value; SetTimestamp(); } }
-            public string Name { get => _name; set { _name = value; SetTimestamp(); } }
-            public string DisplayName { get => _displayName; set { _displayName = value; SetTimestamp(); } }
-            public string Path { get => _path; set { _path = value; SetTimestamp(); } }
-            public int Index { get => _index; set { _index = value; SetTimestamp(); } }
-            public bool Locked { get => _locked; set { _locked = value; SetTimestamp(); } }
-            public int LockedById { get => _lockedById; set { _lockedById = value; SetTimestamp(); } }
-            public string ETag { get => _eTag; set { _eTag = value; SetTimestamp(); } }
-            public int LockType { get => _lockType; set { _lockType = value; SetTimestamp(); } }
-            public int LockTimeout { get => _lockTimeout; set { _lockTimeout = value; SetTimestamp(); } }
-            public DateTime LockDate { get => _lockDate; set { _lockDate = value; SetTimestamp(); } }
-            public string LockToken { get => _lockToken; set { _lockToken = value; SetTimestamp(); } }
-            public DateTime LastLockUpdate { get => _lastLockUpdate; set { _lastLockUpdate = value; SetTimestamp(); } }
-            public int LastMinorVersionId { get => _lastMinorVersionId; set { _lastMinorVersionId = value; SetTimestamp(); } }
-            public int LastMajorVersionId { get => _lastMajorVersionId; set { _lastMajorVersionId = value; SetTimestamp(); } }
-            public DateTime NodeCreationDate { get => _nodeCreationDate; set { _nodeCreationDate = value; SetTimestamp(); } }
-            public int NodeCreatedById { get => _nodeCreatedById; set { _nodeCreatedById = value; SetTimestamp(); } }
-            public DateTime NodeModificationDate { get => _nodeModificationDate; set { _nodeModificationDate = value; SetTimestamp(); } }
-            public int NodeModifiedById { get => _nodeModifiedById; set { _nodeModifiedById = value; SetTimestamp(); } }
-            public bool IsSystem { get => _isSystem; set { _isSystem = value; SetTimestamp(); } }
-            public int OwnerId { get => _ownerId; set { _ownerId = value; SetTimestamp(); } }
-            public ContentSavingState SavingState { get => _savingState; set { _savingState = value; SetTimestamp(); } }
-            public long NodeTimestamp => _nodeTimestamp;
-
-            private static long _lastTimestamp;
-            private void SetTimestamp()
-            {
-                _nodeTimestamp = Interlocked.Increment(ref _lastTimestamp);
-            }
-
-            public NodeRecord Clone()
-            {
-                return new NodeRecord
-                {
-                    _nodeId = _nodeId,
-                    _nodeTypeId = _nodeTypeId,
-                    _contentListTypeId = _contentListTypeId,
-                    _contentListId = _contentListId,
-                    _creatingInProgress = _creatingInProgress,
-                    _isDeleted = _isDeleted,
-                    _parentNodeId = _parentNodeId,
-                    _name = _name,
-                    _displayName = _displayName,
-                    _path = _path,
-                    _index = _index,
-                    _locked = _locked,
-                    _lockedById = _lockedById,
-                    _eTag = _eTag,
-                    _lockType = _lockType,
-                    _lockTimeout = _lockTimeout,
-                    _lockDate = _lockDate,
-                    _lockToken = _lockToken,
-                    _lastLockUpdate = _lastLockUpdate,
-                    _lastMinorVersionId = _lastMinorVersionId,
-                    _lastMajorVersionId = _lastMajorVersionId,
-                    _nodeCreationDate = _nodeCreationDate,
-                    _nodeCreatedById = _nodeCreatedById,
-                    _nodeModificationDate = _nodeModificationDate,
-                    _nodeModifiedById = _nodeModifiedById,
-                    _isSystem = _isSystem,
-                    _ownerId = _ownerId,
-                    _savingState = _savingState,
-                    _nodeTimestamp = _nodeTimestamp,
-                };
-            }
-        }
-        public class VersionRecord
-        {
-            private int _versionId;
-            private int _nodeId;
-            private VersionNumber _version;
-            private DateTime _creationDate;
-            private int _createdById;
-            private DateTime _modificationDate;
-            private int _modifiedById;
-            private byte[] _indexDocument;
-            private IEnumerable<ChangedData> _changedData;
-            private long _versionTimestamp;
-
-            // ReSharper disable once ConvertToAutoProperty
-            public int VersionId
-            {
-                get => _versionId;
-                set => _versionId = value;
-            }
-            public int NodeId
-            {
-                get => _nodeId;
-                set
-                {
-                    _nodeId = value;
-                    SetTimestamp();
-                }
-            }
-            /// <summary>
-            /// Gets or sets the clone of a VersionNumber
-            /// </summary>
-            public VersionNumber Version
-            {
-                get => _version.Clone();
-                set
-                {
-                    _version = value.Clone();
-                    SetTimestamp();
-                }
-            }
-            public DateTime CreationDate
-            {
-                get => _creationDate;
-                set
-                {
-                    _creationDate = value;
-                    SetTimestamp();
-                }
-            }
-            public int CreatedById
-            {
-                get => _createdById;
-                set
-                {
-                    _createdById = value;
-                    SetTimestamp();
-                }
-            }
-            public DateTime ModificationDate
-            {
-                get => _modificationDate;
-                set
-                {
-                    _modificationDate = value;
-                    SetTimestamp();
-                }
-            }
-            public int ModifiedById
-            {
-                get => _modifiedById;
-                set
-                {
-                    _modifiedById = value;
-                    SetTimestamp();
-                }
-            }
-            public byte[] IndexDocument
-            {
-                get => _indexDocument;
-                set
-                {
-                    _indexDocument = value;
-                    SetTimestamp();
-                }
-            }
-            public IEnumerable<ChangedData> ChangedData
-            {
-                get => _changedData;
-                set
-                {
-                    _changedData = value;
-                    SetTimestamp();
-                }
-            }
-            public long VersionTimestamp => _versionTimestamp;
-
-            private static long _lastTimestamp;
-            private void SetTimestamp()
-            {
-                _versionTimestamp = Interlocked.Increment(ref _lastTimestamp);
-            }
-
-            public VersionRecord Clone()
-            {
-                return new VersionRecord
-                {
-                    _versionId = _versionId,
-                    _nodeId = _nodeId,
-                    _version = _version,
-                    _creationDate = _creationDate,
-                    _createdById = _createdById,
-                    _modificationDate = _modificationDate,
-                    _modifiedById = _modifiedById,
-                    _indexDocument = _indexDocument?.ToArray(),
-                    _changedData = _changedData?.ToArray(),
-                    _versionTimestamp = _versionTimestamp,
-                };
-            }
-        }
-        public class BinaryPropertyRecord
-        {
-            public int BinaryPropertyId;
-            public int VersionId;
-            public int PropertyTypeId;
-            public int FileId;
-
-            public BinaryPropertyRecord Clone()
-            {
-                return new BinaryPropertyRecord
-                {
-                    BinaryPropertyId = BinaryPropertyId,
-                    VersionId = VersionId,
-                    PropertyTypeId = PropertyTypeId,
-                    FileId = FileId,
-                };
-            }
-        }
-        public class FileRecord
-        {
-            public int FileId;
-            public string ContentType;
-            public string FileNameWithoutExtension;
-            public string Extension;
-            public long Size;
-            public byte[] Stream;
-
-            public DateTime CreationDate;
-            public bool Staging;
-            public int StagingVersionId;
-            public int StagingPropertyTypeId;
-            public bool IsDeleted;
-            public string BlobProvider;
-            public string BlobProviderData;
-
-            public FileRecord Clone()
-            {
-                return new FileRecord
-                {
-                    FileId = FileId,
-                    ContentType = ContentType,
-                    FileNameWithoutExtension = FileNameWithoutExtension,
-                    Extension = Extension,
-                    Size = Size,
-                    Stream = Stream.ToArray(),
-                    CreationDate = CreationDate,
-                    Staging = Staging,
-                    StagingVersionId = StagingVersionId,
-                    StagingPropertyTypeId = StagingPropertyTypeId,
-                    IsDeleted = IsDeleted,
-                    BlobProvider = BlobProvider,
-                    BlobProviderData = BlobProviderData,
-                };
-            }
-        }
-        public class TextPropertyRecord
-        {
-            public int Id;
-            public int VersionId;
-            public int PropertyTypeId;
-            public string Value;
-
-            public TextPropertyRecord Clone()
-            {
-                return new TextPropertyRecord
-                {
-                    Id = Id,
-                    VersionId = VersionId,
-                    PropertyTypeId = PropertyTypeId,
-                    Value = Value,
-                };
-            }
-        }
-        public class FlatPropertyRow
-        {
-            public int Id;
-            public int VersionId;
-            public int Page;
-            public string[] Strings = new string[80];
-            public int?[] Integers = new int?[40];
-            public DateTime?[] Datetimes = new DateTime?[25];
-            public decimal?[] Decimals = new decimal?[15];
-
-            public FlatPropertyRow Clone()
-            {
-                return new FlatPropertyRow
-                {
-                    Id = Id,
-                    VersionId = VersionId,
-                    Page = Page,
-                    Strings = Strings.ToArray(),
-                    Integers = Integers.ToArray(),
-                    Datetimes = Datetimes.ToArray(),
-                    Decimals = Decimals.ToArray(),
-                };
-            }
-        }
-        public class ReferencePropertyRow
-        {
-            public int ReferencePropertyId;
-            public int VersionId;
-            public int PropertyTypeId;
-            public int ReferredNodeId;
-
-            public ReferencePropertyRow Clone()
-            {
-                return new ReferencePropertyRow
-                {
-                    ReferencePropertyId = ReferencePropertyId,
-                    VersionId = VersionId,
-                    PropertyTypeId = PropertyTypeId,
-                    ReferredNodeId = ReferredNodeId,
-                };
-            }
-        }
-        public class IndexingActivityRecord
-        {
-            public int IndexingActivityId;
-            public IndexingActivityType ActivityType;
-            public DateTime CreationDate;
-            public IndexingActivityRunningState RunningState;
-            public DateTime? LockTime;
-            public int NodeId;
-            public int VersionId;
-            public string Path;
-            public string Extension;
-
-            public IndexingActivityRecord Clone()
-            {
-                return new IndexingActivityRecord
-                {
-                    IndexingActivityId = IndexingActivityId,
-                    ActivityType = ActivityType,
-                    CreationDate = CreationDate,
-                    RunningState = RunningState,
-                    LockTime = LockTime,
-                    NodeId = NodeId,
-                    VersionId = VersionId,
-                    Path = Path,
-                    Extension = Extension,
-                };
-            }
-        }
-        
-        public class TreeLockRow
-        {
-            public int TreeLockId;
-            public string Path;
-            public DateTime LockedAt;
-
-            public TreeLockRow Clone()
-            {
-                return new TreeLockRow
-                {
-                    TreeLockId = TreeLockId,
-                    Path = Path,
-                    LockedAt = LockedAt
-                };
-            }
-        }
-        
-        public class LogEntriesRow
-        {
-            public int LogId;
-            public int EventId;
-            public string Category;
-            public int Priority;
-            public string Severity;
-            public string Title;
-            public int ContentId;
-            public string ContentPath;
-            public string UserName;
-            public DateTime LogDate;
-            public string MachineName;
-            public string AppDomainName;
-            public int ProcessId;
-            public string ProcessName;
-            public string ThreadName;
-            public int Win32ThreadId;
-            public string Message;
-            public string FormattedMessage;
-
-            public LogEntriesRow Clone()
-            {
-                return new LogEntriesRow
-                {
-                    LogId = LogId,
-                    EventId = EventId,
-                    Category = Category,
-                    Priority = Priority,
-                    Severity = Severity,
-                    Title = Title,
-                    ContentId = ContentId,
-                    ContentPath = ContentPath,
-                    UserName = UserName,
-                    LogDate = LogDate,
-                    MachineName = MachineName,
-                    AppDomainName = AppDomainName,
-                    ProcessId = ProcessId,
-                    ProcessName = ProcessName,
-                    ThreadName = ThreadName,
-                    Win32ThreadId = Win32ThreadId,
-                    Message = Message,
-                    FormattedMessage = FormattedMessage,
-                };
-            }
-        }
-        #endregion
-
     }
 }
-

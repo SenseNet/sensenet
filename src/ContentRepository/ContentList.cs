@@ -272,7 +272,9 @@ namespace SenseNet.ContentRepository
                 }
                 catch (Exception e)
                 {
-                    if (!e.Message.Contains("Storage schema is out of date") || attempts++ >= 42)
+                    if (!(e.Message.Contains("Storage schema is out of date") ||
+                          e.Message.Contains("Schema is locked by someone else")) ||
+                        attempts++ >= 42)
                         throw;
                 }
                 var timer = Stopwatch.StartNew();

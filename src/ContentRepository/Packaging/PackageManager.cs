@@ -7,9 +7,10 @@ using System.Xml;
 using System.Diagnostics;
 using SenseNet.ContentRepository;
 using System.Reflection;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
@@ -19,15 +20,15 @@ namespace SenseNet.Packaging
     {
         public const string SANDBOXDIRECTORYNAME = "run";
 
-        internal static IPackagingDataProviderExtension Storage => DataProvider.GetExtension<IPackagingDataProviderExtension>();
+        internal static IPackagingDataProviderExtension Storage => DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
             // is not yet started sometimes.
-            if (null == DataProvider.GetExtension<IPackagingDataProviderExtension>())
-                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+            if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
+                DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
 
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters
@@ -162,7 +163,7 @@ namespace SenseNet.Packaging
 
                 // we need to shut down messaging, because the line above uses it
                 if (!executionContext.Test)
-                    DistributedApplication.ClusterChannel.ShutDown();
+                    DistributedApplication.ClusterChannel.ShutDownAsync(CancellationToken.None).GetAwaiter().GetResult();
                 else
                     Diagnostics.SnTrace.Test.Write("DistributedApplication.ClusterChannel.ShutDown SKIPPED because it is a test context.");
             }
@@ -202,7 +203,7 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-            Storage.SavePackage(newPack);
+            Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
@@ -223,12 +224,12 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-                Storage.SavePackage(newPack);
+                Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-                Storage.UpdatePackage(oldPack);
+                Storage.UpdatePackageAsync(oldPack, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
@@ -323,7 +324,7 @@ namespace SenseNet.Packaging
         internal static Dictionary<string, Dictionary<Version, PackagingResult>> ExecuteAssemblyPatches(
             RepositoryStartSettings settings = null)
         {
-            //UNDONE: make sure that patches are executed exclusively 
+            //TODO: make sure that patches are executed exclusively 
             // No other app domain should be able to start executing patches.
 
             return ExecuteAssemblyPatches(RepositoryVersionInfo.GetAssemblyComponents(), settings);
@@ -432,13 +433,13 @@ namespace SenseNet.Packaging
                         });
 
                         // save the new package info manually based on the patch version number
-                        Storage.SavePackage(new Package
+                        Storage.SavePackageAsync(new Package
                         {
                             ComponentId = assemblyComponent.ComponentId,
                             ComponentVersion = patch.Version,
                             ExecutionResult = ExecutionResult.Successful,
                             PackageType = PackageType.Patch
-                        });
+                        }, CancellationToken.None).GetAwaiter().GetResult();
 
                         patchResult = new PackagingResult
                         {

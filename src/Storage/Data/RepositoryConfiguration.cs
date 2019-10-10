@@ -20,8 +20,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         [Obsolete("Use Configuration.Common.IsWebEnvironment instead.")]
         public static bool IsWebEnvironment => Configuration.Common.IsWebEnvironment;
 
-        [Obsolete("Use Configuration.Data.SqlCommandTimeout instead.")]
-        public static int SqlCommandTimeout => Configuration.Data.SqlCommandTimeout;
+        [Obsolete("Use Configuration.Data.DbCommandTimeout instead.", true)]
+        public static int SqlCommandTimeout => Configuration.Data.DbCommandTimeout;
         [Obsolete("Use Configuration.Data.TransactionTimeout instead.")]
         public static double TransactionTimeout => Configuration.Data.TransactionTimeout;
         [Obsolete("Use Configuration.Data.LongTransactionTimeout instead.")]
@@ -124,12 +124,12 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: Cache MOVED
 
-        public static Cache.CacheContentAfterSaveOption CacheContentAfterSaveMode => Cache.CacheContentAfterSaveMode;
+        public static CacheConfiguration.CacheContentAfterSaveOption CacheContentAfterSaveMode => CacheConfiguration.CacheContentAfterSaveMode;
 
-        public static int NodeIdDependencyEventPartitions => Cache.NodeIdDependencyEventPartitions;
-        public static int NodeTypeDependencyEventPartitions => Cache.NodeTypeDependencyEventPartitions;
-        public static int PathDependencyEventPartitions => Cache.PathDependencyEventPartitions;
-        public static int PortletDependencyEventPartitions => Cache.PortletDependencyEventPartitions;
+        public static int NodeIdDependencyEventPartitions => CacheConfiguration.NodeIdDependencyEventPartitions;
+        public static int NodeTypeDependencyEventPartitions => CacheConfiguration.NodeTypeDependencyEventPartitions;
+        public static int PathDependencyEventPartitions => CacheConfiguration.PathDependencyEventPartitions;
+        public static int PortletDependencyEventPartitions => CacheConfiguration.PortletDependencyEventPartitions;
 
         #endregion
 

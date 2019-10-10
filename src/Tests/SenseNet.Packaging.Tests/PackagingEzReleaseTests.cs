@@ -3,6 +3,7 @@ using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -58,23 +59,23 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Packaging_EzRelease_MissingComponent_CannotRun()
+        public async Task Packaging_EzRelease_MissingComponent_CannotRun()
         {
             // Missing component cannot run
             Assert.IsFalse(RunComponent(C("CompA", "7.1.0", "7.1.0")));
 
             // Install and run
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0")));
         }
         [TestMethod]
-        public void Packaging_EzRelease_InstalledComponent_CanRun()
+        public async Task Packaging_EzRelease_InstalledComponent_CanRun()
         {
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0")));
         }
         [TestMethod]
-        public void Packaging_EzRelease_CustomizedVersionCheckerAllows_CanRun()
+        public async Task Packaging_EzRelease_CustomizedVersionCheckerAllows_CanRun()
         {
             var invoked = false;
             var permittingFunction = new Func<Version, bool>(v =>
@@ -82,12 +83,12 @@ namespace SenseNet.Packaging.Tests
                 invoked = true;
                 return true;
             });
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.0", "7.1.0", permittingFunction)));
             Assert.IsTrue(invoked, "The function was not invoked.");
         }
         [TestMethod]
-        public void Packaging_EzRelease_CustomizedVersionCheckerDenies_CannotRun()
+        public async Task Packaging_EzRelease_CustomizedVersionCheckerDenies_CannotRun()
         {
             var invoked = false;
             var permittingFunction = new Func<Version, bool>(v =>
@@ -95,23 +96,23 @@ namespace SenseNet.Packaging.Tests
                 invoked = true;
                 return false;
             });
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             Assert.IsFalse(RunComponent(C("CompA", "7.1.0", "7.1.0", permittingFunction)));
             Assert.IsTrue(invoked, "The function was not invoked.");
         }
         [TestMethod]
-        public void Packaging_EzRelease_CompatibleComponent_CanRun()
+        public async Task Packaging_EzRelease_CompatibleComponent_CanRun()
         {
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
             Assert.IsTrue(RunComponent(C("CompA", "7.1.2", "7.1.0")));
         }
         [TestMethod]
-        public void Packaging_EzRelease_InCompatibleComponent_CannotRun()
+        public async Task Packaging_EzRelease_InCompatibleComponent_CannotRun()
         {
-            SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
-            SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
-            SavePackage("CompA", "7.1.2", "02:00", "2016-01-03", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Successful);
+            await SavePackage("CompA", "7.1.2", "02:00", "2016-01-03", PackageType.Patch, ExecutionResult.Successful);
             Assert.IsFalse(RunComponent(C("CompA", "7.2.0", "7.2.0")));
         }
 

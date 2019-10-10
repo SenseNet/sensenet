@@ -13,6 +13,7 @@ using SenseNet.Portal.Handlers;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Schema;
 using System.Reflection;
+using System.Threading;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using System.Timers;
@@ -20,6 +21,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
+using Timer = System.Timers.Timer;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -397,6 +399,8 @@ namespace SenseNet.Packaging.Steps
                         ImportSchema(fsPath);
                     }
 
+                    Cache.Reset();
+
                     var firstImport = SaveInitialIndexDocuments();
                     if (firstImport)
                     {
@@ -501,7 +505,7 @@ namespace SenseNet.Packaging.Steps
 
             private bool SaveInitialIndexDocuments()
             {
-                var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100);
+                var idSet = DataStore.LoadNotIndexedNodeIdsAsync(0, 1100, CancellationToken.None).GetAwaiter().GetResult();
                 var nodes = Node.LoadNodes(idSet);
                 var count = 0;
 
@@ -512,8 +516,8 @@ namespace SenseNet.Packaging.Steps
 
                 foreach (var node in nodes)
                 {
-                    bool hasBinary;
-                    DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+                    DataStore.SaveIndexDocumentAsync(node, false, false, CancellationToken.None)
+                        .GetAwaiter().GetResult();
                     Log(ImportLogLevel.Verbose, "  " + node.Path);
                     count++;
                 }

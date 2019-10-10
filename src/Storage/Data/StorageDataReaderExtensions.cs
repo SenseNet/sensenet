@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    internal static class StorageDataReaderExtensions
+    public static class StorageDataReaderExtensions
     {
         internal static ContentSavingState GetSavingState(this IDataReader reader, int index)
         {
@@ -12,13 +12,25 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return 0;
             return (ContentSavingState)reader.GetInt32(index);
         }
-        internal static IEnumerable<ChangedData> GetChangedData(this IDataReader reader, int index)
+        public static IEnumerable<ChangedData> GetChangedData(this IDataReader reader, int index)
         {
             if (reader.IsDBNull(index))
                 return null;
             var src = reader.GetString(index);
             var data = (IEnumerable<ChangedData>)JsonConvert.DeserializeObject(src, typeof(IEnumerable<ChangedData>));
             return data;
+        }
+
+        /* ============================================================================= */
+
+        public static ContentSavingState GetSavingState(this IDataReader reader, string columnName)
+        {
+            return reader.GetSavingState(reader.GetOrdinal(columnName));
+
+        }
+        public static IEnumerable<ChangedData> GetChangedData(this IDataReader reader, string columnName)
+        {
+            return reader.GetChangedData(reader.GetOrdinal(columnName));
         }
     }
 }

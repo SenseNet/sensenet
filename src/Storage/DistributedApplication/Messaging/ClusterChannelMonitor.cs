@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Timers;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Communication.Messaging;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Diagnostics;
+using Timer = System.Timers.Timer;
 
 
 namespace SenseNet.Communication.Messaging
@@ -23,11 +23,11 @@ namespace SenseNet.Communication.Messaging
 
         public bool Start()
         {
-            ContentRepository.DistributedApplication.ClusterChannel.MessageReceived += new MessageReceivedEventHandler(ClusterChannel_MessageReceived);
-            _pingTimer = new Timer() { Enabled = true, Interval = Configuration.Messaging.ClusterChannelMonitorInterval * 1000 };
-            _pingTimer.Elapsed += new ElapsedEventHandler(PingTimer_Elapsed);
-            _pongTimer = new Timer() { Enabled = false, Interval = Configuration.Messaging.ClusterChannelMonitorTimeout * 1000 };
-            _pongTimer.Elapsed += new ElapsedEventHandler(PongTimer_Elapsed);
+            ContentRepository.DistributedApplication.ClusterChannel.MessageReceived += ClusterChannel_MessageReceived;
+            _pingTimer = new Timer { Enabled = true, Interval = Configuration.Messaging.ClusterChannelMonitorInterval * 1000 };
+            _pingTimer.Elapsed += PingTimer_Elapsed;
+            _pongTimer = new Timer { Enabled = false, Interval = Configuration.Messaging.ClusterChannelMonitorTimeout * 1000 };
+            _pongTimer.Elapsed += PongTimer_Elapsed;
 
             InitializeRecoverer();
 
@@ -41,15 +41,16 @@ namespace SenseNet.Communication.Messaging
         {
             ContentRepository.DistributedApplication.ClusterChannel.MessageReceived -= new MessageReceivedEventHandler(ClusterChannel_MessageReceived);
 
-            _pingTimer.Elapsed -= new ElapsedEventHandler(PingTimer_Elapsed);
+            _pingTimer.Elapsed -= PingTimer_Elapsed;
             _pingTimer.Stop();
             _pingTimer.Dispose();
 
-            _pongTimer.Elapsed -= new ElapsedEventHandler(PongTimer_Elapsed);
+            _pongTimer.Elapsed -= PongTimer_Elapsed;
             _pongTimer.Stop();
             _pongTimer.Dispose();
 
-            Debug.WriteLine(String.Format("ClusterChannelMonitor> Shutdown ({0}): ", ContentRepository.DistributedApplication.ClusterChannel.ReceiverName));
+            Debug.WriteLine(
+                $"ClusterChannelMonitor> Shutdown ({ContentRepository.DistributedApplication.ClusterChannel.ReceiverName}): ");
         }
 
         private void PingTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -70,11 +71,13 @@ namespace SenseNet.Communication.Messaging
 
                 var notResponsiveChannels = _channels.Where(c => c.NeedToRecover && !c.Running && c.AlreadyStarted).Select(c => c.Name).ToArray();
                 if (notResponsiveChannels.Length > 0)
-                    Debug.WriteLine(String.Format("ClusterChannelMonitor> notResponsiveChannels ({0}): {1}", receiverName, String.Join(", ", notResponsiveChannels)));
+                    Debug.WriteLine(
+                        $"ClusterChannelMonitor> notResponsiveChannels ({receiverName}): {string.Join(", ", notResponsiveChannels)}");
 
                 var pingMessage = new PingMessage(notResponsiveChannels);
                 _actualPingId = pingMessage.Id;
-                pingMessage.Send();
+
+                pingMessage.SendAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {                
@@ -110,7 +113,7 @@ namespace SenseNet.Communication.Messaging
             }
         }
 
-        private string[] MessagingLoggingCategory = new[] {"Messaging"};
+        private readonly string[] MessagingLoggingCategory = {"Messaging"};
         private void ChannelStarted(string[] startedChannels)
         {
             var receiverName = ContentRepository.DistributedApplication.ClusterChannel.ReceiverName;
@@ -122,21 +125,25 @@ namespace SenseNet.Communication.Messaging
             if (brandNewChannels.Length > 0)
             {
                 var startedNames = brandNewChannels.Select(c => c.Name).ToArray();
-                Debug.WriteLine(String.Format("ClusterChannelMonitor> CHANNEL STARTED ({0}): {1}, Running channels: {2}", receiverName, String.Join(", ", startedNames), String.Join(", ", _currentResponses)));
-                SnLog.WriteInformation(String.Format("{0} cluster channel started: {1}", startedNames.Length, String.Join(", ", startedNames)),
+                Debug.WriteLine(
+                    $"ClusterChannelMonitor> CHANNEL STARTED ({receiverName}): {string.Join(", ", startedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
+                SnLog.WriteInformation(
+                    $"{startedNames.Length} cluster channel started: {string.Join(", ", startedNames)}",
                     EventId.RepositoryLifecycle,
                     categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", String.Join(", ", _currentResponses) } }
+                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
                 );
             }
             if (repairedChannels.Length > 0)
             {
                 var repairedNames = repairedChannels.Select(c => c.Name).ToArray();
-                Debug.WriteLine(String.Format("ClusterChannelMonitor> CHANNEL REPAIRED ({0}): {1}, Running channels: {2}", receiverName, String.Join(", ", repairedNames), String.Join(", ", _currentResponses)));
-                SnLog.WriteInformation(String.Format("{0} cluster channel repaired: {1}", repairedNames.Length, String.Join(", ", repairedNames)),
+                Debug.WriteLine(
+                    $"ClusterChannelMonitor> CHANNEL REPAIRED ({receiverName}): {string.Join(", ", repairedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
+                SnLog.WriteInformation(
+                    $"{repairedNames.Length} cluster channel repaired: {string.Join(", ", repairedNames)}",
                     EventId.RepositoryLifecycle,
                     categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", String.Join(", ", _currentResponses) } }
+                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
                 );
             }
 
@@ -159,21 +166,24 @@ namespace SenseNet.Communication.Messaging
             if (brokenChannels.Length > 0)
             {
                 var brokenNames = brokenChannels.Select(c => c.Name).ToArray();
-                Debug.WriteLine(String.Format("ClusterChannelMonitor> BROKEN CHANNELS ({0}): {1}, Running channels: {2}", receiverName, String.Join(", ", brokenNames), String.Join(", ", _currentResponses)));
+                Debug.WriteLine(
+                    $"ClusterChannelMonitor> BROKEN CHANNELS ({receiverName}): {string.Join(", ", brokenNames)}, Running channels: {string.Join(", ", _currentResponses)}");
                 SnLog.WriteError(
-                    String.Format("{0} cluster channel stopped: {1}", brokenChannels.Length, String.Join(", ", brokenNames)),
+                    $"{brokenChannels.Length} cluster channel stopped: {string.Join(", ", brokenNames)}",
                     EventId.RepositoryLifecycle,
                     MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", String.Join(", ", _currentResponses) } });
+                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } });
             }
             if (closedChannels.Length > 0)
             {
                 var closedNames = closedChannels.Select(c => c.Name).ToArray();
-                Debug.WriteLine(String.Format("ClusterChannelMonitor> CLOSED CHANNELS ({0}): {1}, Running channels: {2}", receiverName, String.Join(", ", closedNames), String.Join(", ", _currentResponses)));
-                SnLog.WriteInformation(String.Format("{0} MSMQ channel stopped: {1}", closedChannels.Length, String.Join(", ", closedNames)),
+                Debug.WriteLine(
+                    $"ClusterChannelMonitor> CLOSED CHANNELS ({receiverName}): {string.Join(", ", closedNames)}, Running channels: {string.Join(", ", _currentResponses)}");
+                SnLog.WriteInformation(
+                    $"{closedChannels.Length} Message channel stopped: {string.Join(", ", closedNames)}",
                     EventId.RepositoryLifecycle,
                     categories: MessagingLoggingCategory,
-                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", String.Join(", ", _currentResponses) } }
+                    properties: new Dictionary<string, object> { { "Name: ", receiverName }, { "Running channels", string.Join(", ", _currentResponses) } }
                 );
             }
 
@@ -188,15 +198,13 @@ namespace SenseNet.Communication.Messaging
 
             var message = args.Message;
 
-            var pingMessage = message as PingMessage;
-            if (pingMessage != null)
+            if (message is PingMessage pingMessage)
                 ProcessPingMessage(pingMessage);
 
             if (!_receiverEnabled)
                 return;
 
-            var pongMessage = message as PongMessage;
-            if (pongMessage == null)
+            if (!(message is PongMessage pongMessage))
                 return;
 
             if (pongMessage.PingId != _actualPingId)
@@ -220,7 +228,7 @@ namespace SenseNet.Communication.Messaging
                 channel.Running = true;
             if (message.NotResponsiveChannels.Contains(ContentRepository.DistributedApplication.ClusterChannel.ReceiverName))
             {
-                RestartAllChannelsAsync();
+                RestartAllChannelsAsync(CancellationToken.None).GetAwaiter().GetResult();
             }
         }
 
@@ -266,15 +274,14 @@ namespace SenseNet.Communication.Messaging
 
             var names = channels.Select(c => c.Name).ToArray();
 
-            RestartAllChannelsAsync();
+            RestartAllChannelsAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private void RestartAllChannelsAsync()
+        private static Task RestartAllChannelsAsync(CancellationToken cancellationToken)
         {
             var cc = ContentRepository.DistributedApplication.ClusterChannel;
-            if (cc.RestartingAllChannels)
-                return;
-            cc.RestartAllChannels();
+
+            return cc.RestartingAllChannels ? Task.CompletedTask : cc.RestartAllChannelsAsync(cancellationToken);
         }
     }
 }

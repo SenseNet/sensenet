@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SenseNet.Communication.Messaging
 {
     public interface IClusterChannel
     {
         ClusterMemberInfo ClusterMemberInfo { get; }
-        void Send(ClusterMessage message);
+        Task SendAsync(ClusterMessage message, CancellationToken cancellationToken);
+
         event MessageReceivedEventHandler MessageReceived;
         event ReceiveExceptionEventHandler ReceiveException;
         event SendExceptionEventHandler SendException;
-        void Start();
-        void ShutDown();
-        void Purge();
+
+        Task StartAsync(CancellationToken cancellationToken);
+        Task ShutDownAsync(CancellationToken cancellationToken);
+        Task PurgeAsync(CancellationToken cancellationToken);
 
         bool AllowMessageProcessing { get; set; }
         int IncomingMessageCount { get; }
@@ -24,10 +26,9 @@ namespace SenseNet.Communication.Messaging
         List<string> SenderNames { get; }
 
         bool RestartingAllChannels { get; }
-        void RestartAllChannels();
+        Task RestartAllChannelsAsync(CancellationToken cancellationToken);
     }
-
-
+    
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs args);
     public delegate void ReceiveExceptionEventHandler(object sender, ExceptionEventArgs args);
     public delegate void SendExceptionEventHandler(object sender, ExceptionEventArgs args);
@@ -52,8 +53,7 @@ namespace SenseNet.Communication.Messaging
             Message = message;
         }
     }
-
-
+    
     public interface IClusterMessageFormatter
     {
         ClusterMessage Deserialize(Stream data);

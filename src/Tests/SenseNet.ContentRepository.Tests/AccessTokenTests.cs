@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Tasks = System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Portal.Virtualization;
 using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
@@ -333,13 +331,13 @@ namespace SenseNet.ContentRepository.Tests
         }
         [TestMethod]
         [ExpectedException(typeof(InvalidAccessTokenException))]
-        public void AccessToken_AssertExists_Missing()
+        public async Tasks.Task AccessToken_AssertExists_Missing()
         {
-           AccessTokenVault.AssertTokenExists("asdf");
+           await AccessTokenVault.AssertTokenExistsAsync("asdf", CancellationToken.None);
         }
         [TestMethod]
         [ExpectedException(typeof(InvalidAccessTokenException))]
-        public void AccessToken_AssertExists_Expired()
+        public async Tasks.Task AccessToken_AssertExists_Expired()
         {
             var userId = 42;
             var timeout = TimeSpan.FromMilliseconds(1);
@@ -347,7 +345,8 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             Thread.Sleep(1100);
-            AccessTokenVault.AssertTokenExists(savedToken.Value);
+
+            await AccessTokenVault.AssertTokenExistsAsync(savedToken.Value, CancellationToken.None);
         }
 
         [TestMethod]
@@ -471,7 +470,7 @@ namespace SenseNet.ContentRepository.Tests
         [ClassInitialize]
         public static void InitializeRepositoryInstance(TestContext context)
         {
-            DistributedApplication.Cache.Reset();
+            Cache.Reset();
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();

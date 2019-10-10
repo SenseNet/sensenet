@@ -5,19 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SnCS = SenseNet.ContentRepository.Storage;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
+using STT=System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Schema
 {
@@ -26,12 +26,15 @@ namespace SenseNet.ContentRepository.Schema
         [Serializable]
         internal sealed class ContentTypeManagerResetDistributedAction : DistributedAction
         {
-            public override void DoAction(bool onRemote, bool isFromMe)
+            public override STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
             {
                 // Local echo of my action: Return without doing anything
                 if (onRemote && isFromMe)
-                    return;
+                    return STT.Task.CompletedTask;
+
                 ContentTypeManager.ResetPrivate();
+
+                return STT.Task.CompletedTask;
             }
         }
 
@@ -50,22 +53,26 @@ namespace SenseNet.ContentRepository.Schema
         {
             get
             {
-                if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
+                var contentTypeManager = Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+                if (contentTypeManager == null)
                 {
                     lock (_syncRoot)
                     {
-                        if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
+                        contentTypeManager = Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+                        if (contentTypeManager == null)
                         {
                             _initializing = true;
-                            var current = new ContentTypeManager();
-                            current.Initialize();
+                            var ctm = new ContentTypeManager();
+                            ctm.Initialize();
+                            contentTypeManager = ctm;
                             _initializing = false;
-                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, current);
-                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + current._contentTypes.Count);
+                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, ctm);
+                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + ctm._contentTypes.Count);
                         }
                     }
                 }
-                return Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
+
+                return contentTypeManager;
             }
         }
 
@@ -167,7 +174,7 @@ namespace SenseNet.ContentRepository.Schema
             SnLog.WriteInformation("ContentTypeManager.Reset called.", EventId.RepositoryRuntime,
                 properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
-            new ContentTypeManagerResetDistributedAction().Execute();
+            new ContentTypeManagerResetDistributedAction().ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
         private static void ResetPrivate()
         {

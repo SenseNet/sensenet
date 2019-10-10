@@ -12,6 +12,7 @@ using System.IO;
 using SenseNet.Diagnostics;
 using System.ComponentModel;
 using System.Globalization;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ApplicationModel;
 using SenseNet.Search;
@@ -644,9 +645,10 @@ namespace SenseNet.ContentRepository
 
 
         /// <summary>
-        /// Loads the appropiate <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> by the given ID and wraps to a <c>Content</c>.
+        /// Loads a Content by the provided id.
         /// </summary>
-        /// <returns>The latest version of the <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> that has the given ID wrapped by a <c>Content</c> instance.</returns>
+        /// <param name="id">Content id.</param>
+        /// <returns>The latest accessible version of the Content.</returns>
         public static Content Load(int id)
         {
             Node node = Node.LoadNode(id);
@@ -655,9 +657,21 @@ namespace SenseNet.ContentRepository
             return Create(node);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> by the given Path and wraps to a <c>Content</c>.
+        /// Loads a Content by the provided id.
         /// </summary>
-        /// <returns>The latest version of the <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> that has the given Path wrapped by a <c>Content</c> instance.</returns>
+        /// <param name="id">Content id.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The latest accessible version of the Content.</returns>
+        public static async Task<Content> LoadAsync(int id, CancellationToken cancellationToken)
+        {
+            var node = await Node.LoadNodeAsync(id, cancellationToken).ConfigureAwait(false);
+            return node == null ? null : Create(node);
+        }
+        /// <summary>
+        /// Loads a Content by the provided path.
+        /// </summary>
+        /// <param name="path">Content path.</param>
+        /// <returns>The latest accessible version of the Content.</returns>
         public static Content Load(string path)
         {
             Node node = Node.LoadNode(path);
@@ -666,9 +680,21 @@ namespace SenseNet.ContentRepository
             return Create(node);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> by the given ID and version number and wraps to a <c>Content</c>.
+        /// Loads a Content by the provided path.
         /// </summary>
-        /// <returns>The given version of the <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> that has the given ID wrapped by a <c>Content</c>.</returns>
+        /// <param name="path">Content path.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The latest accessible version of the Content.</returns>
+        public static async Task<Content> LoadAsync(string path, CancellationToken cancellationToken)
+        {
+            var node = await Node.LoadNodeAsync(path, cancellationToken).ConfigureAwait(false);
+            return node == null ? null : Create(node);
+        }
+        /// <summary>
+        /// Loads a Content by the provided id and version number.
+        /// </summary>
+        /// <param name="id">Content id.</param>
+        /// <param name="version">Content version.</param>
         public static Content Load(int id, VersionNumber version)
         {
             Node node = Node.LoadNode(id, version);
@@ -677,9 +703,21 @@ namespace SenseNet.ContentRepository
             return Create(node);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> by the given Path and version number and wraps to a <c>Content</c>.
+        /// Loads a Content by the provided id and version number.
         /// </summary>
-        /// <returns>The given version of the <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> that has the given Path wrapped by a <c>Content</c>.</returns>
+        /// <param name="id">Content id.</param>
+        /// <param name="version">Content version.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<Content> LoadAsync(int id, VersionNumber version, CancellationToken cancellationToken)
+        {
+            var node = await Node.LoadNodeAsync(id, version, cancellationToken).ConfigureAwait(false);
+            return node == null ? null : Create(node);
+        }
+        /// <summary>
+        /// Loads a Content by the provided path and version number.
+        /// </summary>
+        /// <param name="path">Content path.</param>
+        /// <param name="version">Content version.</param>
         public static Content Load(string path, VersionNumber version)
         {
             Node node = Node.LoadNode(path, version);
@@ -687,11 +725,36 @@ namespace SenseNet.ContentRepository
                 return null;
             return Create(node);
         }
+        /// <summary>
+        /// Loads a Content by the provided path and version number.
+        /// </summary>
+        /// <param name="path">Content path.</param>
+        /// <param name="version">Content version.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<Content> LoadAsync(string path, VersionNumber version, CancellationToken cancellationToken)
+        {
+            var node = await Node.LoadNodeAsync(path, version, cancellationToken).ConfigureAwait(false);
+            return node == null ? null : Create(node);
+        }
 
+        /// <summary>
+        /// Loads a Content by the provided id or path.
+        /// </summary>
+        /// <param name="idOrPath">Content id or path.</param>
         public static Content LoadByIdOrPath(string idOrPath)
         {
             var node = Node.LoadNodeByIdOrPath(idOrPath);
             return node != null ? Content.Create(node) : null;
+        }
+        /// <summary>
+        /// Loads a Content by the provided id or path.
+        /// </summary>
+        /// <param name="idOrPath">Content id or path.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<Content> LoadByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
+        {
+            var node = await Node.LoadNodeByIdOrPathAsync(idOrPath, cancellationToken).ConfigureAwait(false);
+            return node == null ? null : Create(node);
         }
 
         [Obsolete("Use Content.Create instead")]
@@ -1426,7 +1489,9 @@ namespace SenseNet.ContentRepository
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
         public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
-            SearchManager.GetIndexPopulator().RebuildIndex(this.ContentHandler, recursive, rebuildLevel);
+            SearchManager.GetIndexPopulator()
+                .RebuildIndexAsync(this.ContentHandler, CancellationToken.None, recursive, rebuildLevel).GetAwaiter()
+                .GetResult();
         }
 
         /*-------------------------------------------------------------------------- SnLinq */

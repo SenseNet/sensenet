@@ -417,7 +417,7 @@ namespace SenseNet.ContentRepository
 
             // look for the user ID in the cache by the doman-username key
             var ck = GetUserCacheKey(domain, name);
-            var userIdobject = DistributedApplication.Cache.Get(ck);
+            var userIdobject = Cache.Get(ck);
             if (userIdobject != null)
             {
                 var userId = Convert.ToInt32(userIdobject);
@@ -482,8 +482,8 @@ namespace SenseNet.ContentRepository
                 return null;
 
             // insert id into cache
-            if (DistributedApplication.Cache.Get(ck) == null)
-                DistributedApplication.Cache.Insert(ck, user.Id, CacheDependencyFactory.CreateNodeDependency(user));
+            if (Cache.Get(ck) == null)
+                Cache.Insert(ck, user.Id, CacheDependencyFactory.CreateNodeDependency(user));
 
             return user;
         }

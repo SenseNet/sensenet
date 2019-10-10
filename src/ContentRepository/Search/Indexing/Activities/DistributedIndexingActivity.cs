@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using STT=System.Threading.Tasks;
+using Nito.AsyncEx;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -19,7 +21,9 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// </summary>
         /// <param name="onRemote">True if the caller is a message receiver.</param>
         /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
-        public override void DoAction(bool onRemote, bool isFromMe)
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public override async STT.Task DoActionAsync(bool onRemote, bool isFromMe, CancellationToken cancellationToken)
         {
             if (!IndexManager.Running)
                 return;
@@ -43,7 +47,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 }
                 else
                 {
-                    InternalExecuteIndexingActivity();
+                    await InternalExecuteIndexingActivityAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -51,13 +55,13 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         // ----------------------------------------------------------------------- 
 
         [NonSerialized]
-        private readonly AutoResetEvent _finishSignal = new AutoResetEvent(false);
+        private readonly AsyncAutoResetEvent _finishSignal = new AsyncAutoResetEvent(false);
         [NonSerialized]
         private bool _finished;
         [NonSerialized]
         private int _waitingThreadId;
 
-        internal void InternalExecuteIndexingActivity()
+        internal async STT.Task InternalExecuteIndexingActivityAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -69,7 +73,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 {
                     using (new SystemAccount())
                     {
-                        ExecuteIndexingActivity();
+                        await ExecuteIndexingActivityAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     op.Successful = true;
@@ -81,13 +85,15 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             }
         }
 
-        internal abstract void ExecuteIndexingActivity();
+        internal abstract STT.Task ExecuteIndexingActivityAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Waits for a release signal that indicates that this activity has been executed
         /// successfully in the background.
         /// </summary>
-        public void WaitForComplete()
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public async STT.Task WaitForCompleteAsync(CancellationToken cancellationToken)
         {
             if (_finished)
                 return;
@@ -100,11 +106,18 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
             if (Debugger.IsAttached)
             {
-                _finishSignal.WaitOne();
+                // in debug mode wait without a timeout
+                await _finishSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                if (!_finishSignal.WaitOne(Configuration.Indexing.IndexingActivityTimeoutInSeconds * 1000, false))
+                try
+                {
+                    var timeOut = TimeSpan.FromSeconds(Configuration.Indexing.IndexingActivityTimeoutInSeconds);
+
+                    await _finishSignal.WaitAsync(cancellationToken.AddTimeout(timeOut)).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
                 {
                     var message = indexingActivity != null
                         ? $"IndexingActivity is timed out. Id: {indexingActivity.Id}, Type: {indexingActivity.ActivityType}. Max task id and exceptions: {DistributedIndexingActivityQueue.GetCurrentCompletionState()}"

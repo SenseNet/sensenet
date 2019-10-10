@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
@@ -11,6 +12,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -34,7 +36,9 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new PrivateType(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var unused = CreateRepositoryBuilderForTestInstance();
+            var builder = CreateRepositoryBuilderForTest();
+
+            builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider());
 
             RepositoryVersionInfo.Reset();
         }
@@ -54,7 +58,7 @@ namespace SenseNet.Packaging.Tests
 
         /*================================================= tools */
 
-        protected void SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
+        protected Task SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
         {
             var package = new Package
             {
@@ -67,7 +71,8 @@ namespace SenseNet.Packaging.Tests
                 ExecutionResult = result,
                 PackageType = packageType,
             };
-            PackageManager.Storage.SavePackage(package);
+
+            return PackageManager.Storage.SavePackageAsync(package, CancellationToken.None);
         }
 
         protected Manifest ParseManifestHead(string manifestXml)

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -13,8 +11,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tools;
 using static SenseNet.Tests.Tools;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -326,45 +324,46 @@ namespace SenseNet.Packaging.Tests
         }
     }
 
-    //UNDONE: [auto-patch] this feature is not released yet
+    //TODO: [auto-patch] this feature is not released yet
     //[TestClass]
     public class RepositoryStartTests : PackagingTestBase
     {
         [TestInitialize]
-        public void InitializePackagingTest()
+        public Task InitializePackagingTest()
         {
-            DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+            //DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
+            DataStore.DataProvider.SetExtension(typeof(IPackagingDataProviderExtension), new TestPackageStorageProvider());
 
             // make sure that every test starts with a clean slate (no existing installed components)
-            PackageManager.Storage.DeleteAllPackages();
+            return PackageManager.Storage.DeleteAllPackagesAsync(CancellationToken.None);
         }
 
         [TestMethod]
-        public void Packaging_NoPatchNeeded()
+        public async Task Packaging_NoPatchNeeded()
         {
-            PatchAndCheck(nameof(TestComponentOnePatch),
+            await PatchAndCheck(nameof(TestComponentOnePatch),
                 new[] {new Version(1, 0), new Version(1, 1)},
                 null,
                 null,
                 new Version(1, 1));
         }
         [TestMethod]
-        public void Packaging_OnePatch_Manifest()
+        public async Task Packaging_OnePatch_Manifest()
         {
             // execute a patch that is defined as a manifest
-            PatchAndCheck(nameof(TestComponentOnePatch),
+            await PatchAndCheck(nameof(TestComponentOnePatch),
                 new[] {new Version(1, 0)},
                 new[] {new Version(1, 1)},
                 null,
                 new Version(1, 1));
         }
         [TestMethod]
-        public void Packaging_OnePatch_Code()
+        public async Task Packaging_OnePatch_Code()
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
                 // execute a patch that is defined as code
-                PatchAndCheck(nameof(TestComponentPatchCode),
+                await PatchAndCheck(nameof(TestComponentPatchCode),
                     new[] { new Version(1, 0) },
                     new[] { new Version(1, 1) },
                     null,
@@ -374,27 +373,27 @@ namespace SenseNet.Packaging.Tests
             }
         }
         [TestMethod]
-        public void Packaging_MultiPatch()
+        public async Task Packaging_MultiPatch()
         {
-            PatchAndCheck(nameof(TestComponentMultiPatch),
+            await PatchAndCheck(nameof(TestComponentMultiPatch),
                 new[] {new Version(1, 0)},
                 new[] {new Version(1, 1), new Version(1, 2)},
                 null,
                 new Version(1, 2));
         }
         [TestMethod]
-        public void Packaging_MultiPatch_SkipPatch()
+        public async Task Packaging_MultiPatch_SkipPatch()
         {
-            PatchAndCheck(nameof(TestComponentMultiPatch),
+            await PatchAndCheck(nameof(TestComponentMultiPatch),
                 new[] {new Version(1, 1)},
                 new[] {new Version(1, 2)},
                 null,
                 new Version(1, 2));
         }
         [TestMethod]
-        public void Packaging_MultiPatch_Exclusive()
+        public async Task Packaging_MultiPatch_Exclusive()
         {
-            PatchAndCheck(nameof(TestComponentMultiPatchExclusive),
+            await PatchAndCheck(nameof(TestComponentMultiPatchExclusive),
                 new[] { new Version(2, 0) },
                 null,
                 null,
@@ -403,19 +402,19 @@ namespace SenseNet.Packaging.Tests
 
         [TestMethod]
         [ExpectedException(typeof(InvalidPackageException))]
-        public void Packaging_MultiPatch_IncorrectFormat()
+        public async Task Packaging_MultiPatch_IncorrectFormat()
         {
-            PatchAndCheck(nameof(TestComponentMultiPatchIncorrectFormat),
+            await PatchAndCheck(nameof(TestComponentMultiPatchIncorrectFormat),
                 new[] { new Version(1, 0) },
                 null, null, null);
         }
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
-        public void Packaging_MissingPatch()
+        public async Task Packaging_MissingPatch()
         {
             // The Supported version of this component is v1.1, but there is no patch
             // in the assembly, so we expect an exception here.
-            PatchAndCheck(nameof(TestComponentNoPatch),
+            await PatchAndCheck(nameof(TestComponentNoPatch),
                 new[] {new Version(1, 0)},
                 null,
                 null,
@@ -423,11 +422,11 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Packaging_Invalid_Version()
+        public async Task Packaging_Invalid_Version()
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
-                PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
+                await PatchAndCheck(nameof(TestComponentPatchInvalidVersion),
                     new[] { new Version(1, 0) },
                     null,
                     null,
@@ -438,11 +437,11 @@ namespace SenseNet.Packaging.Tests
             }
         }
         [TestMethod]
-        public void Packaging_Invalid_Ambigous()
+        public async Task Packaging_Invalid_Ambigous()
         {
             using (var ls = new LoggerSwindler<TestPackageLogger>())
             {
-                PatchAndCheck(nameof(TestComponentPatchInvalidAmbigous),
+                await PatchAndCheck(nameof(TestComponentPatchInvalidAmbigous),
                     new[] { new Version(1, 0) },
                     null,
                     null,
@@ -474,13 +473,13 @@ namespace SenseNet.Packaging.Tests
             Test(builder =>
              {
                  // install a test component so that the built-in patch for that component gets executed
-                 PackageManager.Storage.SavePackage(new Package
+                 PackageManager.Storage.SavePackageAsync(new Package
                  {
                      ComponentId = componentId,
                      ComponentVersion = new Version(1, 0),
                      ExecutionResult = ExecutionResult.Successful,
                      PackageType = PackageType.Install
-                 });
+                 }, CancellationToken.None).GetAwaiter().GetResult();
              },
              () =>
              {
@@ -496,13 +495,13 @@ namespace SenseNet.Packaging.Tests
                 SetContentHandler("GenericContent", "unknownpackagingchangectd");
 
                 // install a test component so that the built-in patch for that component gets executed
-                PackageManager.Storage.SavePackage(new Package
+                PackageManager.Storage.SavePackageAsync(new Package
                 {
                     ComponentId = nameof(TestComponentPatchChangeHandler),
                     ComponentVersion = new Version(1, 0),
                     ExecutionResult = ExecutionResult.Successful,
                     PackageType = PackageType.Install
-                });
+                }, CancellationToken.None).GetAwaiter().GetResult();
             },
             () =>
             {
@@ -512,7 +511,7 @@ namespace SenseNet.Packaging.Tests
             });
         }
 
-        private static void PatchAndCheck(string componentId, 
+        private static async Task PatchAndCheck(string componentId, 
             Version[] packageVersions,
             Version[] successfulPatchVersions,
             Version[] failedPatchVersions,
@@ -528,13 +527,13 @@ namespace SenseNet.Packaging.Tests
 
                 foreach (var packageVersion in packageVersions)
                 {
-                    PackageManager.Storage.SavePackage(new Package
+                    await PackageManager.Storage.SavePackageAsync(new Package
                     {
                         ComponentId = componentId,
                         ComponentVersion = packageVersion,
                         ExecutionResult = ExecutionResult.Successful,
                         PackageType = install ? PackageType.Install : PackageType.Patch
-                    });
+                    }, CancellationToken.None);
 
                     install = false;
                 }
@@ -582,7 +581,7 @@ namespace SenseNet.Packaging.Tests
 
         internal static void SetContentHandler(string contentTypeName, string handler)
         {
-            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
+            var testingDataProvider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
             if (testingDataProvider == null)
                 Assert.Inconclusive($"{nameof(ITestingDataProviderExtension)} implementation is not available.");
 

@@ -100,7 +100,7 @@ $.ajax({
 
 ## Addressing an entity
 
-Service path followed by the site relative path of the parent and an entity name wrapped by aposthrophes and parentheses.
+Service path followed by the site relative path of the parent and an entity name wrapped by apostrophes and parentheses.
 
 - http://www.example.com/OData.svc/workspaces('Document')
 

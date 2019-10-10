@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -60,7 +63,6 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(calls >= 1);
             Assert.IsTrue(calls <= 2);
         }
-
         private int MaintenanceTest(double taskDelayMinutes, int sleep)
         {
             // activate the service if needed
@@ -82,6 +84,70 @@ namespace SenseNet.ContentRepository.Tests
                 maintenanceService.Shutdown();
 
             return TestMaintenanceTask.Calls;
+        }
+
+
+        private class HackedInMemoryBlobStorageMetaDataProvider : InMemoryBlobStorageMetaDataProvider
+        {
+            public int CountOfCleanupCalled { get; private set; }
+
+            public override System.Threading.Tasks.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
+            {
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+            public override Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Thread.Sleep(100);
+                CountOfCleanupCalled++;
+                return System.Threading.Tasks.Task.FromResult(true);
+            }
+        }
+
+        [TestMethod]
+        public void Maintenance_Cancellation()
+        {
+            Test(() =>
+            {
+                var hackedDataProvider = new HackedInMemoryBlobStorageMetaDataProvider();
+                BlobStorageComponents.DataProvider = hackedDataProvider;
+
+                var running = SnMaintenance.Running();
+                var maintenanceService = new SnMaintenance();
+                if (!running)
+                    maintenanceService.Start();
+
+                try
+                {
+                    // Start the real maintenance immediatelly on a hacked system
+                    System.Threading.Tasks.Task.Run(() => SnMaintenanceAcc.InvokeStatic("CleanupFiles"));
+                    // Let it work hard
+                    Thread.Sleep(1000);
+                    // Simulate system's cooldown
+                    maintenanceService.Shutdown();
+
+                    // Get count of deletions
+                    var count1 = hackedDataProvider.CountOfCleanupCalled;
+                    // Wait for a while and get the count again
+                    Thread.Sleep(1000);
+                    var count2 = hackedDataProvider.CountOfCleanupCalled;
+                    // Repeat again
+                    Thread.Sleep(1000);
+                    var count3 = hackedDataProvider.CountOfCleanupCalled;
+
+                    // Maybe a deletion cycle ran at the moment of shutdown
+                    Assert.IsTrue(count2 - count1 < 2);
+                    // The system certainly stopped at the second time.
+                    Assert.AreEqual(count2, count3);
+                }
+                finally
+                {
+                    TestMaintenanceTask.Enabled = false;
+                    if (!running)
+                        maintenanceService.Shutdown();
+                }
+            });
         }
     }
 }
