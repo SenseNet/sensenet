@@ -224,7 +224,7 @@ namespace SenseNet.Portal.ApplicationModel
                     }
                     catch (Exception)
                     {
-                        throw new Exception("Property 'Width' is not a valid number or less than zero.");
+                        throw new Exception("Please provide a width,positive in value");
                     }
                     break;
                 case "height":
