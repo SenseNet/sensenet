@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     internal class InitialTestDataBlobProvider : IBlobProvider
     {

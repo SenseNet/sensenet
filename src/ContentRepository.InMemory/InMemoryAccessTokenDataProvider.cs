@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary> 
     /// This is an in-memory implementation of the <see cref="IAccessTokenDataProviderExtension"/> interface.

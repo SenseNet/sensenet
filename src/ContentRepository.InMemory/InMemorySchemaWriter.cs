@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     internal class InMemorySchemaWriter : SchemaWriter
     {

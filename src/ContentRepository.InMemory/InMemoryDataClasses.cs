@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     public interface IDataDocument
     {

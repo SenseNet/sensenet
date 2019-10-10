@@ -10,7 +10,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     public class InMemoryQueryEngine : IQueryEngine
     {

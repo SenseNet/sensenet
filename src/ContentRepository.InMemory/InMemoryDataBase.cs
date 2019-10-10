@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using SenseNet.ContentRepository.Storage.DataModel;
 
-namespace SenseNet.ContentRepository.Volatile
+namespace SenseNet.ContentRepository.InMemory
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public partial class InMemoryDataBase
