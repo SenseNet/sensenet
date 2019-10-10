@@ -18,7 +18,7 @@ With Binary Field Control the binary data of a Content can be added/modified. De
 
 - the displayed Content is a [Content Type](content-type.md),
 - the displayed Content has an extension that is included in the web.config's *EditSourceExtensions* entry of the *sensenet/webApplication* section,
-- otherwise when the *IsText* property in the underyling [Binary Field's](binary-field.md) [Field Setting](field-setting.md) is set to true.
+- otherwise when the *IsText* property in the underlying [Binary Field's](binary-field.md) [Field Setting](field-setting.md) is set to true.
 When a textarea is rendered it can be displayed as a highlighted editor of bigger size using the FullScreenText property.
 
 ## Supported Field types
@@ -31,7 +31,7 @@ When a textarea is rendered it can be displayed as a highlighted editor of bigge
 
 ## Templates
 
-Binary field control renders the name of the assigned file as a hyperlink in Browse mode. In Edit mode a fileupload control or a textarea control is rendered.
+Binary Field Control renders the name of the assigned file as a hyperlink in Browse mode. In Edit mode a fileupload control or a textarea control is rendered.
 
 ### Browse view template
 

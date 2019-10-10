@@ -112,7 +112,7 @@ Another way: Service path followed by the "content" word and an entity id betwee
 
 - http://www.example.com/OData.svc/content(42)
 
-If the site root contains a content that's name is "content", access it wit absolute path:
+If the site root contains a content that's name is "content", access it with absolute path:
 
 - http://www.example.com/OData.svc/Root/Sites/ExampleSite('content')
 
