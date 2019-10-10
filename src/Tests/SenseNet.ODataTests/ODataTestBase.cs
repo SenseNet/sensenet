@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -30,11 +31,142 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
 {
+    #region Additional classes
+
     public class ODataResponse
     {
         public int StatusCode { get; set; }
         public string Result { get; set; }
     }
+
+    internal class ODataTestsCustomActions
+    {
+        [ODataAction]
+        public static string ParameterEcho(Content content, string testString)
+        {
+            return testString;
+        }
+    }
+    internal class ODataFilterTestHelper
+    {
+        public static string TestValue => "Administrators";
+
+        internal class A
+        {
+            internal class B
+            {
+                // ReSharper disable once MemberHidesStaticFromOuterClass
+                public static string TestValue { get; } = "Administrators";
+            }
+        }
+    }
+
+    [ContentHandler]
+    internal class OData_Filter_ThroughReference_ContentHandler : GenericContent
+    {
+        public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
+    <ContentType name='OData_Filter_ThroughReference_ContentHandler' parentType='GenericContent' handler='SenseNet.ODataTests.OData_Filter_ThroughReference_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+      <Fields>
+        <Field name='References' type='Reference'>
+          <Configuration>
+            <AllowMultiple>true</AllowMultiple>
+            <AllowedTypes>
+              <Type>OData_Filter_ThroughReference_ContentHandler</Type>
+            </AllowedTypes>
+          </Configuration>
+        </Field>
+      </Fields>
+    </ContentType>
+    ";
+        public OData_Filter_ThroughReference_ContentHandler(Node parent) : this(parent, null) { }
+        public OData_Filter_ThroughReference_ContentHandler(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        protected OData_Filter_ThroughReference_ContentHandler(NodeToken token) : base(token) { }
+
+        public const string REFERENCES = "References";
+        [RepositoryProperty(REFERENCES, RepositoryDataType.Reference)]
+        public IEnumerable<Node> References
+        {
+            get { return this.GetReferences(REFERENCES); }
+            set { this.SetReferences(REFERENCES, value); }
+        }
+
+    }
+    [ContentHandler]
+    internal class OData_ReferenceTest_ContentHandler : GenericContent
+    {
+        public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
+    <ContentType name='OData_ReferenceTest_ContentHandler' parentType='GenericContent' handler='SenseNet.ODataTests.OData_ReferenceTest_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+      <Fields>
+        <Field name='Reference' type='Reference'>
+          <Configuration>
+            <AllowMultiple>false</AllowMultiple>
+          </Configuration>
+        </Field>
+        <Field name='References' type='Reference'>
+          <Configuration>
+            <AllowMultiple>true</AllowMultiple>
+          </Configuration>
+        </Field>
+        <Field name='Reference2' type='Reference'>
+          <Configuration>
+            <AllowMultiple>false</AllowMultiple>
+          </Configuration>
+        </Field>
+      </Fields>
+    </ContentType>
+    ";
+        public OData_ReferenceTest_ContentHandler(Node parent) : this(parent, null) { }
+        public OData_ReferenceTest_ContentHandler(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        protected OData_ReferenceTest_ContentHandler(NodeToken token) : base(token) { }
+
+        public const string REFERENCES = "References";
+        [RepositoryProperty(REFERENCES, RepositoryDataType.Reference)]
+        public IEnumerable<Node> References
+        {
+            get { return this.GetReferences(REFERENCES); }
+            set { this.SetReferences(REFERENCES, value); }
+        }
+
+        public const string REFERENCE = "Reference";
+        [RepositoryProperty(REFERENCE, RepositoryDataType.Reference)]
+        public Node Reference
+        {
+            get { return this.GetReference<Node>(REFERENCE); }
+            set { this.SetReference(REFERENCE, value); }
+        }
+
+        public const string REFERENCE2 = "Reference2";
+        [RepositoryProperty(REFERENCE2, RepositoryDataType.Reference)]
+        public Node Reference2
+        {
+            get { return this.GetReference<Node>(REFERENCE2); }
+            set { this.SetReference(REFERENCE2, value); }
+        }
+
+        public override object GetProperty(string name)
+        {
+            switch (name)
+            {
+                case REFERENCE: return this.Reference;
+                case REFERENCE2: return this.Reference2;
+                case REFERENCES: return this.References;
+                default: return base.GetProperty(name);
+            }
+        }
+        public override void SetProperty(string name, object value)
+        {
+            switch (name)
+            {
+                case REFERENCE: this.Reference = (Node)value; break;
+                case REFERENCE2: this.Reference2 = (Node)value; break;
+                case REFERENCES: this.References = (IEnumerable<Node>)value; break;
+                default: base.SetProperty(name, value); break;
+            }
+        }
+    }
+
+    #endregion
+
     public class ODataTestBase
     {
         #region Infrastructure
