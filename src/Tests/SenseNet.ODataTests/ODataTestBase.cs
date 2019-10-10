@@ -16,7 +16,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Volatile;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
