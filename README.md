@@ -77,5 +77,8 @@ If you are new to sensenet, it is worth checking out these introductory articles
 - [Getting started - building portals](http://wiki.sensenet.com/Getting_started_-_building_portals)
 - [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
 
+
+[![Open Source Love png1](https://badges.frapsoft.com/os/v1/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
+
 ## Contributing
 All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
