@@ -70,7 +70,7 @@ Consider using the following client projects to manipulate data in the Content R
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
 ### sensenet ECM 6.5
-A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
+A feature-rich Enterprise CMS(Content Management System) with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
 
 If you are new to sensenet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
 - [Getting started - using sensenet](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
