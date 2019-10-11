@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable CommentTypo
 
 // ReSharper disable ArrangeThisQualifier
 
@@ -73,16 +75,17 @@ namespace SenseNet.OData
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            // CREATE ODATA-RESPONSE STRATEGY
+            // Create OData-response strategy
             var odataRequest = ODataRequest.Parse(httpContext);
 
-            // WRITE RESPONSE
+            // Write headers and body of the HttpResponse
             //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
             using (new SystemAccount())
                 await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
-            // ENABLE CUSTOMIZATION FOR NEXT MIDDLEWARE
-            await _next(httpContext).ConfigureAwait(false);
+            // Call next in the chain if exists
+            if (_next != null)
+                await _next(httpContext).ConfigureAwait(false);
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
@@ -365,8 +368,8 @@ namespace SenseNet.OData
 
             var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
             var serializer = JsonSerializer.Create(settings);
-            var jreader = new JsonTextReader(new StringReader(models));
-            var deserialized = serializer.Deserialize(jreader);
+            var jReader = new JsonTextReader(new StringReader(models));
+            var deserialized = serializer.Deserialize(jReader);
 
             if (deserialized is JObject jObject)
                 return jObject;
@@ -391,8 +394,8 @@ namespace SenseNet.OData
 
             var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
             var serializer = JsonSerializer.Create(settings);
-            var jreader = new JsonTextReader(new StringReader(models));
-            var deserialized = serializer.Deserialize(jreader, type);
+            var jReader = new JsonTextReader(new StringReader(models));
+            var deserialized = serializer.Deserialize(jReader, type);
 
             return deserialized;
         }
@@ -482,8 +485,8 @@ namespace SenseNet.OData
             }
             else
             {
-                var templated = ContentTemplate.CreateFromTemplate(parent, template, name);
-                content = Content.Create(templated);
+                var node = ContentTemplate.CreateFromTemplate(parent, template, name);
+                content = Content.Create(node);
             }
 
 
@@ -592,61 +595,61 @@ namespace SenseNet.OData
                 {
                     if (!field.ReadOnly)
                     {
-                        if (prop.Value is JValue jvalue)
+                        if (prop.Value is JValue jValue)
                         {
                             if (field is IntegerField)
                             {
-                                field.SetData(Convert.ToInt32(jvalue.Value));
+                                field.SetData(Convert.ToInt32(jValue.Value));
                                 continue;
                             }
-                            if (field is DateTimeField && jvalue.Value == null)
+                            if (field is DateTimeField && jValue.Value == null)
                                 continue;
-                            if (isNew && field is ReferenceField && jvalue.Value == null)
+                            if (isNew && field is ReferenceField && jValue.Value == null)
                             {
                                 if (field.Name == "CreatedBy" || field.Name == "ModifiedBy")
                                     continue;
                             }
-                            if (field is ReferenceField && jvalue.Value != null)
+                            if (field is ReferenceField && jValue.Value != null)
                             {
-                                var refNode = jvalue.Type == JTokenType.Integer
-                                    ? Node.LoadNode(Convert.ToInt32(jvalue.Value))
-                                    : Node.LoadNode(jvalue.Value.ToString());
+                                var refNode = jValue.Type == JTokenType.Integer
+                                    ? Node.LoadNode(Convert.ToInt32(jValue.Value))
+                                    : Node.LoadNode(jValue.Value.ToString());
 
                                 field.SetData(refNode);
                                 continue;
                             }
-                            if (isNew && field.Name == "Name" && jvalue.Value != null)
+                            if (isNew && field.Name == "Name" && jValue.Value != null)
                             {
-                                field.SetData(ContentNamingProvider.GetNameFromDisplayName(jvalue.Value.ToString()));
+                                field.SetData(ContentNamingProvider.GetNameFromDisplayName(jValue.Value.ToString()));
                                 continue;
                             }
 
-                            field.SetData(jvalue.Value);
+                            field.SetData(jValue.Value);
                             continue;
                         }
 
                         if (prop.Value is JObject)
                         {
                             //TODO: ODATA: setting field when posted value is JObject.
-                            // field.SetData(jvalue.Value);
+                            // field.SetData(jValue.Value);
                             continue;
                         }
 
-                        if (prop.Value is JArray avalue)
+                        if (prop.Value is JArray aValue)
                         {
                             if (field is ReferenceField)
                             {
-                                var refValues = avalue.Values().ToList();
+                                var refValues = aValue.Values().ToList();
                                 if (refValues.Count == 0)
                                 {
                                     field.SetData(null);
                                     continue;
                                 }
 
-                                var fsetting = field.FieldSetting as ReferenceFieldSetting;
+                                var fieldSetting = field.FieldSetting as ReferenceFieldSetting;
                                 var nodes = refValues.Select(rv => rv.Type == JTokenType.Integer ? Node.LoadNode(Convert.ToInt32(rv.ToString())) : Node.LoadNode(rv.ToString()));
 
-                                if (fsetting?.AllowMultiple != null && fsetting.AllowMultiple.Value)
+                                if (fieldSetting?.AllowMultiple != null && fieldSetting.AllowMultiple.Value)
                                     field.SetData(nodes);
                                 else
                                     field.SetData(nodes.First());
@@ -656,7 +659,7 @@ namespace SenseNet.OData
                             {
                                 // ChoiceField expects the value to be of type List<string>
                                 var list = new List<string>();
-                                foreach (var token in avalue)
+                                foreach (var token in aValue)
                                 {
                                     if (token is JValue value)
                                         list.Add(value.Value.ToString());
@@ -671,7 +674,7 @@ namespace SenseNet.OData
                                      field.Name == "AllowedChildTypes" &&
                                      content.ContentHandler is GenericContent gc)
                             {
-                                var types = avalue.Values().Select(rv =>
+                                var types = aValue.Values().Select(rv =>
                                 {
                                     switch (rv.Type)
                                     {
@@ -699,9 +702,9 @@ namespace SenseNet.OData
 
         private T GetPropertyValue<T>(string name, JObject model)
         {
-            if (model[name] is JValue jvalue)
-                return (T)jvalue.Value;
-            return default(T);
+            if (model[name] is JValue jValue)
+                return (T)jValue.Value;
+            return default;
         }
 
         /// <summary>
