@@ -16,11 +16,11 @@ JS is the first foundation of the whole stack. You can love it or you can hate i
 
 - **APIs**
 
-Though we did mention the static websites, the next foundation of the JAMstack are APIs. Thanks to it you can use backend functionality without having a database or the backend engine on your own server. You still have backend, yes,  but deploy only a static website. You can use any API you want, public or private. There are many third-part sites you can choose from. You can also connect to the other backend app that you have created.
+Though we did mention the static websites, the next layer of the JAMstack is APIs. Thanks to APIs you can use backend functionality without having a database or the backend engine on your own server. You still have a backend, yes, but deploy only a static website. You can use any API you want, public or private. There are many third-party sites you can choose from. You can also connect to another backend app that you have created.
 
 - **Markup**
 
-The presentation layer of your website. With the JAMstack ecosystem usually, it’s a static site generator where templated markup is prebuilt at the build time. You can write your own HTML and CSS code or use a framework such as Hugo, Jekyll or Gatsby, which will greatly improve the time of template development.
+The presentation layer of your website. With the JAMstack ecosystem it’s usually a static site generator where templated markup is prebuilt at the build time. You can write your own HTML and CSS code or use a framework such as Hugo, Jekyll or Gatsby, which will greatly improve the time of template development.
 
 
 
@@ -56,7 +56,7 @@ app.listen(app.get('port') || 3000, () => {
 
 ### **WORKFLOW**
 
-Here's how an ideal JAMstack workflow would look like
+Here's how an ideal JAMstack workflow would look:
 
 ![JAMstack Workflow](https://miro.medium.com/max/900/1*iaJIWN-1jhRBTiVfmYYdlA.png)
 
@@ -70,7 +70,7 @@ Here are the main benefits provided by the JAMstack.
 
 - More secure **->>** No need to worry about server or database vulnerabilities
 
-- Less expensive **->>** Hosting of static files are cheap or even free
+- Less expensive **->>** Hosting of static files is cheap or even free
 
 - Better developer experience **->>** Front end developers can focus on the front end, without being tied to a monolithic architecture. This usually means quicker and more focused development
 
@@ -88,6 +88,6 @@ The following tips will help you leverage the best out of the stack.
 
 - Cache invalidation **->>** Once your build is uploaded, the CDN invalidates its cache. This means that your new build is live in an instant.
 
-- Everything in version control **->>** Your codebase lives in Version Control System, such as Git. The main benefits are: change history of every file, collaborators and traceability.
+- Everything in version control **->>** Your codebase lives in a Version Control System, such as Git. The main benefits are: change history of every file, collaborators and traceability.
 
-- Automated builds **->>** Your server is notified when a new build is required, typically via webhooks. Server builds the project, updates the CDNs and the site is live.
+- Automated builds **->>** Your server is notified when a new build is required, typically via webhooks. The server builds the project, updates the CDNs and the site is live.
