@@ -5,6 +5,7 @@ The first Open Source Enterprise Content Management platform for .NET!
 
 [![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://dev.azure.com/sensenetplatform/sensenet/_apis/build/status/sensenet)](https://dev.azure.com/sensenetplatform/sensenet/_build/latest?definitionId=1)
+[![version](https://img.shields.io/badge/version-7.0-yellow.svg)](https://github.com/SenseNet/sensenet/releases)
 
 > **sensenet Services 7.0 stable** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
 
