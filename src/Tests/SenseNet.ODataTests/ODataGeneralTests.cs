@@ -4,11 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
-using SenseNet.Portal.ApplicationModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
-using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -25,49 +23,6 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataGeneralTests : ODataTestBase
     {
-        private class TestMiddleware
-        {
-            public TestMiddleware(RequestDelegate next)
-            {
-                _next = next;
-            }
-
-            private readonly RequestDelegate _next;
-            public async Task InvokeAsync(HttpContext context)
-            {
-                context.Response.Headers.Add("Header1", "HeaderValue1");
-                if (_next != null)
-                    await _next(context).ConfigureAwait(false);
-            }
-        }
-        [TestMethod]
-        public async Task OD_Middleware()
-        {
-            await ODataTestAsync(async () =>
-            {
-                // ARRANGE
-
-                // Create HttpContext 
-                var httpContext = new DefaultHttpContext();
-                var request = httpContext.Request;
-                request.Path = "/OData.svc";
-                request.QueryString = QueryString.Empty;
-                request.Method = "GET";
-                httpContext.Response.Body = new MemoryStream();
-
-                // ACTION: Simulate the aspnet framework
-                // instantiate the OData with the next chain member
-                var odata = new ODataMiddleware(new TestMiddleware(null).InvokeAsync);
-                // call the first of the chain
-                await odata.InvokeAsync(httpContext);
-
-                // ASSERT
-                var header = httpContext.Response.Headers.FirstOrDefault(h => h.Key == "Header1");
-                Assert.IsNotNull(header);
-                Assert.AreEqual("HeaderValue1", header.Value.ToString());
-            }).ConfigureAwait(false);
-        }
-
         [TestMethod]
         public async Task OD_GET_NoRequest()
         {
@@ -143,7 +98,7 @@ namespace SenseNet.ODataTests
                 foreach (XmlElement node in metaXml.SelectNodes("//x:EntityType[@BaseType]", nsmgr))
                 {
                     var hasKey = node.SelectSingleNode("x:Key", nsmgr) != null;
-                    var hasId = node.SelectSingleNode("x:Property[@Name = 'Id']", nsmgr) != null;
+                    //var hasId = node.SelectSingleNode("x:Property[@Name = 'Id']", nsmgr) != null;
                     Assert.IsFalse(hasKey);
                 }
             }).ConfigureAwait(false);
@@ -370,7 +325,7 @@ namespace SenseNet.ODataTests
 
                 // ACTION 2
                 var response2 = await ODataGetAsync("/OData.svc/Root('IMS')/Id/$value", "")
-                    .ConfigureAwait(false); ;
+                    .ConfigureAwait(false);
 
                 // ASSERT 2
                 Assert.AreEqual(imsId.ToString(), response2.Result);
@@ -381,8 +336,6 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                var imsId = Repository.ImsFolder.Id;
-
                 // ACTION
                 var response1 = await ODataGetAsync(
                         "/OData.svc/Root('IMS')/__unknownProperty__", "")
@@ -938,7 +891,6 @@ namespace SenseNet.ODataTests
                 // ARRANGE
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 EnsureReferenceTestStructure(testRoot);
-                var workspace = CreateWorkspace("Workspace1");
 
                 // ACTION
                 var resourcePath = ODataMiddleware.GetEntityUrl(testRoot.Path + "/Referrer");
@@ -1070,12 +1022,12 @@ namespace SenseNet.ODataTests
 
                 var entity = GetEntity(response);
                 var createdBy = entity.CreatedBy;
-                var createdBy_manager = createdBy.Manager;
+                var createdByManager = createdBy.Manager;
                 Assert.IsTrue(entity.AllPropertiesSelected);
                 Assert.IsTrue(createdBy.AllPropertiesSelected);
-                Assert.IsTrue(createdBy_manager.AllPropertiesSelected);
-                Assert.IsTrue(createdBy.Manager.CreatedBy.IsDeferred);
-                Assert.IsTrue(createdBy.Manager.Manager.IsDeferred);
+                Assert.IsTrue(createdByManager.AllPropertiesSelected);
+                Assert.IsTrue(createdByManager.CreatedBy.IsDeferred);
+                Assert.IsTrue(createdByManager.Manager.IsDeferred);
             }).ConfigureAwait(false);
         }
         [TestMethod]
@@ -1133,7 +1085,6 @@ namespace SenseNet.ODataTests
                     .ConfigureAwait(false);
 
                 var entity = GetEntity(response);
-                var id = entity.CreatedBy.Manager.Id;
                 Assert.IsFalse(entity.AllPropertiesSelected);
                 Assert.IsFalse(entity.CreatedBy.AllPropertiesSelected);
                 Assert.IsNull(entity.CreatedBy.CreatedBy);
@@ -1676,7 +1627,7 @@ namespace SenseNet.ODataTests
                 container.Save();
 
                 var today = DateTime.Now;
-                (new[] {3, 1, 5, 2, 4}).Select(i =>
+                var unused = (new[] {3, 1, 5, 2, 4}).Select(i =>
                 {
                     var content = Content.CreateNew("Car", container, "Car-" + i + "-" + Guid.NewGuid());
                     content.AddAspects(aspect1);
