@@ -13,7 +13,7 @@ using SenseNet.Diagnostics;
 namespace Compatibility.SenseNet.Portal.Handlers
 {
     [ContentHandler]
-    public class HttpHandlerApplication : Application
+    public class HttpHandlerApplication : Application //UNDONE:ODATA:SERVICES: Delete
     {
         public HttpHandlerApplication(Node parent) : this(parent, null) { }
         public HttpHandlerApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }

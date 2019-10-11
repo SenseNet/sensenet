@@ -6,7 +6,7 @@ using SenseNet.Configuration;
 namespace SenseNet.Diagnostics
 {
     //UNDONE:ODATA: ?IsHttpContext? SenseNet.Diagnostics.ContextEventPropertyCollector
-    public class ContextEventPropertyCollector : EventPropertyCollector
+    public class ContextEventPropertyCollector : EventPropertyCollector //UNDONE:ODATA:SERVICES: Delete
     {
         protected override void CollectProperties(IDictionary<string, object> props)
         {
