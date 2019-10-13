@@ -234,7 +234,7 @@ The following elements make up the general structure of the xml:
 - **DisplayName**: the displayed user friendly name of the type
 - **Description**: the short description of the type
 - **Icon**: icon of the type. Icons reside in the /Root/Global/images/icons folder. An icon is referred with its name here.
-- **Preview**: whether the system needs to generate preview images for this type of content. Currently this works only for file types. This setting is not inheritable, you should set it explicitely in every CTD where you want to have preview images. Possible values are *yes/no* or *true/false*.
+- **Preview**: whether the system needs to generate preview images for this type of content. Currently this works only for file types. This setting is not inheritable, you should set it explicitly in every CTD where you want to have preview images. Possible values are *yes/no* or *true/false*.
 - **AllowIndexing**: whether the instances of this type should be indexed or not. Possible values are *yes/no* or *true/false*. The default is true. If set to false, the index will be smaller, but nobody will be able to find the items of this type using content query. They will still be accessible through a direct request of course. In the default installation preview images are not indexed, for example.
 - **AppInfo**: custom text or xml fragment for CTD extensibility
 - **AllowIncrementalNaming**: boolean property for allowing the incremental name suffix generation during content creation when a Content with the same name already exists. Default is false - in this case an error message is shown when saving the Content with an existing name. See [Content naming](content-naming.md#Incremental-naming) for details.
@@ -265,7 +265,7 @@ The following elements build up the field definition:
 - **AppInfo**: custom text or xml fragment for CTD extensibility
 - **Bind**: name of the storage property the field is bound to. By default the bound property name is the name of the field. You can define composite fields by binding them to multiple properties. An example for this is Image Field. Within a content multiple fields can be bound to the same property. For more info read [Field - for Developers](field-for-developers.md#Connection) between Field and Property.
 - **Indexing**: indexing settings of the field. Please refer to [Field Indexing](field-indexing.md) for detailed information.
-- **Configuration**: configuration settings of the field. This varies with the actual [Field Setting](field-setting.md). See detailed information on field configuration atarticles of specific Fields. The following optional elements are available in all types of Field Settings:
+- **Configuration**: configuration settings of the field. This varies with the actual [Field Setting](field-setting.md). See detailed information on field configuration articles of specific Fields. The following optional elements are available in all types of Field Settings:
     - **ReadOnly**: indicates if the field is read-only
     - **Compulsory**: indicates if the field is compulsory
     - **OutputMethod**: defines the field output type. It can be Default, Raw, Text, Html. Plays an important role in [XSS Protection](xss-protection.md).

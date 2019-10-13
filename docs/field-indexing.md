@@ -8,7 +8,7 @@ tags: [field, indexing, index, content type, content type definition]
 
 # Field Indexing
 
-For every [Content](content.md) the [Field](field.md) values can be indexed so that when searching for a value the corresponding Content will appear in the result set. It is also possible to search in Fields by explicitely defining the Field to search for in a query. The way a specific Field of a Content is indexed is defined in the [Content Type Definition](ctd.md).
+For every [Content](content.md) the [Field](field.md) values can be indexed so that when searching for a value the corresponding Content will appear in the result set. It is also possible to search in Fields by explicitly defining the Field to search for in a query. The way a specific Field of a Content is indexed is defined in the [Content Type Definition](ctd.md).
 
 > It is possible to switch off indexing for certain fields or content types. In that case nobody will be able to find the instances of those content types using [Content Query](content-query.md), but the index will be smaller. For more details, see the Index description in the Content Type Definition article.
 

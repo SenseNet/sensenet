@@ -41,7 +41,7 @@ This method provides an extra line of defense for keeping mission critical conte
 
 ### Public visibility
 
-Vistors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permission: a user who does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
+Visitors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permission: a user who does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
 The other important thing here to bear in mind is that if a document gets rejected it does not mean that the document is not visible for the public. It only means that the last version that was rejected will not be visible to the public. So for example:
 1. Set approval on a document library to true.
 2. Upload a document - it's state will be pending for approval (you can check it out on versions tab): only users with open minor permissions will be able to see it.
@@ -96,7 +96,7 @@ Administrators can have a *Force undo changes* permission. This means they can d
 
 There are cases when somebody checked out a document, but the user is no longer available (or does not have enough permissions anymore). If force undo changes is not sufficient (e.g. because you want to preserve the content modifications) then administrators are allowed to *take over the lock* on the content. The admin still needs to have *Force undo changes* permission on the content. It is also possible to *pass on the lock to another user*. That user does not have to have force undo changes permission though, only *Save*.
 
-As this action is very rare and used only in eceptional cases, it has a special [audit log](/docs/Logging.md#Audit log) entry:
+As this action is very rare and used only in exceptional cases, it has a special [audit log](/docs/Logging.md#Audit log) entry:
 
 - *LockTakenOver*
 
