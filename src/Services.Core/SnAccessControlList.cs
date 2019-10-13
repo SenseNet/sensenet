@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections.ObjectModel;
 using SenseNet.Configuration;
 using SenseNet.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Services

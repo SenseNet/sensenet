@@ -1,10 +1,6 @@
 ﻿using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.Configuration;
 
 // ReSharper disable once CheckNamespace
@@ -22,7 +18,7 @@ namespace SenseNet.Services
 
         public static SnIdentity Create(int nodeId)
         {
-            Node node = null;
+            Node node;
             using (new SystemAccount())
                 node = Node.LoadNode(nodeId);
 
@@ -30,32 +26,21 @@ namespace SenseNet.Services
                 node = Node.LoadNode(Identifiers.SomebodyUserId);
 
             string name = node.Name;
-            SnIdentityKind kind = SnIdentityKind.User;
-            var nodeAsUser = node as IUser;
-            if (nodeAsUser != null)
+            SnIdentityKind kind;
+            switch (node)
             {
-                name = nodeAsUser.FullName;
-                kind = SnIdentityKind.User;
-            }
-            else
-            {
-                var nodeAsGroup = node as IGroup;
-                if (nodeAsGroup != null)
-                {
+                case IUser nodeAsUser:
+                    name = nodeAsUser.FullName;
+                    kind = SnIdentityKind.User;
+                    break;
+                case IGroup _:
                     kind = SnIdentityKind.Group;
-                }
-                else
-                {
-                    var nodeAsOrgUnit = node as IOrganizationalUnit;
-                    if (nodeAsOrgUnit != null)
-                    {
-                        kind = SnIdentityKind.OrganizationalUnit;
-                    }
-                    else
-                    {
-                        throw new ApplicationException(String.Concat("Cannot create SnIdentity from NodeType ", ActiveSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
-                    }
-                }
+                    break;
+                case IOrganizationalUnit _:
+                    kind = SnIdentityKind.OrganizationalUnit;
+                    break;
+                default:
+                    throw new ApplicationException(String.Concat("Cannot create SnIdentity from NodeType ", ActiveSchema.NodeTypes.GetItemById(node.NodeTypeId).Name, ". Path: ", node.Path));
             }
 
             return new SnIdentity

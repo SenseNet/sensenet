@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using SenseNet.ContentRepository.i18n;
 
 // ReSharper disable once CheckNamespace

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+// ReSharper disable AccessToStaticMemberViaDerivedType
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Services
@@ -55,10 +53,9 @@ namespace SenseNet.Services
         }
         public void SetPermissionsBits(ulong allowBits, ulong denyBits)
         {
-            var index = 0;
             foreach (var perm in this.Permissions)
             {
-                index = PermissionType.GetByName(perm.Name).Index;
+                var index = PermissionType.GetByName(perm.Name).Index;
                 var mask = 1uL << index;
                 perm.Deny = (denyBits & mask) != 0;
                 perm.Allow = (allowBits & mask) == mask;
