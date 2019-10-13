@@ -24,7 +24,7 @@ where
 
 #### Application inheritance
 
-Applications can be *overridden* in a subtree by placing an Application of the same name under an _(apps)_ folder that is placed at a deeper level in the [Content Repository](content-repository.md) and also by using the `This` keyword as contenttypename. See examples and refer to [Smart Application Model](smart-application-model.md) for a details.
+Applications can be *overridden* in a subtree by placing an Application of the same name under an _(apps)_ folder that is placed at a deeper level in the [Content Repository](content-repository.md) and also by using the `This` keyword as contenttypename. See examples and refer to [Smart Application Model](smart-application-model.md) for details.
 
 ### Applications and Actions
 
@@ -37,7 +37,7 @@ The Application is resolved then using [Smart Application Model](smart-applicati
 
 ### Application types
 
-Altough an Application for a [Content Type](content-type.md) is usually defined as a [Smart Page](smart-pages.md) to present the [Content](content.md), there are several other Application types defined in the system. An RssApplication for example will return the Rss feed corresponding to the addressed [Content](content.md) in the response. The base [Content Type](content-type.md) for Application types can be found under _/Root/System/Schema/ContentTypes/GenericContent/Application_. Here is a few examples of pre-defined Application types:
+Although an Application for a [Content Type](content-type.md) is usually defined as a [Smart Page](smart-pages.md) to present the [Content](content.md), there are several other Application types defined in the system. An RssApplication for example will return the Rss feed corresponding to the addressed [Content](content.md) in the response. The base [Content Type](content-type.md) for Application types can be found under _/Root/System/Schema/ContentTypes/GenericContent/Application_. Here are a few examples of pre-defined Application types:
 
 - **Page**: defines a page layout to be rendered - when used with [Context bound Portlets](context-bound-portlets.md) it is referred to as a [Smart Page](smart-pages.md).
 - **ApplicationOverride**: it can be used to override Fields of an existing Application (Smart Page), without modifying the page layout
