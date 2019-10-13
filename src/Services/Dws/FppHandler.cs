@@ -22,7 +22,7 @@ namespace SenseNet.Portal.Dws
 
         // =========================================================================================================== Const strings 
 
-        private const string DATEFORMAT = "dd MMM yyyy hh:mm:ss +0000";
+        private const string DATEFORMAT = "dd MMM yyyy hh:mm:ss zzz";
 
         private const string ENTRYPOINTSTR = @"<!-- FrontPage Configuration Information
 FPVersion=""14.00.0.000""
