@@ -9,7 +9,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 
-namespace Compatibility.SenseNet.Services
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Services
 {
     [Serializable]
     public class SnAccessControlList

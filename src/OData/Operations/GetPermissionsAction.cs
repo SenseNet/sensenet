@@ -8,6 +8,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Services;
 
 namespace SenseNet.OData.Operations
 {
@@ -96,7 +97,7 @@ namespace SenseNet.OData.Operations
             }
             var ace = new Dictionary<string, object>
             {
-                { "identity", Compatibility.SenseNet.Portal.PermissionQuery.GetIdentity(entry) },
+                { "identity", PermissionQuery.GetIdentity(entry) },
                 { "propagates", entry.Propagates },
                 { "permissions", perms }
             };
@@ -109,7 +110,7 @@ namespace SenseNet.OData.Operations
 
             return new Dictionary<string, object>
             {
-                {"identity", Compatibility.SenseNet.Portal.PermissionQuery.GetIdentity(Node.LoadNode(identityPath)) },
+                {"identity", PermissionQuery.GetIdentity(Node.LoadNode(identityPath)) },
                 {"propagates", true},
                 {"permissions", perms}
             };

@@ -6,7 +6,8 @@ using System.ComponentModel;
 using SenseNet.Security;
 using System.Diagnostics;
 
-namespace Compatibility.SenseNet.Services
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Services
 {
     [DebuggerDisplay("{ToString()}")]
     [Serializable]

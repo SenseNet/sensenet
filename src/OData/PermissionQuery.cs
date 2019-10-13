@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Compatibility.SenseNet.Services;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.OData;
 using SenseNet.Services;
 
-namespace Compatibility.SenseNet.Portal
+// ReSharper disable once CheckNamespace
+namespace SenseNet.OData
 {
     public class PermissionQuery
     {

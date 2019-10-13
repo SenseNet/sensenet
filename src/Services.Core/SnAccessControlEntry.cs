@@ -6,7 +6,8 @@ using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace Compatibility.SenseNet.Services
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Services
 {
     [Serializable]
     [DebuggerDisplay("Ident: {Identity.NodeId}-{Identity.Name}, Propagates: {Propagates}, Permissions: {PermissionsToString()} ")]

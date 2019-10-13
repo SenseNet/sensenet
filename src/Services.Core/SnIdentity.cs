@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using SenseNet.Configuration;
 
-namespace Compatibility.SenseNet.Services
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Services
 {
     public enum SnIdentityKind { User, Group, OrganizationalUnit }
 
