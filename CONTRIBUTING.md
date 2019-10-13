@@ -1,4 +1,5 @@
 # How to contribute
+
 Thank you for checking out our project! :star2: :sunny: :deciduous_tree: :earth_americas:
 
 All kinds of contributions are welcome, including ideas, requests for improvement (be it code or [documentation](http://wiki.sensenet.com)), bugfixes or features. We are happy if you simply use these projects, but it is marvelous :sparkling_heart: if you decide to make your changes public for the benefit of others.
