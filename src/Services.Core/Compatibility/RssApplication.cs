@@ -10,7 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage.Schema;
 
-namespace Compatibility.SenseNet.Services
+namespace SenseNet.Services
 {
     [ContentHandler]
     public class RssApplication : Application //UNDONE:ODATA:SERVICES: Delete (InitialTestData contains it)

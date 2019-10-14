@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ApplicationModel;
 
-namespace Compatibility.SenseNet.Portal.Handlers
+namespace SenseNet.Portal.Handlers
 {
     [ContentHandler]
     public class HttpHandlerApplication : Application //UNDONE:ODATA:SERVICES: Delete

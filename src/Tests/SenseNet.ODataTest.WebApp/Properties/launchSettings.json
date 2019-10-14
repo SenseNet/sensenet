@@ -15,7 +15,8 @@
       //"launchUrl": "api/values",
       //"launchUrl": "odata.svc/Root/Sites('MySite')?metadata=no&$select=Name,DisplayName",
       //"launchUrl": "odata.svc/Root/IMS/$count",
-      "launchUrl": "odata.svc/Root/IMS/Builtin/Portal?metadata=no",
+      //"launchUrl": "odata.svc/Root/IMS/Builtin/Portal?metadata=no",
+      "launchUrl": "odata.svc/Root/(apps)/GenericContent?metadata=no&$select=Name",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
