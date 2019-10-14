@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Common
         {
             public static class General
             {
-                internal static string Msg_ParamtereIsNotABinaryFileName = "The type of paramter value must be a BinaryFileName";
+                internal static string Msg_ParamtereIsNotABinaryFileName = "The type of parameter value must be a BinaryFileName";
             }
         }
     }

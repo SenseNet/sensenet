@@ -69,7 +69,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
     }
 
     /// <summary>
-    /// Proved cryptographyc services based on the RSACryptoServiceProvider class and an
+    /// Proved cryptographic services based on the RSACryptoServiceProvider class and an
     /// X509Certificate2 certificate stored in the current user store.
     /// </summary>
     public class DefaultCryptoServiceProvider : ICryptoServiceProvider
@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository.Security.Cryptography
                 throw new ArgumentException("An x509 certificate and string for decryption must be provided.");
 
             if (!x509.HasPrivateKey)
-                throw new InvalidOperationException("The x509 certicate does not contain a private key for decryption.");
+                throw new InvalidOperationException("The x509 certificate does not contain a private key for decryption.");
 
             var rsa = (RSACryptoServiceProvider)x509.PrivateKey;
             byte[] bytestodecrypt = Convert.FromBase64String(encryptedText);

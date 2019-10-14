@@ -1545,7 +1545,7 @@ namespace SenseNet.Preview
             {
                 if (pageCount == -4)
                 {
-                    // status is postponed --> set status to inprogress and start preview generation
+                    // status is postponed --> set status to in progress and start preview generation
                     SetPreviewStatus(file, PreviewStatus.InProgress);
 
                     pageCount = (int)PreviewStatus.InProgress;
