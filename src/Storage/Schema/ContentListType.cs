@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 		internal override void AddPropertyType(PropertyType propertyType)
 		{
 			if (!propertyType.IsContentListProperty)
-                throw new SchemaEditorCommandException(String.Concat("Only ContentListProperty can be assegned to a ContentListType. ContentListType=", this.Name, ", PropertyType=", propertyType.Name));
+                throw new SchemaEditorCommandException(String.Concat("Only ContentListProperty can be assigned to a ContentListType. ContentListType=", this.Name, ", PropertyType=", propertyType.Name));
 			if (!this.PropertyTypes.Contains(propertyType))
 				this.PropertyTypes.Add(propertyType);
 		}

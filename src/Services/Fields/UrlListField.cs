@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Fields
         protected override bool HasExportData { get { return true; } }
         protected override void ExportData(System.Xml.XmlWriter writer, ExportContext context)
         {
-            // For exmple:
+            // For example:
             // <Url authType="Forms">localhost:1315/</Url>
             // <Url authType="Windows">name.server.xy</Url>
 
