@@ -21,7 +21,7 @@ This feature is fully compatible with Microsoft Office 2013, 2010 and 2007.
 sensenet ECM supports the following authentication schemes with Office integration:
 
 - **Windows authentication**
-  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your fodlers and files in the Content Repository using your AD user and password.
+  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your folders and files in the Content Repository using your AD user and password.
 
 - **Basic authentication**
   Set up your sensenet ECM Site to use *Forms* authentication, and your IIS web site to allow *Anonymous* authentication only (do not allow Windows in IIS and allowing Basic is not necessary). You will be able to access the Content Repository using your portal user and password. Please note that operations that use Basic authentication over a non-SSL HTTP connection are disabled by default by your operating system. To enable WebDAV for non-SSL sites with Basic authentication refer to the following article:  [http://support.microsoft.com/kb/2123563](http://support.microsoft.com/kb/2123563).
@@ -140,7 +140,7 @@ List of available links in the Workspace.
 
 ##### Members
 
-You can not manage members directly from Word but you can still see who is available (and who is online in MSN). Members are defined by explicit permission settings on the workspace content. This means that you can add new members by adding permissions to users on the workspace (add them explicitely if you want them to be displayed on the members tab even if they are already contained in any of the groups having permissions on the workspace).
+You can not manage members directly from Word but you can still see who is available (and who is online in MSN). Members are defined by explicit permission settings on the workspace content. This means that you can add new members by adding permissions to users on the workspace (add them explicitly if you want them to be displayed on the members tab even if they are already contained in any of the groups having permissions on the workspace).
 
 ##### Tasks
 

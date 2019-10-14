@@ -91,7 +91,7 @@ Since it can be very time consuming to provide a Name and a DisplayName for a Co
 The [DisplayName Field Control](displayname-field-control.md) automatically fills the value of the [Name Field Control](name-field-control.md) visible in the same [Content View](content-view.md), from the value entered to the DisplayName Field Control. The entered DisplayName is processed so that invalid characters are encoded - the resulting string will be the automatically created Name for the Content. The Name however does not change automatically in the following cases:
 
 - the user edits the Name manually,
-- the underlyng Content already exists in the Content Repository, so it is not a new scenario but an edit scenario.
+- the underlying Content already exists in the Content Repository, so it is not a new scenario but an edit scenario.
 
 #### Autonaming on server side
 

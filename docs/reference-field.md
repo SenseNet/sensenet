@@ -34,7 +34,7 @@ Usage in CTD:
 The following properties can be set in the Field's Field Setting configuration:
 
 - **AllowMultiple**: a boolean property defining whether multiple references are allowed or only a single content can be referenced. By default only a single reference is allowed.
-- **AllowedTypes**: allowed content types can be defined by explicitely listing type names in *Type* xml elements. By default all content types can be referenced.
+- **AllowedTypes**: allowed content types can be defined by explicitly listing type names in *Type* xml elements. By default all content types can be referenced.
 - **SelectionRoot**: allowed location of referable content can be defined by listing paths in *Path* xml elements. By default content can be referenced from under /Root
 - **DefaultValue**: a default single content reference can be defined with its path. Default multiple references can be defined with a comma separated list. By default the Field contains no references.
 

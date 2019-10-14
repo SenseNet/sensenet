@@ -764,7 +764,7 @@ The content type of the new entity will be the first allowed content type of the
 
 HTTP method: **POST**
 
-This verb enables you to cretae a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
+This verb enables you to create a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
 
 ```js
 $.ajax({

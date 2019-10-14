@@ -3,7 +3,7 @@ title:  "XSS Protection"
 source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/xss-protection.md'
 category: Development
 version: v6.0
-tags: [xxs, sanitaze, scripts]
+tags: [xxs, sanitize, scripts]
 description: XSS Protection
 ---
 
