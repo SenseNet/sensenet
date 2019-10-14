@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Workspaces;
+using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Search;
@@ -167,8 +168,32 @@ namespace SenseNet.ODataTests
 
     #endregion
 
+    [TestClass]
     public class ODataTestBase
     {
+        public TestContext TestContext { get; set; }
+
+        [TestInitialize]
+        public void InitializeTest()
+        {
+            //// workaround for having a half-started repository
+            //if (RepositoryInstance.Started())
+            //    RepositoryInstance.Shutdown();
+
+            //// the original collector default value is a class that is not available in this context
+            //Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
+
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+        }
+
+        [TestCleanup]
+        public void CleanupTest()
+        {
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+            SnTrace.Flush();
+        }
         #region Infrastructure
 
         private static RepositoryInstance _repository;
