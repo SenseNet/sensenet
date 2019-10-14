@@ -33,7 +33,7 @@ Fields will always store data in the same format as received from input. The fol
 <%# DataBinder.Eval(Container, "HtmlData") %>
 ```
 
-Where RawData outputs raw data, TextData uses full encoding of data and HtmlData use sanitization of Field data. You can also use the simple *Data* accessor:
+Where RawData outputs raw data, TextData uses full encoding of data and HtmlData uses sanitization of Field data. You can also use the simple *Data* accessor:
 
 ```csharp
 <%# DataBinder.Eval(Container, "Data") %>
