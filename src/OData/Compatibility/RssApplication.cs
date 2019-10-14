@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 namespace Compatibility.SenseNet.Services
 {
     [ContentHandler]
-    public class RssApplication : Application //UNDONE:ODATA:SERVICES: Delete
+    public class RssApplication : Application //UNDONE:ODATA:SERVICES: Delete (InitialTestData contains it)
     {
         public RssApplication(Node parent) : this(parent, null) { }
         public RssApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
