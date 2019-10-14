@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.OData.Metadata;
 using System.Web;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.OData.Metadata.Model;
 
 namespace SenseNet.OData
 {
@@ -44,7 +45,7 @@ namespace SenseNet.OData
                 DataServices = new DataServices
                 {
                     DataServiceVersion = MetaGenerator.dataServiceVersion,
-                    Schemas = new[]{new Metadata.Schema
+                    Schemas = new[]{new Schema
                     {
                         EntityTypes = context.EntityTypes,
                         ComplexTypes = context.ComplexTypes,
@@ -113,7 +114,7 @@ namespace SenseNet.OData
                     DataServiceVersion = MetaGenerator.dataServiceVersion,
                     Schemas = new[]
                     {
-                        new Metadata.Schema
+                        new Schema
                         {
                             EntityTypes = context.EntityTypes,
                             ComplexTypes = context.ComplexTypes,

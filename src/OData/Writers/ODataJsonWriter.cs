@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.OData;
+using SenseNet.OData.Metadata.Model;
 
 namespace SenseNet.OData.Writers
 {
@@ -22,7 +23,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "application/json";
 
         /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
         {
             string result;
             using (var writer = new StringWriter())

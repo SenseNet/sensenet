@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using SenseNet.OData.Metadata.Model;
 
 namespace SenseNet.OData.Writers
 {
@@ -19,7 +20,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "application/xml";
 
         /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
         {
             string result;
             using (var writer = new StringWriter())

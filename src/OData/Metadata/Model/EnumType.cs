@@ -4,7 +4,7 @@ using System.Linq;
 using System.IO;
 using SenseNet.ContentRepository.Fields;
 
-namespace SenseNet.OData.Metadata
+namespace SenseNet.OData.Metadata.Model
 {
     public class EnumType : NamedItem
     {

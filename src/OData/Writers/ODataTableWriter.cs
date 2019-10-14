@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using SenseNet.OData.Metadata.Model;
 
 namespace SenseNet.OData.Writers
 {
@@ -23,7 +24,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "text/html";
 
         /// <summary>This method is not supported in this writer.</summary>
-        protected override Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
+        protected override Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
         {
             throw new SnNotSupportedException("Table writer does not support metadata writing.");
         }

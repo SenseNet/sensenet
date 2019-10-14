@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
+using SenseNet.OData.Metadata.Model;
+using ComplexType = SenseNet.OData.Metadata.Model.ComplexType;
+
+//using ComplexType = SenseNet.ContentRepository.Schema.Metadata.ComplexType;
 
 namespace SenseNet.OData.Metadata
 {

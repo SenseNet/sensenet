@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using SenseNet.ContentRepository.Schema.Metadata;
+using SenseNet.OData.Metadata.Model;
 using SenseNet.OData.Typescript;
+using Schema = SenseNet.ContentRepository.Schema.Metadata.Schema;
 
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
@@ -25,7 +26,7 @@ namespace SenseNet.OData.Writers
         public override string MimeType => "text/x-typescript";
 
         /// <inheritdoc />
-        protected override async Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx)
+        protected override async Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx)
         {
             var requestedModule = httpContext.Request.Query["module"].ToString().ToLowerInvariant();
             if (string.IsNullOrEmpty(requestedModule))

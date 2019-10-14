@@ -3,7 +3,7 @@ using System.IO;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SenseNet.OData.Metadata
+namespace SenseNet.OData.Metadata.Model
 {
     public class Edmx : SchemaItem
     {

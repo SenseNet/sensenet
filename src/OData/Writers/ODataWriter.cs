@@ -19,7 +19,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
-//using System.Net.Http;
+using SenseNet.OData.Metadata.Model;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier
@@ -148,7 +148,7 @@ namespace SenseNet.OData.Writers
         /// </summary>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         /// <param name="edmx">Metadata that will be written.</param>
-        protected abstract Task WriteMetadataAsync(HttpContext httpContext, Metadata.Edmx edmx);
+        protected abstract Task WriteMetadataAsync(HttpContext httpContext, Edmx edmx);
 
         /* ---------------------------------------------------------------------------------------------------- content requests */
 
