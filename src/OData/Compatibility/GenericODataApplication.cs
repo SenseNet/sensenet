@@ -1,5 +1,4 @@
-﻿using Compatibility.SenseNet.ApplicationModel;
-using SenseNet.ApplicationModel;
+﻿using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 

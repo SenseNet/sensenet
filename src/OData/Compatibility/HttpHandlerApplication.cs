@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SenseNet.ContentRepository;
-using System.Web;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ApplicationModel;
-using SenseNet.Diagnostics;
 
 namespace Compatibility.SenseNet.Portal.Handlers
 {

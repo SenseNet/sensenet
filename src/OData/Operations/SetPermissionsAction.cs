@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Web;
+using System.Diagnostics.CodeAnalysis;
 using Compatibility.SenseNet.ApplicationModel;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
@@ -9,12 +9,14 @@ using SenseNet.Security;
 
 namespace SenseNet.OData.Operations
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class SetPermissionsRequest
     {
         public SetPermissionRequest[] r;
         public string inheritance;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class SetPermissionRequest
     {
         // {r:[{identity:"/Root/IMS/BuiltIn/Portal/Visitor", OpenMinor:"allow", Save:"deny"},{identity:"/Root/IMS/BuiltIn/Portal/Creators", OpenMinor:"A", Save:"1"}]}

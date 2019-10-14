@@ -1,14 +1,11 @@
 ﻿using System;
-using Compatibility.SenseNet.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
-using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
@@ -303,8 +300,8 @@ namespace SenseNet.ODataTests
                     var folder = Node.LoadNode(folderRepoPath);
                     var car = Node.LoadNode(carRepoPath);
 
-                    Assert.IsTrue(folder.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor));
-                    Assert.IsFalse(car.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsTrue(folder.Security.HasPermission(User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsFalse(car.Security.HasPermission(User.Visitor, PermissionType.OpenMinor));
                 }
             }).ConfigureAwait(false);
         }
