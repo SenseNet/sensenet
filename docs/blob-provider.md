@@ -9,7 +9,7 @@ description: This article describes the concept of our blob storage and the cust
 
 # Blob provider
 
-In **sensenet** all files are stored in the main [Content Repository](content-repository.md) database by default. All binaries, along with their metadata. In larger projects this can lead to a huge database, which requires a *large data storage* and sometimes additional *server licences*. To aid this scenario sensenet allows you to **store binaries outside of the database**, in an external storage. This article describes the concept of our blob storage and the customization options. Available blob providers for the *Enterprise Edition*:
+In **sensenet** all files are stored in the main [Content Repository](content-repository.md) database by default. All binaries, along with their metadata. In larger projects this can lead to a huge database, which requires a *large data storage* and sometimes additional *server licenses*. To aid this scenario sensenet allows you to **store binaries outside of the database**, in an external storage. This article describes the concept of our blob storage and the customization options. Available blob providers for the *Enterprise Edition*:
 
 -   [MongoDB blob provider](https://community.sensenet.com/docs/mongodb-provider)
 -   [Azure blob provider](https://community.sensenet.com/docs/azureblob-provider) *(soon to be released)*
@@ -28,7 +28,7 @@ Upper layers do not know anything about the underlying storage: the Content bina
 
 ### Migration
 
-By default everything is stored in the database. When you create a custom external blob provider (and define it in the configuration), from than on *new files* will be saved into that external storage. If you want your old files to be moved to the new storage, you either have to wait for them to be migrated when their binary is saved again, or you'll have to create a tool (preferably an SnAdmin package) that iterates through the files and saves them programmatically.
+By default everything is stored in the database. When you create a custom external blob provider (and define it in the configuration), from then on *new files* will be saved into that external storage. If you want your old files to be moved to the new storage, you either have to wait for them to be migrated when their binary is saved again, or you'll have to create a tool (preferably an SnAdmin package) that iterates through the files and saves them programmatically.
 
 ### Backup
 
@@ -56,7 +56,7 @@ The built-in blob provider will always be there as a fallback. Currently it supp
 
 ## Custom blob provider
 
-It is possible to implement a custom blob storage provider that sends files to an externak storage. For a sample implementation (a local file storage provider) check the following article:
+It is possible to implement a custom blob storage provider that sends files to external storage. For a sample implementation (a local file storage provider) check the following article:
 
 - [How to create an external blob provider](https://community.sensenet.com/docs/tutorials/how-to-create-an-external-blob-provider)
 

@@ -231,7 +231,7 @@ HTTP response with status 401 (Unauthorized). On the diagram it is used to sign 
 `<accessHeadAndPayload>, <refreshHeadAndPayload>`: base64 and URL encoded strings.
 
 The access head and payload are the public part of a token, that consists of two parts separated by a full stop.
-The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily use in Javascript.
+The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily used in Javascript.
 
 **Example of a typical payload:**  
 ```json

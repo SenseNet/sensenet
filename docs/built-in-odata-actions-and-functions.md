@@ -622,7 +622,7 @@ It is possible to send authentication requests using this action. You provide th
 ```
 
 ```diff
-- As the username and password is sent in clear text, always send these kinds of requests throuigh HTTPS.
+- As the username and password is sent in clear text, always send these kinds of requests through HTTPS.
 ```
 
 ```js

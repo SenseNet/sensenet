@@ -50,7 +50,7 @@ Currently we offer two different versions of sensenet ECM. We recommend version 
 ### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
-There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
+There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or by the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
@@ -69,7 +69,7 @@ Consider using the following client projects to manipulate data in the Content R
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
 ### sensenet ECM 6.5
-A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
+A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets (Portlets are pluggable user interface software components that are managed and displayed in a web portal), action controls and more. Build your solution with almost no development effort.
 
 If you are new to sensenet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
 - [Getting started - using sensenet](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
