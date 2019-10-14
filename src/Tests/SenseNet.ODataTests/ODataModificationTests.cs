@@ -92,15 +92,15 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public Task OD_PUT_Modifying()
+        public async Task OD_PUT_Modifying()
         {
-            return ModifyingTest("PUT", false);
+            await ModifyingTest("PUT", false);
         }
 
         [TestMethod]
-        public Task OD_PUT_ModifyingById()
+        public async Task OD_PUT_ModifyingById()
         {
-            return ModifyingTest("PUT", true);
+            await ModifyingTest("PUT", true);
         }
 
         /* ===================================================================== PATCH */
@@ -179,14 +179,14 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public Task OD_PATCH_Modifying()
+        public async Task OD_PATCH_Modifying()
         {
-            return ModifyingTest("PATCH", false);
+            await ModifyingTest("PATCH", false);
         }
         [TestMethod]
-        public Task OD_PATCH_ModifyingById()
+        public async Task OD_PATCH_ModifyingById()
         {
-            return ModifyingTest("PATCH", true);
+            await ModifyingTest("PATCH", true);
         }
 
         [TestMethod]
@@ -263,14 +263,14 @@ namespace SenseNet.ODataTests
         /* ===================================================================== MERGE */
 
         [TestMethod]
-        public Task OD_MERGE_Modifying()
+        public async Task OD_MERGE_Modifying()
         {
-            return ModifyingTest("MERGE", false);
+            await ModifyingTest("MERGE", false);
         }
         [TestMethod]
-        public Task OD_MERGE_ModifyingById()
+        public async Task OD_MERGE_ModifyingById()
         {
-            return ModifyingTest("MERGE", true);
+            await ModifyingTest("MERGE", true);
         }
 
         /* ===================================================================== Common */
