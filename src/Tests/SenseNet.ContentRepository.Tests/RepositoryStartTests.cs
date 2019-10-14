@@ -354,6 +354,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
+        //UNDONE:ODATA:TEST: Sometimes causes StackOwerflowException
         [TestMethod]
         public void RepositoryStart_Loggers()
         {
