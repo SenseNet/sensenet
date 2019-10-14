@@ -19,7 +19,6 @@ namespace SenseNet.Services
         public RssApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected RssApplication(NodeToken nt) : base(nt) { }
 
-        //UNDONE:ODATA RssApplication's' logic is commented out
         //public bool IsReusable
         //{
         //    get { return false; }

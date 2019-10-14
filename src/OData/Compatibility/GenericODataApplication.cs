@@ -5,7 +5,7 @@ using SenseNet.ContentRepository.Schema;
 namespace SenseNet.Portal.ApplicationModel
 {
     [ContentHandler]
-    public class GenericODataApplication : Application //UNDONE:ODATA:SERVICES: Odata layer
+    public class GenericODataApplication : Application //UNDONE:ODATA:SERVICES:NAMESPACE: GenericODataApplication
     {
         public GenericODataApplication(Node parent) : this(parent, null) { }
         public GenericODataApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }

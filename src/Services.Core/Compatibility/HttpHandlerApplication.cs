@@ -7,7 +7,7 @@ using SenseNet.ApplicationModel;
 namespace SenseNet.Portal.Handlers
 {
     [ContentHandler]
-    public class HttpHandlerApplication : Application //UNDONE:ODATA:SERVICES: Delete
+    public class HttpHandlerApplication : Application //UNDONE:ODATA:SERVICES: Delete HttpHandlerApplication
     {
         public HttpHandlerApplication(Node parent) : this(parent, null) { }
         public HttpHandlerApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
@@ -20,7 +20,7 @@ namespace SenseNet.Portal.Handlers
             //var httpHandlerAction = this.CreateAction(Content.Create(PortalContext.Current.ContextNode), null, null) as IHttpHandler;
             //if (httpHandlerAction != null)
             //    httpHandlerAction.ProcessRequest(context);
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: HttpHandlerApplication.ProcessRequest
+            throw new NotImplementedException();
         }
     }
 }

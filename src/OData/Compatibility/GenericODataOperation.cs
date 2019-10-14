@@ -11,7 +11,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ApplicationModel
 {
-    public class GenericODataOperation : PortalAction
+    public class GenericODataOperation : PortalAction //UNDONE:ODATA:SERVICES:NAMESPACE: GenericODataOperation
     {
         public override string Uri
         {
