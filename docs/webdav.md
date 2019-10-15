@@ -93,6 +93,6 @@ The following options can be set (all values are optional and have a reasonably 
 
 ## Custom WebDAV provider
 
-It is possible to customize the behavior of the WebDAV feature by developing a custom provider. Developers can restrict what users see in Windows Explorer and what they can do with files and folders.
+It is possible to customize the behavior of the WebDAV feature by developing a custom provider. Developers can restrict what users see in Windows Explorer and what they can do with the files and folders.
 
 - [How to create a custom WebDAV provider](http://community.sensenet.com/docs/tutorials/how-to-create-a-custom-WebDAV-provider/)
