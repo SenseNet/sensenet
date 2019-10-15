@@ -173,6 +173,8 @@ namespace SenseNet.ODataTests
     {
         public TestContext TestContext { get; set; }
 
+        private SnTrace.Operation _testMethodOperation;
+
         [TestInitialize]
         public void InitializeTest()
         {
@@ -184,14 +186,28 @@ namespace SenseNet.ODataTests
             //Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
 
             SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+            //SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+            if (_testMethodOperation != null)
+            {
+                SnTrace.Test.Write("The operation was forced to close.");
+                _testMethodOperation.Successful = false;
+                _testMethodOperation.Dispose();
+            }
+            _testMethodOperation = SnTrace.Test.StartOperation("TESTMETHOD: " + TestContext.TestName);
         }
 
         [TestCleanup]
         public void CleanupTest()
         {
             SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+            //SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+
+            if (_testMethodOperation != null)
+            {
+                _testMethodOperation.Successful = true;
+                _testMethodOperation.Dispose();
+            }
+
             SnTrace.Flush();
         }
         #region Infrastructure
