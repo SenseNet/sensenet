@@ -14,4 +14,4 @@
 
 - JAMstack projects don’t rely on server-side code — they can be distributed instead of relying on a server. Served directly from a CDN, JAMstack apps unlock speed, performance and better the user experience.
 
-- Unlike traditional websites or CMS sites (e.g WordPress, Drupal, etc.) that rely heavily on servers, plugins and databases, JAMstack can load some JavaScript that receives data from an API, serving files from a CDN and markup generated using a static site generator during deploy time.
+- Unlike traditional websites or CMS sites that rely heavily on servers, plugins and databases, JAMstack can load some JavaScript that receives data from an API, serving files from a CDN and markup generated using a static site generator during deploy time.
