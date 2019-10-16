@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,6 +44,10 @@ namespace SenseNet.ContentRepository.InMemory
 
         public void Insert(T item)
         {
+            if(_list.Any(x=>x.Id == item.Id))
+                throw new ApplicationException("Tried to add duplicated object.");
+            if (item.Id > _lastId)
+                Interlocked.Exchange(ref _lastId, item.Id);
             _list.Add(item);
             _db.AddInsert(this, item);
         }
