@@ -1,5 +1,5 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+The first Open Source Enterprise Content Management platform for .NET!
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
@@ -45,7 +45,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 
 <a name="GettingStarted"></a>
 ## Getting started
-Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
+Currently we offer two different versions of sensenet ECM, ECM 6.5 and ECM 7.0. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
 ### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
