@@ -168,7 +168,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         private static string ValueToString(KeyValuePair<PropertyType, string> item)
         {
             // LongText property transformation (e.g. character escape (\t \r\n etc.) in the future)
-            return item.Value;
+            return item.Value.Replace("\r", " ").Replace("\n", " ");
         }
         private static string ValueToString(KeyValuePair<PropertyType, object> item)
         {
@@ -275,6 +275,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     }
                     continue;
                 }
+                if(line.Trim().Length == 0)
+                    continue;
                 result.Add(Parse<T>(line, head));
             }
 
@@ -316,6 +318,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             foreach (var line in lines)
             {
                 lineNumber++;
+                if (line.Trim().Length == 0)
+                    continue;
                 if (line.StartsWith("VersionId: "))
                 {
                     parsingBinaryProperties = false;
