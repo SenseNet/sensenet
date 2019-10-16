@@ -132,6 +132,14 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                 if (value != null)
                     transformedDynamic.Add($"{item.Key.Name}:{item.Key.DataType}", value);
             }
+            foreach (var item in d.ReferenceProperties)
+            {
+                if (item.Value == null ||item.Value.Count == 0)
+                    continue;
+                var value = ValueToString(item);
+                if (value != null)
+                    transformedDynamic.Add($"{item.Key.Name}:{item.Key.DataType}", value);
+            }
 
             if (relevantBinaries.Count + transformedLongText.Count + transformedDynamic.Count > 0)
             {
@@ -170,6 +178,11 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             // LongText property transformation (e.g. character escape (\t \r\n etc.) in the future)
             return item.Value.Replace("\r", " ").Replace("\n", " ");
         }
+        private static string ValueToString(KeyValuePair<PropertyType, List<int>> item)
+        {
+            // Reference property transformation (id array)
+            return "[" + string.Join(",", ((IEnumerable<int>)item.Value).Select(x => x.ToString())) + "]";
+        }
         private static string ValueToString(KeyValuePair<PropertyType, object> item)
         {
             switch (item.Key.DataType)
@@ -192,8 +205,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     if (dateTimeValue == default(DateTime))
                         return null;
                     return dateTimeValue.ToString("O");
-                case DataType.Reference:
-                    return "[" + string.Join(",", ((IEnumerable<int>)item.Value).Select(x => x.ToString())) + "]";
                 // ReSharper disable once RedundantCaseLabel
                 case DataType.Binary:
                 default:
