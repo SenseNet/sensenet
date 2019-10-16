@@ -186,15 +186,25 @@ namespace SenseNet.ContentRepository.InMemory
             }
 
             // delete all version ids in any depth
+            var indexesToDelete = new List<string>();
             foreach (var item in IndexData)
             {
+                var keysToDelete = new List<string>();
                 foreach (var subItem in item.Value)
                 {
                     var versionIdList = subItem.Value;
                     foreach (var versionId in deletableVersionIds) //TODO: Thread safety. See the comment above.
                         versionIdList.Remove(versionId);
+                    if (versionIdList.Count == 0)
+                        keysToDelete.Add(subItem.Key);
                 }
+                foreach (var keyToDelete in keysToDelete)
+                    item.Value.Remove(keyToDelete);
+                if(item.Value.Count == 0)
+                    indexesToDelete.Add(item.Key);
             }
+            foreach (var indexToDelete in indexesToDelete)
+                IndexData.Remove(indexToDelete);
 
             // delete stored data by all version ids
             foreach (var deletableStoredData in StoredData.Where(s => deletableVersionIds.Contains(s.Item1)).ToArray())
@@ -371,22 +381,28 @@ namespace SenseNet.ContentRepository.InMemory
             var fields = (JObject)index;
             foreach (var field in fields)
             {
-                var fieldName = field.Key;
-                var values = (JArray) field.Value;
-
-                var data = new Dictionary<string, List<int>>();
-
-                foreach (var termData in values.Select(v => v.ToString()).ToArray())
+                try
                 {
-                    var p = termData.LastIndexOf(":");
-                    var name = termData.Substring(0, p);
-                    var idSrc = termData.Substring(p + 1);
-                    var ids = idSrc.Split(',').Select(int.Parse).ToList();
-                    data.Add(name, ids);
+                    var fieldName = field.Key;
+                    var values = (JArray)field.Value;
+
+                    var data = new Dictionary<string, List<int>>();
+
+                    foreach (var termData in values.Select(v => v.ToString()).ToArray())
+                    {
+                        var p = termData.LastIndexOf(":");
+                        var name = termData.Substring(0, p);
+                        var idSrc = termData.Substring(p + 1);
+                        var ids = idSrc.Split(',').Select(int.Parse).ToList();
+                        data.Add(name, ids);
+                    }
+
+                    this.IndexData.Add(fieldName, data);
                 }
-
-
-                this.IndexData.Add(fieldName, data);
+                catch (Exception e)
+                {
+                    throw;
+                }
             }
 
             var stored = (JArray)deserialized["Stored"];
