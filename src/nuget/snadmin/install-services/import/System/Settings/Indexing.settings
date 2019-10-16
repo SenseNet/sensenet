@@ -1,6 +1,6 @@
 {
-	"ForceReopenFrequencyInSeconds": 30,
-	"TextExtractors": {
+  "ForceReopenFrequencyInSeconds": 30,
+  "TextExtractors": {
 		
-	}
+  }
 }
