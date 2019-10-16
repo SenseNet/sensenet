@@ -1,20 +1,20 @@
 {
-    Trace: {
-		ContentOperation: false,
-		Database: false,
-		Index: false,
-		IndexQueue: false,
-		Query: false,
-		Repository: false,
-		Messaging: false,
-		Security: false,
-		SecurityQueue: false,
-		System: false,
-		Web: false,
-		Workflow: false,
-		TaskManagement: false,
-		Test: false,
-		Event: false,
-		Custom: false,
-    }
+	"Trace": {
+		"ContentOperation": false,
+		"Database": false,
+		"Index": false,
+		"IndexQueue": false,
+		"Query": false,
+		"Repository": false,
+		"Messaging": false,
+		"Security": false,
+		"SecurityQueue": false,
+		"System": false,
+		"Web": false,
+		"Workflow": false,
+		"TaskManagement": false,
+		"Test": false,
+		"Event": false,
+		"Custom": false
+	}
 }

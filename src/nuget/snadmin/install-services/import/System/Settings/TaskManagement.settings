@@ -1,5 +1,5 @@
 {
-    TaskManagementUrl: "",
-    TaskManagementApplicationUrl: "http://localhost",
-	TaskManagementAppId: "SenseNet"
+	"TaskManagementUrl": "",
+	"TaskManagementApplicationUrl": "http://localhost",
+	"TaskManagementAppId": "SenseNet"
 }
