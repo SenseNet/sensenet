@@ -78,8 +78,9 @@ namespace SenseNet.OData.Operations
         public string Custom32;
     }
 
-    public class SetPermissionsAction : UrlAction
+    public class SetPermissionsAction : ActionBase
     {
+        public override string Uri { get; } = null;
         public override bool IsHtmlOperation { get; } = true;
         public override bool IsODataOperation { get; } = true;
         public override bool CausesStateChange { get; } = true;
