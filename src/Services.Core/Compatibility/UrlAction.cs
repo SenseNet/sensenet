@@ -1,9 +1,10 @@
 ﻿
 using SenseNet;
+using SenseNet.ApplicationModel;
 
 namespace Compatibility.SenseNet.ApplicationModel
 {
-    public class UrlAction : PortalAction
+    public class UrlAction : ActionBase
     {
         public override string Uri
         {

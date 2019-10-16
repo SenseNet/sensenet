@@ -11,7 +11,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ApplicationModel
 {
-    public class GenericODataOperation : PortalAction //UNDONE:ODATA:SERVICES:NAMESPACE: GenericODataOperation
+    public class GenericODataOperation : ActionBase
     {
         public override string Uri
         {
@@ -25,13 +25,13 @@ namespace SenseNet.ApplicationModel
 
                 if (!string.IsNullOrEmpty(s))
                 {
-                    uri = ContinueUri(uri);
+                    uri += (uri.Contains("?") ? "&" : "?");
                     uri += s.Substring(1);
                 }
 
                 if (this.IncludeBackUrl && !string.IsNullOrEmpty(this.BackUri))
                 {
-                    uri = ContinueUri(uri);
+                    uri += (uri.Contains("?") ? "&" : "?");
                     //UNDONE:ODATA: ?? backUrl support is off
                     //uri += $"{PortalContext.BackUrlParamName}={System.Uri.EscapeDataString(this.BackUri)}";
                 }
@@ -175,6 +175,5 @@ namespace SenseNet.ApplicationModel
                 throw;
             }
         }
-
     }
 }
