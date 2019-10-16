@@ -24,7 +24,7 @@ Example of token authentication configuration settings:
 ...
 </sensenet>
 ```
-There are some other parameters in the tokenAuthentication and security section that you can update to alter the behaviour of the token authentication:
+There are some other parameters in the tokenAuthentication and security section that you can update to alter the behavior of the token authentication:
 ```xml
 <tokenAuthentication>
   <add key="SymmetricKeySecret" value="<random secret string>" />
@@ -45,7 +45,7 @@ There are some other parameters in the tokenAuthentication and security section 
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
 **_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
-**_DefaultUltimateLogout_**: the default behaviour at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
+**_DefaultUltimateLogout_**: the default behavior at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
@@ -66,7 +66,7 @@ _Steps of a token refresh process from the clients' point of view:_
 3. Access content using the access token
 4. Logout using the access token
 
-All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be choosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
+All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be chosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
 
 ![web token authentication protocol](images/SensenetTokenAuthentication.png)
 _figure 1:web token authentication protocol_
@@ -255,7 +255,7 @@ The first one is a technical like header that you do not have to care about. The
 **_nbf_**: `not before` identifies the time before that the token can not be accepted  
 **_name_**: `name` identifies the name of the user whom the token was issued to
 
-The `iss, sub, aud` claims can be configured and remains the same unless you change them in the web.config. The other claims dinamically change on new token creation.
+The `iss, sub, aud` claims can be configured and remains the same unless you change them in the web.config. The other claims dynamically change on new token creation.
 
 ## Considerations for client developers ##
 
