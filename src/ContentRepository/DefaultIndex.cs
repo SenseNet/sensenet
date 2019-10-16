@@ -1,6 +1,4 @@
-﻿//UNDONE:ODATA: finalize filename: DefaultIndex.cs
-
-namespace SenseNet.ContentRepository
+﻿namespace SenseNet.ContentRepository
 {
     public static class DefaultIndex
     {
