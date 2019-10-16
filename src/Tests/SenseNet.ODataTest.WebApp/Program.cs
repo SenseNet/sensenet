@@ -101,7 +101,8 @@ namespace SenseNet.ODataTest.WebApp
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(InitialTestData.Instance));
+            //return _initialData ?? (_initialData = InitialData.Load(InitialTestData.Instance));
+            return _initialData ?? (_initialData = InitialData.Load(DefaultDatabase.Instance));
         }
 
         private static InMemoryIndex _initialIndex;
@@ -110,7 +111,8 @@ namespace SenseNet.ODataTest.WebApp
             if (_initialIndex == null)
             {
                 var index = new InMemoryIndex();
-                index.Load(new StringReader(InitialTestIndex.Index));
+                //index.Load(new StringReader(InitialTestIndex.Index));
+                index.Load(new StringReader(DefaultIndex.Index));
                 _initialIndex = index;
             }
             return _initialIndex.Clone();
