@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace Compatibility.SenseNet.ContentRepository.Security
@@ -15,10 +16,10 @@ namespace Compatibility.SenseNet.ContentRepository.Security
                 return user;
 
             // not authenticated yet
-            SetCurrentUser(StartupUser);
-            user = StartupUser;
+            var visitor = User.Visitor;
+            SetCurrentUser(visitor);
 
-            return user;
+            return visitor;
         }
 
         protected override void DoSetCurrentUser(IUser user)
