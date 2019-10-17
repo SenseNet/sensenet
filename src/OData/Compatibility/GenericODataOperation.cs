@@ -28,13 +28,6 @@ namespace SenseNet.ApplicationModel
                     uri += s.Substring(1);
                 }
 
-                if (this.IncludeBackUrl && !string.IsNullOrEmpty(this.BackUri))
-                {
-                    uri += (uri.Contains("?") ? "&" : "?");
-                    //UNDONE:ODATA: ?? backUrl support is off
-                    //uri += $"{PortalContext.BackUrlParamName}={System.Uri.EscapeDataString(this.BackUri)}";
-                }
-
                 return uri;
             }
         }

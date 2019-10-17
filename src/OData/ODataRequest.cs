@@ -161,10 +161,6 @@ namespace SenseNet.OData
         /// Gets the value of the "metadata" parameter of the webrequest if it exists, otherwise returs with MetadataFormat.Full.
         /// </summary>
         public MetadataFormat EntityMetadata { get; internal set; }
-        /// <summary>
-        /// Gets true if the "includebackurl" parameter of the webrequest is "true" if it exists, otherwise returs with false.
-        /// </summary>
-        public bool IncludeBackUrl { get; private set; }
 
         /// <summary>
         /// Gets true if the value of the Top property is greater than 0.
@@ -216,7 +212,6 @@ namespace SenseNet.OData
             Select = new List<string>();
             Expand = new List<string>();
             AutofiltersEnabled = FilterStatus.Default;
-            IncludeBackUrl = true;
         }
 
         internal static ODataRequest CreateSingleContentRequest(IEnumerable<string> select = null, IEnumerable<string> expand = null)
@@ -458,11 +453,6 @@ namespace SenseNet.OData
             var multiStepStr = req["multistepsave"];
             if (!string.IsNullOrEmpty(multiStepStr) && string.Compare(multiStepStr, "true", StringComparison.OrdinalIgnoreCase) == 0)
                 this.MultistepSave = true;
-
-            // --------------------------------------------------------------- include back url
-            var includeBackUrlStr = req["includebackurl"];
-            if (!string.IsNullOrEmpty(includeBackUrlStr) && string.Compare(includeBackUrlStr, "false", StringComparison.OrdinalIgnoreCase) == 0)
-                this.IncludeBackUrl = false;
         }
         private IEnumerable<SortInfo> ParseSort(string orderStr)
         {

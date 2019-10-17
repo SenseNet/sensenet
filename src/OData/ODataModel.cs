@@ -138,14 +138,6 @@ namespace SenseNet.OData
         /// </summary>
         public string Url { get; set; }
         /// <summary>
-        /// Gets or sets a value that is true when the back URL argument is provided.
-        /// </summary>
-        public int IncludeBackUrl { get; set; }
-        /// <summary>
-        /// Gets or sets a value that is true if this action is a client action (JavaScript action, not a url).
-        /// </summary>
-        public bool ClientAction { get; set; }
-        /// <summary>
         /// Gets or sets a value that is true if the Action is an <see cref="ODataOperation"/>.
         /// </summary>
         public bool IsODataAction { get; set; }

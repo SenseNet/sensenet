@@ -216,8 +216,6 @@ namespace SenseNet.OData.Writers
                 {"Index", x.Index},
                 {"Icon", x.Icon},
                 {"Url", x.Url},
-                {"IncludeBackUrl", x.IncludeBackUrl},
-                {"ClientAction", x.ClientAction},
                 {"Forbidden", x.Forbidden}
             }).ToList();
 

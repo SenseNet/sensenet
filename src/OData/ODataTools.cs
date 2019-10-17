@@ -64,25 +64,6 @@ namespace SenseNet.OData
 
         internal static IEnumerable<ActionBase> GetActions(Content content, ODataRequest request, HttpContext httpContext)
         {
-            //// Use the back url provided by the client. If it is empty, use
-            //// the url of the caller page (the referrer provided by ASP.NET).
-            //// The back url can be omitted (switched off) by the client if it provides the
-            //// appropriate request parameter (includebackurl false).
-
-            //var backUrl = PortalContext.Current != null && (request == null || request.IncludeBackUrl)
-            //    ? PortalContext.Current.BackUrl
-            //    : null;
-
-            //if (string.IsNullOrEmpty(backUrl) &&
-            //    (request == null || request.IncludeBackUrl) &&
-            //    HttpContext.Current != null &&
-            //    HttpContext.Current.Request.UrlReferrer != null)
-            //    backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
-
-            //return ODataMiddleware.ActionResolver.GetActions(content,
-            //    request != null ? request.Scenario : null,
-            //    string.IsNullOrEmpty(backUrl) ? null : backUrl);
-            //UNDONE:ODATA: ?? backUrl support is off
             return ODataMiddleware.ActionResolver.GetActions(content, request?.Scenario, null, httpContext);
         }
         internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request, HttpContext httpContext)
@@ -94,7 +75,6 @@ namespace SenseNet.OData
                 Icon = a.Icon,
                 Index = a.Index,
                 Url = a.Uri,
-                IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
                 Forbidden = a.Forbidden
             });
         }
@@ -108,7 +88,6 @@ namespace SenseNet.OData
                 Icon = a.Action.Icon,
                 Index = a.Action.Index,
                 Url = a.Action.Uri,
-                IncludeBackUrl = a.Action.GetApplication() == null ? 0 : (int)a.Action.GetApplication().IncludeBackUrl,
                 Forbidden = a.Action.Forbidden,
                 IsODataAction = a.Action.IsODataOperation,
                 ActionParameters = a.Action.ActionParameters.Select(p => p.Name).ToArray(),
@@ -124,25 +103,8 @@ namespace SenseNet.OData
 
         private static IEnumerable<ScenarioAction> GetActionsWithScenario(Content content, ODataRequest request, HttpContext httpContext)
         {
-            //// Use the back url provided by the client. If it is empty, use
-            //// the url of the caller page (the referrer provided by ASP.NET).
-            //// The back url can be omitted (switched off) by the client if it provides the
-            //// appropriate request parameter (includebackurl false).
-            //var backUrl = PortalContext.Current != null && (request == null || request.IncludeBackUrl)
-            //    ? PortalContext.Current.BackUrl
-            //    : null;
-
-            //if (string.IsNullOrEmpty(backUrl) && (request == null || request.IncludeBackUrl) &&
-            //    httpContext?.Request?.Headers["Referer"].ToString() != null)
-            //{
-            //    backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
-            //}
-
-            //UNDONE:ODATA: ?? backUrl support is off
-            string backUrl = null;
-
             var scenario = request?.Scenario;
-            var actions = ActionFramework.GetActions(content, scenario, null, string.IsNullOrEmpty(backUrl) ? null : backUrl);
+            var actions = ActionFramework.GetActions(content, scenario, null, null);
 
             return actions.Select(action => new ScenarioAction
             {
