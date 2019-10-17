@@ -684,8 +684,8 @@ namespace SenseNet.ODataTests
 
                     case "ParameterEcho": return new ParameterEchoAction();
 
-                    case "TestCopyTo": return new TestCopyToAction(); //UNDONE:ODATA:OPERATION: Create a right operation.
-                    case "TestMoveTo": return new TestMoveToAction(); //UNDONE:ODATA:OPERATION: Create a right operation.
+                    case "TestCopyTo": return new TestCopyToAction();
+                    case "TestMoveTo": return new TestMoveToAction();
                 }
             }
         }

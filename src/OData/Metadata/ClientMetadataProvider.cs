@@ -18,7 +18,7 @@ namespace SenseNet.Services.Metadata
     /// Metadata provider with a built-in cache that converts content types 
     /// to a JObject format appropriate for clients.
     /// </summary>
-    public class ClientMetadataProvider : IClientMetadataProvider //UNDONE:ODATA:SERVICES:NAMESPACE: ClientMetadataProvider
+    public class ClientMetadataProvider : IClientMetadataProvider //UNDONE:ODATA: ?? NAMESPACE: ClientMetadataProvider
     {
         private const string ClientMetadataProviderKey = "ClientMetadataProvider";
         private static readonly object MetadataProviderSync = new object();

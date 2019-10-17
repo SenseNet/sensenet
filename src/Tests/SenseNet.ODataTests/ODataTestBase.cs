@@ -271,7 +271,7 @@ namespace SenseNet.ODataTests
         private static InMemoryIndex _initialIndex;
         protected static InMemoryIndex GetInitialIndex()
         {
-            //UNDONE:ODATA: TEST:BUG: Commented out lines maybe wrong
+            //UNDONE:ODATA:TEST: BUG: Commented out lines maybe wrong
             //if (_initialIndex == null)
             //{
             //    var index = new InMemoryIndex();

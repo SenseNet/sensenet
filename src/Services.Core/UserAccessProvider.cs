@@ -5,7 +5,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace Compatibility.SenseNet.ContentRepository.Security
 {
-    public class UserAccessProvider : AccessProvider
+    public class UserAccessProvider : AccessProvider  //UNDONE:ODATA: ?? UserAccessProvider is not implemented
     {
         private IUser CurrentUser
         {
@@ -18,12 +18,12 @@ namespace Compatibility.SenseNet.ContentRepository.Security
                 //user = User.Administrator;
                 //CurrentUser = user;
                 //return user;
-                throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: UserAccessProvider
+                throw new NotImplementedException();
             }
             set
             {
                 //Thread.CurrentPrincipal = new PortalPrincipal(value);
-                throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: UserAccessProvider
+                throw new NotImplementedException();
             }
         }
 
@@ -43,7 +43,7 @@ namespace Compatibility.SenseNet.ContentRepository.Security
             //currentUser = StartupUser;
 
             //return currentUser;
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: UserAccessProvider
+            throw new NotImplementedException();
         }
 
         protected override void DoSetCurrentUser(IUser user)
@@ -52,7 +52,7 @@ namespace Compatibility.SenseNet.ContentRepository.Security
             //    CurrentUser = user;
             //else
             //    HttpContext.Current.User = new PortalPrincipal(user);
-            throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: UserAccessProvider
+            throw new NotImplementedException();
         }
 
         public override bool IsAuthenticated
@@ -66,7 +66,7 @@ namespace Compatibility.SenseNet.ContentRepository.Security
                 //    HttpContext.Current.User;
 
                 //return currentPrincipal?.Identity != null && currentPrincipal.Identity.IsAuthenticated;
-                throw new NotImplementedException(); //UNDONE:ODATA: Not implemented: UserAccessProvider
+                throw new NotImplementedException();
             }
         }
     }

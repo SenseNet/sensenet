@@ -6,7 +6,7 @@ namespace SenseNet.Services.Metadata
     /// Defines methods for a metadata provider that converts and possibly stores schema
     /// items in a format appropriate for the client.
     /// </summary>
-    public interface IClientMetadataProvider //UNDONE:ODATA:SERVICES:NAMESPACE: IClientMetadataProvider
+    public interface IClientMetadataProvider //UNDONE:ODATA: ?? NAMESPACE: IClientMetadataProvider
     {
         /// <summary>
         /// Gets a - possibly cached - object that represents a schema class 

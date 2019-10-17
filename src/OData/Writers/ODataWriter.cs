@@ -392,7 +392,7 @@ namespace SenseNet.OData.Writers
 #endif
             };
 
-            //UNDONE:ODATA: Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors
+            //UNDONE:ODATA: ?? Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors
             //context.Response.TrySkipIisCustomErrors = true;
             httpContext.Response.ContentType = "application/json";
             httpContext.Response.StatusCode = oe.HttpStatusCode;
