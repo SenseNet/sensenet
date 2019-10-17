@@ -340,18 +340,12 @@ namespace SenseNet.OData
                     }
                 }
 
-                var pathIsRelative = true;
                 if (resSegments.Count == 0)
                 {
-                    pathIsRelative = false;
                     req.IsCollection = true;
                 }
                 else
                 {
-                    pathIsRelative = String.Compare(resSegments[0], "root", StringComparison.OrdinalIgnoreCase) != 0;
-                    if (pathIsRelative)
-                        pathIsRelative = !resSegments[0].StartsWith("root(", StringComparison.OrdinalIgnoreCase);
-
                     if (prmSegments.Count > 0)
                     {
                         req.IsMemberRequest = true;
@@ -367,17 +361,6 @@ namespace SenseNet.OData
                 else
                 {
                     var newPath = String.Concat("/", String.Join("/", resSegments));
-                    if (pathIsRelative)
-                    {
-                        //if(portalContext.Site == null)
-                        //    newPath = "/";
-                        //else
-                        //    newPath = newPath == "/"
-                        //        ? portalContext.Site.Path
-                        //        : string.Concat(portalContext.Site.Path, newPath);
-                        //UNDONE:ODATA: ?? Delete IsRelative feature
-                        throw new SnNotSupportedException("Relative path is not supported. Use full path (/Root/...)");
-                    }
                     req.RepositoryPath = newPath;
                 }
 
