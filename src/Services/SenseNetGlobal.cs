@@ -20,6 +20,7 @@ using SenseNet.Configuration;
 using SenseNet.Portal;
 using SenseNet.Tools;
 using System.Security;
+using SenseNet.Tools.Diagnostics;
 
 namespace SenseNet.Services
 {
@@ -148,6 +149,8 @@ namespace SenseNet.Services
                 {
                     IsWebContext = true,
                 };
+
+                Providers.Instance.PropertyCollector = new ContextEventPropertyCollector();
 
                 Providers.Instance.CompatibilitySupport = new CompatibilitySupport();
 

@@ -32,7 +32,7 @@ namespace SenseNet.Configuration
 
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
-            "SenseNet.Diagnostics.ContextEventPropertyCollector");
+            "SenseNet.Diagnostics.EventPropertyCollector");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");

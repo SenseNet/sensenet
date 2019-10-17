@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tools.Diagnostics;
 
@@ -21,6 +22,9 @@ namespace SenseNet.Diagnostics
 
             CollectUserProperties(props);
             CollectProperties(props);
+
+            if (!props.ContainsKey("WorkingMode"))
+                props.Add("WorkingMode", RepositoryEnvironment.WorkingMode.RawValue);
 
             foreach (var key in props.Keys.Where(key => props[key] == null).ToList())
                 props[key] = string.Empty;

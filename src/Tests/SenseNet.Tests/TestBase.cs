@@ -39,9 +39,6 @@ namespace SenseNet.Tests
             if (RepositoryInstance.Started())
                 RepositoryInstance.Shutdown();
 
-            // the original collector default value is a class that is not available in this context
-            Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
-
             SnTrace.Test.Enabled = true;
             //SnTrace.Test.Write("START test: {0}", TestContext.TestName);
             if (_testMethodOperation != null)
