@@ -92,7 +92,7 @@ var encodedString = HttpUtility.HtmlEncode(userInput);
 
 ### Javascript
 
-It's also possible to sanitize a text in javascript with the SN.Util.Sanitize(text) function.
+It's also possible to sanitize a text in Javascript with the SN.Util.Sanitize(text) function.
 
 ```js
 var sanitizedString = SN.Util.Sanitize("<script>alert('Lorem ipsum')</script>");

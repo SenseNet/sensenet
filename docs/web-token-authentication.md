@@ -24,7 +24,7 @@ Example of token authentication configuration settings:
 ...
 </sensenet>
 ```
-There are some other parameters in the tokenAuthentication and security section that you can update to alter the behaviour of the token authentication:
+There are some other parameters in the tokenAuthentication and security section that you can update to alter the behavior of the token authentication:
 ```xml
 <tokenAuthentication>
   <add key="SymmetricKeySecret" value="<random secret string>" />
@@ -45,7 +45,7 @@ There are some other parameters in the tokenAuthentication and security section 
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
 **_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
-**_DefaultUltimateLogout_**: the default behaviour at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
+**_DefaultUltimateLogout_**: the default behavior at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
