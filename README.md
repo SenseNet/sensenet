@@ -36,7 +36,7 @@ sensenet is available in two editions:
 2. **Enterprise Edition**: with additional enterprise-grade features (like AD sync, MongoDB blob provider) and vendor support! For details, visit the [licensing page](http://www.sensenet.com/sensenet-ecm/licencing) on our site.
 
 ## Contact and support
-Whether you're a community member or enterprise customer, feel free to visit our communication channels for demo, examples and support:
+Whether you're a community member or enterprise customer, feel free to visit our communication channels for demo, examples, and support:
 - Website: http://www.sensenet.com
 - Main chat channel: https://gitter.im/SenseNet/sensenet
 - All chat channels: https://gitter.im/SenseNet
@@ -50,7 +50,7 @@ Currently we offer two different versions of sensenet ECM. We recommend version 
 ### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
-There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
+There are also several other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
@@ -66,7 +66,7 @@ Consider using the following client projects to manipulate data in the Content R
 - [sensenet JavaScript Client](https://github.com/SenseNet/sn-client-js)
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
-For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
+For detailed client-side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
 ### sensenet ECM 6.5
 A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
