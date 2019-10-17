@@ -5,7 +5,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace Compatibility.SenseNet.ContentRepository.Security
 {
-    public class UserAccessProvider : AccessProvider  //UNDONE:ODATA: ?? UserAccessProvider is not implemented
+    public class UserAccessProvider : AccessProvider
     {
         private readonly AsyncLocal<IUser> _currentUser = new AsyncLocal<IUser>();
 
