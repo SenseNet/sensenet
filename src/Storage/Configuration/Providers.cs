@@ -35,7 +35,7 @@ namespace SenseNet.Configuration
             "SenseNet.Diagnostics.EventPropertyCollector");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
-            "SenseNet.ContentRepository.Security.UserAccessProvider");
+            "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
         public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
         public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",
