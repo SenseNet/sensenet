@@ -392,8 +392,6 @@ namespace SenseNet.OData.Writers
 #endif
             };
 
-            //UNDONE:ODATA: ?? Search ASPNET Core alternative of this: Response.TrySkipIisCustomErrors (read max 2 min)
-            //context.Response.TrySkipIisCustomErrors = true;
             httpContext.Response.ContentType = "application/json";
             httpContext.Response.StatusCode = oe.HttpStatusCode;
             await WriteErrorAsync(httpContext, error).ConfigureAwait(false);
