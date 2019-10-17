@@ -1,4 +1,4 @@
 {
-	UserType: "User",
-	Domain: "Public"
+	"UserType": "User",
+	"Domain": "Public"
 }
