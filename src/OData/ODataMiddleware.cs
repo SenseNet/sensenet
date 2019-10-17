@@ -79,9 +79,7 @@ namespace SenseNet.OData
             var odataRequest = ODataRequest.Parse(httpContext);
 
             // Write headers and body of the HttpResponse
-            //UNDONE:ODATA: Remove SystemAccount when the authentication is finished
-            using (new SystemAccount())
-                await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+            await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
             // Call next in the chain if exists
             if (_next != null)
