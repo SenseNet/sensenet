@@ -318,6 +318,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NullPopulator()
         {
             var dbProvider2 = new InMemoryDataProvider();
+            Providers.Instance.DataProvider = dbProvider2;
             DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());

@@ -17,12 +17,13 @@ namespace SenseNet.ContentRepository.Tests
             var dp = new InMemoryTestingDataProvider();
             var builder = CreateRepositoryBuilderForTest();
             builder.UseTestingDataProviderExtension(dp);
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-2.1d)});
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-2.1d)});
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-1.1d)});
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-1.1d)});
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-0.1d)});
-            dp.DB.LogEntries.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d)});
+            var table = dp.DB.LogEntries;
+            table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-2.1d), LogId = table.GetNextId()});
+            table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-2.1d), LogId = table.GetNextId()});
+            table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-1.1d), LogId = table.GetNextId()});
+            table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-1.1d), LogId = table.GetNextId()});
+            table.Insert(new LogEntryDoc {Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId()});
+            table.Insert(new LogEntryDoc {Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d), LogId = table.GetNextId() });
 
             var testingDataProvider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
             testingDataProvider.InitializeForTests();
