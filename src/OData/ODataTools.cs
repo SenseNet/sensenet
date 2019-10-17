@@ -95,8 +95,6 @@ namespace SenseNet.OData
                 Index = a.Index,
                 Url = a.Uri,
                 IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
-                //UNDONE:ODATA: ?? ClientAction is not available here.
-                //ClientAction = !string.IsNullOrEmpty((a as ClientAction)?.Callback),
                 Forbidden = a.Forbidden
             });
         }
@@ -111,8 +109,6 @@ namespace SenseNet.OData
                 Index = a.Action.Index,
                 Url = a.Action.Uri,
                 IncludeBackUrl = a.Action.GetApplication() == null ? 0 : (int)a.Action.GetApplication().IncludeBackUrl,
-                //UNDONE:ODATA: ?? ClientAction is not available here.
-                //ClientAction = !string.IsNullOrEmpty((a.Action as ClientAction)?.Callback),
                 Forbidden = a.Action.Forbidden,
                 IsODataAction = a.Action.IsODataOperation,
                 ActionParameters = a.Action.ActionParameters.Select(p => p.Name).ToArray(),

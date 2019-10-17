@@ -308,18 +308,6 @@ namespace SenseNet.OData
                 await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
-            //UNDONE:ODATA: ?? Response.IsRequestBeingRedirected does not exist in ASPNET Core.
-            //UNDONE:ODATA: ?? ThreadAbortException does not occur in this technology.
-            //catch (System.Threading.ThreadAbortException tae)
-            //{
-            //    if (!httpContext.Response.IsRequestBeingRedirected)
-            //    {
-            //        var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-            //        //await odataWriter.WriteErrorResponse(httpContext, oe);
-            //        return ODataResponse.CreateErrorResponse(oe);
-            //    }
-            //    // specific redirect response so do nothing
-            //}
             catch (Exception ex)
             {
                 var oe = new ODataException(ODataExceptionCode.NotSpecified, ex);
@@ -329,12 +317,6 @@ namespace SenseNet.OData
                 await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
-            //finally
-            //{
-            //    //httpContext.Response.End();
-            //    //await _next(httpContext);
-            //    //_next(httpContext).ConfigureAwait(false).GetAwaiter().GetResult();
-            //}
         }
 
         /* =================================================================================== */
