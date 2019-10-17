@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Compatibility.SenseNet.ApplicationModel;
 using SenseNet.Portal.ApplicationModel;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
