@@ -7,10 +7,10 @@ tags: [howto, developers, enterprise, community]
 description: This article describes how to create a new class for containing custom source code.
 ---
 # Steps
-In order to have your code running in Sense/Net you will have to place the compiled code in the bin folder. There are two ways to achieve this.
+In order to have your code running in sensenet you will have to place the compiled code in the bin folder. There are two ways to achieve this.
 
 ## Option 1: Add new class in the web application
-If you have not yet already set up your development environment please read [How to set up development environment](how-to-set-up-development-environment.md). Open the web application that is set up as the IIS site for your Sense/Net installation (_MyWebApplication_) and add a new class to the `Code` folder (see section _Create Code and Root folders_ in [How to set up development environment](how-to-set-up-development-environment.md)). Since your code will be part of the running web application, rebuilding your web application is adequate to have your compiled code running in the bin folder.
+If you have not yet already set up your development environment please read [How to set up development environment](how-to-set-up-development-environment.md). Open the web application that is set up as the IIS site for your sensenet installation (_MyWebApplication_) and add a new class to the `Code` folder (see section _Create Code and Root folders_ in [How to set up development environment](how-to-set-up-development-environment.md)). Since your code will be part of the running web application, rebuilding your web application is adequate to have your compiled code running in the bin folder.
 
 > Please note, that for creating console application and other external tools you will need to create separate projects and not use the web application referred in [How to set up development environment](how-to-set-up-development-environment.md).
 
