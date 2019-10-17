@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SenseNet.Diagnostics;
 using SenseNet.OData;
+using SenseNet.Services.Core;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -45,6 +46,9 @@ namespace SenseNet.ODataTest.WebApp
             }
 
             app.UseHttpsRedirection();
+
+            app.UseSenseNetAuthentication();
+
             app.UseMvc();
 
             app.MapWhen(httpContext => httpContext.Request.Path.StartsWithSegments("/odata.svc"),
