@@ -1,5 +1,5 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+The first Open Source Enterprise Content Management platform for .NET ! 
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
@@ -9,10 +9,10 @@ The first Open Source Enterprise Content Management platform for .NET!
 > **sensenet Services 7.0 stable** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
 
 If you need...
-- a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
-- an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to sensenet*, a unified *Content layer* - and many more),
-- a flexible **security** layer with customizable content permissions, honored by the query engine,
-- a scalable enterprise architecture with NLB and background task management,
+- a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents.
+- an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to sensenet*, a unified *Content layer* - and many more).
+- a flexible **security** layer with customizable content permissions, honored by the query engine.
+- a scalable enterprise architecture with NLB and background task management.
 - *workspaces*, *lists* and *libraries* to make collaboration easier
 
 ...you're covered!
@@ -21,10 +21,10 @@ If you need...
 
 ## sensenet can be a lot of things
 
-- a development platform
-- an internet and intranet portal
-- a central Content Repository for all kinds of custom content
-- an integration point between your (or your clients') existing applications
+- a development platform.
+- an internet and intranet portal.
+- a central Content Repository for all kinds of custom contents.
+- an integration point between your (or your clients') existing applications.
 
 Let us know which part you're interested in most!
 
