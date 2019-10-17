@@ -48,7 +48,7 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 Please be patient if we do not accept the pull request immediately or ask for changes. We'll try to justify our change requests so that you know our intentions. It may speed up the process, if you [allow us to modify your branch](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when you create the pull request.
 
 ## How can I be awesome?
-Do you have a sensenet-related tool, plugin or sample library? We would be happy to include it in our awesome [awesome list](https://github.com/SenseNet/awesome-sensenet)! We collect all sensenet components and cool 3rd party repos there that make our community strong. Just drop us a message and let us share your magic with others!
+Do you have a sensenet-related tool, plugin or sample library? We would be happy to include it in our [awesome list](https://github.com/SenseNet/awesome-sensenet)! We collect all sensenet components and cool 3rd party repos there that make our community strong. Just drop us a message and let us share your magic with others!
 
 Please follow these guidelines in your repo to make your stuff more accessible (a good example for an informative readme is the [Client JS repo](https://github.com/SenseNet/sn-client-js)):
 - when creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
