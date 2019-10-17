@@ -36,7 +36,7 @@ sensenet is available in two editions:
 2. **Enterprise Edition**: with additional enterprise-grade features (like AD sync, MongoDB blob provider) and vendor support! For details, visit the [licensing page](http://www.sensenet.com/sensenet-ecm/licencing) on our site.
 
 ## Contact and support
-Whether you're a community member or enterprise customer, feel free to visit our communication channels for demo, examples and support:
+Whether you're a community member or an enterprise customer, feel free to visit our communication channels for demo, examples and support:
 - Website: http://www.sensenet.com
 - Main chat channel: https://gitter.im/SenseNet/sensenet
 - All chat channels: https://gitter.im/SenseNet
@@ -48,7 +48,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
 ### sensenet ECM 7.0
-A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
+A modern ECM platform that can be integrated into existing or new web applications. We have modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or by the community.
 
