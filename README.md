@@ -1,10 +1,21 @@
-# Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+<h1 align=center>
+ <img align=center width="40%" src="https://www.sensenet.com/Root/Skins/sncom/images/logo.png" />
+</h1>
+<h1 align=center>Welcome to sensenet ECM</h1>
+
+<h5 align=center>The first Open Source Enterprise Content Management platform for .NET!</h5>
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
-[![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://dev.azure.com/sensenetplatform/sensenet/_apis/build/status/sensenet)](https://dev.azure.com/sensenetplatform/sensenet/_build/latest?definitionId=1)
+<h2 align=center>
+  <a href="https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" title="Join the chat at https://gitter.im/SenseNet/sensenet">
+    <img alt="npm" src="https://badges.gitter.im/SenseNet/sensenet.svg">
+  </a>
+  <a href="https://dev.azure.com/sensenetplatform/sensenet/_build/latest?definitionId=1" title="Build Status">
+    <img src="https://dev.azure.com/sensenetplatform/sensenet/_apis/build/status/sensenet"/>
+  </a>
+</h2>   
+
 
 > **sensenet Services 7.0 stable** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
 
