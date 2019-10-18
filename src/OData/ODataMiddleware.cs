@@ -29,9 +29,8 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
-        /*UNDONE:ODATA: Inject IActionResolver instance into ProcessRequestAsync (with a default implementation)*/
-        // Do not remove setter.
-        internal static IActionResolver ActionResolver { get; set; }
+        private static readonly IActionResolver DefaultActionResolver = new DefaultActionResolver();
+        internal static IActionResolver ActionResolver => Providers.Instance.GetProvider<IActionResolver>() ?? DefaultActionResolver;
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
         internal static readonly List<string> DisabledFieldNames = new List<string>(new[] { "TypeIs", "InTree", "InFolder", "NodeType", "Rate"/*, "VersioningMode", "ApprovingMode", "RateAvg", "RateCount"*/ });
@@ -52,8 +51,6 @@ namespace SenseNet.OData
                 JsonConverters.Add(fieldConverter);
                 FieldConverters.Add(fieldConverter);
             }
-
-            ActionResolver = new DefaultActionResolver();
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);

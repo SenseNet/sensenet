@@ -396,12 +396,12 @@ namespace SenseNet.ODataTests
             public ActionResolverSwindler(IActionResolver actionResolver)
             {
                 _original = ODataMiddleware.ActionResolver;
-                ODataMiddleware.ActionResolver = actionResolver;
+                Providers.Instance.SetProvider(typeof(IActionResolver), actionResolver);
             }
 
             public void Dispose()
             {
-                ODataMiddleware.ActionResolver = _original;
+                Providers.Instance.SetProvider(typeof(IActionResolver), _original);
             }
         }
 
