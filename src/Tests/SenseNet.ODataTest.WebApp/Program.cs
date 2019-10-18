@@ -3,24 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Tests;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -101,7 +95,6 @@ namespace SenseNet.ODataTest.WebApp
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            //return _initialData ?? (_initialData = InitialData.Load(InitialTestData.Instance));
             return _initialData ?? (_initialData = InitialData.Load(DefaultDatabase.Instance));
         }
 
@@ -111,7 +104,6 @@ namespace SenseNet.ODataTest.WebApp
             if (_initialIndex == null)
             {
                 var index = new InMemoryIndex();
-                //index.Load(new StringReader(InitialTestIndex.Index));
                 index.Load(new StringReader(DefaultIndex.Index));
                 _initialIndex = index;
             }
