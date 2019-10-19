@@ -1,72 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Threading;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace Compatibility.SenseNet.ContentRepository.Security
 {
-    public class UserAccessProvider : AccessProvider  //UNDONE:ODATA: ?? UserAccessProvider is not implemented
+    public class UserAccessProvider : AccessProvider
     {
-        private IUser CurrentUser
-        {
-            get
-            {
-                //if (Thread.CurrentPrincipal?.Identity is IUser user)
-                //    return user;
-
-                //CurrentUser = StartupUser;
-                //user = User.Administrator;
-                //CurrentUser = user;
-                //return user;
-                throw new NotImplementedException();
-            }
-            set
-            {
-                //Thread.CurrentPrincipal = new PortalPrincipal(value);
-                throw new NotImplementedException();
-            }
-        }
+        private readonly AsyncLocal<IUser> _currentUser = new AsyncLocal<IUser>();
 
         public override IUser GetCurrentUser()
         {
-            //if (HttpContext.Current == null)
-            //    return CurrentUser;
+            var user = _currentUser.Value;
+            if (user != null)
+                return user;
 
-            //IUser currentUser = null;
-            //if (HttpContext.Current.User != null)
-            //    currentUser = HttpContext.Current.User.Identity as IUser;
+            // not authenticated yet
+            var visitor = User.Visitor;
+            SetCurrentUser(visitor);
 
-            //if (currentUser != null)
-            //    return currentUser;
-
-            //SetCurrentUser(StartupUser);
-            //currentUser = StartupUser;
-
-            //return currentUser;
-            throw new NotImplementedException();
+            return visitor;
         }
 
         protected override void DoSetCurrentUser(IUser user)
         {
-            //if (HttpContext.Current == null)
-            //    CurrentUser = user;
-            //else
-            //    HttpContext.Current.User = new PortalPrincipal(user);
-            throw new NotImplementedException();
+            _currentUser.Value = user;
         }
 
         public override bool IsAuthenticated
         {
             get
             {
-                //if (HttpContext.Current == null)
-                //    return false;
+                var user = _currentUser?.Value;
+                if (user == null)
+                    return false;
 
-                //System.Security.Principal.IPrincipal currentPrincipal =
-                //    HttpContext.Current.User;
-
-                //return currentPrincipal?.Identity != null && currentPrincipal.Identity.IsAuthenticated;
-                throw new NotImplementedException();
+                return user.Id != Identifiers.StartupUserId && user.Id != Identifiers.VisitorUserId;
             }
         }
     }
