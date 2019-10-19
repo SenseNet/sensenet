@@ -19,6 +19,7 @@
 -->
 
 ## Contribution checklist (*)
+ - [ ] I have signed the [Sense/Net CLA](https://cla-assistant.io/SenseNet/sensenet)
  - [ ] I have read the Contributing Guidelines
  - [ ] Commits have been made with meaningful commit messages
  - [ ] All automated tests have passed successfully 
