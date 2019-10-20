@@ -33,7 +33,7 @@ sensenet is available in two editions:
 
 1. **Community Edition**: a community-supported [GPL v2](LICENSE) edition with almost all the features.
    The source code is available on [CodePlex](http://sensenet.codeplex.com) (for **version 6.5**) and here on *GitHub* (for the new, componentized **version 7.0** - see details below).
-2. **Enterprise Edition**: with additional enterprise-grade features (like AD sync, MongoDB blob provider) and vendor support! For details, visit the [licensing page](http://www.sensenet.com/sensenet-ecm/licencing) on our site.
+2. **Enterprise Edition**: with additional enterprise-grade features (like AD sync, MongoDB blob provider) and vendor support! For details, visit the [Enterprise Edition](https://www.sensenet.com/pricing) on our site.
 
 ## Contact and support
 Whether you're a community member or enterprise customer, feel free to visit our communication channels for demo, examples and support:
