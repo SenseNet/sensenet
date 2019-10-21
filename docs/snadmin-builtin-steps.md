@@ -1267,7 +1267,7 @@ If you set the _Level_ property to _DatabaseAndIndex_, the tool will re-create i
 - Default property: `Path`
 - Additional properties: `Recursive`, `OutputLimit`
 
-Checks the index integrity by c the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
+Checks the index integrity by comparing the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
 - **Path**: Defines the integrity check's scope if there is. If empty, the whole repository tree will be checked.
 - **Recursive**: Defines whether check only one content or the whole tree or subtree. Default: true.
 - **OutputLimit**: Limits the output line count. 0 means all lines. Default: 1000. If this limit is reached the “...truncated...” will be displayed.
