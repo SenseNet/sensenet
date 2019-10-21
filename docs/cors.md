@@ -29,13 +29,13 @@ All OData AJAX requests sent to the portal will receive a response that contains
 Access-Control-Allow-Origin: <domain>
 ```
 
-The *domain* placeholder above is filled dynamically with the requested origin domain, *if it is allowed to access the portal* (see next section for details). In case of non-CORS requests it will be the domain that *the request was sent to*. For example if you send a GET request to the following URL:
+The *domain* placeholder above is filled dynamically with the requested origin domain, *if it is allowed to access the portal* (see next section for details). In case of non-CORS requests it will be the domain that *the request was sent to*. For example, if you send a GET request to the following URL:
 
 ```txt
 http://example.com/odata.svc/workspaces('myworkspace')
 ```
 
-...than the response will contain the following header:
+... then the response will contain the following header:
 
 ```txt
 Access-Control-Allow-Origin: http://example.com
@@ -66,7 +66,7 @@ The list may contain internal or external domains:
 ```
 
 ##### Port handling
-You may define urls containing a specific port. In this case only the requests arriving from the defined urls will be allowed: requests from the same domain (`localhost`) but without a port will be denied.
+You may define urls containing a specific port. In this case, only the requests arriving from the defined urls will be allowed: requests from the same domain (`localhost`) but without a port will be denied.
 
 > If you are using sensenet on urls containing a port, you will have to define them here with exact port numbers. Simply adding `localhost` is not enough, there is no wildcard support for ports yet.
 
@@ -110,9 +110,9 @@ You can also customize the list of allowed http headers for CORS requests (for e
 If the client-side JavaScript code tries to make a cross-domain AJAX request with any http method *other than GET* or *POST* (e.g. DELETE or PATCH), a *preflight request* is made to the server using the OPTIONS method to check whether it is allowed to send a CORS request for that particular resource.
 
 ## Authentication
-Of course cross-domain requests are still need to be authenticated. CSRF attacks are designed to make cross-domain calls in the name of a user who is already logged in to the targeted site (e.g. on a different browser tab). Otherwise the whole mechanism described above does not apply because the malicious request will not even reach the point when it would make some damage.
+Of course, cross-domain requests still need to be authenticated. CSRF attacks are designed to make cross-domain calls in the name of a user who is already logged in to the targeted site (e.g. on a different browser tab). Otherwise, the whole mechanism described above does not apply because the malicious request will not even reach the point when it would make some damage.
 
-Currently the portal always allows authenticated requests, except if the allowed origin is a wildcard ("*"). This means that the credentials header is always set to true and browsers will allow ajax requests to send cookies to the server.
+Currently, the portal always allows authenticated requests, except if the allowed origin is a wildcard ("*"). This means that the credentials header is always set to true and browsers will allow ajax requests to send cookies to the server.
 
 ```txt
 Access-Control-Allow-Credentials: true
