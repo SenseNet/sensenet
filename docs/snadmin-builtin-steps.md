@@ -402,7 +402,7 @@ It is important to take care of namespaces when editing xml files. You can provi
 
 Appends the given xml fragment (from the *Source* property) as a child (or children) under the xml elements determined by the Xpath property. The target xml can be in the file system (usually a .config file) or in the Content Repository (a field value of a content).
 
-The default property model does not work in this step by design (because the source is an xml fragment itself), so you will need to provide the *Source* tag explicitely as shown below. The Source value cannot appear as an xml attribute either.
+The default property model does not work in this step by design (because the source is an xml fragment itself), so you will need to provide the *Source* tag explicitly as shown below. The Source value cannot appear as an xml attribute either.
 
 >If the target is a content, please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
@@ -723,8 +723,8 @@ Selects an XML Node defined by an XPath and stores its value into a variable. Th
     substringBefore="," />
 ```
  The selected value is customizable with the following modifier functions (in execution order):
-1. `SubstringBefore`: cuts the value at the given string's first occurence and returns the left side.
-2. `SubstringAfter`: cuts the value at the given string's first occurence and returns the right side.
+1. `SubstringBefore`: cuts the value at the given string's first occurrence and returns the left side.
+2. `SubstringAfter`: cuts the value at the given string's first occurrence and returns the right side.
 #### For example:
 If the selected value is "`First, second, third`", the modifier functions will convert the result to:
 - `substringBefore=", "`: "First".
@@ -1267,7 +1267,7 @@ If you set the _Level_ property to _DatabaseAndIndex_, the tool will re-create i
 - Default property: `Path`
 - Additional properties: `Recursive`, `OutputLimit`
 
-Checks the index integrity by comparation the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
+Checks the index integrity by c the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
 - **Path**: Defines the integrity check's scope if there is. If empty, the whole repository tree will be checked.
 - **Recursive**: Defines whether check only one content or the whole tree or subtree. Default: true.
 - **OutputLimit**: Limits the output line count. 0 means all lines. Default: 1000. If this limit is reached the “...truncated...” will be displayed.
@@ -1278,7 +1278,7 @@ Usage on a subtree and show all difference:
     /Root/Sites/Default_Site
 </CheckIndexIntegrity>
 ```
-Fore example here is a possible output if there is some inconsistence:
+Fore example here is a possible output if there is some inconsistency:
 ``` text
 ================================================== #1/2 CheckIndexIntegrity
 Recursive integrity check. Scope: /Root
