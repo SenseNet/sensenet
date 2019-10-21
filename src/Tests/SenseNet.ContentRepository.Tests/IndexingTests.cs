@@ -518,7 +518,12 @@ namespace SenseNet.ContentRepository.Tests
                     builder
                         .UseLogger(logger)
                         .UseDataProvider(dataProvider)
-                        .UseSearchEngine(searchProvider);
+                        .UseInitialData(null)
+                        .UseSearchEngine(searchProvider)
+                        // rewrite these instances with the original base dataProvider.
+                        .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                        .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider));
+
                 }, () =>
                 {
                     // Do nothing but started successfully

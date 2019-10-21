@@ -142,7 +142,7 @@ namespace SenseNet.ContentRepository.InMemory
         public STT.Task AllocateAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid();
-            _blobStorage.Add(id, new byte[0]);
+            _blobStorage.Add(id, new byte[context.Length]);
 
             context.BlobProviderData = new InMemoryBlobProviderData { BlobId = id };
             return STT.Task.CompletedTask;
@@ -150,12 +150,17 @@ namespace SenseNet.ContentRepository.InMemory
 
         public STT.Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var data = (InMemoryBlobProviderData)context.BlobProviderData;
+            var target = _blobStorage[data.BlobId];
+            Array.Copy(buffer, offset, target, offset, buffer.Length - offset);
+            return STT.Task.CompletedTask;
         }
 
         public STT.Task DeleteAsync(BlobStorageContext context, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var data = (InMemoryBlobProviderData)context.BlobProviderData;
+            _blobStorage.Remove(data.BlobId);
+            return STT.Task.CompletedTask;
         }
 
         public Stream GetStreamForRead(BlobStorageContext context)

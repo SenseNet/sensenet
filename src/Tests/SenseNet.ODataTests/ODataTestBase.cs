@@ -214,11 +214,11 @@ namespace SenseNet.ODataTests
         protected static RepositoryBuilder CreateRepositoryBuilder()
         {
             var dataProvider = new InMemoryDataProvider();
-            Providers.Instance.DataProvider = dataProvider;
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseInitialData(GetInitialData())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -328,7 +328,6 @@ namespace SenseNet.ODataTests
                 _repository = null;
 
                 var repoBuilder = CreateRepositoryBuilder();
-                await DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).ConfigureAwait(false);
                 Indexing.IsOuterSearchEngineEnabled = true;
                 _repository = Repository.Start(repoBuilder);
             }

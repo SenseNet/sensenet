@@ -1422,13 +1422,13 @@ namespace SenseNet.ContentRepository.InMemory
                     if (version == null)
                         throw new NotSupportedException("Cannot install a node without a versions.");
                     var props = data.DynamicProperties.FirstOrDefault(x => x.VersionId == versionId);
-                    InstallNodeSafe(node, version, props);
+                    InstallNodeSafe(node, version, props, data);
                 }
                 ContentTypeManager.Reset();
             }
             return STT.Task.CompletedTask;
         }
-        private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData)
+        private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData, InitialData data)
         {
             DB.Nodes.Insert(new NodeDoc
             {
@@ -1517,13 +1517,24 @@ namespace SenseNet.ContentRepository.InMemory
                     });
 
                     var blobProviderName = binProp.BlobProviderName;
-                    if (blobProviderName == null && binProp.BlobProviderData != null
-                        && binProp.BlobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
+                    var blobProviderData = binProp.BlobProviderData;
+                    byte[] buffer = null;
+                    if (blobProviderName == null && blobProviderData != null
+                                                 && blobProviderData.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                     {
-                        //blobProviderName = binProp.BlobProviderData.StartsWith(Repository.ContentTypesFolderPath, StringComparison.OrdinalIgnoreCase)
-                        //    ? typeof(ContentTypeStringBlobProvider).FullName
-                        //    : typeof(FileSystemReaderBlobProvider).FullName;
-                        blobProviderName = typeof(InitialTestDataBlobProvider).FullName;
+                        buffer = data.GetBlobBytes(blobProviderData, propertyType.Name);
+                        var blobProvider = BlobStorage.GetProvider(buffer.Length);
+                        var blobStorageContext = new BlobStorageContext(blobProvider)
+                        {
+                            FileId = binProp.FileId,
+                            Length = buffer.Length,
+                        };
+                        blobProvider.AllocateAsync(blobStorageContext, CancellationToken.None)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                        blobProviderName = blobProvider.GetType().FullName;
+                        blobProviderData =
+                            BlobStorageContext.SerializeBlobProviderData(blobStorageContext.BlobProviderData);
+                        blobProvider.WriteAsync(blobStorageContext, 0, buffer, CancellationToken.None);
                     }
 
                     DB.Files.Insert(new FileDoc
@@ -1535,12 +1546,12 @@ namespace SenseNet.ContentRepository.InMemory
                         Size = binProp.Size,
                         Timestamp = binProp.Timestamp,
                         BlobProvider = blobProviderName,
-                        BlobProviderData = binProp.BlobProviderData,
+                        BlobProviderData = blobProviderData,
+                        //Buffer = buffer
                     });
                 }
             }
         }
-
         public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -43,12 +43,11 @@ namespace SenseNet.ODataTest.WebApp
         protected static RepositoryBuilder CreateRepositoryBuilder()
         {
             var dataProvider = new InMemoryDataProvider();
-            Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider()) //UNDONE:ODATA: ?? The user is always Admin
                 .UseDataProvider(dataProvider)
+                .UseInitialData(InitialData.Load(DefaultDatabase.Instance))
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -92,11 +91,6 @@ namespace SenseNet.ODataTest.WebApp
             });
         }
 
-        private static InitialData _initialData;
-        protected static InitialData GetInitialData()
-        {
-            return _initialData ?? (_initialData = InitialData.Load(DefaultDatabase.Instance));
-        }
 
         private static InMemoryIndex _initialIndex;
         protected static InMemoryIndex GetInitialIndex()
