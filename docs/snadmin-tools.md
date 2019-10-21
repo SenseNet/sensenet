@@ -14,7 +14,7 @@ For example this is how you execute the import tool:
 ``` text
 SnAdmin import source:"c:\localrepo\new-articles" target:"/Root/Sites/MySite/articles"
 ```
-The tool above will import the usual Content struture from the provided *source* file system directory to the Content Repository folder provided as the *target* parameter.
+The tool above will import the usual Content structure from the provided *source* file system directory to the Content Repository folder provided as the *target* parameter.
 
 ### Tool parameters
 Most of these tools have parameters. You can get a list of available parameters by using the -HELP command line argument:
