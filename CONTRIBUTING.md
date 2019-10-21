@@ -17,7 +17,7 @@ If you already have an exact source code change in your mind, it is easier (and 
 ## sensenet and its components
 This is a huge project that consists of multiple repositories:
 - main [sensenet github repository](https://github.com/SenseNet/sensenet) for the core product
-- many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main prodoct
+- many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main product
 - an [awesome list](https://github.com/SenseNet/awesome-sensenet) of sensenet-related tools and plugins
 
 These components have their own version number and they are developed and released independently from the main product. Some of them (e.g. [Tools](https://github.com/SenseNet/sn-tools) or [Task Management](https://github.com/SenseNet/sn-taskmanagement)) can be used in any project, others (e.g. [sensenet Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) are more closely tied to the core product.
@@ -36,7 +36,7 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 
 ## Making a change
 
-1. Github has a cool [overview](https://guides.github.com) of the workflows and basic git stuff, please check it out if you are not familar with how things work here :ok_hand:.
+1. Github has a cool [overview](https://guides.github.com) of the workflows and basic git stuff, please check it out if you are not familiar with how things work here :ok_hand:.
 2. If possible, avoid making broad changes (e.g. a huge refactor) before talking to us; the more files you change, the harder it is to review and merge the commit.
 3. Start work by [forking](https://help.github.com/articles/working-with-forks) the repository you want to improve, then make a *branch* for the fix/feature.
 4. The dev environment is usually not complicated in case of smaller components (for example [sensenet Tools](https://github.com/SenseNet/sn-tools) or [Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) - just build it, and you're good to go. In case of bigger components you may install them in a web application, build a custom library and try it out in your environment.
