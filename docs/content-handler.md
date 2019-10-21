@@ -10,15 +10,15 @@ tags: [content type, content type definition, inheritance, type system, handler,
 
 The Content Handler defines custom "code behind" business logic of a [Content Type](content-type.md) implemented in .Net code (ie. C#). Content Handlers can override mapping between object properties and [Content Repository](content-repository.md) fields, and they may also define properties that are not stored in the Content Repository (properties that are either calculated or retrieved from another data source).
 
-> The Content Handler is considered to be on the lower layer of the sensenet ECM API. You may choose to work with the upper layer, represented by the unified [Content](content.md) class that you can use to work with all kinds of content stored in the Content Repository. In that case you will have access to [fields](field.md) (higher level metadata) but without the strongly typed properties of the Content Handler layer.
+> The Content Handler is considered to be on the lower layer of the sensenet ECM API. You may choose to work with the upper layer, represented by the unified [Content](content.md) class that you can use to work with all kinds of content stored in the Content Repository. In that case, you will have access to [fields](field.md) (higher-level metadata) but without the strongly typed properties of the Content Handler layer.
 
 ## When to create a custom Content Handler
 
 A Content Handler should be created in one of the following cases:
 
 - **Custom business logic** has to be added to the object at either loading or saving properties or when saving the object itself. *Example*: You want to check the validity of an attribute based on other attributes of the object or assign value to an attribute based on other attributes of the object.
-- The object has **properties that are not stored in the Content Repository**. A content can have properties that are retreived or saved from or to web services or derived some other way. A Content Handler has to be implemented for this scenario. *Example*: You have a Content Type with a "CreationDate" DateTime property, and want to define an Age property which is caclulated dynamically.
-- You wish to work with *strongly typed* objects. When using the default GenericContent Content Handler, object binding will not be strongly typed. In this case, attributes can only be accesed and set through the *GetProperty()* and *SetProperty()* methods of the GenericContent class. Creating a custom Content Handler helps you overcome this limitation.
+- The object has **properties that are not stored in the Content Repository**. A content can have properties that are retrieved or saved from or to web services or derived some other way. A Content Handler has to be implemented for this scenario. *Example*: You have a Content Type with a "CreationDate" DateTime property, and want to define an Age property which is calculated dynamically.
+- You wish to work with *strongly typed* objects. When using the default GenericContent Content Handler, object binding will not be strongly typed. In this case, attributes can only be accessed and set through the *GetProperty()* and *SetProperty()* methods of the GenericContent class. Creating a custom Content Handler helps you overcome this limitation.
 
 ## Reference Content Handler
 
