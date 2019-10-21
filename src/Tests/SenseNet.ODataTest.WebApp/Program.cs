@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Compatibility.SenseNet.ContentRepository.Security;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using SenseNet.Configuration;
@@ -45,7 +46,7 @@ namespace SenseNet.ODataTest.WebApp
             var dataProvider = new InMemoryDataProvider();
 
             return new RepositoryBuilder()
-                .UseAccessProvider(new DesktopAccessProvider()) //UNDONE:ODATA: ?? The user is always Admin
+                .UseAccessProvider(new UserAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseInitialData(InitialData.Load(DefaultDatabase.Instance))
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
