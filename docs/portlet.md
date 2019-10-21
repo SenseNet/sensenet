@@ -16,11 +16,11 @@ Portlets can easily be added to pages after editing the page and clicking on the
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/reference-wiki-portlet3.png" style="margin: 20px auto" />
 
-Added portlets are only visible to the public when the page has been *checked-in* (and in case versioning or approval of the page is switched on, it is also have to be *published/approved*). Pages can be edited using the Portal Remote Control (PRC). After they are added, the properties of portlets can be set to customize their look and behavior.
+Added portlets are only visible to the public when the page has been *checked-in* (and in case versioning or approval of the page is switched on, it also has to be *published/approved*). Pages can be edited using the Portal Remote Control (PRC). After they are added, the properties of portlets can be set to customize their look and behavior.
 
 ##### Editing portlet properties
 
-Portlets can be customized via their properties. Properties can be accessed and set in the portlet properties dialog displayed after clicking _Edit_ in the dropdown box that appear at the top right corner of the portlets when the page containing the portlet is in _Edit_ mode. In the portlet properties dialog properties are organized into tabs along function categories.
+Portlets can be customized via their properties. Properties can be accessed and set in the portlet properties dialog displayed after clicking _Edit_ in the dropdown box that appears at the top right corner of the portlets when the page containing the portlet is in _Edit_ mode. In the portlet properties, dialog properties are organized into tabs along with function categories.
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/reference-wiki-portlet1.png" style="margin: 20px auto" />
 
@@ -31,13 +31,13 @@ Common properties include the ones displayed on the above screenshot:
 - **View**: an ascx (or in some cases an XSLT renderer) can be selected to define the UI of the portlet.
 - **Custom CSS class(es)**: extra css classes to be rendered into the container of the portlet for easy customization of portlet look & feel
 
-The available list of properties depend on the type of the portlet.
+The available list of properties depends on the type of portlet.
 
 > When portlet properties are saved, some changes only take effect after a postback on the page - it is strongly advised to use the Preview mode functionality of the PRC after changes have been made to portlet properties.
 
 ##### Cacheable portlets
 
-Some portlets support caching of their generated html output. When a portlet is cacheable, a _Cache_ tab will appear on the portlet properties dialog. When caching is enabled the portlet will cache its output for the given interval and thus when rendered no background logic will be executed within the cache interval. With this technique page response time can be lowered significantly.
+Some portlets support caching of their generated html output. When a portlet is cacheable, a _Cache_ tab will appear on the portlet properties dialog. When caching is enabled the portlet will cache its output for the given interval and thus when rendered no background logic will be executed within the cache interval. With this technique, page response time can be lowered significantly.
 
 > It is strongly advised to use the cache functionality of portlets when available on live sites. Portlets that are not being cached may cause pages to be less responsive even at small visitor rates.
 
