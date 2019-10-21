@@ -24,7 +24,7 @@ Example of token authentication configuration settings:
 ...
 </sensenet>
 ```
-There are some other parameters in the tokenAuthentication and security section that you can update to alter the behaviour of the token authentication:
+There are some other parameters in the tokenAuthentication and security section that you can update to alter the behavior of the token authentication:
 ```xml
 <tokenAuthentication>
   <add key="SymmetricKeySecret" value="<random secret string>" />
@@ -45,7 +45,7 @@ There are some other parameters in the tokenAuthentication and security section 
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
 **_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
-**_DefaultUltimateLogout_**: the default behaviour at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
+**_DefaultUltimateLogout_**: the default behavior at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
@@ -66,7 +66,7 @@ _Steps of a token refresh process from the clients' point of view:_
 3. Access content using the access token
 4. Logout using the access token
 
-All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be choosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
+All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be chosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
 
 ![web token authentication protocol](images/SensenetTokenAuthentication.png)
 _figure 1:web token authentication protocol_
@@ -219,7 +219,7 @@ HTTP response with status 200 (OK). On the diagram it is used to sign an empty r
 HTTP response with status 401 (Unauthorized). On the diagram it is used to sign a response to an unsuccessful login, logout or refresh request.
 
 ### The used headers in detail ###  
-**_Authorization_**: this header is a standard HTTP header and tells the service, that a client would like to authenticate. Its value always begins with "Basic ", that signes a basic type authentication requires a valid username and password.  
+**_Authorization_**: this header is a standard HTTP header and tells the service, that a client would like to authenticate. Its value always begins with "Basic ", that signs a basic type authentication requires a valid username and password.  
 **_X-Access-Data_**: this header tells the service, that a client tries to access a content with a token. Its value is an access token head and payload.  
 **_X-Authentication-Action_**: this header tells the service in case of header marked communication, that a token authentication action is requested. Its value can be `TokenLogin`, `TokenLogout`, `TokenAccess`, `TokenRefresh`.  
 **_X-Refresh-Data_**: this header tells the service, that a client tries to refresh its expired access token. Its value is a refresh token head and payload.
@@ -231,7 +231,7 @@ HTTP response with status 401 (Unauthorized). On the diagram it is used to sign 
 `<accessHeadAndPayload>, <refreshHeadAndPayload>`: base64 and URL encoded strings.
 
 The access head and payload are the public part of a token, that consists of two parts separated by a full stop.
-The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily use in Javascript.
+The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily used in Javascript.
 
 **Example of a typical payload:**  
 ```json
@@ -255,7 +255,7 @@ The first one is a technical like header that you do not have to care about. The
 **_nbf_**: `not before` identifies the time before that the token can not be accepted  
 **_name_**: `name` identifies the name of the user whom the token was issued to
 
-The `iss, sub, aud` claims can be configured and remains the same unless you change them in the web.config. The other claims dinamically change on new token creation.
+The `iss, sub, aud` claims can be configured and remains the same unless you change them in the web.config. The other claims dynamically change on new token creation.
 
 ## Considerations for client developers ##
 

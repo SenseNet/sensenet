@@ -8,7 +8,7 @@ tags: [content naming, naming, provider]
 
 # ContentNamingProvider
 
-As sensenet ECM has a web interface, handling content names that appear in URLs is crutial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the [main article](content-naming.md). This article is for developers about how to customize the default naming behavior in sensenet ECM.
+As sensenet ECM has a web interface, handling content names that appear in URLs is crucial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the [main article](content-naming.md). This article is for developers about how to customize the default naming behavior in sensenet ECM.
 
 All content naming operations are done through a content naming provider. The base provider is the abstract *SenseNet.ContentRepository.ContentNamingProvider* class. It has the following customizable features:
 
@@ -22,7 +22,7 @@ These features are called by system methods and can be customized by developers 
 
 ## Built-in naming providers
 
-We offer the following predefiend naming providers. You may choose either one of them or create a custom one based on their behavior (and source code :)).
+We offer the following predefined naming providers. You may choose either one of them or create a custom one based on their behavior (and source code :)).
 
 ## CharReplacementContentNamingProvider
 
