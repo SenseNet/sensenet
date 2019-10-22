@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         public List<CacheDependency> Dependencies { get; } = new List<CacheDependency>();
 
         /// <summary>
-        /// Adds one or more releated dependencies to the collection.
+        /// Adds one or more related dependencies to the collection.
         /// </summary>
         public void Add(params CacheDependency[] dependencies)
         {
