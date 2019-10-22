@@ -92,7 +92,7 @@ Similarly to Pages (that require the [WebPages](https://github.com/SenseNet/sn-w
 
 ## Application binding
 
-The **Smart Applicaton Model** goes further than just providing a friendly URL scheme. The real power lies in the complex logic that binds applications to content.
+The **Smart Application Model** goes further than just providing a friendly URL scheme. The real power lies in the complex logic that binds applications to content.
 
 In sensenet ECM everything is content and this includes the applications themselves. This means that the applications are located in the [Content Repository](content-repository.md) either as `Portlet Pages` or placeholder content items for logic (like HTTP Handlers) located in a DLL file.
 

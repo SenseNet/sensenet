@@ -31,7 +31,7 @@ When a textarea is rendered it can be displayed as a highlighted editor of bigge
 
 ## Templates
 
-Binary field control renders the name of the assigned file as a hyperlink in Browse mode. In Edit mode a fileupload control or a textarea control is rendered.
+Binary Field Control renders the name of the assigned file as a hyperlink in Browse mode. In Edit mode a fileupload control or a textarea control is rendered.
 
 ### Browse view template
 

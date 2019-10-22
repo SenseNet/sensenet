@@ -40,7 +40,7 @@ The Content Repository is basically a tree structure of the various stored conte
     - **renderers**
     - **scripts** - JavaScript files
     - **styles** - Css files
-  - **IMS** - folder containing Domains, Organizational units, Groups and [Users](user-content-type.md) in a hierarchical tree structrure
+  - **IMS** - folder containing Domains, Organizational units, Groups and [Users](user-content-type.md) in a hierarchical tree structure
   - **Localization** - resource files with multi-language text content for [Localization](localization.md)
   - **Portlets** - folder of installed Portlets
   - **Sites** - container of defined sites
@@ -69,7 +69,7 @@ The sensenet Content Repository is built upon a metadata system with pre-defined
 
  ### Metadata indexing for fast search and filtering
 
- Content in the SNCR are indexed using the [Lucene](http://lucene.apache.org/lucene.net/) indexing and search library. The text of binary documents (Micosoft Word, Excel, Adobe PDF, etc) is extracted and can also be searched in SNCR. Lucene provides extremely fast query results even on big (over 10 million content) repositories.
+ Content in the SNCR are indexed using the [Lucene](http://lucene.apache.org/lucene.net/) indexing and search library. The text of binary documents (Microsoft Word, Excel, Adobe PDF, etc) is extracted and can also be searched in SNCR. Lucene provides extremely fast query results even on big (over 10 million content) repositories.
 
  ### Content access and url resolution
 

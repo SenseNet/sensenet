@@ -112,7 +112,7 @@ Another way: Service path followed by the "content" word and an entity id betwee
 
 - http://www.example.com/OData.svc/content(42)
 
-If the site root contains a content that's name is "content", access it wit absolute path:
+If the site root contains a content that's name is "content", access it with absolute path:
 
 - http://www.example.com/OData.svc/Root/Sites/ExampleSite('content')
 
@@ -764,7 +764,7 @@ The content type of the new entity will be the first allowed content type of the
 
 HTTP method: **POST**
 
-This verb enables you to cretae a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
+This verb enables you to create a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
 
 ```js
 $.ajax({

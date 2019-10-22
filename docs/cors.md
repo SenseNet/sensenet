@@ -10,7 +10,7 @@ description: "In this article operators and developers may learn about CORS sett
 # Cross-origin resource sharing
 [Cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) (CORS) is a technique that allows client-side web developers to access resources from a *different domain*. Shared JavaScript files or images are good examples for this. However cross-origin requests can also be used by hackers and malicious sites to access confidential information if a site is not protected against [Cross Site Request Forgery](http://hu.wikipedia.org/wiki/Cross-site_request_forgery) (CSRF) attacks. This is why browsers apply strict rules for these operations to prevent hackers from accessing the portal from external sites.
 
-> **sensenet** supports CORS OData requests from **version 6.4** and CORS file download requests from **version 6.5.3**. In this article operators and developers may learn about CORS settings and how we prevent cross-domain attacks.}}
+> **sensenet** supports CORS OData requests from **version 6.4** and CORS file download requests from **version 6.5.3**. In this article operators and developers may learn about CORS settings and how we prevent cross-domain attacks.
 
 All the information on this page refers to our [OData REST API](/docs/odata-rest-api), as that is the most important entry point for client developers to the repository.
 
@@ -48,7 +48,7 @@ When a browser receives the response above, it will allow the JavaScript runtime
 ### Origin check 
 In case of cross-domain requests all modern browsers send the *Origin* header to the server, containing the domain of the original page. sensenet always checks for the Origin header and if it is different than the requested domain and it is not included in a **whitelist**, the request will fail on the server without being able to do any harm. 
 
-> Unlike the old *Referer* header that contains the whole url, the *Origin* header contains only the domain and **it cannot be modified after the browser has sent the request**, meaning it is reliable.
+> Unlike the old *Referer* header that contains the whole URL, the *Origin* header contains only the domain and **it cannot be modified after the browser has sent the request**, meaning it is reliable.
 
 ## Settings
 You can manage CORS-related settings in the following [Settings](http://wiki.sensenet.com/Settings) content in the [Content Repository](/docs/content-repository)
@@ -66,9 +66,9 @@ The list may contain internal or external domains:
 ```
 
 ##### Port handling
-You may define urls containing a specific port. In this case, only the requests arriving from the defined urls will be allowed: requests from the same domain (`localhost`) but without a port will be denied.
+You may define URLs containing a specific port. In this case only the requests arriving from the defined URLs will be allowed: requests from the same domain (`localhost`) but without a port will be denied.
 
-> If you are using sensenet on urls containing a port, you will have to define them here with exact port numbers. Simply adding `localhost` is not enough, there is no wildcard support for ports yet.
+> If you are using sensenet on URLs containing a port, you will have to define them here with exact port numbers. Simply adding `localhost` is not enough, there is no wildcard support for ports yet.
 
 ```javascript
 {
@@ -110,7 +110,7 @@ You can also customize the list of allowed http headers for CORS requests (for e
 If the client-side JavaScript code tries to make a cross-domain AJAX request with any http method *other than GET* or *POST* (e.g. DELETE or PATCH), a *preflight request* is made to the server using the OPTIONS method to check whether it is allowed to send a CORS request for that particular resource.
 
 ## Authentication
-Of course, cross-domain requests still need to be authenticated. CSRF attacks are designed to make cross-domain calls in the name of a user who is already logged in to the targeted site (e.g. on a different browser tab). Otherwise, the whole mechanism described above does not apply because the malicious request will not even reach the point when it would make some damage.
+Of course cross-domain requests still need to be authenticated. CSRF attacks are designed to make cross-domain calls in the name of a user who is already logged in to the targeted site (e.g. on a different browser tab). Otherwise the whole mechanism described above does not apply because the malicious request will not even reach the point when it would make some damage.
 
 Currently, the portal always allows authenticated requests, except if the allowed origin is a wildcard ("*"). This means that the credentials header is always set to true and browsers will allow ajax requests to send cookies to the server.
 
@@ -124,10 +124,10 @@ Access-Control-Allow-Credentials: true
 To log in to a portal on a different domain than the current one (the target portal is where you want to send CORS requests), you can use [JWT authentication](/docs/web-token-authentication). The easiest way to do that is using the [Client JS API](/docs/tutorials/how-to-use-jwt-in-sn-client-js) instead of implementing the protocol by yourself.
 
 ## Command line tools
-All the protection and protocol above is related to browsers. Web requests made by *command line tools* do not contain these http headers and the response is not checked by the tool in any way. This means the whole cross-origin protection does not apply to command line tools.
+All the protection and protocol above is related to browsers. Web requests made by *command line tools* do not contain these HTTP headers and the response is not checked by the tool in any way. This means the whole cross-origin protection does not apply to command line tools.
 
 ## Examples
-To send a cross-origin request from JavaScript, you simply have to provide the absolute url of the resource you want to query (e.g. an OData request to a sensenet portal) and tell the browser that you want it to send user credentials with the request:
+To send a cross-origin request from JavaScript, you simply have to provide the absolute URL of the resource you want to query (e.g. an OData request to a sensenet portal) and tell the browser that you want it to send user credentials with the request:
 
 ```txt
 withCredentials: true

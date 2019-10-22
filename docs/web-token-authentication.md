@@ -24,7 +24,7 @@ Example of token authentication configuration settings:
 ...
 </sensenet>
 ```
-There are some other parameters in the tokenAuthentication and security section that you can update to alter the behaviour of the token authentication:
+There are some other parameters in the tokenAuthentication and security section that you can update to alter the behavior of the token authentication:
 ```xml
 <tokenAuthentication>
   <add key="SymmetricKeySecret" value="<random secret string>" />
@@ -45,7 +45,7 @@ There are some other parameters in the tokenAuthentication and security section 
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
 **_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
-**_DefaultUltimateLogout_**: the default behaviour at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
+**_DefaultUltimateLogout_**: the default behavior at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
@@ -231,7 +231,7 @@ HTTP response with status 401 (Unauthorized). On the diagram it is used to sign 
 `<accessHeadAndPayload>, <refreshHeadAndPayload>`: base64 and URL encoded strings.
 
 The access head and payload are the public part of a token, that consists of two parts separated by a full stop.
-The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily use in Javascript.
+The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily used in Javascript.
 
 **Example of a typical payload:**  
 ```json

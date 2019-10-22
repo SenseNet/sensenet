@@ -32,10 +32,10 @@ A sensenet ECM OAuth provider is a small plugin that is designed to verify a tok
 
 - Google [![NuGet](https://img.shields.io/nuget/v/SenseNet.OAuth.Google.svg)](https://www.nuget.org/packages/SenseNet.OAuth.Google)
 
-These providers are available as nuget packages on the server-side and npm packages on the client. Please follow the instructions in the nuget readme, these packages usually involve executing an install command before you can use them.
+These providers are available as nuget packages on the server side and npm packages on the client. Please follow the instructions in the nuget readme; these packages usually involve executing an install command before you can use them.
 
 ## Custom OAuth provider
-The OAuth provider feature is extendable by design, so developers may create a custom provider for any 3rd party service by implementing a simple api. For a detailed explanation of the api elements to implement please refer to the source code documentation.
+The OAuth provider feature is extendable by design, so developers may create a custom provider for any 3rd party service by implementing a simple API. For detailed explanation of the API elements to implement please refer to the source code documentation.
 
 ```csharp
 public class CustomOAuthProvider : OAuthProvider
@@ -93,10 +93,10 @@ The example above assumes that there is a field on the User content type called 
 
 To start using your custom provider you only have to add a reference to your provider library and sensenet ECM will automatically discover and register your class.
 
-## Client api
+## Client API
 If you are using the [JavaScript client SDK](https://github.com/SenseNet/sn-client-js) (as it is recommended), you do not have to deal with sending OAuth tokens to the server, it will do it for you.
 
-## REST api
+## REST API
 As an alternative, you can use the native REST api when authenticating with a 3rd party OAuth service. After receiving the service-specific token, that token has to be sent to the server for verification. The api is the following:
 
 ```text
