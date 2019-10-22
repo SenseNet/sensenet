@@ -1045,24 +1045,24 @@ VersionId: 94
         Binary: #78, F78, 387L, YesNoFieldSetting.ContentType, text/xml, /Root/System/Schema/ContentTypes/GenericContent/FieldSettingContent/TextFieldSetting/ShortTextFieldSetting/ChoiceFieldSetting/YesNoFieldSetting
 VersionId: 95
     BinaryProperties
-        Binary: #79, F79, 0L, Indexing.settings, application/octet-stream, /Root/System/Settings/Indexing.settings
+        Binary: #79, F79, 74L, Indexing.settings, application/octet-stream, /Root/System/Settings/Indexing.settings
     DynamicProperties
         PageCount:Int: -4
         GlobalOnly:Int: 1
 VersionId: 96
     BinaryProperties
-        Binary: #80, F80, 0L, Logging.settings, application/octet-stream, /Root/System/Settings/Logging.settings
+        Binary: #80, F80, 347L, Logging.settings, application/octet-stream, /Root/System/Settings/Logging.settings
     DynamicProperties
         PageCount:Int: -4
         GlobalOnly:Int: 1
 VersionId: 97
     BinaryProperties
-        Binary: #81, F81, 0L, MailProcessor.settings, application/octet-stream, /Root/System/Settings/MailProcessor.settings
+        Binary: #81, F81, 321L, MailProcessor.settings, application/octet-stream, /Root/System/Settings/MailProcessor.settings
     DynamicProperties
         PageCount:Int: -4
 VersionId: 98
     BinaryProperties
-        Binary: #82, F82, 0L, OAuth.settings, application/octet-stream, /Root/System/Settings/OAuth.settings
+        Binary: #82, F82, 43L, OAuth.settings, application/octet-stream, /Root/System/Settings/OAuth.settings
     DynamicProperties
         PageCount:Int: -4
         GlobalOnly:Int: 1
@@ -1073,18 +1073,18 @@ VersionId: 99
         PageCount:Int: -4
 VersionId: 100
     BinaryProperties
-        Binary: #84, F84, 0L, Sharing.settings, application/octet-stream, /Root/System/Settings/Sharing.settings
+        Binary: #84, F84, 37L, Sharing.settings, application/octet-stream, /Root/System/Settings/Sharing.settings
     DynamicProperties
         PageCount:Int: -4
 VersionId: 101
     BinaryProperties
-        Binary: #85, F85, 0L, TaskManagement.settings, application/octet-stream, /Root/System/Settings/TaskManagement.settings
+        Binary: #85, F85, 124L, TaskManagement.settings, application/octet-stream, /Root/System/Settings/TaskManagement.settings
     DynamicProperties
         PageCount:Int: -4
         GlobalOnly:Int: 1
 VersionId: 102
     BinaryProperties
-        Binary: #86, F86, 0L, UserProfile.settings, application/octet-stream, /Root/System/Settings/UserProfile.settings
+        Binary: #86, F86, 65L, UserProfile.settings, application/octet-stream, /Root/System/Settings/UserProfile.settings
     DynamicProperties
         PageCount:Int: -4
         GlobalOnly:Int: 1
@@ -2008,12 +2008,12 @@ VersionId: 219
         Hidden:Int: 1
 VersionId: 236
     BinaryProperties
-        Binary: #103, F103, 0L, Global.html, text/html, /Root/System/ErrorMessages/Default/Global.html
+        Binary: #103, F103, 15642L, Global.html, text/html, /Root/System/ErrorMessages/Default/Global.html
     DynamicProperties
         PageCount:Int: -4
 VersionId: 237
     BinaryProperties
-        Binary: #104, F104, 0L, UserGlobal.html, text/html, /Root/System/ErrorMessages/Default/UserGlobal.html
+        Binary: #104, F104, 15125L, UserGlobal.html, text/html, /Root/System/ErrorMessages/Default/UserGlobal.html
     DynamicProperties
         PageCount:Int: -4
 VersionId: 238
@@ -2052,42 +2052,42 @@ VersionId: 246
         CacheControl:String: Nondefined
 VersionId: 248
     BinaryProperties
-        Binary: #105, F105, 0L, binaryhandler.ashx, application/octet-stream, /Root/System/WebRoot/binaryhandler.ashx
+        Binary: #105, F105, 83L, binaryhandler.ashx, application/octet-stream, /Root/System/WebRoot/binaryhandler.ashx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 250
     BinaryProperties
-        Binary: #106, F106, 0L, Dws.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Dws.asmx
+        Binary: #106, F106, 75L, Dws.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Dws.asmx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 251
     BinaryProperties
-        Binary: #107, F107, 0L, Fpp.ashx, application/octet-stream, /Root/System/WebRoot/DWS/Fpp.ashx
+        Binary: #107, F107, 75L, Fpp.ashx, application/octet-stream, /Root/System/WebRoot/DWS/Fpp.ashx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 252
     BinaryProperties
-        Binary: #108, F108, 0L, Lists.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Lists.asmx
+        Binary: #108, F108, 77L, Lists.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Lists.asmx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 253
     BinaryProperties
-        Binary: #109, F109, 0L, owssvr.aspx, text/asp, /Root/System/WebRoot/DWS/owssvr.aspx
+        Binary: #109, F109, 9520L, owssvr.aspx, text/asp, /Root/System/WebRoot/DWS/owssvr.aspx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 254
     BinaryProperties
-        Binary: #110, F110, 0L, Versions.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Versions.asmx
+        Binary: #110, F110, 80L, Versions.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Versions.asmx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 255
     BinaryProperties
-        Binary: #111, F111, 0L, Webs.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Webs.asmx
+        Binary: #111, F111, 76L, Webs.asmx, application/octet-stream, /Root/System/WebRoot/DWS/Webs.asmx
     DynamicProperties
         PageCount:Int: -4
 VersionId: 256
     BinaryProperties
-        Binary: #112, F112, 0L, vsshandler.ashx, application/octet-stream, /Root/System/WebRoot/vsshandler.ashx
+        Binary: #112, F112, 90L, vsshandler.ashx, application/octet-stream, /Root/System/WebRoot/vsshandler.ashx
     LongTextProperties
         Description: Http handler for serving Lucene index file paths. This content can be invoked only from the local machine.
     DynamicProperties
