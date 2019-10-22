@@ -1,5 +1,5 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+The first Open Source Enterprise Content Management platform for.NET! 
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
 
