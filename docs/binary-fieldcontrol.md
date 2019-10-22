@@ -14,7 +14,7 @@ The Binary Field Control is a Field Control that handles [Binary Fields](binary-
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/ReferenceWiki_BinaryFieldControl1.png" style="margin: 20px auto" />
 
-With Binary Field Control the binary data of a Content can be added/modified. Depending on the configuration of the Field and the Content Type and extension, the control is rendered as a textarea where you can edit the binary manually or as a fileupload control allowing you to upload a new file. By default an upload control is rendered. A textarea is rendered when:
+With Binary Field Control the binary data of a Content can be added/modified. Depending on the configuration of the Field and the Content Type and extension, the control is rendered as a textarea where you can edit the binary manually or as a fileupload control allowing you to upload a new file. By default, an upload control is rendered. A textarea is rendered when:
 
 - the displayed Content is a [Content Type](content-type.md),
 - the displayed Content has an extension that is included in the web.config's *EditSourceExtensions* entry of the *sensenet/webApplication* section,

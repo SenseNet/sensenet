@@ -35,7 +35,7 @@ The *domain* placeholder above is filled dynamically with the requested origin d
 http://example.com/odata.svc/workspaces('myworkspace')
 ```
 
-...than the response will contain the following header:
+... then the response will contain the following header:
 
 ```txt
 Access-Control-Allow-Origin: http://example.com
@@ -112,7 +112,7 @@ If the client-side JavaScript code tries to make a cross-domain AJAX request wit
 ## Authentication
 Of course cross-domain requests still need to be authenticated. CSRF attacks are designed to make cross-domain calls in the name of a user who is already logged in to the targeted site (e.g. on a different browser tab). Otherwise the whole mechanism described above does not apply because the malicious request will not even reach the point when it would make some damage.
 
-Currently the portal always allows authenticated requests, except if the allowed origin is a wildcard ("*"). This means that the credentials header is always set to true and browsers will allow ajax requests to send cookies to the server.
+Currently, the portal always allows authenticated requests, except if the allowed origin is a wildcard ("*"). This means that the credentials header is always set to true and browsers will allow ajax requests to send cookies to the server.
 
 ```txt
 Access-Control-Allow-Credentials: true

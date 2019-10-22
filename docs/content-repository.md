@@ -7,7 +7,7 @@ A content repository is a store of digital content with an associated set of dat
 The Content Repository provides services to end users for managing content. It has the following features:
 
 - Content storage in one hierarchical tree structure with content types
-- Built-in and custom meta data for content
+- Built-in and custom metadata for content
 - Create (or upload), modify, delete, copy and move content
 - Trash for temporary deletion
 - Ultrafast query and full text search
@@ -15,7 +15,7 @@ The Content Repository provides services to end users for managing content. It h
 - Versioning (version control, version history and locking) for collaboration
 - Import/export
 - WebDAV, so users can map the repository as a remote drive
-- Standard OData REST API for third party applications
+- Standard OData REST API for third-party applications
 
 ### Structured storage of Content
 
@@ -50,7 +50,7 @@ The Content Repository is basically a tree structure of the various stored conte
     - **sensenet** - default skin and resources of demo site
   - **System** - system related Content
     - **Devices** - contains Device content which can help you to create specific application pages to display the same content on different devices (e.g. tablet, mobile)
-    - **errormessages** – contains customized site specific html files to display exception messages (the files are grouped in folders by site)
+    - **errormessages** – contains customized site-specific html files to display exception messages (the files are grouped in folders by site)
     - **Renderers** - some renderers used by the base system
     - **Schema**
       - **Aspects** - container for Aspects
@@ -73,7 +73,7 @@ The sensenet Content Repository is built upon a metadata system with pre-defined
 
  ### Content access and url resolution
 
- Every content in SNCR is identified by its unique Id and its Path. You cannot change a content id, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser points to a url that is registered on the Default_Site.
+ Every content in SNCR is identified by its unique Id and its Path. You cannot change a content id, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example, a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser points to a url that is registered on the Default_Site.
 
  ### Managing sensenet Content Repository
 

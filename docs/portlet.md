@@ -32,13 +32,13 @@ Some common properties are displayed in the following visual:
 - **View**: an ascx (or in some cases an XSLT renderer) can be selected to define the UI of the portlet.
 - **Custom CSS class(es)**: extra css classes to be rendered into the container of the portlet for easy customization of its look & feel.
 
-The available list of properties depend on the type of the portlet.
+The available list of properties depends on the type of portlet.
 
 > When portlet properties are saved, some changes take effect only after a postback on the page - it is strongly advised to use the Preview mode functionality of the PRC after changes have been made to portlet properties.
 
 ##### Cacheable portlets
 
-Some portlets support caching of their generated html output. When a portlet is cacheable, a _Cache_ tab will appear on the portlet properties dialog. When caching is enabled the portlet will cache its output for the given interval and thus when rendered no background logic will be executed within the cache interval. With this technique page response time can be lowered significantly.
+Some portlets support caching of their generated html output. When a portlet is cacheable, a _Cache_ tab will appear on the portlet properties dialog. When caching is enabled the portlet will cache its output for the given interval and thus when rendered no background logic will be executed within the cache interval. With this technique, page response time can be lowered significantly.
 
 > It is strongly advised to use the cache functionality of portlets when available on live sites. Portlets that are not being cached may cause pages to be less responsive even at small visitor rates.
 

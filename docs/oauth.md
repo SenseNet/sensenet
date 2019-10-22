@@ -28,7 +28,7 @@ You can specify where new users are created and their content type using the *OA
 New users are created under the domain above separated into organizational units named by the provider.
 
 ## OAuth providers
-A sensenet ECM OAuth provider is a small plugin that is designed to verify a token using a particular service. Out of the box we offer the following OAuth provider for sensenet ECM:
+A sensenet ECM OAuth provider is a small plugin that is designed to verify a token using a particular service. Out of the box, we offer the following OAuth provider for sensenet ECM:
 
 - Google [![NuGet](https://img.shields.io/nuget/v/SenseNet.OAuth.Google.svg)](https://www.nuget.org/packages/SenseNet.OAuth.Google)
 

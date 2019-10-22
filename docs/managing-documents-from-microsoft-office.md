@@ -9,7 +9,7 @@ This feature is fully compatible with Microsoft Office 2013, 2010 and 2007.
 > The feature has been tested with Microsoft Office Word 2013, Microsoft Office Word 2010, Microsoft Office Word 2007, Microsoft Office Excel 2013, Microsoft Office Excel 2010 and Microsoft Office Excel 2007. The following information is only valid for these versions of these two programs. Please note that Office 2013 support has been introduced in sensenet ECM 6.3, Office 2010 support in sensenet ECM 6.1, versions prior to this only support Office 2007.
 
 ```diff
-- From the 1st of September 2015 Chrome does not support NPAPI plugins any more. 
+- From the 1st of September 2015 Chrome does not support NPAPI plugins anymore. 
 - This issue has been fixed in sensenet ECM 6.5 by using another technology, but the 
 - Edit in Microsoft Office feature will not work in Chrome in sensenet ECM versions prior to 6.5.
 ```
@@ -30,8 +30,8 @@ sensenet ECM supports the following authentication schemes with Office integrati
 
 ```diff
 - sensenet ECM requires Windows authentication or SSL HTTP connection in order to manage Office documents. 
-- Otherwise you will see a greyed out menu item in document action menus. 
-- To learn how to configure and create your own self signed certificates, click the following link:
+- Otherwise, you will see a greyed out menu item in document action menus. 
+- To learn how to configure and create your own self-signed certificates, click the following link:
 ```
 
 - [Configuring Server Certificates](https://technet.microsoft.com/en-us/library/cc732230(v=ws.10).aspx)
@@ -93,7 +93,7 @@ If you have opened a document from the [Content Repository](content-repository.m
 
 In the _Save as_ dialog type the url of the document server into the File name text box then press enter. A custom sensenet ECM workspace window will appear where you can select the desired Document_Library folder you want to save your document in.
 
-> You can use the _Save as_ dialog similarly as the _Open_ dialog: if you don't want to type the url of the server, you can store the address in the _Favorites_ folder. This option however is only available when selecting _Save As_, and is not present with the _Publish_ feature.
+> You can use the _Save as_ dialog similarly as the _Open_ dialog: if you don't want to type the url of the server, you can store the address in the _Favorites_ folder. This option, however, is only available when selecting _Save As_, and is not present with the _Publish_ feature.
 
 ```diff
 - After publishing or saving a new document to an existing document workspace, it should instantly be checked out manually, 
@@ -146,7 +146,7 @@ You can not manage members directly from Word but you can still see who is avail
 
 Tasks are also important content of a workspace. You have full control on managing tasks in the current workspace within Office.
 
-You can set a task completed by clicking the checkbox next to it's title. An empty check box means that it's state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize it's state.
+You can set a task completed by clicking the checkbox next to its title. An empty check box means that it's state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize its state.
 
 In the following table you can find the proper mappings between the fields of Task Content Type and Office's properties:
 
@@ -212,7 +212,7 @@ After clicking the _Check in..._ link a dialog window will appear where the user
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/word-checkin-comment.png" style="margin: 20px auto" />
 
-> A [Checkin comment](checkin-comments.md) in Office can always be given and will be stored in the [Content Repository](content-repository.md) for the given version even if checkin comments are switched of or not available for the given document on the portal.
+> A [Checkin comment](checkin-comments.md) in Office can always be given and will be stored in the [Content Repository](content-repository.md) for the given version even if checkin comments are switched off or not available for the given document on the portal.
 
 > A [Checkin comment](checkin-comments.md) in Office is never required and therefore empty chekin comments can always be given in Office even if it is required to fill out on the portal.
 
@@ -254,7 +254,7 @@ If [Versioning](versioning-and-approval.md) is switched on for a document, Check
 
 You can select any version from the list and
 - select _Compare_ to compare the contents of the latest version with the selected version,
-- select _Restore_ to restore the previous version. In this case a new version will be created with the contents of the selected version.
+- select _Restore_ to restore the previous version. In this case, a new version will be created with the contents of the selected version.
 
 The _Delete_ version operation is not supported in sensenet ECM.
 

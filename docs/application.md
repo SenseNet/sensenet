@@ -1,6 +1,6 @@
 # Application
 
-Applications are the basic building blocks of the [Smart Application Model](smart-application-model.md) that define the way specific Content are presented and processed when addressed. [Smart Pages](smart-pages.md) are the most common applications but there are also special Application types that do not appear in the form of pages and return with a custom response. Applications can be invoked via [Actions](action.md).
+Applications are the basic building blocks of the [Smart Application Model](smart-application-model.md) that define the way specific Content is presented and processed when addressed. [Smart Pages](smart-pages.md) are the most common applications but there are also special Application types that do not appear in the form of pages and return with a custom response. Applications can be invoked via [Actions](action.md).
 
 ### Presenting Content with Applications
 
@@ -19,7 +19,7 @@ Path of the created Application bears special importance as it defines the range
 where
 
 - **custompath** defines the path under which the Application will handle Content. The application is not accessible outside of this subtree.
-- **contenttypename** defines the type of Content that are handled by the Application.
+- **contenttypename** defines the type of Content that is handled by the Application.
 - **applicationname** is the name of the Application.
 
 #### Application inheritance

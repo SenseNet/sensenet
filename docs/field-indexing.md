@@ -10,9 +10,9 @@ tags: [field, indexing, index, content type, content type definition]
 
 For every [Content](content.md) the [Field](field.md) values can be indexed so that when searching for a value the corresponding Content will appear in the result set. It is also possible to search in Fields by explicitly defining the Field to search for in a query. The way a specific Field of a Content is indexed is defined in the [Content Type Definition](ctd.md).
 
-> It is possible to switch off indexing for certain fields or content types. In that case nobody will be able to find the instances of those content types using [Content Query](content-query.md), but the index will be smaller. For more details, see the Index description in the Content Type Definition article.
+> It is possible to switch off indexing for certain fields or content types. In that case, nobody will be able to find the instances of those content types using [Content Query](content-query.md), but the index will be smaller. For more details, see the Index description in the Content Type Definition article.
 
-The portal uses the [Lucene search engine](http://lucenenet.apache.org/) by default for indexing the [Content Repository](content-repository.md) and to provide a fast mechanism for returning query results. Apart from the indexing of some basic built-in properties every Field can be configured to be indexed separately.
+The portal uses the [Lucene search engine](http://lucenenet.apache.org/) by default for indexing the [Content Repository](content-repository.md) and to provide a fast mechanism for returning query results. Apart from the indexing of some basic built-in properties, every Field can be configured to be indexed separately.
 
 ### Indexing and storing
 
@@ -20,7 +20,7 @@ There are two ways to put Field data information in the index: by indexing and b
 
 ### Analyzers
 
-The goal of an analyzer is to extract all relevant terms from a text, filtering stopwords etc. It is important that the same analyzer is used in the indexing process and the query building. For example your document contains the following text: „Writing Sentences” and your query text is „writing”. After analysis the indexed text and search text will be these: „writing, sentences” and „writing”. This method ensures that the original text can be found even if the query word typed in and the word in the original text do not match exactly char-by-char. We use a *PerFieldAnalyzerWrapper* that can support a unique analyzer for every Field. Analyzer-Field bindings are defined in the CTD. Field without analyzer-binding will be analyzed with the default analyzer: *KeywordAnalyzer*.
+The goal of an analyzer is to extract all relevant terms from a text, filtering stopwords, etc. It is important that the same analyzer is used in the indexing process and the query building. For example, your document contains the following text: „Writing Sentences” and your query text is „writing”. After analysis the indexed text and search text will be these: „writing, sentences” and „writing”. This method ensures that the original text can be found even if the query word typed in and the word in the original text does not match exactly char-by-char. We use a *PerFieldAnalyzerWrapper* that can support a unique analyzer for every Field. Analyzer-Field bindings are defined in the CTD. Field without analyzer-binding will be analyzed with the default analyzer: *KeywordAnalyzer*.
 
 ### Stop-word dictionary
 

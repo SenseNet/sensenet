@@ -2,7 +2,7 @@
 
 sensenet ECM has a powerful feature for defining and accessing content operations called the [Smart Application Model](smart-application-model.md). The basic building blocks of this model are [Actions](action.md) and [Applications](application.md). 
 
-The articles above contain an overview of the ideas behind the application model and how [Content](content.md) are displayed using application pages. In this article we are discussing actions in sensenet ECM that can be invoked through our [OData REST API](odata-rest-api.md), the most important service in sensenet ECM. 
+The articles above contain an overview of the ideas behind the application model and how [Content](content.md) are displayed using application pages. In this article, we are discussing actions in sensenet ECM that can be invoked through our [OData REST API](odata-rest-api.md), the most important service in sensenet ECM. 
 
 This article lists the **built-in actions and functions** that are accessible through OData.
 
@@ -167,7 +167,7 @@ Removes the given content types from the Allowed content Type list. If the list 
 
 ### Set permissions action
 
-Sets permissions on the requested content. You can add or remove permissions for one ore more users or groups using this action or even break/unbreak permission inheritance.
+Sets permissions on the requested content. You can add or remove permissions for one or more users or groups using this action or even break/unbreak permission inheritance.
 - name: **SetPermissions**
 - parameters: this action expects a special kind of request body, a serialized version of an object of the SetPermissionsRequest type.
 - required permissions: Open, See permissions, Set permissions.
@@ -226,8 +226,8 @@ Uploads a stream or text to a content binary field (e.g. a file).
   - `create` (URL parameter, required in the first request): this parameter should be added to the initial upload request
   - `ContentType` (string, optional): specific content type name for the uploaded content. If not provided, the system will try to determine it from the current environment: the upload content types configured in the `web.config` and the allowed content types in the particular folder. In most cases, this will be File.
   - `FileName` (string): name of the uploaded file.
-  - `Overwrite` (bool, optional, default is True): whether the upload action should overwrite a content if it already exist with the same name. If false, a new file will be created with a similar name containing an incremental number (e.g. _sample(2).docx_).
-  - `UseChunk` (bool, optional, used in the first request, default is False): determines whether the system should start a chunk upload process instead of saving the file in one round. Usually this is determined by the size of the file.
+  - `Overwrite` (bool, optional, default is True): whether the upload action should overwrite a content if it already exists with the same name. If false, a new file will be created with a similar name containing an incremental number (e.g. _sample(2).docx_).
+  - `UseChunk` (bool, optional, used in the first request, default is False): determines whether the system should start a chunk upload process instead of saving the file in one round. Usually, this is determined by the size of the file.
   - `PropertyName` (string, optional): appoints the binary field of the content where the data should be saved. Default: _Binary_.
   - `ChunkToken` (string, mandatory, except in the first request): the response of first request returns this token. It must be posted in all of the subsequent requests without modification. It is used for executing the chunk upload operation.
   - `FileText`: in case you do not have the file as a real file in the file system but a text in the browser, you can provide the raw text in this parameter. See an example here.
@@ -268,7 +268,7 @@ In addition, subsequent request bodies should contain the uploaded file in chunk
 
 ### Restore action
 
-Restores a deleted content from the Trash. You can call this action only on a TrashBag content that contains the deleted content itself.
+Restores deleted content from the Trash. You can call this action only on a TrashBag content that contains the deleted content itself.
 
 - name: **Restore**
 - parameters:
@@ -596,7 +596,7 @@ $.ajax({
 
 ### Take ownership action
 
-Users who have _TakeOwnership_ permission for the current content can modify the Owner of this content. The new owner is provided using the 'userOrGroup' parameter that accepts the path or the id of the new owner (that can be a Group or a User). The input parameter also supports empty or null string, in this case the new owner will be the current user.
+Users who have _TakeOwnership_ permission for the current content can modify the Owner of this content. The new owner is provided using the 'userOrGroup' parameter that accepts the path or the id of the new owner (that can be a Group or a User). The input parameter also supports empty or null string, in this case, the new owner will be the current user.
 
 ```js
 $.ajax({

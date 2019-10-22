@@ -2,7 +2,7 @@
 
 The Reference [Field](field.md) is used for defining references to other content. When a content holds references pointing to other content (for example a group references users in its *Members* field) it is done using a Reference Field.
 
-The following apply to the behavior of the Field:
+The following applies to the behavior of the Field:
 - **number of references**: a Reference Field can be configured to hold either a *single* or *multiple* references.
 - **default value**: one or more default references can be set via Field configuration.
 - **types of referable content**: types of referable content can be restricted.
@@ -42,7 +42,7 @@ The following properties can be set in the Field's Field Setting configuration:
 
 ### For developers
 
-Please check the [Node for developers](node-for-developers.md) article for advices on how can you work with reference properties in code.
+Please check the [Node for developers](node-for-developers.md) article for advice on how can you work with reference properties in code.
 
 ## Examples/Tutorials
 

@@ -20,9 +20,9 @@ sensenet is a lot more than a simple document storage. We offer a rich set of ad
 
 ## Blob providers
 
-A blob provider is the component in sensenet that is responsible for all binary operations. The **built-in blob provider** stores binaries in the database. We offer a simple interface for developers to implement external blob providers. These providers may store binaries in a completely different environment - e.g. in a file system or in a nosql solution (like MongoDB).
+A blob provider is a component in sensenet that is responsible for all binary operations. The **built-in blob provider** stores binaries in the database. We offer a simple interface for developers to implement external blob providers. These providers may store binaries in a completely different environment - e.g. in a file system or in a NoSQL solution (like MongoDB).
 
-Currently there is a simple **selector algorithm** for choosing the appropriate provider when saving a file: if the size of the file is smaller than a certain amount, the default built-in provider will store it into the database. If it is bigger and there is an external blob provider configured, it will use that. This means that currently the system can work with a single external blob provider. Later this selector algorithm will be able to decide using a more complex and customizable algorithm.
+Currently, there is a simple **selector algorithm** for choosing the appropriate provider when saving a file: if the size of the file is smaller than a certain amount, the default built-in provider will store it into the database. If it is bigger and there is an external blob provider configured, it will use that. This means that currently the system can work with a single external blob provider. Later this selector algorithm will be able to decide using a more complex and customizable algorithm.
 
 Upper layers do not know anything about the underlying storage: the Content binary API is unified, regardless of the blob provider currently in use.
 
@@ -52,7 +52,7 @@ If you are working in the context of the sensenet Content Repository, you do not
 
 ## Built-in blob provider
 
-The built-in blob provider will always be there as a fallback. Currently it supports storing files in the database in a regular *varbinary* column.
+The built-in blob provider will always be there as a fallback. Currently, it supports storing files in the database in a regular *varbinary* column.
 
 ## Custom blob provider
 
