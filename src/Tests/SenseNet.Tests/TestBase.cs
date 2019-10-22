@@ -56,6 +56,8 @@ namespace SenseNet.Tests
             SnTrace.Test.Enabled = true;
             //SnTrace.Test.Write("END test: {0}", TestContext.TestName);
 
+            SnTrace.Test.Write("{0}: {1}", TestContext.TestName, TestContext.CurrentTestOutcome);
+
             if (_testMethodOperation != null)
             {
                 _testMethodOperation.Successful = true;
