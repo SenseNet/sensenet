@@ -8,11 +8,11 @@ tags: [fields, binary]
 
 # Binary Field
 
-Binary Field is used for storing binary data. This is the most important Field defined on the File Content Type: after uploading a file the binary content of your file will be stored in a Binary field.
+Binary Field is used for storing binary data. This is the most important Field defined on the File Content Type: after uploading a file the binary content of your file will be stored in a Binary Field.
 
-In a Binary field any kind of binary data can be stored without length restrictions. This is very useful, when you want to store uploaded files on your portal. The following apply to the behavior of the field:
+In a Binary Field any kind of binary data can be stored without length restrictions. This is very useful when you want to store uploaded files on your portal. The following apply to the behavior of the field:
 
-- **Import/Export**: binary Field data can be exported to a single file / imported from a single file.
+- **Import/Export**: Binary Field data can be exported to a single file / imported from a single file.
 
 ## Field handler
 
@@ -29,7 +29,7 @@ Usage in CTD:
 
 ## Supported Field Controls
 
-- [Binary Field Control](binary-fieldcontrol.md): a complex field control that provides interface to upload/download binary content or edit textual content in a textarea.
+- [Binary Field Control](binary-fieldcontrol.md): a complex field control that provides an interface to upload/download binary content or edit textual content in a textarea.
 
 ## Configuration
 
@@ -55,7 +55,7 @@ Fully featured example:
 </Field>
 ```
 
-The above example configures the Binary field so that:
+The above example configures the Binary Field so that:
 
 - the field is editable (not read-only)
 - filling the field is not necessary

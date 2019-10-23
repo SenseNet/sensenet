@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository.Schema
             else
             {
                 if (dataTypes.Length > 1 && fdesc.Bindings.Count != dataTypes.Length)
-                    throw new ContentRegistrationException("Missing excplicit 'Binding' elements", contentType.Name, fdesc.FieldName);
+                    throw new ContentRegistrationException("Missing explicit 'Binding' elements", contentType.Name, fdesc.FieldName);
                 if (dataTypes.Length == 1 && fdesc.Bindings.Count == 0)
                     fdesc.Bindings.Add(fdesc.FieldName);
             }

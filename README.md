@@ -59,11 +59,11 @@ There is also a number of other built-in and 3rd party [components and plugins](
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
 #### After installing sensenet ECM
-After you've installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
+After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
-- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client-js)
+- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client)
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).

@@ -48,15 +48,15 @@ namespace SenseNet.Search.Querying
         public bool AllVersions { get; internal set; }
 
         /// <summary>
-        /// Gets the count of logical predicates with SHOULD occurence in any depth of the query.
+        /// Gets the count of logical predicates with SHOULD occurrence in any depth of the query.
         /// </summary>
         public int ShouldClauses { get; internal set; }
         /// <summary>
-        /// Gets the count of logical predicates with MUST occurence in any depth of the query.
+        /// Gets the count of logical predicates with MUST occurrence in any depth of the query.
         /// </summary>
         public int MustClauses { get; internal set; }
         /// <summary>
-        /// Gets the count of logical predicates with MUST NOT occurence in any depth of the query.
+        /// Gets the count of logical predicates with MUST NOT occurrence in any depth of the query.
         /// </summary>
         public int MustNotClauses { get; internal set; }
 

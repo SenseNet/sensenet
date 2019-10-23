@@ -34,7 +34,7 @@ namespace SenseNet.ApplicationModel
             return ActionFramework.ParseParameters(parameters);
         }
 
-        // ======================================================================== Sceario type handling
+        // ======================================================================== Scenario type handling
 
         private static Dictionary<string, object> _scenarioCache;
         private static readonly object ScenarioCacheLock = new object();

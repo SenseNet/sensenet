@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     public abstract class BlobStorageBase
     {
         /// <summary>
-        /// Inserts a new binary record into the metadata database containing a new or an already exising file id,
+        /// Inserts a new binary record into the metadata database containing a new or an already existing file id,
         /// removing the previous record if the content is not new.
         /// </summary>
         /// <param name="value">Binary data to insert.</param>
@@ -223,7 +223,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             {
                 var ctx = await GetBlobStorageContextAsync(tokenData.FileId, cancellationToken).ConfigureAwait(false);
 
-                // must update properties because the Length contains the actual saved size but the featue needs the full size
+                // must update properties because the Length contains the actual saved size but the feature needs the full size
                 UpdateContextProperties(ctx, versionId, tokenData.PropertyTypeId, fullSize);
                     
                 await ctx.Provider.WriteAsync(ctx, offset, buffer, cancellationToken).ConfigureAwait(false);
