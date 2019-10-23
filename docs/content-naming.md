@@ -24,7 +24,7 @@ All content in the sensenet [Content Repository](content-repository.md) is ident
 
 The **Name** is the main identifier of the [Content](content.md). Its value is also included in the Path property which acts as a permalink to the Content. Thus changing a Content's Name (aka. renaming a Content) also changes the Path and therefore renaming operations should be carried out carefully. A path change may result in a lengthy operation (paths of child content are also changed respectively) and may also result in broken links in the [Content Repository](content-repository.md) (if another content refers to the changed one through its path - e.g. an article containing a link in its text). These two properties are used when the Content is referred to via a url link and therefore may not contain special characters.
 
-> Do not worry about [referenced content](reference-field.md): those are connected by content ids instead of paths, so renaming a referenced content will not brake reference fields.
+> Do not worry about [referenced content](reference-field.md): those are connected by content ids instead of paths, so renaming a referenced content will not break reference fields.
 
 The **DisplayName** is the main display name of the Content. It acts as a legible, human readable name and may contain punctuations and accented characters as well. Generally, when a Content is displayed on the front-end of the portal, the value of the DisplayName property is shown. Changing the DisplayName is a simple operation and does not cause broken links (because changing only the DisplayName does not change the Url Name).
 
@@ -91,7 +91,7 @@ Since it can be very time consuming to provide a Name and a DisplayName for a Co
 The [DisplayName Field Control](displayname-field-control.md) automatically fills the value of the [Name Field Control](name-field-control.md) visible in the same [Content View](content-view.md), from the value entered to the DisplayName Field Control. The entered DisplayName is processed so that invalid characters are encoded - the resulting string will be the automatically created Name for the Content. The Name however does not change automatically in the following cases:
 
 - the user edits the Name manually,
-- the underlyng Content already exists in the Content Repository, so it is not a new scenario but an edit scenario.
+- the underlying Content already exists in the Content Repository, so it is not a new scenario but an edit scenario.
 
 #### Autonaming on server side
 
