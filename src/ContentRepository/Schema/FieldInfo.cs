@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Schema
         /// </summary>
         public bool? Compulsory { get; set; }
         /// <summary>
-        /// Gets or sets the the handling method of the output in some web sceario: depending on the OutputMethod the field value will be escaped or sanitized etc. 
+        /// Gets or sets the the handling method of the output in some web scenario: depending on the OutputMethod the field value will be escaped or sanitized etc. 
         /// </summary>
         [JsonConverter(typeof(StringEnumConverter))]
         public OutputMethod OutputMethod { get; set; }

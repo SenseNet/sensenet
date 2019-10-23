@@ -12,7 +12,7 @@ One of the main features of sensenet is Content Query. sensenet Content Reposito
 
 As a user, portal builder or administrator you get a simple but powerful content query language (CQL). You can use this language to find, filter and sort content even in a huge and constantly expanding repository.
 
-As a developer you get an easy-to use Application Programming Interface (API) that is capable of serving any need in your custom code.
+As a developer, you get an easy-to-use Application Programming Interface (API) that is capable of serving any need in your custom code.
 
 ## End users
 
@@ -26,7 +26,7 @@ If you are a developer and want to extend your code with collecting and presenti
 
 ## Examples
 
-In this section you will get some overview about where and how can you utilize the power of the Content Query.
+In this section, you will get some overview about where and how can you utilize the power of the Content Query.
 
 > Please check out [Query syntax](query-syntax.md) before proceeding!
 
@@ -56,7 +56,7 @@ If you want to list the 10 last modified documents of the current user you can d
 
 > The examples below are related to the old WebForms user interface of sensenet. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
-You can use query text in the following places on th UI:
+You can use query text in the following places on the UI:
 
 #### Search boxes
 
@@ -72,7 +72,7 @@ When you search for a content on the portal, you can make a simple search for on
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/QueryPortletProperties.png" style="margin: 20px auto" />
 
-In sensenet every portlet has a property window that you can use to customize the behavior of the portlet. In some cases you can provide a content query to specify the list of content you want to present or just a filter query that narrows a children list. These portlets are for example the Content collection Portlet and the Content query presenter Portlet.
+In sensenet every portlet has a property window that you can use to customize the behavior of the portlet. In some cases, you can provide a content query to specify the list of content you want to present or just a filter query that narrows a children list. These portlets are for example the Content collection Portlet and the Content query presenter Portlet.
 
 ### Content Picker (Search mode)
 

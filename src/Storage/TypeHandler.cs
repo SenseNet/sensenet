@@ -184,23 +184,23 @@ namespace SenseNet.ContentRepository.Storage
             return null;
         }
 
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
+        [Obsolete("Use RepositoryBuilder class instead.", true)]
         public static void Initialize(IDictionary<Type, Type[]> configuredProviders)
         {
             throw new SnNotSupportedException("This method is not supported anymore.");
         }
 
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
+        [Obsolete("Use RepositoryBuilder class instead.", true)]
         public static T GetProviderInstance<T>()
         {
             throw new SnNotSupportedException("This method is not supported anymore.");
         }
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
+        [Obsolete("Use RepositoryBuilder class instead.", true)]
         public static Type[] GetProviderTypes()
         {
             throw new SnNotSupportedException("This method is not supported anymore.");
         }
-        [Obsolete("Use RepositoryBuiler class instead.", true)]
+        [Obsolete("Use RepositoryBuilder class instead.", true)]
         public static T[] GetProviderInstances<T>()
         {
             throw new SnNotSupportedException("This method is not supported anymore.");

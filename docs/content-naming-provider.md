@@ -8,7 +8,7 @@ tags: [content naming, naming, provider]
 
 # ContentNamingProvider
 
-As sensenet ECM has a web interface, handling content names that appear in URLs is crutial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the [main article](content-naming.md). This article is for developers about how to customize the default naming behavior in sensenet ECM.
+As sensenet ECM has a web interface, handling content names that appear in URLs is crucial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the [main article](content-naming.md). This article is for developers about how to customize the default naming behavior in sensenet ECM.
 
 All content naming operations are done through a content naming provider. The base provider is the abstract *SenseNet.ContentRepository.ContentNamingProvider* class. It has the following customizable features:
 
@@ -22,7 +22,7 @@ These features are called by system methods and can be customized by developers 
 
 ## Built-in naming providers
 
-We offer the following predefiend naming providers. You may choose either one of them or create a custom one based on their behavior (and source code :)).
+We offer the following predefined naming providers. You may choose either one of them or create a custom one based on their behavior (and source code :)).
 
 ## CharReplacementContentNamingProvider
 
@@ -35,17 +35,17 @@ Duplicated 'ReplacementChar' characters are replaced by a single character (so a
 
 ## Underscore5FContentNamingProvider
 
-Contains a customized *GenerateNameFromDisplayName* method that encodes the display name. The encoding works with the standard UrlEncode .Net method, but the percent sign ('%') will be replaced with an underscore ('_') character. The names that are generated from unique names are guaranteed to remain unique. After the conversion the name may contain more characters than the input name. The original file extension will be kept. Invalid characters are configurable in the **sensenet/contentNaming** section in the web.config.
+Contains a customized *GenerateNameFromDisplayName* method that encodes the display name. The encoding works with the standard UrlEncode .Net method, but the percent sign ('%') will be replaced with an underscore ('_') character. The names that are generated from unique names are guaranteed to remain unique. After the conversion, the name may contain more characters than the input name. The original file extension will be kept. Invalid characters are configurable in the **sensenet/contentNaming** section in the web.config.
 
 - **InvalidNameCharsPattern** (see details in the [Content naming article](content-naming.md))
 
 ## Custom naming provider
 
-In this section we list all the API methods that you may override in your custom provider.
+In this section, we list all the API methods that you may override in your custom provider.
 
 ### Creating a new name
 
-This method should create a valid name from the base name and an associated ContentType that may describe the expected extension. In our implementation the name base will be supplemented by the extension that is described in the provided content type. In inherited custom providers it is possible to write a more sophisticated name generation algorithm using the content type and the parent content instance.
+This method should create a valid name from the base name and an associated ContentType that may describe the expected extension. In our implementation, the name base will be supplemented by the extension that is described in the provided content type. In inherited custom providers it is possible to write a more sophisticated name generation algorithm using the content type and the parent content instance.
 
 ```csharp
 protected virtual string GenerateNewName(string nameBase, ContentType contentType, Node parent)
@@ -53,7 +53,7 @@ protected virtual string GenerateNewName(string nameBase, ContentType contentTyp
 
 ### Conversion from displayname
 
-This is the only abstract method of the provider. Generates a valid name from a human readable display name. The generated name is only a hint, because the user may overwrite it on the UI. The conversion needs to be as fast as possible because the [DisplayName field control](displayname-field-control.md) uses it frequently from the client side.
+This is the only abstract method of the provider. Generates a valid name from a human-readable display name. The generated name is only a hint, because the user may overwrite it on the UI. The conversion needs to be as fast as possible because the [DisplayName field control](displayname-field-control.md) uses it frequently from the client-side.
 
 ```csharp
 protected abstract string GenerateNameFromDisplayName(string originalName, string displayName);
@@ -61,7 +61,7 @@ protected abstract string GenerateNameFromDisplayName(string originalName, strin
 
 ### Validating name
 
-When a content gets saved, this method is responsible for validating the content name. In our implementations this method checks the forbidden characters in the content's name and if finds one it throws an InvalidPathException. This check uses a regex pattern that is configured in the web.config (see the the main [Content naming article](content-naming.md) for examples). Inherited providers can customize this behavior in the following method:
+When a content gets saved, this method is responsible for validating the content name. In our implementations, this method checks the forbidden characters in the content's name and if finds one it throws an InvalidPathException. This check uses a regex pattern that is configured in the web.config (see the main [Content naming article](content-naming.md) for examples). Inherited providers can customize this behavior in the following method:
 
 ```csharp
 protected virtual void AssertNameIsValid(string name)
