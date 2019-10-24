@@ -53,11 +53,14 @@ Do you have a sensenet-related tool, plugin or sample library? We would be happy
 Please follow these guidelines in your repo to make your stuff more accessible (a good example for an informative readme is the [Client JS repo](https://github.com/SenseNet/sn-client-js)):
 - when creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
 - please provide a short description for your project on the top so that others can see at a glance what your tool does
+- tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- show your appreciation to those who have contributed to the project.
 - write a detailed README file that contains essential stuff for the community:
   - the problem you solved
   - the technology you used (is it a Javascript plugin, a server component or a command line tool?)
   - an install guide: is it just a NuGet or npm package, or do we have to compile the source or execute additional steps - e.g. install a sensenet SnAdmin package - before using it?
   - a few source code examples (if there is coding involved) so that other developers have something to start with
+  - if you have ideas for releases in the future, it is a good idea to list them in the README.
 
 Thanks!
 
