@@ -249,6 +249,10 @@ namespace SenseNet.ContentRepository
 
                 ConsoleWrite("Initializing cache ... ");
                 dummy = Cache.Count;
+                
+                // Log this, because logging is switched off when creating the cache provider
+                // to avoid circular reference.
+                SnLog.WriteInformation($"CacheProvider created: {Cache.Instance?.GetType().FullName}");
                 ConsoleWriteLine("ok.");
 
                 ConsoleWrite("Starting message channel ... ");

@@ -43,7 +43,16 @@ namespace SenseNet.Diagnostics
 
         private static void CollectUserProperties(IDictionary<string, object> properties)
         {
-            IUser loggedUser = AccessProvider.Current.GetCurrentUser();
+            IUser loggedUser = null;
+
+            try
+            {
+                loggedUser = AccessProvider.Current.GetCurrentUser();
+            }
+            catch (Exception)
+            {
+                // Suppress error: loading the current user failed (e.g. because the repository is not present).
+            }
 
             if (loggedUser == null)
                 return;

@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
+using SenseNet.Tools.Diagnostics;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -18,6 +20,14 @@ namespace SenseNet.ContentRepository.Tests
             IDictionary<string, object> properties)
         {
             // do nothing
+        }
+    }
+
+    internal class NullEventPropertyCollector : IEventPropertyCollector
+    {
+        public IDictionary<string, object> Collect(IDictionary<string, object> properties)
+        {
+            return properties;
         }
     }
 
@@ -31,10 +41,17 @@ namespace SenseNet.ContentRepository.Tests
 
             // backup configuration
             var eventLoggerClassNameBackup = Providers.EventLoggerClassName;
+            var propCollector = Providers.Instance.PropertyCollector;
 
             // configure the logger provider and reinitialize the instance
             Providers.EventLoggerClassName = loggerTypeName;
-            Providers.Instance = new Providers();
+            Providers.Instance = new Providers
+            {
+                // Workaround: the default property collector tries to load the
+                // current user, even if the repo is not running.
+                DataProvider = new InMemoryDataProvider(),
+                PropertyCollector = new NullEventPropertyCollector()
+            };
 
             try
             {
@@ -51,7 +68,11 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // rollback to the original configuration
                 Providers.EventLoggerClassName = eventLoggerClassNameBackup;
-                Providers.Instance = new Providers();
+                Providers.Instance = new Providers
+                {
+                    DataProvider = new InMemoryDataProvider(),
+                    PropertyCollector = propCollector
+                };
             }
 
             // test of the restoration: logger instance need to be the default

@@ -247,7 +247,7 @@ namespace SenseNet.Configuration
         private Lazy<ISnCache> _cacheProvider =
             new Lazy<ISnCache>(() =>
             {
-                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider");
+                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider", true);
                 cache.Events = new CacheEventStore();
                 return cache;
             });

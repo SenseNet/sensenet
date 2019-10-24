@@ -48,6 +48,10 @@ namespace SenseNet.ContentRepository.Security
             if (!_initialized)
             {
                 _initialized = true;
+
+                //TODO: if the repository is not running, return a placeholder user
+                // instead of trying to load the user or the admin from the database.
+
                 AccessProvider.ChangeToSystemAccount();
                 CurrentUser = User.Administrator;
             }
@@ -75,9 +79,16 @@ namespace SenseNet.ContentRepository.Security
             // Do not reset system user here, because if this reset
             // happens inside a using(new SystemAccount) block, it would
             // ruin the desired credential settings.
-            var cu = GetCurrentUser();
-            if (cu != null && cu.Username == "SYSTEM")
-                return;
+            try
+            {
+                var cu = GetCurrentUser();
+                if (cu != null && cu.Username == "SYSTEM")
+                    return;
+            }
+            catch (ApplicationException)
+            {
+                // Suppress error: loading the current user failed (e.g. because the repository is not present).
+            }
 
             _initialized = false;
             Thread.CurrentPrincipal = null;
