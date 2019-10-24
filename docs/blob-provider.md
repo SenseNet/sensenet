@@ -56,7 +56,7 @@ The built-in blob provider will always be there as a fallback. Currently it supp
 
 ## Custom blob provider
 
-It is possible to implement a custom blob storage provider that sends files to an externak storage. For a sample implementation (a local file storage provider) check the following article:
+It is possible to implement a custom blob storage provider that sends files to an external storage. For a sample implementation (a local file storage provider) check the following article:
 
 - [How to create an external blob provider](https://community.sensenet.com/docs/tutorials/how-to-create-an-external-blob-provider)
 
