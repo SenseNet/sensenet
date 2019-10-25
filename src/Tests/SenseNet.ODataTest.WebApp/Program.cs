@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Compatibility.SenseNet.ContentRepository.Security;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using SenseNet.Configuration;
