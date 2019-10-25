@@ -386,9 +386,7 @@ namespace SenseNet.OData.Writers
             Trace = Utility.CollectExceptionMessages(oe)
         }
 #else
-                        HttpContext.Current != null && HttpContext.Current.IsDebuggingEnabled 
-                            ? new StackInfo { Trace = Utility.CollectExceptionMessages(oe) }
-                            : null
+                        null
 #endif
             };
 
