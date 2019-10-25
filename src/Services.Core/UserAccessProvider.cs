@@ -1,9 +1,8 @@
 ﻿using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace Compatibility.SenseNet.ContentRepository.Security
+namespace SenseNet.ContentRepository.Security
 {
     public class UserAccessProvider : AccessProvider
     {
@@ -16,10 +15,9 @@ namespace Compatibility.SenseNet.ContentRepository.Security
                 return user;
 
             // not authenticated yet
-            var visitor = User.Visitor;
-            SetCurrentUser(visitor);
+            SetCurrentUser(StartupUser);
 
-            return visitor;
+            return StartupUser;
         }
 
         protected override void DoSetCurrentUser(IUser user)
