@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         /// <summary>
         /// When overridden in a derived class, deletes the passed NodeType.
         /// Before NodeType deleting removes all PropertyTypes from the passed NodeType but does not reset the 
-        /// property values because all nodes instatiated by passed NodeType had been deleted.
+        /// property values because all nodes instantiated by passed NodeType had been deleted.
         /// </summary>
         /// <param name="nodeType">NodeType to delete</param>
         public abstract void DeleteNodeType(NodeType nodeType);
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         public abstract void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared);
         /// <summary>
         /// When overridden in a derived class, removes the PropertyType from the owner PropertySet and resets the
-        /// property values into all nodes instatiated by passed PropertySet.
+        /// property values into all nodes instantiated by passed PropertySet.
         /// </summary>
         /// <param name="propertyType">PropertyType to remove</param>
         /// <param name="owner">Owner PropertySet</param>

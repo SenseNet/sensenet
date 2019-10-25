@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -163,7 +164,7 @@ namespace SenseNet.ContentRepository.Storage
 
         /// <summary>
         /// Gets a value that states if indexing is enabled for this content item. By default this is true
-        /// but can be overidden in derived classes. Determines whether an indexing activity and index
+        /// but can be overridden in derived classes. Determines whether an indexing activity and index
         /// document will be created for this content.
         /// </summary>
         protected internal virtual bool IsIndexingEnabled => true;
@@ -1378,7 +1379,7 @@ namespace SenseNet.ContentRepository.Storage
 
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
-        /// The proerty is identified by the given name.
+        /// The property is identified by the given name.
         /// </summary>
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(string propertyName, IEnumerable<T> nodes) where T : Node
@@ -1393,7 +1394,7 @@ namespace SenseNet.ContentRepository.Storage
         }
         /// <summary>
         /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
-        /// The proerty is identified by the given <see cref="PropertyType"/>.
+        /// The property is identified by the given <see cref="PropertyType"/>.
         /// </summary>
         /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(PropertyType property, IEnumerable<T> nodes) where T : Node
@@ -1714,7 +1715,7 @@ namespace SenseNet.ContentRepository.Storage
         // ----------------------------------------------------------------------------- Static batch loaders
 
         /// <summary>
-        /// Returns <see cref="Node"/> instances loaded by the given ids. The current user has 
+        /// Loads <see cref="Node"/> instances by the provided ids. The current user has to have
         /// at least See permission for each item in the result set.
         /// </summary>
         /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
@@ -1723,53 +1724,24 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNodes(DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult(),
                 VersionNumber.LastAccessible);
         }
+        /// <summary>
+        /// Loads <see cref="Node"/> instances by the provided ids. The current user has to have
+        /// at least See permission for each item in the result set.
+        /// </summary>
+        /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<List<Node>> LoadNodesAsync(IEnumerable<int> idArray, CancellationToken cancellationToken)
+        {
+            var nodeHeads = await DataStore.LoadNodeHeadsAsync(idArray, cancellationToken).ConfigureAwait(false);
+            return await LoadNodesAsync(nodeHeads, VersionNumber.LastAccessible, cancellationToken).ConfigureAwait(false);
+        }
         private static List<Node> LoadNodes(IEnumerable<NodeHead> heads, VersionNumber version)
         {
             var headList = new List<NodeHead>();
             var versionIdList = new List<int>();
             var headonlyList = new List<int>();
 
-            // resolving versionid array
-            foreach (var head in heads)
-            {
-                if (head == null)
-                    continue;
-
-                AccessLevel userAccessLevel;
-
-                try
-                {
-                    userAccessLevel = GetUserAccessLevel(head);
-                }
-                catch (SenseNet.Security.SecurityStructureException)
-                {
-                    // skip the non-existent item
-                    continue;
-                }
-                catch (SenseNet.Security.AccessDeniedException)
-                {
-                    // the user does not have permission to see/open this node
-                    continue;
-                }
-                catch (SenseNetSecurityException)
-                {
-                    // the user does not have permission to see/open this node
-                    continue;
-                }
-
-                var acceptedLevel = GetAcceptedLevel(userAccessLevel, version);
-                if (acceptedLevel == AccessLevel.Header)
-                    headonlyList.Add(head.Id);
-
-                var versionId = GetVersionId(head, acceptedLevel, version);
-
-                // if user has not enough permissions, skip the node
-                if (versionId <= 0)
-                    continue;
-
-                headList.Add(head);
-                versionIdList.Add(versionId);
-            }
+            ResolveNodeHeadsAndVersionIds(heads, version, headList, versionIdList, headonlyList);
 
             // loading data
             var result = new List<Node>();
@@ -1842,6 +1814,130 @@ namespace SenseNet.ContentRepository.Storage
             }
             return result;
         }
+        private static async Task<List<Node>> LoadNodesAsync(IEnumerable<NodeHead> heads, VersionNumber version, CancellationToken cancellationToken)
+        {
+            var headList = new List<NodeHead>();
+            var versionIdList = new List<int>();
+            var headonlyList = new List<int>();
+
+            ResolveNodeHeadsAndVersionIds(heads, version, headList, versionIdList, headonlyList);
+            
+            // loading data
+            var result = new List<Node>();
+            var tokenArray = await DataStore.LoadNodesAsync(headList.ToArray(), versionIdList.ToArray(), cancellationToken).ConfigureAwait(false);
+
+            for (var i = 0; i < tokenArray.Length; i++)
+            {
+                var token = tokenArray[i];
+                var retry = 0;
+                var isHeadOnly = headonlyList.Contains(token.NodeId);
+                while (true)
+                {
+                    if (token.NodeData != null)
+                    {
+                        Node node;
+
+                        try
+                        {
+                            node = CreateTargetClass(token);
+                        }
+                        catch (ApplicationException)
+                        {
+                            // Could not create an instance of the target class.
+                            SnTrace.Repository.WriteError($"Could not create an instance of {token.NodeType.Name} " +
+                                                          $"with class {token.NodeType.ClassName}. NodeId: {token.NodeId}, " +
+                                                          $"Path: {token.NodeHead.Path}");
+                            break;
+                        }
+
+                        if (isHeadOnly)
+                        {
+                            // if the user has Preview permissions, that means a broader access than headonly
+                            if (PreviewProvider.HasPreviewPermission(headList.FirstOrDefault(h => h.Id == token.NodeId)))
+                                node.IsPreviewOnly = true;
+                            else
+                                node.IsHeadOnly = true;
+                        }
+
+                        result.Add(node);
+                        break;
+                    }
+                    else
+                    {
+                        // retrying with reload nodehead
+                        if (++retry > 1) // one time
+                            break;
+
+                        SnTrace.Repository.Write("Version is lost. VersionId:{0}, path:{1}", token.VersionId, token.NodeHead.Path);
+                        var head = await NodeHead.GetAsync(token.NodeHead.Id, cancellationToken).ConfigureAwait(false);
+                        if (head == null) // deleted
+                            break;
+
+                        AccessLevel userAccessLevel;
+                        try
+                        {
+                            userAccessLevel = GetUserAccessLevel(head);
+                        }
+                        catch (SecurityStructureException) // deleted
+                        {
+                            break;
+                        }
+
+                        var acceptedLevel = GetAcceptedLevel(userAccessLevel, version);
+                        if (acceptedLevel == AccessLevel.Header)
+                            isHeadOnly = true;
+                        var versionId = GetVersionId(head, acceptedLevel, version);
+                        token = await DataStore.LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            return result;
+        }
+        private static void ResolveNodeHeadsAndVersionIds(IEnumerable<NodeHead> heads, VersionNumber version,
+            List<NodeHead> headList, List<int> versionIdList, List<int> headonlyList)
+        {
+            // resolving versionid array
+            foreach (var head in heads)
+            {
+                if (head == null)
+                    continue;
+
+                AccessLevel userAccessLevel;
+
+                try
+                {
+                    userAccessLevel = GetUserAccessLevel(head);
+                }
+                catch (SecurityStructureException)
+                {
+                    // skip the non-existent item
+                    continue;
+                }
+                catch (AccessDeniedException)
+                {
+                    // the user does not have permission to see/open this node
+                    continue;
+                }
+                catch (SenseNetSecurityException)
+                {
+                    // the user does not have permission to see/open this node
+                    continue;
+                }
+
+                var acceptedLevel = GetAcceptedLevel(userAccessLevel, version);
+                if (acceptedLevel == AccessLevel.Header)
+                    headonlyList.Add(head.Id);
+
+                var versionId = GetVersionId(head, acceptedLevel, version);
+
+                // if user has not enough permissions, skip the node
+                if (versionId <= 0)
+                    continue;
+
+                headList.Add(head);
+                versionIdList.Add(versionId);
+            }
+        }
 
         /// <summary>
         /// Loads multiple <see cref="Node"/>s as a batch operation using an identifier list.
@@ -1864,47 +1960,97 @@ namespace SenseNet.ContentRepository.Storage
         // ----------------------------------------------------------------------------- Static single loaders
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given id.
+        /// Loads a <see cref="Node"/> by the provided id.
         /// </summary>
-        /// <typeparam name="T">The desired return type.</typeparam>
-        /// <param name="nodeId">The requested id.</param>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="nodeId">Node id.</param>
+        /// <returns>A node as the provided derived type.</returns>
         public static T Load<T>(int nodeId) where T : Node
         {
             return (T)LoadNode(nodeId);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given id and version.
+        /// Loads a <see cref="Node"/> by the provided id.
         /// </summary>
-        /// <typeparam name="T">The desired return type.</typeparam>
-        /// <param name="nodeId">The requested id.</param>
-        /// <param name="version">The requested version for example: new VersionNumber(2, 0).</param>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A node as the provided derived type.</returns>
+        public static async Task<T> LoadAsync<T>(int nodeId, CancellationToken cancellationToken) where T : Node
+        {
+            return (T) await LoadNodeAsync(nodeId, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided id and version.
+        /// </summary>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <returns>A node as the provided derived type.</returns>
         public static T Load<T>(int nodeId, VersionNumber version) where T : Node
         {
             return (T)LoadNode(nodeId, version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path.
+        /// Loads a <see cref="Node"/> by the provided id and version.
         /// </summary>
-        /// <typeparam name="T">The desired return type.</typeparam>
-        /// <param name="path">The requested path.</param>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A node as the provided derived type.</returns>
+        public static async Task<T> LoadAsync<T>(int nodeId, VersionNumber version, CancellationToken cancellationToken) where T : Node
+        {
+            return (T) await LoadNodeAsync(nodeId, version, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided path.
+        /// </summary>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="path">Node path.</param>
+        /// <returns>A node as the provided derived type.</returns>
         public static T Load<T>(string path) where T : Node
         {
             return (T)LoadNode(path);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path and version.
+        /// Loads a <see cref="Node"/> by the provided path.
         /// </summary>
-        /// <typeparam name="T">The desired return type.</typeparam>
-        /// <param name="path">The requested path.</param>
-        /// <param name="version">The requested version for example: new VersionNumber(2, 0).</param>
-        /// <returns></returns>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="path">Node path.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A node as the provided derived type.</returns>
+        public static async Task<T> LoadAsync<T>(string path, CancellationToken cancellationToken) where T : Node
+        {
+            return (T) await LoadNodeAsync(path, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided path and version.
+        /// </summary>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="path">Node path.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <returns>A node as the provided derived type.</returns>
         public static T Load<T>(string path, VersionNumber version) where T : Node
         {
             return (T)LoadNode(path, version);
         }
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path.
+        /// Loads a <see cref="Node"/> by the provided path and version.
+        /// </summary>
+        /// <typeparam name="T">The requested return type.</typeparam>
+        /// <param name="path">Node path.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A node as the provided derived type.</returns>
+        public static async Task<T> LoadAsync<T>(string path, VersionNumber version, CancellationToken cancellationToken) where T : Node
+        {
+            return (T) await LoadNodeAsync(path, version, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided path.
         /// </summary>
         /// <example>How to load a <see cref="Node"/> by passing the sensenet Content Repository path.
         /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the latest 
@@ -1913,13 +2059,31 @@ namespace SenseNet.ContentRepository.Storage
         /// Node node = Node.LoadNode("/Root/MyFavoriteNode");
         /// </code>
         /// </example>
+        /// <param name="path">Node path.</param>
         /// <returns>The latest accessible version of the <see cref="Node"/> that has the given path, or null.</returns>
         public static Node LoadNode(string path)
         {
             return LoadNode(path, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given path and version.
+        /// Loads a <see cref="Node"/> by the provided path.
+        /// </summary>
+        /// <example>How to load a <see cref="Node"/> by passing the sensenet Content Repository path.
+        /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the latest 
+        /// version of <see cref="Node"/> /Root/MyFavoriteNode.
+        /// <code>
+        /// Node node = Node.LoadNode("/Root/MyFavoriteNode");
+        /// </code>
+        /// </example>
+        /// <param name="path">Node path.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The latest accessible version of the <see cref="Node"/> that has the given path, or null.</returns>
+        public static Task<Node> LoadNodeAsync(string path, CancellationToken cancellationToken)
+        {
+            return LoadNodeAsync(path, DefaultAbstractVersion, cancellationToken);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided path and version.
         /// </summary>
         /// <example>How to load version 2.0 of a <see cref="Node"/> by passing the sensenet Content Repository path.
         /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the provided 
@@ -1929,6 +2093,8 @@ namespace SenseNet.ContentRepository.Storage
         /// Node node = Node.LoadNode("/Root/MyFavoriteNode", versionNumber);
         /// </code>
         /// </example>
+        /// <param name="path">Node path.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
         /// <returns>The <see cref="Node"/> holds the data of the given version of the <see cref="Node"/> that has the given path.</returns>
         public static Node LoadNode(string path, VersionNumber version)
         {
@@ -1937,7 +2103,30 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given Id.
+        /// Loads a <see cref="Node"/> by the provided path and version.
+        /// </summary>
+        /// <example>How to load version 2.0 of a <see cref="Node"/> by passing the sensenet Content Repository path.
+        /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the provided 
+        /// version of <see cref="Node"/> /Root/MyFavoriteNode.
+        /// <code>
+        /// VersionNumber versionNumber = new VersionNumber(2, 0);
+        /// Node node = Node.LoadNode("/Root/MyFavoriteNode", versionNumber);
+        /// </code>
+        /// </example>
+        /// <param name="path">Node path.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The <see cref="Node"/> holds the data of the given version of the <see cref="Node"/> that has the given path.</returns>
+        public static async Task<Node> LoadNodeAsync(string path, VersionNumber version, CancellationToken cancellationToken)
+        {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            var nodeHead = await DataStore.LoadNodeHeadAsync(path, cancellationToken).ConfigureAwait(false);
+            return await LoadNodeAsync(nodeHead, version, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided Id.
         /// </summary>
         /// <example>How to load the latest version of the <see cref="Node"/> identified by the Id 132. 
         /// In this case you will get a <see cref="Node"/> named node filled with the data of the latest version of <see cref="Node"/> 132.
@@ -1945,13 +2134,30 @@ namespace SenseNet.ContentRepository.Storage
         /// Node node = Node.LoadNode(132);
         /// </code>
         /// </example>
+        /// <param name="nodeId">Node id.</param>
         /// <returns>The latest version of the <see cref="Node"/> that has the given Id.</returns> 
         public static Node LoadNode(int nodeId)
         {
             return LoadNode(nodeId, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given Id and version number.
+        /// Loads a <see cref="Node"/> by the provided Id.
+        /// </summary>
+        /// <example>How to load the latest version of the <see cref="Node"/> identified by the Id 132. 
+        /// In this case you will get a <see cref="Node"/> named node filled with the data of the latest version of <see cref="Node"/> 132.
+        /// <code>
+        /// Node node = Node.LoadNode(132);
+        /// </code>
+        /// </example>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The latest version of the <see cref="Node"/> that has the given Id.</returns> 
+        public static Task<Node> LoadNodeAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            return LoadNodeAsync(nodeId, DefaultAbstractVersion, cancellationToken);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided Id and version number.
         /// </summary>
         /// <example>How to load version 2.0 of the <see cref="Node"/> identified by the Id 132. In this case you will 
         /// get a <see cref="Node"/> named "node" filled with the data of the given version of <see cref="Node"/> 132.
@@ -1960,21 +2166,56 @@ namespace SenseNet.ContentRepository.Storage
         /// Node node = Node.LoadNode(132, versionNumber);
         /// </code>
         /// </example>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
         /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
             return LoadNode(DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult(), version);
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.
+        /// Loads a <see cref="Node"/> by the provided Id and version number.
         /// </summary>
+        /// <example>How to load version 2.0 of the <see cref="Node"/> identified by the Id 132. In this case you will 
+        /// get a <see cref="Node"/> named "node" filled with the data of the given version of <see cref="Node"/> 132.
+        /// <code>
+        /// VersionNumber versionNumber = new VersionNumber(2, 0);
+        /// Node node = Node.LoadNode(132, versionNumber);
+        /// </code>
+        /// </example>
+        /// <param name="nodeId">Node id.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
+        public static async Task<Node> LoadNodeAsync(int nodeId, VersionNumber version, CancellationToken cancellationToken)
+        {
+            var nodeHead = await DataStore.LoadNodeHeadAsync(nodeId, cancellationToken).ConfigureAwait(false);
+            return await LoadNodeAsync(nodeHead, version, cancellationToken).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided <see cref="NodeHead"/>.
+        /// </summary>
+        /// <param name="head">Node head.</param>
         public static Node LoadNode(NodeHead head)
         {
             return LoadNode(head, null);
         }
+
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
+        /// Loads a <see cref="Node"/> by the provided <see cref="NodeHead"/>.
         /// </summary>
+        /// <param name="head">Node head.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static Task<Node> LoadNodeAsync(NodeHead head, CancellationToken cancellationToken)
+        {
+            return LoadNodeAsync(head, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
+        /// </summary>
+        /// <param name="head">Node head.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
         public static Node LoadNode(NodeHead head, VersionNumber version)
         {
             if (version == null)
@@ -2041,7 +2282,78 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given parameter that can be a path or an id as a string.
+        /// Loads a <see cref="Node"/> by the provided <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
+        /// </summary>
+        /// <param name="head">Node head.</param>
+        /// <param name="version">The requested version. For example: new VersionNumber(2, 0).</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<Node> LoadNodeAsync(NodeHead head, VersionNumber version, CancellationToken cancellationToken)
+        {
+            if (version == null)
+                version = DefaultAbstractVersion;
+
+            if (version == VersionNumber.LastFinalized)
+                return await LoadLastFinalizedVersionAsync(head, cancellationToken).ConfigureAwait(false);
+
+            var retry = 0;
+            while (true)
+            {
+                if (head == null)
+                    return null;
+
+                AccessLevel userAccessLevel;
+                try
+                {
+                    userAccessLevel = GetUserAccessLevel(head);
+                }
+                catch (SecurityStructureException)
+                {
+                    return null;
+                }
+
+                var acceptedLevel = GetAcceptedLevel(userAccessLevel, version);
+                var versionId = GetVersionId(head, acceptedLevel != AccessLevel.Header ? acceptedLevel : AccessLevel.Major, version);
+
+                // if the requested version does not exist, return immediately
+                if (versionId == 0)
+                    return null;
+
+                // <L2Cache>
+                var l2CacheKey = GetL2CacheKey(versionId, acceptedLevel);
+                var cachedNode = StorageContext.L2Cache.Get(l2CacheKey);
+                if (cachedNode != null)
+                    return (Node)cachedNode;
+                // </L2Cache>
+
+                var token = await DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).ConfigureAwait(false);
+                if (token.NodeData != null)
+                {
+                    var node = CreateTargetClass(token);
+                    if (acceptedLevel == AccessLevel.Header)
+                    {
+                        // if the user has Preview permissions, that means a broader access than head-only
+                        if (PreviewProvider.HasPreviewPermission(head))
+                            node.IsPreviewOnly = true;
+                        else
+                            node.IsHeadOnly = true;
+                    }
+
+                    // <L2Cache>
+                    StorageContext.L2Cache.Set(l2CacheKey, node);
+                    // </L2Cache>
+
+                    return node;
+                }
+                // lost version
+                if (++retry > 1)
+                    return null;
+                // retry
+                SnTrace.Repository.Write("Version is lost. VersionId:{0}, path:{1}", versionId, head.Path);
+                head = await NodeHead.GetAsync(head.Id, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided parameter that can be a path or an id as a string.
         /// </summary>
         /// <param name="idOrPath">Id (e.g. "42") or path (e.g. "/Root/System").</param>
         public static Node LoadNodeByIdOrPath(string idOrPath)
@@ -2058,6 +2370,25 @@ namespace SenseNet.ContentRepository.Storage
 
             return null;
         }
+
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided parameter that can be a path or an id as a string.
+        /// </summary>
+        /// <param name="idOrPath">Id (e.g. "42") or path (e.g. "/Root/System").</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static Task<Node> LoadNodeByIdOrPathAsync(string idOrPath, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(idOrPath))
+                return null;
+
+            if (int.TryParse(idOrPath, out var nodeId))
+                return Node.LoadNodeAsync(nodeId, cancellationToken);
+
+            if (RepositoryPath.IsValidPath(idOrPath) == RepositoryPath.PathResult.Correct)
+                return Node.LoadNodeAsync(idOrPath, cancellationToken);
+
+            return null;
+        }
         private static Node LoadLastFinalizedVersion(NodeHead head)
         {
             var node = Node.LoadNode(head, VersionNumber.LastAccessible);
@@ -2068,12 +2399,30 @@ namespace SenseNet.ContentRepository.Storage
             else
                 return Node.LoadNode(head, VersionNumber.LastMajor);
         }
+        private static async Task<Node> LoadLastFinalizedVersionAsync(NodeHead head, CancellationToken cancellationToken)
+        {
+            var node = await LoadNodeAsync(head, VersionNumber.LastAccessible, cancellationToken).ConfigureAwait(false);
+            if (node.SavingState == ContentSavingState.Finalized)
+                return node;
+            if (node.Security.HasPermission(PermissionType.RecallOldVersion))
+                return await LoadNodeByLastBeforeVersionIdAsync(head, cancellationToken).ConfigureAwait(false);
+
+            return await LoadNodeAsync(head, VersionNumber.LastMajor, cancellationToken).ConfigureAwait(false);
+        }
         private static Node LoadNodeByLastBeforeVersionId(NodeHead head)
         {
             var versions = head.Versions;
             if (versions.Length < 2)
                 return null;
             return Node.LoadNodeByVersionId(versions[versions.Length - 2].VersionId);
+        }
+        private static async Task<Node> LoadNodeByLastBeforeVersionIdAsync(NodeHead head, CancellationToken cancellationToken)
+        {
+            var versions = head.Versions;
+            if (versions.Length < 2)
+                return null;
+
+            return await LoadNodeByVersionIdAsync(versions[versions.Length - 2].VersionId, cancellationToken).ConfigureAwait(false);
         }
 
         // <L2Cache>
@@ -2180,7 +2529,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Returns a cached value by the given name. You can store any instance-related cacheable
+        /// Returns a cached value by the provided name. You can store any instance-related cacheable
         /// object using the <see cref="SetCachedData"/> method.
         /// </summary>
         public object GetCachedData(string name)
@@ -2268,8 +2617,9 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Loads the appropiate <see cref="Node"/> by the given versionId.
+        /// Loads a <see cref="Node"/> by the provided versionId.
         /// </summary>
+        /// <param name="versionId">Version id.</param>
         public static Node LoadNodeByVersionId(int versionId)
         {
 
@@ -2280,6 +2630,26 @@ namespace SenseNet.ContentRepository.Storage
             SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
 
             var token =  DataStore.LoadNodeAsync(head, versionId, CancellationToken.None).GetAwaiter().GetResult();
+
+            Node node = null;
+            if (token.NodeData != null)
+                node = CreateTargetClass(token);
+            return node;
+        }
+        /// <summary>
+        /// Loads a <see cref="Node"/> by the provided versionId.
+        /// </summary>
+        /// <param name="versionId">Version id.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        public static async Task<Node> LoadNodeByVersionIdAsync(int versionId, CancellationToken cancellationToken)
+        {
+            var head = await NodeHead.GetByVersionIdAsync(versionId, cancellationToken).ConfigureAwait(false);
+            if (head == null)
+                return null;
+
+            SecurityHandler.Assert(head, PermissionType.RecallOldVersion, PermissionType.Open);
+
+            var token = await DataStore.LoadNodeAsync(head, versionId, cancellationToken).ConfigureAwait(false);
 
             Node node = null;
             if (token.NodeData != null)
@@ -3160,7 +3530,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Moves the <see cref="Node"/> indentified by the source path to another location. 
+        /// Moves the <see cref="Node"/> identified by the source path to another location. 
         /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
         /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
@@ -3178,7 +3548,7 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.MoveTo(targetNode);
         }
         /// <summary>
-        /// Moves the <see cref="Node"/> instance to another loacation. The new location is a <see cref="Node"/> instance 
+        /// Moves the <see cref="Node"/> instance to another location. The new location is a <see cref="Node"/> instance 
         /// that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void MoveTo(Node target)
@@ -3325,7 +3695,7 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Copy methods
 
         /// <summary>
-        /// Copy the <see cref="Node"/> indentified by the source path to another location. 
+        /// Copy the <see cref="Node"/> identified by the source path to another location. 
         /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
         /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
@@ -3917,7 +4287,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Batch delete.
         /// </summary>
         /// <param name="nodeList">Represents an Id collection which holds the identifiers of the <see cref="Node"/>s will be deleted.</param>
-        /// <param name="errors">If any error occures, it is added to the errors collection passed by errors parameter.</param>
+        /// <param name="errors">If any error occurres, it is added to the errors collection passed by errors parameter.</param>
         /// <exception cref="ArgumentNullException">You must specify a list collection instance.</exception>
         public static void Delete(List<int> nodeList, ref List<Exception> errors)
         {
@@ -4118,14 +4488,14 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public event EventHandler<NodeOperationEventArgs> Copied;
         /// <summary>
-        /// Occurs before this <see cref="Node"/> instance's permision setting is changed.
+        /// Occurs before this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
         [Obsolete("Do not use this event anymore.")]
         public event CancellableNodeEventHandler PermissionChanging;
 #pragma warning restore 67
         /// <summary>
-        /// Occurs after this <see cref="Node"/> instance's permision setting is changed.
+        /// Occurs after this <see cref="Node"/> instance's permission setting is changed.
         /// </summary>
 #pragma warning disable 67
         [Obsolete("Do not use this event anymore.")]
@@ -4460,7 +4830,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Returns the level of hierachy the <see cref="Node"/> is located at. The virtual Root <see cref="Node"/> has a level of 0.
+        /// Returns the level of hierarchy the <see cref="Node"/> is located at. The virtual Root <see cref="Node"/> has a level of 0.
         /// </summary>
         /// <param name="node"></param>
         public int NodeLevel()

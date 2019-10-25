@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 
@@ -138,17 +139,33 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataStore.LoadNodeHeadAsync(nodeId, CancellationToken.None).GetAwaiter().GetResult();
         }
+        public static Task<NodeHead> GetAsync(int nodeId, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadAsync(nodeId, cancellationToken);
+        }
         public static NodeHead GetByVersionId(int versionId)
         {
             return DataStore.LoadNodeHeadByVersionIdAsync(versionId, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<NodeHead> GetByVersionIdAsync(int versionId, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadByVersionIdAsync(versionId, cancellationToken);
         }
         public static NodeHead Get(string path)
         {
             return DataStore.LoadNodeHeadAsync(path, CancellationToken.None).GetAwaiter().GetResult();
         }
+        public static Task<NodeHead> GetAsync(string path, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadAsync(path, cancellationToken);
+        }
         public static IEnumerable<NodeHead> Get(IEnumerable<int> idArray)
         {
             return DataStore.LoadNodeHeadsAsync(idArray, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        public static Task<IEnumerable<NodeHead>> GetAsync(IEnumerable<int> idArray, CancellationToken cancellationToken)
+        {
+            return DataStore.LoadNodeHeadsAsync(idArray, cancellationToken);
         }
         public static IEnumerable<NodeHead> Get(IEnumerable<string> pathSet)
         {

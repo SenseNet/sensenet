@@ -19,12 +19,16 @@ namespace SenseNet.Services.Tests
             // regular domains
             Assert.AreEqual("abc", HttpHeaderTools.GetAllowedDomain("abc", new[] { "abc", "def" }));
             Assert.AreEqual("abc", HttpHeaderTools.GetAllowedDomain("abc", new[] { "def", "abc" }));
+            Assert.AreEqual("abc-dev", HttpHeaderTools.GetAllowedDomain("abc-dev", new[] { "abc-dev", "app123" }));
+            Assert.AreEqual("app123", HttpHeaderTools.GetAllowedDomain("app123", new[] { "abc-dev", "app123" }));
 
             // wildcard (all)
             Assert.AreEqual("*", HttpHeaderTools.GetAllowedDomain("abc", new []{"*"}));
             Assert.AreEqual("*", HttpHeaderTools.GetAllowedDomain("abc", new []{"*", "abc"}));
             Assert.AreEqual("abc", HttpHeaderTools.GetAllowedDomain("abc", new []{"abc", "*" }));
             Assert.AreEqual("*", HttpHeaderTools.GetAllowedDomain("abc", new []{"abcd", "*" }));
+            Assert.AreEqual("*", HttpHeaderTools.GetAllowedDomain("abc-dev", new[] { "*", "app123" }));
+            Assert.AreEqual("*", HttpHeaderTools.GetAllowedDomain("app123", new[] { "abc-dev", "*" }));
 
             // wildcard (subdomain)
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc", new[] { "*.abc" }));
@@ -39,6 +43,9 @@ namespace SenseNet.Services.Tests
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc..com", new[] { "abc.*.com" }));
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("nooo.abc.sub1.abc", new[] { "abc.*.abc" }));
             Assert.AreEqual("*.abc", HttpHeaderTools.GetAllowedDomain("sub1.abc", new[] { "abcd", "sub1abc", "sub1abccom", "*.abc" }));
+            Assert.AreEqual("*.abc", HttpHeaderTools.GetAllowedDomain("sub-dev.abc", new[] { "*.abc", "app123.abc" }));
+            Assert.AreEqual("*.abc", HttpHeaderTools.GetAllowedDomain("a1b2c3--app-dev.abc", new[] { "sub.abc", "*.abc" }));
+            Assert.AreEqual("abc.*.com", HttpHeaderTools.GetAllowedDomain("abc.a1b2c3--app-dev.com", new[] { "abc.app.com", "abc.*.com" }));
 
             // wildcard (port)
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("ab:5000", new[] { "abc" }));
@@ -57,6 +64,9 @@ namespace SenseNet.Services.Tests
             Assert.AreEqual("abc.*.com:*", HttpHeaderTools.GetAllowedDomain("abc.admin.sub1.com", new[] { "abc.*.com:*" }));
             Assert.AreEqual("abc.*.com:*", HttpHeaderTools.GetAllowedDomain("abc.admin.sub1.com:5000", new[] { "abc.*.com:*" }));
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc.sub1.abc.com:5000", new[] { "abc.*.abc.com" }));
+            Assert.AreEqual("*.abc.com:*", HttpHeaderTools.GetAllowedDomain("sub-dev.abc.com:5000", new[] { "*.abc.com:*", "app123.abc.com:5000" }));
+            Assert.AreEqual("*.abc.com:*", HttpHeaderTools.GetAllowedDomain("a1b2c3--app-dev.abc.com:8888", new[] { "sub.abc.com:8888", "*.abc.com:*" }));
+            Assert.AreEqual("abc.*.com:*", HttpHeaderTools.GetAllowedDomain("abc.a1b2c3--app-dev.com:80", new[] { "abc.app.com:80", "abc.*.com:*" }));
 
             // invalid config
             Assert.AreEqual(null, HttpHeaderTools.GetAllowedDomain("abc", new[] { "*abc" }));

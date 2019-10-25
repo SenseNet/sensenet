@@ -101,7 +101,7 @@ IndexingTools.AddTextExtract(context.VersionId, text);
 
 The code snippet above does all the necessary database, index and cache operations that are needed to complete the indexing of the content.
 
-> In this case please state that your text extractor is NOT slow (using the IsSlow property). This may sound contradictional but it will tell the system that we do not want to execute a second indexdocument update automatically, we want to do it manually as shown above.
+> In this case please state that your text extractor is NOT slow (using the IsSlow property). This may sound contradictory but it will tell the system that we do not want to execute a second indexdocument update automatically, we want to do it manually as shown above.
 
 ```csharp
 public class ABCTextExtractor : TextExtractor
