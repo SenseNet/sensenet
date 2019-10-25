@@ -113,7 +113,7 @@ namespace SenseNet.Search
                 }
                 catch (Exception ex)
                 {
-                    SnLog.WriteWarning($"Text extractor type could not be instatiated: {extractorName} {ex}", EventId.Indexing);
+                    SnLog.WriteWarning($"Text extractor type could not be instantiated: {extractorName} {ex}", EventId.Indexing);
                 }
             }
 

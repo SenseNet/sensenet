@@ -9,7 +9,7 @@ using System.Diagnostics;
 namespace SenseNet.ContentRepository.Xpath
 {
     /// <summary>
-    /// Provides an XmlAttribute accesing mechanism for the inner XPathNavigator.
+    /// Provides an XmlAttribute accessing mechanism for the inner XPathNavigator.
     /// Implement this interface on a <see cref="SenseNet.ContentRepository.Field"/>
     /// that provides any XmlAttribute.
     /// </summary>

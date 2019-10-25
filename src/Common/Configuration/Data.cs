@@ -8,7 +8,7 @@ namespace SenseNet.Configuration
         private const string SectionName = "sensenet/data";
 
         /// <summary>
-        /// Gets the configured Sql command timeout value in seconds.
+        /// Gets the configured SQL command timeout value in seconds.
         /// </summary>
         public static int DbCommandTimeout { get; internal set; } = GetInt(SectionName, "DbCommandTimeout", 120, 5);
         /// <summary>
