@@ -2,11 +2,26 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.0.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>Sense/Net Inc.</Company>
+    <Copyright>Copyright © Sense/Net Inc.</Copyright>
+    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sensenet csp content repository inmemory</PackageTags>
+    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <Product>sensenet Content Repository InMemory</Product>
+    <Description>In database memory implementation for the sensenet platform.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
-    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
+    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj">
+      <ExcludeAssets>all</ExcludeAssets>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

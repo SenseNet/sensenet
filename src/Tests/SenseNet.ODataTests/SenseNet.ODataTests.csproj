@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
   </ItemGroup>
 
 </Project>
