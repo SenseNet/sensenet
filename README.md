@@ -45,12 +45,12 @@ Whether you're a community member or enterprise customer, feel free to visit our
 
 <a name="GettingStarted"></a>
 ## Getting started
-Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
+Currently, we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
 ### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
-There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
+There is also several other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
@@ -66,7 +66,7 @@ Consider using the following client projects to manipulate data in the Content R
 - [sensenet JavaScript Client](https://github.com/SenseNet/sn-client-js)
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
-For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
+For detailed client-side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
 ### sensenet ECM 6.5
 A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
@@ -78,4 +78,4 @@ If you are new to sensenet, it is worth checking out these introductory articles
 - [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
 
 ## Contributing
-All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
+All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution Guide](CONTRIBUTING.md) for details.
