@@ -2,7 +2,7 @@
 
 ## Overview of sensenet ECM REST API
 
-The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. From version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website.In this article we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
+The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. From version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website. In this article, we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
 
 > Please note that the structure and philosophy of the sensenet ECM [Content Repository](content-repository.md) prevents publishing an automatically discoverable OData metadata service, which means generic OData client tools will likely not work with sensenet ECM.
 
@@ -26,9 +26,9 @@ For example:
 
 ```http://www.example.com/OData.svc/[RESOURCEPATH]```
 
-If the requested resource is empty (i.e. the URI is the service root) the server returns the service document that exposes the available collections of the service (see in [OData documentation](http://www.odata.org/developers/protocols/json-format#ServiceDocuments)). This information now available only in JSON format.
+If the requested resource is empty (i.e. the URI is the service root) the server returns the service document that exposes the available collections of the service (see in [OData documentation](http://www.odata.org/developers/protocols/json-format#ServiceDocuments)). This information is now available only in JSON format.
 
-If the resource is _$metadata_, the server returns the Service Metadata Document that exposes the data model of the service in XML and JSON (see in [OData documentation](http://www.odata.org/documentation/overview#ServiceMetadataDocument)). This document is the global (static) metadata that cannot contain content specific information e.g. expando (`ContentList`) fields. Instance specific metadata is available on a collection or entity: in this case the resource URI needs to end with the _/$metadata_ segment. 
+If the resource is _$metadata_, the server returns the Service Metadata Document that exposes the data model of the service in XML and JSON (see in [OData documentation](http://www.odata.org/documentation/overview#ServiceMetadataDocument)). This document is the global (static) metadata that cannot contain content-specific information e.g. expando (`ContentList`) fields. Instance specific metadata is available on a collection or entity: in this case, the resource URI needs to end with the _/$metadata_ segment. 
 
 For example:
 
@@ -36,7 +36,7 @@ For example:
 
 > For more info, see the [Metadata requests](#Metadata_requests) section.
 
-The requested resource can be any content in the repository that is permitted for the current user. The resource may be addressed with relative or absolute path. The following requests are equivalent:
+The requested resource can be any content in the repository that is permitted for the current user. The resource may be addressed with a relative or absolute path. The following requests are equivalent:
 
 - http://www.example.com/OData.svc/Root/Sites/ExampleSite/workspaces
 - http://www.example.com/OData.svc/workspaces
@@ -45,7 +45,7 @@ Another way to access content is addressing by content-id:
 
 - http://www.example.com/OData.svc/content(42)
 
-In this case the URI must satisfy a strict rule: the service path followed by _"/content"_ (insensitive) and content id wrapped by parenthesis without any whitespace.
+In this case, the URI must satisfy a strict rule: the service path followed by _"/content"_ (insensitive) and content id wrapped by parenthesis without any whitespace.
 
 > If the requested resource is not found, the server returns with a **404 Error** status code.
 
@@ -112,7 +112,7 @@ Another way: Service path followed by the "content" word and an entity id betwee
 
 - http://www.example.com/OData.svc/content(42)
 
-If the site root contains a content that's name is "content", access it wit absolute path:
+If the site root contains a content that's name is "content", access it with absolute path:
 
 - http://www.example.com/OData.svc/Root/Sites/ExampleSite('content')
 
@@ -195,7 +195,7 @@ Binary data is represented by an OData Named Resource Stream Value (see [OData V
 
 ## Addressing available actions of a content
 
-Every content has many executable actions in the sensenet Content Repository managed by the [Action Framework](action.md). List of these actions are available viathe "Actions"\"deferred" OData property:
+Every content has many executable actions in the sensenet Content Repository managed by the [Action Framework](action.md). List of these actions are available via the "Actions"\"deferred" OData property:
 
 ```js
 {
@@ -369,7 +369,7 @@ There are two ways to filter by content type.
 
 **Type family query**
 
-This is the most frequently used type query. Use **IsOf()** operation to filter by type family (see more on OData.org). The response of the following request will contain every content whose type is _Folder_ or any inherited type under the /Root/MyDocuments folder.
+This is the most frequently used type of query. Use **IsOf()** operation to filter by type family (see more on OData.org). The response of the following request will contain every content whose type is _Folder_ or any inherited type under the /Root/MyDocuments folder.
 
 - https://example.com/odata.svc/Root/MyDocuments?$filter=isof('Folder')
 
@@ -377,7 +377,7 @@ Only the version with one parameter is implemented. The parameter is the name of
 
 **Exact match query**
 
-Sometimes it may be necessary to filter by exact type. In this case use the ContentType equality:
+Sometimes it may be necessary to filter by exact type. In this case, use the ContentType equality:
 
 - https://example.com/odata.svc/Root/MyDocuments?$filter=ContentType eq 'Folder'
 
@@ -417,7 +417,7 @@ $.ajax({
 
 **Example: filter by aspect field**
 
-The name of an aspect field is the aspect's name concatenated with the field's name and separated by a dot character ('.'). So on the server side in a C# code we can access an aspect field like this:
+The name of an aspect field is the aspect's name concatenated with the field's name and separated by a dot character ('.'). So on the server-side in a C# code we can access an aspect field like this:
 
 ```js
 content["Summarizable.Summary"] = "sample value";
@@ -453,7 +453,7 @@ Both setting's default value is false. The following query switches on both opti
 
 ### $expand query option (supported from 6.2.1)
 
-According to the [OData protocol](http://www.odata.org/developers/protocols/uri-conventions#ExpandSystemQueryOption) the _$expand_ option indicates that related items should be represented inline in the response with full content instead of simple links. In our case this means that any [Reference Field](reference-field.md) can be expanded to be able to get metadata of a content and one or more related content with a **single HTTP request**.
+According to the [OData protocol](http://www.odata.org/developers/protocols/uri-conventions#ExpandSystemQueryOption) the _$expand_ option indicates that related items should be represented inline in the response with full content instead of simple links. In our case, this means that any [Reference Field](reference-field.md) can be expanded to be able to get metadata of a content and one or more related content with a **single HTTP request**.
 
 The value provided in the _$expand_ option is a **comma separated list of navigational properties** (in sensenet ECM these are reference fields). _$expand_ option works with a collection and a single content request as well. You may indicate that you want to expand **one or more fields** (e.g. `ModifiedBy` and `CreatedBy` at the same time). You may even expand fields of expanded content by providing a 'field name chain', separated by slashes (e.g. `CreatedBy/Manager`).
 
@@ -464,7 +464,7 @@ Additionally, you may expand the following special fields as well:
 
 #### $expand and $select
 
-It is possible to specify the list of fields the response should contain (see $select option for more info). This works with expanded properties as well: you may specify wich fields of the expanded content should be added to the response by providing a 'field name chain', separated by slashes (e.g. _$select=CreatedBy/DisplayName_).
+It is possible to specify the list of fields the response should contain (see $select option for more info). This works with expanded properties as well: you may specify which fields of the expanded content should be added to the response by providing a 'field name chain', separated by slashes (e.g. _$select=CreatedBy/DisplayName_).
 
 If you do not provide a $select option in the request, all the field values will be returned of the requested and the expanded content as well. You do not have to select the property that you want to expand.
 
@@ -555,7 +555,7 @@ Specifies the displayed properties in a comma separated list of the property nam
 
 > Limitation: a select clause can be only a property name. Expressions in select clauses are not supported yet in sensenet ECM.
 
-Without this option the result will contain all available properties. If the request refers only one entity, the available property set is the entity's all properties. In case of collection it is all properties of the available content types in the collection. For example: request only DisplayName, Path and Index properties for a quick list: http://www.example.com/OData.svc/workspaces?$select=DisplayName,Path,Index. Part of the result:
+Without this option, the result will contain all available properties. If the request refers only one entity, the available property set is the entity's all properties. In case of collection it is all properties of the available content types in the collection. For example: request only DisplayName, Path and Index properties for a quick list: http://www.example.com/OData.svc/workspaces?$select=DisplayName,Path,Index. Part of the result:
 
 ```js
 {
@@ -699,7 +699,7 @@ If the request URI is the service root extended by "/$metadata", the server retu
 
 **Instance Metadata Document**
 
-Instance specific metadata is available on a collection or simple entity: the resource URI needs to end with the "/$metadata" segment. This metadata format is equivalent to the service metadata: it contains types, associations and EntityContainer. Every entity type is exdended with the expando fields of the current Content List if it exists and really contains expando fields. URI examples:
+Instance specific metadata is available on a collection or simple entity: the resource URI needs to end with the "/$metadata" segment. This metadata format is equivalent to the service metadata: it contains types, associations and EntityContainer. Every entity type is extended with the expando fields of the current Content List if it exists and really contains expando fields. URI examples:
 
 - Collection: http://www.example.com/OData.svc/workspaces/$metadata
 - Entity: http://www.example.com/OData.svc/workspaces('project')/$metadata
@@ -764,7 +764,7 @@ The content type of the new entity will be the first allowed content type of the
 
 HTTP method: **POST**
 
-This verb enables you to cretae a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
+This verb enables you to create a content by a Content Template creating an `EventList` under a workspace with the name Calendar and fill its Index field with 2. Other field values will be filled by the default values in 'CalendarTemplate3' ContentTemplate. See the `__ContentTemplate` parameter:
 
 ```js
 $.ajax({
