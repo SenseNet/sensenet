@@ -14,7 +14,7 @@ If you work with the Enterprise Edition and want to report an urgent issue, you 
 
 If you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place and will be included in the next patch.
 
-## sensenet and its components
+## SenseNet and its components
 This is a huge project that consists of multiple repositories:
 - main [sensenet github repository](https://github.com/SenseNet/sensenet) for the core product
 - many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main prodoct

@@ -1,4 +1,4 @@
-# Welcome to sensenet ECM
+# Welcome to SenseNet ECM
 The first Open Source Enterprise Content Management platform for .NET! 
 
 > [Try it on your local environment!](http://www.sensenet.com/try-it)
@@ -19,7 +19,7 @@ If you need...
 
 ![Workspaces](http://wiki.sensenet.com/images/5/5e/Ws-main.png "Workspaces")
 
-## sensenet can be a lot of things
+## SenseNet can be a lot of things
 
 - a development platform
 - an internet and intranet portal
@@ -47,7 +47,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 ## Getting started
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
-### sensenet ECM 7.0
+### SenseNet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
@@ -58,7 +58,7 @@ There is also a number of other built-in and 3rd party [components and plugins](
 - [Awesome list of components and plugins](https://github.com/SenseNet/awesome-sensenet)
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
-#### After installing sensenet ECM
+### After installing SenseNet ECM
 After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
@@ -68,7 +68,7 @@ Consider using the following client projects to manipulate data in the Content R
 
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
-### sensenet ECM 6.5
+### SenseNet ECM 6.5
 A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
 
 If you are new to sensenet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
