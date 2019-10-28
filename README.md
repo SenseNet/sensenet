@@ -79,3 +79,5 @@ If you are new to sensenet, it is worth checking out these introductory articles
 
 ## Contributing
 All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
+
+*This article can also be read in [Brazilian Portuguese](README-pt-BR.md).*
