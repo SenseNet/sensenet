@@ -51,17 +51,7 @@ namespace SenseNet.ODataTest.WebApp
 
             app.UseMvc();
 
-            app.MapWhen(httpContext => httpContext.Request.Path.StartsWithSegments("/odata.svc"),
-                appBranch =>
-                {
-                    appBranch.UseSenseNetOdata();
-                    appBranch.Use((httpContext, next) =>
-                    {
-                        // middleware by app developer
-                        return Task.CompletedTask;
-                    });
-                });
-
+            app.UseSenseNetOdata();
         }
     }
 }
