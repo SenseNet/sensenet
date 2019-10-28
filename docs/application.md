@@ -4,13 +4,13 @@ Applications are the basic building blocks of the [Smart Application Model](smar
 
 ### Presenting Content with Applications
 
-> The features described in this section (displaying content with Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and url generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
+> The features described in this section (displaying content with Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and URL generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
-The simplest way to present a [Content](content.md) is done by placing portlets on individual pages that utilize Content presentational functionality (eg. [Content viewer Portlet](content-viewer-portlet.md). However, Content can also be presented by addressing the Content itself and choosing an Application to present it. The selected Application is usually a simple page that uses [Context bound Portlets](context-bound-portlets.md) to handle the addressed [Content](content.md). These Applications are also referred to as [Smart Pages](smart-pages.md) and a single Smart Page in itself is capable of presenting many different [Content](content.md) of the same type. To create a Smart Page create a new Portlet Page under an _(apps)/[Content Type name]_ folder in the [Content Repository](content-repository.md) and use [Context bound Portlets](context-bound-portlets.md) for Content handling.
+The simplest way to present a [Content](content.md) is done by placing portlets on individual pages that utilize Content presentational functionality (eg. [Content viewer Portlet](content-viewer-portlet.md). However, Content can also be presented by addressing the Content itself and choosing an Application to present it. The selected Application is usually a simple page that uses [Context bound Portlets](context-bound-portlets.md) to handle the addressed [Content](content.md). These applications are also referred to as [Smart Pages](smart-pages.md) and a single Smart Page in itself is capable of presenting many different [Content](content.md) of the same type. To create a Smart Page create a new Portlet Page under an _(apps)/[Content Type name]_ folder in the [Content Repository](content-repository.md) and use [Context bound Portlets](context-bound-portlets.md) for Content handling.
 
 ### Application model
 
-Path of the created Application bears special importance as it defines the range of Content it is applicable to. The path of an Application can be given in the form:
+Path of the created Application bears special importance as it defines the range of Content is applies to. The path of an Application can be given in the form:
 
 ```xml
 /Root/<custompath>/(apps)/<contenttypename>/<applicationname>
@@ -19,12 +19,12 @@ Path of the created Application bears special importance as it defines the range
 where
 
 - **custompath** defines the path under which the Application will handle Content. The application is not accessible outside of this subtree.
-- **contenttypename** defines the type of Content that are handled by the Application.
+- **contenttypename** defines the type of Content that is handled by the Application.
 - **applicationname** is the name of the Application.
 
 #### Application inheritance
 
-Applications can be *overridden* in a subtree by placing an Application of the same name under an _(apps)_ folder that is placed at a deeper level in the [Content Repository](content-repository.md) and also by using the `This` keyword as contenttypename. See examples and refer to [Smart Application Model](smart-application-model.md) for a details.
+Applications can be *overridden* in a subtree by placing an Application of the same name under an _(apps)_ folder that is placed at a deeper level in the [Content Repository](content-repository.md) and also by using the `This` keyword as contenttypename. See examples and refer to [Smart Application Model](smart-application-model.md) for details.
 
 ### Applications and Actions
 
@@ -66,7 +66,7 @@ Since an Application itself is a [Content](content.md) in the [Content Repositor
 - **StyleHint**: an optional string property that can be interpreted by a custom renderer. Built-in renderers do not use this property.
 - **RequiredPermissions**: multiselect list that defines the permissions that are required on the target Content for the Application to be applicable to it. For example for an Edit Application one could specify the Edit permission to be required on the [Content](content.md), so that for users that don't possess sufficient rights the Edit link will be disabled and thus cannot navigate to a Content's Edit Application. Besides the permissions specified here there are some necessary basic permission settings for a [Content](content.md) to be presented with an Application.
 - **DeepPermissionCheck**: if set to true the required permissions specified above are checked for the entire subtree under the context [Content](content.md). This can be a useful setting for Applications that operate on whole subtrees, not only specific [Content](content.md) (a subtree move or update Application for example).
-- **IncludeBackUrl**: setting it to false will guide the action presenter logic not to include a back url in the action url. Default value for the portal is True except for Browse actions. For more info see the [Action](action.md) page.
+- **IncludeBackUrl**: setting it to false will guide the action presenter logic not to include a back url in the action url. The default value for the portal is True except for Browse actions. For more info see the [Action](action.md) page.
 - **CacheControl**: the response is generated with the selected Cache-control headers. Its value can be one of the standard .NET values (NoCache, Private, Public, Server, ServerAndNoCache, ServerAndPrivate) or Nondefined (see [Proxy Cache Configuration](proxy-cache-configuration.md)).
 - **MaxAge**: it is an integer value in seconds for Cache-control: max-age=x header to be sent out (see [Proxy Cache Configuration](proxy-cache-configuration.md)).
 - **CustomUrlParameters**: this is a string value containing custom parameters that will be added to the action url that belongs to this application. E.g. _'type=visible;mode=m1'_
