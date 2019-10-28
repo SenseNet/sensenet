@@ -4,7 +4,7 @@ Most of the operations done on [Content](content.md) in sensenet ECM is governed
 
 >**Prerequisites**: some of the features described in this article (about displaying content using Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and URL generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
-There are several kinds of actions in sensenet ECM: there are **HTML actions** that lead the user to an actual page (e.g. the Edit page of a content, where you can modify its properties); there are **client-side actions** that do something in *JavaScript* (e.g. display a popup dialog for picking a content); there are **service actions** that do something with the content and redirect you to a different page; and there are the **OData actions** that make the foundation of the [REST API](odata-rest-api.md) in sensenet ECM.
+There are several kinds of actions in sensenet ECM: there are **HTML actions** that lead the user to an actual page (e.g. the Edit page of a content, where you can modify its properties); there are **client-side actions** that do something in *JavaScript* (e.g. display a popup dialogue for picking a content); there are **service actions** that do something with the content and redirect you to a different page; and there are the **OData actions** that make the foundation of the [REST API](odata-rest-api.md) in sensenet ECM.
 
 In this article, we go through these action types and look at their common use cases.
 
@@ -14,13 +14,13 @@ The [Smart Application Model](smart-application-model.md) makes it possible to a
 
 - http://www.example.com/MyBlog/2010/08/Great_day?action=Edit
 
-If a content item is requested without an action, it is equivalent to specifying the default action, which is **Browse**. Actions are more often referred to as the links that guide the user to the requested application page. An Action link is presented with an [ActionLinkButton](actionlinkbutton.md) control that is a simple HTML link also displaying the requested [Application's](application.md) link.
+If a content item is requested without action, it is equivalent to specifying the default action, which is **Browse**. Actions are more often referred to as the links that guide the user to the requested application page. An Action link is presented with an [ActionLinkButton](actionlinkbutton.md) control that is a simple HTML link also displaying the requested [Application's](application.md) link.
 
 > sensenet ECM provides a [Client-side action framework](client-side-action-framework.md) for displaying actions in Javascript.
 
 ### Actions and Applications
 
-Actions are basically unlimited in number, builders can create [Applications](application.md) for specific, custom actions that the business scenario calls for. Available Actions on a [Content](content.md) are projections of defined applications for its [Content Type](content-type.md). It's not trivial to tell what Actions are valid for a specific [Content](content.md) item, as one needs to take into account all Applications defined for the Content Type of the item, as well as current user privileges on each of those and the item itself. The provided tools (ASP.NET controls available in the [WebPages](https://github.com/SenseNet/sn-webpages) component) for displaying Actions natively handle the problem of available Actions:
+Actions are basically unlimited in number, builders can create [Applications](application.md) for specific, custom actions that the business scenario calls for. Available Actions on a [Content](content.md) are projections of defined applications for its [Content Type](content-type.md). It's not trivial to tell what Actions are valid for a specific [Content](content.md) item, as one needs to take into account all Applications defined for the Content-Type of the item, as well as current user privileges on each of those and the item itself. The provided tools (ASP.NET controls available in the [WebPages](https://github.com/SenseNet/sn-webpages) component) for displaying Actions natively handle the problem of available Actions:
 
 - [ActionLinkButton](actionlinkbutton.md): a simple control that displays a single action link
 - [ActionList](actionlist.md): a simple control that displays a collection of action links in a list
@@ -30,7 +30,7 @@ Actions are basically unlimited in number, builders can create [Applications](ap
 
 ### JavaScript and service actions
 
-Some action links do not navigate the current page to an application defined for the specified [Content](content.md), but rather process data in the background and return or navigate to a custom page. An action link can run custom JavaScript code on the client-side. A good example for this is the _Copy selected..._ action link that when initialized from a list in [Content Explorer](content-explorer.md) it pops up a Content Picker where the destination folder can be selected, and the actual copy operation only takes place after the destination has been selected.
+Some action links do not navigate the current page to an application-defined for the specified [Content](content.md), but rather process data in the background and return or navigate to a custom page. An action link can run custom JavaScript code on the client-side. A good example for this is the _Copy selected..._ action link that when initialized from a list in [Content Explorer](content-explorer.md) it pops up a Content Picker where the destination folder can be selected, and the actual copy operation only takes place after the destination has been selected.
 
 The type of rendered Action is controlled by the application it refers to. The [Application's](application.md) `ActionTypeName` property defines the type (.Net class) of action to be rendered.
 
@@ -50,7 +50,7 @@ A **Scenario** is a group of actions one usually displays together. You can thin
 
 ### Back URL
 
-The Action URL can contain a parameter called `back`. The portal uses this value when there is a need to **return (redirect) to the previous page** after an operation - e.g. editing content properties. Portal builders can control the behavior of actions: whether to include the backurl or not. The default behavior of the portal is the following: all actions contain the `backurl` parameter except the *Browse* action.
+The Action URL can contain a parameter called `back`. The portal uses this value when there is a need to **return (redirect) to the previous page** after an operation - e.g. editing content properties. Portal builders can control the behaviour of actions: whether to include the backurl or not. The default behaviour of the portal is the following: all actions contain the `backurl` parameter except the *Browse* action.
 
 You can control the visibility of the back URL parameter in the following places:
 
@@ -88,7 +88,7 @@ Some example action links may be:
 
 There is nothing more to creating a Scenario than making up a name (keyword) for it, and adding it to all the applications you wish to access through it. Action presenter controls and Action query API calls usually accept a Scenario name, and automatically list all valid Actions found under that name.
 
-Say, you wish to create a forum control panel, which will enable moderators to edit or delete Posts and to lock or move Topics. First of all, you need a name for the scenario. _ForumAdmin_ seems fine.
+Say, you wish to create a forum control panel, which will enable moderators to edit or delete posts and to lock or move Topics. First of all, you need a name for the scenario. _ForumAdmin_ seems fine.
 
 In our example, the applications for Posts and Topics are distributed as such:
 
