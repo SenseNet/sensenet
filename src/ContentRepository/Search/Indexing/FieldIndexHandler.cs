@@ -422,7 +422,7 @@ namespace SenseNet.Search.Indexing
     }
     /// <summary>
     /// Inherited IndexFieldHandler for handling the string[] values of a <see cref="Field"/>.
-    /// Designed for a secial permission selector field.
+    /// Designed for a special permission selector field.
     /// </summary>
     public class PermissionChoiceIndexHandler : FieldIndexHandler, IIndexValueConverter<object>, IIndexValueConverter
     {

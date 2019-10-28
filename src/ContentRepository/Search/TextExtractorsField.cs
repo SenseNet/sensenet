@@ -9,7 +9,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 namespace SenseNet.Search
 {
     /// <summary>
-    /// Define an inherited <see cref="Field"/> for manafing texte extractor list in the IndexingSettings.
+    /// Define an inherited <see cref="Field"/> for managing text extractor list in the IndexingSettings.
     /// </summary>
     [ShortName("TextExtractors")]
     [DataSlot(0, RepositoryDataType.NotDefined, typeof(ReadOnlyDictionary<string, ITextExtractor>))]
