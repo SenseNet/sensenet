@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SenseNet.Services.Metadata;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
+using SenseNet.OData.Metadata;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests

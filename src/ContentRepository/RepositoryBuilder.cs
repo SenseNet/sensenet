@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository
 
         #endregion
 
-        public InitialData InitialData { get; set; } //UNDONE:ODATA: ???? Not IRepositoryBuilder member.
+        public InitialData InitialData { get; set; }
 
         internal static void WriteLog(string name, object provider)
         {

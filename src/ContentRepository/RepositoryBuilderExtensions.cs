@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         public static IRepositoryBuilder UseInitialData(this IRepositoryBuilder repositoryBuilder, InitialData initialData)
         {
-            if (!(repositoryBuilder is RepositoryBuilder repoBuilder)) //UNDONE:ODATA: ???? Client code needs to cast to RepositoryBuilder
+            if (!(repositoryBuilder is RepositoryBuilder repoBuilder))
                 throw new ApplicationException(
                     $"The repositoryBuilder is not an instance of {typeof(RepositoryBuilder).FullName}.");
 

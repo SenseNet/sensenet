@@ -2,10 +2,10 @@
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 
-namespace SenseNet.Portal.ApplicationModel
+namespace SenseNet.Portal.ApplicationModel // legacy namespace (do not modify)
 {
     [ContentHandler]
-    public class GenericODataApplication : Application //UNDONE:ODATA: ?? NAMESPACE: GenericODataApplication
+    public class GenericODataApplication : Application
     {
         public GenericODataApplication(Node parent) : this(parent, null) { }
         public GenericODataApplication(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }

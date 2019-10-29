@@ -12,13 +12,13 @@ using SenseNet.Diagnostics;
 using SenseNet.OData.Writers;
 using SenseNet.OData.Typescript;
 
-namespace SenseNet.Services.Metadata
+namespace SenseNet.OData.Metadata
 {
     /// <summary>
     /// Metadata provider with a built-in cache that converts content types 
     /// to a JObject format appropriate for clients.
     /// </summary>
-    public class ClientMetadataProvider : IClientMetadataProvider //UNDONE:ODATA: ?? NAMESPACE: ClientMetadataProvider
+    public class ClientMetadataProvider : IClientMetadataProvider
     {
         private const string ClientMetadataProviderKey = "ClientMetadataProvider";
         private static readonly object MetadataProviderSync = new object();

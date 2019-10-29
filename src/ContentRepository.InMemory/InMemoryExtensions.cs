@@ -20,22 +20,16 @@ namespace SenseNet.ContentRepository.InMemory
         {
             var dataProvider = new InMemoryDataProvider();
 
-            //UNDONE: missing repo start pieces
+            //TODO:~ missing repo start pieces
             // - configuration
             // - user access provider
             // - packaging provider (in-memory implementation is not accessible here yet)
             
-            //UNDONE: disabling all node observers will result in malfunction in the Settings feature
-            // because the SettingsCache is a node observer itself.
-
             var repositoryBuilder = new RepositoryBuilder()
                     .UseLogger(new DebugWriteLoggerAdapter())
-                    //.UseLogger(new SnFileSystemEventLogger())
-                    //.UseTracer(new SnFileSystemTracer())
                     //.UseAccessProvider(new UserAccessProvider())
                     .UseDataProvider(dataProvider)
                     .UseInitialData(InitialData.Load(DefaultDatabase.Instance))
-                    //.UseInitialData(InitialData.Load(new SenseNetServicesInitialData()))
                     .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                     .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                     .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -45,8 +39,6 @@ namespace SenseNet.ContentRepository.InMemory
                     .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                     .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                     .StartWorkflowEngine(false)
-                    //.DisableNodeObservers()
-                    //.UseTraceCategories("Test", "Event", "Custom", "Repository", "Query")
                     as RepositoryBuilder;
 
             Providers.Instance.PropertyCollector = new EventPropertyCollector();

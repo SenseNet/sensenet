@@ -16,7 +16,7 @@ namespace SenseNet.Services.Core
         {
             app.Use(async (context, next) =>
             {
-                //UNDONE: load the authenticated user from the context and set it in sensenet
+                //TODO:~ load the authenticated user from the context and set it in sensenet
                 //var user = context.User;
                 User.Current = User.Administrator;
 

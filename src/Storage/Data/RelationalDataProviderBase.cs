@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
+        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.

@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository
             if (builder == null)
                 return Start();
 
-            //UNDONE:ODATA: ???? Required early configuration
+            // Required early configuration
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 
