@@ -2,7 +2,7 @@
 
 The Reference [Field](field.md) is used for defining references to other content. When a content holds references pointing to other content (for example a group references users in its *Members* field) it is done using a Reference Field.
 
-The following apply to the behaviour of the Field:
+The following applies to the behavior of the Field:
 - **number of references**: a Reference Field can be configured to hold either a *single* or *multiple* references.
 - **default value**: one or more default references can be set via Field configuration.
 - **types of referable content**: types of referable content can be restricted.
@@ -34,7 +34,7 @@ Usage in CTD:
 The following properties can be set in the Field's Field Setting configuration:
 
 - **AllowMultiple**: a boolean property defining whether multiple references are allowed or only a single content can be referenced. By default only a single reference is allowed.
-- **AllowedTypes**: allowed content types can be defined by explicitely listing type names in *Type* xml elements. By default all content types can be referenced.
+- **AllowedTypes**: allowed content types can be defined by explicitly listing type names in *Type* xml elements. By default all content types can be referenced.
 - **SelectionRoot**: allowed location of referable content can be defined by listing paths in *Path* xml elements. By default content can be referenced from under /Root
 - **DefaultValue**: a default single content reference can be defined with its path. Default multiple references can be defined with a comma separated list. By default the Field contains no references.
 
@@ -42,7 +42,7 @@ The following properties can be set in the Field's Field Setting configuration:
 
 ### For developers
 
-Please check the [Node for developers](node-for-developers.md) article for advices on how can you work with reference properties in code.
+Please check the [Node for developers](node-for-developers.md) article for advice on how can you work with reference properties in code.
 
 ## Examples/Tutorials
 

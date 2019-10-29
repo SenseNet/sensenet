@@ -63,7 +63,7 @@ After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can star
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
-- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client-js)
+- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client)
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
@@ -79,3 +79,5 @@ If you are new to sensenet, it is worth checking out these introductory articles
 
 ## Contributing
 All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
+
+*This article can also be read in [Brazilian Portuguese](README-pt-BR.md).*

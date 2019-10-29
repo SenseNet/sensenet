@@ -234,7 +234,7 @@ The following elements make up the general structure of the xml:
 - **DisplayName**: the displayed user friendly name of the type
 - **Description**: the short description of the type
 - **Icon**: icon of the type. Icons reside in the /Root/Global/images/icons folder. An icon is referred with its name here.
-- **Preview**: whether the system needs to generate preview images for this type of content. Currently this works only for file types. This setting is not inheritable, you should set it explicitely in every CTD where you want to have preview images. Possible values are *yes/no* or *true/false*.
+- **Preview**: whether the system needs to generate preview images for this type of content. Currently this works only for file types. This setting is not inheritable, you should set it explicitly in every CTD where you want to have preview images. Possible values are *yes/no* or *true/false*.
 - **AllowIndexing**: whether the instances of this type should be indexed or not. Possible values are *yes/no* or *true/false*. The default is true. If set to false, the index will be smaller, but nobody will be able to find the items of this type using content query. They will still be accessible through a direct request of course. In the default installation preview images are not indexed, for example.
 - **AppInfo**: custom text or xml fragment for CTD extensibility
 - **AllowIncrementalNaming**: boolean property for allowing the incremental name suffix generation during content creation when a Content with the same name already exists. Default is false - in this case an error message is shown when saving the Content with an existing name. See [Content naming](content-naming.md#Incremental-naming) for details.
@@ -265,7 +265,7 @@ The following elements build up the field definition:
 - **AppInfo**: custom text or xml fragment for CTD extensibility
 - **Bind**: name of the storage property the field is bound to. By default the bound property name is the name of the field. You can define composite fields by binding them to multiple properties. An example for this is Image Field. Within a content multiple fields can be bound to the same property. For more info read [Field - for Developers](field-for-developers.md#Connection) between Field and Property.
 - **Indexing**: indexing settings of the field. Please refer to [Field Indexing](field-indexing.md) for detailed information.
-- **Configuration**: configuration settings of the field. This varies with the actual [Field Setting](field-setting.md). See detailed information on field configuration atarticles of specific Fields. The following optional elements are available in all types of Field Settings:
+- **Configuration**: configuration settings of the field. This varies with the actual [Field Setting](field-setting.md). See detailed information on field configuration articles of specific Fields. The following optional elements are available in all types of Field Settings:
     - **ReadOnly**: indicates if the field is read-only
     - **Compulsory**: indicates if the field is compulsory
     - **OutputMethod**: defines the field output type. It can be Default, Raw, Text, Html. Plays an important role in [XSS Protection](xss-protection.md).
@@ -291,7 +291,7 @@ Warning! The child Content Type must use the parent's handler, or use a custom c
 
 ## <a name="fieldinheritance"></a>Field inheritance
 
-A Content Type inherits its fields from its parent Content Type (defined byt he **parentType** attribute). This means that only additional fields have to be defined in the type's CTD. The inherited fields apply to the Content Type as defined on the parent type, but may also be overridden. The following apply to field inheritance:
+A Content Type inherits its fields from its parent Content Type (defined by the **parentType** attribute). This means that only additional fields have to be defined in the type's CTD. The inherited fields apply to the Content Type as defined on the parent type, but may also be overridden. The following apply to field inheritance:
 
 - fields of all ancestors are inherited: ie. fields of parent type of the direct parent are also available in the current type
 - all fields of the parent type are inherited, deleting a field that has been defined on an ancestor type is not possible
@@ -459,13 +459,13 @@ xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinit
 </ContentType>
 ```
 
-The above defined *Image* field is a composite field that references *ImageRef* and *ImageData* fields. The type of the field is [Image Field](image-field.md) - which has a custom implementation that handles the corresponding logic: an Image is either persisted to the [Content Repository](content-repository.md) as a separate content (in this case the image content is referenced via a [Reference Field](reference-field.md)) or it is part of the content as a binary (in this case the image is a binary saved to a [Binary Field](binary-field.md) on the content).
+The above-defined *Image* field is a composite field that references *ImageRef* and *ImageData* fields. The type of the field is [Image Field](image-field.md) - which has a custom implementation that handles the corresponding logic: an Image is either persisted to the [Content Repository](content-repository.md) as a separate content (in this case the image content is referenced via a [Reference Field](reference-field.md)) or it is part of the content as a binary (in this case the image is a binary saved to a [Binary Field](binary-field.md) on the content).
 
 ### <a name="examples">Example for Default value setting with JScript.NET
 
 It is possible to set a default value for fields, and even use dynamically executed code which will be evaluated **on the fly**. You can use a variant of JavaScript for this purpose which is called JScript.NET - which is a JavaScript runtime on top of the .NET Framework. **Expressions that you define this way will be evaluated in runtime on the server side**.
 
-To use jScripts in CTDs you have to write your code between *[Script:jScript]* and *[/Script]* tags. You can use more than one functions in a DefaultValue tag, the appropriate script parts will be evaluated and concatenated.
+To use jScripts in CTDs you have to write your code between *[Script:jScript]* and *[/Script]* tags. You can use more than one function in a DefaultValue tag, the appropriate script parts will be evaluated and concatenated.
 
 The following example is an excerpt from the Memo Content Type. The *Date* Field here is configured to include the current time as the default value. This means that when a new Memo Content is created the Date Field will always show the current date - when the Date Field is visible. If the Date Field is not visible in the Content View this setting does not affect the value of the Field.
 

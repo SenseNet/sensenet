@@ -70,7 +70,7 @@ namespace SenseNet.ContentRepository.Sharing
             var visited = (LogicalPredicate)base.VisitLogicalPredicate(logic);
             var clauseCount = visited.Clauses.Count;
 
-            // Get all sub-item types in righr order
+            // Get all sub-item types in right order
             var isSharingFlags = new bool[clauseCount];
             for (var i = 0; i < clauseCount; i++)
                 isSharingFlags[clauseCount - i - 1] = _isSharingStack.Pop();
