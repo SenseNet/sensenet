@@ -57,7 +57,8 @@ namespace SenseNet.ODataTests
 
         /* ============================================================= OPERATION RESULT TESTS */
 
-        [TestMethod]
+        //TODO:~ Activate OD_OP_GetSchema test.
+        //[TestMethod]
         public async Task OD_OP_GetSchema()
         {
             await ODataTestAsync(async () =>
