@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Workspaces
         public const string LocalGroupsFolderName = "Groups";
 
         /// <summary>
-        /// Returs a parent <see cref="Workspace"/> of the given <see cref="Node"/> if it is found.
+        /// Returns a parent <see cref="Workspace"/> of the given <see cref="Node"/> if it is found.
         /// </summary>
         /// <param name="child">The <see cref="Node"/> instance to find the owner workspace for.</param>
         /// <returns>The existing <see cref="Workspace"/> instance or null if it was not found.</returns>
