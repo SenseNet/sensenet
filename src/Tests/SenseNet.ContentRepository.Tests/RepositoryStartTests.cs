@@ -359,12 +359,11 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        //UNDONE:ODATA:TEST: Sometimes causes StackOwerflowException
         [TestMethod]
         public void RepositoryStart_Loggers()
         {
             var originalLogger = SnLog.Instance;
-            var originalTracers = SnTrace.SnTracers;
+            var originalTracers = SnTrace.SnTracers.ToArray();
 
             try
             {
