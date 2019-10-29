@@ -66,7 +66,7 @@ _Steps of a token refresh process from the clients' point of view:_
 3. Access content using the access token
 4. Logout using the access token
 
-All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be choosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
+All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be chosen freely by a client developer. However, the two could be mixed, but we advice to choose one and stick to it.
 
 ![web token authentication protocol](images/SensenetTokenAuthentication.png)
 _figure 1:web token authentication protocol_
@@ -219,7 +219,7 @@ HTTP response with status 200 (OK). On the diagram it is used to sign an empty r
 HTTP response with status 401 (Unauthorized). On the diagram it is used to sign a response to an unsuccessful login, logout or refresh request.
 
 ### The used headers in detail ###  
-**_Authorization_**: this header is a standard HTTP header and tells the service, that a client would like to authenticate. Its value always begins with "Basic ", that signes a basic type authentication requires a valid username and password.  
+**_Authorization_**: this header is a standard HTTP header and tells the service, that a client would like to authenticate. Its value always begins with "Basic ", that signs a basic type authentication requires a valid username and password.  
 **_X-Access-Data_**: this header tells the service, that a client tries to access a content with a token. Its value is an access token head and payload.  
 **_X-Authentication-Action_**: this header tells the service in case of header marked communication, that a token authentication action is requested. Its value can be `TokenLogin`, `TokenLogout`, `TokenAccess`, `TokenRefresh`.  
 **_X-Refresh-Data_**: this header tells the service, that a client tries to refresh its expired access token. Its value is a refresh token head and payload.
@@ -231,7 +231,7 @@ HTTP response with status 401 (Unauthorized). On the diagram it is used to sign 
 `<accessHeadAndPayload>, <refreshHeadAndPayload>`: base64 and URL encoded strings.
 
 The access head and payload are the public part of a token, that consists of two parts separated by a full stop.
-The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily use in Javascript.
+The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily used in Javascript.
 
 **Example of a typical payload:**  
 ```json
