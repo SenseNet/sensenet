@@ -62,7 +62,7 @@ The following list contains the list of built-in text extractors:
 
 ## Custom text extractor
 
-The following example shows how can you create a custom text extractor for the imaginary 'abc' file type. In the *Extract* method you can read the binary and extract the text using the appropriate algorithm. For deploying the plug-in please check the *Settings* section below.
+The following example shows how you can create a custom text extractor for the imaginary 'abc' file type. In the *Extract* method you can read the binary and extract the text using the appropriate algorithm. For deploying the plug-in please check the *Settings* section below.
 
 ```csharp
 public class ABCTextExtractor : TextExtractor
