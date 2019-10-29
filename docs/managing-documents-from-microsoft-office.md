@@ -21,7 +21,7 @@ This feature is fully compatible with Microsoft Office 2013, 2010 and 2007.
 sensenet ECM supports the following authentication schemes with Office integration:
 
 - **Windows authentication**
-  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your fodlers and files in the Content Repository using your AD user and password.
+  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your folders and files in the Content Repository using your AD user and password.
 
 - **Basic authentication**
   Set up your sensenet ECM Site to use *Forms* authentication, and your IIS web site to allow *Anonymous* authentication only (do not allow Windows in IIS and allowing Basic is not necessary). You will be able to access the Content Repository using your portal user and password. Please note that operations that use Basic authentication over a non-SSL HTTP connection are disabled by default by your operating system. To enable WebDAV for non-SSL sites with Basic authentication refer to the following article:  [http://support.microsoft.com/kb/2123563](http://support.microsoft.com/kb/2123563).
@@ -140,13 +140,13 @@ List of available links in the Workspace.
 
 ##### Members
 
-You can not manage members directly from Word but you can still see who is available (and who is online in MSN). Members are defined by explicit permission settings on the workspace content. This means that you can add new members by adding permissions to users on the workspace (add them explicitely if you want them to be displayed on the members tab even if they are already contained in any of the groups having permissions on the workspace).
+You can not manage members directly from Word but you can still see who is available (and who is online in MSN). Members are defined by explicit permission settings on the workspace content. This means that you can add new members by adding permissions to users on the workspace (add them explicitly if you want them to be displayed on the members tab even if they are already contained in any of the groups having permissions on the workspace).
 
 ##### Tasks
 
 Tasks are also important content of a workspace. You have full control on managing tasks in the current workspace within Office.
 
-You can set a task completed by clicking the checkbox next to it's title. An empty check box means that it's state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize it's state.
+You can set a task completed by clicking the checkbox next to its title. An empty check box means that its state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize its state.
 
 In the following table you can find the proper mappings between the fields of Task Content Type and Office's properties:
 
@@ -186,7 +186,7 @@ In the following table you can find the proper mappings between the fields of Li
 
 ##### Check Out
 
-When working with documents in sensenet [Content Repository](content-repository.md), the documents have to be [checked out](versioning-and-approval.md) to the users currently editing them. This is not done automatically: when opening a document the user has to click Office button / Server / Check Out button, or click the the Check Out button placed at the top of the document - before any changes can be made to the document:
+When working with documents in sensenet [Content Repository](content-repository.md), the documents have to be [checked out](versioning-and-approval.md) to the users currently editing them. This is not done automatically: when opening a document the user has to click Office button / Server / Check Out button, or click the Check Out button placed at the top of the document - before any changes can be made to the document:
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/word-checkout.png" style="margin: 20px auto" />
 
@@ -212,7 +212,7 @@ After clicking the _Check in..._ link a dialog window will appear where the user
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/word-checkin-comment.png" style="margin: 20px auto" />
 
-> A [Checkin comment](checkin-comments.md) in Office can always be given and will be stored in the [Content Repository](content-repository.md) for the given version even if checkin comments are switched of or not available for the given document on the portal.
+> A [Checkin comment](checkin-comments.md) in Office can always be given and will be stored in the [Content Repository](content-repository.md) for the given version even if checkin comments are switched off or not available for the given document on the portal.
 
 > A [Checkin comment](checkin-comments.md) in Office is never required and therefore empty chekin comments can always be given in Office even if it is required to fill out on the portal.
 
