@@ -479,8 +479,9 @@ namespace SenseNet.ODataTests
 
         protected static void EnsureManagerOfAdmin()
         {
+            Cache.Reset();
             var content = Content.Create(User.Administrator);
-            if (((IEnumerable<Node>)content["Manager"]).Count() > 0)
+            if (((IEnumerable<Node>)content["Manager"]).Any())
                 return;
             content["Manager"] = User.Administrator;
             content["Email"] = "anybody@somewhere.com";
