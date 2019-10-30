@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -290,6 +292,56 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }
 
+        public override async Task<DatabaseStateResult> EnsureDatabaseAsync(CancellationToken cancellationToken)
+        {
+            var exists = false;
+            const string schemaCheckSql = @"
+SELECT CASE WHEN EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Nodes'
+)
+THEN CAST(1 AS BIT)
+ELSE CAST(0 AS BIT) END";
+
+            try
+            {
+                using (var ctx = CreateDataContext(cancellationToken))
+                {
+                    // make sure that database tables exist
+                    var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
+                    exists = Convert.ToBoolean(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex, "Error during database existence check.");
+            }
+
+            if (exists)
+                return DatabaseStateResult.NotChanged;
+
+            // create schema
+            try
+            {
+                SnTrace.System.Write("Executing security schema script.");
+                await ExecuteEmbeddedNonQueryScriptAsync(
+                        "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
+                    .ConfigureAwait(false);
+
+                SnTrace.System.Write("Executing database schema script.");
+                await ExecuteEmbeddedNonQueryScriptAsync(
+                        "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
+                    .ConfigureAwait(false);
+
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex, "Error during database schema creation.");
+                return DatabaseStateResult.Error;
+            }
+
+            return DatabaseStateResult.Installed;
+        }
+
         /* =============================================================================================== Tools */
 
         protected override Exception GetException(Exception innerException, string message = null)
@@ -377,5 +429,84 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return bytes;
         }
 
+        /// <summary>
+        /// Loads the provided embedded SQL script from the current assembly and executes it
+        /// on the configured database.
+        /// </summary>
+        /// <param name="scriptName">Resource identifier.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        private async Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
+        {
+            using (var stream = GetType().Assembly.GetManifestResourceStream(scriptName))
+            {
+                if (stream == null)
+                    throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
+
+                using (var sr = new StreamReader(stream))
+                {
+                    using (var sqlReader = new SqlScriptReader(sr))
+                    {
+                        while (sqlReader.ReadScript())
+                        {
+                            var script = sqlReader.Script;
+
+                            using (var ctx = CreateDataContext(cancellationToken))
+                            {
+                                await ctx.ExecuteNonQueryAsync(script);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //UNDONE: move SqlScriptReader class to its final place
+        private class SqlScriptReader : IDisposable
+        {
+            private readonly TextReader _reader;
+            public string Script { get; private set; }
+            public SqlScriptReader(TextReader reader)
+            {
+                _reader = reader;
+            }
+
+            public void Dispose()
+            {
+                this.Close();
+            }
+
+            private void Close()
+            {
+                _reader.Close();
+                GC.SuppressFinalize(this);
+            }
+
+            public bool ReadScript()
+            {
+                var sb = new StringBuilder();
+
+                while (true)
+                {
+                    var line = _reader.ReadLine();
+
+                    if (line == null)
+                        break;
+
+                    if (string.Equals(line, "GO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Script = sb.ToString();
+                        return true;
+                    }
+                    sb.AppendLine(line);
+                }
+
+                if (sb.Length <= 0)
+                    return false;
+
+                Script = sb.ToString();
+                return true;
+            }
+        }
     }
 }

@@ -855,6 +855,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// as the Content tree representation.</returns>
         public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Checks if the database exists and is ready to accept new items. If not, creates the empty schema.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public virtual Task<DatabaseStateResult> EnsureDatabaseAsync(CancellationToken cancellationToken)
+        {
+            // default value is Installed
+            return Task.FromResult(DatabaseStateResult.Installed);
+        }
+
         /* =============================================================================================== Tools */
 
         /// <summary>
