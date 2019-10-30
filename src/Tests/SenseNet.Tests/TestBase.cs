@@ -20,7 +20,6 @@ using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
-//using InMemoryBlobStorageMetaDataProvider = SenseNet.Tests.Implementations.InMemoryBlobStorageMetaDataProvider;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.Tests
@@ -40,7 +39,7 @@ namespace SenseNet.Tests
                 RepositoryInstance.Shutdown();
 
             SnTrace.Test.Enabled = true;
-            //SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+
             if (_testMethodOperation != null)
             {
                 SnTrace.Test.Write("The operation was forced to close.");
@@ -54,8 +53,6 @@ namespace SenseNet.Tests
         public void CleanupTest()
         {
             SnTrace.Test.Enabled = true;
-            //SnTrace.Test.Write("END test: {0}", TestContext.TestName);
-
             SnTrace.Test.Write("{0}: {1}", TestContext.TestName, TestContext.CurrentTestOutcome);
 
             if (_testMethodOperation != null)

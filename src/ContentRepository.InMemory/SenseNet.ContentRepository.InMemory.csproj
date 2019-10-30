@@ -14,7 +14,7 @@
     <PackageTags>sensenet csp content repository inmemory</PackageTags>
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
     <Product>sensenet Content Repository InMemory</Product>
-    <Description>In database memory implementation for the sensenet platform.</Description>
+    <Description>In memory database for the sensenet platform.</Description>
   </PropertyGroup>
 
   <ItemGroup>
