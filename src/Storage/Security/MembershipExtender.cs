@@ -72,6 +72,12 @@ namespace SenseNet.ContentRepository.Storage.Security
                 {
                     try
                     {
+                        if (TypeResolver.GetType(tn, false) == null)
+                        {
+                            SnTrace.System.WriteError($"Membership extender type not found: {tn}");
+                            return null;
+                        }
+
                         return TypeResolver.CreateInstance<MembershipExtenderBase>(tn);
                     }
                     catch (Exception ex)

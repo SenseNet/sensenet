@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
@@ -28,6 +29,8 @@ namespace SenseNet.Tests
     {
         public TestContext TestContext { get; set; }
 
+        private SnTrace.Operation _testMethodOperation;
+
         [TestInitialize]
         public void InitializeTest()
         {
@@ -35,18 +38,29 @@ namespace SenseNet.Tests
             if (RepositoryInstance.Started())
                 RepositoryInstance.Shutdown();
 
-            // the original collector default value is a class that is not available in this context
-            Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
-
             SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+
+            if (_testMethodOperation != null)
+            {
+                SnTrace.Test.Write("The operation was forced to close.");
+                _testMethodOperation.Successful = false;
+                _testMethodOperation.Dispose();
+            }
+            _testMethodOperation = SnTrace.Test.StartOperation("TESTMETHOD: " + TestContext.TestName);
         }
 
         [TestCleanup]
         public void CleanupTest()
         {
             SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+            SnTrace.Test.Write("{0}: {1}", TestContext.TestName, TestContext.CurrentTestOutcome);
+
+            if (_testMethodOperation != null)
+            {
+                _testMethodOperation.Successful = true;
+                _testMethodOperation.Dispose();
+            }
+
             SnTrace.Flush();
         }
 
@@ -147,12 +161,11 @@ namespace SenseNet.Tests
         protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
-            Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             return new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
+                .UseInitialData(GetInitialData())
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())

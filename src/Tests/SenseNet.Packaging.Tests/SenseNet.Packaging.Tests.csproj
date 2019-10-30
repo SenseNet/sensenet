@@ -147,6 +147,10 @@
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>SenseNet.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj">
+      <Project>{a7532829-56e2-40dd-9094-0b36b138dd75}</Project>
+      <Name>SenseNet.ContentRepository.InMemory</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
       <Name>SenseNet.ContentRepository</Name>

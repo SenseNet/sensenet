@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Tests.Implementations;
 using Task = System.Threading.Tasks.Task;
@@ -184,8 +185,8 @@ namespace SenseNet.Tests.SelfTest
             InitialSecurityDataTest(() =>
             {
                 // PRECHECKS
-                // Administrators group has no entry on the Root.
-                Assert.AreEqual(0, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
+                // Administrators group has 1 entry on the Root.
+                Assert.AreEqual(1, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has no any permission.
                 Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
                 Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1113, PermissionType.See));

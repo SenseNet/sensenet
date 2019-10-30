@@ -155,7 +155,7 @@ namespace SenseNet.Services.OData.Tests
     }
     #endregion
 
-    [TestClass]
+    //[TestClass]
     public class ODataTests_legacy : ODataTestClass
     {
         #region Playground
