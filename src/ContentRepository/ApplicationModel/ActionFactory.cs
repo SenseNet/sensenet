@@ -19,12 +19,14 @@ namespace SenseNet.ApplicationModel
             return act == null || !act.Visible ? null : act;
         }
 
-        internal static ActionBase CreateAction(string actionType, Content context, string backUri, object parameters)
+        internal static ActionBase CreateAction(string actionType, Content context, string backUri, object parameters,
+            Func<string, Content, object, ActionBase> getDefaultAction = null, object state = null)
         {
-            return CreateAction(actionType, null, context, backUri, parameters);
+            return CreateAction(actionType, null, context, backUri, parameters, getDefaultAction, state);
         }
 
-        internal static ActionBase CreateAction(string actionType, Application application, Content context, string backUri, object parameters)
+        internal static ActionBase CreateAction(string actionType, Application application, Content context, string backUri, object parameters,
+            Func<string, Content, object, ActionBase> getDefaultAction = null, object state = null)
         {
             var actionName = application != null ? application.Name : actionType;
 
@@ -35,13 +37,19 @@ namespace SenseNet.ApplicationModel
             if (string.IsNullOrEmpty(actionType))
                 actionType = Actions.DefaultActionType;
 
-            var act = ResolveActionType(actionType);
-            if (act == null)
-                throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, context.Path, null, actionType);
+            var action = ResolveActionType(actionType);
+            if (action == null)
+            {
+                if (getDefaultAction != null)
+                    action = getDefaultAction(actionType, context, state);
+                if (action == null)
+                    throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, context.Path,
+                        null, actionType);
+            }
 
-            act.Initialize(context, backUri, application, parameters);          
+            action.Initialize(context, backUri, application, parameters);          
 
-            return act.Visible ? act : null;
+            return action.Visible ? action : null;
         }
 
         private static bool IsInvalidVersioningAction(Content context, string actionName)
