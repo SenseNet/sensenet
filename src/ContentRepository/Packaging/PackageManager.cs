@@ -22,7 +22,7 @@ namespace SenseNet.Packaging
 
         internal static IPackagingDataProviderExtension Storage => DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
 
-        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
+        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console, RepositoryBuilder builder = null)
         {
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
@@ -66,8 +66,8 @@ namespace SenseNet.Packaging
             Logger.LogTitle(String.Format("Executing phase {0}/{1}", currentPhase + 1, phaseCount));
 
             var sandboxDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
-                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, packageParameters, console);
+            var executionContext = ExecutionContext.Create(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
+                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, packageParameters, console, builder);
 
             executionContext.LogVariables();
 

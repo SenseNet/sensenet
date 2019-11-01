@@ -1820,19 +1820,24 @@ namespace SenseNet.ContentRepository.Storage.Security
             /// </summary>
             public static void InstallDefaultSecurityStructure(InitialData data = null)
             {
-                using (new SystemAccount())
+                using (var op = SnTrace.System.StartOperation("Installing default security structure."))
                 {
-                    CreateEntities();
+                    using (new SystemAccount())
+                    {
+                        CreateEntities();
 
-                    var ed = CreateAclEditor();
-                    ed.Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
-                        // ReSharper disable once CoVariantArrayConversion
-                        PermissionType.BuiltInPermissionTypes);
+                        var ed = CreateAclEditor();
+                        ed.Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
+                            // ReSharper disable once CoVariantArrayConversion
+                            PermissionType.BuiltInPermissionTypes);
 
-                    if (data == null)
-                        ed.Apply();
-                    else
-                        ed.Apply(ParseInitialPermissions(ed.Context, data.Permissions));
+                        if (data == null)
+                            ed.Apply();
+                        else
+                            ed.Apply(ParseInitialPermissions(ed.Context, data.Permissions));
+                    }
+
+                    op.Successful = true;
                 }
             }
 	        private static void CreateEntities()
