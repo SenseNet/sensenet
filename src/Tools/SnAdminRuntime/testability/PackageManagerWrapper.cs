@@ -24,7 +24,7 @@ namespace SenseNet.Tools.SnAdmin.Testability
     {
         public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output)
         {
-            return PackageManager.Execute(packagePath, targetDirectory, phase, parameters, output);
+            return PackageManager.Execute(packagePath, targetDirectory, phase, parameters, output, null, true);
         }
 
         public string GetXmlSchema()

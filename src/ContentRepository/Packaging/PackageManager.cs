@@ -22,7 +22,7 @@ namespace SenseNet.Packaging
 
         internal static IPackagingDataProviderExtension Storage => DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
 
-        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console, RepositoryBuilder builder = null)
+        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console, RepositoryBuilder builder = null, bool editConnectionString = false)
         {
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
