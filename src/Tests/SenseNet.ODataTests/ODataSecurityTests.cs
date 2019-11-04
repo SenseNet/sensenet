@@ -300,8 +300,8 @@ namespace SenseNet.ODataTests
                     var folder = Node.LoadNode(folderRepoPath);
                     var car = Node.LoadNode(carRepoPath);
 
-                    Assert.IsTrue(folder.Security.HasPermission(User.Visitor, PermissionType.OpenMinor));
-                    Assert.IsFalse(car.Security.HasPermission(User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsTrue(folder.Security.HasPermission(User.Visitor as IUser, PermissionType.OpenMinor));
+                    Assert.IsFalse(car.Security.HasPermission(User.Visitor as IUser, PermissionType.OpenMinor));
                 }
             }).ConfigureAwait(false);
         }
