@@ -21,11 +21,6 @@ namespace SenseNet.ContentRepository.Security
         }
 
         /// <summary>
-        /// Gets the primary SenseNet claims identity associated with this claims principal.
-        /// </summary>
-        public new IUser Identity => (IUser)base.Identity;
-
-        /// <summary>
         /// Returns a value that indicates whether the entity (user) represented by this claims principal is in the specified role.
         /// </summary>
         /// <param name="role">The role for which to check.</param>
