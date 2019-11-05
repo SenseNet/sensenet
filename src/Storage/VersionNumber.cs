@@ -86,7 +86,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Initializes a new instance of the <see cref="VersionNumber"/> class.
         /// </summary>
-        /// <param name="major">The major verion number.</param>
+        /// <param name="major">The major version number.</param>
         /// <param name="minor">The minor version number.</param>
         /// <param name="status">The version status.</param>
         public VersionNumber(int major, int minor, VersionStatus status)

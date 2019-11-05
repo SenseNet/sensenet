@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Portal;

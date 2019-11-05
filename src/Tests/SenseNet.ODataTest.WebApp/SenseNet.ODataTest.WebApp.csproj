@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
+    <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
+  </ItemGroup>
+
+</Project>

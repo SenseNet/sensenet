@@ -1,4 +1,4 @@
-# Welcome to sensenet
+# Welcome to sensenet ECM
 The Open Source Enterprise Content Services Platform written in .NET! 
 
 > [See how you can try it!](https://www.sensenet.com/tryit)
@@ -22,7 +22,6 @@ If you need...
 ## sensenet can be a lot of things
 
 - a development platform
-- a headless CMS
 - an internet and intranet portal
 - a central Content Repository for all kinds of custom content
 - an integration point between your (or your clients') existing applications
@@ -30,11 +29,10 @@ If you need...
 Let us know which part you're interested in most!
 
 ## License
-
-New pricing and licensing strategy is in progress. If you're interested [contact our sales](https://sensenet.com/contact). 
+New pricing and licensing strategy is in progress. If you're interested [contact sales](https://sensenet.com/contact).
 
 ## Contact and support
-Whether you're a community member or a customer already, feel free to visit our communication channels for demo, examples and support:
+Feel free to visit our communication channels for demo, examples and support:
 - Website: http://www.sensenet.com
 - Main chat channel: https://gitter.im/SenseNet/sensenet
 - All chat channels: https://gitter.im/SenseNet
@@ -43,9 +41,9 @@ Whether you're a community member or a customer already, feel free to visit our 
 
 <a name="GettingStarted"></a>
 ## Getting started
-You can try sensenet in many different ways, check its capabilities in the way you prefer 👉 [here](https://sensenet.com/tryit)
+You can try out sensenet in many different ways, check its capabilities in the way you prefer 👉 [here](https://sensenet.com/tryit)
 
-### sensenet 7.0
+### sensenet ECM 7.0
 A modern Content Services Platform that can be integrated into existing or new web applications. We modularized sensenet so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
@@ -61,10 +59,12 @@ After you installed [sensenet](/docs/install-sn-from-nuget.md), you can start se
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
-- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client-js)
+- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client)
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
 
 ## Contributing
 All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.
+
+*This article can also be read in [Brazilian Portuguese](README-pt-BR.md).*

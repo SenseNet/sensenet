@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;

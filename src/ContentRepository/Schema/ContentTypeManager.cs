@@ -282,7 +282,7 @@ namespace SenseNet.ContentRepository.Schema
             // #2 Load ContentType
             ContentType contentType = Instance.GetContentTypeByName(name);
 
-            // #3 Parent Node: if it is loaded yet use it (ReferenceEqals)
+            // #3 Parent Node: if it is loaded yet use it (ReferenceEquals)
             Node parentNode;
             if (String.IsNullOrEmpty(parentTypeName))
             {
