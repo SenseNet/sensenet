@@ -1,6 +1,6 @@
 # Content Repository
 
-A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. The sensenet Content Repository (SNCR) forms the technical underpinning of sensenet ECM. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
+A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. The sensenet Content Repository (SNCR) forms the technical underpinning of sensenet. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
 
 ### Managing Content
 
@@ -77,4 +77,4 @@ The sensenet Content Repository is built upon a metadata system with pre-defined
 
  ### Managing sensenet Content Repository
 
-In an ECM system the most frequently used operations are searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet ECM, the [Content Explorer](content-explorer.md) (this is available only if you have the [WebPages](https://github.com/SenseNet/sn-webpages) component or the full sensenet ECM 6.5 product installed).
+In an system the most frequently used operations are searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet, the [Content Explorer](content-explorer.md) (this is available only if you have the [WebPages](https://github.com/SenseNet/sn-webpages) component or the full sensenet ECM 6.5 product installed).

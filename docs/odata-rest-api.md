@@ -1,13 +1,13 @@
 # OData REST API
 
-## Overview of sensenet ECM REST API
+## Overview of sensenet REST API
 
-The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. From version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website. In this article, we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
+The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. From version 6.2 sensenet Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website. In this article, we explain how we implemented OData V3 and how you can access the sensenet OData producer from OData clients.
 
-> Please note that the structure and philosophy of the sensenet ECM [Content Repository](content-repository.md) prevents publishing an automatically discoverable OData metadata service, which means generic OData client tools will likely not work with sensenet ECM.
+> Please note that the structure and philosophy of the sensenet [Content Repository](content-repository.md) prevents publishing an automatically discoverable OData metadata service, which means generic OData client tools will likely not work with sensenet.
 
 ## Clients accessing the repository
-There are two built-in tools for accessing content in the Content Repository through the REST api, so that you do not have to construct OData requests manually. Please check the following projects, they offer an easy-to-learn client API to access sensenet ECM:
+There are two built-in tools for accessing content in the Content Repository through the REST api, so that you do not have to construct OData requests manually. Please check the following projects, they offer an easy-to-learn client API to access sensenet:
 
 - [JavaScript client SDK](https://github.com/SenseNet/sn-client-js)
 - [.Net client library](https://github.com/SenseNet/sn-client-dotnet)
@@ -65,7 +65,7 @@ The following HTTP methods can be used in requests to specify the expected opera
 # OData specific responses
 
 ``` diff
-- Please note that sensenet ECM currently supports only the OData Verbose JSON response format.
+- Please note that sensenet currently supports only the OData Verbose JSON response format.
 ```
 
 # Addressing children (collections)
@@ -455,7 +455,7 @@ Both setting's default value is false. The following query switches on both opti
 
 According to the [OData protocol](http://www.odata.org/developers/protocols/uri-conventions#ExpandSystemQueryOption) the _$expand_ option indicates that related items should be represented inline in the response with full content instead of simple links. In our case, this means that any [Reference Field](reference-field.md) can be expanded to be able to get metadata of a content and one or more related content with a **single HTTP request**.
 
-The value provided in the _$expand_ option is a **comma separated list of navigational properties** (in sensenet ECM these are reference fields). _$expand_ option works with a collection and a single content request as well. You may indicate that you want to expand **one or more fields** (e.g. `ModifiedBy` and `CreatedBy` at the same time). You may even expand fields of expanded content by providing a 'field name chain', separated by slashes (e.g. `CreatedBy/Manager`).
+The value provided in the _$expand_ option is a **comma separated list of navigational properties** (in sensenet these are reference fields). _$expand_ option works with a collection and a single content request as well. You may indicate that you want to expand **one or more fields** (e.g. `ModifiedBy` and `CreatedBy` at the same time). You may even expand fields of expanded content by providing a 'field name chain', separated by slashes (e.g. `CreatedBy/Manager`).
 
 Additionally, you may expand the following special fields as well:
 
@@ -553,7 +553,7 @@ Our service always returns with verbose json format. Atom and xml formats are no
 
 Specifies the displayed properties in a comma separated list of the property names. Property names are case sensitive. See on [OData.org](http://www.odata.org/documentation/uri-conventions#SelectSystemQueryOption).
 
-> Limitation: a select clause can be only a property name. Expressions in select clauses are not supported yet in sensenet ECM.
+> Limitation: a select clause can be only a property name. Expressions in select clauses are not supported yet in sensenet.
 
 Without this option, the result will contain all available properties. If the request refers only one entity, the available property set is the entity's all properties. In case of collection it is all properties of the available content types in the collection. For example: request only DisplayName, Path and Index properties for a quick list: http://www.example.com/OData.svc/workspaces?$select=DisplayName,Path,Index. Part of the result:
 
@@ -679,7 +679,7 @@ See more about custom query options on [odata.org](http://www.odata.org/document
 
 ## Operations
 
-OData operations (see on [OData.org](http://www.odata.org/media/30002/OData.html#operations)) are integrated into the sensenet ECM via the _Action Framework_. Our actions can have two faces: they may control server generated HTML GUI (represented as applications) and may behave as OData operations. The action in _Action Framework_ is an extensibility point: every 3rd party action appears automatically in OData metadata if the current user has enough permissions.
+OData operations (see on [OData.org](http://www.odata.org/media/30002/OData.html#operations)) are integrated into the sensenet via the _Action Framework_. Our actions can have two faces: they may control server generated HTML GUI (represented as applications) and may behave as OData operations. The action in _Action Framework_ is an extensibility point: every 3rd party action appears automatically in OData metadata if the current user has enough permissions.
 
 For the list of built-in OData operations see the following article:
 

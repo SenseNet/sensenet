@@ -15,7 +15,7 @@ XSS (or Cross-site scripting) is a common form of web attacks that exploit vulne
 
 ### Field Controls and Field Data
 
-> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+> Although this feature is supported in sensenet 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
 Fields will always store data in the same format as received from input. The following applies when displaying Field data in [Field Controls](field-controls.md):
 
@@ -56,7 +56,7 @@ Here OutputMethod can be one of the following:
 
 ### ContentViews
 
-> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+> Although this feature is supported in sensenet 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
 It is possible to display input data in [Content Views](content-views.md) using the *GetValue* function:
 

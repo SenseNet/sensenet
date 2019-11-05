@@ -1,4 +1,4 @@
-# Install sensenet ECM 7.0 from NuGet
+# Install sensenet 7.0 from NuGet
 This article is **for developers** about installing the core layer, [sensenet Services](https://github.com/SenseNet/sensenet), but before getting into that, please take a look at the concept of our install method.
 
 > **TLDR**: jump to the [Install packages](#InstallPackage) section to get started right away!
@@ -7,7 +7,7 @@ This article is **for developers** about installing the core layer, [sensenet Se
 In the last couple of years [NuGet](https://nuget.org) became the industry standard for delivering (mostly open source) libraries and projects. In our case, we take this even further by letting you install a full ECMS right from *Visual Studio*. This is not a common scenario, so we have to approach it carefully (the upgrade process is still under development).
 
 ## Why so many packages?
-Sensenet ECM is a huge product consisting of many smaller components (take a look at this curated collection of built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet)) that are not needed by everybody. It is best if you install only the parts you need, so that you can keep maintenance and upgrade costs at minimum. This is why we publish many small packages containing only the minimal set of libraries and content.
+Sensenet is a huge product consisting of many smaller components (take a look at this curated collection of built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet)) that are not needed by everybody. It is best if you install only the parts you need, so that you can keep maintenance and upgrade costs at minimum. This is why we publish many small packages containing only the minimal set of libraries and content.
 
 About choosing the components you need, take look at [this article](sensenet-components.md) that describes the main components briefly.
 
@@ -84,7 +84,7 @@ Please do not override the whole method (!), just the header, and add the base m
 4. **Build your solution**, make sure that there are no build errors.
 
 ### Create the database
-Before installing the sensenet ECM Content Repository database, please make sure that you have access to a *SQL database server*.
+Before installing the sensenet Content Repository database, please make sure that you have access to a *SQL database server*.
 
 The process will modify the **connection string** in _Web.config_ and _Tools\SnAdminRuntime.exe.config_ files **automatically**, ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog). 
 
@@ -122,8 +122,8 @@ After you installed sensenet Services, you can start sending requests to the sit
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
-- [sensenet ECM JavaScript Client](https://github.com/SenseNet/sn-client-js)
-- [sensenet ECM .Net Client](https://github.com/SenseNet/sn-client-dotnet)
+- [sensenet JavaScript Client](https://github.com/SenseNet/sn-client)
+- [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
 Here are a couple of examples for accessing the REST API from native JavaScript, if you prefer that. 
 

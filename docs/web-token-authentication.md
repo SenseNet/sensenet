@@ -9,7 +9,7 @@ description: Configuration of Web Token Authentication
 
 # Configuration of Web Token Authentication #
 
-In a sensenet ECM web application (on all instances) you need to configure the token authentication in the `web.config` file.
+In a sensenet web application (on all instances) you need to configure the token authentication in the `web.config` file.
 Find the `SymmetricKeySecret` parameter in the `tokenAuthentication` section of the sensenet section group. Give it a value of random string (16 - 64 in length) in order to make the authentication work.
 
 All your instances in the NLB should have the same value as their SymmetricKeySecret. Without this your authentication wouldn't work. Also very important to keep this random string a secret, otherwise someone can exploit it as a security breach. It is a good practice to encrypt the whole tokenAuthentication section in the web.config file.
@@ -213,7 +213,7 @@ _body:_
 ```
 
 **<200>:**  
-HTTP response with status 200 (OK). On the diagram it is used to sign an empty response in case of a not authenticated request. It is important that sensenet ECM does not throw an exception here.
+HTTP response with status 200 (OK). On the diagram it is used to sign an empty response in case of a not authenticated request. It is important that sensenet does not throw an exception here.
 
 **<401>:**  
 HTTP response with status 401 (Unauthorized). On the diagram it is used to sign a response to an unsuccessful login, logout or refresh request.
@@ -246,7 +246,7 @@ The first one is a technical like header that you do not have to care about. The
 }
 ```
 
-### The used claims in the sensenet ECM tokens:
+### The used claims in the sensenet tokens:
 **_iss_**: `issuer` identifies the principal that issued the token  
 **_sub_**: `subject` identifies the principal that is the subject of the token  
 **_aud_**: `audience` identifies the recipients that the token is intended for  
