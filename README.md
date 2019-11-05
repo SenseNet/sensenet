@@ -43,7 +43,7 @@ Feel free to visit our communication channels for demo, examples and support:
 ## Getting started
 You can try out sensenet in many different ways, check its capabilities in the way you prefer 👉 [here](https://sensenet.com/tryit)
 
-### sensenet ECM
+### sensenet
 A modern Content Services Platform that can be integrated into existing or new web applications. We modularized sensenet so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
