@@ -1,4 +1,4 @@
-# Welcome to sensenet ECM
+# Welcome to sensenet
 The Open Source Enterprise Content Services Platform written in .NET! 
 
 > [See how you can try it!](https://www.sensenet.com/tryit)
