@@ -1,8 +1,7 @@
 ﻿using System.IO.Compression;
 
-namespace SenseNet.Services.InstallData
+namespace SenseNet.Packaging
 {
-    //UNDONE: [duplicate] move this to the ContentRepo project and delete the SnAdminRuntime version.
     internal interface IUnpacker
     {
         void Unpack(string packagePath, string targetDirectory);

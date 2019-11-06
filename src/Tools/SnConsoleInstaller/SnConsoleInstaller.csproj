@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
     <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.0" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="2.1.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>

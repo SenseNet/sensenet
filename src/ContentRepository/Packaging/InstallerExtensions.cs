@@ -1,7 +1,7 @@
 ﻿using SenseNet.ContentRepository;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.Services.InstallData
+namespace SenseNet.Packaging
 {
     internal static class InstallerExtensions
     {

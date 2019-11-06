@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using SenseNet.Packaging;
 using System.IO;
-using IO = System.IO;
 
 namespace SenseNet.Packaging
 {
-    //UNDONE: [duplicate] move this to the ContentRepo project and let SnAdminRuntime use that.
     internal class SnAdminLogger : IPackagingLogger
     {
         private const int LINELENGTH = 80;
@@ -16,13 +12,15 @@ namespace SenseNet.Packaging
         protected Dictionary<char, string> _lines;
         private readonly object _writeSync = new object();
 
-        public virtual LogLevel AcceptedLevel { get { return LogLevel.File; } }
+        public virtual LogLevel AcceptedLevel => LogLevel.File;
 
         public SnAdminLogger()
         {
-            _lines = new Dictionary<char, string>();
-            _lines['='] = new StringBuilder().Append('=', LINELENGTH - 1).ToString();
-            _lines['-'] = new StringBuilder().Append('-', LINELENGTH - 1).ToString();
+            _lines = new Dictionary<char, string>
+            {
+                ['='] = new StringBuilder().Append('=', LINELENGTH - 1).ToString(),
+                ['-'] = new StringBuilder().Append('-', LINELENGTH - 1).ToString()
+            };
         }
 
         public virtual void Initialize(LogLevel level, string logFilePath)
@@ -56,10 +54,9 @@ namespace SenseNet.Packaging
 
         // ================================================================================================================= Logger
 
-        private static readonly string CR = Environment.NewLine;
         public string LogFilePath { get; private set; }
 
-        private string _logFolder = null;
+        private string _logFolder;
         public string LogFolder
         {
             get
@@ -84,7 +81,7 @@ namespace SenseNet.Packaging
 
         public virtual void LogWrite(params object[] values)
         {
-            using (StreamWriter writer = OpenLog())
+            using (var writer = OpenLog())
             {
                 WriteToLog(writer, values, false);
             }
@@ -92,7 +89,7 @@ namespace SenseNet.Packaging
         }
         public virtual void LogWriteLine(params object[] values)
         {
-            using (StreamWriter writer = OpenLog())
+            using (var writer = OpenLog())
             {
                 WriteToLog(writer, values, true);
             }
@@ -101,19 +98,17 @@ namespace SenseNet.Packaging
         private void CreateLog(string logfilePath)
         {
             _lineStart = true;
-            if (logfilePath != null)
-                LogFilePath = logfilePath;
-            else
-                LogFilePath = Path.Combine(LogFolder, Logger.PackageName + DateTime.UtcNow.ToString("_yyyyMMdd-HHmmss") + ".log");
+            LogFilePath = logfilePath ?? Path.Combine(LogFolder,
+                              Logger.PackageName + DateTime.UtcNow.ToString("_yyyyMMdd-HHmmss") + ".log");
 
-            if (!IO.File.Exists(LogFilePath))
+            if (File.Exists(LogFilePath)) 
+                return;
+
+            using (var fs = new FileStream(LogFilePath, FileMode.Create))
             {
-                using (FileStream fs = new FileStream(LogFilePath, FileMode.Create))
+                using (var wr = new StreamWriter(fs))
                 {
-                    using (StreamWriter wr = new StreamWriter(fs))
-                    {
-                        wr.WriteLine("");
-                    }
+                    wr.WriteLine("");
                 }
             }
         }
@@ -140,7 +135,7 @@ namespace SenseNet.Packaging
     }
     internal class SnAdminConsoleLogger : SnAdminLogger
     {
-        public override LogLevel AcceptedLevel { get { return LogLevel.Console; } }
+        public override LogLevel AcceptedLevel => LogLevel.Console;
 
         public override void Initialize(LogLevel level, string logFilePath) { }
 
