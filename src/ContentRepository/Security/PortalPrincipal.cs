@@ -3,6 +3,7 @@
 
 using System;
 using System.Security.Claims;
+using System.Security.Principal;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Security
@@ -13,15 +14,23 @@ namespace SenseNet.ContentRepository.Security
     /// <seealso cref="System.Security.Claims.ClaimsPrincipal" />
     public class PortalPrincipal : ClaimsPrincipal
     {
+        private readonly IUser _user;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PortalPrincipal" /> class.
         /// </summary>
-        /// <param name="user">The user.</param>
+        /// <param name="user">The primary user identity associated with this claims principal.</param>
         /// <exception cref="ArgumentNullException">user - The user parameter cannot be null. Use 'User.Visitor' instead.</exception>
         public PortalPrincipal(IUser user)
-            : base(user ?? throw new ArgumentNullException(nameof(user), "User cannot be null. Use 'User.Visitor' instead."))
+            : base(user)
         {
+            _user = user ?? throw new ArgumentNullException(nameof(user), "User cannot be null. Use 'User.Visitor' instead.");
         }
+
+        /// <summary>
+        /// Gets the primary claims identity associated with this claims principal.
+        /// </summary>
+        public override IIdentity Identity => _user;
 
         /// <summary>
         /// Returns a value that indicates whether the entity (user) represented by this claims principal is in the specified role.
