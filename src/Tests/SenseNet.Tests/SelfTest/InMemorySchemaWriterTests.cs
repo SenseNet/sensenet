@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Tests.Implementations;
 // ReSharper disable UnusedVariable
 // ReSharper disable UnusedMember.Local

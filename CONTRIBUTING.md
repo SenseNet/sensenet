@@ -1,16 +1,16 @@
 # How to contribute
 Thank you for checking out our project! :star2: :sunny: :deciduous_tree: :earth_americas:
 
-All kinds of contributions are welcome, including ideas, requests for improvement (be it code or [documentation](http://wiki.sensenet.com)), bugfixes or features. We are happy if you simply use these projects, but it is marvellous:sparkling_heart: if you decide to make your changes public for the benefit of others.
+All kinds of contributions are welcome, including ideas, requests for improvement (be it code or [documentation](http://wiki.sensenet.com)), bugfixes or features. We are happy if you simply use these projects, but it is marvelous :sparkling_heart: if you decide to make your changes public for the benefit of others.
 
-Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet) or in one of the [smaller ones](https://github.com/SenseNet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
+Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet/issues) or in one of the [smaller ones](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+org%3Asensenet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
 
 ## Enterprise customers
 sensenet ECM has an *Enterprise Edition* containing all the modules in the *Community Edition*. The source code is identical in case of these editions - and it is published here on GitHub.
 
 > The Enterprise Edition may contain some additional modules that are not published here. If you have an issue with one of those, please contact us to sort it out. 
 
-If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue here on GitHub, if you are OK with discussing it in public.
+If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue here on GitHub if you are OK with discussing it in public.
 
 If you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place and will be included in the next patch.
 
@@ -26,9 +26,12 @@ These components have their own version number and they are developed and releas
 When creating a bug report, please:
 
 - Provide a short, clear **title** and **description**.
-- State the exact **version number** of the project you are using (look for it in all properties or *AssemblyInfo.cs* files if you have the source code).
+- State the exact **version number** of the project you are using (look for it in dll properties or *AssemblyInfo.cs* files if you have the source code).
 - Provide some details on the environment (browser type in case of client-side issues, dev machine or server, stuff like that).
-- List the steps you took (where did you click? what input did you provide? which method did you call?).
+- List the steps you took
+  - where did you click? 
+  - what input did you provide? 
+  - which method did you call?
 - Code samples, screenshots, **log entries** (Event log, [SnTrace](https://github.com/SenseNet/sn-tools/tree/master/src/SenseNet.Tools/Diagnostics), UI error messages in text format) are welcome!
 
 ## Participate in the discussion
@@ -43,7 +46,8 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 5. We have a list of [Coding Conventions](http://wiki.sensenet.com/Coding_Conventions) for sensenet projects. Please try to follow that guide when you write code (it contains the usual stuff: code formatting, best practices and common mistakes).
 6. Unit tests are nice, please execute existing tests and add new ones if possible.
 7. You may also use our [benchmark tool](https://github.com/SenseNet/sn-benchmark) to measure the performance of the product before and after the change, if necessary.
-7. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
+8. Please sign the Contributor License Agreement (CLA) [here](https://cla-assistant.io/SenseNet/sensenet) when making the pull request
+9. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
 
 Please be patient if we do not accept the pull request immediately or ask for changes. We'll try to justify our change requests so that you know our intentions. It may speed up the process, if you [allow us to modify your branch](https://help.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when you create the pull request.
 
@@ -51,9 +55,9 @@ Please be patient if we do not accept the pull request immediately or ask for ch
 Do you have a sensenet-related tool, plugin or sample library? We would be happy to include it in our awesome [awesome list](https://github.com/SenseNet/awesome-sensenet)! We collect all sensenet components and cool 3rd party repos there that make our community strong. Just drop us a message and let us share your magic with others!
 
 Please follow these guidelines in your repo to make your stuff more accessible (a good example for an informative readme is the [Client JS repo](https://github.com/SenseNet/sn-client-js)):
-- when creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
-- please provide a short description for your project on the top so that others can see at a glance what your tool does
-- write a detailed README file that contains essential stuff for the community:
+- When creating the repo, please choose a license that fits your plans. We use **GPL v2**, but you can choose any of the usual permissive ones.
+- Please provide a short description for your project on the top so that others can see at a glance what your tool does
+- Write a detailed README file that contains essential stuff for the community:
   - the problem you solved
   - the technology you used (is it a Javascript plugin, a server component or a command-line tool?)
   - an install guide: is it just a NuGet or npm package, or do we have to compile the source or execute additional steps - e.g. install a sensenet SnAdmin package - before using it?

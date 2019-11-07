@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -32,6 +33,22 @@ namespace SenseNet.ContentRepository
         public static IRepositoryBuilder UseDataProvider(this IRepositoryBuilder repositoryBuilder, DataProvider dataProvider)
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
+            return repositoryBuilder;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="InitialData"/> that will be installed to the database in the repository start sequence.
+        /// </summary>
+        /// <param name="repositoryBuilder"></param>
+        /// <param name="initialData">Data file instance.</param>
+        /// <returns></returns>
+        public static IRepositoryBuilder UseInitialData(this IRepositoryBuilder repositoryBuilder, InitialData initialData)
+        {
+            if (!(repositoryBuilder is RepositoryBuilder repoBuilder))
+                throw new ApplicationException(
+                    $"The repositoryBuilder is not an instance of {typeof(RepositoryBuilder).FullName}.");
+
+            repoBuilder.InitialData = initialData;
             return repositoryBuilder;
         }
 

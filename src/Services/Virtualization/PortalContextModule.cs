@@ -75,7 +75,7 @@ namespace SenseNet.Portal.Virtualization
 
             var initInfo = PortalContext.CreateInitInfo(httpContext);
 
-            // Check for forbidden paths (custom request filtering), mainly for phisycal folders in the web folder. 
+            // Check for forbidden paths (custom request filtering), mainly for physical folders in the web folder. 
             // The built-in Request filtering module is not capable of filtering folders only in the root, but let
             // us have folders with the same name somewhere else in the Content Repository.
             if (IsForbiddenFolder(initInfo))

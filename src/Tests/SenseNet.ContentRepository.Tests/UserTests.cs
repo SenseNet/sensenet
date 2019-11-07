@@ -4,6 +4,7 @@ using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Security;
@@ -39,6 +40,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(true, () =>
             {
+                Providers.Instance.CacheProvider = new SnMemoryCache();
+
                 Group group;
                 User user;
                 using (new SystemAccount())

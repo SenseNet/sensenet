@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tools.Diagnostics;
 
@@ -22,6 +23,9 @@ namespace SenseNet.Diagnostics
             CollectUserProperties(props);
             CollectProperties(props);
 
+            if (!props.ContainsKey("WorkingMode"))
+                props.Add("WorkingMode", RepositoryEnvironment.WorkingMode.RawValue);
+
             foreach (var key in props.Keys.Where(key => props[key] == null).ToList())
                 props[key] = string.Empty;
 
@@ -39,7 +43,16 @@ namespace SenseNet.Diagnostics
 
         private static void CollectUserProperties(IDictionary<string, object> properties)
         {
-            IUser loggedUser = AccessProvider.Current.GetCurrentUser();
+            IUser loggedUser = null;
+
+            try
+            {
+                loggedUser = AccessProvider.Current.GetCurrentUser();
+            }
+            catch (Exception)
+            {
+                // Suppress error: loading the current user failed (e.g. because the repository is not present).
+            }
 
             if (loggedUser == null)
                 return;

@@ -30,8 +30,8 @@ namespace SenseNet.Search.Indexing
         IndexTermVector TermVectorStoringMode { get; set; }
 
         /// <summary>
-        /// Gets a value that is true if the field is indexed or sored in the index.
-        /// This is a shorcut of aggregated value of the IndexingMode and IndexStoringMode.
+        /// Gets a value that is true if the field is indexed or sorted in the index.
+        /// This is a shortcut of aggregated value of the IndexingMode and IndexStoringMode.
         /// </summary>
         bool IsInIndex { get; }
 

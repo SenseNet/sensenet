@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 using SenseNet.Packaging;
 
@@ -69,7 +71,25 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            return builder == null ? Start() : Start((RepositoryStartSettings) builder);
+            if (builder == null)
+                return Start();
+
+            // Required early configuration
+            BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
+            BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
+
+            var initialData = builder.InitialData;
+            if(initialData != null)
+                DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var repositoryInstance = Start((RepositoryStartSettings) builder);
+
+            var permissions = initialData?.Permissions;
+            if (permissions != null && permissions.Count > 0)
+                SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+
+            return repositoryInstance;
         }
         internal static RepositoryInstance Start(IRepositoryBuilder builder)
         {

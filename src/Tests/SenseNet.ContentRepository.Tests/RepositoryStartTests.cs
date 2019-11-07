@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security.Data;
@@ -161,7 +162,9 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -171,8 +174,6 @@ namespace SenseNet.ContentRepository.Tests
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -202,20 +203,22 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
+                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseAccessProvider(new DesktopAccessProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -229,12 +232,16 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
+                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseAccessProvider(new DesktopAccessProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseTestingDataProviderExtension(new InMemoryTestingDataProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
@@ -243,7 +250,6 @@ namespace SenseNet.ContentRepository.Tests
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
 
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -258,12 +264,13 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseAccessProvider(new DesktopAccessProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers()
@@ -271,8 +278,6 @@ namespace SenseNet.ContentRepository.Tests
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -288,20 +293,19 @@ namespace SenseNet.ContentRepository.Tests
             var dbProvider = new InMemoryDataProvider();
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                .UseAccessProvider(new DesktopAccessProvider())
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .DisableNodeObservers(typeof(TestNodeObserver1))
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -317,14 +321,16 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_NullPopulator()
         {
             var dbProvider2 = new InMemoryDataProvider();
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
+            Providers.Instance.DataProvider = dbProvider2;
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
             var searchEngine = new InMemorySearchEngine(GetInitialIndex());
             var accessProvider = new DesktopAccessProvider();
             var emvrProvider = new ElevatedModificationVisibilityRule();
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider2)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider2))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -357,7 +363,7 @@ namespace SenseNet.ContentRepository.Tests
         public void RepositoryStart_Loggers()
         {
             var originalLogger = SnLog.Instance;
-            var originalTracers = SnTrace.SnTracers;
+            var originalTracers = SnTrace.SnTracers.ToArray();
 
             try
             {
@@ -395,7 +401,9 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseSecurityDataProvider(securityDbProvider)
@@ -405,8 +413,6 @@ namespace SenseNet.ContentRepository.Tests
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
@@ -431,7 +437,9 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Custom.Enabled = true;
 
             var repoBuilder = new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dbProvider)
+                .UseInitialData(GetInitialData())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
@@ -442,8 +450,6 @@ namespace SenseNet.ContentRepository.Tests
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Test", "Web", "System");
-
-            DataStore.InstallInitialDataAsync(GetInitialData(), CancellationToken.None).GetAwaiter().GetResult();
 
             using (Repository.Start(repoBuilder))
             {
