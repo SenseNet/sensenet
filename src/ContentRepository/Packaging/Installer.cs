@@ -10,66 +10,93 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging
 {
-    public class Installer
+    public static class Installer
     {
+        /// <summary>
+        /// Installer method for sensenet that uses an embedded resource as the install package.
+        /// Do not use this method directly from your code. Use a higher level
+        /// installer method instead.
+        /// </summary>
+        /// <param name="assembly">The assembly that contains the embedded package.</param>
+        /// <param name="packageName">Name of the package, including folder prefixes inside the assembly.</param>
+        /// <param name="repositoryBuilder">Repository builder for starting the repo during the install process.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
         public static async Task InstallSenseNetAsync(Assembly assembly, string packageName, 
-            Action<RepositoryBuilder> buildRepository, CancellationToken cancellationToken)
+            RepositoryBuilder repositoryBuilder, CancellationToken cancellationToken)
         {
-            var builder = new RepositoryBuilder();
-
             // switch off indexing so that the first repo start does not require a working index
-            builder.StartIndexingEngine(false);
+            var origIndexingValue = repositoryBuilder.StartIndexingEngine;
+            repositoryBuilder.StartIndexingEngine(false);
 
-            buildRepository(builder);
+            await LogLineAsync(repositoryBuilder, "Accessing sensenet database...").ConfigureAwait(false);
 
-            await builder.LogLineAsync("Accessing sensenet database...").ConfigureAwait(false);
-
-            var dbResult = await DataStore.EnsureInitialDatabase(builder.InitialData, cancellationToken)
+            // Make sure that the database exists and contains the schema
+            // necessary for importing initial content items.
+            var dbResult = await DataStore.EnsureInitialDatabase(repositoryBuilder.InitialData, cancellationToken)
                 .ConfigureAwait(false);
 
             // If the database was installed just now, add initial repository items:
-            // - default security entries
+            // - custom security entries (if provided)
             // - default install package
 
             if (dbResult == DatabaseStateResult.Installed)
-            { 
-                await builder.LogLineAsync("Database installed.").ConfigureAwait(false);
+            {
+                await LogLineAsync(repositoryBuilder, "Database installed.").ConfigureAwait(false);
 
-                if (builder.InitialData?.Permissions?.Count > 0)
+                if (repositoryBuilder.InitialData?.Permissions?.Count > 0)
                 {
-                    using (Repository.Start(builder))
+                    using (Repository.Start(repositoryBuilder))
                     {
-                        await builder.LogLineAsync("Installing default security structure.").ConfigureAwait(false);
+                        await LogLineAsync(repositoryBuilder, "Installing default security structure.").ConfigureAwait(false);
                         
-                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(builder.InitialData);
+                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(repositoryBuilder.InitialData);
                     }
                 }
 
-                // prepare install package: save it to the file system and extract
-                var packageFolder = await UnpackEmbeddedPackageAsync(assembly, packageName, builder.Console)
+                // execute the install package
+                await InstallPackageAsync(assembly, packageName, repositoryBuilder, cancellationToken)
                     .ConfigureAwait(false);
-
-                Logger.Create(LogLevel.Default);
-
-                await builder.LogLineAsync("Executing install package...").ConfigureAwait(false);
-
-                var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                PackageManager.Execute(packageFolder, currentDirectory, 0, null, builder.Console, builder);
             }
             else
             {
-                await builder.LogLineAsync("Database already exists.").ConfigureAwait(false);
+                // If the database already exists, we assume that it also contains
+                // all the necessary content items.
+                await LogLineAsync(repositoryBuilder, "Database already exists.").ConfigureAwait(false);
             }
 
-            // after-install log ----------------------------------------------------------------------------------
-
-            using (Repository.Start(builder))
+            // after-install log
+            using (Repository.Start(repositoryBuilder))
             {
-                await LogComponentsAsync(builder.Console).ConfigureAwait(false);
+                await LogComponentsAsync(repositoryBuilder.Console).ConfigureAwait(false);
             }
+
+            // Reset the original indexing setting so that subsequent packages use the 
+            // same value as intended by the caller. 
+            repositoryBuilder.StartIndexingEngine(origIndexingValue);
         }
 
-        private static async Task<string> UnpackEmbeddedPackageAsync(Assembly assembly, string packageName, TextWriter console)
+        public static async Task InstallPackageAsync(Assembly assembly, string packageName,
+            RepositoryBuilder repositoryBuilder, CancellationToken cancellationToken)
+        {
+            // prepare package: save it to the file system and extract
+            var packageFolder =
+                await UnpackEmbeddedPackageAsync(assembly, packageName, repositoryBuilder.Console, cancellationToken)
+                    .ConfigureAwait(false);
+
+            Logger.PackageName = packageName;
+            Logger.Create(LogLevel.Default);
+
+            await LogLineAsync(repositoryBuilder, $"Executing package {packageName}...").ConfigureAwait(false);
+
+            var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            PackageManager.Execute(packageFolder, currentDirectory, 0, null, 
+                repositoryBuilder.Console, repositoryBuilder);
+        }
+
+        private static async Task<string> UnpackEmbeddedPackageAsync(Assembly assembly, string packageName, 
+            TextWriter console, CancellationToken cancellationToken)
         {
             if (console != null)
                 await console.WriteLineAsync($"Writing package {packageName} to file system...").ConfigureAwait(false);
@@ -79,10 +106,8 @@ namespace SenseNet.Packaging
                 if (resourceStream == null)
                     throw new InvalidOperationException($"Package {packageName} not found.");
 
-                using (var fileStream = System.IO.File.OpenWrite(packageName))
-                {
-                    await resourceStream.CopyToAsync(fileStream).ConfigureAwait(false);
-                }
+                using var fileStream = System.IO.File.OpenWrite(packageName);
+                await resourceStream.CopyToAsync(fileStream, 81920, cancellationToken).ConfigureAwait(false);
             }
 
             var packageFolder = Unpack(packageName, console);
@@ -108,8 +133,9 @@ namespace SenseNet.Packaging
 
         private static string Unpack(string package, TextWriter console)
         {
-            //var pkgFolder = Path.GetDirectoryName(package);
-            //var zipTarget = Path.Combine(pkgFolder, Path.GetFileNameWithoutExtension(package));
+            if (string.IsNullOrEmpty(package))
+                throw new ArgumentNullException(nameof(package));
+
             var zipTarget = Path.GetFileNameWithoutExtension(package);
             var packageZipPath = package.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)
                 ? package
@@ -146,6 +172,12 @@ namespace SenseNet.Packaging
             }
 
             return zipTarget;
+        }
+
+        private static async Task LogLineAsync(RepositoryBuilder builder, string text)
+        {
+            if (builder.Console != null)
+                await builder.Console.WriteLineAsync(text).ConfigureAwait(false);
         }
     }
 }

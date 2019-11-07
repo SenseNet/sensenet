@@ -1,18 +1,31 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository;
-using Task = System.Threading.Tasks.Task;
+using SenseNet.Tools;
 
 namespace SenseNet.Services.InstallData
 {
-    public class Installer
+    public static class Installer
     {
-        public static async Task InstallSenseNetAsync(Action<RepositoryBuilder> buildRepository, 
+        private const string InstallPackageName = "install-services-core.zip";
+
+        public static async Task<IRepositoryBuilder> InstallSenseNetAsync(this IRepositoryBuilder builder, 
             CancellationToken cancellationToken)
         {
-            await Packaging.Installer.InstallSenseNetAsync(typeof(Installer).Assembly, 
-                "install-services-core.zip",
-                buildRepository, cancellationToken);
+            await Packaging.Installer.InstallSenseNetAsync(typeof(Installer).Assembly,
+                InstallPackageName,
+                builder as RepositoryBuilder, cancellationToken);
+
+            return builder;
+        }
+
+        public static IRepositoryBuilder InstallSenseNet(this IRepositoryBuilder builder)
+        {
+            Packaging.Installer.InstallSenseNetAsync(typeof(Installer).Assembly,
+                InstallPackageName,
+                builder as RepositoryBuilder, CancellationToken.None).GetAwaiter().GetResult();
+
+            return builder;
         }
     }
 }
