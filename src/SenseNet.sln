@@ -18,8 +18,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Common", "Common\S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D908666-E47F-47A7-A7E5-C696B9CD517A}"
 	ProjectSection(SolutionItems) = preProject
+		..\tools\scripts\CompressInstall.ps1 = ..\tools\scripts\CompressInstall.ps1
 		..\tools\scripts\CreateNuGetPackages.ps1 = ..\tools\scripts\CreateNuGetPackages.ps1
 		nuget\snadmin\install-services\manifest.xml = nuget\snadmin\install-services\manifest.xml
+		nuget\snadmin\install-services-core\manifest.xml = nuget\snadmin\install-services-core\manifest.xml
 		nuget\readme.txt = nuget\readme.txt
 		nuget\content\Web.config.transform = nuget\content\Web.config.transform
 	EndProjectSection
@@ -68,7 +70,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Services.Core", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Services.InstallData", "SenseNet.Services.InstallData\SenseNet.Services.InstallData.csproj", "{E1FD0E29-39F8-40A1-89D7-F513DD783089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnConsoleInstaller", "Tools\SnConsoleInstaller\SnConsoleInstaller.csproj", "{0A1EF09D-E36E-46A8-A734-844C09323873}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnConsoleInstaller", "Tools\SnConsoleInstaller\SnConsoleInstaller.csproj", "{0A1EF09D-E36E-46A8-A734-844C09323873}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

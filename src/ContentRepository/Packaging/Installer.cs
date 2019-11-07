@@ -114,8 +114,10 @@ namespace SenseNet.Packaging
                 if (resourceStream == null)
                     throw new InvalidOperationException($"Package {packageName} not found.");
 
-                using var fileStream = System.IO.File.OpenWrite(packageName);
-                await resourceStream.CopyToAsync(fileStream, 81920, cancellationToken).ConfigureAwait(false);
+                using (var fileStream = System.IO.File.OpenWrite(packageName))
+                {
+                    await resourceStream.CopyToAsync(fileStream, 81920, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             var packageFolder = Unpack(packageName, console);
