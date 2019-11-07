@@ -2177,21 +2177,12 @@ SELECT CASE WHEN EXISTS (
 THEN CAST(1 AS BIT)
 ELSE CAST(0 AS BIT) END";
 
-            try
+            using (var ctx = CreateDataContext(cancellationToken))
             {
-                using (var ctx = CreateDataContext(cancellationToken))
-                {
-                    // make sure that database tables exist
-                    var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
-                    return Convert.ToBoolean(result);
-                }
+                // make sure that database tables exist
+                var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
+                return Convert.ToBoolean(result);
             }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex, "Error during database existence check.");
-            }
-
-            return false;
         }
 
         /* =============================================================================================== Tools */

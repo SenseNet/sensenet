@@ -1,5 +1,6 @@
 ﻿using SenseNet.ContentRepository.Storage.Data;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -38,6 +39,7 @@ namespace SenseNet.Packaging
             if (!dbExists)
             {
                 await LogLineAsync(repositoryBuilder, "Installing database...").ConfigureAwait(false);
+                var timer = Stopwatch.StartNew();
 
                 await DataStore.InstallDatabaseAsync(repositoryBuilder.InitialData, cancellationToken)
                     .ConfigureAwait(false);
@@ -57,6 +59,11 @@ namespace SenseNet.Packaging
 
                 // execute the install package
                 await InstallPackageAsync(assembly, packageName, repositoryBuilder, cancellationToken)
+                    .ConfigureAwait(false);
+
+                timer.Stop();
+
+                await LogLineAsync(repositoryBuilder, $"Database install finished. Elapsed time: {timer.Elapsed}")
                     .ConfigureAwait(false);
             }
             else
