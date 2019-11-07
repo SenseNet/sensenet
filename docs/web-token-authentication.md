@@ -66,7 +66,7 @@ _Steps of a token refresh process from the clients' point of view:_
 3. Access content using the access token
 4. Logout using the access token
 
-All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be chosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
+All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be chosen freely by a client developer. However, the two could be mixed, but we advice to choose one and stick to it.
 
 ![web token authentication protocol](images/SensenetTokenAuthentication.png)
 _figure 1:web token authentication protocol_
