@@ -854,16 +854,28 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation and wraps an enumerable <see cref="EntityTreeNodeData"/>
         /// as the Content tree representation.</returns>
         public abstract Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken);
+        
+        /// <summary>
+        /// Checks if the database exists and is ready to accept new items.
+        /// If this method returns false, the client should call the <see cref="InstallDatabaseAsync"/> method
+        /// to prepare the database.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps a boolean value
+        /// that is true if the database schema is ready.</returns>
+        public virtual Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(false);
+        }
 
         /// <summary>
-        /// Checks if the database exists and is ready to accept new items. If not, creates the empty schema.
+        /// Prepares the database schema for accepting new items.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public virtual Task<DatabaseStateResult> EnsureDatabaseAsync(CancellationToken cancellationToken)
+        public virtual Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
-            // default value is Installed
-            return Task.FromResult(DatabaseStateResult.Installed);
+            return Task.CompletedTask;
         }
 
         /* =============================================================================================== Tools */

@@ -291,55 +291,18 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }
-
-        public override async Task<DatabaseStateResult> EnsureDatabaseAsync(CancellationToken cancellationToken)
+        
+        public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)
         {
-            var exists = false;
-            const string schemaCheckSql = @"
-SELECT CASE WHEN EXISTS (
-    SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Nodes'
-)
-THEN CAST(1 AS BIT)
-ELSE CAST(0 AS BIT) END";
+            SnTrace.System.Write("Executing security schema script.");
+            await ExecuteEmbeddedNonQueryScriptAsync(
+                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
+                .ConfigureAwait(false);
 
-            try
-            {
-                using (var ctx = CreateDataContext(cancellationToken))
-                {
-                    // make sure that database tables exist
-                    var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
-                    exists = Convert.ToBoolean(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex, "Error during database existence check.");
-            }
-
-            if (exists)
-                return DatabaseStateResult.NotChanged;
-
-            // create schema
-            try
-            {
-                SnTrace.System.Write("Executing security schema script.");
-                await ExecuteEmbeddedNonQueryScriptAsync(
-                        "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
-                    .ConfigureAwait(false);
-
-                SnTrace.System.Write("Executing database schema script.");
-                await ExecuteEmbeddedNonQueryScriptAsync(
-                        "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
-                    .ConfigureAwait(false);
-
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex, "Error during database schema creation.");
-                return DatabaseStateResult.Error;
-            }
-
-            return DatabaseStateResult.Installed;
+            SnTrace.System.Write("Executing database schema script.");
+            await ExecuteEmbeddedNonQueryScriptAsync(
+                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /* =============================================================================================== Tools */

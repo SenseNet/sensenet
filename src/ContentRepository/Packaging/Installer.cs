@@ -33,17 +33,18 @@ namespace SenseNet.Packaging
 
             // Make sure that the database exists and contains the schema
             // necessary for importing initial content items.
-            var dbResult = await DataStore.EnsureInitialDatabase(repositoryBuilder.InitialData, cancellationToken)
-                .ConfigureAwait(false);
-
-            // If the database was installed just now, add initial repository items:
-            // - custom security entries (if provided)
-            // - default install package
-
-            if (dbResult == DatabaseStateResult.Installed)
+            var dbExists = await DataStore.IsDatabaseReadyAsync(cancellationToken).ConfigureAwait(false);
+            
+            if (!dbExists)
             {
+                await LogLineAsync(repositoryBuilder, "Installing database...").ConfigureAwait(false);
+
+                await DataStore.InstallDatabaseAsync(repositoryBuilder.InitialData, cancellationToken)
+                    .ConfigureAwait(false);
+
                 await LogLineAsync(repositoryBuilder, "Database installed.").ConfigureAwait(false);
 
+                // install custom security entries if provided
                 if (repositoryBuilder.InitialData?.Permissions?.Count > 0)
                 {
                     using (Repository.Start(repositoryBuilder))

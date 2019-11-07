@@ -2167,6 +2167,33 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract string LoadEntityTreeScript { get; }
 
+        /// <inheritdoc />
+        public override async Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
+        {
+            const string schemaCheckSql = @"
+SELECT CASE WHEN EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Nodes'
+)
+THEN CAST(1 AS BIT)
+ELSE CAST(0 AS BIT) END";
+
+            try
+            {
+                using (var ctx = CreateDataContext(cancellationToken))
+                {
+                    // make sure that database tables exist
+                    var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
+                    return Convert.ToBoolean(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex, "Error during database existence check.");
+            }
+
+            return false;
+        }
+
         /* =============================================================================================== Tools */
 
         protected abstract long ConvertTimestampToInt64(object timestamp);

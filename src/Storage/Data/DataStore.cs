@@ -21,14 +21,6 @@ using SenseNet.Search.Indexing;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE: move this enum to a separate file
-    public enum DatabaseStateResult
-    {
-        NotChanged,
-        Installed,
-        Error
-    }
-
     /// <summary>
     /// Main data access API of the Content Repository. Defines methods for loading and saving 
     /// <see cref="Node"/>s and other repository elements.
@@ -102,6 +94,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
+            //UNDONE: is this method necessary? InstallDatabaseAsync is able to handle this.
             return DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
 
@@ -118,23 +111,27 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         /// <summary>
-        /// Checks if the database exists and is ready to accept new items. If not, creates the schema
-        /// and fills it with the necessary initial data.
+        /// Checks if the database exists and is ready to accept new items.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps a bool value that is
+        /// true if the database already exists and contains the necessary schema.</returns>
+        public static Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
+        {
+            return DataProvider.IsDatabaseReadyAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates the database schema and fills it with the necessary initial data.
         /// </summary>
         /// <param name="initialData">Optional initial data.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps a database creation result.</returns>
-        public static async Task<DatabaseStateResult> EnsureInitialDatabase(InitialData initialData, CancellationToken cancellationToken)
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static async Task InstallDatabaseAsync(InitialData initialData, CancellationToken cancellationToken)
         {
-            var dbResult = await DataProvider.EnsureDatabaseAsync(cancellationToken).ConfigureAwait(false);
-
-            if (dbResult == DatabaseStateResult.Installed)
-            {
-                await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData()),
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            return dbResult;
+            await DataProvider.InstallDatabaseAsync(cancellationToken).ConfigureAwait(false);
+            await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData()),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /* =============================================================================================== Nodes */
