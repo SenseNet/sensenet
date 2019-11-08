@@ -72,13 +72,7 @@ namespace SenseNet.Packaging
                 // all the necessary content items.
                 await LogLineAsync(repositoryBuilder, "Database already exists.").ConfigureAwait(false);
             }
-
-            // after-install log
-            using (Repository.Start(repositoryBuilder))
-            {
-                await LogComponentsAsync(repositoryBuilder.Console).ConfigureAwait(false);
-            }
-
+            
             // Reset the original indexing setting so that subsequent packages use the 
             // same value as intended by the caller. 
             repositoryBuilder.StartIndexingEngine(origIndexingValue);
@@ -87,10 +81,8 @@ namespace SenseNet.Packaging
         public static async Task InstallPackageAsync(Assembly assembly, string packageName,
             RepositoryBuilder repositoryBuilder, CancellationToken cancellationToken)
         {
-            // prepare package: save it to the file system and extract
-            var packageFolder =
-                await UnpackEmbeddedPackageAsync(assembly, packageName, repositoryBuilder.Console, cancellationToken)
-                    .ConfigureAwait(false);
+            // prepare package: extract it to the file system
+            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, repositoryBuilder.Console);
 
             Logger.PackageName = packageName;
             Logger.Create(LogLevel.Default);
@@ -102,71 +94,20 @@ namespace SenseNet.Packaging
             PackageManager.Execute(packageFolder, currentDirectory, 0, null, 
                 repositoryBuilder.Console, repositoryBuilder);
         }
-
-        private static async Task<string> UnpackEmbeddedPackageAsync(Assembly assembly, string packageName, 
-            TextWriter console, CancellationToken cancellationToken)
+        
+        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName, TextWriter console)
         {
-            if (console != null)
-                await console.WriteLineAsync($"Writing package {packageName} to file system...").ConfigureAwait(false);
-
-            using (var resourceStream = assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{packageName}"))
-            {
-                if (resourceStream == null)
-                    throw new InvalidOperationException($"Package {packageName} not found.");
-
-                using (var fileStream = System.IO.File.OpenWrite(packageName))
-                {
-                    await resourceStream.CopyToAsync(fileStream, 81920, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            var packageFolder = Unpack(packageName, console);
-
-            return packageFolder;
-        }
-
-        private static async Task LogComponentsAsync(TextWriter console)
-        {
-            if (console == null)
-                return;
-
-            await console.WriteLineAsync("Installed components:").ConfigureAwait(false);
-            await console.WriteLineAsync("-----------------------------------------------------------------")
-                .ConfigureAwait(false);
-
-            foreach (var component in RepositoryVersionInfo.Instance.Components)
-            {
-                await console.WriteLineAsync($"{component.ComponentId.PadRight(50)}\t{component.Version}")
-                    .ConfigureAwait(false);
-            }
-        }
-
-        private static string Unpack(string package, TextWriter console)
-        {
-            if (string.IsNullOrEmpty(package))
-                throw new ArgumentNullException(nameof(package));
-
-            var zipTarget = Path.GetFileNameWithoutExtension(package);
-            var packageZipPath = package.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)
-                ? package
-                : package + ".zip";
-            var isZipExist = System.IO.File.Exists(packageZipPath);
-
-            if (Directory.Exists(package) && !isZipExist)
-            {
-                console?.WriteLine("Package directory: " + package);
-                return package;
-            }
+            if (string.IsNullOrEmpty(packageName))
+                throw new ArgumentNullException(nameof(packageName));
+            
+            var zipTarget = Path.GetFileNameWithoutExtension(packageName);
 
             console?.WriteLine("Package directory: " + zipTarget);
 
             if (Directory.Exists(zipTarget))
             {
-                if (isZipExist)
-                {
-                    Directory.Delete(zipTarget, true);
+                Directory.Delete(zipTarget, true);
                     console?.WriteLine("Old files and directories are deleted.");
-                }
             }
             else
             {
@@ -174,12 +115,17 @@ namespace SenseNet.Packaging
                 console?.WriteLine("Package directory created.");
             }
 
-            if (isZipExist)
+            console?.WriteLine("Extracting ...");
+
+            using (var resourceStream = assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{packageName}"))
             {
-                console?.WriteLine("Extracting ...");
-                Unpacker.Unpack(packageZipPath, zipTarget);
-                console?.WriteLine("Ok.");
+                if (resourceStream == null)
+                    throw new InvalidOperationException($"Package {packageName} not found.");
+
+                Unpacker.Unpack(resourceStream, zipTarget);
             }
+
+            console?.WriteLine("Ok.");
 
             return zipTarget;
         }
