@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.OData;
 using SenseNet.OData.Operations;
+using SenseNet.Portal.ApplicationModel;
 using SenseNet.Search;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
@@ -29,13 +30,21 @@ namespace SenseNet.ODataTests
             return "## Function1 called." +
                    $" Query: {httpContext.Request.QueryString}." +
                    $" Format: {request.Format}." +
-                   $" Path: {(content?.Path ?? "[null]")}." + 
+                   $" Path: {(content?.Path ?? "[null]")}." +
                    $" Param1: {param1}.";
         }
+        [ODataFunction]
+        public static string Function2(Content content, string param1, string param2, string param3 = null)
+        {
+            return "## Function1 called." +
+                   $" Path: {(content?.Path ?? "[null]")}." +
+                   $" Param1: {param1}." +
+                   $" Param2: {param2}.";
+        }
 
-        /* ============================================================= OPERATION RESULT TESTS */
+        /* ============================================================= METHOD BASED OPERATION TESTS */
 
-        /*[TestMethod]*/
+        [TestMethod]
         public async Task OD_MBOP_Invoke()
         {
             await ODataTestAsync(async () =>
@@ -48,6 +57,60 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var expected = "## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS. Param1: asdf.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_2()
+        {
+            await ODataTestAsync(async () =>
+            {
+                if (ContentType.GetByName("GenericODataApplication") == null)
+                {
+                    ContentTypeInstaller.InstallContentType(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""GenericODataApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.GenericODataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-GenericODataApplication,DisplayName</DisplayName>
+  <Description>$Ctd-GenericODataApplication,Description</Description>
+  <Icon>Application</Icon>
+  <Fields>
+    <Field name=""ClassName"" type=""ShortText"">
+      <DisplayName>$Ctd-GenericODataApplication,ClassName-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,ClassName-Description</Description>
+    </Field>
+    <Field name=""MethodName"" type=""ShortText"">
+      <DisplayName>$Ctd-GenericODataApplication,MethodName-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,MethodName-Description</Description>
+    </Field>
+    <Field name=""Parameters"" type=""LongText"">
+      <DisplayName>$Ctd-GenericODataApplication,Parameters-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,Parameters-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>");
+                }
+
+                var appRoot = Node.LoadNode("/Root/(apps)/GenericContent");
+                var app = new GenericODataApplication(appRoot)
+                {
+                    Name = "Function2",
+                    ActionTypeName = typeof(GenericODataOperation).FullName,
+                    ClassName = this.GetType().FullName,
+                    MethodName = "Function2",
+                    Parameters = "string param1, string param2"
+                };
+                app.Save();
+
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function2",
+                    "?param2=value2",
+                    "{param1:\"asdf\",param2:\"qwer\"}").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = "## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: qwer.";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
