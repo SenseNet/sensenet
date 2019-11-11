@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services.Install</id>
-    <version>7.7.1</version>
+    <version>7.7.2</version>
     <title>sensenet Services install package</title>
     <authors>kavics,aniko,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -17,17 +17,9 @@
     <dependencies>
       <group targetFramework="net461">
         <!-- Include old Services if it's full framework -->
-        <dependency id="SenseNet.Services" version="7.7.1.1" />
+        <dependency id="SenseNet.Services" version="7.7.2" />
         <dependency id="SenseNet.Security.EF6SecurityStore" version="4.1.0" />
         <dependency id="SenseNet.SnAdmin" version="1.4.4" />
-        <dependency id="SenseNet.Search.Lucene29.Local" version="7.4.0" />
-      </group>
-      <group targetFramework="netcoreapp3.0">
-        <!-- Include new Services if it's .Net Core -->
-        <dependency id="SenseNet.Services.Core" version="0.0.0.1" />
-        <dependency id="SenseNet.OData" version="0.0.0.1" />
-        <dependency id="SenseNet.Security.EFCSecurityStore" version="2.1.0" />
-        <dependency id="System.Runtime.Caching" version="4.5.0" />
         <dependency id="SenseNet.Search.Lucene29.Local" version="7.4.0" />
       </group>
     </dependencies>

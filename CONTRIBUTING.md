@@ -16,11 +16,11 @@ If you already have an exact source code change in your mind, it is easier (and 
 
 ## sensenet and its components
 This is a huge project that consists of multiple repositories:
-- main [sensenet github repository](https://github.com/SenseNet/sensenet) for the core product
+- main [sensenet GitHub repository](https://github.com/SenseNet/sensenet) for the core product
 - many [smaller repositories](https://github.com/SenseNet) for optional components that can be installed on top of the main product
 - an [awesome list](https://github.com/SenseNet/awesome-sensenet) of sensenet-related tools and plugins
 
-These components have their own version number and they are developed and released independently of the main product. Some of them (e.g. [Tools](https://github.com/SenseNet/sn-tools) or [Task Management](https://github.com/SenseNet/sn-taskmanagement)) can be used in any project, others (e.g. [sensenet Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) are more closely tied to the core product.
+These components have their own version number and they are developed and released independently from the main product. Some of them (e.g. [Tools](https://github.com/SenseNet/sn-tools) or [Task Management](https://github.com/SenseNet/sn-taskmanagement)) can be used in any project, others (e.g. [sensenet Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) are more closely tied to the core product.
 
 ## Reporting a bug
 When creating a bug report, please:
