@@ -68,7 +68,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.ContentRepository.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Services.Core", "Services.Core\SenseNet.Services.Core.csproj", "{2C97F180-2F80-49A5-9C8B-D114E4CCC819}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Services.InstallData", "SenseNet.Services.InstallData\SenseNet.Services.InstallData.csproj", "{E1FD0E29-39F8-40A1-89D7-F513DD783089}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Services.Core.Install", "Services.Core.Install\SenseNet.Services.Core.Install.csproj", "{E1FD0E29-39F8-40A1-89D7-F513DD783089}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnConsoleInstaller", "Tools\SnConsoleInstaller\SnConsoleInstaller.csproj", "{0A1EF09D-E36E-46A8-A734-844C09323873}"
 EndProject

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SenseNet.Services.InstallData\SenseNet.Services.InstallData.csproj" />
+    <ProjectReference Include="..\..\Services.Core.Install\SenseNet.Services.Core.Install.csproj" />
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <ExcludeAssets>all</ExcludeAssets>
     </ProjectReference>

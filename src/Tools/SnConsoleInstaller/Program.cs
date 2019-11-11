@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security.EFCSecurityStore;
-using SenseNet.Services.InstallData;
+using SenseNet.Services.Core.Install;
 using Task = System.Threading.Tasks.Task;
 
 namespace SnConsoleInstaller

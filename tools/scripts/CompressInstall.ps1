@@ -1,6 +1,6 @@
 ﻿$srcPath = [System.IO.Path]::GetFullPath(($PSScriptRoot + '\..\..\src'))
 $installSourceSnAdminPath = "$srcPath\nuget\snadmin"
-$installPackagePath = "$srcPath\SenseNet.Services.InstallData\install-services-core.zip"
+$installPackagePath = "$srcPath\Services.Core.Install\install-services-core.zip"
 
 New-Item $installSourceSnAdminPath\install-services-core\import -ItemType directory -Force
 

@@ -257,4 +257,4 @@ paket-files/
 /src/nuget/snadmin/install-services-core/import
 /src/nuget/snadmin/install-services-core/scripts
 /docs/nlb-environment.md
-/src/SenseNet.Services.InstallData/*.zip
+/src/Services.Core.Install/*.zip

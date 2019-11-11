@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.Tools;
 
-namespace SenseNet.Services.InstallData
+namespace SenseNet.Services.Core.Install
 {
     public static class Installer
     {
