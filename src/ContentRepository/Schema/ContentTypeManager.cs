@@ -76,6 +76,17 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        internal static ContentTypeManager CreateForTests()
+        {
+            var result = new ContentTypeManager();
+
+            result._contentPaths = new Dictionary<string, string>();
+            result._contentTypes = new Dictionary<string, ContentType>();
+            result.AllFieldNames = new List<string>();
+
+            return result;
+        }
+
         // =======================================================================
 
         private Dictionary<string, string> _contentPaths;
