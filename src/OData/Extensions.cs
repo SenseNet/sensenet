@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 
 namespace SenseNet.OData
 {
@@ -25,6 +26,15 @@ namespace SenseNet.OData
                 });
 
             return builder;
+        }
+
+        public static void SetODataRequest(this HttpContext httpContext, ODataRequest odataRequest)
+        {
+            httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] = odataRequest;
+        }
+        public static ODataRequest GetODataRequest(this HttpContext httpContext)
+        {
+            return httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] as ODataRequest;
         }
     }
 }

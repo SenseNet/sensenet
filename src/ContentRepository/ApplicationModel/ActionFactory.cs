@@ -47,6 +47,7 @@ namespace SenseNet.ApplicationModel
                         null, actionType);
             }
 
+
             action.Initialize(context, backUri, application, parameters);          
 
             return action.Visible ? action : null;

@@ -31,6 +31,8 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
+        public static readonly string ODataRequestHttpContextKey = "SenseNet.OData.ODataRequest";
+
         private static readonly IActionResolver DefaultActionResolver = new DefaultActionResolver();
         internal static IActionResolver ActionResolver => Providers.Instance.GetProvider<IActionResolver>() ?? DefaultActionResolver;
 
@@ -45,6 +47,7 @@ namespace SenseNet.OData
         static ODataMiddleware()
         {
             JsonConverters = new List<JsonConverter> {new Newtonsoft.Json.Converters.VersionConverter()};
+
             FieldConverters = new List<FieldConverter>();
             var fieldConverterTypes = TypeResolver.GetTypesByBaseType(typeof(FieldConverter));
             foreach (var fieldConverterType in fieldConverterTypes)
@@ -53,7 +56,8 @@ namespace SenseNet.OData
                 JsonConverters.Add(fieldConverter);
                 FieldConverters.Add(fieldConverter);
             }
-            OperationCenter.Discover();
+
+            OperationCenter.Initialize(new[] { typeof(HttpContext), typeof(ODataRequest) });
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
@@ -63,7 +67,7 @@ namespace SenseNet.OData
         internal const string BinaryPropertyName = "Binary";
         internal const int ExpansionLimit = int.MaxValue - 1;
 
-        internal ODataRequest ODataRequest { get; private set; }
+        internal ODataRequest ODataRequest { get; private set; } //UNDONE:!!! Delete this property
 
         private readonly RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
@@ -89,6 +93,8 @@ namespace SenseNet.OData
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         internal async Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
         {
+            httpContext.SetODataRequest(odataRequest);
+
             var request = httpContext.Request;
             var httpMethod = request.Method;
             var inputStream = request.Body;
@@ -845,6 +851,7 @@ namespace SenseNet.OData
                     e.Message, name);
             }
 
+            method.HttpContext = httpContext;
             return new ODataOperationMethod { Method = method };
         }
 

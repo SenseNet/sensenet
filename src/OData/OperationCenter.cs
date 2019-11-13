@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -20,8 +21,14 @@ namespace SenseNet.OData
             new Dictionary<string, OperationInfo[]>();
         private static readonly JsonSerializer ValueDeserializer = JsonSerializer.Create(
             new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Error });
+        public static Type[] SystemParameters { get; private set; }
 
-        public static void Discover()
+        public static void Initialize(Type[] systemParameters)
+        {
+            SystemParameters = systemParameters;
+            Discover();
+        }
+        internal static void Discover()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -43,7 +50,7 @@ namespace SenseNet.OData
         }
         private static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
         {
-            var parameters = method.GetParameters();
+            var parameters = method.GetParameters().Where(p => !SystemParameters.Contains(p.ParameterType)).ToArray();
             var req = parameters.Where(x => !x.IsOptional).ToArray();
             var opt = parameters.Where(x => x.IsOptional).ToArray();
             var info = new OperationInfo(method, attributes)
@@ -353,8 +360,18 @@ namespace SenseNet.OData
             paramValues[0] = context.Content;
 
             for (int i = 1; i < methodParams.Length; i++)
+            {
                 if (!context.Parameters.TryGetValue(methodParams[i].Name, out paramValues[i]))
-                    paramValues[i] = methodParams[i].DefaultValue;
+                {
+                    //UNDONE: Resolve system parameters by a dynamic way (this class maybe don't know these types)
+                    if (methodParams[i].ParameterType == typeof(HttpContext))
+                        paramValues[i] = context.HttpContext;
+                    else if (methodParams[i].ParameterType == typeof(ODataRequest))
+                        paramValues[i] = context.HttpContext.GetODataRequest();
+                    else
+                        paramValues[i] = methodParams[i].DefaultValue;
+                }
+            }
 
             var policies = context.Operation.Policies;
             if (policies.Length > 0 && !OperationInspector.Instance.CheckPolicies(User.Current, policies, context))
