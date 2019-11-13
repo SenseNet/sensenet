@@ -7,8 +7,9 @@ namespace SenseNet.OData
     {
         public static OperationInspector Instance { get; set; } = new OperationInspector();
 
-        public virtual bool CheckBeforeInvoke(IUser user, OperationCallingContext context)
+        public virtual bool CheckPolicies(IUser user, string[] policies, OperationCallingContext context)
         {
+            //UNDONE: call appropriate method of sensenet.
             return false;
         }
 

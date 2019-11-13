@@ -26,7 +26,13 @@ namespace SenseNet.ContentRepository
         public string Path { get; private set; }
         public string ActionType { get; private set; }
 
-        public InvalidContentActionException(InvalidContentActionReason reason, string path, string message=null, string actionType = null) : base(GetMessage(reason, actionType, message))
+        public InvalidContentActionException(InvalidContentActionReason reason, string path, string message = null, string actionType = null) : base(GetMessage(reason, actionType, message))
+        {
+            Reason = reason;
+            Path = path;
+            ActionType = actionType;
+        }
+        public InvalidContentActionException(Exception inner, InvalidContentActionReason reason, string path, string message = null, string actionType = null) : base(GetMessage(reason, actionType, message), inner)
         {
             Reason = reason;
             Path = path;

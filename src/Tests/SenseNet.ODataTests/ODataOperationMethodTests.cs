@@ -9,16 +9,51 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.Search.Querying;
 using SenseNet.Tests.Accessors;
 
 namespace SenseNet.ODataTests
 {
     [TestClass]
-    public class ODataOperationMethodTests
+    public class ODataOperationMethodTests : ODataTestBase
     {
+        private AccessProvider _accessProviderBackup;
+        private NodeTypeManager _nodeTypeManagerBackup;
+        private ContentTypeManager _contentTypeManagerBackup;
+        [TestInitialize]
+        public void InitializeMboTest()
+        {
+            _accessProviderBackup = Providers.Instance.AccessProvider;
+            var accessProvider = new DesktopAccessProvider();
+            new ObjectAccessor(accessProvider).SetField("_initialized", true);
+            accessProvider.SetCurrentUser(new TestUser("Admin", 1));
+            Providers.Instance.AccessProvider = accessProvider;
+
+            _nodeTypeManagerBackup = Providers.Instance.NodeTypeManeger;
+            var ntm = NodeTypeManager.CreateForTests();
+            Providers.Instance.NodeTypeManeger = ntm;
+            var ct = ntm.CreateNodeType(1, null, "ContentType", "ClassName1");
+            var gc = ntm.CreateNodeType(2, null, "GenericContent", "ClassName2");
+            var ut = ntm.CreateNodeType(3, gc, "User", "ClassName3");
+
+            _contentTypeManagerBackup = Providers.Instance.GetProvider<ContentTypeManager>("ContentTypeManager");
+            Providers.Instance.SetProvider("ContentTypeManager", ContentTypeManager.CreateForTests());
+        }
+        [TestCleanup]
+        public void CleanupMboTest()
+        {
+            Providers.Instance.AccessProvider = _accessProviderBackup;
+            Providers.Instance.NodeTypeManeger = _nodeTypeManagerBackup;
+            Providers.Instance.SetProvider("ContentTypeManager", _contentTypeManagerBackup);
+        }
+
         /* ====================================================================== OPERATION INFO TESTS */
 
         [TestMethod]
@@ -693,7 +728,7 @@ namespace SenseNet.ODataTests
         public void OD_MBO_Call_Inspection()
         {
             Reset();
-
+            
             AddMethod(typeof(TestOperations).GetMethod("Op1"));
 
             var inspector = new AllowEverything();
@@ -711,7 +746,7 @@ namespace SenseNet.ODataTests
             var lines = inspector.Log.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             Assert.AreEqual(3, lines.Length);
             Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[0]);
-            Assert.AreEqual("CheckByPermissions: 111, 1, See,Run", lines[1]);
+            Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[1]);
             Assert.AreEqual("CheckBeforeInvoke: 1, Op1", lines[2]);
         }
 
@@ -792,9 +827,9 @@ namespace SenseNet.ODataTests
             private StringBuilder _sb = new StringBuilder();
             public string Log { get { return _sb.ToString(); } }
 
-            public override bool CheckBeforeInvoke(IUser user, OperationCallingContext context)
+            public override bool CheckPolicies(IUser user, string[] policies, OperationCallingContext context)
             {
-                _sb.AppendLine($"CheckBeforeInvoke: {user.Id}, {context.Operation.Method.Name}");
+                _sb.AppendLine($"CheckPolicies: {user.Id}, {string.Join(",", policies)}");
                 return true;
             }
             public override bool CheckByPermissions(Content content, IUser user, string[] permissions)

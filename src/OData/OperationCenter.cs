@@ -92,16 +92,20 @@ namespace SenseNet.OData
         {
             return GetMethodByRequest(content, methodName, Read(requestBody));
         }
-        private static OperationCallingContext GetMethodByRequest(Content content, string methodName, JObject requestParameters)
+        internal static OperationCallingContext GetMethodByRequest(Content content, string methodName, JObject requestParameters)
         {
-            var requestParameterNames = requestParameters.Properties().Select(p => p.Name).ToArray();
+            var requestParameterNames = requestParameters == null
+            ? new string[0]
+            : requestParameters.Properties().Select(p => p.Name).ToArray();
 
             var candidates = GetCandidatesByName(methodName);
-
-            //UNDONE: concatenate where clauses before freeze the feature.
-            candidates = candidates.Where(x => AllRequiredParametersExist(x, requestParameterNames)).ToArray();
-            candidates = candidates.Where(x => FilterByContentTypes(x.ContentTypes, content.ContentType.Name)).ToArray();
-            candidates = candidates.Where(x => FilterByRolesAndPermissions(x.Roles, x.RequiredPermissions, content, User.Current)).ToArray();
+            if (candidates.Length > 0)
+            {
+                //UNDONE: concatenate where clauses before freeze the feature.
+                candidates = candidates.Where(x => AllRequiredParametersExist(x, requestParameterNames)).ToArray();
+                candidates = candidates.Where(x => FilterByContentTypes(x.ContentTypes, content.ContentType.Name)).ToArray();
+                candidates = candidates.Where(x => FilterByRolesAndPermissions(x.Roles, x.RequiredPermissions, content, User.Current)).ToArray();
+            }
 
             // If there is no any candidates, throw: Operation not found ERROR
             if (candidates.Length == 0)
@@ -141,7 +145,9 @@ namespace SenseNet.OData
         {
             if (roles.Length > 0 && !OperationInspector.Instance.CheckByRoles(user, roles))
                 return false;
-            return OperationInspector.Instance.CheckByPermissions(content, user, permissions);
+            if (permissions.Length > 0 && !OperationInspector.Instance.CheckByPermissions(content, user, permissions))
+                return false;
+            return true;
         }
 
         private static OperationInfo[] GetCandidatesByName(string methodName)
@@ -345,14 +351,16 @@ namespace SenseNet.OData
             var methodParams = method.GetParameters();
             var paramValues = new object[methodParams.Length];
             paramValues[0] = context.Content;
+
             for (int i = 1; i < methodParams.Length; i++)
                 if (!context.Parameters.TryGetValue(methodParams[i].Name, out paramValues[i]))
                     paramValues[i] = methodParams[i].DefaultValue;
 
-            if (OperationInspector.Instance.CheckBeforeInvoke(User.Current, context))
-                return method.Invoke(null, paramValues);
+            var policies = context.Operation.Policies;
+            if (policies.Length > 0 && !OperationInspector.Instance.CheckPolicies(User.Current, policies, context))
+                throw new UnauthorizedAccessException(); //UNDONE:? 404, 503?
 
-            throw new UnauthorizedAccessException(); //UNDONE:? 404, 503?
+            return method.Invoke(null, paramValues);
         }
 
         /* ====================================================================== */

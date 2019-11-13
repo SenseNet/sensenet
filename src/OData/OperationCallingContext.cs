@@ -3,7 +3,7 @@ using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
 {
-    public class OperationCallingContext
+    public class OperationCallingContext //UNDONE: Encapsulate the current HttpContext and ODataRequest
     {
         public Content Content { get; }
         public OperationInfo Operation { get; }

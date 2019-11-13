@@ -262,7 +262,8 @@ namespace SenseNet.ApplicationModel
         }
 
         /// <summary>
-        /// Equivalent to the IsSideEffecting in the  OData standard. Default value is true that means: this operation is Action and not a Function).
+        /// Equivalent to the IsSideEffecting in the  OData standard.
+        /// Default value is true that means: this operation is Action and not a Function.
         /// </summary>
         public virtual bool CausesStateChange { get { return true; } }
         public virtual bool IsODataOperation { get { return false; } }
@@ -272,8 +273,8 @@ namespace SenseNet.ApplicationModel
         /// <summary>
         /// Executes the action logic when called via OData protocol
         /// </summary>
-        /// <param name="path">Context content</param>
-        /// <param name="args">Any other Action specific parameters.</param>
+        /// <param name="content">Context content</param>
+        /// <param name="parameters">Any other Action specific parameters.</param>
         /// <returns>Any object or null as response.</returns>
         public virtual object Execute(Content content, params object[] parameters)
         {
