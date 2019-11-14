@@ -17,11 +17,12 @@ namespace SenseNet.OData
     public class OperationCenter // DefaultActionResolver
     {
         private static readonly OperationInfo[] EmptyMethods = new OperationInfo[0];
-        private static readonly Dictionary<string, OperationInfo[]> Operations =
-            new Dictionary<string, OperationInfo[]>();
         private static readonly JsonSerializer ValueDeserializer = JsonSerializer.Create(
             new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Error });
-        public static Type[] SystemParameters { get; private set; }
+
+        internal static readonly Dictionary<string, OperationInfo[]> Operations =
+            new Dictionary<string, OperationInfo[]>();
+        public static Type[] SystemParameters { get; internal set; }
 
         public static void Initialize(Type[] systemParameters)
         {

@@ -24,6 +24,7 @@ namespace SenseNet.ODataTests
         [ODataFunction]
         [RequiredPermission("See, Run")]
         [SnAuthorize(Role = "Administrators,Editors")]
+        [SnAuthorize(Policy = "Policy1")]
         //UNDONE: Extend and use AppModel's ScenarioAttribute
         //[Scenario("Scenario1, Scenario2")]
         //[Scenario(Scenario = "Scenario2, Scenario3")]
