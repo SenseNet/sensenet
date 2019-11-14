@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core
 {
@@ -16,9 +18,26 @@ namespace SenseNet.Services.Core
         {
             app.Use(async (context, next) =>
             {
-                //TODO:~ load the authenticated user from the context and set it in sensenet
-                //var user = context.User;
-                User.Current = User.Administrator;
+                // At this point the user is already authenticated, which means
+                // we can trust the information in the identity: we load the
+                // user in elevated mode (using system account).
+
+                var identity = context?.User?.Identity;
+                if (!string.IsNullOrEmpty(identity?.Name))
+                {
+                    // Currently we look for users by their login name. In the future we may add
+                    // a more flexible user discovery algorithm here.
+
+                    var user = SystemAccount.Execute(() => User.Load(identity.Name));
+                    if (user != null)
+                    {
+                        User.Current = user;
+                    }
+                    else
+                    {
+                        SnTrace.Security.Write("Unknown user: {0}", identity.Name);
+                    }
+                }
 
                 await next.Invoke();
             });
