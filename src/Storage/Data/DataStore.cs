@@ -94,7 +94,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <returns>A Task that represents the asynchronous operation.</returns>
         public static Task InstallInitialDataAsync(InitialData data, CancellationToken cancellationToken)
         {
-            //UNDONE: is this method necessary? InstallDatabaseAsync is able to handle this.
             return DataProvider.InstallInitialDataAsync(data, cancellationToken);
         }
 
