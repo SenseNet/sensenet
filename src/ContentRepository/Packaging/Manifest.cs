@@ -27,7 +27,7 @@ namespace SenseNet.Packaging
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
 
-        internal static Manifest Parse(string path, int phase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
+        internal static Manifest Parse(string path, int phase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false, bool editConnectionString = false)
         {
             var xml = new XmlDocument();
             try
@@ -38,17 +38,17 @@ namespace SenseNet.Packaging
             {
                 throw new PackagingException("Manifest parse error", e);
             }
-            return Parse(xml, phase, log, packageParameters, forcedReinstall);
+            return Parse(xml, phase, log, packageParameters, forcedReinstall, editConnectionString);
         }
         /// <summary>Test entry</summary>
-        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false, bool editConnectionString = false)
         {
             var manifest = new Manifest();
             manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
             ParseParameters(xml, manifest);
-            manifest.CheckPrerequisits(packageParameters, forcedReinstall, log);
+            manifest.CheckPrerequisits(packageParameters, forcedReinstall, log, editConnectionString);
             ParseSteps(xml, manifest, currentPhase);
 
             return manifest;
@@ -212,7 +212,7 @@ namespace SenseNet.Packaging
             return _phases[index];
         }
 
-        private void CheckPrerequisits(PackageParameter[] packageParameters, bool forcedReinstall, bool log)
+        private void CheckPrerequisits(PackageParameter[] packageParameters, bool forcedReinstall, bool log, bool editConnectionString)
         {
             if (log)
             {
@@ -223,7 +223,7 @@ namespace SenseNet.Packaging
                     Logger.LogMessage(forcedReinstall ? "FORCED REINSTALL" : "SYSTEM INSTALL");
             }
 
-            if (SystemInstall)
+            if (SystemInstall && editConnectionString)
             {
                 EditConnectionString(this.Parameters, packageParameters);
                 RepositoryVersionInfo.Reset();

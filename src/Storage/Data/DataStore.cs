@@ -109,6 +109,30 @@ namespace SenseNet.ContentRepository.Storage.Data
             return DataProvider.LoadEntityTreeAsync(cancellationToken);
         }
 
+        /// <summary>
+        /// Checks if the database exists and is ready to accept new items.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps a bool value that is
+        /// true if the database already exists and contains the necessary schema.</returns>
+        public static Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
+        {
+            return DataProvider.IsDatabaseReadyAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates the database schema and fills it with the necessary initial data.
+        /// </summary>
+        /// <param name="initialData">Optional initial data.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static async Task InstallDatabaseAsync(InitialData initialData, CancellationToken cancellationToken)
+        {
+            await DataProvider.InstallDatabaseAsync(cancellationToken).ConfigureAwait(false);
+            await InstallInitialDataAsync(initialData ?? InitialData.Load(new SenseNetServicesInitialData()),
+                cancellationToken).ConfigureAwait(false);
+        }
+
         /* =============================================================================================== Nodes */
 
         /// <summary>

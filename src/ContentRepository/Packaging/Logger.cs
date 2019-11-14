@@ -23,7 +23,7 @@ namespace SenseNet.Packaging
     public static class Logger
     {
         public static LogLevel Level { get; private set; }
-        private static IPackagingLogger[] _loggers;
+        private static IPackagingLogger[] _loggers = new IPackagingLogger[0];
         public static int Errors { get; set; }
         public static string PackageName { get; set; }
 
