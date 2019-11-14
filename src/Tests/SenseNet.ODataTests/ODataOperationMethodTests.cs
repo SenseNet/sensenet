@@ -25,36 +25,6 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataOperationMethodTests : ODataTestBase
     {
-        //private AccessProvider _accessProviderBackup;
-        //private NodeTypeManager _nodeTypeManagerBackup;
-        //private ContentTypeManager _contentTypeManagerBackup;
-        //[TestInitialize]
-        //public void InitializeMboTest()
-        //{
-        //    _accessProviderBackup = Providers.Instance.AccessProvider;
-        //    var accessProvider = new DesktopAccessProvider();
-        //    new ObjectAccessor(accessProvider).SetField("_initialized", true);
-        //    accessProvider.SetCurrentUser(new TestUser("Admin", 1));
-        //    Providers.Instance.AccessProvider = accessProvider;
-
-        //    _nodeTypeManagerBackup = Providers.Instance.NodeTypeManeger;
-        //    var ntm = NodeTypeManager.CreateForTests();
-        //    Providers.Instance.NodeTypeManeger = ntm;
-        //    var ct = ntm.CreateNodeType(1, null, "ContentType", "ClassName1");
-        //    var gc = ntm.CreateNodeType(2, null, "GenericContent", "ClassName2");
-        //    var ut = ntm.CreateNodeType(3, gc, "User", "ClassName3");
-
-        //    _contentTypeManagerBackup = Providers.Instance.GetProvider<ContentTypeManager>("ContentTypeManager");
-        //    Providers.Instance.SetProvider("ContentTypeManager", ContentTypeManager.CreateForTests());
-        //}
-        //[TestCleanup]
-        //public void CleanupMboTest()
-        //{
-        //    Providers.Instance.AccessProvider = _accessProviderBackup;
-        //    Providers.Instance.NodeTypeManeger = _nodeTypeManagerBackup;
-        //    Providers.Instance.SetProvider("ContentTypeManager", _contentTypeManagerBackup);
-        //}
-
         /* ====================================================================== OPERATION INFO TESTS */
 
         [TestMethod]

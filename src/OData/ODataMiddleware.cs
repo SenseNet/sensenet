@@ -21,7 +21,6 @@ using Guid = System.Guid;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
-
 // ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.OData
@@ -386,93 +385,6 @@ namespace SenseNet.OData
             return deserialized;
         }
 
-        //internal static string PeekParameters(Stream inputStream)
-        //{
-        //    //  type1 name1, type2 name2
-        //    var temp = new MemoryStream();
-        //    inputStream.CopyTo(temp); //UNDONE: read the stream once if possible (pin the JObject).
-        //    inputStream.Seek(0L, SeekOrigin.Begin);
-        //    temp.Seek(0L, SeekOrigin.Begin);
-        //    var models = Read(temp);
-
-        //    if (models == null)
-        //        return string.Empty;
-        //    var parameters = ((IEnumerable<KeyValuePair<string, JToken>>) models)
-        //        .Select(x => $"{GetItemTypeName(x.Value.Type)} {x.Key}").ToArray();
-
-        //    var signature = string.Join(", ", parameters);
-        //    return signature;
-        //}
-        //private static Type GetItemType(JTokenType tokenType)
-        //{
-        //    switch (tokenType)
-        //    {
-        //        case JTokenType.Integer:
-        //            return typeof(int);
-        //        case JTokenType.Float:
-        //            return typeof(double);
-        //        case JTokenType.String:
-        //            return typeof(string);
-        //        case JTokenType.Boolean:
-        //            return typeof(bool);
-        //        case JTokenType.Date:
-        //            return typeof(DateTime);
-        //        case JTokenType.Guid:
-        //            return typeof(Guid);
-        //        default:
-        //            return typeof(object);
-        //        //case JTokenType.None:
-        //        //case JTokenType.Object:
-        //        //case JTokenType.Array:
-        //        //case JTokenType.Constructor:
-        //        //case JTokenType.Property:
-        //        //case JTokenType.Comment:
-        //        //case JTokenType.Null:
-        //        //case JTokenType.Undefined:
-        //        //case JTokenType.Raw:
-        //        //case JTokenType.Bytes:
-        //        //case JTokenType.Uri:
-        //        //case JTokenType.TimeSpan:
-        //        //default:
-        //        //    throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
-        //    }
-        //}
-        //private static string GetItemTypeName(JTokenType tokenType)
-        //{
-        //    switch (tokenType)
-        //    {
-        //        case JTokenType.Integer:
-        //            return "int";
-        //        case JTokenType.Float:
-        //            return "double";
-        //        case JTokenType.String:
-        //            return "string";
-        //        case JTokenType.Boolean:
-        //            return "bool";
-        //        case JTokenType.Date:
-        //            return "DateTime";
-        //        case JTokenType.Guid:
-        //            return "Guid";
-        //        //UNDONE: Array / Reference?
-        //        default:
-        //            return "object";
-        //        //case JTokenType.None:
-        //        //case JTokenType.Object:
-        //        //case JTokenType.Array:
-        //        //case JTokenType.Constructor:
-        //        //case JTokenType.Property:
-        //        //case JTokenType.Comment:
-        //        //case JTokenType.Null:
-        //        //case JTokenType.Undefined:
-        //        //case JTokenType.Raw:
-        //        //case JTokenType.Bytes:
-        //        //case JTokenType.Uri:
-        //        //case JTokenType.TimeSpan:
-        //        //default:
-        //        //    throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
-        //    }
-        //}
-
         internal static string GetEntityUrl(string path)
         {
             path = path.TrimEnd('/');
@@ -832,8 +744,6 @@ namespace SenseNet.OData
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
         {
             var httpContext = (HttpContext) state;
-            //var parameters = ODataMiddleware.PeekParameters(httpContext.Request.Body);
-            //var signature = $"{name.ToLowerInvariant()}({parameters.ToLowerInvariant()})";
             OperationCallingContext method;
             try
             {
@@ -854,113 +764,5 @@ namespace SenseNet.OData
             method.HttpContext = httpContext;
             return new ODataOperationMethod { Method = method };
         }
-
-        /* ======================================================================================== CACHE */
-
-        //private static Dictionary<string, MethodBase> _methods;
-
-        //private static MethodBase GetMethodBySignature(string signature)
-        //{
-        //    if (_methods == null)
-        //        _methods = DiscoverMethodBasedOperations();
-        //    if (!_methods.TryGetValue(signature, out var method))
-        //        return null;
-        //    if(method == null)
-        //        throw new AmbiguousMatchException("Ambiguous call: " + signature);
-        //    return method;
-        //}
-
-        //private static Dictionary<string, MethodBase> DiscoverMethodBasedOperations()
-        //{
-        //    var result = new Dictionary<string, MethodBase>();
-
-        //    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        //    {
-        //        try
-        //        {
-        //            foreach (var type in assembly.GetExportedTypes())
-        //            {
-        //                foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
-        //                {
-        //                    var signatures = GetSignatures(method);
-        //                    if (signatures == null)
-        //                        continue;
-
-        //                    throw new NotImplementedException(); //UNDONE: NotImplementedException
-
-        //                    result[method.Name] = method;
-        //                }
-        //            }
-        //        }
-        //        catch (NotSupportedException)
-        //        {
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
-        //private static string[] GetSignatures(MethodInfo method)
-        //{
-        //    var attributes = method.GetCustomAttributes();
-        //    if (!(attributes.Any(a => a is ODataFunction || a is ODataAction)))
-        //        return null;
-
-        //    var parameters = method.GetParameters();
-        //    if (parameters.Length == 0)
-        //        return null;
-        //    if (parameters[0].ParameterType != typeof(Content))
-        //        return null;
-        //    if (parameters[0].IsOptional)
-        //        return null;
-
-        //    var prms = new string[parameters.Length];
-        //    var optCount = 0;
-        //    for (int i = 0; i < prms.Length; i++)
-        //    {
-        //        if(parameters[i].IsOptional)
-        //            optCount++;
-        //        var prm = GetParameterAsString(parameters[i]);
-        //        if (prm == null)
-        //            return null; //UNDONE: need a notification (log, trace): the method cannot be used because of a parameter type.
-        //        prms[i] = prm;
-        //    }
-
-        //    return GenerateSignatures(method.Name, prms, optCount);
-        //}
-
-        //private static string GetParameterAsString(ParameterInfo parameter)
-        //{
-        //    string type;
-        //    if (parameter.ParameterType == typeof(Content))
-        //        type = "content";
-        //    if (parameter.ParameterType == typeof(HttpContext))
-        //        type = "httpcontext";
-        //    if (parameter.ParameterType == typeof(ODataRequest))
-        //        type = "odatarequest";
-        //    if (parameter.ParameterType == typeof(Content))
-        //        type = "content";
-        //    else if (parameter.ParameterType == typeof(string))
-        //        type = "string";
-        //    else if (parameter.ParameterType == typeof(int))
-        //        type = "int";
-        //    else if (parameter.ParameterType == typeof(DateTime))
-        //        type = "datetime";
-        //    else if (parameter.ParameterType == typeof(double))
-        //        type = "double";
-        //    else if (parameter.ParameterType == typeof(Guid))
-        //        type = "guid";
-        //    else if (parameter.ParameterType == typeof(object))
-        //        type = "object";
-        //    else
-        //        return null;
-
-        //    return $"{type} {parameter.Name}";
-        //}
-
-        //private static string[] GenerateSignatures(string methodName, string[] parameters, int optCount)
-        //{
-        //    return new[] {$"{methodName.ToLowerInvariant()}({(string.Join(", ", parameters))})"};
-        //}
     }
 }

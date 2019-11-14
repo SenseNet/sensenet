@@ -14,7 +14,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData
 {
-    public class OperationCenter // DefaultActionResolver
+    public class OperationCenter
     {
         private static readonly OperationInfo[] EmptyMethods = new OperationInfo[0];
         private static readonly JsonSerializer ValueDeserializer = JsonSerializer.Create(
