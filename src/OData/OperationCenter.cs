@@ -44,12 +44,12 @@ namespace SenseNet.OData
                 }
             }
         }
-        private static OperationInfo AddMethod(MethodBase method)
+        internal static OperationInfo AddMethod(MethodBase method)
         {
             var attributes = method.GetCustomAttributes().ToArray();
             return AddMethod(method, attributes);
         }
-        private static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
+        internal static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
         {
             var parameters = method.GetParameters().Where(p => !SystemParameters.Contains(p.ParameterType)).ToArray();
             var req = parameters.Where(x => !x.IsOptional).ToArray();
