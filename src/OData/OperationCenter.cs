@@ -22,13 +22,10 @@ namespace SenseNet.OData
 
         internal static readonly Dictionary<string, OperationInfo[]> Operations =
             new Dictionary<string, OperationInfo[]>();
-        public static Type[] SystemParameters { get; internal set; }
 
-        public static void Initialize(Type[] systemParameters)
-        {
-            SystemParameters = systemParameters;
-            Discover();
-        }
+        public static Type[] SystemParameters { get; internal set; } =
+            new[] {typeof(HttpContext), typeof(ODataRequest)};
+
         internal static void Discover()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -98,7 +95,7 @@ namespace SenseNet.OData
 
         public static OperationCallingContext GetMethodByRequest(Content content, string methodName, string requestBody)
         {
-            return GetMethodByRequest(content, methodName, Read(requestBody));
+            return GetMethodByRequest(content, methodName, ODataMiddleware.Read(requestBody));
         }
         internal static OperationCallingContext GetMethodByRequest(Content content, string methodName, JObject requestParameters)
         {
@@ -109,10 +106,11 @@ namespace SenseNet.OData
             var candidates = GetCandidatesByName(methodName);
             if (candidates.Length > 0)
             {
-                //UNDONE: concatenate where clauses before freeze the feature.
-                candidates = candidates.Where(x => AllRequiredParametersExist(x, requestParameterNames)).ToArray();
-                candidates = candidates.Where(x => FilterByContentTypes(x.ContentTypes, content.ContentType.Name)).ToArray();
-                candidates = candidates.Where(x => FilterByRolesAndPermissions(x.Roles, x.RequiredPermissions, content, User.Current)).ToArray();
+                candidates = candidates.Where(x =>
+                        AllRequiredParametersExist(x, requestParameterNames) &&
+                        FilterByContentTypes(x.ContentTypes, content.ContentType.Name) &&
+                        FilterByRolesAndPermissions(x.Roles, x.RequiredPermissions, content, User.Current))
+                    .ToArray();
             }
 
             // If there is no any candidates, throw: Operation not found ERROR
@@ -364,7 +362,6 @@ namespace SenseNet.OData
             {
                 if (!context.Parameters.TryGetValue(methodParams[i].Name, out paramValues[i]))
                 {
-                    //UNDONE: Resolve system parameters by a dynamic way (this class maybe don't know these types)
                     if (methodParams[i].ParameterType == typeof(HttpContext))
                         paramValues[i] = context.HttpContext;
                     else if (methodParams[i].ParameterType == typeof(ODataRequest))
@@ -376,39 +373,9 @@ namespace SenseNet.OData
 
             var policies = context.Operation.Policies;
             if (policies.Length > 0 && !OperationInspector.Instance.CheckPolicies(User.Current, policies, context))
-                throw new UnauthorizedAccessException(); //UNDONE:? 404, 503?
+                throw new UnauthorizedAccessException();
 
             return method.Invoke(null, paramValues);
-        }
-
-        /* ====================================================================== */
-
-        /// <summary>
-        /// Helper method for deserializing the given string representation.
-        /// </summary>
-        /// <param name="models">JSON object that will be deserialized.</param>
-        /// <returns>Deserialized JObject instance.</returns>
-        internal static JObject Read(string models) //UNDONE: Use the existing ODataMiddleware method.
-        {
-            if (string.IsNullOrEmpty(models))
-                return null;
-
-            var firstChar = models.Last() == ']' ? '[' : '{';
-            var p = models.IndexOf(firstChar);
-            if (p > 0)
-                models = models.Substring(p);
-
-            var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
-            var serializer = JsonSerializer.Create(settings);
-            var jReader = new JsonTextReader(new StringReader(models));
-            var deserialized = serializer.Deserialize(jReader);
-
-            if (deserialized is JObject jObject)
-                return jObject;
-            if (deserialized is JArray jArray)
-                return jArray[0] as JObject;
-
-            throw new SnNotSupportedException();
         }
     }
 }

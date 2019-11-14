@@ -56,7 +56,7 @@ namespace SenseNet.OData
                 FieldConverters.Add(fieldConverter);
             }
 
-            OperationCenter.Initialize(new[] { typeof(HttpContext), typeof(ODataRequest) });
+            OperationCenter.Discover();
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
@@ -65,8 +65,6 @@ namespace SenseNet.OData
         internal const string ChildrenPropertyName = "Children";
         internal const string BinaryPropertyName = "Binary";
         internal const int ExpansionLimit = int.MaxValue - 1;
-
-        internal ODataRequest ODataRequest { get; private set; } //UNDONE:!!! Delete this property
 
         private readonly RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
@@ -107,10 +105,6 @@ namespace SenseNet.OData
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
-
-                this.ODataRequest = odataRequest;
-                Exception requestError = this.ODataRequest.RequestError;
-
                 odataWriter = ODataWriter.Create(httpContext, odataRequest);
                 if (odataWriter == null)
                 {
@@ -120,6 +114,7 @@ namespace SenseNet.OData
                 }
                 odataWriter.Initialize(odataRequest);
 
+                var requestError = odataRequest.RequestError;
                 if (requestError != null)
                 {
                     var innerOdataError = requestError as ODataException;

@@ -839,7 +839,7 @@ namespace SenseNet.ODataTests
             public CleanOperationCenterBlock()
             {
                 OperationCenter.Operations.Clear();
-                OperationCenter.SystemParameters = new[] {typeof(HttpContext), typeof(ODataRequest)};
+                //OperationCenter.SystemParameters = new[] {typeof(HttpContext), typeof(ODataRequest)};
             }
             public void Dispose()
             {
@@ -861,7 +861,7 @@ namespace SenseNet.ODataTests
         {
             try
             {
-                return OperationCenter.Read(requestBody);
+                return ODataMiddleware.Read(requestBody);
             }
             catch (TargetInvocationException e)
             {
