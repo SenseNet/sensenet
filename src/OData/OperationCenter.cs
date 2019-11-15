@@ -355,13 +355,47 @@ namespace SenseNet.OData
                     }
 
                 case JTokenType.Array:
-                    if (expectedType == typeof(object[]))
+                    var array = (JArray)token;
+                    value = null;
+                    try
                     {
-                        var array = (JArray)token;
-                        value = array.Select(x => x.ToObject<object>()).ToArray();
-                        return typeof(object[]);
+                        if (expectedType == typeof(string[])) value = array.Select(x => x.ToObject<string>()).ToArray();
+                        else if (expectedType == typeof(int[])) value = array.Select(x => x.ToObject<int>()).ToArray();
+                        else if (expectedType == typeof(long[])) value = array.Select(x => x.ToObject<long>()).ToArray();
+                        else if (expectedType == typeof(bool[])) value = array.Select(x => x.ToObject<bool>()).ToArray();
+                        else if (expectedType == typeof(float[])) value = array.Select(x => x.ToObject<float>()).ToArray();
+                        else if (expectedType == typeof(double[])) value = array.Select(x => x.ToObject<double>()).ToArray();
+                        else if (expectedType == typeof(decimal[])) value = array.Select(x => x.ToObject<decimal>()).ToArray();
+
+                        else if (expectedType == typeof(List<string>)) value = array.Select(x => x.ToObject<string>()).ToList();
+                        else if (expectedType == typeof(List<int>)) value = array.Select(x => x.ToObject<int>()).ToList();
+                        else if (expectedType == typeof(List<long>)) value = array.Select(x => x.ToObject<long>()).ToList();
+                        else if (expectedType == typeof(List<bool>)) value = array.Select(x => x.ToObject<bool>()).ToList();
+                        else if (expectedType == typeof(List<float>)) value = array.Select(x => x.ToObject<float>()).ToList();
+                        else if (expectedType == typeof(List<double>)) value = array.Select(x => x.ToObject<double>()).ToList();
+                        else if (expectedType == typeof(List<decimal>)) value = array.Select(x => x.ToObject<decimal>()).ToList();
+
+                        else if (expectedType == typeof(IEnumerable<string>)) value = array.Select(x => x.ToObject<string>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<int>)) value = array.Select(x => x.ToObject<int>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<long>)) value = array.Select(x => x.ToObject<long>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<bool>)) value = array.Select(x => x.ToObject<bool>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<float>)) value = array.Select(x => x.ToObject<float>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<double>)) value = array.Select(x => x.ToObject<double>()).ToArray();
+                        else if (expectedType == typeof(IEnumerable<decimal>)) value = array.Select(x => x.ToObject<decimal>()).ToArray();
+
+                        else
+                        {
+                            value = array.Select(x => x.ToObject<object>()).ToArray();
+                            return typeof(object[]);
+                        }
+                        return expectedType;
                     }
-                    throw new SnNotSupportedException(); //UNDONE: not tested
+                    catch
+                    {
+                        // ignored
+                    }
+                    value = array;
+                    return typeof(object);
 
                 case JTokenType.None:
                 case JTokenType.Null:

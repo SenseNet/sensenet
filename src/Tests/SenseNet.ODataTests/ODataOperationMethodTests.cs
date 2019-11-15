@@ -631,28 +631,24 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
-                {
-                    AddMethod(typeof(TestOperations).GetMethod("Op1"));
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                            @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                        @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
 
-                    // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
 
-                    // ASSERT
-                    var objects = (object[]) result;
-                    Assert.AreEqual("asdf", objects[0]);
-                    Assert.AreEqual(42, objects[1]);
-                    Assert.AreEqual(true, objects[2]);
-                    Assert.AreEqual(0.12f, objects[3]);
-                    Assert.AreEqual(0.13m, objects[4]);
-                    Assert.AreEqual(0.14d, objects[5]);
-                }
+                // ASSERT
+                var objects = (object[]) result;
+                Assert.AreEqual("asdf", objects[0]);
+                Assert.AreEqual(42, objects[1]);
+                Assert.AreEqual(true, objects[2]);
+                Assert.AreEqual(0.12f, objects[3]);
+                Assert.AreEqual(0.13m, objects[4]);
+                Assert.AreEqual(0.14d, objects[5]);
             });
         }
 
@@ -661,124 +657,119 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
+                // ACTION
+                OperationCallingContext context;
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
                 {
-                    AddMethod(typeof(TestOperations).GetMethod("Op2"));
-
-                    // ACTION
-                    OperationCallingContext context;
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""dummy"":0}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    var objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""a"":""testvalue""}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual("testvalue", objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""b"":42}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(42, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""c"":true}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(true, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""d"":12.345}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(12.345f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""e"":12.345}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(12.345m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""f"":12.345}");
-                        result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(12.345d, objects[5]);
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""dummy"":0}");
+                    result = OperationCenter.Invoke(context);
                 }
+
+                // ASSERT
+                var objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""a"":""testvalue""}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual("testvalue", objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""b"":42}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(42, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""c"":true}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(true, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""d"":12.345}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(12.345f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""e"":12.345}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(12.345m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
+
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                {
+                    context = OperationCenter.GetMethodByRequest(GetContent(), "Op2", @"{""f"":12.345}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(12.345d, objects[5]);
             });
         }
 
@@ -787,18 +778,13 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
+                // ACTION
+                using (new OperationInspectorSwindler(new AllowEverything()))
                 {
-                    AddMethod(typeof(TestOperations).GetMethod("Op3"));
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                    {
-                        var context = OperationCenter.GetMethodByRequest(GetContent(), "Op3", @"{""dummy"":1}");
-                        var result = OperationCenter.Invoke(context);
-                        // ASSERT
-                        Assert.AreEqual("Called", result);
-                    }
+                    var context = OperationCenter.GetMethodByRequest(GetContent(), "Op3", @"{""dummy"":1}");
+                    var result = OperationCenter.Invoke(context);
+                    // ASSERT
+                    Assert.AreEqual("Called", result);
                 }
             });
         }
@@ -808,28 +794,24 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
-                {
-                    AddMethod(typeof(TestOperations).GetMethod("Op1"));
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                            @"{""a"":null, ""b"":null, ""c"":null, ""d"":null, ""e"":null, ""f"":null}");
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                        @"{""a"":null, ""b"":null, ""c"":null, ""d"":null, ""e"":null, ""f"":null}");
 
-                    // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
 
-                    // ASSERT
-                    var objects = (object[])result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-                }
+                // ASSERT
+                var objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
             });
         }
 
@@ -838,28 +820,24 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
-                {
-                    AddMethod(typeof(TestOperations).GetMethod("Op1"));
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-                            @"{""a"":undefined, ""b"":undefined, ""c"":undefined, ""d"":undefined, ""e"":undefined, ""f"":undefined}");
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                        @"{""a"":undefined, ""b"":undefined, ""c"":undefined, ""d"":undefined, ""e"":undefined, ""f"":undefined}");
 
-                    // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
 
-                    // ASSERT
-                    var objects = (object[]) result;
-                    Assert.AreEqual(null, objects[0]);
-                    Assert.AreEqual(0, objects[1]);
-                    Assert.AreEqual(false, objects[2]);
-                    Assert.AreEqual(0.0f, objects[3]);
-                    Assert.AreEqual(0.0m, objects[4]);
-                    Assert.AreEqual(0.0d, objects[5]);
-                }
+                // ASSERT
+                var objects = (object[]) result;
+                Assert.AreEqual(null, objects[0]);
+                Assert.AreEqual(0, objects[1]);
+                Assert.AreEqual(false, objects[2]);
+                Assert.AreEqual(0.0f, objects[3]);
+                Assert.AreEqual(0.0m, objects[4]);
+                Assert.AreEqual(0.0d, objects[5]);
             });
         }
 
@@ -868,28 +846,23 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
+                var inspector = new AllowEverything();
+                var content = GetContent(null, "User");
+
+                // ACTION
+                using (new OperationInspectorSwindler(inspector))
                 {
-                    AddMethod(typeof(TestOperations).GetMethod("Op1"));
-
-                    var inspector = new AllowEverything();
-                    var content = GetContent(null, "User");
-
-                    // ACTION
-                    using (new OperationInspectorSwindler(inspector))
-                    {
-                        var context = OperationCenter.GetMethodByRequest(content, "Op1",
-                            @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
-                        var result = OperationCenter.Invoke(context);
-                    }
-
-                    // ASSERT
-                    var lines = inspector.Log.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    Assert.AreEqual(3, lines.Length);
-                    Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[0]);
-                    Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[1]);
-                    //Assert.AreEqual("CheckBeforeInvoke: 1, Op1", lines[2]);
+                    var context = OperationCenter.GetMethodByRequest(content, "Op1",
+                        @"{""a"":""asdf"", ""b"":42, ""c"":true, ""d"":0.12, ""e"":0.13, ""f"":0.14}");
+                    var result = OperationCenter.Invoke(context);
                 }
+
+                // ASSERT
+                var lines = inspector.Log.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+                Assert.AreEqual(3, lines.Length);
+                Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[0]);
+                Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[1]);
+                Assert.AreEqual("CheckPolicies: 1, Policy1", lines[2]);
             });
         }
 
@@ -898,73 +871,61 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
-                {
-                    AddMethod(typeof(TestOperations).GetMethod("Op4"));
-                    OperationCallingContext context;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
-                            @"{'a':{'Snout': 456, 'Height': 654}}");
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                        @"{'a':{'Snout': 456, 'Height': 654}}");
 
-                    // ACTION
-                    object result;
-                    using (new OperationInspectorSwindler(new AllowEverything()))
-                        result = OperationCenter.Invoke(context);
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
 
-                    // ASSERT
-                    Assert.AreEqual(typeof(JObject), result.GetType());
-                    Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(result.ToString()));
-                }
+                // ASSERT
+                Assert.AreEqual(typeof(JObject), result.GetType());
+                Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(result.ToString()));
             });
         }
 
-        //[TestMethod]
-        //public void OD_MBO_Call_Enumerables()
-        //{
-        //    ODataTest(() =>
-        //    {
-        //        using (new CleanOperationCenterBlock())
-        //        {
-        //            AddMethod(typeof(TestOperations).GetMethod("Op4"));
-        //            OperationCallingContext context;
-        //            using (new OperationInspectorSwindler(new AllowEverything()))
-        //                context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
-        //                    @"{""a"":[""xxx"",""yyy"",""zzz""],
-        //                                 ""b"":[1,2,3,42],
-        //                                 ""c"":[true,false,true],
-        //                                 ""d"":[0.12, 0.13, 0,14],
-        //                                 ""e"":[0.22, 0.23, 0,24],
-        //                                 ""f"":[0.32, 0.33, 0,34],
-        //                                 ""g"":[{""Snout"": 345, ""Height"": 543},{""Snout"": 456, ""Height"": 654}]}");
-
-        //            // ACTION
-        //            object result;
-        //            using (new OperationInspectorSwindler(new AllowEverything()))
-        //                result = OperationCenter.Invoke(context);
-
-        //            // ASSERT
-        //            var objects = (object[])result;
-        //            Assert.AreEqual("asdf", objects[0]);
-        //            Assert.AreEqual(42, objects[1]);
-        //            Assert.AreEqual(true, objects[2]);
-        //            Assert.AreEqual(0.12f, objects[3]);
-        //            Assert.AreEqual(0.13m, objects[4]);
-        //            Assert.AreEqual(0.14d, objects[5]);
-        //        }
-        //    });
-        //}
         [TestMethod]
         public void OD_MBO_Call_ObjectArray()
         {
             ODataTest(() =>
             {
-                using (new CleanOperationCenterBlock())
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op5",
+                        @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
+
+                // ASSERT
+                var objects = (object[]) result;
+                Assert.AreEqual(42L, objects[0]);
+                Assert.AreEqual("xxx", objects[1]);
+                Assert.AreEqual(true, objects[2]);
+                Assert.AreEqual(4.25d, objects[3]);
+                Assert.AreEqual(typeof(JArray), objects[4].GetType());
+                Assert.AreEqual("[1,2,3]", RemoveWhitespaces(objects[4].ToString()));
+                Assert.AreEqual(typeof(JObject), objects[5].GetType());
+                Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(objects[5].ToString()));
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Call_Array()
+        {
+            #region void Test<T>(string methodName, string request, T[] expectedResult)
+            void Test<T>(string methodName, string request, T[] expectedResult)
+            {
+                ODataTest(() =>
                 {
-                    AddMethod(typeof(TestOperations).GetMethod("Op5"));
                     OperationCallingContext context;
                     using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op5",
-                            @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
 
                     // ACTION
                     object result;
@@ -972,17 +933,92 @@ namespace SenseNet.ODataTests
                         result = OperationCenter.Invoke(context);
 
                     // ASSERT
-                    var objects = (object[])result;
-                    Assert.AreEqual(42L, objects[0]);
-                    Assert.AreEqual("xxx", objects[1]);
-                    Assert.AreEqual(true, objects[2]);
-                    Assert.AreEqual(4.25d, objects[3]);
-                    Assert.AreEqual(typeof(JArray), objects[4].GetType());
-                    Assert.AreEqual("[1,2,3]", RemoveWhitespaces(objects[4].ToString()));
-                    Assert.AreEqual(typeof(JObject), objects[5].GetType());
-                    Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(objects[5].ToString()));
-                }
-            });
+                    var values = (T[]) result;
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.Array_String), @"{'a':['xxx', 'yyy', 'zzz']}", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Array_Int), @"{'a':[1,2,42]}", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Array_Long), @"{'a':[1,2,42]}", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Array_Bool), @"{'a':[true,false,true]}", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Array_Float), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Array_Double), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Array_Decimal), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1m, 2.2m, 42.42m });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_List()
+        {
+            #region void Test<T>(string methodName, string request, T[] expectedResult)
+            void Test<T>(string methodName, string request, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = (List<T>)result;
+                    Assert.AreEqual(expectedResult.Length, values.Count);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.List_String), @"{'a':['xxx', 'yyy', 'zzz']}", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.List_Int), @"{'a':[1,2,42]}", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.List_Long), @"{'a':[1,2,42]}", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.List_Bool), @"{'a':[true,false,true]}", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.List_Float), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.List_Double), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.List_Decimal), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1m, 2.2m, 42.42m });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_Enumerable()
+        {
+            #region void Test<T>(string methodName, string request, T[] expectedResult)
+            void Test<T>(string methodName, string request, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = ((IEnumerable<T>)result).ToArray();
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.Enumerable_String), @"{'a':['xxx', 'yyy', 'zzz']}", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Enumerable_Int), @"{'a':[1,2,42]}", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Enumerable_Long), @"{'a':[1,2,42]}", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Enumerable_Bool), @"{'a':[true,false,true]}", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Enumerable_Float), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Enumerable_Double), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1m, 2.2m, 42.42m });
         }
 
         /* ====================================================================== TOOLS */
