@@ -1021,6 +1021,42 @@ namespace SenseNet.ODataTests
             Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1m, 2.2m, 42.42m });
         }
 
+        [TestMethod]
+        public void OD_MBO_Call_EnumerableError()
+        {
+            #region void Test<T>(string methodName, string request)
+            bool Test<T>(string methodName, string request)
+            {
+                var testResult = false;
+                ODataTest(() =>
+                {
+                    try
+                    {
+                        OperationCallingContext context;
+                        using (new OperationInspectorSwindler(new AllowEverything()))
+                            context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName, request);
+
+                        object result;
+                        using (new OperationInspectorSwindler(new AllowEverything()))
+                            result = OperationCenter.Invoke(context);
+
+                        testResult = true;
+                    }
+                    catch (Exception e)
+                    {
+                        // ignored
+                    }
+                });
+                return testResult;
+            }
+
+            #endregion
+
+            Assert.IsTrue(Test<string>(nameof(TestOperations.Enumerable_String), @"{'a':['xxx', true, 'zzz']}"));
+            Assert.IsTrue(Test<int>(nameof(TestOperations.Enumerable_Int), @"{'a':[1,2,'42']}"));
+            Assert.IsFalse(Test<int>(nameof(TestOperations.Enumerable_Int), @"{'a':[1,2,'xxx']}"));
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };

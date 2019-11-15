@@ -36,8 +36,7 @@ namespace SenseNet.OData
         internal static readonly Dictionary<string, OperationInfo[]> Operations =
             new Dictionary<string, OperationInfo[]>();
 
-        public static Type[] SystemParameters { get; internal set; } =
-            new[] {typeof(HttpContext), typeof(ODataRequest)};
+        public static Type[] SystemParameters { get; } = {typeof(HttpContext), typeof(ODataRequest)};
 
         internal static void Discover()
         {
@@ -61,9 +60,9 @@ namespace SenseNet.OData
         }
         internal static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
         {
-            var parameters = method.GetParameters(); //.Where(p => !SystemParameters.Contains(p.ParameterType)).ToArray();
-            var req = new List<ParameterInfo>(); // parameters.Where(x => !x.IsOptional).ToArray();
-            var opt = new List<ParameterInfo>(); // parameters.Where(x => x.IsOptional).ToArray();
+            var parameters = method.GetParameters();
+            var req = new List<ParameterInfo>();
+            var opt = new List<ParameterInfo>();
             foreach (var parameter in parameters)
             {
                 var paramType = parameter.ParameterType;
