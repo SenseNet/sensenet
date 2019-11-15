@@ -893,6 +893,31 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_Call_JObject()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    AddMethod(typeof(TestOperations).GetMethod("Op4"));
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                            @"{'a':{'Snout': 456, 'Height': 654}}");
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    Assert.AreEqual(typeof(JObject), result.GetType());
+                    Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(result.ToString()));
+                }
+            });
+        }
+
         //[TestMethod]
         //public void OD_MBO_Call_Enumerables()
         //{
@@ -931,15 +956,14 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Call_ObjectArray()
         {
-
             ODataTest(() =>
             {
                 using (new CleanOperationCenterBlock())
                 {
-                    AddMethod(typeof(TestOperations).GetMethod("Op4"));
+                    AddMethod(typeof(TestOperations).GetMethod("Op5"));
                     OperationCallingContext context;
                     using (new OperationInspectorSwindler(new AllowEverything()))
-                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op5",
                             @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
 
                     // ACTION
@@ -953,8 +977,10 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual("xxx", objects[1]);
                     Assert.AreEqual(true, objects[2]);
                     Assert.AreEqual(4.25d, objects[3]);
-                    Assert.AreEqual("[1,2,3]", objects[4]);
-                    Assert.AreEqual("{'Snout': 456, 'Height': 654}", objects[5]);
+                    Assert.AreEqual(typeof(JArray), objects[4].GetType());
+                    Assert.AreEqual("[1,2,3]", RemoveWhitespaces(objects[4].ToString()));
+                    Assert.AreEqual(typeof(JObject), objects[5].GetType());
+                    Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(objects[5].ToString()));
                 }
             });
         }

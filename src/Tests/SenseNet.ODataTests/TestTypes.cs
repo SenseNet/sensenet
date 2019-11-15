@@ -55,21 +55,21 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        public static object[] Op4(Content content, object[] a)
+        public static JObject Op4(Content content, JObject a)
         {
             return a;
         }
 
         [ODataFunction]
-        public static object[] Op5(Content content, IEnumerable<int> a, List<int> b, int[] c)
+        public static object[] Op5(Content content, object[] a)
+        {
+            return a;
+        }
+
+        [ODataFunction]
+        public static object[] Op6(Content content, int[] a, IEnumerable<int> b, List<int> c)
         {
             return new object[] { a, b, c };
-        }
-
-        [ODataFunction]
-        public static JObject Op6(Content content, JObject a)
-        {
-            return a;
         }
     }
 }

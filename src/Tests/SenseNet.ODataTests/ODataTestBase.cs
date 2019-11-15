@@ -612,5 +612,14 @@ namespace SenseNet.ODataTests
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
+
+        protected string RemoveWhitespaces(string input)
+        {
+            return input
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace("\t", "")
+                .Replace(" ", "");
+        }
     }
 }
