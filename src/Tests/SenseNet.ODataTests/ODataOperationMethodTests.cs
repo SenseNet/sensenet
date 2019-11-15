@@ -86,7 +86,7 @@ namespace SenseNet.ODataTests
             {
                 var method = new TestMethodInfo("fv1",
                     "Content content, string a, int b",
-                    "string c, DateTime d");
+                    "string c, object d");
 
                 // ACTION
                 var info = AddMethod(method);
@@ -104,8 +104,49 @@ namespace SenseNet.ODataTests
                     "c,d",
                     string.Join(",", info.OptionalParameterNames));
                 Assert.AreEqual(
-                    "String,DateTime",
+                    "String,Object",
                     string.Join(",", info.OptionalParameterTypes.Select(t => t.Name).ToArray()));
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetInfo_AllowedArrays()
+        {
+            ODataTest(() =>
+            {
+                var method = new TestMethodInfo("fv1",
+                    "Content content, object[] a, string[] b, int[] c, long[] d, bool[] e, float[] f, double[] g, decimal[] h",
+                    null);
+
+                // ACTION
+                var info = AddMethod(method);
+
+                // ASSERT
+                Assert.AreEqual(8, info.RequiredParameterNames.Length);
+                Assert.AreEqual(8, info.RequiredParameterTypes.Length);
+                Assert.AreEqual(0, info.OptionalParameterNames.Length);
+                Assert.AreEqual(0, info.OptionalParameterTypes.Length);
+                Assert.AreEqual(typeof(object[]), info.RequiredParameterTypes[0]);
+                Assert.AreEqual(typeof(string[]), info.RequiredParameterTypes[1]);
+                Assert.AreEqual(typeof(int[]), info.RequiredParameterTypes[2]);
+                Assert.AreEqual(typeof(long[]), info.RequiredParameterTypes[3]);
+                Assert.AreEqual(typeof(bool[]), info.RequiredParameterTypes[4]);
+                Assert.AreEqual(typeof(float[]), info.RequiredParameterTypes[5]);
+                Assert.AreEqual(typeof(double[]), info.RequiredParameterTypes[6]);
+                Assert.AreEqual(typeof(decimal[]), info.RequiredParameterTypes[7]);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetInfo_DisallowedArrays()
+        {
+            ODataTest(() =>
+            {
+                Assert.IsNull(AddMethod(new TestMethodInfo(
+                    "fv1", "Content content, DateTime[] a", null)));
+                Assert.IsNull(AddMethod(new TestMethodInfo(
+                    "fv1", "Content content, Elephant[] a", null)));
+                // etc.
             });
         }
 
@@ -514,21 +555,21 @@ namespace SenseNet.ODataTests
         [ExpectedException(typeof(JsonReaderException))]
         public void OD_MBO_Request_InvalidJson()
         {
-            var request = Read("asdf");
+            var request = ODataMiddleware.Read("asdf");
         }
         [TestMethod]
         public void OD_MBO_Request_Invalid()
         {
-            var request = Read("");
+            var request = ODataMiddleware.Read("");
             Assert.IsNull(request);
 
-            request = Read("['asdf']");
+            request = ODataMiddleware.Read("['asdf']");
             Assert.IsNull(request);
         }
         [TestMethod]
         public void OD_MBO_Request_Object()
         {
-            var request = Read("{'a':'asdf'}");
+            var request = ODataMiddleware.Read("{'a':'asdf'}");
             Assert.AreEqual(JTokenType.String, request["a"].Type);
             Assert.AreEqual("{\"a\":\"asdf\"}", request.ToString()
                 .Replace("\r", "").Replace("\n", "").Replace(" ", ""));
@@ -536,7 +577,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Models()
         {
-            var request = Read("models=[{'a':'asdf'}]");
+            var request = ODataMiddleware.Read("models=[{'a':'asdf'}]");
             Assert.AreEqual(JTokenType.String, request["a"].Type);
             Assert.AreEqual("{\"a\":\"asdf\"}", request.ToString()
                 .Replace("\r", "").Replace("\n", "").Replace(" ", ""));
@@ -544,7 +585,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Properties()
         {
-            var request = Read("models=[{'a':42, 'b':false, 'c':'asdf', 'd':[], 'e':{a:12}}]");
+            var request = ODataMiddleware.Read("models=[{'a':42, 'b':false, 'c':'asdf', 'd':[], 'e':{a:12}}]");
             Assert.AreEqual(JTokenType.Integer, request["a"].Type);
             Assert.AreEqual(JTokenType.Boolean, request["b"].Type);
             Assert.AreEqual(JTokenType.String, request["c"].Type);
@@ -554,11 +595,33 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Float()
         {
-            var request = Read("models=[{'a':4.2}]");
+            var request = ODataMiddleware.Read("models=[{'a':4.2}]");
             Assert.AreEqual(JTokenType.Float, request["a"].Type);
             Assert.AreEqual(4.2f, request["a"].Value<float>());
             Assert.AreEqual(4.2d, request["a"].Value<double>());
             Assert.AreEqual(4.2m, request["a"].Value<decimal>());
+        }
+        //[TestMethod]
+        //public void OD_MBO_Request_StringArray()
+        //{
+        //    var request = ODataMiddleware.Read("models=[{'a':['xxx','yyy','zzz']}]");
+
+        //    var array = (JArray) request["a"];
+        //    Assert.AreEqual(JTokenType.Array, array.Type);
+        //    var stringArray = array.Select(x => x.Value<string>()).ToArray();
+        //    var actual = string.Join(",", stringArray);
+        //    Assert.AreEqual("xxx,yyy,zzz", actual);
+        //}
+        [TestMethod]
+        public void OD_MBO_Request_ObjectArray()
+        {
+            var request = ODataMiddleware.Read("models=[{'a':[1,'xxx',false,42]}]");
+
+            var array = (JArray)request["a"];
+            Assert.AreEqual(JTokenType.Array, array.Type);
+            var objectArray = array.Cast<object>().ToArray();
+            var actual = string.Join(",", objectArray.Select(x=>x.ToString()));
+            Assert.AreEqual("1,xxx,False,42", actual);
         }
 
         /* ====================================================================== CALLING TESTS */
@@ -830,6 +893,72 @@ namespace SenseNet.ODataTests
             });
         }
 
+        //[TestMethod]
+        //public void OD_MBO_Call_Enumerables()
+        //{
+        //    ODataTest(() =>
+        //    {
+        //        using (new CleanOperationCenterBlock())
+        //        {
+        //            AddMethod(typeof(TestOperations).GetMethod("Op4"));
+        //            OperationCallingContext context;
+        //            using (new OperationInspectorSwindler(new AllowEverything()))
+        //                context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+        //                    @"{""a"":[""xxx"",""yyy"",""zzz""],
+        //                                 ""b"":[1,2,3,42],
+        //                                 ""c"":[true,false,true],
+        //                                 ""d"":[0.12, 0.13, 0,14],
+        //                                 ""e"":[0.22, 0.23, 0,24],
+        //                                 ""f"":[0.32, 0.33, 0,34],
+        //                                 ""g"":[{""Snout"": 345, ""Height"": 543},{""Snout"": 456, ""Height"": 654}]}");
+
+        //            // ACTION
+        //            object result;
+        //            using (new OperationInspectorSwindler(new AllowEverything()))
+        //                result = OperationCenter.Invoke(context);
+
+        //            // ASSERT
+        //            var objects = (object[])result;
+        //            Assert.AreEqual("asdf", objects[0]);
+        //            Assert.AreEqual(42, objects[1]);
+        //            Assert.AreEqual(true, objects[2]);
+        //            Assert.AreEqual(0.12f, objects[3]);
+        //            Assert.AreEqual(0.13m, objects[4]);
+        //            Assert.AreEqual(0.14d, objects[5]);
+        //        }
+        //    });
+        //}
+        [TestMethod]
+        public void OD_MBO_Call_ObjectArray()
+        {
+
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    AddMethod(typeof(TestOperations).GetMethod("Op4"));
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                            @"{'a':[42, 'xxx', true, 4.25, [1,2,3], {'Snout': 456, 'Height': 654}]}");
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var objects = (object[])result;
+                    Assert.AreEqual(42L, objects[0]);
+                    Assert.AreEqual("xxx", objects[1]);
+                    Assert.AreEqual(true, objects[2]);
+                    Assert.AreEqual(4.25d, objects[3]);
+                    Assert.AreEqual("[1,2,3]", objects[4]);
+                    Assert.AreEqual("{'Snout': 456, 'Height': 654}", objects[5]);
+                }
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };
@@ -838,8 +967,8 @@ namespace SenseNet.ODataTests
         {
             public CleanOperationCenterBlock()
             {
+                var _ = new ODataMiddleware(null); // Ensure running the first-touch discover
                 OperationCenter.Operations.Clear();
-                //OperationCenter.SystemParameters = new[] {typeof(HttpContext), typeof(ODataRequest)};
             }
             public void Dispose()
             {
@@ -855,18 +984,6 @@ namespace SenseNet.ODataTests
         private OperationInfo AddMethod(TestMethodInfo method)
         {
             return OperationCenter.AddMethod(method, _defaultAttributes);
-        }
-
-        private JObject Read(string requestBody)
-        {
-            try
-            {
-                return ODataMiddleware.Read(requestBody);
-            }
-            catch (TargetInvocationException e)
-            {
-                throw e.InnerException;
-            }
         }
 
 
@@ -976,14 +1093,34 @@ namespace SenseNet.ODataTests
                     case "Content": return typeof(Content);
                     case "string": return typeof(string);
                     case "int": return typeof(int);
-                    case "DateTime": return typeof(DateTime);
+                    case "long": return typeof(long);
                     case "double": return typeof(double);
                     case "decimal": return typeof(decimal);
                     case "float": return typeof(float);
                     case "bool": return typeof(bool);
+                    case "object": return typeof(object);
 
+                    case "string[]": return typeof(string[]);
+                    case "int[]": return typeof(int[]);
+                    case "long[]": return typeof(long[]);
+                    case "double[]": return typeof(double[]);
+                    case "decimal[]": return typeof(decimal[]);
+                    case "float[]": return typeof(float[]);
+                    case "bool[]": return typeof(bool[]);
+                    case "object[]": return typeof(object[]);
+
+                    // disallowed types
+                    case "DateTime": return typeof(DateTime);
+                    case "DateTime[]": return typeof(DateTime[]);
                     case "Elephant": return typeof(Elephant);
+                    case "Elephant[]": return typeof(Elephant[]);
                     case "Spaceship": return typeof(Spaceship);
+                    case "Spaceship[]": return typeof(Spaceship[]);
+
+                    case "IEnumerable<int>": return typeof(IEnumerable<int>);
+                    case "List<int>": return typeof(List<int>);
+                    case "Stack<int>": return typeof(Stack<int>);
+                    case "Dictionary<int-int>": return typeof(Dictionary<int, int>);
 
                     default:
                         throw new ApplicationException("Unknown type: " + src);

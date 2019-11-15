@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
@@ -51,6 +52,24 @@ namespace SenseNet.ODataTests
         public static string Op3(Content content)
         {
             return "Called";
+        }
+
+        [ODataFunction]
+        public static object[] Op4(Content content, object[] a)
+        {
+            return a;
+        }
+
+        [ODataFunction]
+        public static object[] Op5(Content content, IEnumerable<int> a, List<int> b, int[] c)
+        {
+            return new object[] { a, b, c };
+        }
+
+        [ODataFunction]
+        public static JObject Op6(Content content, JObject a)
+        {
+            return a;
         }
     }
 }

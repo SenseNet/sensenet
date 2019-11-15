@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -19,6 +20,18 @@ namespace SenseNet.OData
         private static readonly OperationInfo[] EmptyMethods = new OperationInfo[0];
         private static readonly JsonSerializer ValueDeserializer = JsonSerializer.Create(
             new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Error });
+
+        private static readonly Type[] AllowedArrayElementTypes = new[]
+        {
+            typeof(string),
+            typeof(int),
+            typeof(long),
+            typeof(double),
+            typeof(decimal),
+            typeof(float),
+            typeof(bool),
+            typeof(object),
+        };
 
         internal static readonly Dictionary<string, OperationInfo[]> Operations =
             new Dictionary<string, OperationInfo[]>();
@@ -48,9 +61,22 @@ namespace SenseNet.OData
         }
         internal static OperationInfo AddMethod(MethodBase method, Attribute[] attributes)
         {
-            var parameters = method.GetParameters().Where(p => !SystemParameters.Contains(p.ParameterType)).ToArray();
-            var req = parameters.Where(x => !x.IsOptional).ToArray();
-            var opt = parameters.Where(x => x.IsOptional).ToArray();
+            var parameters = method.GetParameters(); //.Where(p => !SystemParameters.Contains(p.ParameterType)).ToArray();
+            var req = new List<ParameterInfo>(); // parameters.Where(x => !x.IsOptional).ToArray();
+            var opt = new List<ParameterInfo>(); // parameters.Where(x => x.IsOptional).ToArray();
+            foreach (var parameter in parameters)
+            {
+                var paramType = parameter.ParameterType;
+                if (SystemParameters.Contains(parameter.ParameterType))
+                    continue;
+                if (!IsParameterTypeAllowed(paramType))
+                    return null;
+                if (parameter.IsOptional)
+                    opt.Add(parameter);
+                else
+                    req.Add(parameter);
+            }
+
             var info = new OperationInfo(method, attributes)
             {
                 RequiredParameterNames = req.Select(x => x.Name).ToArray(),
@@ -60,6 +86,17 @@ namespace SenseNet.OData
             };
             return AddMethod(info);
         }
+
+        private static bool IsParameterTypeAllowed(Type type)
+        {
+            if (type.IsArray)
+            {
+                var eType = type.GetElementType();
+                return AllowedArrayElementTypes.Contains(eType);
+            }
+            return true;
+        }
+
         private static OperationInfo AddMethod(OperationInfo info)
         {
             if (!(info.Attributes.Any(a => a is ODataFunction || a is ODataAction)))
@@ -317,8 +354,14 @@ namespace SenseNet.OData
                         return typeof(object);
                     }
 
-                //UNDONE: handle array
-                //case JTokenType.Array: break;
+                case JTokenType.Array:
+                    if (expectedType == typeof(object[]))
+                    {
+                        var array = (JArray)token;
+                        value = array.Select(x => x.ToObject<object>()).ToArray();
+                        return typeof(object[]);
+                    }
+                    throw new SnNotSupportedException(); //UNDONE: not tested
 
                 case JTokenType.None:
                 case JTokenType.Null:
