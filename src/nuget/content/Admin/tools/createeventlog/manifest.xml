@@ -1,6 +1,6 @@
 <Package type='Tool'>
   <Id>SenseNet.CreateEventLog</Id>
-  <Description>sensenet ECM tool for creating the provided log and source in Windows Event log.</Description>
+  <Description>sensenet tool for creating the provided log and source in Windows Event log.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
   <Parameters>

@@ -1,7 +1,7 @@
-# Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET! 
+# Welcome to sensenet
+The Open Source Enterprise Content Services Platform written in .NET! 
 
-> [Try it on your local environment!](http://www.sensenet.com/try-it)
+> [See how you can try it!](https://www.sensenet.com/tryit)
 
 [![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://dev.azure.com/sensenetplatform/sensenet/_apis/build/status/sensenet)](https://dev.azure.com/sensenetplatform/sensenet/_build/latest?definitionId=1)
@@ -29,14 +29,10 @@ If you need...
 Let us know which part you're interested in most!
 
 ## License
-sensenet is available in two editions:
-
-1. **Community Edition**: a community-supported [GPL v2](LICENSE) edition with almost all the features.
-   The source code is available on [CodePlex](http://sensenet.codeplex.com) (for **version 6.5**) and here on *GitHub* (for the new, componentized **version 7.0** - see details below).
-2. **Enterprise Edition**: with additional enterprise-grade features (like AD sync, MongoDB blob provider) and vendor support! For details, visit the [licensing page](http://www.sensenet.com/sensenet-ecm/licencing) on our site.
+New pricing and licensing strategy is in progress. If you're interested [contact sales](https://sensenet.com/contact).
 
 ## Contact and support
-Whether you're a community member or enterprise customer, feel free to visit our communication channels for demo, examples and support:
+Feel free to visit our communication channels for demo, examples and support:
 - Website: http://www.sensenet.com
 - Main chat channel: https://gitter.im/SenseNet/sensenet
 - All chat channels: https://gitter.im/SenseNet
@@ -45,21 +41,21 @@ Whether you're a community member or enterprise customer, feel free to visit our
 
 <a name="GettingStarted"></a>
 ## Getting started
-Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
+You can try out sensenet in many different ways, check its capabilities in the way you prefer 👉 [here](https://sensenet.com/tryit)
 
-### sensenet ECM 7.0
-A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
+### sensenet
+A modern Content Services Platform that can be integrated into existing or new web applications. We modularized sensenet so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
-- [Core components of sensenet ECM](/docs/sensenet-components.md)
+- [Core components of sensenet](/docs/sensenet-components.md)
 - [Awesome list of components and plugins](https://github.com/SenseNet/awesome-sensenet)
-- [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
+- [Install sensenet from NuGet](/docs/install-sn-from-nuget.md)
 
-#### After installing sensenet ECM
-After you installed [sensenet ECM](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
+#### After installing sensenet
+After you installed [sensenet](/docs/install-sn-from-nuget.md), you can start sending requests to the site. 
 
 Consider using the following client projects to manipulate data in the Content Repository through its REST API:
 
@@ -67,15 +63,6 @@ Consider using the following client projects to manipulate data in the Content R
 - [sensenet .Net Client](https://github.com/SenseNet/sn-client-dotnet)
 
 For detailed client side examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
-
-### sensenet ECM 6.5
-A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
-
-If you are new to sensenet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
-- [Getting started - using sensenet](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
-- [Getting started - installation and maintenance](http://wiki.sensenet.com/Getting_started_-_installation_and_maintenance)
-- [Getting started - building portals](http://wiki.sensenet.com/Getting_started_-_building_portals)
-- [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
 
 ## Contributing
 All kinds of contributions are welcome! We are happy if you have an idea, bugfix or feature request to share with others. Please check out our [Contribution guide](CONTRIBUTING.md) for details.

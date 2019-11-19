@@ -1,6 +1,6 @@
 <Package type='Tool'>
   <Id>SenseNet.Import</Id>
-  <Description>sensenet ECM tool for importing content items to the Content Repository from the file system.</Description>
+  <Description>sensenet tool for importing content items to the Content Repository from the file system.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
   <Dependencies>

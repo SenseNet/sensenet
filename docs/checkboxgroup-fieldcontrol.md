@@ -8,7 +8,7 @@ tags: [checkbox, checkboxgroup, choice, field control, field]
 
 # CheckBoxGroup Field Control
 
-> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you should not use for new projects. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+> Although this feature is supported in sensenet 7, it is built on the old Web Forms technology that you should not use for new projects. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
 The CheckBoxGroup Field Control displays a list of checkboxes for selecting an option from a single- or multiple-selection Choice field.
 

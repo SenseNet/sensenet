@@ -8,7 +8,7 @@ tags: [document, binary, provider]
 
 # Document binary provider
 
-sensenet ECM is able to store huge amounts of documents in the [Content Repository](content-repository.md) and serve them to clients. In most cases, these are simple files with one binary field - e.g. Office documents or PDF files. There are cases however when the stored binary is not enough or certain adjustments must be made on the binary before serving it. This article describes how can you customize the binary content before serving it to the client.
+sensenet is able to store huge amounts of documents in the [Content Repository](content-repository.md) and serve them to clients. In most cases, these are simple files with one binary field - e.g. Office documents or PDF files. There are cases however when the stored binary is not enough or certain adjustments must be made on the binary before serving it. This article describes how can you customize the binary content before serving it to the client.
 
 ## Document binary provider
 
@@ -16,7 +16,7 @@ When a client sends a request to the server for a file, the server first finds t
 
 ## Built-in default binary provider
 
-sensenet ECM has a default binary provider which is sufficient in most cases. It simply serves the stored binary value of the specified field.
+sensenet has a default binary provider which is sufficient in most cases. It simply serves the stored binary value of the specified field.
 
 ## Custom binary provider
 
