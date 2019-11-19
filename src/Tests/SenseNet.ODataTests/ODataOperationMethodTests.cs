@@ -1057,6 +1057,71 @@ namespace SenseNet.ODataTests
             Assert.IsFalse(Test<int>(nameof(TestOperations.Enumerable_Int), @"{'a':[1,2,'xxx']}"));
         }
 
+        /* ====================================================================== ACTION QUERY TESTS */
+
+        [TestMethod]
+        public void OD_MBO_Actions_ByContentType()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
+                        new Attribute[]{new ODataAction(), new ContentTypeAttribute("GenericContent"), });
+                    var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("Folder"), });
+                    var m2 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("Domains"), });
+                    var m3 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("File"), });
+
+                    // ACTION-1: metadata
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT-1
+                    var entity = GetEntity(response);
+                    var operationNames = entity.MetadataActions
+                        .Union(entity.MetadataFunctions)
+                        .Select(x => x.Name)
+                        .OrderBy(x => x)
+                        .ToArray();
+                    Assert.IsTrue(operationNames.Contains("fv0"));
+                    Assert.IsTrue(operationNames.Contains("fv1"));
+                    Assert.IsTrue(operationNames.Contains("fv2"));
+                    Assert.IsFalse(operationNames.Contains("fv3"));
+
+                    // ACTION-2: Actions expanded field
+                    response = ODataGetAsync("/OData.svc/Root('IMS')", "?metadata=no&$expand=Actions&$select=Id,Actions")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    entity = GetEntity(response);
+                    operationNames = entity.Actions
+                        .Select(x => x.Name)
+                        .OrderBy(x => x)
+                        .ToArray();
+                    Assert.IsTrue(operationNames.Contains("fv0"));
+                    Assert.IsTrue(operationNames.Contains("fv1"));
+                    Assert.IsTrue(operationNames.Contains("fv2"));
+                    Assert.IsFalse(operationNames.Contains("fv3"));
+
+                    // ACTION-3: Actions field only
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT-3
+                    entity = GetEntity(response);
+                    operationNames = entity.Actions
+                        .Select(x => x.Name)
+                        .OrderBy(x => x)
+                        .ToArray();
+                    Assert.IsTrue(operationNames.Contains("fv0"));
+                    Assert.IsTrue(operationNames.Contains("fv1"));
+                    Assert.IsTrue(operationNames.Contains("fv2"));
+                    Assert.IsFalse(operationNames.Contains("fv3"));
+                }
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };
@@ -1079,9 +1144,9 @@ namespace SenseNet.ODataTests
         {
             return OperationCenter.AddMethod(method);
         }
-        private OperationInfo AddMethod(TestMethodInfo method)
+        private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
         {
-            return OperationCenter.AddMethod(method, _defaultAttributes);
+            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
         }
 
 

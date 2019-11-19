@@ -6,11 +6,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ApplicationModel;
+using SenseNet.OData;
+using SenseNet.Tools;
 
 namespace SenseNet.ODataTests.Responses
 {
+    public class ODataOperationResponse
+    {
+        public string Title { get; set; }
+        public string Name { get; set; }
+        public string Target { get; set; }
+        public bool Forbidden { get; set; }
+        public OperationParameter[] Parameters { get; set; }
+    }
+
+    public class OperationParameter
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public bool Required { get; set; }
+    }
+
     public class ODataEntityResponse : IODataResponse
     {
+        // ((JObject)data["__metadata"])["actions"]
+        // ((JObject)data["__metadata"])["functions"]
+        // ((JArray)((JObject)data["__metadata"])["functions"]).Count
+
+
         private Dictionary<string, object> _data;
         public ODataEntityResponse(Dictionary<string, object> data)
         {
@@ -106,6 +130,15 @@ namespace SenseNet.ODataTests.Responses
             }
         }
 
+        private ODataOperationResponse[] _metadataActions;
+        public ODataOperationResponse[] MetadataActions => _metadataActions ?? (_metadataActions = GetOperations(_data, true));
+
+        private ODataOperationResponse[] _metadataFunctions;
+        public ODataOperationResponse[] MetadataFunctions => _metadataFunctions ?? (_metadataFunctions = GetOperations(_data, false));
+
+        private ODataActionItem[] _actions;
+        public ODataActionItem[] Actions => _actions ?? (_actions = GetActionField(_data));
+
         public int Index
         {
             get
@@ -142,6 +175,64 @@ namespace SenseNet.ODataTests.Responses
             var props = new Dictionary<string, object>();
             obj.Properties().Select(y => { props.Add(y.Name, y.Value.Value<object>()); return true; }).ToArray();
             return new ODataEntityResponse(props);
+        }
+
+        private ODataOperationResponse[] GetOperations(Dictionary<string, object> data, bool actions)
+        {
+            if (!data.TryGetValue("__metadata", out var metadata))
+                return Array.Empty<ODataOperationResponse>();
+
+            if (!((JObject)metadata).TryGetValue(actions ? "actions" : "operations", out var operations))
+                return Array.Empty<ODataOperationResponse>();
+
+            var result = new List<ODataOperationResponse>();
+            foreach (var operation in operations)
+            {
+                var item = new ODataOperationResponse
+                {
+                    Title = operation["title"].Value<string>(),
+                    Name = operation["name"].Value<string>(),
+                    Target = operation["target"].Value<string>(),
+                    Forbidden = operation["forbidden"].Value<bool>(),
+                    Parameters = operation["parameters"].Select(p => new OperationParameter
+                    {
+                        Name = p["name"].Value<string>(),
+                        Type = p["type"].Value<string>(),
+                        Required = p["required"].Value<bool>(),
+                    }).ToArray()
+                };
+                result.Add(item);
+            }
+
+            return result.ToArray();
+        }
+        private ODataActionItem[] GetActionField(Dictionary<string, object> data)
+        {
+            if (!data.TryGetValue("Actions", out var actionData))
+                return Array.Empty<ODataActionItem>();
+
+            if(!(actionData is JArray operations))
+                return Array.Empty<ODataActionItem>();
+
+            var result = new List<ODataActionItem>();
+            foreach (var operation in operations)
+            {
+                var item = new ODataActionItem
+                {
+                    Name = operation["Name"].Value<string>(),
+                    DisplayName = operation["DisplayName"].Value<string>(),
+                    Icon = operation["Icon"].Value<string>(),
+                    Index = operation["Index"].Value<int>(),
+                    Scenario = operation["Scenario"].Value<string>(),
+                    Forbidden = operation["Forbidden"].Value<bool>(),
+                    Url = operation["Url"].Value<string>(),                    //UNDONE: Url is always null
+                    IsODataAction = operation["IsODataAction"].Value<bool>(),
+                    ActionParameters = operation["ActionParameters"].Select(p => p.ToString()).ToArray()
+                };
+                result.Add(item);
+            }
+
+            return result.ToArray();
         }
 
     }

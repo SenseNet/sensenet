@@ -11,10 +11,52 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData
 {
+    //UNDONE: one class per file.
+    internal class OperationMethodStorage : IOperationMethodStorage
+    {
+        public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario)
+        {
+            var stored = storedActions.ToArray();
+            var operationMethods = OperationCenter.Operations
+                .SelectMany(x => x.Value)
+                .Where(x => AllowedName(x.Method.Name, stored))
+                .Where(x => IsRelevantContentType(content.ContentType, x.ContentTypes))
+                .Select(x => new ODataOperationMethodAction(x));
+
+            return stored.Union(operationMethods).ToArray();
+        }
+
+        private bool AllowedName(string operationName, ActionBase[] stored)
+        {
+            for (int i = 0; i < stored.Length; i++)
+                if (stored[i].Name == operationName)
+                    return false;
+            return true;
+        }
+        private bool IsRelevantContentType(ContentType contentType, string[] allowedContentTypeNames)
+        {
+            if (allowedContentTypeNames.Length == 0)
+                return true;
+
+            for (int i = 0; i < allowedContentTypeNames.Length; i++)
+            {
+                var existingContentType = ContentType.GetByName(allowedContentTypeNames[i]);
+                if (existingContentType == null)
+                    continue;
+                if (contentType.IsInstaceOfOrDerivedFrom(existingContentType.Name))
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
     public class OperationCenter
     {
         private static readonly OperationInfo[] EmptyMethods = new OperationInfo[0];

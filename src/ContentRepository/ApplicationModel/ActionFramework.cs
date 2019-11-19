@@ -98,6 +98,11 @@ namespace SenseNet.ApplicationModel
             }
         }
 
+        private static readonly IOperationMethodStorage DefaultOperationMethodStorage = new DefaultOperationMethodStorage();
+        internal static IOperationMethodStorage OperationMethodStorage =>
+            Providers.Instance.GetProvider<IOperationMethodStorage>()
+            ?? DefaultOperationMethodStorage;
+
         public static ActionBase GetAction(string name, Content context, object parameters,
             Func<string, Content, object, ActionBase> getDefaultAction = null, object state = null)
         {
@@ -174,6 +179,10 @@ namespace SenseNet.ApplicationModel
         }
 
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters, string backUri)
+        {
+            return OperationMethodStorage.GetActions(GetStoredActions(context, scenario, scenarioParameters, backUri), context, scenario);
+        }
+        private static IEnumerable<ActionBase> GetStoredActions(Content context, string scenario, string scenarioParameters, string backUri)
         {
             if (!string.IsNullOrEmpty(scenario))
             {

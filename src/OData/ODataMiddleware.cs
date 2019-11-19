@@ -57,6 +57,7 @@ namespace SenseNet.OData
             }
 
             OperationCenter.Discover();
+            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
