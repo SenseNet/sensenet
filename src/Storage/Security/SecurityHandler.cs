@@ -1832,9 +1832,9 @@ namespace SenseNet.ContentRepository.Storage.Security
                     var memberPropertyType = ActiveSchema.PropertyTypes["Members"];
                     var userNodeType = ActiveSchema.NodeTypes["User"];
                     var groupNodeType = ActiveSchema.NodeTypes["Group"];
-                    if (data != null)
+                    if (data?.DynamicProperties != null)
                     {
-                        foreach(var versionData in data.DynamicProperties)
+                        foreach (var versionData in data.DynamicProperties)
                         {
                             if (versionData.DynamicProperties == null)
                                 continue;
@@ -1845,7 +1845,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                             {
                                 if (property.Key.Name == "Members")
                                 {
-                                    references = (List<int>) property.Value;
+                                    references = (List<int>)property.Value;
                                     break;
                                 }
                             }
@@ -1870,11 +1870,6 @@ namespace SenseNet.ContentRepository.Storage.Security
                             AddMembers(nodeId, userMembers, groupMembers);
                         }
                     }
-                    else
-                    {
-                        int q = 1; //UNDONE: Load Member references from database
-                    }
-
 
                     if (data == null)
                         ed.Apply();

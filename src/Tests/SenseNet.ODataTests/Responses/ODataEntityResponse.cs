@@ -225,7 +225,7 @@ namespace SenseNet.ODataTests.Responses
                     Index = operation["Index"].Value<int>(),
                     Scenario = operation["Scenario"].Value<string>(),
                     Forbidden = operation["Forbidden"].Value<bool>(),
-                    Url = operation["Url"].Value<string>(),                    //UNDONE: Url is always null
+                    Url = operation["Url"].Value<string>(), //UNDONE: Url is always null. Generate correct value. See old odata implementation
                     IsODataAction = operation["IsODataAction"].Value<bool>(),
                     ActionParameters = operation["ActionParameters"].Select(p => p.ToString()).ToArray()
                 };

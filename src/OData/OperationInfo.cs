@@ -3,39 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using SenseNet.ApplicationModel;
-using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
 {
-    //UNDONE: one class per file.
-    public class ODataOperationMethodAction : ActionBase
-    {
-        public override string Uri { get; }
-        public override bool IsHtmlOperation => false;
-        public override bool IsODataOperation => true;
-        public override bool CausesStateChange { get; }
-        public override ActionParameter[] ActionParameters { get; }
-        public override string Name { get; set; }
-
-        public ODataOperationMethodAction(OperationInfo operationInfo)
-        {
-            Name = operationInfo.Method.Name;
-
-            ActionParameters = operationInfo.Method.GetParameters()
-                .Select(x => new ActionParameter(x.Name, x.ParameterType, !x.IsOptional))
-                .ToArray();
-
-            CausesStateChange = operationInfo.CauseStateChange;
-        }
-
-        public override void Initialize(Content context, string backUri, Application application, object parameters)
-        {
-            base.Initialize(context, backUri, application, parameters);
-        }
-    }
-
     [DebuggerDisplay("{ToString()}")]
     public class OperationInfo
     {
@@ -48,7 +19,7 @@ namespace SenseNet.OData
 
         public bool CauseStateChange { get; private set; }
         public string[] ContentTypes { get; private set; }
-        public string[] RequiredPermissions { get; private set; }
+        public string[] Permissions { get; private set; }
         public string[] Scenarios { get; private set; }
         public string[] Roles { get; private set; }
         public string[] Policies { get; private set; }
@@ -68,10 +39,6 @@ namespace SenseNet.OData
                 .Where(a => a is ContentTypeAttribute)
                 .Select(a => ((ContentTypeAttribute)a).ContentTypeName));
 
-            RequiredPermissions = ParseNames(attributes
-                .Where(a => a is RequiredPermissionAttribute)
-                .Select(a => ((RequiredPermissionAttribute)a).Permission));
-
             //UNDONE: Scenarios are not implemented well
             //Scenarios = ParseNames(attributes
             //    .Where(a => a is ScenarioAttribute)
@@ -81,6 +48,7 @@ namespace SenseNet.OData
             var snAuthorizeAttributes = attributes.Where(a => a is SnAuthorizeAttribute).Cast<SnAuthorizeAttribute>().ToArray();
             Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
             Policies = ParseNames(snAuthorizeAttributes.Select(a => a.Policy));
+            Permissions = ParseNames(snAuthorizeAttributes.Select(a => a.Permission));
         }
 
         private static readonly char[] SplitChars = new[] { ',' };
