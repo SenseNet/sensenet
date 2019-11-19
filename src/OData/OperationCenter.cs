@@ -13,6 +13,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData
@@ -22,24 +23,35 @@ namespace SenseNet.OData
     {
         public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario)
         {
+            // Local cache
+            string[] actualRoles = null;
+            // Gets role names of the current user and uses the local cache
+            string[] GetRoles()
+            {
+                if (actualRoles == null)
+                    actualRoles = NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
+                return actualRoles;
+            }
+
             var stored = storedActions.ToArray();
             var operationMethods = OperationCenter.Operations
                 .SelectMany(x => x.Value)
-                .Where(x => AllowedName(x.Method.Name, stored))
-                .Where(x => IsRelevantContentType(content.ContentType, x.ContentTypes))
+                .Where(x => FilterByApplications(x.Method.Name, stored))
+                .Where(x => FilterByContentTypes(content.ContentType, x.ContentTypes))
+                .Where(x => x.Roles.Length == 0 || GetRoles().Intersect(x.Roles).Any())
                 .Select(x => new ODataOperationMethodAction(x));
 
             return stored.Union(operationMethods).ToArray();
         }
 
-        private bool AllowedName(string operationName, ActionBase[] stored)
+        private bool FilterByApplications(string operationName, ActionBase[] stored)
         {
             for (int i = 0; i < stored.Length; i++)
                 if (stored[i].Name == operationName)
                     return false;
             return true;
         }
-        private bool IsRelevantContentType(ContentType contentType, string[] allowedContentTypeNames)
+        private bool FilterByContentTypes(ContentType contentType, string[] allowedContentTypeNames)
         {
             if (allowedContentTypeNames.Length == 0)
                 return true;
@@ -55,6 +67,7 @@ namespace SenseNet.OData
 
             return false;
         }
+
     }
 
     public class OperationCenter

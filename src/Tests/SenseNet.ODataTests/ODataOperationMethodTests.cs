@@ -1060,14 +1060,14 @@ namespace SenseNet.ODataTests
         /* ====================================================================== ACTION QUERY TESTS */
 
         [TestMethod]
-        public void OD_MBO_Actions_ByContentType()
+        public void OD_MBO_Actions_FilteredContentType()
         {
             ODataTest(() =>
             {
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[]{new ODataAction(), new ContentTypeAttribute("GenericContent"), });
+                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("GenericContent"), });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
                         new Attribute[] { new ODataAction(), new ContentTypeAttribute("Folder"), });
                     var m2 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
@@ -1122,6 +1122,63 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_Actions_Authorization_Membership()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
+                        new Attribute[]
+                        {
+                            new ODataAction(),
+                            new ContentTypeAttribute("GenericContent"),
+                            new SnAuthorizeAttribute {Role = "Administrators"},
+                        });
+                    var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
+                        new Attribute[]
+                        {
+                            new ODataAction(),
+                            new ContentTypeAttribute("GenericContent"),
+                            new SnAuthorizeAttribute {Role = "Developers"},
+                        });
+                    var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
+                        new Attribute[]
+                        {
+                            new ODataAction(),
+                            new ContentTypeAttribute("GenericContent"),
+                            new SnAuthorizeAttribute {Role = "Developers,Administrators"},
+                        });
+                    var m4 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
+                        new Attribute[]
+                        {
+                            new ODataAction(),
+                            new ContentTypeAttribute("GenericContent"),
+                            new SnAuthorizeAttribute {Role = "Developers,UnknownGroup42"},
+                        });
+
+                    using (new CurrentUserBlock(User.Administrator))
+                    {
+                        // ACTION
+                        var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                        // ASSERT
+                        var entity = GetEntity(response);
+                        var operationNames = entity.Actions
+                            .Select(x => x.Name)
+                            .OrderBy(x => x)
+                            .ToArray();
+                        Assert.IsTrue(operationNames.Contains("fv0"));
+                        Assert.IsFalse(operationNames.Contains("fv1"));
+                        Assert.IsTrue(operationNames.Contains("fv2"));
+                        Assert.IsFalse(operationNames.Contains("fv3"));
+                    }
+                }
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };
@@ -1137,6 +1194,19 @@ namespace SenseNet.ODataTests
             {
                 OperationCenter.Operations.Clear();
                 OperationCenter.Discover();
+            }
+        }
+        private class CurrentUserBlock : IDisposable
+        {
+            private readonly IUser _backup;
+            public CurrentUserBlock(IUser user)
+            {
+                _backup = User.Current;
+                User.Current = user;
+            }
+            public void Dispose()
+            {
+                User.Current = _backup;
             }
         }
 
