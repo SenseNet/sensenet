@@ -17,7 +17,6 @@ using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
-using Guid = System.Guid;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo

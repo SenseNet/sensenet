@@ -1,14 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ApplicationModel;
 using SenseNet.OData;
-using SenseNet.Tools;
+// ReSharper disable IdentifierTypo
 
 namespace SenseNet.ODataTests.Responses
 {
@@ -35,7 +31,7 @@ namespace SenseNet.ODataTests.Responses
         // ((JArray)((JObject)data["__metadata"])["functions"]).Count
 
 
-        private Dictionary<string, object> _data;
+        private readonly Dictionary<string, object> _data;
         public ODataEntityResponse(Dictionary<string, object> data)
         {
             _data = data;
@@ -159,12 +155,11 @@ namespace SenseNet.ODataTests.Responses
             if (!_data.ContainsKey(name))
                 return null;
             var obj = _data[name];
-            var jobj = obj as JObject;
-            if (jobj != null)
-                return jobj == null ? (ODataEntityResponse)null : ODataEntityResponse.Create(jobj);
 
-            var jvalue = obj as JValue;
-            if (jvalue.Type == JTokenType.Null)
+            if (obj is JObject jobj)
+                return Create(jobj);
+            
+            if (obj is JValue jvalue && jvalue.Type == JTokenType.Null)
                 return null;
 
             throw new SnNotSupportedException();
@@ -173,7 +168,7 @@ namespace SenseNet.ODataTests.Responses
         public static ODataEntityResponse Create(JObject obj)
         {
             var props = new Dictionary<string, object>();
-            obj.Properties().Select(y => { props.Add(y.Name, y.Value.Value<object>()); return true; }).ToArray();
+            var _ = obj.Properties().Select(y => { props.Add(y.Name, y.Value.Value<object>()); return true; }).ToArray();
             return new ODataEntityResponse(props);
         }
 
@@ -225,7 +220,7 @@ namespace SenseNet.ODataTests.Responses
                     Index = operation["Index"].Value<int>(),
                     Scenario = operation["Scenario"].Value<string>(),
                     Forbidden = operation["Forbidden"].Value<bool>(),
-                    Url = operation["Url"].Value<string>(), //UNDONE: Url is always null. Generate correct value. See old odata implementation
+                    Url = operation["Url"].Value<string>(),
                     IsODataAction = operation["IsODataAction"].Value<bool>(),
                     ActionParameters = operation["ActionParameters"].Select(p => p.ToString()).ToArray()
                 };

@@ -160,11 +160,15 @@ namespace SenseNet.ODataTests
             {
                 using (new CleanOperationCenterBlock())
                 {
+                    var countBefore = OperationCenter.Operations.Count;
+                    Assert.AreEqual(0, countBefore);
+
+                    // ACTION
                     OperationCenter.Discover();
 
-                    var discovered = OperationCenter.Operations;
-
-                    //UNDONE: Not finished test.
+                    // ASSERT
+                    var countAfter = OperationCenter.Operations.Count;
+                    Assert.IsTrue(countAfter > countBefore);
                 }
             });
         }
@@ -1143,7 +1147,10 @@ namespace SenseNet.ODataTests
 
                     // ASSERT
                     var entity = GetEntity(response);
-                    var operations = entity.Actions.Where(x=>x.Name.StartsWith("op")).OrderBy(x => x.Name).ToArray();
+                    var operations = entity.Actions
+                        .Where(x=>x.Name.StartsWith("op"))
+                        .OrderBy(x => x.Name)
+                        .ToArray();
 
                     Assert.AreEqual(3, operations.Length);
 
