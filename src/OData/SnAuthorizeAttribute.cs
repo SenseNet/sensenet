@@ -4,6 +4,9 @@ using System.Text;
 
 namespace SenseNet.OData
 {
+    /// <summary>
+    /// Declares authorization rules for an OData Operation Method. Available rule categories: Policy, Role, Permission
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class SnAuthorizeAttribute : Attribute
     {
@@ -23,7 +26,16 @@ namespace SenseNet.OData
         /// </summary>
         public string Permission { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnAuthorizeAttribute"/>.
+        /// </summary>
         public SnAuthorizeAttribute() { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnAuthorizeAttribute"/> with one or more policies.
+        /// </summary>
+        /// <param name="policy">One or more comma separated role names.
+        /// The method can be called if the current user has at least one of them.
+        /// </param>
         public SnAuthorizeAttribute(string policy)
         {
             this.Policy = policy;
