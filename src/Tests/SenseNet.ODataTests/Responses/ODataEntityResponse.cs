@@ -182,7 +182,7 @@ namespace SenseNet.ODataTests.Responses
             if (!data.TryGetValue("__metadata", out var metadata))
                 return Array.Empty<ODataOperationResponse>();
 
-            if (!((JObject)metadata).TryGetValue(actions ? "actions" : "operations", out var operations))
+            if (!((JObject)metadata).TryGetValue(actions ? "actions" : "functions", out var operations))
                 return Array.Empty<ODataOperationResponse>();
 
             var result = new List<ODataOperationResponse>();

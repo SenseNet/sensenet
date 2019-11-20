@@ -17,23 +17,27 @@ namespace SenseNet.OData
             // Gets role names of the current user and uses the local cache
             string[] GetRoles()
             {
-                if (actualRoles == null)
-                    actualRoles = NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
-                return actualRoles;
+                return actualRoles ??
+                       (actualRoles = NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray());
             }
 
             var stored = storedActions.ToArray();
-            var operationMethods = OperationCenter.Operations
+            var operationMethodActions = OperationCenter.Operations
                 .SelectMany(x => x.Value)
                 .Where(x => FilterByApplications(x.Method.Name, stored))
                 .Where(x => FilterByContentTypes(content.ContentType, x.ContentTypes))
                 .Where(x => x.Roles.Length == 0 || GetRoles().Intersect(x.Roles).Any())
-                .Where(x => FilterByPermissions(content, x.Permissions))
-                .Select(x => new ODataOperationMethodAction(x));
+                .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Method.Name)))
+                .ToArray();
 
-            return stored.Union(operationMethods).ToArray();
+            foreach (var operationMethodAction in operationMethodActions)
+            {
+                operationMethodAction.Initialize(content, null, null, null);
+                operationMethodAction.Forbidden = !IsPermitted(content, operationMethodAction.OperationInfo.Permissions);
+            }
+
+            return stored.Union(operationMethodActions).ToArray();
         }
-
         private bool FilterByApplications(string operationName, ActionBase[] stored)
         {
             for (int i = 0; i < stored.Length; i++)
@@ -43,7 +47,7 @@ namespace SenseNet.OData
         }
         private bool FilterByContentTypes(ContentType contentType, string[] allowedContentTypeNames)
         {
-            if (allowedContentTypeNames == null)
+            if (allowedContentTypeNames == null || allowedContentTypeNames.Length == 0)
                 return true;
 
             for (int i = 0; i < allowedContentTypeNames.Length; i++)
@@ -57,13 +61,22 @@ namespace SenseNet.OData
 
             return false;
         }
-        private bool FilterByPermissions(Content content, string[] permissionNames)
+        private bool IsPermitted(Content content, string[] permissionNames)
         {
-            if (permissionNames == null)
+            if (permissionNames == null || permissionNames.Length == 0)
                 return true;
 
             var permissionTypes = permissionNames.Select(PermissionType.GetByName).ToArray();
             return content.ContentHandler.Security.HasPermission(permissionTypes);
+        }
+
+        internal static string GenerateUri(Content content, string operationName)
+        {
+            var resource = string.IsNullOrEmpty(content.ContentHandler.ParentPath)
+            ? Configuration.Services.ODataAndRoot
+            : $"{Configuration.Services.ODataServiceToken}" +
+              $"{ODataMiddleware.GetODataPath(content.ContentHandler.ParentPath, content.Name)}";
+            return $"/{resource}/{operationName}";
         }
     }
 }

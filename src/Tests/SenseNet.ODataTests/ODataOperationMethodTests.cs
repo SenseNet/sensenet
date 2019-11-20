@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
@@ -1060,7 +1061,163 @@ namespace SenseNet.ODataTests
         /* ====================================================================== ACTION QUERY TESTS */
 
         [TestMethod]
-        public void OD_MBO_Actions_FilteredContentType()
+        public void OD_MBO_Actions_Uri_Root()
+        {
+            ODataTest(() =>
+            {
+                var content = Content.Create(Repository.Root);
+                var expected = "/odata.svc/('Root')/Operation1";
+
+                var actual = OperationMethodStorage.GenerateUri(content, "Operation1");
+
+                Assert.AreEqual(expected, actual);
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Actions_Uri()
+        {
+            ODataTest(() =>
+            {
+                var content = Content.Create(Repository.ImsFolder);
+                var expected = "/odata.svc/Root('IMS')/Operation1";
+
+                var actual = OperationMethodStorage.GenerateUri(content, "Operation1");
+
+                Assert.AreEqual(expected, actual);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_Lists()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("op", "Content content, string a", null),
+                        new Attribute[] { new ODataAction() });
+
+                    // ACTION-1: metadata
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    // ASSERT-1
+                    var entity = GetEntity(response);
+                    var operations1 = entity.MetadataActions.Union(entity.MetadataFunctions).Where(x=>x.Name == "op").ToArray();
+                    Assert.AreEqual(1, operations1.Length);
+
+                    // ACTION-2: Actions expanded field
+                    response = ODataGetAsync("/OData.svc/Root('IMS')", "?metadata=no&$expand=Actions&$select=Id,Actions")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    entity = GetEntity(response);
+                    var operations2 = entity.Actions.Where(x => x.Name == "op").ToArray();
+                    Assert.AreEqual(1, operations2.Length);
+
+                    // ACTION-3: Actions field only
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    // ASSERT-3
+                    entity = GetEntity(response);
+                    operations2 = entity.Actions.Where(x => x.Name == "op").ToArray();
+                    Assert.AreEqual(1, operations2.Length);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_ActionProperties_ActionField()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    AddMethod(new TestMethodInfo("op0", "Content content", null),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op1", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op2", "Content content, string b, int c", null),
+                        new Attribute[] { new ODataFunction(), });
+
+                    // ACTION
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var entity = GetEntity(response);
+                    var operations = entity.Actions.Where(x=>x.Name.StartsWith("op")).OrderBy(x => x.Name).ToArray();
+
+                    Assert.AreEqual(3, operations.Length);
+
+                    Assert.AreEqual("op0", operations[0].Name);
+                    Assert.AreEqual("", string.Join(",", operations[0].ActionParameters));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op0", operations[0].Url);
+                    Assert.AreEqual(true, operations[0].IsODataAction);
+                    Assert.AreEqual(false, operations[0].Forbidden);
+
+                    Assert.AreEqual("op1", operations[1].Name);
+                    Assert.AreEqual("a", string.Join(",", operations[1].ActionParameters));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op1", operations[1].Url);
+                    Assert.AreEqual(true, operations[1].IsODataAction);
+                    Assert.AreEqual(false, operations[1].Forbidden);
+
+                    Assert.AreEqual("op2", operations[2].Name);
+                    Assert.AreEqual("b,c", string.Join(",", operations[2].ActionParameters));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op2", operations[2].Url);
+                    Assert.AreEqual(true, operations[2].IsODataAction);
+                    Assert.AreEqual(false, operations[2].Forbidden);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Actions_ActionProperties_Metadata()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    AddMethod(new TestMethodInfo("op0", "Content content", null),
+                        new Attribute[] { new ODataAction(), });
+                    AddMethod(new TestMethodInfo("op1", "Content content, string a", null),
+                        new Attribute[] { new ODataFunction(), });
+                    AddMethod(new TestMethodInfo("op2", "Content content, string b, int c", null),
+                        new Attribute[] { new ODataFunction(), });
+
+                    // ACTION
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    // ASSERT
+                    var entity = GetEntity(response);
+                    var operations = entity.MetadataActions
+                        .Union(entity.MetadataFunctions)
+                        .Where(x => x.Name.StartsWith("op"))
+                        .OrderBy(x => x.Name)
+                        .ToArray();
+
+                    Assert.AreEqual(3, operations.Length);
+
+                    Assert.AreEqual("op0", operations[0].Name);
+                    Assert.AreEqual("", string.Join(",", operations[0].Parameters.Select(x => x.Name)));
+                    Assert.AreEqual("", string.Join(",", operations[0].Parameters.Select(x => x.Type)));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op0", operations[0].Target);
+                    Assert.AreEqual(false, operations[0].Forbidden);
+
+                    Assert.AreEqual("op1", operations[1].Name);
+                    Assert.AreEqual("a", string.Join(",", operations[1].Parameters.Select(x => x.Name)));
+                    Assert.AreEqual("string", string.Join(",", operations[1].Parameters.Select(x => x.Type)));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op1", operations[1].Target);
+                    Assert.AreEqual(false, operations[1].Forbidden);
+
+                    Assert.AreEqual("op2", operations[2].Name);
+                    Assert.AreEqual("b,c", string.Join(",", operations[2].Parameters.Select(x => x.Name)));
+                    Assert.AreEqual("string,int", string.Join(",", operations[2].Parameters.Select(x => x.Type)));
+                    Assert.AreEqual("/odata.svc/Root('IMS')/op2", operations[2].Target);
+                    Assert.AreEqual(false, operations[2].Forbidden);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_FilteredByContentType()
         {
             ODataTest(() =>
             {
@@ -1075,42 +1232,13 @@ namespace SenseNet.ODataTests
                     var m3 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
                         new Attribute[] { new ODataAction(), new ContentTypeAttribute("File"), });
 
-                    // ACTION-1: metadata
-                    var response = ODataGetAsync("/OData.svc/Root('IMS')", "?$select=Id")
+                    // ACTION
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
-                    // ASSERT-1
+                    // ASSERT
                     var entity = GetEntity(response);
-                    var operationNames = entity.MetadataActions
-                        .Union(entity.MetadataFunctions)
-                        .Select(x => x.Name)
-                        .OrderBy(x => x)
-                        .ToArray();
-                    Assert.IsTrue(operationNames.Contains("fv0"));
-                    Assert.IsTrue(operationNames.Contains("fv1"));
-                    Assert.IsTrue(operationNames.Contains("fv2"));
-                    Assert.IsFalse(operationNames.Contains("fv3"));
-
-                    // ACTION-2: Actions expanded field
-                    response = ODataGetAsync("/OData.svc/Root('IMS')", "?metadata=no&$expand=Actions&$select=Id,Actions")
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-                    entity = GetEntity(response);
-                    operationNames = entity.Actions
-                        .Select(x => x.Name)
-                        .OrderBy(x => x)
-                        .ToArray();
-                    Assert.IsTrue(operationNames.Contains("fv0"));
-                    Assert.IsTrue(operationNames.Contains("fv1"));
-                    Assert.IsTrue(operationNames.Contains("fv2"));
-                    Assert.IsFalse(operationNames.Contains("fv3"));
-
-                    // ACTION-3: Actions field only
-                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
-                        .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                    // ASSERT-3
-                    entity = GetEntity(response);
-                    operationNames = entity.Actions
+                    var operationNames = entity.Actions
                         .Select(x => x.Name)
                         .OrderBy(x => x)
                         .ToArray();
@@ -1130,33 +1258,13 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[]
-                        {
-                            new ODataAction(),
-                            new ContentTypeAttribute("GenericContent"),
-                            new SnAuthorizeAttribute {Role = "Administrators"},
-                        });
+                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Administrators"}});
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[]
-                        {
-                            new ODataAction(),
-                            new ContentTypeAttribute("GenericContent"),
-                            new SnAuthorizeAttribute {Role = "Developers"},
-                        });
+                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers"}});
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[]
-                        {
-                            new ODataAction(),
-                            new ContentTypeAttribute("GenericContent"),
-                            new SnAuthorizeAttribute {Role = "Developers,Administrators"},
-                        });
+                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers,Administrators"}});
                     var m4 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
-                        new Attribute[]
-                        {
-                            new ODataAction(),
-                            new ContentTypeAttribute("GenericContent"),
-                            new SnAuthorizeAttribute {Role = "Developers,UnknownGroup42"},
-                        });
+                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers,UnknownGroup42"}});
 
                     using (new CurrentUserBlock(User.Administrator))
                     {
@@ -1177,6 +1285,61 @@ namespace SenseNet.ODataTests
                     }
                 }
             });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_Authorization_Permission()
+        {
+            string GetAllowedActionNames(string nodeName)
+            {
+                var response = ODataGetAsync($"/OData.svc/Root('{nodeName}')/Actions", "")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                if (response.StatusCode == 404)
+                    return "";
+
+                var entity = GetEntity(response);
+                var operationNames = string.Join(", ", entity.Actions.Select(x => $"{x.Name}:{!x.Forbidden}").ToArray());
+                return operationNames;
+            }
+
+            IsolatedODataTestAsync(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "See" } });
+                    var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "Open" } });
+                    var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "Save" } });
+
+                    var user = User.Visitor;
+
+                    var nodes = Enumerable.Range(0, 4).Select(x =>
+                    {
+                        var folder = new Folder(Repository.Root) {Name = $"Folder{x}"};
+                        folder.Save();
+                        return folder;
+                    }).ToArray();
+
+                    SecurityHandler.CreateAclEditor()
+                        .Allow(nodes[1].Id, user.Id, false, PermissionType.See)
+                        .Allow(nodes[2].Id, user.Id, false, PermissionType.Open)
+                        .Allow(nodes[3].Id, user.Id, false, PermissionType.Save)
+                        .Apply();
+
+                    using (new CurrentUserBlock(User.Visitor))
+                    {
+                        Assert.AreEqual("", GetAllowedActionNames(nodes[0].Name));
+                        Assert.AreEqual("fv0:True, fv1:False, fv2:False", GetAllowedActionNames(nodes[1].Name));
+                        Assert.AreEqual("fv0:True, fv1:True, fv2:False", GetAllowedActionNames(nodes[2].Name));
+                        Assert.AreEqual("fv0:True, fv1:True, fv2:True", GetAllowedActionNames(nodes[3].Name));
+                    }
+
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /* ====================================================================== TOOLS */

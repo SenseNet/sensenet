@@ -6,18 +6,20 @@ namespace SenseNet.OData
 {
     public class ODataOperationMethodAction : ActionBase
     {
-        public override string Uri { get; } //UNDONE:? never used
+        internal OperationInfo OperationInfo { get; }
+        public override string Uri { get; }
         public override bool IsHtmlOperation => false;
         public override bool IsODataOperation => true;
         public override bool CausesStateChange { get; }
         public override ActionParameter[] ActionParameters { get; }
-        public override string Name { get; set; }
 
-        public ODataOperationMethodAction(OperationInfo operationInfo)
+        public ODataOperationMethodAction(OperationInfo operationInfo, string uri)
         {
-            Name = operationInfo.Method.Name;
+            OperationInfo = operationInfo;
+            Uri = uri;
 
             ActionParameters = operationInfo.Method.GetParameters()
+                .Skip(1) // Ignore the Content parameter
                 .Select(x => new ActionParameter(x.Name, x.ParameterType, !x.IsOptional))
                 .ToArray();
 
@@ -27,6 +29,7 @@ namespace SenseNet.OData
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
             base.Initialize(context, backUri, application, parameters);
+            Name = OperationInfo.Method.Name;
         }
     }
 }

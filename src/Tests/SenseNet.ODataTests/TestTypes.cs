@@ -23,10 +23,10 @@ namespace SenseNet.ODataTests
     public class TestOperations
     {
         [ODataFunction]
-        [RequiredPermission("See, Run")]
         [SnAuthorize(Role = "Administrators,Editors")]
         [SnAuthorize(Policy = "Policy1")]
-        //UNDONE: Extend and use AppModel's ScenarioAttribute
+        [SnAuthorize(Permission = "See, Run")]
+        //UNDONE: Use Scenario on a method
         //[Scenario("Scenario1, Scenario2")]
         //[Scenario(Scenario = "Scenario2, Scenario3")]
         [ContentType("User, Group")]
@@ -39,8 +39,8 @@ namespace SenseNet.ODataTests
 
         [ODataAction]
         [SnAuthorize(Policy = "Policy1")]
-        [RequiredPermission("P1, P2")]
-        [RequiredPermission(Permission = "P3")]
+        [SnAuthorize(Permission = "P1, P2")]
+        [SnAuthorize(Permission = "P3")]
         public static object[] Op2(Content content,
             string a = null, int b = 0, bool c = false, float d = 0f, decimal e = 0m, double f = 0d)
         {
