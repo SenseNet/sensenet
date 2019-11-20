@@ -66,7 +66,13 @@ namespace SenseNet.OData
             if (permissionNames == null || permissionNames.Length == 0)
                 return true;
 
-            var permissionTypes = permissionNames.Select(PermissionType.GetByName).ToArray();
+            var permissionTypes = permissionNames
+                .Select(PermissionType.GetByName)
+                .Where(x => x != null)
+                .ToArray();
+            if (permissionTypes.Length == 0)
+                return true;
+
             return content.ContentHandler.Security.HasPermission(permissionTypes);
         }
 
