@@ -2,17 +2,24 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
-using Task = System.Threading.Tasks.Task;
+using File = System.IO.File;
 
 namespace SenseNet.Packaging
 {
-    public static class Installer
+    public class Installer
     {
+        private readonly RepositoryBuilder _repositoryBuilder;
+
+        public Installer(RepositoryBuilder repositoryBuilder)
+        {
+            _repositoryBuilder = repositoryBuilder ?? throw new ArgumentNullException(nameof(repositoryBuilder));
+        }
+
         /// <summary>
         /// Installer method for sensenet that uses an embedded resource as the install package.
         /// Do not use this method directly from your code. Use a higher level
@@ -20,81 +27,153 @@ namespace SenseNet.Packaging
         /// </summary>
         /// <param name="assembly">The assembly that contains the embedded package.</param>
         /// <param name="packageName">Name of the package, including folder prefixes inside the assembly.</param>
-        /// <param name="repositoryBuilder">Repository builder for starting the repo during the install process.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static async Task InstallSenseNetAsync(Assembly assembly, string packageName, 
-            RepositoryBuilder repositoryBuilder, CancellationToken cancellationToken)
+        public Installer InstallSenseNet(Assembly assembly, string packageName)
         {
             // switch off indexing so that the first repo start does not require a working index
-            var origIndexingValue = repositoryBuilder.StartIndexingEngine;
-            repositoryBuilder.StartIndexingEngine(false);
+            var origIndexingValue = _repositoryBuilder.StartIndexingEngine;
+            _repositoryBuilder.StartIndexingEngine(false);
 
-            await LogLineAsync(repositoryBuilder, "Accessing sensenet database...").ConfigureAwait(false);
+            _repositoryBuilder.Console?.WriteLine("Accessing sensenet database...");
 
             // Make sure that the database exists and contains the schema
             // necessary for importing initial content items.
-            var dbExists = await DataStore.IsDatabaseReadyAsync(cancellationToken).ConfigureAwait(false);
+            var dbExists = DataStore.IsDatabaseReadyAsync(CancellationToken.None).GetAwaiter().GetResult();
             
             if (!dbExists)
             {
-                await LogLineAsync(repositoryBuilder, "Installing database...").ConfigureAwait(false);
+                _repositoryBuilder.Console?.WriteLine("Installing database...");
                 var timer = Stopwatch.StartNew();
 
-                await DataStore.InstallDatabaseAsync(repositoryBuilder.InitialData, cancellationToken)
-                    .ConfigureAwait(false);
+                DataStore.InstallDatabaseAsync(_repositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
 
-                await LogLineAsync(repositoryBuilder, "Database installed.").ConfigureAwait(false);
+                _repositoryBuilder.Console?.WriteLine("Database installed.");
 
                 // install custom security entries if provided
-                if (repositoryBuilder.InitialData?.Permissions?.Count > 0)
+                if (_repositoryBuilder.InitialData?.Permissions?.Count > 0)
                 {
-                    using (Repository.Start(repositoryBuilder))
+                    using (Repository.Start(_repositoryBuilder))
                     {
-                        await LogLineAsync(repositoryBuilder, "Installing default security structure.").ConfigureAwait(false);
+                        _repositoryBuilder.Console?.WriteLine("Installing default security structure...");
                         
-                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(repositoryBuilder.InitialData);
+                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(_repositoryBuilder.InitialData);
                     }
                 }
 
                 // execute the install package
-                await InstallPackageAsync(assembly, packageName, repositoryBuilder, cancellationToken)
-                    .ConfigureAwait(false);
+                InstallPackage(assembly, packageName);
 
                 timer.Stop();
 
-                await LogLineAsync(repositoryBuilder, $"Database install finished. Elapsed time: {timer.Elapsed}")
-                    .ConfigureAwait(false);
+                _repositoryBuilder.Console?.WriteLine($"Database install finished. Elapsed time: {timer.Elapsed}");
             }
             else
             {
                 // If the database already exists, we assume that it also contains
                 // all the necessary content items.
-                await LogLineAsync(repositoryBuilder, "Database already exists.").ConfigureAwait(false);
+                _repositoryBuilder.Console?.WriteLine("Database already exists.");
             }
             
             // Reset the original indexing setting so that subsequent packages use the 
             // same value as intended by the caller. 
-            repositoryBuilder.StartIndexingEngine(origIndexingValue);
-        }
+            _repositoryBuilder.StartIndexingEngine(origIndexingValue);
 
-        public static async Task InstallPackageAsync(Assembly assembly, string packageName,
-            RepositoryBuilder repositoryBuilder, CancellationToken cancellationToken)
+            return this;
+        }
+        /// <summary>
+        /// Installs an SnAdmin package embedded into the provided assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly that contains the package zip.</param>
+        /// <param name="packageName">Name of the embedded package resource.</param>
+        public Installer InstallPackage(Assembly assembly, string packageName)
         {
-            // prepare package: extract it to the file system
-            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, repositoryBuilder.Console);
+            if (assembly == null)
+                throw new ArgumentNullException(nameof(assembly));
+            if (string.IsNullOrEmpty(packageName))
+                throw new ArgumentNullException(nameof(packageName));
 
             Logger.PackageName = packageName;
             Logger.Create(LogLevel.Default);
 
-            await LogLineAsync(repositoryBuilder, $"Executing package {packageName}...").ConfigureAwait(false);
+            // prepare package: extract it to the file system
+            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, _repositoryBuilder.Console);
+
+            ExecutePackage(packageFolder);
+
+            return this;
+        }
+        /// <summary>
+        /// Installs an SnAdmin package from the specified file system location.
+        /// </summary>
+        /// <param name="packagePath">Path of the package: either a zip file or a package folder.</param>
+        public Installer InstallPackage(string packagePath)
+        {
+            if (string.IsNullOrEmpty(packagePath))
+                throw new ArgumentNullException(nameof(packagePath));
+
+            Logger.PackageName = Path.GetFileName(packagePath);
+            Logger.Create(LogLevel.Default);
+
+            // prepare package: extract it to the file system
+            var packageFolder = UnpackFileSystemPackage(packagePath);
+
+            ExecutePackage(packageFolder);
+
+            return this;
+        }
+
+        private void ExecutePackage(string packageFolder)
+        {
+            Logger.LogMessage($"Executing package {Path.GetFileName(packageFolder)}...");
 
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            PackageManager.Execute(packageFolder, currentDirectory, 0, null, 
-                repositoryBuilder.Console, repositoryBuilder);
+            PackageManager.Execute(packageFolder, currentDirectory, 0, null,
+                _repositoryBuilder.Console, _repositoryBuilder);
         }
-        
+
+        private static string UnpackFileSystemPackage(string packagePath)
+        {
+            var pkgFolder = Path.GetDirectoryName(packagePath);
+            var pkgName = Path.GetFileNameWithoutExtension(packagePath);
+            var zipTarget = string.IsNullOrEmpty(pkgFolder) ? pkgName : Path.Combine(pkgFolder, pkgName);
+            var packageZipPath = packagePath.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)
+                ? packagePath
+                : packagePath + ".zip";
+            var isZipExist = File.Exists(packageZipPath);
+
+            if (Directory.Exists(packagePath) && !isZipExist)
+            {
+                Logger.LogMessage("Package directory: " + packagePath);
+                return packagePath;
+            }
+
+            Logger.LogMessage("Package directory: " + zipTarget);
+            
+            if (Directory.Exists(zipTarget))
+            {
+                if (isZipExist)
+                {
+                    Directory.Delete(zipTarget, true);
+                    Directory.CreateDirectory(zipTarget);
+                    Logger.LogMessage("Old files and directories are deleted.");
+                }
+            }
+            else
+            {
+                Directory.CreateDirectory(zipTarget);
+                Logger.LogMessage("Package directory created.");
+            }
+
+            if (isZipExist)
+            {
+                Logger.LogMessage("Extracting ...");
+                Unpacker.Unpack(packageZipPath, zipTarget);
+                Logger.LogMessage("Ok.");
+            }
+
+            return zipTarget;
+        }
+
         private static string UnpackEmbeddedPackage(Assembly assembly, string packageName, TextWriter console)
         {
             if (string.IsNullOrEmpty(packageName))
@@ -102,12 +181,23 @@ namespace SenseNet.Packaging
             
             var zipTarget = Path.GetFileNameWithoutExtension(packageName);
 
-            console?.WriteLine("Package directory: " + zipTarget);
+            // probing: try the resource name with and without the assembly name prefix
+            var packageNameWithPrefix = $"{assembly.GetName().Name}.{packageName}";
+            var resourceName = EmbeddedPackageExists(assembly, packageName)
+                ? packageName
+                : EmbeddedPackageExists(assembly, packageNameWithPrefix)
+                    ? packageNameWithPrefix
+                    : null;
+
+            if (string.IsNullOrEmpty(resourceName))
+                throw new PackagingException($"Package {packageName} does not exist in assembly {assembly.FullName}.");
+
+            console?.WriteLine("Unpacking embedded package to: " + zipTarget);
 
             if (Directory.Exists(zipTarget))
             {
                 Directory.Delete(zipTarget, true);
-                    console?.WriteLine("Old files and directories are deleted.");
+                console?.WriteLine("Old files and directories are deleted.");
             }
             else
             {
@@ -117,7 +207,7 @@ namespace SenseNet.Packaging
 
             console?.WriteLine("Extracting ...");
 
-            using (var resourceStream = assembly.GetManifestResourceStream($"{assembly.GetName().Name}.{packageName}"))
+            using (var resourceStream = assembly.GetManifestResourceStream(resourceName))
             {
                 if (resourceStream == null)
                     throw new InvalidOperationException($"Package {packageName} not found.");
@@ -130,10 +220,12 @@ namespace SenseNet.Packaging
             return zipTarget;
         }
 
-        private static async Task LogLineAsync(RepositoryBuilder builder, string text)
+        private static bool EmbeddedPackageExists(Assembly assembly, string packageName)
         {
-            if (builder.Console != null)
-                await builder.Console.WriteLineAsync(text).ConfigureAwait(false);
+            if (assembly == null || string.IsNullOrEmpty(packageName))
+                return false;
+            
+            return assembly.GetManifestResourceNames().Contains(packageName);
         }
     }
 }
