@@ -33,7 +33,9 @@ namespace SenseNet.Packaging
             var origIndexingValue = _repositoryBuilder.StartIndexingEngine;
             _repositoryBuilder.StartIndexingEngine(false);
 
-            _repositoryBuilder.Console?.WriteLine("Accessing sensenet database...");
+            Logger.PackageName = packageName;
+            Logger.Create(LogLevel.Default);
+            Logger.LogMessage("Accessing sensenet database...");
 
             // Make sure that the database exists and contains the schema
             // necessary for importing initial content items.
@@ -41,36 +43,38 @@ namespace SenseNet.Packaging
             
             if (!dbExists)
             {
-                _repositoryBuilder.Console?.WriteLine("Installing database...");
+                Logger.LogMessage("Installing database...");
                 var timer = Stopwatch.StartNew();
 
                 DataStore.InstallDatabaseAsync(_repositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
 
-                _repositoryBuilder.Console?.WriteLine("Database installed.");
+                Logger.LogMessage("Database installed.");
 
                 // install custom security entries if provided
                 if (_repositoryBuilder.InitialData?.Permissions?.Count > 0)
                 {
                     using (Repository.Start(_repositoryBuilder))
                     {
-                        _repositoryBuilder.Console?.WriteLine("Installing default security structure...");
+                        Logger.LogMessage("Installing default security structure...");
                         
                         SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(_repositoryBuilder.InitialData);
                     }
                 }
 
-                // execute the install package
-                InstallPackage(assembly, packageName);
+                // prepare package: extract it to the file system
+                var packageFolder = UnpackEmbeddedPackage(assembly, packageName);
+
+                ExecutePackage(packageFolder);
 
                 timer.Stop();
 
-                _repositoryBuilder.Console?.WriteLine($"Database install finished. Elapsed time: {timer.Elapsed}");
+                Logger.LogMessage($"Database install finished. Elapsed time: {timer.Elapsed}");
             }
             else
             {
                 // If the database already exists, we assume that it also contains
                 // all the necessary content items.
-                _repositoryBuilder.Console?.WriteLine("Database already exists.");
+                Logger.LogMessage("Database already exists.");
             }
             
             // Reset the original indexing setting so that subsequent packages use the 
@@ -97,7 +101,7 @@ namespace SenseNet.Packaging
             Logger.Create(LogLevel.Default);
 
             // prepare package: extract it to the file system
-            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, _repositoryBuilder.Console);
+            var packageFolder = UnpackEmbeddedPackage(assembly, packageName);
 
             ExecutePackage(packageFolder, parameters);
 
@@ -176,8 +180,7 @@ namespace SenseNet.Packaging
 
             return zipTarget;
         }
-
-        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName, TextWriter console)
+        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName)
         {
             if (string.IsNullOrEmpty(packageName))
                 throw new ArgumentNullException(nameof(packageName));
@@ -195,20 +198,20 @@ namespace SenseNet.Packaging
             if (string.IsNullOrEmpty(resourceName))
                 throw new PackagingException($"Package {packageName} does not exist in assembly {assembly.FullName}.");
 
-            console?.WriteLine("Unpacking embedded package to: " + zipTarget);
+            Logger.LogMessage("Unpacking embedded package to: " + zipTarget);
 
             if (Directory.Exists(zipTarget))
             {
                 Directory.Delete(zipTarget, true);
-                console?.WriteLine("Old files and directories are deleted.");
+                Logger.LogMessage("Old files and directories are deleted.");
             }
             else
             {
                 Directory.CreateDirectory(zipTarget);
-                console?.WriteLine("Package directory created.");
+                Logger.LogMessage("Package directory created.");
             }
 
-            console?.WriteLine("Extracting ...");
+            Logger.LogMessage("Extracting ...");
 
             using (var resourceStream = assembly.GetManifestResourceStream(resourceName))
             {
@@ -218,11 +221,10 @@ namespace SenseNet.Packaging
                 Unpacker.Unpack(resourceStream, zipTarget);
             }
 
-            console?.WriteLine("Ok.");
+            Logger.LogMessage("Ok.");
 
             return zipTarget;
         }
-
         private static bool EmbeddedPackageExists(Assembly assembly, string packageName)
         {
             if (assembly == null || string.IsNullOrEmpty(packageName))
