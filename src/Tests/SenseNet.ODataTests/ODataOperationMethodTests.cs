@@ -871,6 +871,102 @@ namespace SenseNet.ODataTests
             });
         }
 
+        /* ================================================================ REAL INSPECTION */
+
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_WithoutAuthorization()
+        {
+            ODataTest(() =>
+            {
+                RealInspectionTest("ActionForRealCall1", null, 200);
+                RealInspectionTest("ActionForRealCall1", User.Administrator, 401, ODataExceptionCode.Unauthorized);
+                RealInspectionTest("ActionForRealCall1", User.Visitor, 404);
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByRole()
+        {
+            ODataTest(() =>
+            {
+                RealInspectionTest("ActionForRealCall2", null, 200);
+                RealInspectionTest("ActionForRealCall2", User.Administrator, 200);
+                RealInspectionTest("ActionForRealCall2", User.Visitor, 404);
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByRole_Visitor()
+        {
+            ODataTest(() =>
+            {
+                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                    false, PermissionType.See))
+                {
+                    RealInspectionTest("ActionForRealCall3", null, 200);
+                    RealInspectionTest("ActionForRealCall3", User.Administrator, 403, ODataExceptionCode.Forbidden);
+                    RealInspectionTest("ActionForRealCall3", User.Visitor, 200);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByPermission()
+        {
+            ODataTest(() =>
+            {
+                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                    false, PermissionType.See))
+                {
+                    RealInspectionTest("ActionForRealCall4", null, 200);
+                    RealInspectionTest("ActionForRealCall4", User.Administrator, 200);
+                    RealInspectionTest("ActionForRealCall4", User.Visitor, 403, ODataExceptionCode.Forbidden);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByPolicy()
+        {
+            ODataTest(() =>
+            {
+                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                    false, PermissionType.See))
+                {
+                    RealInspectionTest("ActionForRealCall5", null, 200);
+                    RealInspectionTest("ActionForRealCall5", User.Administrator, 403, ODataExceptionCode.Forbidden);
+                    RealInspectionTest("ActionForRealCall5", User.Visitor, 200);
+                }
+            });
+        }
+
+        private void RealInspectionTest(string methodName, IUser user, int expectedHttpCode,
+            ODataExceptionCode? expectedODataExceptionCode = null)
+        {
+            var magicValue = Guid.NewGuid().ToString();
+            ODataResponse response;
+
+            // ACTION
+            using (user == null ? (IDisposable)new SystemAccount() : new CurrentUserBlock(user))
+                response = ODataPostAsync($"/OData.svc/Root('IMS')/{methodName}", "?param2=value2",
+                    $"{{a:\"{magicValue}\"}}").ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            Assert.AreEqual(expectedHttpCode, response.StatusCode);
+            if (expectedHttpCode == 200)
+            {
+                Assert.AreEqual($"{methodName}-{magicValue}", response.Result);
+            }
+            else if (expectedHttpCode == 404)
+            {
+                Assert.AreEqual(0, response.Result.Length);
+            }
+            else
+            {
+                var error = GetError(response, false);
+                Assert.IsNotNull(error);
+                Assert.AreEqual(expectedODataExceptionCode.Value, error.Code);
+            }
+        }
+
+        /* ================================================================ CALL */
+
         [TestMethod]
         public void OD_MBO_Call_JObject()
         {
@@ -1380,6 +1476,31 @@ namespace SenseNet.ODataTests
             }
         }
 
+        private class AllowPermissionBlock : IDisposable
+        {
+            private int _entityId;
+            private int _identityId;
+            private bool _localOnly;
+            PermissionType[] _permissions;
+            public AllowPermissionBlock(int entityId, int identityId, bool localOnly, params PermissionType[] permissions)
+            {
+                _entityId = entityId;
+                _identityId = identityId;
+                _localOnly = localOnly;
+                _permissions = permissions;
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(entityId, identityId, localOnly, permissions)
+                    .Apply();
+            }
+            public void Dispose()
+            {
+                SecurityHandler.CreateAclEditor()
+                    .ClearPermission(_entityId, _identityId, _localOnly, _permissions)
+                    .Apply();
+            }
+        }
+
         private OperationInfo AddMethod(MethodInfo method)
         {
             return OperationCenter.AddMethod(method);
@@ -1427,19 +1548,19 @@ namespace SenseNet.ODataTests
             private StringBuilder _sb = new StringBuilder();
             public string Log { get { return _sb.ToString(); } }
 
-            public override bool CheckPolicies(IUser user, string[] policies, OperationCallingContext context)
+            public override bool CheckPolicies(string[] policies, OperationCallingContext context)
             {
-                _sb.AppendLine($"CheckPolicies: {GetRealUserId(user)}, {string.Join(",", policies)}");
+                _sb.AppendLine($"CheckPolicies: {GetRealUserId(User.Current)}, {string.Join(",", policies)}");
                 return true;
             }
-            public override bool CheckByPermissions(Content content, IUser user, string[] permissions)
+            public override bool CheckByPermissions(Content content, string[] permissions)
             {
-                _sb.AppendLine($"CheckByPermissions: {content.Id}, {GetRealUserId(user)}, {string.Join(",", permissions)}");
+                _sb.AppendLine($"CheckByPermissions: {content.Id}, {GetRealUserId(User.Current)}, {string.Join(",", permissions)}");
                 return true;
             }
-            public override bool CheckByRoles(IUser user, string[] roles)
+            public override bool CheckByRoles(string[] expectedRoles, IEnumerable<string> actualRoles = null)
             {
-                _sb.AppendLine($"CheckByRoles: {GetRealUserId(user)}, {string.Join(",", roles)}");
+                _sb.AppendLine($"CheckByRoles: {GetRealUserId(User.Current)}, {string.Join(",", expectedRoles)}");
                 return true;
             }
 

@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
+using SenseNet.Packaging.Steps;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -309,6 +310,14 @@ namespace SenseNet.ODataTests
             return ODataTestAsync(user, callback, true);
         }
 
+        protected void IsolatedODataTest(Action callback)
+        {
+            IsolatedODataTestAsync(null, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
         protected Task IsolatedODataTestAsync(Func<Task> callback)
         {
             return ODataTestAsync(null, callback, false);

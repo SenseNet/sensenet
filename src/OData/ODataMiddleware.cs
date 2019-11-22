@@ -17,6 +17,7 @@ using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
+using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
@@ -112,6 +113,7 @@ namespace SenseNet.OData
                     odataWriter.Initialize(odataRequest);
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
                 }
+
                 odataWriter.Initialize(odataRequest);
 
                 var requestError = odataRequest.RequestError;
@@ -129,7 +131,8 @@ namespace SenseNet.OData
                 var requestedContent = LoadContentByVersionRequest(odataRequest.RepositoryPath, httpContext);
 
                 var exists = requestedContent != null;
-                if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
+                if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest &&
+                    !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
                     ContentNotFound(httpContext);
                     return;
@@ -154,7 +157,8 @@ namespace SenseNet.OData
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 ContentNotFound(httpContext);
                             else if (odataRequest.IsCollection)
-                                await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest)
+                                await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext,
+                                        odataRequest)
                                     .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
@@ -165,6 +169,7 @@ namespace SenseNet.OData
                                 await odataWriter.WriteSingleContentAsync(requestedContent, httpContext)
                                     .ConfigureAwait(false);
                         }
+
                         break;
                     case "PUT": // update
                         if (odataRequest.IsMemberRequest)
@@ -187,6 +192,7 @@ namespace SenseNet.OData
                             await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "MERGE":
                     case "PATCH": // update
@@ -210,6 +216,7 @@ namespace SenseNet.OData
                             await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "POST": // invoke an action, create content
                         if (odataRequest.IsMemberRequest)
@@ -227,11 +234,13 @@ namespace SenseNet.OData
                                 ContentNotFound(httpContext);
                                 return;
                             }
+
                             model = Read(inputStream);
                             var newContent = CreateNewContent(model, odataRequest);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "DELETE":
                         if (odataRequest.IsMemberRequest)
@@ -243,7 +252,7 @@ namespace SenseNet.OData
                         else
                         {
                             content = LoadContentOrVirtualChild(odataRequest);
-                            if(content != null)
+                            if (content != null)
                             {
                                 var x = httpContext.Request.Query["permanent"].ToString();
                                 if (x.Equals("true", StringComparison.OrdinalIgnoreCase))
@@ -252,6 +261,7 @@ namespace SenseNet.OData
                                     content.Delete();
                             }
                         }
+
                         break;
                 }
             }
@@ -266,6 +276,18 @@ namespace SenseNet.OData
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
                 await odataWriter.WriteErrorResponseAsync(httpContext, e)
+                    .ConfigureAwait(false);
+            }
+            catch (AccessDeniedException e)
+            {
+                var oe = new ODataException(ODataExceptionCode.Forbidden, e);
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                    .ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                var oe = new ODataException(ODataExceptionCode.Unauthorized, e);
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             catch (SenseNetSecurityException e)

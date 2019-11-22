@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Schema;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -12,28 +13,23 @@ namespace SenseNet.OData
     {
         public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario)
         {
-            // Local cache
-            string[] actualRoles = null;
-            // Gets role names of the current user and uses the local cache
-            string[] GetRoles()
-            {
-                return actualRoles ??
-                       (actualRoles = NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray());
-            }
+            var actualRoles =  NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
+
+            var inspector = OperationInspector.Instance;
 
             var stored = storedActions.ToArray();
             var operationMethodActions = OperationCenter.Operations
                 .SelectMany(x => x.Value)
                 .Where(x => FilterByApplications(x.Method.Name, stored))
-                .Where(x => FilterByContentTypes(content.ContentType, x.ContentTypes))
-                .Where(x => x.Roles.Length == 0 || GetRoles().Intersect(x.Roles).Any())
+                .Where(x => FilterByContentTypes(inspector, content, x.ContentTypes))
+                .Where(x => FilterByRoles(inspector, x.Roles, actualRoles))
                 .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Method.Name)))
                 .ToArray();
 
             foreach (var operationMethodAction in operationMethodActions)
             {
                 operationMethodAction.Initialize(content, null, null, null);
-                operationMethodAction.Forbidden = !IsPermitted(content, operationMethodAction.OperationInfo.Permissions);
+                operationMethodAction.Forbidden = !IsPermitted(inspector, content, operationMethodAction.OperationInfo.Permissions);
             }
 
             return stored.Union(operationMethodActions).ToArray();
@@ -45,35 +41,24 @@ namespace SenseNet.OData
                     return false;
             return true;
         }
-        private bool FilterByContentTypes(ContentType contentType, string[] allowedContentTypeNames)
+        private bool FilterByContentTypes(OperationInspector inspector, Content content, string[] allowedContentTypeNames)
         {
             if (allowedContentTypeNames == null || allowedContentTypeNames.Length == 0)
                 return true;
 
-            for (int i = 0; i < allowedContentTypeNames.Length; i++)
-            {
-                var existingContentType = ContentType.GetByName(allowedContentTypeNames[i]);
-                if (existingContentType == null)
-                    continue;
-                if (contentType.IsInstaceOfOrDerivedFrom(existingContentType.Name))
-                    return true;
-            }
-
-            return false;
+            return inspector.CheckByContentType(content, allowedContentTypeNames);
         }
-        private bool IsPermitted(Content content, string[] permissionNames)
+        private bool FilterByRoles(OperationInspector inspector, string[] expectedRoles, IEnumerable<string> actualRoles)
+        {
+            if (expectedRoles.Length == 0)
+                return true;
+            return inspector.CheckByRoles(expectedRoles, actualRoles);
+        }
+        private bool IsPermitted(OperationInspector inspector, Content content, string[] permissionNames)
         {
             if (permissionNames == null || permissionNames.Length == 0)
                 return true;
-
-            var permissionTypes = permissionNames
-                .Select(PermissionType.GetByName)
-                .Where(x => x != null)
-                .ToArray();
-            if (permissionTypes.Length == 0)
-                return true;
-
-            return content.ContentHandler.Security.HasPermission(permissionTypes);
+            return inspector.CheckByPermissions(content, permissionNames);
         }
 
         internal static string GenerateUri(Content content, string operationName)

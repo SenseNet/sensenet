@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.OData
 {
@@ -136,19 +140,23 @@ namespace SenseNet.OData
             ? new string[0]
             : requestParameters.Properties().Select(p => p.Name).ToArray();
 
+            var inspector = OperationInspector.Instance;
             var candidates = GetCandidatesByName(methodName);
             if (candidates.Length > 0)
             {
                 candidates = candidates.Where(x =>
                         AllRequiredParametersExist(x, requestParameterNames) &&
-                        FilterByContentTypes(x.ContentTypes, content.ContentType.Name) &&
-                        FilterByRolesAndPermissions(x.Roles, x.Permissions, content, User.Current))
+                        FilterByContentTypes(inspector, content, x.ContentTypes))
                     .ToArray();
             }
 
             // If there is no any candidates, throw: Operation not found ERROR
             if (candidates.Length == 0)
                 throw new OperationNotFoundException("Operation not found: " + GetRequestSignature(methodName, requestParameterNames));
+
+            candidates = candidates.Where(x => FilterByRolesAndPermissions(inspector, x.Roles, x.Permissions, content)).ToArray();
+            if (candidates.Length == 0)
+                throw new AccessDeniedException(null, null, 0, null, null);
 
             // Search candidates by parameter types
             // Phase-1: search complete type match (strict)
@@ -174,17 +182,17 @@ namespace SenseNet.OData
             return contexts[0];
         }
 
-        private static bool FilterByContentTypes(string[] allowedContentTypes, string currentContentType)
+        private static bool FilterByContentTypes(OperationInspector inspector, Content content, string[] allowedContentTypes)
         {
             if (allowedContentTypes.Length == 0)
                 return true;
-            return allowedContentTypes.Contains(currentContentType);
+            return inspector.CheckByContentType(content, allowedContentTypes);
         }
-        private static bool FilterByRolesAndPermissions(string[] roles, string[] permissions, Content content, IUser user)
+        private static bool FilterByRolesAndPermissions(OperationInspector inspector, string[] roles, string[] permissions, Content content)
         {
-            if (roles.Length > 0 && !OperationInspector.Instance.CheckByRoles(user, roles))
+            if (roles.Length > 0 && !inspector.CheckByRoles(roles))
                 return false;
-            if (permissions.Length > 0 && !OperationInspector.Instance.CheckByPermissions(content, user, permissions))
+            if (permissions.Length > 0 && !inspector.CheckByPermissions(content, permissions))
                 return false;
             return true;
         }
@@ -444,9 +452,29 @@ namespace SenseNet.OData
                 }
             }
 
+            var inspector = OperationInspector.Instance;
+            var operation = context.Operation;
+            var user = User.Current;
+
+            //var contentTypes = operation.ContentTypes;
+            //if (contentTypes.Length > 0 && !inspector.CheckByContentType(context.Content, contentTypes))
+            //    throw new OperationNotFoundException(); //UNDONE: Missing message of OperationNotFoundException
+
+            var roles = operation.Roles;
+            //if (roles.Length > 0 && !inspector.CheckByRoles(user, roles))
+            //    throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
+
+            var permissions = operation.Permissions;
+            //if (permissions.Length > 0 && !inspector.CheckByPermissions(context.Content, user, permissions))
+            //    throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
+
             var policies = context.Operation.Policies;
-            if (policies.Length > 0 && !OperationInspector.Instance.CheckPolicies(User.Current, policies, context))
-                throw new UnauthorizedAccessException();
+            if(user.Id != Identifiers.SystemUserId)
+                if (roles.Length + permissions.Length + policies.Length == 0)
+                    throw new UnauthorizedAccessException(); //UNDONE: Missing message of UnauthorizedAccessException
+
+            if (policies.Length > 0 && !inspector.CheckPolicies(policies, context))
+                throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
 
             return method.Invoke(null, paramValues);
         }

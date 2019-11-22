@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ODataTests
@@ -37,7 +38,9 @@ namespace SenseNet.ODataTests
         public string Username { get; }
         public bool IsInGroup(IGroup @group)
         {
-            throw new NotImplementedException();
+            if (group.Id == Identifiers.EveryoneGroupId)
+                return true;
+            return false;
         }
 
         public bool IsInOrganizationalUnit(IOrganizationalUnit orgUnit)

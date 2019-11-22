@@ -22,6 +22,8 @@ namespace SenseNet.ODataTests
 
     public class TestOperations
     {
+        #region Methods for general tests
+
         [ODataFunction]
         [SnAuthorize(Role = "Administrators,Editors")]
         [SnAuthorize(Policy = "Policy1")]
@@ -36,6 +38,8 @@ namespace SenseNet.ODataTests
         {
             return new object[] { a, b, c, d, e, f };
         }
+
+        #endregion
 
         [ODataAction]
         [SnAuthorize(Policy = "Policy1")]
@@ -66,6 +70,7 @@ namespace SenseNet.ODataTests
             return a;
         }
 
+        #region Methods for parameter tests
 
         [ODataFunction] public static string[] Array_String(Content content, string[] a) => a;
         [ODataFunction] public static int[] Array_Int(Content content, int[] a) => a;
@@ -90,6 +95,46 @@ namespace SenseNet.ODataTests
         [ODataFunction] public static IEnumerable<float> Enumerable_Float(Content content, IEnumerable<float> a) => a;
         [ODataFunction] public static IEnumerable<double> Enumerable_Double(Content content, IEnumerable<double> a) => a;
         [ODataFunction] public static IEnumerable<decimal> Enumerable_Decimal(Content content, IEnumerable<decimal> a) => a;
+
+        #endregion
+
+        #region Methods for real calls
+
+        [ODataFunction]
+        public static string ActionForRealCall1(Content content, string a)
+        {
+            return "ActionForRealCall1-" + a;
+        }
+
+        [ODataFunction]
+        [SnAuthorize(Role = "Administrators")]
+        public static string ActionForRealCall2(Content content, string a)
+        {
+            return "ActionForRealCall2-" + a;
+        }
+
+        [ODataFunction]
+        [SnAuthorize(Role = "Visitor")]
+        public static string ActionForRealCall3(Content content, string a)
+        {
+            return "ActionForRealCall3-" + a;
+        }
+
+        [ODataFunction]
+        [SnAuthorize(Permission = "Open")]
+        public static string ActionForRealCall4(Content content, string a)
+        {
+            return "ActionForRealCall4-" + a;
+        }
+
+        [ODataFunction]
+        [SnAuthorize(Policy = "Policy1")]
+        public static string ActionForRealCall5(Content content, string a)
+        {
+            return "ActionForRealCall5-" + a;
+        }
+
+        #endregion
 
     }
 }
