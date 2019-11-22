@@ -630,5 +630,45 @@ namespace SenseNet.ODataTests
                 .Replace("\t", "")
                 .Replace(" ", "");
         }
+
+        protected class CurrentUserBlock : IDisposable
+        {
+            private readonly IUser _backup;
+            public CurrentUserBlock(IUser user)
+            {
+                _backup = User.Current;
+                User.Current = user;
+            }
+            public void Dispose()
+            {
+                User.Current = _backup;
+            }
+        }
+
+        protected class AllowPermissionBlock : IDisposable
+        {
+            private int _entityId;
+            private int _identityId;
+            private bool _localOnly;
+            PermissionType[] _permissions;
+            public AllowPermissionBlock(int entityId, int identityId, bool localOnly, params PermissionType[] permissions)
+            {
+                _entityId = entityId;
+                _identityId = identityId;
+                _localOnly = localOnly;
+                _permissions = permissions;
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(entityId, identityId, localOnly, permissions)
+                    .Apply();
+            }
+            public void Dispose()
+            {
+                SecurityHandler.CreateAclEditor()
+                    .ClearPermission(_entityId, _identityId, _localOnly, _permissions)
+                    .Apply();
+            }
+        }
+
     }
 }
