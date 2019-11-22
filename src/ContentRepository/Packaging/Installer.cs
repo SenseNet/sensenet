@@ -79,12 +79,14 @@ namespace SenseNet.Packaging
 
             return this;
         }
+
         /// <summary>
         /// Installs an SnAdmin package embedded into the provided assembly.
         /// </summary>
         /// <param name="assembly">The assembly that contains the package zip.</param>
         /// <param name="packageName">Name of the embedded package resource.</param>
-        public Installer InstallPackage(Assembly assembly, string packageName)
+        /// <param name="parameters">Optional package parameters.</param>
+        public Installer InstallPackage(Assembly assembly, string packageName, params PackageParameter[] parameters)
         {
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
@@ -97,7 +99,7 @@ namespace SenseNet.Packaging
             // prepare package: extract it to the file system
             var packageFolder = UnpackEmbeddedPackage(assembly, packageName, _repositoryBuilder.Console);
 
-            ExecutePackage(packageFolder);
+            ExecutePackage(packageFolder, parameters);
 
             return this;
         }
@@ -105,7 +107,8 @@ namespace SenseNet.Packaging
         /// Installs an SnAdmin package from the specified file system location.
         /// </summary>
         /// <param name="packagePath">Path of the package: either a zip file or a package folder.</param>
-        public Installer InstallPackage(string packagePath)
+        /// <param name="parameters">Optional package parameters.</param>
+        public Installer InstallPackage(string packagePath, params PackageParameter[] parameters)
         {
             if (string.IsNullOrEmpty(packagePath))
                 throw new ArgumentNullException(nameof(packagePath));
@@ -116,18 +119,18 @@ namespace SenseNet.Packaging
             // prepare package: extract it to the file system
             var packageFolder = UnpackFileSystemPackage(packagePath);
 
-            ExecutePackage(packageFolder);
+            ExecutePackage(packageFolder, parameters);
 
             return this;
         }
 
-        private void ExecutePackage(string packageFolder)
+        private void ExecutePackage(string packageFolder, params PackageParameter[] parameters)
         {
             Logger.LogMessage($"Executing package {Path.GetFileName(packageFolder)}...");
 
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            PackageManager.Execute(packageFolder, currentDirectory, 0, null,
+            PackageManager.Execute(packageFolder, currentDirectory, 0, parameters,
                 _repositoryBuilder.Console, _repositoryBuilder);
         }
 
