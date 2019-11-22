@@ -878,9 +878,9 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                RealInspectionTest("ActionForRealCall1", null, 200);
-                RealInspectionTest("ActionForRealCall1", User.Administrator, 401, ODataExceptionCode.Unauthorized);
-                RealInspectionTest("ActionForRealCall1", User.Visitor, 404);
+                RealInspectionTest(nameof(TestOperations.Authorization_None), null, 200);
+                RealInspectionTest(nameof(TestOperations.Authorization_None), User.Administrator, 401, ODataExceptionCode.Unauthorized);
+                RealInspectionTest(nameof(TestOperations.Authorization_None), User.Visitor, 404);
             });
         }
         [TestMethod]
@@ -888,9 +888,9 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                RealInspectionTest("ActionForRealCall2", null, 200);
-                RealInspectionTest("ActionForRealCall2", User.Administrator, 200);
-                RealInspectionTest("ActionForRealCall2", User.Visitor, 404);
+                RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Administrators), null, 200);
+                RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Administrators), User.Administrator, 200);
+                RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Administrators), User.Visitor, 404);
             });
         }
         [TestMethod]
@@ -901,9 +901,23 @@ namespace SenseNet.ODataTests
                 using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
                     false, PermissionType.See))
                 {
-                    RealInspectionTest("ActionForRealCall3", null, 200);
-                    RealInspectionTest("ActionForRealCall3", User.Administrator, 403, ODataExceptionCode.Forbidden);
-                    RealInspectionTest("ActionForRealCall3", User.Visitor, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Visitor), null, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Visitor), User.Administrator, 403, ODataExceptionCode.Forbidden);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_Visitor), User.Visitor, 200);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByRole_All()
+        {
+            ODataTest(() =>
+            {
+                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                    false, PermissionType.See))
+                {
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All), null, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All), User.Administrator, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All), User.Visitor, 200);
                 }
             });
         }
@@ -915,9 +929,9 @@ namespace SenseNet.ODataTests
                 using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
                     false, PermissionType.See))
                 {
-                    RealInspectionTest("ActionForRealCall4", null, 200);
-                    RealInspectionTest("ActionForRealCall4", User.Administrator, 200);
-                    RealInspectionTest("ActionForRealCall4", User.Visitor, 403, ODataExceptionCode.Forbidden);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPermission), null, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPermission), User.Administrator, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPermission), User.Visitor, 403, ODataExceptionCode.Forbidden);
                 }
             });
         }
@@ -926,13 +940,9 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
-                    false, PermissionType.See))
-                {
-                    RealInspectionTest("ActionForRealCall5", null, 200);
-                    RealInspectionTest("ActionForRealCall5", User.Administrator, 403, ODataExceptionCode.Forbidden);
-                    RealInspectionTest("ActionForRealCall5", User.Visitor, 200);
-                }
+                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), null, 200);
+                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Administrator, 403, ODataExceptionCode.Forbidden);
+                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Visitor, 200);
             });
         }
 

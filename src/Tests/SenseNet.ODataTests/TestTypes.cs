@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -101,37 +102,43 @@ namespace SenseNet.ODataTests
         #region Methods for real calls
 
         [ODataFunction]
-        public static string ActionForRealCall1(Content content, string a)
+        public static string Authorization_None(Content content, string a)
         {
-            return "ActionForRealCall1-" + a;
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
         [SnAuthorize(Role = "Administrators")]
-        public static string ActionForRealCall2(Content content, string a)
+        public static string AuthorizedByRole_Administrators(Content content, string a)
         {
-            return "ActionForRealCall2-" + a;
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
         [SnAuthorize(Role = "Visitor")]
-        public static string ActionForRealCall3(Content content, string a)
+        public static string AuthorizedByRole_Visitor(Content content, string a)
         {
-            return "ActionForRealCall3-" + a;
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
+        [ODataFunction]
+        [SnAuthorize(Role = "All")]
+        public static string AuthorizedByRole_All(Content content, string a)
+        {
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
         [SnAuthorize(Permission = "Open")]
-        public static string ActionForRealCall4(Content content, string a)
+        public static string AuthorizedByPermission(Content content, string a)
         {
-            return "ActionForRealCall4-" + a;
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
         [SnAuthorize(Policy = "Policy1")]
-        public static string ActionForRealCall5(Content content, string a)
+        public static string AuthorizedByPolicy(Content content, string a)
         {
-            return "ActionForRealCall5-" + a;
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         #endregion
