@@ -5,19 +5,32 @@ using System.Text;
 
 namespace SenseNet.ApplicationModel
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    /// <summary>
+    /// On a class: Defines a scenario with a specified name.
+    /// On a method: Categorizes the operation method action into one or more scenarios.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class ScenarioAttribute : Attribute
     {
-        private string _name;
-        public string Name { get { return _name; } }
+        /// <summary>
+        /// Gets or sets the name(s) of the scenario.
+        /// On a class: only one name is relevant.
+        /// On a method: the value can be a comma separated list.
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// Gets or sets whether singleton is enabled or not if the attribute is on a class.
+        /// This value is ignored if the attribute is on a method.
+        /// </summary>
+        public bool AllowSingleton { get; set; }
 
-        private bool _allowSingleton;
-        public bool AllowSingleton { get { return _allowSingleton; } }
-
-        public ScenarioAttribute(string name, bool allowSingleton = true)
+        /// <summary>
+        /// Initializes a new <see cref="ScenarioAttribute"/> instance.
+        /// </summary>
+        public ScenarioAttribute(string name = null, bool allowSingleton = true)
         {
-            _name = name;
-            _allowSingleton = allowSingleton;
+            Name = name;
+            AllowSingleton = allowSingleton;
         }
     }
 }

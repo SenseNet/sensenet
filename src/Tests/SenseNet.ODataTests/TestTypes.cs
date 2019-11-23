@@ -29,9 +29,8 @@ namespace SenseNet.ODataTests
         [SnAuthorize(Role = "Administrators,Editors")]
         [SnAuthorize(Policy = "Policy1")]
         [SnAuthorize(Permission = "See, Run")]
-        //UNDONE: Use Scenario on a method
-        //[Scenario("Scenario1, Scenario2")]
-        //[Scenario(Scenario = "Scenario2, Scenario3")]
+        [Scenario("Scenario1, Scenario2")]
+        [Scenario(Name = "Scenario2, Scenario3")]
         [ContentType("User, Group")]
         [ContentType(ContentTypeName = "OrgUnit")]
         public static object[] Op1(Content content,
@@ -39,8 +38,6 @@ namespace SenseNet.ODataTests
         {
             return new object[] { a, b, c, d, e, f };
         }
-
-        #endregion
 
         [ODataAction]
         [SnAuthorize(Policy = "Policy1")]
@@ -70,6 +67,8 @@ namespace SenseNet.ODataTests
         {
             return a;
         }
+
+        #endregion
 
         #region Methods for parameter tests
 

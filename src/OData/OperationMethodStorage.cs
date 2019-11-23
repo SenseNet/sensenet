@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Schema;
 using SenseNet.ApplicationModel;
@@ -21,6 +22,7 @@ namespace SenseNet.OData
             var operationMethodActions = OperationCenter.Operations
                 .SelectMany(x => x.Value)
                 .Where(x => FilterByApplications(x.Method.Name, stored))
+                .Where(x => FilterByScenario(x.Scenarios, scenario))
                 .Where(x => FilterByContentTypes(inspector, content, x.ContentTypes))
                 .Where(x => FilterByRoles(inspector, x.Roles, actualRoles))
                 .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Method.Name)))
@@ -40,6 +42,14 @@ namespace SenseNet.OData
                 if (stored[i].Name == operationName)
                     return false;
             return true;
+        }
+        private bool FilterByScenario(string[] allowedScenarios, string scenario)
+        {
+            if (string.IsNullOrEmpty(scenario))
+                return true;
+            if (allowedScenarios == null || allowedScenarios.Length == 0)
+                return false;
+            return allowedScenarios.Contains(scenario/*, StringComparer.InvariantCultureIgnoreCase*/);
         }
         private bool FilterByContentTypes(OperationInspector inspector, Content content, string[] allowedContentTypeNames)
         {

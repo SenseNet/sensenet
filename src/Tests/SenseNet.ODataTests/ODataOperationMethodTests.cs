@@ -1455,6 +1455,53 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
+
+        [TestMethod]
+        public void OD_MBO_Actions_FilteredByScenario()
+        {
+            string GetResult(ODataResponse response)
+            {
+                return string.Join(",", GetEntity(response).Actions
+                    .Where(x=>x.Name.StartsWith("fv"))
+                    .Select(x => x.Name)
+                    .OrderBy(x => x)
+                    .ToArray());
+            }
+
+
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
+                        new Attribute[] { new ODataAction() });
+                    var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ScenarioAttribute("S1") });
+                    var m2 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ScenarioAttribute("S1,S2") });
+                    var m3 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ScenarioAttribute("S2") });
+                    var m4 = AddMethod(new TestMethodInfo("fv4", "Content content, string a", null),
+                        new Attribute[] { new ODataAction(), new ScenarioAttribute("S3") });
+
+                    // TEST-1: without scenario
+                    var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual("fv0,fv1,fv2,fv3,fv4", GetResult(response));
+
+                    // TEST-2: scenario S1
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "?scenario=S1")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual("fv1,fv2", GetResult(response));
+
+                    // TEST-3: scenario S2
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "?scenario=S2")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual("fv2,fv3", GetResult(response));
+                }
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };

@@ -39,11 +39,9 @@ namespace SenseNet.OData
                 .Where(a => a is ContentTypeAttribute)
                 .Select(a => ((ContentTypeAttribute)a).ContentTypeName));
 
-            //UNDONE: Scenarios are not implemented well
-            //Scenarios = ParseNames(attributes
-            //    .Where(a => a is ScenarioAttribute)
-            //    .Select(a => ((ScenarioAttribute)a).Scenario));
-            Scenarios = new string[0];
+            Scenarios = ParseNames(attributes
+                .Where(a => a is ScenarioAttribute)
+                .Select(a => ((ScenarioAttribute)a).Name));
 
             var snAuthorizeAttributes = attributes.Where(a => a is SnAuthorizeAttribute).Cast<SnAuthorizeAttribute>().ToArray();
             Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
