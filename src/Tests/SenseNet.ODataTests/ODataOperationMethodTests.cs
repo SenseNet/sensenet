@@ -151,6 +151,36 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_ContentType()
+        {
+            ODataTest(() =>
+            {
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op1"));
+                Assert.AreEqual("Group,OrgUnit,User", ArrayToString(info.ContentTypes, true));
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_Scenario()
+        {
+            ODataTest(() =>
+            {
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op1"));
+                Assert.AreEqual("Scenario1,Scenario2,Scenario3", ArrayToString(info.Scenarios, true));
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_SnAuthorize()
+        {
+            ODataTest(() =>
+            {
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op2"));
+                Assert.AreEqual("Administrators,Editors,Visitor", ArrayToString(info.Roles, true));
+                Assert.AreEqual("P1,P2,P3", ArrayToString(info.Permissions, true));
+                Assert.AreEqual("Policy1,Policy2,Policy3", ArrayToString(info.Policies, true));
+            });
+        }
+
         /* ====================================================================== SEARCH METHOD TESTS */
 
         [TestMethod]

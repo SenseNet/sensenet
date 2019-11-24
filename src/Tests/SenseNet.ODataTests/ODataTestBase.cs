@@ -631,6 +631,22 @@ namespace SenseNet.ODataTests
                 .Replace(" ", "");
         }
 
+        protected string ArrayToString(int[] array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(List<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(IEnumerable<object> array, bool sort = false)
+        {
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
+        }
+
         protected class CurrentUserBlock : IDisposable
         {
             private readonly IUser _backup;

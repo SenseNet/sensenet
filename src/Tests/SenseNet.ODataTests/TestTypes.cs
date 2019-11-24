@@ -40,7 +40,10 @@ namespace SenseNet.ODataTests
         }
 
         [ODataAction]
-        [SnAuthorize(Policy = "Policy1")]
+        [SnAuthorize(Role = "Administrators,Editors")]
+        [SnAuthorize(Role = "Editors,Visitor")]
+        [SnAuthorize(Policy = "Policy1,Policy2")]
+        [SnAuthorize(Policy = "Policy2,Policy3")]
         [SnAuthorize(Permission = "P1, P2")]
         [SnAuthorize(Permission = "P3")]
         public static object[] Op2(Content content,
@@ -134,7 +137,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize(Policy = "Policy1")]
+        [SnAuthorize("VisitorAllowedPolicy,AdminDeniedPolicy")]
         public static string AuthorizedByPolicy(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
