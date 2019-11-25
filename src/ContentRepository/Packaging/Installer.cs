@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Packaging.Steps;
 using File = System.IO.File;
 
 namespace SenseNet.Packaging
@@ -124,6 +125,16 @@ namespace SenseNet.Packaging
             var packageFolder = UnpackFileSystemPackage(packagePath);
 
             ExecutePackage(packageFolder, parameters);
+
+            return this;
+        }
+
+        public Installer Import(string sourcePath, string targetPath = null)
+        {
+            using (Repository.Start(_repositoryBuilder))
+            {
+                ImportBase.Import(sourcePath, targetPath);
+            }
 
             return this;
         }
