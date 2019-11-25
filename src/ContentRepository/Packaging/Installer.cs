@@ -129,6 +129,11 @@ namespace SenseNet.Packaging
             return this;
         }
 
+        /// <summary>
+        /// Imports content items from the file system to the repository.
+        /// </summary>
+        /// <param name="sourcePath">File system path of a content item or folder to import.</param>
+        /// <param name="targetPath">Target container in the repository. Default: the Root.</param>
         public Installer Import(string sourcePath, string targetPath = null)
         {
             using (Repository.Start(_repositoryBuilder))
