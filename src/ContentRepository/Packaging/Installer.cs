@@ -14,11 +14,11 @@ namespace SenseNet.Packaging
 {
     public class Installer
     {
-        private readonly RepositoryBuilder _repositoryBuilder;
+        public RepositoryBuilder RepositoryBuilder { get; }
 
         public Installer(RepositoryBuilder repositoryBuilder)
         {
-            _repositoryBuilder = repositoryBuilder ?? throw new ArgumentNullException(nameof(repositoryBuilder));
+            RepositoryBuilder = repositoryBuilder ?? throw new ArgumentNullException(nameof(repositoryBuilder));
         }
 
         /// <summary>
@@ -31,8 +31,8 @@ namespace SenseNet.Packaging
         public Installer InstallSenseNet(Assembly assembly, string packageName)
         {
             // switch off indexing so that the first repo start does not require a working index
-            var origIndexingValue = _repositoryBuilder.StartIndexingEngine;
-            _repositoryBuilder.StartIndexingEngine(false);
+            var origIndexingValue = RepositoryBuilder.StartIndexingEngine;
+            RepositoryBuilder.StartIndexingEngine(false);
 
             Logger.PackageName = packageName;
             Logger.Create(LogLevel.Default);
@@ -47,18 +47,18 @@ namespace SenseNet.Packaging
                 Logger.LogMessage("Installing database...");
                 var timer = Stopwatch.StartNew();
 
-                DataStore.InstallDatabaseAsync(_repositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
+                DataStore.InstallDatabaseAsync(RepositoryBuilder.InitialData, CancellationToken.None).GetAwaiter().GetResult();
 
                 Logger.LogMessage("Database installed.");
 
                 // install custom security entries if provided
-                if (_repositoryBuilder.InitialData?.Permissions?.Count > 0)
+                if (RepositoryBuilder.InitialData?.Permissions?.Count > 0)
                 {
-                    using (Repository.Start(_repositoryBuilder))
+                    using (Repository.Start(RepositoryBuilder))
                     {
                         Logger.LogMessage("Installing default security structure...");
                         
-                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(_repositoryBuilder.InitialData);
+                        SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(RepositoryBuilder.InitialData);
                     }
                 }
 
@@ -80,7 +80,7 @@ namespace SenseNet.Packaging
             
             // Reset the original indexing setting so that subsequent packages use the 
             // same value as intended by the caller. 
-            _repositoryBuilder.StartIndexingEngine(origIndexingValue);
+            RepositoryBuilder.StartIndexingEngine(origIndexingValue);
 
             return this;
         }
@@ -136,7 +136,10 @@ namespace SenseNet.Packaging
         /// <param name="targetPath">Target container in the repository. Default: the Root.</param>
         public Installer Import(string sourcePath, string targetPath = null)
         {
-            using (Repository.Start(_repositoryBuilder))
+            Logger.PackageName = "import";
+            Logger.Create(LogLevel.Default);
+
+            using (Repository.Start(RepositoryBuilder))
             {
                 ImportBase.Import(sourcePath, targetPath);
             }
@@ -151,7 +154,7 @@ namespace SenseNet.Packaging
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             PackageManager.Execute(packageFolder, currentDirectory, 0, parameters,
-                _repositoryBuilder.Console, _repositoryBuilder);
+                RepositoryBuilder.Console, RepositoryBuilder);
         }
 
         private static string UnpackFileSystemPackage(string packagePath)
