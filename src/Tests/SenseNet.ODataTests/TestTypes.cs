@@ -32,7 +32,7 @@ namespace SenseNet.ODataTests
         [Scenario("Scenario1, Scenario2")]
         [Scenario(Name = "Scenario2, Scenario3")]
         [ContentType("User, Group")]
-        [ContentType(ContentTypeName = "OrgUnit")]
+        [ContentType("OrgUnit")]
         public static object[] Op1(Content content,
             string a, int b, bool c, float d, decimal e, double f)
         {
@@ -146,6 +146,14 @@ namespace SenseNet.ODataTests
         [ODataFunction]
         [SnAuthorize("UnknownPolicy")]
         public static string AuthorizedByPolicy_Error(Content content, string a)
+        {
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
+
+        public const string GoodMethodName = "GoodMethodName";
+        [ODataFunction]
+        [OperationName(GoodMethodName)]
+        public static string WrongMethodName(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }

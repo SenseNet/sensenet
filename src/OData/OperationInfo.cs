@@ -10,6 +10,7 @@ namespace SenseNet.OData
     [DebuggerDisplay("{ToString()}")]
     public class OperationInfo
     {
+        public string Name { get; }
         public MethodBase Method { get; }
         public string[] RequiredParameterNames { get; set; }
         public Type[] RequiredParameterTypes { get; set; }
@@ -24,8 +25,9 @@ namespace SenseNet.OData
         public string[] Roles { get; private set; }
         public string[] Policies { get; private set; }
 
-        public OperationInfo(MethodBase method, Attribute[] attributes)
+        public OperationInfo(string name, MethodBase method, Attribute[] attributes)
         {
+            Name = name;
             Method = method;
             Attributes = attributes;
             ParseAttributes(attributes);
@@ -77,7 +79,7 @@ namespace SenseNet.OData
                 for (int i = 0; i < OptionalParameterNames.Length; i++)
                     code.Add($"{TypeToString(OptionalParameterTypes[i])} {OptionalParameterNames[i]}?");
             var parameters = string.Join(", ", code);
-            return $"{Method.Name}({parameters})";
+            return $"{Name}({parameters})";
         }
 
         private string TypeToString(Type type)

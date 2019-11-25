@@ -902,6 +902,29 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_Call_Renamed()
+        {
+            ODataTest(() =>
+            {
+                var inspector = new AllowEverything();
+                var content = Content.Load("/Root/IMS");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(inspector))
+                {
+                    var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName,
+                        @"{""a"":""paramValue""}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                Assert.AreEqual("WrongMethodName-paramValue", result.ToString());
+            });
+        }
+
+
         /* ================================================================ REAL INSPECTION */
 
         [TestMethod]
@@ -1519,7 +1542,6 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
-
         [TestMethod]
         public void OD_MBO_Actions_FilteredByScenario()
         {
@@ -1570,6 +1592,17 @@ namespace SenseNet.ODataTests
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };
 
+        private OperationInfo AddMethod(MethodInfo method)
+        {
+            return OperationCenter.AddMethod(method);
+        }
+        private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
+        {
+            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
+        }
+
+        #region Nested classes
+
         private class CleanOperationCenterBlock : IDisposable
         {
             public CleanOperationCenterBlock()
@@ -1583,16 +1616,6 @@ namespace SenseNet.ODataTests
                 OperationCenter.Discover();
             }
         }
-
-        private OperationInfo AddMethod(MethodInfo method)
-        {
-            return OperationCenter.AddMethod(method);
-        }
-        private OperationInfo AddMethod(TestMethodInfo method, Attribute[] attributes = null)
-        {
-            return OperationCenter.AddMethod(method, attributes ?? _defaultAttributes);
-        }
-
 
         private class TestContentHandler
         {
@@ -1810,5 +1833,7 @@ namespace SenseNet.ODataTests
                 return !_deniedUsers.Contains(user.Id);
             }
         }
+
+        #endregion
     }
 }

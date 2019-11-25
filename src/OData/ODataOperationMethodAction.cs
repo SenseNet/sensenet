@@ -29,7 +29,7 @@ namespace SenseNet.OData
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
             base.Initialize(context, backUri, application, parameters);
-            Name = OperationInfo.Method.Name;
+            Name = OperationInfo.Name;
         }
     }
 }

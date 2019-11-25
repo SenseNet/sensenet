@@ -21,11 +21,11 @@ namespace SenseNet.OData
             var stored = storedActions.ToArray();
             var operationMethodActions = OperationCenter.Operations
                 .SelectMany(x => x.Value)
-                .Where(x => FilterByApplications(x.Method.Name, stored))
+                .Where(x => FilterByApplications(x.Name, stored))
                 .Where(x => FilterByScenario(x.Scenarios, scenario))
                 .Where(x => FilterByContentTypes(inspector, content, x.ContentTypes))
                 .Where(x => FilterByRoles(inspector, x.Roles, actualRoles))
-                .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Method.Name)))
+                .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Name)))
                 .ToArray();
 
             foreach (var operationMethodAction in operationMethodActions)

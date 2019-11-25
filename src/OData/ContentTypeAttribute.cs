@@ -5,12 +5,11 @@ namespace SenseNet.OData
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class ContentTypeAttribute : Attribute
     {
-        public string ContentTypeName { get; set; }
+        public string ContentTypeName { get; }
 
-        public ContentTypeAttribute() { }
-        public ContentTypeAttribute(string contentType)
+        public ContentTypeAttribute(string contentTypeName)
         {
-            ContentTypeName = contentType;
+            ContentTypeName = contentTypeName;
         }
     }
 }

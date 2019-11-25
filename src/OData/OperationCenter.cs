@@ -80,7 +80,10 @@ namespace SenseNet.OData
                     req.Add(parameter);
             }
 
-            var info = new OperationInfo(method, attributes)
+            var nameAttribute = (OperationNameAttribute)attributes.FirstOrDefault(a => a is OperationNameAttribute);
+            var name = nameAttribute == null ? method.Name : nameAttribute.Name;
+
+            var info = new OperationInfo(name, method, attributes)
             {
                 RequiredParameterNames = req.Select(x => x.Name).ToArray(),
                 RequiredParameterTypes = req.Select(x => x.ParameterType).ToArray(),
@@ -117,17 +120,17 @@ namespace SenseNet.OData
             // Reason: The single / overloaded method rate probably very high (a lot of single vs a few overloads).
             // Therefore the usual List<T> approach is ineffective because the most List<T> item will contain
             // many unnecessary empty pointers.
-            if (!Operations.TryGetValue(info.Method.Name, out var methods))
+            if (!Operations.TryGetValue(info.Name, out var methods))
             {
                 methods = new[] { info };
-                Operations.Add(info.Method.Name, methods);
+                Operations.Add(info.Name, methods);
             }
             else
             {
                 var copy = new OperationInfo[methods.Length + 1];
                 methods.CopyTo(copy, 0);
                 copy[copy.Length - 1] = info;
-                Operations[info.Method.Name] = copy;
+                Operations[info.Name] = copy;
             }
 
             return info;
