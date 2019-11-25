@@ -54,6 +54,9 @@ namespace SenseNet.OData
 
         public virtual bool CheckPolicies(string[] policies, OperationCallingContext context)
         {
+            if (User.Current.Id == Identifiers.SystemUserId)
+                return true;
+
             foreach (var policyName in policies)
             {
                 if (!OperationCenter.Policies.TryGetValue(policyName, out var policy))
@@ -61,6 +64,7 @@ namespace SenseNet.OData
                 if (!policy.CanExecute(User.Current, context))
                     return false;
             }
+
             return true;
         }
 

@@ -40,14 +40,6 @@ namespace SenseNet.OData
         }
 
         /// <summary>
-        /// Removes all registered IOperationMethodExecutionPolicy.
-        /// </summary>
-        public static RepositoryBuilder RemoveAllOperationMethodExecutionPolicy(this RepositoryBuilder builder)
-        {
-            OperationCenter.Policies.Clear();
-            return builder;
-        }
-        /// <summary>
         /// Adds an <see cref="IOperationMethodExecutionPolicy"/> implementation instance to the active policies.
         /// Uses the Name property of the instance.
         /// </summary>

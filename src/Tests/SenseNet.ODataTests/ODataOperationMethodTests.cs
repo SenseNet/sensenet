@@ -1048,11 +1048,12 @@ namespace SenseNet.ODataTests
             {
                 IsolatedODataTest(builder =>
                 {
-                    builder.RemoveAllOperationMethodExecutionPolicy()
+                    OperationCenter.Policies.Clear();
+
+                    builder
                         // Register an inline policy
                         .UseOperationMethodExecutionPolicy("VisitorAllowed", 
-                            (user, context) => user.Id == Identifiers.VisitorUserId ||
-                                               user.Id == Identifiers.SystemUserId)
+                            (user, context) => user.Id == Identifiers.VisitorUserId)
                         // Register a test policy class
                         .UseOperationMethodExecutionPolicy("AdminDenied",
                             new DeniedUsersOperationMethodExecutionPolicy(new []{Identifiers.AdministratorUserId}));
@@ -1060,7 +1061,7 @@ namespace SenseNet.ODataTests
                 }, () =>
                 {
                     // TEST-1: Unknown policy (see TestOperations.AuthorizedByPolicy_Error method)
-                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy_Error), null, 403,
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy_Error), User.Administrator, 403,
                         ODataExceptionCode.Forbidden, "Policy not found: UnknownPolicy");
 
                     // TEST-2: System is allowed by both policies
