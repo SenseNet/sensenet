@@ -22,7 +22,18 @@ namespace SenseNet.Packaging
 
         internal static IPackagingDataProviderExtension Storage => DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
 
-        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console, RepositoryBuilder builder = null, bool editConnectionString = false)
+        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase,
+            string[] parameters, TextWriter console, RepositoryBuilder builder = null,
+            bool editConnectionString = false)
+        {
+            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+
+            return Execute(packagePath, targetPath, currentPhase, packageParameters, console, builder,
+                editConnectionString);
+        }
+        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, 
+            PackageParameter[] parameters, TextWriter console, 
+            RepositoryBuilder builder = null, bool editConnectionString = false)
         {
             // Workaround for setting the packaging db provider: in normal cases this happens
             // when the repository starts, but in case of package execution the repository 
@@ -30,7 +41,7 @@ namespace SenseNet.Packaging
             if (null == DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>())
                 DataStore.SetDataProviderExtension(typeof(IPackagingDataProviderExtension), new MsSqlPackagingDataProvider());
 
-            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+            var packageParameters = parameters ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters
                 .FirstOrDefault(p => p.PropertyName.ToLowerInvariant() == "forcedreinstall")?
                 .Value?.ToLowerInvariant() ?? "");
@@ -45,7 +56,8 @@ namespace SenseNet.Packaging
             {
                 try
                 {
-                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, packageParameters, forcedReinstall);
+                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, packageParameters,
+                        forcedReinstall, editConnectionString);
                     phaseCount = manifest.CountOfPhases;
                 }
                 catch (Exception e)

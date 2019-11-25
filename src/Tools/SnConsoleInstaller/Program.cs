@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Microsoft.Extensions.Configuration;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -8,19 +7,19 @@ using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Services.Core.Install;
-using Task = System.Threading.Tasks.Task;
+using Installer = SenseNet.Packaging.Installer;
 
 namespace SnConsoleInstaller
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .Build();
 
-            await new RepositoryBuilder()
+            var builder = new RepositoryBuilder()
                 .SetConsole(Console.Out)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
@@ -28,8 +27,10 @@ namespace SnConsoleInstaller
                 .UseDataProvider(new MsSqlDataProvider())
                 .UseSecurityDataProvider(
                     new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
-                .UseLucene29LocalSearchEngine($"{Environment.CurrentDirectory}\\App_Data\\LocalIndex")
-                .InstallSenseNetAsync(CancellationToken.None);
+                .UseLucene29LocalSearchEngine($"{Environment.CurrentDirectory}\\App_Data\\LocalIndex") as RepositoryBuilder;
+
+            new Installer(builder)
+                .InstallSenseNet();
         }
     }
 }

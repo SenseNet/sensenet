@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository;
-using SenseNet.Tools;
+﻿using SenseNet.ContentRepository;
 
 namespace SenseNet.Services.Core.Install
 {
@@ -12,33 +9,13 @@ namespace SenseNet.Services.Core.Install
         /// <summary>
         /// Installs the sensenet Services main component.
         /// </summary>
-        /// <param name="builder">Repository builder used by the install process to start the repository.
-        /// It should be preconfigured with all the necessary sensenet providers like data provider
-        /// and search engine.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
-        public static async Task<IRepositoryBuilder> InstallSenseNetAsync(this IRepositoryBuilder builder, 
-            CancellationToken cancellationToken)
+        /// <param name="installer">Installer instance that contains the <see cref="RepositoryBuilder"/>
+        /// preconfigured with all the necessary sensenet providers like data provider and search engine.</param>
+        public static Packaging.Installer InstallSenseNet(this Packaging.Installer installer)
         {
-            await Packaging.Installer.InstallSenseNetAsync(typeof(Installer).Assembly,
-                InstallPackageName,
-                builder as RepositoryBuilder, cancellationToken).ConfigureAwait(false);
+            installer.InstallSenseNet(typeof(Installer).Assembly, InstallPackageName);
 
-            return builder;
-        }
-
-        /// <summary>
-        /// Installs the sensenet Services main component.
-        /// </summary>
-        /// <param name="builder">Repository builder used by the install process to start the repository.
-        /// It should be preconfigured with all the necessary sensenet providers like data provider
-        /// and search engine.</param>
-        public static IRepositoryBuilder InstallSenseNet(this IRepositoryBuilder builder)
-        {
-            Packaging.Installer.InstallSenseNetAsync(typeof(Installer).Assembly,
-                InstallPackageName,
-                builder as RepositoryBuilder, CancellationToken.None).GetAwaiter().GetResult();
-
-            return builder;
+            return installer;
         }
     }
 }
