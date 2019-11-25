@@ -208,6 +208,7 @@ namespace SenseNet.ODataTests
 
             SnTrace.Flush();
         }
+
         #region Infrastructure
 
         private static RepositoryInstance _repository;
@@ -286,7 +287,7 @@ namespace SenseNet.ODataTests
 
         protected void ODataTest(Action callback)
         {
-            ODataTestAsync(null, () =>
+            ODataTestAsync(null, null, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -294,7 +295,16 @@ namespace SenseNet.ODataTests
         }
         protected void ODataTest(IUser user, Action callback)
         {
-            ODataTestAsync(user, () =>
+            ODataTestAsync(user, null, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        protected void ODataTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            ODataTestAsync(null, initialize, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -303,16 +313,24 @@ namespace SenseNet.ODataTests
 
         protected Task ODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, callback, true);
+            return ODataTestAsync(null, null, callback, true);
         }
         protected Task ODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, callback, true);
+            return ODataTestAsync(user, null, callback, true);
         }
 
         protected void IsolatedODataTest(Action callback)
         {
-            IsolatedODataTestAsync(null, () =>
+            IsolatedODataTestAsync(null, null, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        protected void IsolatedODataTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            IsolatedODataTestAsync(null, initialize, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -320,14 +338,22 @@ namespace SenseNet.ODataTests
         }
         protected Task IsolatedODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, callback, false);
+            return IsolatedODataTestAsync(null, null, callback);
+        }
+        protected Task IsolatedODataTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return IsolatedODataTestAsync(null, initialize, callback);
         }
         protected Task IsolatedODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, callback, false);
+            return IsolatedODataTestAsync(user, null, callback);
+        }
+        protected Task IsolatedODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return ODataTestAsync(user, initialize, callback, false);
         }
 
-        private async Task ODataTestAsync(IUser user, Func<Task> callback, bool reused)
+        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback, bool reused)
         {
             Cache.Reset();
 
@@ -337,6 +363,9 @@ namespace SenseNet.ODataTests
                 _repository = null;
 
                 var repoBuilder = CreateRepositoryBuilder();
+                if (initialize != null)
+                    initialize(repoBuilder);
+
                 Indexing.IsOuterSearchEngineEnabled = true;
                 _repository = Repository.Start(repoBuilder);
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -55,8 +56,14 @@ namespace SenseNet.OData
 
         public virtual bool CheckPolicies(string[] policies, OperationCallingContext context)
         {
-            //UNDONE: call appropriate method of sensenet.
-            return false;
+            foreach (var policyName in policies)
+            {
+                if (!OperationCenter.Policies.TryGetValue(policyName, out var policy))
+                    throw new UnknownOperationMethodExecutionPolicyException("Policy not found: " + policyName);
+                if (!policy.CanExecute(User.Current, context))
+                    return false;
+            }
+            return true;
         }
 
     }

@@ -15,6 +15,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
@@ -968,16 +969,46 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Call_RealInspection_AuthorizationByPolicy()
         {
-            ODataTest(() =>
+            using (new PolicyStoreSwindler())
             {
-                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), null, 200);
-                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Administrator, 403, ODataExceptionCode.Forbidden);
-                RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Visitor, 200);
-            });
+                IsolatedODataTest(builder =>
+                {
+                    builder.RemoveAllOperationMethodExecutionPolicy()
+                        // Register an inline policy
+                        .UseOperationMethodExecutionPolicy("VisitorAllowed", 
+                            (user, context) => user.Id == Identifiers.VisitorUserId ||
+                                               user.Id == Identifiers.SystemUserId)
+                        // Register a test policy class
+                        .UseOperationMethodExecutionPolicy("AdminDenied",
+                            new DeniedUsersOperationMethodExecutionPolicy(new []{Identifiers.AdministratorUserId}));
+
+                }, () =>
+                {
+                    // TEST-1: Unknown policy (see TestOperations.AuthorizedByPolicy_Error method)
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy_Error), null, 403,
+                        ODataExceptionCode.Forbidden, "Policy not found: UnknownPolicy");
+
+                    // TEST-2: System is allowed by both policies
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), null, 200);
+                    // TEST-3: Admin is denied by a policy
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Administrator, 403, ODataExceptionCode.Forbidden);
+                    // TEST-4: Visitor is allowed by both policy but the content is not visible for her.
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Visitor, 404);
+
+                    // Enable the content's visibility for the Visitor.
+                    using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                        false, PermissionType.See))
+                    {
+                        Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, NodeHead.Get("/Root/IMS"), PermissionType.See));
+                        // TEST-5: Visitor is allowed by both policy and the content.
+                        RealInspectionTest(nameof(TestOperations.AuthorizedByPolicy), User.Visitor, 200);
+                    }
+                });
+            }
         }
 
         private void RealInspectionTest(string methodName, IUser user, int expectedHttpCode,
-            ODataExceptionCode? expectedODataExceptionCode = null)
+            ODataExceptionCode? expectedODataExceptionCode = null, string expectedErrorMessage = null)
         {
             var magicValue = Guid.NewGuid().ToString();
             ODataResponse response;
@@ -1001,7 +1032,10 @@ namespace SenseNet.ODataTests
             {
                 var error = GetError(response, false);
                 Assert.IsNotNull(error);
-                Assert.AreEqual(expectedODataExceptionCode.Value, error.Code);
+                if (expectedODataExceptionCode != null)
+                    Assert.AreEqual(expectedODataExceptionCode.Value, error.Code);
+                if (expectedErrorMessage != null)
+                    Assert.AreEqual(expectedErrorMessage, error.Message);
             }
         }
 
@@ -1592,6 +1626,24 @@ namespace SenseNet.ODataTests
                 OperationInspector.Instance = _original;
             }
         }
+        internal class PolicyStoreSwindler : IDisposable
+        {
+            private readonly Dictionary<string, IOperationMethodExecutionPolicy> _backup =
+                new Dictionary<string, IOperationMethodExecutionPolicy>();
+
+            public PolicyStoreSwindler()
+            {
+                foreach (var item in OperationCenter.Policies)
+                    _backup.Add(item.Key, item.Value);
+            }
+
+            public void Dispose()
+            {
+                OperationCenter.Policies.Clear();
+                foreach (var item in _backup)
+                    OperationCenter.Policies.Add(item.Key, item.Value);
+            }
+        }
         internal class AllowEverything : OperationInspector
         {
             private StringBuilder _sb = new StringBuilder();
@@ -1743,5 +1795,20 @@ namespace SenseNet.ODataTests
             }
         }
 
+        public class DeniedUsersOperationMethodExecutionPolicy : IOperationMethodExecutionPolicy
+        {
+            private readonly int[] _deniedUsers;
+
+            public string Name { get; } = "UserDenied";
+
+            public DeniedUsersOperationMethodExecutionPolicy(int[] deniedUserIds)
+            {
+                _deniedUsers = deniedUserIds;
+            }
+            public bool CanExecute(IUser user, OperationCallingContext context)
+            {
+                return !_deniedUsers.Contains(user.Id);
+            }
+        }
     }
 }

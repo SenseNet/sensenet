@@ -34,8 +34,11 @@ namespace SenseNet.OData
             typeof(object),
         };
 
-        internal static readonly Dictionary<string, OperationInfo[]> Operations =
+        internal static Dictionary<string, OperationInfo[]> Operations { get; } =
             new Dictionary<string, OperationInfo[]>();
+
+        internal static Dictionary<string, IOperationMethodExecutionPolicy> Policies { get; } =
+            new Dictionary<string, IOperationMethodExecutionPolicy>();
 
         public static Type[] SystemParameters { get; } = {typeof(HttpContext), typeof(ODataRequest)};
 

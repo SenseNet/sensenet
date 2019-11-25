@@ -137,8 +137,15 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize("VisitorAllowedPolicy,AdminDeniedPolicy")]
+        [SnAuthorize("VisitorAllowed,AdminDenied")]
         public static string AuthorizedByPolicy(Content content, string a)
+        {
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
+
+        [ODataFunction]
+        [SnAuthorize("UnknownPolicy")]
+        public static string AuthorizedByPolicy_Error(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
