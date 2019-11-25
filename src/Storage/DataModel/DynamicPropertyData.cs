@@ -15,7 +15,6 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         public IDictionary<PropertyType, object> DynamicProperties { get; set; }
         public IDictionary<PropertyType, object> ContentListProperties { get; set; }
         public IDictionary<PropertyType, BinaryDataValue> BinaryProperties { get; set; } = new Dictionary<PropertyType, BinaryDataValue>();
-        // UNDONE: Use this collection
         public IDictionary<PropertyType, List<int>> ReferenceProperties { get; set; } = new Dictionary<PropertyType, List<int>>();
         public IDictionary<PropertyType, string> LongTextProperties { get; set; } = new Dictionary<PropertyType, string>();
 

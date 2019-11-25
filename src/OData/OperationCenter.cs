@@ -18,6 +18,8 @@ namespace SenseNet.OData
 {
     public class OperationCenter
     {
+        internal static readonly bool IsCaseInsensitiveOperationNameEnabled = true;
+
         private static readonly OperationInfo[] EmptyMethods = new OperationInfo[0];
         private static readonly JsonSerializer ValueDeserializer = JsonSerializer.Create(
             new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Error });
@@ -116,21 +118,23 @@ namespace SenseNet.OData
             info.RequiredParameterNames = info.RequiredParameterNames.Skip(1).ToArray();
             info.RequiredParameterTypes = info.RequiredParameterTypes.Skip(1).ToArray();
 
+            var operationName = IsCaseInsensitiveOperationNameEnabled ? info.Name.ToLowerInvariant() : info.Name;
+
             // This is a custom dynamic array implementation. 
             // Reason: The single / overloaded method rate probably very high (a lot of single vs a few overloads).
             // Therefore the usual List<T> approach is ineffective because the most List<T> item will contain
             // many unnecessary empty pointers.
-            if (!Operations.TryGetValue(info.Name, out var methods))
+            if (!Operations.TryGetValue(operationName, out var methods))
             {
                 methods = new[] { info };
-                Operations.Add(info.Name, methods);
+                Operations.Add(operationName, methods);
             }
             else
             {
                 var copy = new OperationInfo[methods.Length + 1];
                 methods.CopyTo(copy, 0);
                 copy[copy.Length - 1] = info;
-                Operations[info.Name] = copy;
+                Operations[operationName] = copy;
             }
 
             return info;
@@ -205,7 +209,8 @@ namespace SenseNet.OData
 
         private static OperationInfo[] GetCandidatesByName(string methodName)
         {
-            if (Operations.TryGetValue(methodName, out var methods))
+            var name = IsCaseInsensitiveOperationNameEnabled ? methodName.ToLowerInvariant() : methodName;
+            if (Operations.TryGetValue(name, out var methods))
                 return methods;
             return EmptyMethods;
         }

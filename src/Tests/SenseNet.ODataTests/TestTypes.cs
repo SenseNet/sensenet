@@ -158,6 +158,12 @@ namespace SenseNet.ODataTests
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
+        [ODataFunction]
+        public static string SensitiveMethodName(Content content, string a)
+        {
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
+
         #endregion
 
     }

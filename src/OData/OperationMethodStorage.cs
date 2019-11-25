@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Schema;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -38,9 +36,14 @@ namespace SenseNet.OData
         }
         private bool FilterByApplications(string operationName, ActionBase[] stored)
         {
-            for (int i = 0; i < stored.Length; i++)
-                if (stored[i].Name == operationName)
+            var comparison = OperationCenter.IsCaseInsensitiveOperationNameEnabled
+                ? StringComparison.InvariantCultureIgnoreCase 
+                : StringComparison.InvariantCulture;
+
+            for (var i = 0; i < stored.Length; i++)
+                if (stored[i].Name.Equals(operationName, comparison))
                     return false;
+
             return true;
         }
         private bool FilterByScenario(string[] allowedScenarios, string scenario)
@@ -49,7 +52,7 @@ namespace SenseNet.OData
                 return true;
             if (allowedScenarios == null || allowedScenarios.Length == 0)
                 return false;
-            return allowedScenarios.Contains(scenario/*, StringComparer.InvariantCultureIgnoreCase*/);
+            return allowedScenarios.Contains(scenario, StringComparer.InvariantCultureIgnoreCase);
         }
         private bool FilterByContentTypes(OperationInspector inspector, Content content, string[] allowedContentTypeNames)
         {

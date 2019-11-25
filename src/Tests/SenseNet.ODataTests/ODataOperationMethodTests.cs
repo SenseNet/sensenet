@@ -637,17 +637,17 @@ namespace SenseNet.ODataTests
             Assert.AreEqual(4.2d, request["a"].Value<double>());
             Assert.AreEqual(4.2m, request["a"].Value<decimal>());
         }
-        //[TestMethod]
-        //public void OD_MBO_Request_StringArray()
-        //{
-        //    var request = ODataMiddleware.Read("models=[{'a':['xxx','yyy','zzz']}]");
+        [TestMethod]
+        public void OD_MBO_Request_StringArray()
+        {
+            var request = ODataMiddleware.Read("models=[{'a':['xxx','yyy','zzz']}]");
 
-        //    var array = (JArray) request["a"];
-        //    Assert.AreEqual(JTokenType.Array, array.Type);
-        //    var stringArray = array.Select(x => x.Value<string>()).ToArray();
-        //    var actual = string.Join(",", stringArray);
-        //    Assert.AreEqual("xxx,yyy,zzz", actual);
-        //}
+            var array = (JArray)request["a"];
+            Assert.AreEqual(JTokenType.Array, array.Type);
+            var stringArray = array.Select(x => x.Value<string>()).ToArray();
+            var actual = string.Join(",", stringArray);
+            Assert.AreEqual("xxx,yyy,zzz", actual);
+        }
         [TestMethod]
         public void OD_MBO_Request_ObjectArray()
         {
@@ -924,6 +924,58 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_Call_InsensitiveMethodName()
+        {
+            // Do not execute if the case insensivity is disabled
+            if (!OperationCenter.IsCaseInsensitiveOperationNameEnabled)
+                return;
+
+            ODataTest(() =>
+            {
+                var inspector = new AllowEverything();
+                var content = Content.Load("/Root/IMS");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(inspector))
+                {
+                    var context = OperationCenter.GetMethodByRequest(content, 
+                        nameof(TestOperations.SensitiveMethodName).ToLowerInvariant(),
+                        @"{""a"":""paramValue""}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                Assert.AreEqual("SensitiveMethodName-paramValue", result.ToString());
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Call_InsensitiveMethodName_Renamed()
+        {
+            // Do not execute if the case insensivity is disabled
+            if (!OperationCenter.IsCaseInsensitiveOperationNameEnabled)
+                return;
+
+            ODataTest(() =>
+            {
+                var inspector = new AllowEverything();
+                var content = Content.Load("/Root/IMS");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(inspector))
+                {
+                    var context = OperationCenter.GetMethodByRequest(content, TestOperations.GoodMethodName.ToLowerInvariant(),
+                        @"{""a"":""paramValue""}");
+                    result = OperationCenter.Invoke(context);
+                }
+
+                // ASSERT
+                Assert.AreEqual("WrongMethodName-paramValue", result.ToString());
+            });
+        }
 
         /* ================================================================ REAL INSPECTION */
 
@@ -1554,7 +1606,6 @@ namespace SenseNet.ODataTests
                     .ToArray());
             }
 
-
             ODataTest(() =>
             {
                 using (new CleanOperationCenterBlock())
@@ -1581,6 +1632,16 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual("fv1,fv2", GetResult(response));
 
                     // TEST-3: scenario S2
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "?scenario=S2")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual("fv2,fv3", GetResult(response));
+
+                    // TEST-4: scenario s1 (case insensitive)
+                    response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "?scenario=S1")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                    Assert.AreEqual("fv1,fv2", GetResult(response));
+
+                    // TEST-5: scenario s2
                     response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "?scenario=S2")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                     Assert.AreEqual("fv2,fv3", GetResult(response));
