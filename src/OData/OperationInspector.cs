@@ -15,8 +15,6 @@ namespace SenseNet.OData
 
         public virtual bool CheckByContentType(Content content, string[] contentTypes)
         {
-            //return contentTypes.Contains(content.ContentType.Name);
-
             var contentType = content.ContentType;
             for (var i = 0; i < contentTypes.Length; i++)
             {
@@ -37,7 +35,7 @@ namespace SenseNet.OData
                 return true;
             if (userId == Identifiers.VisitorUserId && expectedRoles.Contains("Visitor"))
                 return true;
-            if (expectedRoles.Contains("All")) //UNDONE: not tested
+            if (expectedRoles.Contains("All"))
                 return true;
 
             if (actualRoles == null)

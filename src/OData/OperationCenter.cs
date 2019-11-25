@@ -459,25 +459,19 @@ namespace SenseNet.OData
             var operation = context.Operation;
             var user = User.Current;
 
-            //var contentTypes = operation.ContentTypes;
-            //if (contentTypes.Length > 0 && !inspector.CheckByContentType(context.Content, contentTypes))
-            //    throw new OperationNotFoundException(); //UNDONE: Missing message of OperationNotFoundException
+            // ContentType, role, permission verification is not necessary here because the method candidates are already filtered.
 
+            // The method call is not allowed if there is no authorization rule.
             var roles = operation.Roles;
-            //if (roles.Length > 0 && !inspector.CheckByRoles(user, roles))
-            //    throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
-
             var permissions = operation.Permissions;
-            //if (permissions.Length > 0 && !inspector.CheckByPermissions(context.Content, user, permissions))
-            //    throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
-
             var policies = context.Operation.Policies;
             if(user.Id != Identifiers.SystemUserId)
                 if (roles.Length + permissions.Length + policies.Length == 0)
-                    throw new UnauthorizedAccessException(); //UNDONE: Missing message of UnauthorizedAccessException
+                    throw new UnauthorizedAccessException();
 
+            // Execute the code-based policies (if there is any).
             if (policies.Length > 0 && !inspector.CheckPolicies(policies, context))
-                throw new AccessDeniedException(null, null, 0, null, null); //UNDONE: Missing message of AccessDeniedException
+                throw new AccessDeniedException(null, null, 0, null, null);
 
             return method.Invoke(null, paramValues);
         }
