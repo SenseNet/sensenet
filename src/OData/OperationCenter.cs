@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.DataProtection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 
 namespace SenseNet.OData
@@ -224,6 +222,10 @@ namespace SenseNet.OData
         private static bool TryParseParameters(OperationInfo candidate, Content content, JObject requestParameters, bool strict, out OperationCallingContext context)
         {
             context = new OperationCallingContext(content, candidate);
+
+            // If there is no any request parameter, the validity of candidate depends on the required parameter count.
+            if (requestParameters == null)
+                return candidate.RequiredParameterNames.Length == 0;
 
             // Foreach all optional parameters of the method
             for (int i = 0; i < candidate.OptionalParameterNames.Length; i++)
@@ -443,7 +445,25 @@ namespace SenseNet.OData
             return string.Join(", ", contexts.Select(c => c.Operation.ToString()));
         }
 
+        /* ===================================================================================== INVOKE */
+
         public static object Invoke(OperationCallingContext context)
+        {
+            var parameters = PrepareInvoke(context);
+
+            return context.Operation.Method.Invoke(null, parameters);
+        }
+
+        public static async Task<object> InvokeAsync(OperationCallingContext context)
+        {
+            var parameters = PrepareInvoke(context);
+
+            dynamic awaitable = context.Operation.Method.Invoke(null, parameters);
+            await awaitable;
+            return awaitable.GetAwaiter().GetResult();
+        }
+
+        private static object[] PrepareInvoke(OperationCallingContext context)
         {
             var method = context.Operation.Method;
             var methodParams = method.GetParameters();
@@ -473,7 +493,7 @@ namespace SenseNet.OData
             var roles = operation.Roles;
             var permissions = operation.Permissions;
             var policies = context.Operation.Policies;
-            if(user.Id != Identifiers.SystemUserId)
+            if (user.Id != Identifiers.SystemUserId)
                 if (roles.Length + permissions.Length + policies.Length == 0)
                     throw new UnauthorizedAccessException();
 
@@ -481,7 +501,7 @@ namespace SenseNet.OData
             if (policies.Length > 0 && !inspector.CheckPolicies(policies, context))
                 throw new AccessDeniedException(null, null, 0, null, null);
 
-            return method.Invoke(null, paramValues);
+            return paramValues;
         }
     }
 }

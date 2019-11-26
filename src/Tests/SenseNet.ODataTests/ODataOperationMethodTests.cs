@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
-using SenseNet.Search.Querying;
-using SenseNet.Tests.Accessors;
+using Task = System.Threading.Tasks.Task;
+// ReSharper disable UnusedVariable
+// ReSharper disable NotAccessedVariable
+// ReSharper disable RedundantAssignment
+// ReSharper disable UnusedAutoPropertyAccessor.Local
+// ReSharper disable StringLiteralTypo
+// ReSharper disable IdentifierTypo
 
 namespace SenseNet.ODataTests
 {
@@ -179,6 +180,28 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("Administrators,Editors,Visitor", ArrayToString(info.Roles, true));
                 Assert.AreEqual("P1,P2,P3", ArrayToString(info.Permissions, true));
                 Assert.AreEqual("Policy1,Policy2,Policy3", ArrayToString(info.Policies, true));
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetInfo_SyncAsync()
+        {
+            ODataTest(() =>
+            {
+                const string n = "_syncasync";
+                const string p = "Content content";
+
+                var info1 = AddMethod(new TestMethodInfo($"{n}1", p, null, typeof(void)));
+                var info2 = AddMethod(new TestMethodInfo($"{n}1", p, null, typeof(object)));
+                var info3 = AddMethod(new TestMethodInfo($"{n}2", p, null, typeof(string)));
+                var info4 = AddMethod(new TestMethodInfo($"{n}3", p, null, typeof(Task)));
+                var info5 = AddMethod(new TestMethodInfo($"{n}4", p, null, typeof(Task<string>)));
+
+                Assert.IsFalse(info1.IsAsync);
+                Assert.IsFalse(info2.IsAsync);
+                Assert.IsFalse(info3.IsAsync);
+                Assert.IsTrue(info4.IsAsync);
+                Assert.IsTrue(info5.IsAsync);
             });
         }
 
@@ -977,6 +1000,59 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public async Task OD_MBO_Call_Async()
+        {
+            await ODataTestAsync(async () =>
+            {
+                var inspector = new AllowEverything();
+                var content = Content.Load("/Root/IMS");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(inspector))
+                {
+                    var context = OperationCenter.GetMethodByRequest(content,
+                        nameof(TestOperations.AsyncMethod),
+                        @"{""a"":""qwer""}");
+                    result = await OperationCenter.InvokeAsync(context).ConfigureAwait(false);
+                }
+
+                // ASSERT
+                Assert.AreEqual("AsyncMethod-qwer", result.ToString());
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBO_Call_Async_GET()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync($"/OData.svc/Root('IMS')/AsyncMethod",
+                    //TODO: querystring parameters are not processed yet.
+                    //"?param2=value2&a=value1").ConfigureAwait(false);
+                    "").ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(200, response.StatusCode);
+                Assert.AreEqual("AsyncMethod-[NULL]", response.Result);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_MBO_Call_Async_POST()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync($"/OData.svc/Root('IMS')/AsyncMethod", "?param2=value2",
+                    $"{{a:\"paramValue\"}}").ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual(200, response.StatusCode);
+                Assert.AreEqual("AsyncMethod-paramValue", response.Result);
+            }).ConfigureAwait(false);
+        }
+
         /* ================================================================ REAL INSPECTION */
 
         [TestMethod]
@@ -1276,6 +1352,7 @@ namespace SenseNet.ODataTests
         public void OD_MBO_Call_EnumerableError()
         {
             #region void Test<T>(string methodName, string request)
+            // ReSharper disable once UnusedTypeParameter
             bool Test<T>(string methodName, string request)
             {
                 var testResult = false;
@@ -1293,7 +1370,7 @@ namespace SenseNet.ODataTests
 
                         testResult = true;
                     }
-                    catch (Exception e)
+                    catch
                     {
                         // ignored
                     }
@@ -1590,7 +1667,7 @@ namespace SenseNet.ODataTests
                         Assert.AreEqual("fv0:True, fv1:True, fv2:True", GetAllowedActionNames(nodes[3].Name));
                     }
 
-                    return System.Threading.Tasks.Task.CompletedTask;
+                    return Task.CompletedTask;
                 }
             }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
@@ -1770,13 +1847,15 @@ namespace SenseNet.ODataTests
             }
         }
 
-        public class TestMethodInfo : MethodBase
+        public class TestMethodInfo : MethodInfo
         {
             private ParameterInfo[] _parameters;
-            public TestMethodInfo(string name, string requiredParameters, string optionalParameters)
+            private Type _returnType;
+            public TestMethodInfo(string name, string requiredParameters, string optionalParameters, Type returnType = null)
             {
                 Name = name;
                 _parameters = ParseParameters(requiredParameters, optionalParameters);
+                _returnType = returnType ?? typeof(string);
             }
             private ParameterInfo[] ParseParameters(string requiredParameters, string optionalParameters)
             {
@@ -1841,6 +1920,7 @@ namespace SenseNet.ODataTests
 
             public override ParameterInfo[] GetParameters() => _parameters;
 
+            public override Type ReturnType => _returnType;
 
             public override MethodAttributes Attributes => throw new NotImplementedException();
 
@@ -1848,7 +1928,14 @@ namespace SenseNet.ODataTests
 
             public override Type DeclaringType => throw new NotImplementedException();
 
+            public override MethodInfo GetBaseDefinition()
+            {
+                throw new NotImplementedException();
+            }
+
             public override MemberTypes MemberType => throw new NotImplementedException();
+
+            public override ICustomAttributeProvider ReturnTypeCustomAttributes => throw new NotImplementedException();
 
             public override string Name { get; }
 

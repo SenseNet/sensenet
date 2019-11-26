@@ -4,9 +4,13 @@ using SenseNet.ContentRepository;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.i18n;
+using Task = System.Threading.Tasks.Task;
+
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ApplicationModel
 {
@@ -271,7 +275,7 @@ namespace SenseNet.ApplicationModel
         public virtual ActionParameter[] ActionParameters { get { return ActionParameter.EmptyParameters; } }
 
         /// <summary>
-        /// Executes the action logic when called via OData protocol
+        /// Executes the action logic when called via OData protocol.
         /// </summary>
         /// <param name="content">Context content</param>
         /// <param name="parameters">Any other Action specific parameters.</param>
@@ -279,6 +283,17 @@ namespace SenseNet.ApplicationModel
         public virtual object Execute(Content content, params object[] parameters)
         {
             return null;
+        }
+
+        /// <summary>
+        /// Executes the action logic when called via OData protocol in async way.
+        /// </summary>
+        /// <param name="content">Context content</param>
+        /// <param name="parameters">Any other Action specific parameters.</param>
+        /// <returns></returns>
+        public virtual Task<object> ExecuteAsync(Content content, params object[] parameters)
+        {
+            return Task.FromResult(default(object));
         }
 
         // ================================================================================= Helper methods

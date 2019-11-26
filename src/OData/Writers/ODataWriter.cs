@@ -429,8 +429,9 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var parameters = GetOperationParameters(action, httpContext.Request);
-            var response = action.Execute(content, parameters);
+            var response = action is ODataOperationMethod odataAction
+                ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
+                : action.Execute(content, GetOperationParameters(action, httpContext.Request));
 
             if (response is Content responseAsContent)
             {
@@ -465,8 +466,8 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var response = action is ODataOperationMethod
-            ? action.Execute(content)
+            var response = action is ODataOperationMethod odataAction
+            ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
             : action.Execute(content, GetOperationParameters(action, inputStream, httpContext, odataReq));
 
             if (response is Content responseAsContent)
@@ -797,7 +798,7 @@ namespace SenseNet.OData.Writers
                                 else if (valStr.StartsWith("\""))
                                     values[i] = GetStringArrayFromString(name, valStr, '"');
                                 else
-                                    values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
+                                    values[i] = valStr.Split(',').Select(s => s.Trim()).ToArray();
                             }
                         }
                         else

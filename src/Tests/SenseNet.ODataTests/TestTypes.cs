@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
+using Task = System.Threading.Tasks.Task;
+// ReSharper disable UnusedMember.Global
 
 namespace SenseNet.ODataTests
 {
@@ -162,6 +163,13 @@ namespace SenseNet.ODataTests
         public static string SensitiveMethodName(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
+
+
+        [ODataFunction]
+        public static Task<string> AsyncMethod(Content content, string a = null)
+        {
+            return Task.FromResult(MethodBase.GetCurrentMethod().Name + "-" + (a ?? "[NULL]"));
         }
 
         #endregion

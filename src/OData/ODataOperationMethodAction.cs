@@ -23,7 +23,7 @@ namespace SenseNet.OData
                 .Select(x => new ActionParameter(x.Name, x.ParameterType, !x.IsOptional))
                 .ToArray();
 
-            CausesStateChange = operationInfo.CauseStateChange;
+            CausesStateChange = operationInfo.CausesStateChange;
         }
 
         public override void Initialize(Content context, string backUri, Application application, object parameters)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using SenseNet.ApplicationModel;
 
 namespace SenseNet.OData
@@ -12,13 +13,15 @@ namespace SenseNet.OData
     {
         public string Name { get; }
         public MethodBase Method { get; }
+        public bool IsAsync { get; }
+
         public string[] RequiredParameterNames { get; set; }
         public Type[] RequiredParameterTypes { get; set; }
         public string[] OptionalParameterNames { get; set; }
         public Type[] OptionalParameterTypes { get; set; }
         public Attribute[] Attributes { get; }
 
-        public bool CauseStateChange { get; private set; }
+        public bool CausesStateChange { get; private set; }
         public string[] ContentTypes { get; private set; }
         public string[] Permissions { get; private set; }
         public string[] Scenarios { get; private set; }
@@ -31,11 +34,12 @@ namespace SenseNet.OData
             Method = method;
             Attributes = attributes;
             ParseAttributes(attributes);
+            IsAsync = ParseSynchronicity(method);
         }
 
         private void ParseAttributes(Attribute[] attributes)
         {
-            CauseStateChange = attributes.Any(a => a is ODataAction);
+            CausesStateChange = attributes.Any(a => a is ODataAction);
 
             ContentTypes = ParseNames(attributes
                 .Where(a => a is ContentTypeAttribute)
@@ -81,7 +85,6 @@ namespace SenseNet.OData
             var parameters = string.Join(", ", code);
             return $"{Name}({parameters})";
         }
-
         private string TypeToString(Type type)
         {
             if (type == typeof(string))
@@ -89,6 +92,15 @@ namespace SenseNet.OData
             if (type == typeof(int))
                 return "int";
             return type.Name;
+        }
+
+        private bool ParseSynchronicity(MethodBase methodBase)
+        {
+            if (!(methodBase is MethodInfo method))
+                return false;
+
+            return method.ReturnType == typeof(Task) ||
+                   method.ReturnType.BaseType == typeof(Task);
         }
     }
 }

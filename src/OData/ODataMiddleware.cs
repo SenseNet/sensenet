@@ -348,6 +348,8 @@ namespace SenseNet.OData
             string models;
             if (inputStream == null)
                 return null;
+            if (inputStream == Stream.Null)
+                return null;
             using (var reader = new StreamReader(inputStream))
                 models = reader.ReadToEnd();
 
@@ -764,6 +766,7 @@ namespace SenseNet.OData
             OperationCallingContext method;
             try
             {
+                //TODO:~ Combine request body and querystring parameters into the 3th parameter.
                 method = OperationCenter.GetMethodByRequest(content, name,
                     ODataMiddleware.Read(httpContext.Request.Body));
             }
@@ -779,7 +782,7 @@ namespace SenseNet.OData
             }
 
             method.HttpContext = httpContext;
-            return new ODataOperationMethod { Method = method };
+            return new ODataOperationMethod(method);
         }
     }
 }
