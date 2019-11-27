@@ -1,6 +1,7 @@
 ﻿using System;
 
-namespace SenseNet.OData
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ApplicationModel
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class OperationNameAttribute : Attribute

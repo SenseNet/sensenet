@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace SenseNet.OData
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ApplicationModel
 {
     /// <summary>
-    /// Declares authorization rules for an OData Operation Method. Available rule categories: Policy, Role, Permission
+    /// Declares authorization rules for an Operation Method. Available rule categories: Policy, Role, Permission
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class SnAuthorizeAttribute : Attribute
