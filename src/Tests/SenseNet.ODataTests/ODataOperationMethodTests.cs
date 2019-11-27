@@ -1104,6 +1104,20 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
+        public void OD_MBO_Call_RealInspection_AuthorizationByRole_All2()
+        {
+            ODataTest(() =>
+            {
+                using (new AllowPermissionBlock(Identifiers.PortalRootId, Identifiers.VisitorUserId,
+                    false, PermissionType.See))
+                {
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All2), null, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All2), User.Administrator, 200);
+                    RealInspectionTest(nameof(TestOperations.AuthorizedByRole_All2), User.Visitor, 200);
+                }
+            });
+        }
+        [TestMethod]
         public void OD_MBO_Call_RealInspection_AuthorizationByPermission()
         {
             ODataTest(() =>

@@ -43,16 +43,26 @@ namespace SenseNet.OData
 
             ContentTypes = ParseNames(attributes
                 .Where(a => a is ContentTypeAttribute)
-                .Select(a => ((ContentTypeAttribute)a).ContentTypeName));
+                .Select(a => ((ContentTypeAttribute) a).ContentTypeName));
 
             Scenarios = ParseNames(attributes
                 .Where(a => a is ScenarioAttribute)
-                .Select(a => ((ScenarioAttribute)a).Name));
+                .Select(a => ((ScenarioAttribute) a).Name));
 
-            var snAuthorizeAttributes = attributes.Where(a => a is SnAuthorizeAttribute).Cast<SnAuthorizeAttribute>().ToArray();
-            Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
-            Policies = ParseNames(snAuthorizeAttributes.Select(a => a.Policy));
-            Permissions = ParseNames(snAuthorizeAttributes.Select(a => a.Permission));
+            if (attributes.Any(a => a is SnAuthorizeAllAttribute))
+            {
+                Roles = new[] {"All"};
+                Policies = _empty;
+                Permissions = _empty;
+            }
+            else
+            {
+                var snAuthorizeAttributes = attributes.Where(a => a is SnAuthorizeAttribute)
+                    .Cast<SnAuthorizeAttribute>().ToArray();
+                Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
+                Policies = ParseNames(snAuthorizeAttributes.Select(a => a.Policy));
+                Permissions = ParseNames(snAuthorizeAttributes.Select(a => a.Permission));
+            }
         }
 
         private static readonly char[] SplitChars = new[] { ',' };

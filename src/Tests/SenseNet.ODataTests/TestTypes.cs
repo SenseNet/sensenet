@@ -129,6 +129,12 @@ namespace SenseNet.ODataTests
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
+        [ODataFunction]
+        [SnAuthorizeAll]
+        public static string AuthorizedByRole_All2(Content content, string a)
+        {
+            return MethodBase.GetCurrentMethod().Name + "-" + a;
+        }
 
         [ODataFunction]
         [SnAuthorize(Permission = "Open")]
