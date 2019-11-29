@@ -3,9 +3,11 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
 
 namespace SenseNet.ODataTests
@@ -13,7 +15,7 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataBuiltInOperationMethodTests : ODataTestBase
     {
-        /* ====================================================================== BUILT-IN OPERATION TESTS */
+        /* ====================================================================== RepositoryTools */
 
         [TestMethod]
         public void OD_MBO_BuiltIn_GetVersionInfo()
@@ -32,6 +34,8 @@ namespace SenseNet.ODataTests
             });
         }
 
+        /* ====================================================================== RepositoryTools */
+
         [TestMethod]
         public void OD_MBO_BuiltIn_Ancestors()
         {
@@ -49,33 +53,16 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OD_MBO_BuiltIn_GetPermissionInfo()
+        public void OD_MBO_BuiltIn_CheckSecurityConsistency()
         {
             ODataTest(() =>
             {
-                var response = ODataPostAsync($"/OData.svc/Root('IMS')/GetPermissionInfo", "",
-                        "models=[{'identity':'/Root/IMS/BuiltIn/Portal/Admin'}]")
+                var response = ODataGetAsync($"/OData.svc/Root('IMS')/CheckSecurityConsistency", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
-                Assert.IsNotNull(result["d"]);
-                Assert.AreEqual("Admin", result["d"]["identity"]["name"].Value<string>());
-            });
-        }
-
-        [TestMethod]
-        public void OD_MBO_BuiltIn_GetSharing()
-        {
-            ODataTest(() =>
-            {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetSharing", "")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                Assert.AreEqual(200, response.StatusCode);
-                var result = GetObject(response);
-                Assert.IsNotNull(result["d"]);
-                Assert.AreEqual(0, result["d"]["__count"].Value<int>());
+                Assert.IsNotNull(result["IsConsistent"]);
             });
         }
 
@@ -95,6 +82,166 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(expected, names);
             });
         }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_GetAllowedChildTypesFromCTD()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetAllowedChildTypesFromCTD",
+                        "?metadata=no&$select=Name")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetEntities(response).ToArray();
+                Assert.AreEqual(1, result.Length);
+                Assert.AreEqual("Domain", result[0].Name);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_GetRecentSecurityActivities()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentSecurityActivities", "")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetObject(response);
+                Assert.IsNotNull(result["RecentLength"]);
+                Assert.IsNotNull(result["Recent"]);
+                Assert.IsNotNull(result["State"]);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_GetRecentIndexingActivities()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentIndexingActivities", "")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetObject(response);
+                Assert.IsNotNull(result["RecentLength"]);
+                Assert.IsNotNull(result["Recent"]);
+                Assert.IsNotNull(result["State"]);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_ResetRecentIndexingActivities()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataPostAsync($"/OData.svc/Root('IMS')/ResetRecentIndexingActivities",
+                        "", "")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetObject(response);
+                Assert.IsNotNull(result["RecentLength"]);
+                Assert.IsNotNull(result["Recent"]);
+                Assert.IsNotNull(result["State"]);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_TakeLockOver()
+        {
+            IsolatedODataTest(() =>
+            {
+                var user = CreateUser("xy@email.com");
+                SecurityHandler.CreateAclEditor()
+                    .Allow(2, user.Id, false, PermissionType.PermissionTypes)
+                    .Apply();
+
+                File file;
+                using (new CurrentUserBlock(user))
+                {
+                    file = new File(CreateTestRoot("TestFiles")) { Name = "File-1" };
+                    file.Save();
+                    file.CheckOut();
+                }
+
+                Assert.AreEqual(user.Id, file.LockedById);
+
+                var url = ODataTools.GetODataUrl(Content.Create(file));
+                var response = ODataPostAsync($"{url}/TakeLockOver", "",
+                        "models=[{'user':'/Root/IMS/BuiltIn/Portal/Admin'}]")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                Assert.AreEqual("Ok", response.Result);
+                file = Node.Load<File>(file.Id);
+                Assert.AreEqual(Identifiers.AdministratorUserId, file.LockedById);
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_TakeOwnership()
+        {
+            IsolatedODataTest(() =>
+            {
+                File file;
+                using (new CurrentUserBlock(User.Administrator))
+                {
+                    file = new File(CreateTestRoot("TestFiles")) { Name = "File-1" };
+                    file.Save();
+                    Assert.AreEqual(Identifiers.AdministratorUserId, file.OwnerId);
+                }
+
+                var user = CreateUser("xy@email.com");
+
+                var url = ODataTools.GetODataUrl(Content.Create(file));
+                var response = ODataPostAsync($"{url}/TakeOwnership", "",
+                        $"models=[{{'userOrGroup':'{user.Path}'}}]")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(204, response.StatusCode);
+                file = Node.Load<File>(file.Id);
+                Assert.AreEqual(user.Id, file.OwnerId);
+            });
+        }
+
+        /* ====================================================================== PermissionQueryForRest */
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_GetPermissionInfo()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataPostAsync($"/OData.svc/Root('IMS')/GetPermissionInfo", "",
+                        "models=[{'identity':'/Root/IMS/BuiltIn/Portal/Admin'}]")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetObject(response);
+                Assert.IsNotNull(result["d"]);
+                Assert.AreEqual("Admin", result["d"]["identity"]["name"].Value<string>());
+            });
+        }
+
+        /* ====================================================================== SharingActions */
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_GetSharing()
+        {
+            ODataTest(() =>
+            {
+                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetSharing", "")
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual(200, response.StatusCode);
+                var result = GetObject(response);
+                Assert.IsNotNull(result["d"]);
+                Assert.AreEqual(0, result["d"]["__count"].Value<int>());
+            });
+        }
+
+        /* ====================================================================== DocumentPreviewProvider */
 
         [TestMethod]
         public void OD_MBO_BuiltIn_GetPreviewImages()
@@ -143,7 +290,7 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-        [TestMethod]
+        [TestMethod] //UNDONE: Error in the test
         public void OD_MBO_BuiltIn_SetPageCount()
         {
             Assert.Inconclusive();
@@ -179,72 +326,25 @@ namespace SenseNet.ODataTests
             });
         }
 
-        [TestMethod]
-        public void OD_MBO_BuiltIn_GetRecentIndexingActivities()
-        {
-            ODataTest(() =>
-            {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentIndexingActivities", "")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                Assert.AreEqual(200, response.StatusCode);
-                var result = GetObject(response);
-                Assert.IsNotNull(result["RecentLength"]);
-                Assert.IsNotNull(result["Recent"]);
-                Assert.IsNotNull(result["State"]);
-            });
-        }
-        [TestMethod]
-        public void OD_MBO_BuiltIn_GetRecentSecurityActivities()
-        {
-            ODataTest(() =>
-            {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentSecurityActivities", "")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                Assert.AreEqual(200, response.StatusCode);
-                var result = GetObject(response);
-                Assert.IsNotNull(result["RecentLength"]);
-                Assert.IsNotNull(result["Recent"]);
-                Assert.IsNotNull(result["State"]);
-            });
-        }
-
-        [TestMethod]
-        public void OD_MBO_BuiltIn_GetAllowedChildTypesFromCTD()
-        {
-            ODataTest(() =>
-            {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetAllowedChildTypesFromCTD", 
-                        "?metadata=no&$select=Name")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                Assert.AreEqual(200, response.StatusCode);
-                var result = GetEntities(response).ToArray();
-                Assert.AreEqual(1, result.Length);
-                Assert.AreEqual("Domain", result[0].Name);
-            });
-        }
-
-        [TestMethod]
-        public void OD_MBO_BuiltIn_CheckSecurityConsistency()
-        {
-            ODataTest(() =>
-            {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/CheckSecurityConsistency", "")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
-
-                Assert.AreEqual(200, response.StatusCode);
-                var result = GetObject(response);
-                Assert.IsNotNull(result["IsConsistent"]);
-            });
-        }
+        /* ======================================================================  */
 
         /* ====================================================================== TOOLS */
 
-        #region Nested classes
+        private User CreateUser(string email, string username = null)
+        {
+            var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+            {
+                Name = username ?? Guid.NewGuid().ToString(),
+                Enabled = true,
+                Email = email
+            };
+            user.Save();
+            return user;
+        }
 
-        private class FileOperation : IDisposable
+    #region Nested classes
+
+    private class FileOperation : IDisposable
         {
             public File TheFile { get; }
             public string Url => ODataTools.GetODataUrl(Content.Create(TheFile));
