@@ -553,10 +553,13 @@ namespace SenseNet.ODataTests
         }
 
 
+        protected static JObject GetObject(ODataResponse response)
+        {
+            return (JObject)Deserialize(response.Result);
+        }
         protected static ODataEntityResponse GetEntity(ODataResponse response)
         {
             var text = response.Result;
-            var result = new Dictionary<string, object>();
             var jo = (JObject)Deserialize(text);
             return ODataEntityResponse.Create((JObject)jo["d"]);
         }

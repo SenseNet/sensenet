@@ -57,11 +57,13 @@ namespace SenseNet.ContentRepository.Security.Cryptography
         // ================================================================================= OData API
 
         [ODataAction]
+        [SnAuthorize(Role = "Administrators, Developers")]
         public static string Encrypt(Content content, string text)
         {
             return Encrypt(text);
         }
         [ODataAction]
+        [SnAuthorize(Role = "Administrators, Developers")]
         public static string Decrypt(Content content, string text)
         {
             return Decrypt(text);
