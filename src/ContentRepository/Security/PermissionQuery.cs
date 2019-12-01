@@ -154,9 +154,8 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedItems(content, level, explicitOnly, member, perms);
         }
 
-        [ODataFunction]
+        [ODataFunction("GetRelatedIdentitiesByPermissions")]
         [SnAuthorize(Role = "Everyone")]
-        [OperationName("GetRelatedIdentitiesByPermissions")]
         public static IEnumerable<Content> GetRelatedIdentities(Content content, string permissionLevel, string identityKind, string[] permissions)
         {
             var level = GetPermissionLevel(permissionLevel);

@@ -1490,9 +1490,8 @@ namespace SenseNet.Preview
 
         // ===================================================================================================== OData interface
 
-        [ODataFunction]
+        [ODataFunction("GetPreviewImages")]
         [SnAuthorize(Role = "Everyone", Permission = "Preview")]
-        [OperationName("GetPreviewImages")]
         public static IEnumerable<Content> GetPreviewImagesForOData(Content content)
         {
             return Current != null ? Current.GetPreviewImages(content) : null;
@@ -1521,9 +1520,8 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
-        [ODataFunction]
+        [ODataFunction("GetExistingPreviewImages")]
         [SnAuthorize(Role = "Everyone")]
-        [OperationName("GetExistingPreviewImages")]
         public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
         {
             foreach (var image in DocumentPreviewProvider.Current.GetExistingPreviewImages(content))

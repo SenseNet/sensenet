@@ -342,9 +342,8 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
-        [ODataFunction]
+        [ODataFunction("GetAllContentTypes")]
         [SnAuthorize(Role = "Everyone")]
-        [OperationName("GetAllContentTypes")]
         public static IEnumerable<Content> GetListOfAllContentTypes(Content content)
         {
             return ContentType.GetContentTypes().Select(ct => Content.Create(ct));

@@ -80,8 +80,12 @@ namespace SenseNet.OData
                     req.Add(parameter);
             }
 
-            var nameAttribute = (OperationNameAttribute)attributes.FirstOrDefault(a => a is OperationNameAttribute);
-            var name = nameAttribute == null ? method.Name : nameAttribute.Name;
+            var name =
+                attributes.Where(a => a is ODataFunction)
+                    .Select(a => ((ODataFunction) a).OperationName).FirstOrDefault() ??
+                attributes.Where(a => a is ODataAction)
+                    .Select(a => ((ODataAction) a).OperationName).FirstOrDefault() ??
+                method.Name;
 
             var info = new OperationInfo(name, method, attributes)
             {

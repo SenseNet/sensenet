@@ -158,8 +158,7 @@ namespace SenseNet.ODataTests
         }
 
         public const string GoodMethodName = "GoodMethodName";
-        [ODataFunction]
-        [OperationName(GoodMethodName)]
+        [ODataFunction(GoodMethodName)]
         public static string WrongMethodName(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
