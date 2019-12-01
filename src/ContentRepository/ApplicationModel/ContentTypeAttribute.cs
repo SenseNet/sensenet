@@ -6,11 +6,11 @@ namespace SenseNet.ApplicationModel
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class ContentTypeAttribute : Attribute
     {
-        public string ContentTypeName { get; }
+        public string[] Names { get; set; }
 
-        public ContentTypeAttribute(string contentTypeName)
+        public ContentTypeAttribute(params string[] contentTypeNames)
         {
-            ContentTypeName = contentTypeName;
+            Names = contentTypeNames;
         }
     }
 }

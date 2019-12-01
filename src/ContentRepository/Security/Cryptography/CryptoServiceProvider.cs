@@ -58,14 +58,14 @@ namespace SenseNet.ContentRepository.Security.Cryptography
 
         [ODataAction]
         [SnAuthorize(Role = "Administrators, Developers")]
-        [ContentType("PortalRoot")]
+        [ContentType(N.PortalRoot)]
         public static string Encrypt(Content content, string text)
         {
             return Encrypt(text);
         }
         [ODataAction]
         [SnAuthorize(Role = "Administrators, Developers")]
-        [ContentType("PortalRoot")]
+        [ContentType(N.PortalRoot)]
         public static string Decrypt(Content content, string text)
         {
             return Decrypt(text);

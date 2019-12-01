@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SenseNet.ContentRepository.ApplicationModel
+﻿namespace SenseNet.ApplicationModel
 {
     internal static class N
     {
@@ -10,6 +6,11 @@ namespace SenseNet.ContentRepository.ApplicationModel
 
         public const string ContentType = "ContentType";
         public const string GenericContent = "GenericContent";
+        public const string Folder = "Folder";
+        public const string File = "File";
+        public const string Group = "Group";
+        public const string User = "User";
+        public const string PortalRoot = "PortalRoot";
 
         /* ==================================================================== ROLE NAMES */
 

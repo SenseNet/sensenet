@@ -43,7 +43,7 @@ namespace SenseNet.OData
 
             ContentTypes = ParseNames(attributes
                 .Where(a => a is ContentTypeAttribute)
-                .Select(a => ((ContentTypeAttribute) a).ContentTypeName));
+                .SelectMany(a => ((ContentTypeAttribute) a).Names));
 
             Scenarios = ParseNames(attributes
                 .Where(a => a is ScenarioAttribute)

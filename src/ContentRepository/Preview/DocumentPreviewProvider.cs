@@ -1499,7 +1499,7 @@ namespace SenseNet.Preview
 
         [ODataFunction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static object PreviewAvailable(Content content, int page)
         {
             var thumb = Current != null ? Current.GetThumbnailImage(content, page) : null;
@@ -1538,7 +1538,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static int GetPageCount(Content content)
         {
             var pageCount = (int)content["PageCount"];
@@ -1568,7 +1568,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static object GetPreviewsFolder(Content content, bool empty)
         {
             if (content == null)
@@ -1586,7 +1586,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
         {
             if (content == null)
@@ -1597,7 +1597,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static void SetPageCount(Content content, int pageCount)
         {
             if (content == null)
@@ -1636,7 +1636,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static void RegeneratePreviews(Content content)
         {
             if (content == null)
@@ -1650,7 +1650,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [SnAuthorize(Role = "Everyone")]
-        [ContentType("File")]
+        [ContentType(N.File)]
         public static object CheckPreviews(Content content, bool generateMissing)
         {
             if (content == null)

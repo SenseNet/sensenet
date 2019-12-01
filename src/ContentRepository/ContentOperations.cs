@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using SenseNet.ApplicationModel;
-using SenseNet.ContentRepository.ApplicationModel;
 
 namespace SenseNet.ContentRepository
 {
@@ -10,7 +9,7 @@ namespace SenseNet.ContentRepository
     {
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone, Permission = N.Save + "," + N.Approve)]
+        [SnAuthorize(Role = N.Everyone, Permission = N.Save + ", " + N.Approve )]
         [Scenario("ListItem, ExploreActions, SimpleApprovableListItem")]
         public static Content Approve(Content content)
         {
