@@ -1,6 +1,3 @@
-// Copyright (c) SenseNet. All rights reserved.
-// Licensed under the GNU GPL License, Version 2.0. See License.txt in the project root for license information.
-
 using System;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -9,9 +6,9 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository.Security
 {
     /// <summary>
-    /// An <see cref="System.Security.Principal.IPrincipal" /> implementation that supports multiple claims-based identities.
+    /// An <see cref="IPrincipal" /> implementation that supports multiple claims-based identities.
     /// </summary>
-    /// <seealso cref="System.Security.Claims.ClaimsPrincipal" />
+    /// <seealso cref="ClaimsPrincipal" />
     public class PortalPrincipal : ClaimsPrincipal
     {
         private readonly IUser _user;
