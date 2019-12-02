@@ -1,6 +1,7 @@
-﻿namespace SenseNet.ApplicationModel
+﻿// ReSharper disable once CheckNamespace
+namespace SenseNet.ApplicationModel
 {
-    internal static class N
+    public static class N
     {
         /* ==================================================================== CONTENT TYPE NAMES */
 

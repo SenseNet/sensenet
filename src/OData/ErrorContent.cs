@@ -2,7 +2,7 @@
 
 namespace SenseNet.OData
 {
-    internal class ErrorContent
+    public class ErrorContent
     {
         [JsonProperty(PropertyName = "content", Order = 1)]
         public object Content { get; set; }
