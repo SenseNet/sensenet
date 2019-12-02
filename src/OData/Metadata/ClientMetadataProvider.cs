@@ -139,6 +139,8 @@ namespace SenseNet.OData.Metadata
         //======================================================================================= OData API
 
         [ODataFunction]
+        [ContentType(N.PortalRoot)]
+        [SnAuthorizeAll]
         public static object GetSchema(Content content, string contentTypeName = null)
         {
             var sch = new Schema(TypescriptGenerationContext.DisabledContentTypeNames);
