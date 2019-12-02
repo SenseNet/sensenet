@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.ApplicationModel;
+
 // ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ContentRepository
@@ -102,5 +103,18 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        [ODataAction]
+        [ContentType(N.GenericContent)]
+        [SnAuthorize(Role = N.Everyone, Permission = N.Save + "," + N.ForceCheckin)]
+        [Scenario(N.ListItem, N.ExploreActions)]
+        public static Content ForceUndoCheckOut(Content content)
+        {
+            if (!(content.ContentHandler is GenericContent))
+                throw new Exception($"Can't force undo check out on content '{content.Path}' because " +
+                                    "its content handler is not a GenericContent. It needs to " +
+                                    "inherit from GenericContent for collaboration feature support.");
+            content.ForceUndoCheckOut();
+            return content;
+        }
     }
 }
