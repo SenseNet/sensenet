@@ -31,7 +31,7 @@ namespace SenseNet.ODataTests
         [SnAuthorize(Policy = "Policy1")]
         [SnAuthorize(Permission = "See, Run")]
         [Scenario("Scenario1, Scenario2")]
-        [Scenario(Name = "Scenario2, Scenario3")]
+        [Scenario("Scenario2", "Scenario3, Scenario4")]
         [ContentType(N.User, N.Group)]
         [ContentType("OrgUnit")]
         public static object[] Op1(Content content,

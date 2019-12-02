@@ -168,7 +168,7 @@ namespace SenseNet.ODataTests
             ODataTest(() =>
             {
                 var info = AddMethod(typeof(TestOperations).GetMethod("Op1"));
-                Assert.AreEqual("Scenario1,Scenario2,Scenario3", ArrayToString(info.Scenarios, true));
+                Assert.AreEqual("Scenario1,Scenario2,Scenario3,Scenario4", ArrayToString(info.Scenarios, true));
             });
         }
         [TestMethod]

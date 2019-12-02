@@ -39,5 +39,20 @@
         public const string ManageListsAndWorkspaces = "ManageListsAndWorkspaces";
         public const string TakeOwnership = "TakeOwnership";
 
+        /* ==================================================================== SCENARIO NAMES */
+
+        public const string ListItem = "ListItem";
+        public const string ExploreActions = "ExploreActions";
+        public const string WorkspaceActions = "WorkspaceActions";
+        public const string SimpleApprovableListItem = "SimpleApprovableListItem";
+        public const string GridToolbar = "GridToolbar";
+        public const string UserActions = "UserActions";
+        public const string ExploreToolbar = "ExploreToolbar";
+        public const string ManageViewsListItem = "ManageViewsListItem";
+        public const string ListActions = "ListActions";
+        public const string SimpleListItem = "SimpleListItem";
+        public const string ReadOnlyListItem = "ReadOnlyListItem";
+        public const string DocumentDetails = "DocumentDetails";
+
     }
 }

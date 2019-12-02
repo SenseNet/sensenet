@@ -30,5 +30,11 @@ namespace SenseNet.ApplicationModel
             Name = name;
             AllowSingleton = allowSingleton;
         }
+        public ScenarioAttribute(params string[] names)
+        {
+            if (names != null)
+                Name = string.Join(",", names);
+            AllowSingleton = true;
+        }
     }
 }
