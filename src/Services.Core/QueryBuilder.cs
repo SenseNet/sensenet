@@ -12,10 +12,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ApplicationModel;
-using SenseNet.OData;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Portal
+namespace SenseNet.Services.Core
 {
     public class QueryBuilder
     {

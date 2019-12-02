@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.OData;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core.Operations;
 
 namespace SenseNet.OData.Writers
 {

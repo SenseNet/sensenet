@@ -20,6 +20,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier

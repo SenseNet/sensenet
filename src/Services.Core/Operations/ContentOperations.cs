@@ -7,15 +7,14 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.OData.Operations
+namespace SenseNet.Services.Core.Operations
 {
-    public static class Operations //UNDONE:? Class name?
+    public static class ContentOperations
     {
         [ODataAction]
         [ContentType(N.Folder)]
         [SnAuthorize(Role = N.Everyone)]
-        //UNDONE:? Scenario? Other batch actions have [Scenario(N.GridToolbar)]
-        //[Scenario(N.GridToolbar)]
+        [Scenario(N.GridToolbar)]
         public static BatchActionResponse CopyBatch(Content content, string targetPath, object[] paths)
         {
             var targetNode = Node.LoadNode(targetPath);

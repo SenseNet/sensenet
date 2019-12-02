@@ -2,7 +2,7 @@
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace SenseNet.OData
+namespace SenseNet.Services.Core.Operations
 {
     public class BatchActionResponse
     {

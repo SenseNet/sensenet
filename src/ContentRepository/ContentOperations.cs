@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)] //UNDONE:? Reject permissions
+        [SnAuthorize(Role = N.Everyone, Permission = N.Save)]
         public static Content Reject(Content content, string rejectReason = null)
         {
             if (!(content.ContentHandler is GenericContent))
