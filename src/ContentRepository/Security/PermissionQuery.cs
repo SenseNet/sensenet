@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository.Security
         // ============================================================================= OData operations
 
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetRelatedIdentities(Content content, string permissionLevel, string identityKind)
         {
             var level = GetPermissionLevel(permissionLevel);
@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedIdentities(content, level, kind);
         }
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IDictionary<PermissionType, int> GetRelatedPermissions(Content content, string permissionLevel, bool explicitOnly, string memberPath, IEnumerable<string> includedTypes)
         {
             var level = GetPermissionLevel(permissionLevel);
@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedPermissions(content, level, explicitOnly, member, includedTypes);
         }
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetRelatedItems(Content content, string permissionLevel, bool explicitOnly, string memberPath, string[] permissions)
         {
             var level = GetPermissionLevel(permissionLevel);
@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Security
         }
 
         [ODataFunction("GetRelatedIdentitiesByPermissions")]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetRelatedIdentities(Content content, string permissionLevel, string identityKind, string[] permissions)
         {
             var level = GetPermissionLevel(permissionLevel);
@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository.Security
             return PermissionQuery.GetRelatedIdentities(content, level, kind, perms);
         }
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetRelatedItemsOneLevel(Content content, string permissionLevel, string memberPath, string[] permissions)
         {
             var level = GetPermissionLevel(permissionLevel);
@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository.Security
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetAllowedUsers(Content content, string[] permissions)
         {
             var perms = GetPermissionTypes(permissions);
@@ -182,7 +182,7 @@ namespace SenseNet.ContentRepository.Security
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.Group, N.User)]
         public static IEnumerable<Content> GetParentGroups(Content content, bool directOnly)
         {
@@ -190,14 +190,14 @@ namespace SenseNet.ContentRepository.Security
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static object GetPermissionInfo(Content content, string identity)
         {
             return GetPermissionInfo(content, identity, true);
         }
         
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static object GetChildrenPermissionInfo(Content content, string identity)
         {
             return GetPermissionInfo(content, identity, false);

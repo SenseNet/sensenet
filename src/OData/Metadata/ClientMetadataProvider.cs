@@ -140,7 +140,7 @@ namespace SenseNet.OData.Metadata
 
         [ODataFunction]
         [ContentType(N.PortalRoot)]
-        [SnAuthorizeAll]
+        [AllowedRoles(N.All)]
         public static object GetSchema(Content content, string contentTypeName = null)
         {
             var sch = new Schema(TypescriptGenerationContext.DisabledContentTypeNames);

@@ -1491,7 +1491,7 @@ namespace SenseNet.Preview
         // ===================================================================================================== OData interface
 
         [ODataFunction("GetPreviewImages")]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Preview)]
         public static IEnumerable<Content> GetPreviewImagesForOData(Content content)
         {
@@ -1499,7 +1499,7 @@ namespace SenseNet.Preview
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static object PreviewAvailable(Content content, int page)
         {
@@ -1522,7 +1522,7 @@ namespace SenseNet.Preview
         }
 
         [ODataFunction("GetExistingPreviewImages")]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
         {
             foreach (var image in DocumentPreviewProvider.Current.GetExistingPreviewImages(content))
@@ -1538,7 +1538,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static int GetPageCount(Content content)
         {
@@ -1568,7 +1568,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static object GetPreviewsFolder(Content content, bool empty)
         {
@@ -1586,7 +1586,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
         {
@@ -1597,7 +1597,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static void SetPageCount(Content content, int pageCount)
         {
@@ -1636,7 +1636,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static void RegeneratePreviews(Content content)
         {
@@ -1650,7 +1650,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.File)]
         public static object CheckPreviews(Content content, bool generateMissing)
         {

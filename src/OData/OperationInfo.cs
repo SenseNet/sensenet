@@ -53,19 +53,14 @@ namespace SenseNet.OData
                 .Where(a => a is RequiredPermissionsAttribute)
                 .SelectMany(a => ((RequiredPermissionsAttribute)a).Names));
 
-            if (attributes.Any(a => a is SnAuthorizeAllAttribute))
-            {
-                Roles = new[] {"All"};
-                Policies = _empty;
-                Permissions = _empty;
-            }
-            else
-            {
-                var snAuthorizeAttributes = attributes.Where(a => a is SnAuthorizeAttribute)
-                    .Cast<SnAuthorizeAttribute>().ToArray();
-                Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
-                Policies = ParseNames(snAuthorizeAttributes.Select(a => a.Policy));
-            }
+            Roles = ParseNames(attributes
+                .Where(a => a is AllowedRolesAttribute)
+                .SelectMany(a => ((AllowedRolesAttribute)a).Names));
+
+            Policies = ParseNames(attributes
+                .Where(a => a is RequiredPoliciesAttribute)
+                .SelectMany(a => ((RequiredPoliciesAttribute)a).Names));
+
         }
 
         private static readonly char[] SplitChars = new[] { ',' };

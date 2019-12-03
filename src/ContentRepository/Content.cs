@@ -143,7 +143,7 @@ namespace SenseNet.ContentRepository
             /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
             /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
             [ODataAction]
-            [SnAuthorize(Role = "Administrators, Developers")]
+            [AllowedRoles(N.Administrators, N.Developers)]
             [RequiredPermissions(N.Save)]
             public static void RebuildIndex(Content content, bool recursive, IndexRebuildLevel rebuildLevel)
             {
@@ -154,7 +154,7 @@ namespace SenseNet.ContentRepository
             /// </summary>
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
-            [SnAuthorize(Role = "Administrators, Developers")]
+            [AllowedRoles(N.Administrators, N.Developers)]
             public static void RebuildIndexSubtree(Content content)
             {
                 content.RebuildIndex(true, IndexRebuildLevel.DatabaseAndIndex);
@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository
             /// </summary>
             /// <param name="content">The content provided by the infrastructure.</param>
             [ODataAction]
-            [SnAuthorize(Role = "Administrators, Developers")]
+            [AllowedRoles(N.Administrators, N.Developers)]
             public static void RefreshIndexSubtree(Content content)
             {
                 content.RebuildIndex(true, IndexRebuildLevel.IndexOnly);

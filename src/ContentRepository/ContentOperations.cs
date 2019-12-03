@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository
     {
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.Approve)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
         public static Content Approve(Content content)
@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
         public static Content CheckIn(Content content, string checkInComments = null)
@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions)]
         public static Content CheckOut(Content content)
@@ -63,7 +63,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.Publish)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
         public static Content Publish(Content content)
@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         public static Content Reject(Content content, string rejectReason = null)
         {
@@ -97,7 +97,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions)]
         public static Content UndoCheckOut(Content content)
@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.ForceCheckin)]
         [Scenario(N.ListItem, N.ExploreActions)]
         public static Content ForceUndoCheckOut(Content content)
@@ -127,7 +127,7 @@ namespace SenseNet.ContentRepository
 
         [ODataAction]
         [ContentType(N.GenericContent)]
-        [SnAuthorize(Role = N.Everyone)]
+        [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.RecallOldVersion)]
         public static Content RestoreVersion(Content content, string version)
         {

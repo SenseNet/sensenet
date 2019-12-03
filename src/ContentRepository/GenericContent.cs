@@ -1344,7 +1344,7 @@ namespace SenseNet.ContentRepository
         /// <param name="contentTypes">The extension.</param>
         /// <returns>Empty string.</returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static string AddAllowedChildTypes(Content content, string[] contentTypes)
         {
             if (!(content.ContentHandler is GenericContent gc))
@@ -1363,7 +1363,7 @@ namespace SenseNet.ContentRepository
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         public static string RemoveAllowedChildTypes(Content content, string[] contentTypes)
         {
             if (!(content.ContentHandler is GenericContent gc))

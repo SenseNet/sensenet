@@ -443,7 +443,7 @@ namespace SenseNet.ContentRepository
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.Group)]
         public static object AddMembers(Content content, int[] contentIds)
         {
@@ -470,7 +470,7 @@ namespace SenseNet.ContentRepository
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone")]
+        [AllowedRoles(N.Everyone)]
         [ContentType(N.Group)]
         public static object RemoveMembers(Content content, int[] contentIds)
         {

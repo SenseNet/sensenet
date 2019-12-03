@@ -4,14 +4,14 @@
 namespace SenseNet.ApplicationModel
 {
     /// <summary>
-    /// Declares required permissions for an operation method.
+    /// Declares an attribute that describes the required permissions for an operation method.
     /// The annotated operation method can be called if the current user has all permission on the requested content.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class RequiredPermissionsAttribute : Attribute
     {
         /// <summary>
-        /// Gets or sets one or more comma separated <see cref="SenseNet.ContentRepository.Storage.Security.PermissionType"/> names.
+        /// Gets or sets one or more <see cref="SenseNet.ContentRepository.Storage.Security.PermissionType"/> names.
         /// The annotated operation method can be called if the current user has all permission on the requested content.
         /// </summary>
         public string[] Names { get; set; }

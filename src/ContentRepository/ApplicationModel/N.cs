@@ -15,8 +15,12 @@ namespace SenseNet.ApplicationModel
 
         /* ==================================================================== ROLE NAMES */
 
+        public const string Administrators = "Administrators";
+        public const string Developers = "Developers";
         public const string Everyone = "Everyone";
+        public const string IdentifiedUsers = "IdentifiedUsers";
         public const string Visitor = "Visitor";
+        public const string All = "All";
 
         /* ==================================================================== PERMISSION NAMES */
 

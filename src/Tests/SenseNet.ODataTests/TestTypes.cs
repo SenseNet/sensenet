@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
-using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 
@@ -27,8 +26,8 @@ namespace SenseNet.ODataTests
         #region Methods for general tests
 
         [ODataFunction]
-        [SnAuthorize(Role = "Administrators,Editors")]
-        [SnAuthorize(Policy = "Policy1")]
+        [AllowedRoles(N.Administrators, "Editors")]
+        [RequiredPolicies("Policy1")]
         [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
         [Scenario("Scenario2", "Scenario3, Scenario4")]
@@ -41,10 +40,8 @@ namespace SenseNet.ODataTests
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Administrators,Editors")]
-        [SnAuthorize(Role = "Editors,Visitor")]
-        [SnAuthorize(Policy = "Policy1,Policy2")]
-        [SnAuthorize(Policy = "Policy2,Policy3")]
+        [AllowedRoles(N.Administrators, "Editors", "Editors,Visitor")]
+        [RequiredPolicies("Policy1,Policy2", "Policy2,Policy3")]
         [RequiredPermissions("P1, P2", "P3")]
         public static object[] Op2(Content content,
             string a = null, int b = 0, bool c = false, float d = 0f, decimal e = 0m, double f = 0d)
@@ -53,7 +50,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize("Policy2")]
+        [RequiredPolicies("Policy2")]
         public static string Op3(Content content)
         {
             return "Called";
@@ -110,26 +107,26 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Administrators")]
+        [AllowedRoles(N.Administrators)]
         public static string AuthorizedByRole_Administrators(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
-        [SnAuthorize(Role = "Visitor")]
+        [AllowedRoles(N.Visitor)]
         public static string AuthorizedByRole_Visitor(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
         [ODataFunction]
-        [SnAuthorize(Role = "All")]
+        [AllowedRoles(N.All)]
         public static string AuthorizedByRole_All(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
         [ODataFunction]
-        [SnAuthorizeAll]
+        [AllowedRoles("All")]
         public static string AuthorizedByRole_All2(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
@@ -143,14 +140,14 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize("VisitorAllowed,AdminDenied")]
+        [RequiredPolicies("VisitorAllowed,AdminDenied")]
         public static string AuthorizedByPolicy(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
-        [SnAuthorize("UnknownPolicy")]
+        [RequiredPolicies("UnknownPolicy")]
         public static string AuthorizedByPolicy_Error(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;

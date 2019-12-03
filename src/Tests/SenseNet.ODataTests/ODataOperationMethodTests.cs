@@ -1602,13 +1602,13 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Administrators"}});
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Administrators) });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers"}});
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Developers) });
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers,Administrators"}});
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute("Developers,Administrators")});
                     var m4 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new SnAuthorizeAttribute {Role = "Developers,UnknownGroup42"}});
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Developers, "UnknownGroup42")});
 
                     using (new CurrentUserBlock(User.Administrator))
                     {
