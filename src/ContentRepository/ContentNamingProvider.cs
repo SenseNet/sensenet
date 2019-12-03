@@ -77,7 +77,8 @@ namespace SenseNet.ContentRepository
         /// <param name="content">Required parameter for the OData function.</param>
         /// <param name="displayName">Source of the conversion.</param>
         /// <returns>The converted name.</returns>
-        [ODataFunction] //UNDONE:[ContentType]
+        [ODataFunction]
+        [ContentTypes(N.PortalRoot)]
         [AllowedRoles(N.Everyone)]
         public static string GetNameFromDisplayName(Content content, string displayName)
         {

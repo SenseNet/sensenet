@@ -443,8 +443,8 @@ namespace SenseNet.ContentRepository
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
         [ODataAction]
+        [ContentTypes(N.Group)]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.Group)] //UNDONE:[ContentType]
         public static object AddMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
@@ -470,8 +470,8 @@ namespace SenseNet.ContentRepository
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
         [ODataAction]
+        [ContentTypes(N.Group)]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.Group)] //UNDONE:[ContentType]
         public static object RemoveMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");

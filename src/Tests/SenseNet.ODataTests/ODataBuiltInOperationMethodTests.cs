@@ -25,6 +25,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGetAsync($"/OData.svc/('Root')/GetVersionInfo", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["Components"]);
@@ -45,6 +46,7 @@ namespace SenseNet.ODataTests
                         "?metadata=no&$select=Name")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetEntities(response);
                 var names = string.Join(",", result.Select(x => x.Name));
@@ -60,6 +62,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGetAsync($"/OData.svc/Root('IMS')/CheckSecurityConsistency", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["IsConsistent"]);
@@ -71,10 +74,11 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetAllContentTypes",
+                var response = ODataGetAsync($"/OData.svc/('Root')/GetAllContentTypes",
                         "?metadata=no")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetEntities(response);
                 var names = string.Join(",", result.Select(x => x.Name).OrderBy(x => x));
@@ -92,6 +96,7 @@ namespace SenseNet.ODataTests
                         "?metadata=no&$select=Name")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetEntities(response).ToArray();
                 Assert.AreEqual(1, result.Length);
@@ -104,9 +109,10 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentSecurityActivities", "")
+                var response = ODataGetAsync($"/OData.svc/('Root')/GetRecentSecurityActivities", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["RecentLength"]);
@@ -120,9 +126,10 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetRecentIndexingActivities", "")
+                var response = ODataGetAsync($"/OData.svc/('Root')/GetRecentIndexingActivities", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["RecentLength"]);
@@ -136,10 +143,11 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                var response = ODataPostAsync($"/OData.svc/Root('IMS')/ResetRecentIndexingActivities",
+                var response = ODataPostAsync($"/OData.svc/('Root')/ResetRecentIndexingActivities",
                         "", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["RecentLength"]);
@@ -217,6 +225,7 @@ namespace SenseNet.ODataTests
                         "models=[{'identity':'/Root/IMS/BuiltIn/Portal/Admin'}]")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["d"]);
@@ -234,6 +243,7 @@ namespace SenseNet.ODataTests
                 var response = ODataGetAsync($"/OData.svc/Root('IMS')/GetSharing", "")
                     .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                AssertNoError(response);
                 Assert.AreEqual(200, response.StatusCode);
                 var result = GetObject(response);
                 Assert.IsNotNull(result["d"]);
@@ -253,6 +263,7 @@ namespace SenseNet.ODataTests
                     var response = ODataGetAsync($"{op.Url}/GetPreviewImages", "")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                    AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     Assert.IsTrue(response.Result.Contains("\"d\""));
                     Assert.IsTrue(response.Result.Contains("\"__count\""));
@@ -270,6 +281,7 @@ namespace SenseNet.ODataTests
                     var response = ODataGetAsync($"{op.Url}/GetExistingPreviewImages", "")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                    AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     Assert.AreEqual("[]", response.Result);
                 }
@@ -303,6 +315,7 @@ namespace SenseNet.ODataTests
                             "models=[{'pageCount':42}]")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                    AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     Assert.AreEqual("-5", response.Result);
                 }
@@ -319,6 +332,8 @@ namespace SenseNet.ODataTests
                             "models=[{'empty':'false'}]")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                    AssertNoError(response);
+                    Assert.AreEqual(200, response.StatusCode);
                     var result = GetObject(response);
                     Assert.AreEqual("/Root/TestFiles/File-1/Previews/V1.0.A", result["Path"]);
                     Assert.IsNotNull(result["Id"]);

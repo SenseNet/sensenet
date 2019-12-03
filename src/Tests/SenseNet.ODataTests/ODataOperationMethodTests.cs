@@ -154,12 +154,30 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public void OD_MBO_GetInfo_Attributes_ContentType()
+        public void OD_MBO_GetInfo_Attributes_ContentTypes()
         {
             ODataTest(() =>
             {
                 var info = AddMethod(typeof(TestOperations).GetMethod("Op1"));
                 Assert.AreEqual("Group,OrgUnit,User", ArrayToString(info.ContentTypes, true));
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_AllContentTypes()
+        {
+            ODataTest(() =>
+            {
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op2"));
+                Assert.AreEqual("", ArrayToString(info.ContentTypes, true));
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_DefaultContentTypes()
+        {
+            ODataTest(() =>
+            {
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op3"));
+                Assert.AreEqual("GenericContent", ArrayToString(info.ContentTypes, true));
             });
         }
         [TestMethod]
@@ -918,10 +936,11 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var lines = inspector.Log.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
-                Assert.AreEqual(3, lines.Length);
-                Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[0]);
-                Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[1]);
-                Assert.AreEqual("CheckPolicies: 1, Policy1", lines[2]);
+                Assert.AreEqual(4, lines.Length);
+                Assert.AreEqual("CheckContentType: User ==>, User,Group,OrgUnit", lines[0]);
+                Assert.AreEqual("CheckByRoles: 1, Administrators,Editors", lines[1]);
+                Assert.AreEqual("CheckByPermissions: 0, 1, See,Run", lines[2]);
+                Assert.AreEqual("CheckPolicies: 1, Policy1", lines[3]);
             });
         }
 
@@ -1827,6 +1846,11 @@ namespace SenseNet.ODataTests
             private StringBuilder _sb = new StringBuilder();
             public string Log { get { return _sb.ToString(); } }
 
+            public override bool CheckByContentType(Content content, string[] contentTypes)
+            {
+                _sb.AppendLine($"CheckContentType: {content.ContentType.Name} ==>, {string.Join(",", contentTypes)}");
+                return true;
+            }
             public override bool CheckPolicies(string[] policies, OperationCallingContext context)
             {
                 _sb.AppendLine($"CheckPolicies: {GetRealUserId(User.Current)}, {string.Join(",", policies)}");

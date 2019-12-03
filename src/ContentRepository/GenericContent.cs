@@ -1343,7 +1343,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content">The <see cref="SenseNet.ContentRepository.Content"/> that will be modified.</param>
         /// <param name="contentTypes">The extension.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction] //UNDONE:[ContentType]
+        [ODataAction]
         [AllowedRoles(N.Everyone)]
         public static string AddAllowedChildTypes(Content content, string[] contentTypes)
         {
@@ -1362,7 +1362,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content">The <see cref="SenseNet.ContentRepository.Content"/> that will be modified.</param>
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
-        [ODataAction] //UNDONE:[ContentType]
+        [ODataAction]
         [AllowedRoles(N.Everyone)]
         public static string RemoveAllowedChildTypes(Content content, string[] contentTypes)
         {

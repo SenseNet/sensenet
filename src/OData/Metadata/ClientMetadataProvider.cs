@@ -139,7 +139,7 @@ namespace SenseNet.OData.Metadata
         //======================================================================================= OData API
 
         [ODataFunction]
-        [ContentTypes(N.PortalRoot)] //UNDONE:[ContentType]
+        [ContentTypes(N.PortalRoot)]
         [AllowedRoles(N.All)]
         public static object GetSchema(Content content, string contentTypeName = null)
         {

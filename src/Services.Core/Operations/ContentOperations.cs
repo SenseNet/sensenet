@@ -12,7 +12,7 @@ namespace SenseNet.Services.Core.Operations
     public static class ContentOperations
     {
         [ODataAction]
-        [ContentTypes(N.Folder)] //UNDONE:[ContentType]
+        [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]
         public static BatchActionResponse CopyBatch(Content content, string targetPath, object[] paths)
@@ -86,7 +86,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction]
-        [ContentTypes(N.Folder)] //UNDONE:[ContentType]
+        [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]
         public static BatchActionResponse MoveBatch(Content content, string targetPath, object[] paths)
@@ -161,7 +161,7 @@ namespace SenseNet.Services.Core.Operations
 
 
         [ODataAction]
-        [ContentTypes(N.Folder)] //UNDONE:[ContentType]
+        [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]
         public static BatchActionResponse DeleteBatch(Content content, bool permanent, object[] paths)

@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>
         /// Gets a list of all sharing records on a content.
         /// </summary>
-        [ODataFunction] //UNDONE:[ContentType]
+        [ODataFunction]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object GetSharing(Content content)
@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <param name="mode">Whether the content will be accessible for other users.</param>
         /// <param name="sendNotification">Whether a notification email should be sent to the target user.</param>
         /// <returns>A sharing record representing the new share.</returns>
-        [ODataAction] //UNDONE:[ContentType]
+        [ODataAction]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object Share(Content content, string token, SharingLevel level, SharingMode mode, bool sendNotification)
@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <param name="content"></param>
         /// <param name="id">Identifier of a sharing record.</param>
         /// <returns>Returns true if the system has found and removed the sharing record.</returns>
-        [ODataAction] //UNDONE:[ContentType]
+        [ODataAction]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object RemoveSharing(Content content, string id)

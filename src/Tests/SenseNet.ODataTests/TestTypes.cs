@@ -26,13 +26,12 @@ namespace SenseNet.ODataTests
         #region Methods for general tests
 
         [ODataFunction]
+        [ContentTypes(N.User, N.Group, "OrgUnit")]
         [AllowedRoles(N.Administrators, "Editors")]
         [RequiredPolicies("Policy1")]
         [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
         [Scenario("Scenario2", "Scenario3, Scenario4")]
-        [ContentTypes(N.User, N.Group)]
-        [ContentTypes("OrgUnit")]
         public static object[] Op1(Content content,
             string a, int b, bool c, float d, decimal e, double f)
         {
@@ -40,6 +39,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataAction]
+        [ContentTypes(N.GenericContent, N.ContentType, N.File)] // Causes no content type check ("File" is redundant).
         [AllowedRoles(N.Administrators, "Editors", "Editors,Visitor")]
         [RequiredPolicies("Policy1,Policy2", "Policy2,Policy3")]
         [RequiredPermissions("P1, P2", "P3")]
@@ -50,6 +50,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
+        // There is no ContentTypes. This means: expected contentType is "GenericContent".
         [RequiredPolicies("Policy2")]
         public static string Op3(Content content)
         {

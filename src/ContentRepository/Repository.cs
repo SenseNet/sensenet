@@ -115,8 +115,8 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataFunction]
+        [ContentTypes(N.PortalRoot)]
         [AllowedRoles(N.Administrators, N.Developers)]
-        [ContentTypes(N.PortalRoot)] //UNDONE:[ContentType]
         public static RepositoryVersionInfo GetVersionInfo(Content content)
         {
             return RepositoryVersionInfo.Instance;
