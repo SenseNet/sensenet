@@ -1617,6 +1617,8 @@ namespace SenseNet.ODataTests
                             .ConfigureAwait(false).GetAwaiter().GetResult();
 
                         // ASSERT
+                        AssertNoError(response);
+
                         var entity = GetEntity(response);
                         var operationNames = entity.Actions
                             .Select(x => x.Name)
