@@ -444,7 +444,7 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.Group)]
+        [ContentTypes(N.Group)] //UNDONE:[ContentType]
         public static object AddMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");
@@ -471,7 +471,7 @@ namespace SenseNet.ContentRepository
         /// <returns></returns>
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.Group)]
+        [ContentTypes(N.Group)] //UNDONE:[ContentType]
         public static object RemoveMembers(Content content, int[] contentIds)
         {
             RepositoryTools.AssertArgumentNull(content, "content");

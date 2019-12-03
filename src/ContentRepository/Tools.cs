@@ -342,14 +342,14 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
-        [ODataFunction("GetAllContentTypes")]
+        [ODataFunction("GetAllContentTypes")] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetListOfAllContentTypes(Content content)
         {
             return ContentType.GetContentTypes().Select(ct => Content.Create(ct));
         }
 
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         public static IEnumerable<Content> GetAllowedChildTypesFromCTD(Content content)
         {
@@ -361,7 +361,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="root">Examination scope.</param>
         /// <returns></returns>
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
             var result = new List<string>();
@@ -382,7 +382,7 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone, N.Visitor)]
         public static IEnumerable<Content> Ancestors(Content content)
         {
@@ -457,7 +457,7 @@ namespace SenseNet.ContentRepository
         
         // ======================================================================================
 
-        [ODataAction]
+        [ODataAction] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.TakeOwnership)]
         public static void TakeOwnership(Content content, string userOrGroup)
@@ -494,7 +494,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [ODataAction]
+        [ODataAction] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.ForceCheckin)]
         public static string TakeLockOver(Content content, string user)
@@ -534,19 +534,19 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         [AllowedRoles(N.Administrators, N.Developers)]
         public static SenseNet.Security.Messaging.SecurityActivityHistory GetRecentSecurityActivities(Content content)
         {
             return SecurityHandler.SecurityContext.GetRecentActivities();
         }
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         [AllowedRoles(N.Administrators, N.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
             return IndexingActivityHistory.GetHistory();
         }
-        [ODataAction]
+        [ODataAction] //UNDONE:[ContentType]
         [AllowedRoles(N.Administrators, N.Developers)]
         public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
@@ -554,12 +554,12 @@ namespace SenseNet.ContentRepository
         }
 
         [Obsolete("Use an offline solution of this problem.")]
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
             throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
         }
-        [ODataFunction]
+        [ODataFunction] //UNDONE:[ContentType]
         [AllowedRoles(N.Administrators, N.Developers)]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
         {

@@ -1490,7 +1490,7 @@ namespace SenseNet.Preview
 
         // ===================================================================================================== OData interface
 
-        [ODataFunction("GetPreviewImages")]
+        [ODataFunction("GetPreviewImages")] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Preview)]
         public static IEnumerable<Content> GetPreviewImagesForOData(Content content)
@@ -1500,7 +1500,7 @@ namespace SenseNet.Preview
 
         [ODataFunction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static object PreviewAvailable(Content content, int page)
         {
             var thumb = Current != null ? Current.GetThumbnailImage(content, page) : null;
@@ -1521,7 +1521,7 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
-        [ODataFunction("GetExistingPreviewImages")]
+        [ODataFunction("GetExistingPreviewImages")] //UNDONE:[ContentType]
         [AllowedRoles(N.Everyone)]
         public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
         {
@@ -1539,7 +1539,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static int GetPageCount(Content content)
         {
             var pageCount = (int)content["PageCount"];
@@ -1569,7 +1569,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static object GetPreviewsFolder(Content content, bool empty)
         {
             if (content == null)
@@ -1587,7 +1587,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
         {
             if (content == null)
@@ -1598,7 +1598,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static void SetPageCount(Content content, int pageCount)
         {
             if (content == null)
@@ -1637,7 +1637,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static void RegeneratePreviews(Content content)
         {
             if (content == null)
@@ -1651,7 +1651,7 @@ namespace SenseNet.Preview
 
         [ODataAction]
         [AllowedRoles(N.Everyone)]
-        [ContentTypes(N.File)]
+        [ContentTypes(N.File)] //UNDONE:[ContentType]
         public static object CheckPreviews(Content content, bool generateMissing)
         {
             if (content == null)

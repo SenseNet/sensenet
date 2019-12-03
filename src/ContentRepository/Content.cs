@@ -142,7 +142,7 @@ namespace SenseNet.ContentRepository
             /// <param name="content">The content provided by the infrastructure.</param>
             /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
             /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
-            [ODataAction]
+            [ODataAction] //UNDONE:[ContentType]
             [AllowedRoles(N.Administrators, N.Developers)]
             [RequiredPermissions(N.Save)]
             public static void RebuildIndex(Content content, bool recursive, IndexRebuildLevel rebuildLevel)
@@ -153,7 +153,7 @@ namespace SenseNet.ContentRepository
             /// Performes a full reindex operation on the content and the whole subtree.
             /// </summary>
             /// <param name="content">The content provided by the infrastructure.</param>
-            [ODataAction]
+            [ODataAction] //UNDONE:[ContentType]
             [AllowedRoles(N.Administrators, N.Developers)]
             public static void RebuildIndexSubtree(Content content)
             {
@@ -163,7 +163,7 @@ namespace SenseNet.ContentRepository
             /// Refreshes the index document of the content and the whole subtree using the already existing index data stored in the database.
             /// </summary>
             /// <param name="content">The content provided by the infrastructure.</param>
-            [ODataAction]
+            [ODataAction] //UNDONE:[ContentType]
             [AllowedRoles(N.Administrators, N.Developers)]
             public static void RefreshIndexSubtree(Content content)
             {
