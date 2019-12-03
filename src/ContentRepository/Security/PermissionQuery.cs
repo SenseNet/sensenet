@@ -183,7 +183,7 @@ namespace SenseNet.ContentRepository.Security
 
         [ODataFunction]
         [AllowedRoles(N.Everyone)]
-        [ContentType(N.Group, N.User)]
+        [ContentTypes(N.Group, N.User)]
         public static IEnumerable<Content> GetParentGroups(Content content, bool directOnly)
         {
             return PermissionQuery.GetParentGroups(content, directOnly);

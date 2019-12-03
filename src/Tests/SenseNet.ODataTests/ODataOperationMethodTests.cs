@@ -1568,13 +1568,13 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("GenericContent"), });
+                        new Attribute[] { new ODataAction(), new ContentTypesAttribute("GenericContent"), });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("Folder"), });
+                        new Attribute[] { new ODataAction(), new ContentTypesAttribute("Folder"), });
                     var m2 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("Domains"), });
+                        new Attribute[] { new ODataAction(), new ContentTypesAttribute("Domains"), });
                     var m3 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new ContentTypeAttribute("File"), });
+                        new Attribute[] { new ODataAction(), new ContentTypesAttribute("File"), });
 
                     // ACTION
                     var response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")

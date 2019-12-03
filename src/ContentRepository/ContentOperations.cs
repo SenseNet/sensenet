@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository
     public static class ContentOperations
     {
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.Approve)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions)]
@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.Publish)]
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         public static Content Reject(Content content, string rejectReason = null)
@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save)]
         [Scenario(N.ListItem, N.ExploreActions)]
@@ -111,7 +111,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.ForceCheckin)]
         [Scenario(N.ListItem, N.ExploreActions)]
@@ -126,7 +126,7 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [ContentType(N.GenericContent)]
+        [ContentTypes(N.GenericContent)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Save, N.RecallOldVersion)]
         public static Content RestoreVersion(Content content, string version)

@@ -31,8 +31,8 @@ namespace SenseNet.ODataTests
         [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
         [Scenario("Scenario2", "Scenario3, Scenario4")]
-        [ContentType(N.User, N.Group)]
-        [ContentType("OrgUnit")]
+        [ContentTypes(N.User, N.Group)]
+        [ContentTypes("OrgUnit")]
         public static object[] Op1(Content content,
             string a, int b, bool c, float d, decimal e, double f)
         {

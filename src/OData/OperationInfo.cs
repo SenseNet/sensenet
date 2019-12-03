@@ -42,8 +42,8 @@ namespace SenseNet.OData
             CausesStateChange = attributes.Any(a => a is ODataAction);
 
             ContentTypes = ParseNames(attributes
-                .Where(a => a is ContentTypeAttribute)
-                .SelectMany(a => ((ContentTypeAttribute) a).Names));
+                .Where(a => a is ContentTypesAttribute)
+                .SelectMany(a => ((ContentTypesAttribute) a).Names));
 
             Scenarios = ParseNames(attributes
                 .Where(a => a is ScenarioAttribute)
