@@ -4,7 +4,7 @@
 namespace SenseNet.ApplicationModel
 {
     /// <summary>
-    /// Declares authorization rules for an Operation Method. Available rule categories: Policy, Role, Permission
+    /// Declares authorization rules for an Operation Method. Available rule categories: Policy, Role
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class SnAuthorizeAttribute : Attribute
@@ -19,11 +19,6 @@ namespace SenseNet.ApplicationModel
         /// The method can be called if the current user has at least one of them.
         /// </summary>
         public string Role { get; set; }
-        /// <summary>
-        /// Gets or sets one or more comma separated permission names.
-        /// The method can be called if the current user has all permission on the requested content.
-        /// </summary>
-        public string Permission { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnAuthorizeAttribute"/>.

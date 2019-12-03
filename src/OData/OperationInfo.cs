@@ -49,6 +49,10 @@ namespace SenseNet.OData
                 .Where(a => a is ScenarioAttribute)
                 .Select(a => ((ScenarioAttribute) a).Name));
 
+            Permissions = ParseNames(attributes
+                .Where(a => a is RequiredPermissionsAttribute)
+                .SelectMany(a => ((RequiredPermissionsAttribute)a).Names));
+
             if (attributes.Any(a => a is SnAuthorizeAllAttribute))
             {
                 Roles = new[] {"All"};
@@ -61,7 +65,6 @@ namespace SenseNet.OData
                     .Cast<SnAuthorizeAttribute>().ToArray();
                 Roles = ParseNames(snAuthorizeAttributes.Select(a => a.Role));
                 Policies = ParseNames(snAuthorizeAttributes.Select(a => a.Policy));
-                Permissions = ParseNames(snAuthorizeAttributes.Select(a => a.Permission));
             }
         }
 

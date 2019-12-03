@@ -458,7 +458,8 @@ namespace SenseNet.ContentRepository
         // ======================================================================================
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone", Permission = "TakeOwnership")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.TakeOwnership)]
         public static void TakeOwnership(Content content, string userOrGroup)
         {
             if (content == null)
@@ -494,7 +495,8 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
-        [SnAuthorize(Role = "Everyone", Permission = "ForceCheckin")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.ForceCheckin)]
         public static string TakeLockOver(Content content, string user)
         {
             content.ContentHandler.Lock.TakeLockOver(GetUserFromString(user));

@@ -1491,7 +1491,8 @@ namespace SenseNet.Preview
         // ===================================================================================================== OData interface
 
         [ODataFunction("GetPreviewImages")]
-        [SnAuthorize(Role = "Everyone", Permission = "Preview")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.Preview)]
         public static IEnumerable<Content> GetPreviewImagesForOData(Content content)
         {
             return Current != null ? Current.GetPreviewImages(content) : null;

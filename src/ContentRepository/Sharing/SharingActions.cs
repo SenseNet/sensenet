@@ -14,7 +14,8 @@ namespace SenseNet.ContentRepository.Sharing
         /// Gets a list of all sharing records on a content.
         /// </summary>
         [ODataFunction]
-        [SnAuthorize(Role = "Everyone", Permission = "Save, SetPermissions")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object GetSharing(Content content)
         {
             var gc = EnsureContent(content);
@@ -32,7 +33,8 @@ namespace SenseNet.ContentRepository.Sharing
         /// <param name="sendNotification">Whether a notification email should be sent to the target user.</param>
         /// <returns>A sharing record representing the new share.</returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone", Permission = "Save, SetPermissions")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object Share(Content content, string token, SharingLevel level, SharingMode mode, bool sendNotification)
         {
             var gc = EnsureContent(content);
@@ -46,7 +48,8 @@ namespace SenseNet.ContentRepository.Sharing
         /// <param name="id">Identifier of a sharing record.</param>
         /// <returns>Returns true if the system has found and removed the sharing record.</returns>
         [ODataAction]
-        [SnAuthorize(Role = "Everyone", Permission = "Save, SetPermissions")]
+        [SnAuthorize(Role = "Everyone")]
+        [RequiredPermissions(N.Save, N.SetPermissions)]
         public static object RemoveSharing(Content content, string id)
         {
             var gc = EnsureContent(content);

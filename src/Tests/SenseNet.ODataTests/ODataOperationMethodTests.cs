@@ -1652,11 +1652,11 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "See" } });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.See) });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "Open" } });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.Open) });
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new SnAuthorizeAttribute { Permission = "Save" } });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.Save) });
 
                     var user = User.Visitor;
 

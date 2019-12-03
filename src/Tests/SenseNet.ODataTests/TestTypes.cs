@@ -29,7 +29,7 @@ namespace SenseNet.ODataTests
         [ODataFunction]
         [SnAuthorize(Role = "Administrators,Editors")]
         [SnAuthorize(Policy = "Policy1")]
-        [SnAuthorize(Permission = "See, Run")]
+        [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
         [Scenario("Scenario2", "Scenario3, Scenario4")]
         [ContentType(N.User, N.Group)]
@@ -45,8 +45,7 @@ namespace SenseNet.ODataTests
         [SnAuthorize(Role = "Editors,Visitor")]
         [SnAuthorize(Policy = "Policy1,Policy2")]
         [SnAuthorize(Policy = "Policy2,Policy3")]
-        [SnAuthorize(Permission = "P1, P2")]
-        [SnAuthorize(Permission = "P3")]
+        [RequiredPermissions("P1, P2", "P3")]
         public static object[] Op2(Content content,
             string a = null, int b = 0, bool c = false, float d = 0f, decimal e = 0m, double f = 0d)
         {
@@ -137,7 +136,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [SnAuthorize(Permission = "Open")]
+        [RequiredPermissions(N.Open)]
         public static string AuthorizedByPermission(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
