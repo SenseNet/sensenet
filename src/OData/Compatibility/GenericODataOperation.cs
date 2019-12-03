@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using SenseNet.Portal.ApplicationModel;
 using SenseNet.ApplicationModel;
@@ -46,8 +47,7 @@ namespace SenseNet.ApplicationModel
         private static readonly string[] EmptyStringArray = new string[0];
         private static readonly Type[] EmptyTypeArray = new Type[0];
 
-        private bool _hasFunctionAttribute;
-        private bool _hasActionAttribute;
+        private bool _hasOperationAttribute;
 
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
@@ -80,9 +80,11 @@ namespace SenseNet.ApplicationModel
                 ActionParameters[i] = new ActionParameter(_paramNames[i], _paramTypes[i], !actualParameters[i+1].HasDefaultValue);
             }
 
-            _hasActionAttribute = _method.GetCustomAttributes(typeof(ODataAction), true).Length != 0;
-            _hasFunctionAttribute = _method.GetCustomAttributes(typeof(ODataFunction), true).Length != 0;
-            _causesStateChange = _hasActionAttribute;
+            var operationAttribute = (ODataOperationAttribute)_method
+                .GetCustomAttributes(typeof(ODataOperationAttribute), true)
+                .FirstOrDefault();
+            _hasOperationAttribute = operationAttribute != null;
+            _causesStateChange = operationAttribute?.CauseStateChange ?? false;
 
             base.Initialize(context, backUri, application, parameters);
         }
@@ -148,7 +150,7 @@ namespace SenseNet.ApplicationModel
 
         public override object Execute(Content content, params object[] parameters)
         {
-            if (!_hasActionAttribute && !_hasFunctionAttribute)
+            if (!_hasOperationAttribute)
                 throw new MethodAccessException("Access denied. This method cannot be called through a generic operation.");
 
             var p = new object[parameters.Length + 1];

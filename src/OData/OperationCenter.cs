@@ -81,10 +81,8 @@ namespace SenseNet.OData
             }
 
             var name =
-                attributes.Where(a => a is ODataFunction)
-                    .Select(a => ((ODataFunction) a).OperationName).FirstOrDefault() ??
-                attributes.Where(a => a is ODataAction)
-                    .Select(a => ((ODataAction) a).OperationName).FirstOrDefault() ??
+                attributes.Where(a => a is ODataOperationAttribute)
+                    .Select(a => ((ODataOperationAttribute) a).OperationName).FirstOrDefault() ??
                 method.Name;
 
             var info = new OperationInfo(name, method, attributes)
@@ -109,7 +107,7 @@ namespace SenseNet.OData
 
         private static OperationInfo AddMethod(OperationInfo info)
         {
-            if (!(info.Attributes.Any(a => a is ODataFunction || a is ODataAction)))
+            if (!(info.Attributes.Any(a => a is ODataOperationAttribute)))
                 return null;
 
             if (info.RequiredParameterNames.Length == 0)

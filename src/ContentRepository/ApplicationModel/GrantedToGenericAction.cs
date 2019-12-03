@@ -3,29 +3,34 @@
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ApplicationModel
 {
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ODataAction : Attribute
+    public abstract class ODataOperationAttribute : Attribute
     {
+        public abstract bool CauseStateChange { get; }
+
         public string OperationName { get; set; }
-        public ODataAction()
-        {
-        }
-        public ODataAction(string operationName)
+
+        protected ODataOperationAttribute() {}
+
+        protected ODataOperationAttribute(string operationName)
         {
             OperationName = operationName;
         }
     }
+
     [AttributeUsage(AttributeTargets.Method)]
-    public class ODataFunction : Attribute
+    public class ODataAction : ODataOperationAttribute
     {
-        public string OperationName { get; set; }
-        public ODataFunction()
-        {
-        }
-        public ODataFunction(string operationName)
-        {
-            OperationName = operationName;
-        }
+        public override bool CauseStateChange => true;
+        public ODataAction() { }
+        public ODataAction(string operationName) : base(operationName) { }
+    }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ODataFunction : ODataOperationAttribute
+    {
+        public override bool CauseStateChange => false;
+        public ODataFunction() { }
+        public ODataFunction(string operationName) : base(operationName) { }
     }
 
 }
