@@ -11,7 +11,7 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class ContentOperations
     {
-        [ODataAction]
+        [ODataAction(Icon = "copy", Description = "$Action,CopyBatch")]
         [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]
@@ -85,7 +85,7 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
-        [ODataAction]
+        [ODataAction(Icon = "move", Description = "$Action,MoveBatch")]
         [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]
@@ -160,7 +160,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
 
-        [ODataAction]
+        [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch")]
         [ContentTypes(N.Folder)]
         [AllowedRoles(N.Everyone)]
         [Scenario(N.GridToolbar)]

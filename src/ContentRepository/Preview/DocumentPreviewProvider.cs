@@ -1490,7 +1490,7 @@ namespace SenseNet.Preview
 
         // ===================================================================================================== OData interface
 
-        [ODataFunction("GetPreviewImages")]
+        [ODataFunction("GetPreviewImages", Description = "$Action,GetPreviewImages")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Preview)]
@@ -1522,7 +1522,7 @@ namespace SenseNet.Preview
             return new { PreviewAvailable = (string)null };
         }
 
-        [ODataFunction("GetExistingPreviewImages")]
+        [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
@@ -1539,7 +1539,7 @@ namespace SenseNet.Preview
             }
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Get page count")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static int GetPageCount(Content content)
@@ -1569,7 +1569,7 @@ namespace SenseNet.Preview
             return pageCount;
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Get previews folder")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static object GetPreviewsFolder(Content content, bool empty)
@@ -1587,7 +1587,7 @@ namespace SenseNet.Preview
             };
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Set preview status")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
@@ -1598,7 +1598,7 @@ namespace SenseNet.Preview
             SetPreviewStatus(content.ContentHandler as File, status);
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Set page count")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static void SetPageCount(Content content, int pageCount)
@@ -1637,7 +1637,7 @@ namespace SenseNet.Preview
             previewImage.Save(SavingMode.KeepVersion);
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Regenerate preview images")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static void RegeneratePreviews(Content content)
@@ -1651,7 +1651,7 @@ namespace SenseNet.Preview
             StartPreviewGeneration(content.ContentHandler, TaskPriority.Immediately);
         }
 
-        [ODataAction]
+        [ODataAction(Description = "Check preview images")]
         [ContentTypes(N.File)]
         [AllowedRoles(N.Everyone)]
         public static object CheckPreviews(Content content, bool generateMissing)
