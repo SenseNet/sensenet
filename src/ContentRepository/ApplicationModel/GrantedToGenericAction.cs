@@ -8,6 +8,8 @@ namespace SenseNet.ApplicationModel
         public abstract bool CauseStateChange { get; }
 
         public string OperationName { get; set; }
+        public string Description { get; set; }
+        public string Icon { get; set; }
 
         protected ODataOperationAttribute() {}
 

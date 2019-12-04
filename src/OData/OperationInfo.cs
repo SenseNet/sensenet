@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -12,6 +13,9 @@ namespace SenseNet.OData
     public class OperationInfo
     {
         public string Name { get; }
+        public string Icon { get; }
+        public string Description { get; }
+
         public MethodBase Method { get; }
         public bool IsAsync { get; }
 
@@ -28,11 +32,14 @@ namespace SenseNet.OData
         public string[] Roles { get; private set; }
         public string[] Policies { get; private set; }
 
-        public OperationInfo(string name, MethodBase method, Attribute[] attributes)
+        public OperationInfo(string name, string icon, string description, MethodBase method, Attribute[] attributes)
         {
             Name = name;
+            Icon = icon;
+            Description = description;
             Method = method;
             Attributes = attributes;
+
             ParseAttributes(attributes);
             IsAsync = ParseSynchronicity(method);
         }

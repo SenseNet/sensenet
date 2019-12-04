@@ -80,12 +80,11 @@ namespace SenseNet.OData
                     req.Add(parameter);
             }
 
-            var name =
-                attributes.Where(a => a is ODataOperationAttribute)
-                    .Select(a => ((ODataOperationAttribute) a).OperationName).FirstOrDefault() ??
-                method.Name;
+            var opAttr = attributes.Where(a => a is ODataOperationAttribute)
+                .Select(a => ((ODataOperationAttribute) a)).FirstOrDefault();
+            var name = opAttr?.OperationName ?? method.Name;
 
-            var info = new OperationInfo(name, method, attributes)
+            var info = new OperationInfo(name, opAttr?.Icon, opAttr?.Description, method, attributes)
             {
                 RequiredParameterNames = req.Select(x => x.Name).ToArray(),
                 RequiredParameterTypes = req.Select(x => x.ParameterType).ToArray(),

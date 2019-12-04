@@ -202,6 +202,34 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
+        public void OD_MBO_GetInfo_Attributes_DescriptionIcon()
+        {
+            ODataTest(() =>
+            {
+                // [ODataFunction(Description = "Lorem ipsum ...")]
+                var info = AddMethod(typeof(TestOperations).GetMethod("Op6"));
+                Assert.AreEqual("Lorem ipsum ...", info.Description);
+                Assert.AreEqual(null, info.Icon);
+
+                // [ODataFunction(Icon = "icon42")]
+                info = AddMethod(typeof(TestOperations).GetMethod("Op7"));
+                Assert.AreEqual(null, info.Description);
+                Assert.AreEqual("icon42", info.Icon);
+
+                // [ODataFunction(Description = "Lorem ipsum ...", Icon = "icon94")]
+                info = AddMethod(typeof(TestOperations).GetMethod("Op8"));
+                Assert.AreEqual("Lorem ipsum ...", info.Description);
+                Assert.AreEqual("icon94", info.Icon);
+
+                // [ODataFunction("Op9_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+                info = AddMethod(typeof(TestOperations).GetMethod("Op9"));
+                Assert.AreEqual("Op9_Renamed", info.Name);
+                Assert.AreEqual("Lorem ipsum ...", info.Description);
+                Assert.AreEqual("icon94", info.Icon);
+            });
+        }
+
+        [TestMethod]
         public void OD_MBO_GetInfo_SyncAsync()
         {
             ODataTest(() =>

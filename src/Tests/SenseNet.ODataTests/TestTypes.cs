@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -6,6 +7,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.ODataTests
 {
@@ -67,6 +69,27 @@ namespace SenseNet.ODataTests
         public static object[] Op5(Content content, object[] a)
         {
             return a;
+        }
+
+        [ODataFunction(Description = "Lorem ipsum ...")]
+        public static void Op6(Content content)
+        {
+
+        }
+        [ODataFunction(Icon = "icon42")]
+        public static void Op7(Content content)
+        {
+
+        }
+        [ODataFunction(Description = "Lorem ipsum ...", Icon = "icon94")]
+        public static void Op8(Content content)
+        {
+
+        }
+        [ODataFunction("Op9_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+        public static void Op9(Content content)
+        {
+
         }
 
         #endregion
