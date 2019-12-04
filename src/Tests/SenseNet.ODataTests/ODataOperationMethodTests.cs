@@ -209,7 +209,7 @@ namespace SenseNet.ODataTests
                 // [ODataFunction(Description = "Lorem ipsum ...")]
                 var info = AddMethod(typeof(TestOperations).GetMethod("Op6"));
                 Assert.AreEqual("Lorem ipsum ...", info.Description);
-                Assert.AreEqual(null, info.Icon);
+                Assert.AreEqual("Application", info.Icon);
 
                 // [ODataFunction(Icon = "icon42")]
                 info = AddMethod(typeof(TestOperations).GetMethod("Op7"));
@@ -219,7 +219,7 @@ namespace SenseNet.ODataTests
                 // [ODataFunction(Description = "Lorem ipsum ...", Icon = "icon94")]
                 info = AddMethod(typeof(TestOperations).GetMethod("Op8"));
                 Assert.AreEqual("Lorem ipsum ...", info.Description);
-                Assert.AreEqual("icon94", info.Icon);
+                Assert.AreEqual("Application", info.Icon);
 
                 // [ODataFunction("Op9_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
                 info = AddMethod(typeof(TestOperations).GetMethod("Op9"));

@@ -71,7 +71,7 @@ namespace SenseNet.ODataTests
             return a;
         }
 
-        [ODataFunction(Description = "Lorem ipsum ...")]
+        [ODataFunction(Description = "Lorem ipsum ...")] // Default icon: "Application"
         public static void Op6(Content content)
         {
 
@@ -81,7 +81,7 @@ namespace SenseNet.ODataTests
         {
 
         }
-        [ODataFunction(Description = "Lorem ipsum ...", Icon = "icon94")]
+        [ODataFunction(Description = "Lorem ipsum ...", Icon = "Application")]
         public static void Op8(Content content)
         {
 

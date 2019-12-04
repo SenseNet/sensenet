@@ -12,8 +12,10 @@ namespace SenseNet.OData
     [DebuggerDisplay("{ToString()}")]
     public class OperationInfo
     {
+        private string _icon;
+
         public string Name { get; }
-        public string Icon { get; }
+        public string Icon => _icon ?? "Application";
         public string Description { get; }
 
         public MethodBase Method { get; }
@@ -35,7 +37,7 @@ namespace SenseNet.OData
         public OperationInfo(string name, string icon, string description, MethodBase method, Attribute[] attributes)
         {
             Name = name;
-            Icon = icon;
+            _icon = icon;
             Description = description;
             Method = method;
             Attributes = attributes;
