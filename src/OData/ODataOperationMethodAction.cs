@@ -13,6 +13,20 @@ namespace SenseNet.OData
         public override bool CausesStateChange { get; }
         public override ActionParameter[] ActionParameters { get; }
 
+        private string _icon;
+        public override string Icon
+        {
+            get => _icon ?? OperationInfo.Icon;
+            set => _icon = value;
+        }
+
+        private string _description;
+        public override string Description
+        {
+            get => _description ?? OperationInfo.Description;
+            set => _description = value;
+        }
+
         public ODataOperationMethodAction(OperationInfo operationInfo, string uri)
         {
             OperationInfo = operationInfo;
