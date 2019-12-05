@@ -345,7 +345,8 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var error = GetError(response);
-                var expectedMessage = "Cannot use  r  and  inheritance  parameters at the same time.";
+                var expectedMessage = "Ambiguous call: SetPermissions(r,inheritance) --> " +
+                                      "SetPermissions(string inheritance), SetPermissions(SetPermissionsRequest r)";
                 Assert.AreEqual(ODataExceptionCode.NotSpecified, error.Code);
                 Assert.AreEqual(expectedMessage, error.Message);
             }).ConfigureAwait(false);

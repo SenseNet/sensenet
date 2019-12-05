@@ -373,29 +373,17 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
+
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
         [ContentTypes(N.GenericContent, N.ContentType)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
         [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
-        public static object SetPermissions(Content content, SetPermissionsRequest r)
+        public static object SetPermissions(Content content, string inheritance)
         {
-            var request = r;
             var editor = SecurityHandler.CreateAclEditor();
-            if (request.inheritance != null)
-                SetInheritance(content, request, editor);
-            else
-                SetPermissions(content, request, editor);
-            editor.Apply();
 
-            return null;
-        }
-        private static void SetInheritance(Content content, SetPermissionsRequest request, SnAclEditor editor)
-        {
-            if (request.r != null)
-                throw new InvalidOperationException("Cannot use 'r' and 'inheritance' parameters at the same time.");
-
-            switch (request.inheritance.ToLower())
+            switch (inheritance.ToLower())
             {
                 default:
                     throw new ArgumentException("The value of the 'inheritance' must be 'break' or 'unbreak'.");
@@ -406,6 +394,24 @@ namespace SenseNet.Services.Core.Operations
                     editor.UnbreakInheritance(content.Id, new[] { EntryType.Normal });
                     break;
             }
+
+            editor.Apply();
+
+            return null;
+        }
+
+        [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
+        [ContentTypes(N.GenericContent, N.ContentType)]
+        [AllowedRoles(N.Everyone)]
+        [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
+        [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
+        public static object SetPermissions(Content content, SetPermissionsRequest r)
+        {
+            var request = r;
+            var editor = SecurityHandler.CreateAclEditor();
+            SetPermissions(content, request, editor);
+            editor.Apply();
+            return null;
         }
         private static void SetPermissions(Content content, SetPermissionsRequest request, SnAclEditor editor)
         {
@@ -509,7 +515,6 @@ namespace SenseNet.Services.Core.Operations
         public class SetPermissionsRequest
         {
             public SetPermissionRequest[] r;
-            public string inheritance;
         }
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public class SetPermissionRequest

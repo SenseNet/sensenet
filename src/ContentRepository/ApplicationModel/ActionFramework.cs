@@ -123,6 +123,12 @@ namespace SenseNet.ApplicationModel
             bool existingApplication;
             var app = ApplicationStorage.Instance.GetApplication(name, context, out existingApplication, GetDevice());
 
+//UNDONE: REMOVE HACK
+if (name == "SetPermissions")
+{
+    existingApplication = false;
+    app = null;
+}
             // if app is null, than create action in memory only if this is _not_ an existing application
             // (existing app can be null because of denied access or cleared/disabled status)
             // (we create Service and ClientAction types in memory this way - they do not exist in the tree)
