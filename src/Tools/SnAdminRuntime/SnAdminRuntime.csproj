@@ -113,7 +113,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SnAdminLogger.cs" />
     <Compile Include="SnAdminRuntime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Testability\Disk.cs" />

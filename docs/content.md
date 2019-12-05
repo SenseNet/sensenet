@@ -1,8 +1,8 @@
 # Content
 
-A Content is the basic block for storing information in sensenet ECM. A Content can be any kind of data: for example users, documents, memos, tasks, text files, etc. are all referred to as content in the portal. Any content can be created, edited, copied, moved or deleted easily.
+A Content is the basic block for storing information in sensenet. A Content can be any kind of data: for example users, documents, memos, tasks, text files, etc. are all referred to as content in the portal. Any content can be created, edited, copied, moved or deleted easily.
 
-> Some of the features described in this article (about displaying content on Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of the content structure applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
+> Some of the features described in this article (about displaying content on Pages) are available only if you have the sensenet [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of the content structure applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
 ### Where can I find these content?
 
@@ -34,7 +34,7 @@ The way a content looks like mainly depends on the scenario it is used in (a fol
 
 The [Content Explorer](content-explorer.md) administrative surface of the portal provides a handful of tools to manage content. You can create new content of the defined [Content Types](content-type.md) and fill their fields with data, you can define new Content Types of any kind, you can copy, move, delete, rename content and upload / download files into / from the Content Repository. It is also possible to Import large amount of data from the file system into the Content Repository (and also to [Export](export.md) them from the Content Repository into the file system).
 
->Starting with sensenet ECM 7.0, export and import functionality is done using the [SnAdmin tools](snadmin-tools.md) that are available in the core package. You can also create a custom export/import tool using the [.Net client library](https://github.com/SenseNet/sn-client-dotnet).
+>Starting with sensenet 7.0, export and import functionality is done using the [SnAdmin tools](snadmin-tools.md) that are available in the core package. You can also create a custom export/import tool using the [.Net client library](https://github.com/SenseNet/sn-client-dotnet).
 
 ### Accessing content through the REST API
 In case you have only the core [Services](https://github.com/SenseNet/sensenet) layer installed, you do not have a UI at all, but you can still access your content in the repository through our [REST api](odata-rest-api.md).
@@ -44,7 +44,7 @@ In case you have only the core [Services](https://github.com/SenseNet/sensenet) 
 Content can be referenced most easily via a url built from the site url and the path of the Content. For example, you can request the content under _/Root/YourContents/FooterContent_ with the *http://example.com/Root/YourContents/FooterContent* url. In this case, the content will be displayed using its *Browse* view. To edit the content the *action=Edit* url parameter can be used: typing *http://example.com/Root/YourContents/FooterContent?action=Edit* will show the Content in Edit mode and thus the content's fields can be edited right away. The mechanism that allows Content to be requested via their Content Repository paths and an action parameter is defined by the Smart Application Model. The [Smart Application Model](smart-application-model.md) makes it possible to create custom actions for the Content. You can check the most common available actions on a content in Content Explorer - they are listed at the top part of the page. To view a content in Content Explorer you can
 
 - open Content Explorer via the [Portal Remote Control](prc.md) (PRC) and navigate to the content, or
-- request the Content in the browser with its url http://localhost/Root/YourContents/FooterContent, open PRC (top right corner of any sensenet ECM page) and enter Content Explorer from there
+- request the Content in the browser with its url http://localhost/Root/YourContents/FooterContent, open PRC (top right corner of any sensenet page) and enter Content Explorer from there
 
 ## Examples/Tutorials
 

@@ -4,7 +4,7 @@ Applications are the basic building blocks of the [Smart Application Model](smar
 
 ### Presenting Content with Applications
 
-> The features described in this section (displaying content with Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and url generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
+> The features described in this section (displaying content with Pages) are available only if you have the sensenet [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and url generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
 The simplest way to present a [Content](content.md) is done by placing portlets on individual pages that utilize Content presentational functionality (eg. [Content viewer Portlet](content-viewer-portlet.md). However, Content can also be presented by addressing the Content itself and choosing an Application to present it. The selected Application is usually a simple page that uses [Context bound Portlets](context-bound-portlets.md) to handle the addressed [Content](content.md). These Applications are also referred to as [Smart Pages](smart-pages.md) and a single Smart Page in itself is capable of presenting many different [Content](content.md) of the same type. To create a Smart Page create a new Portlet Page under an _(apps)/[Content Type name]_ folder in the [Content Repository](content-repository.md) and use [Context bound Portlets](context-bound-portlets.md) for Content handling.
 
@@ -47,7 +47,7 @@ Although an Application for a [Content Type](content-type.md) is usually defined
 - **XsltApplication**: transforms the xml representation of the addressed [Content](content.md) with the specified XSLT and puts the output to the response.
 
 #### OData applications
-There is a special type of application that is a placeholder for defining an [OData REST API](odata-rest-api.md) endpoint. This is the **GenericODataApplication** that points to a method that will be executed when the api endpoint is called. These methods are very similar to ASP.NET web api methods, and this is how you customize and extend the REST api of sensenet ECM.
+There is a special type of application that is a placeholder for defining an [OData REST API](odata-rest-api.md) endpoint. This is the **GenericODataApplication** that points to a method that will be executed when the api endpoint is called. These methods are very similar to ASP.NET web api methods, and this is how you customize and extend the REST api of sensenet.
 
 - [Generic OData action](generic-odata-action.md)
 

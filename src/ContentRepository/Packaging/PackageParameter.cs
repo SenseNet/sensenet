@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace SenseNet.Packaging
 {
@@ -8,6 +9,16 @@ namespace SenseNet.Packaging
 
         public string PropertyName { get; private set; }
         public string Value { get; private set; }
+
+        private PackageParameter() { }
+        public PackageParameter(string name, string value)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            PropertyName = name;
+            Value = value;
+        }
 
         public static bool IsValidParameter(string parameter)
         {

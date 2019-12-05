@@ -8,7 +8,7 @@ tags: [field control, field, generic]
 
 # Generic Field Control
 
-> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+> Although this feature is supported in sensenet 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
 The Generic Field Control is a special [Field Control](field-control.md) that renders the default Field Controls for the Fields of the displayed Content. The default Field Control for a Field is defined by the Field implementation (see supported Field Controls section for each [Field](field.md)) and can be overridden in the [Content Type Definition](ctd.md) of the displayed Content.
 

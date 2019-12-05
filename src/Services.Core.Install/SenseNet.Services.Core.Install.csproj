@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.0.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.2</Version>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
     <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
@@ -11,17 +11,22 @@
     <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>sensenet csp content repository inmemory</PackageTags>
+    <PackageTags>sensenet csp content repository platform</PackageTags>
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
-    <Product>sensenet Content Repository InMemory</Product>
-    <Description>In memory database for the sensenet platform.</Description>
+    <Product>sensenet Services Core</Product>
+    <Description>sensenet is an Enterprise Content Services platform for .Net. This package contains installation items and should be installed only in a single console or web project. All other projects should reference the SenseNet.Services.Core dll-only package.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj" />
-    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj">
-      <ExcludeAssets>all</ExcludeAssets>
-    </ProjectReference>
+    <EmbeddedResource Include="install-services-core.zip" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell.exe $(SolutionDir)..\tools\scripts\CompressInstall.ps1" />
+  </Target>
 
 </Project>

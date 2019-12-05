@@ -1,11 +1,11 @@
 # SnAdmin tools
-[SnAdmin](https://github.com/SenseNet/sn-admin) is the command line tool in **sensenet ECM** for executing upgrade or custom packages. It also helps you with **common operations** related to the Content Repository or web folder files of the sensenet ECM web application. This article is about the latter: the **SnAdmin tools**.
+[SnAdmin](https://github.com/SenseNet/sn-admin) is the command line tool in **sensenet** for executing upgrade or custom packages. It also helps you with **common operations** related to the Content Repository or web folder files of the sensenet web application. This article is about the latter: the **SnAdmin tools**.
 
 >In previous sensenet versions there were separate command line tools for these operations. From **version 7.0** these are replaced by simple SnAdmin tools, so that you do not have to maintain multiple configuration files, only the one for the **SnAdminRuntime** executable.
 
 In most cases SnAdmin packages contain many steps that may add new dlls, new content to the repository or even change the database schema. But we also offer simple **built-in packages for common operations** like importing or exporting content items so that you *do not have to create packages manually*, just execute them. This article is for operators and developers about these built-in packages (*SnAdmin tools*) that you can use out-of-the box, in a way that is similar to *executing simple commands*.
 
->**Warning**: most of the following tools require the local sensenet ECM **web site to be stopped** as they access the same index.
+>**Warning**: most of the following tools require the local sensenet **web site to be stopped** as they access the same index.
 
 # Tool packages
 An SnAdmin tool is technically an **SnAdmin package** that resides in the *web\\Admin\\tools* folder. Usually these tool packages are very simple, containing only a few [built-in steps](snadmin-builtin-steps.md). When you execute a tool, you actually execute one of these packages with providing a few parameters - e.g. what do you want to import or which part of the repository do you want to re-index. The command line parameters are the same parameters that these built-in steps have.
@@ -82,7 +82,7 @@ SnAdmin index level:DatabaseAndIndex
 ```
 
 ## createeventlog
-Creates the default **event log** for sensenet ECM so that you can see entries in the Windows **Event Viewer** tool.
+Creates the default **event log** for sensenet so that you can see entries in the Windows **Event Viewer** tool.
 ``` text
 SnAdmin createeventlog
 ```

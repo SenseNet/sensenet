@@ -146,7 +146,7 @@ You can not manage members directly from Word but you can still see who is avail
 
 Tasks are also important content of a workspace. You have full control on managing tasks in the current workspace within Office.
 
-You can set a task completed by clicking the checkbox next to its title. An empty check box means that it's state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize its state.
+You can set a task completed by clicking the checkbox next to its title. An empty check box means that its state is **Pending**. A checked task refers to a **Completed** task. In any other cases, you'll see a filled checkbox. Depending on the status of the task an icon is placed next to the checkbox to visualize its state.
 
 In the following table you can find the proper mappings between the fields of Task Content Type and Office's properties:
 
@@ -186,7 +186,7 @@ In the following table you can find the proper mappings between the fields of Li
 
 ##### Check Out
 
-When working with documents in sensenet [Content Repository](content-repository.md), the documents have to be [checked out](versioning-and-approval.md) to the users currently editing them. This is not done automatically: when opening a document the user has to click Office button / Server / Check Out button, or click the the Check Out button placed at the top of the document - before any changes can be made to the document:
+When working with documents in sensenet [Content Repository](content-repository.md), the documents have to be [checked out](versioning-and-approval.md) to the users currently editing them. This is not done automatically: when opening a document the user has to click Office button / Server / Check Out button, or click the Check Out button placed at the top of the document - before any changes can be made to the document:
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/word-checkout.png" style="margin: 20px auto" />
 

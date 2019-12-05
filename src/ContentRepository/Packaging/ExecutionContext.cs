@@ -82,9 +82,8 @@ namespace SenseNet.Packaging
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console) { Test = true };
         }
-        internal static ExecutionContext Create(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console, RepositoryStartSettings settings)
+        internal static ExecutionContext Create(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, PackageParameter[] packageParameters, TextWriter console, RepositoryStartSettings settings)
         {
-            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console)
             {
                 Test = false,
