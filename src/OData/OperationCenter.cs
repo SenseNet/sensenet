@@ -336,6 +336,7 @@ namespace SenseNet.OData
         }
         private static Type GetTypeAndValue(Type expectedType, JToken token, out object value)
         {
+            //TODO:~ Generalize this parameter resolution.
             if (expectedType == typeof(ContentOperations.SetPermissionsRequest))
             {
                 value = token.Parent.Parent.ToObject<ContentOperations.SetPermissionsRequest>();
