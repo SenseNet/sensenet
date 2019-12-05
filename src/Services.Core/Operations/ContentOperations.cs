@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -374,7 +373,7 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
-        [ODataAction("", Icon = "security", Description = "$Action,SetPermissions")]
+        [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
         [ContentTypes(N.GenericContent, N.ContentType)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
