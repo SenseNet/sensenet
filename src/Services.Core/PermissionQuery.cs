@@ -6,10 +6,8 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Services;
 
-// ReSharper disable once CheckNamespace
-namespace SenseNet.OData
+namespace SenseNet.Services.Core
 {
     public class PermissionQuery
     {
