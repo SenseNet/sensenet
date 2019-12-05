@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -345,7 +346,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.GenericContent, N.ContentType)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.SeePermissions)]
-        public static bool HasPermission(Content content, string user, string[] permissions)
+        public static bool HasPermission(Content content, string[] permissions, string user = null)
         {
             IUser userObject = null;
             if (!string.IsNullOrEmpty(user))
@@ -373,13 +374,14 @@ namespace SenseNet.Services.Core.Operations
             throw new ArgumentException("Unknown permission: " + name);
         }
 
-        [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
+        [ODataAction("", Icon = "security", Description = "$Action,SetPermissions")]
         [ContentTypes(N.GenericContent, N.ContentType)]
         [AllowedRoles(N.Everyone)]
         [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
         [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
-        public static object SetPermissions(Content content, SetPermissionsRequest request)
+        public static object SetPermissions(Content content, SetPermissionsRequest r)
         {
+            var request = r;
             var editor = SecurityHandler.CreateAclEditor();
             if (request.inheritance != null)
                 SetInheritance(content, request, editor);

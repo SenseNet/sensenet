@@ -11,6 +11,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Security;
+using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
 
 namespace SenseNet.OData
 {
@@ -335,6 +336,12 @@ namespace SenseNet.OData
         }
         private static Type GetTypeAndValue(Type expectedType, JToken token, out object value)
         {
+            if (expectedType == typeof(ContentOperations.SetPermissionsRequest))
+            {
+                value = token.Parent.Parent.ToObject<ContentOperations.SetPermissionsRequest>();
+                return typeof(ContentOperations.SetPermissionsRequest);
+            }
+
             switch (token.Type)
             {
                 case JTokenType.String:
@@ -452,16 +459,34 @@ namespace SenseNet.OData
         {
             var parameters = PrepareInvoke(context);
 
-            return context.Operation.Method.Invoke(null, parameters);
+            try
+            {
+                return context.Operation.Method.Invoke(null, parameters);
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException == null)
+                    throw;
+                throw e.InnerException;
+            }
         }
 
         public static async Task<object> InvokeAsync(OperationCallingContext context)
         {
             var parameters = PrepareInvoke(context);
 
-            dynamic awaitable = context.Operation.Method.Invoke(null, parameters);
-            await awaitable;
-            return awaitable.GetAwaiter().GetResult();
+            try
+            {
+                dynamic awaitable = context.Operation.Method.Invoke(null, parameters);
+                await awaitable;
+                return awaitable.GetAwaiter().GetResult();
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException == null)
+                    throw;
+                throw e.InnerException;
+            }
         }
 
         private static object[] PrepareInvoke(OperationCallingContext context)
