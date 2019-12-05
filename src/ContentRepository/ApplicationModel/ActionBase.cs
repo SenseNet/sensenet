@@ -286,7 +286,7 @@ namespace SenseNet.ApplicationModel
         }
 
         /// <summary>
-        /// Executes the action logic when called via OData protocol in async way.
+        /// Executes the action logic asynchronously when called via OData protocol.
         /// </summary>
         /// <param name="content">Context content</param>
         /// <param name="parameters">Any other Action specific parameters.</param>

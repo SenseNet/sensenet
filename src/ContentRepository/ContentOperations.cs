@@ -6,6 +6,10 @@ using SenseNet.ApplicationModel;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Helper class containing OData operations for managing content items.
+    /// Do not use it directly from your code, use the appropriate operation on the Content class instead.
+    /// </summary>
     public static class ContentOperations
     {
         [ODataAction(Icon = "approve", Description = "$Action,Approve")]
@@ -28,7 +32,7 @@ namespace SenseNet.ContentRepository
         [Scenario(N.ListItem, N.ExploreActions, N.SimpleApprovableListItem)]
         public static Content CheckIn(Content content, string checkInComments = null)
         {
-            checkInComments = checkInComments ?? string.Empty;
+            checkInComments ??= string.Empty;
 
             if (string.IsNullOrEmpty(checkInComments) && content.CheckInCommentsMode == CheckInCommentsMode.Compulsory)
                 throw new Exception($"Can't check in content '{content.Path}' without checkin comments " +

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
@@ -66,18 +64,6 @@ namespace SenseNet.OData
         {
             return ODataMiddleware.ActionResolver.GetActions(content, request?.Scenario, null, httpContext);
         }
-        //internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request, HttpContext httpContext)
-        //{
-        //    return GetActions(content, request, httpContext).Where(a => a.IsHtmlOperation).Select(a => new ODataActionItem
-        //    {
-        //        Name = a.Name,
-        //        DisplayName = SNSR.GetString(a.Text),
-        //        Icon = a.Icon,
-        //        Index = a.Index,
-        //        Url = a.Uri,
-        //        Forbidden = a.Forbidden
-        //    });
-        //}
 
         internal static IEnumerable<ODataActionItem> GetActionItems(Content content, ODataRequest request, HttpContext httpContext)
         {

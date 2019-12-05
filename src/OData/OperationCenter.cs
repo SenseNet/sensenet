@@ -81,8 +81,7 @@ namespace SenseNet.OData
                     req.Add(parameter);
             }
 
-            var opAttr = attributes.Where(a => a is ODataOperationAttribute)
-                .Select(a => ((ODataOperationAttribute) a)).FirstOrDefault();
+            var opAttr = attributes.OfType<ODataOperationAttribute>().FirstOrDefault();
             var name = opAttr?.OperationName ?? method.Name;
 
             var info = new OperationInfo(name, opAttr?.Icon, opAttr?.Description, method, attributes)
@@ -107,7 +106,7 @@ namespace SenseNet.OData
 
         private static OperationInfo AddMethod(OperationInfo info)
         {
-            if (!(info.Attributes.Any(a => a is ODataOperationAttribute)))
+            if (!info.Attributes.Any(a => a is ODataOperationAttribute))
                 return null;
 
             if (info.RequiredParameterNames.Length == 0)

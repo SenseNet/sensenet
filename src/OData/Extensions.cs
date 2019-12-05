@@ -30,22 +30,27 @@ namespace SenseNet.OData
             return builder;
         }
 
+        /// <summary>
+        /// Adds the OData request object to the items of HttpContext.
+        /// </summary>
         public static void SetODataRequest(this HttpContext httpContext, ODataRequest odataRequest)
         {
             httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] = odataRequest;
         }
+        /// <summary>
+        /// Gets the OData request object from the Items collection.
+        /// </summary>
         public static ODataRequest GetODataRequest(this HttpContext httpContext)
         {
             return httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] as ODataRequest;
         }
 
         /// <summary>
-        /// Adds an <see cref="IOperationMethodExecutionPolicy"/> implementation instance to the active policies.
+        /// Adds an <see cref="IOperationMethodExecutionPolicy"/> instance to the list of active policies.
         /// Uses the Name property of the instance.
         /// </summary>
-        /// <param name="builder">The actual <see cref="RepositoryBuilder"/> instance.</param>
-        /// <param name="policy">An <see cref="IOperationMethodExecutionPolicy"/> implementation instance.</param>
-        /// <returns>The given builder.</returns>
+        /// <param name="builder">The <see cref="RepositoryBuilder"/> instance.</param>
+        /// <param name="policy">An <see cref="IOperationMethodExecutionPolicy"/> instance.</param>
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             IOperationMethodExecutionPolicy policy)
         {
@@ -56,10 +61,9 @@ namespace SenseNet.OData
         /// Adds an <see cref="IOperationMethodExecutionPolicy"/> implementation instance to the active policies.
         /// This method renames the policy (not uses the Name property of the instance).
         /// </summary>
-        /// <param name="builder">The actual <see cref="RepositoryBuilder"/> instance.</param>
+        /// <param name="builder">The <see cref="RepositoryBuilder"/> instance.</param>
         /// <param name="name">New name of the policy.</param>
-        /// <param name="policy">An <see cref="IOperationMethodExecutionPolicy"/> implementation instance.</param>
-        /// <returns>The given builder.</returns>
+        /// <param name="policy">An <see cref="IOperationMethodExecutionPolicy"/> instance.</param>
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             string name, IOperationMethodExecutionPolicy policy)
         {
@@ -69,16 +73,14 @@ namespace SenseNet.OData
         /// <summary>
         /// Adds an inline Func&lt;IUser, OperationCallingContext, bool&gt; as OperationMethod execution policy.
         /// </summary>
-        /// <param name="builder">The actual <see cref="RepositoryBuilder"/> instance.</param>
+        /// <param name="builder">The <see cref="RepositoryBuilder"/> instance.</param>
         /// <param name="name">Name of the policy.</param>
-        /// <param name="policyFunction"></param>
-        /// <returns>The given builder.</returns>
+        /// <param name="policyFunction">The policy function to execute.</param>
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             string name, Func<IUser, OperationCallingContext, bool> policyFunction)
         {
             OperationCenter.Policies.Add(name, new InlineOperationMethodExecutionPolicy(name, policyFunction));
             return builder;
         }
-
     }
 }

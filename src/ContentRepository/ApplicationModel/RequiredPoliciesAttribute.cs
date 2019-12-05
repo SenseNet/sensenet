@@ -4,7 +4,9 @@
 namespace SenseNet.ApplicationModel
 {
     /// <summary>
-    /// Declares authorization rules for an Operation Method. Available rule categories: Policy, Role
+    /// Describes the allowed policies for an operation method.
+    /// A policy is a code fragment identified by the name provided using this attribute.
+    /// Use the UseOperationMethodExecutionPolicy methods for defining policies during app start.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class RequiredPoliciesAttribute : Attribute
@@ -16,11 +18,11 @@ namespace SenseNet.ApplicationModel
         public string[] Names { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequiredPoliciesAttribute"/>.
+        /// Initializes a new instance of the <see cref="RequiredPoliciesAttribute"/> class.
         /// </summary>
         public RequiredPoliciesAttribute() { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequiredPoliciesAttribute"/> with one or more policies.
+        /// Initializes a new instance of the <see cref="RequiredPoliciesAttribute"/> class with one or more policies.
         /// </summary>
         /// <param name="policyNames">One or more policy names.
         /// The operation method can be called after the policies are successfully executed.
