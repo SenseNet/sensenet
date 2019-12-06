@@ -4,7 +4,11 @@ using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
 {
-    public class ODataOperationMethodAction : ActionBase
+    /// <summary>
+    /// This action is used when we need to serve a list of actions to the client. This action
+    /// is not executed directly, only serves as a metadata holder.
+    /// </summary>
+    internal class ODataOperationMethodDescriptor : ActionBase
     {
         internal OperationInfo OperationInfo { get; }
         public override string Uri { get; }
@@ -27,7 +31,7 @@ namespace SenseNet.OData
             set => _description = value;
         }
 
-        public ODataOperationMethodAction(OperationInfo operationInfo, string uri)
+        public ODataOperationMethodDescriptor(OperationInfo operationInfo, string uri)
         {
             OperationInfo = operationInfo;
             Uri = uri;

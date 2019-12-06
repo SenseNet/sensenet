@@ -23,7 +23,7 @@ namespace SenseNet.OData
                 .Where(x => FilterByScenario(x.Scenarios, scenario))
                 .Where(x => FilterByContentTypes(inspector, content, x.ContentTypes))
                 .Where(x => FilterByRoles(inspector, x.Roles, actualRoles))
-                .Select(x => new ODataOperationMethodAction(x, GenerateUri(content, x.Name)))
+                .Select(x => new ODataOperationMethodDescriptor(x, GenerateUri(content, x.Name)))
                 .ToArray();
 
             foreach (var operationMethodAction in operationMethodActions)

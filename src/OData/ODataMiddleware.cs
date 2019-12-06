@@ -782,7 +782,7 @@ namespace SenseNet.OData
             }
 
             method.HttpContext = httpContext;
-            return new ODataOperationMethod(method);
+            return new ODataOperationMethodExecutor(method);
         }
     }
 }
