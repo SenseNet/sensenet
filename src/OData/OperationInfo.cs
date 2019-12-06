@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ namespace SenseNet.OData
     [DebuggerDisplay("{ToString()}")]
     public class OperationInfo
     {
-        private string _icon;
+        private readonly string _icon;
 
         public string Name { get; }
         public string Icon => _icon ?? "Application";
@@ -76,7 +75,7 @@ namespace SenseNet.OData
 
         }
 
-        private static readonly char[] SplitChars = new[] { ',' };
+        private static readonly char[] SplitChars = { ',' };
         private string[] ParseNames(IEnumerable<string> sources)
         {
             if (sources == null)

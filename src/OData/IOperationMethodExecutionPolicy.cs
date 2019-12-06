@@ -1,6 +1,4 @@
 ﻿using System;
-using Microsoft.AspNetCore.Http;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData

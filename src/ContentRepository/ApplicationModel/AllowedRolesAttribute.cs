@@ -16,10 +16,6 @@ namespace SenseNet.ApplicationModel
         public string[] Names { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AllowedRolesAttribute"/> class.
-        /// </summary>
-        public AllowedRolesAttribute() { }
-        /// <summary>
         /// Initializes a new instance of the <see cref="AllowedRolesAttribute"/> class with one or more roles.
         /// </summary>
         /// <param name="roleNames">One or more role names.

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -9,7 +8,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.OData
 {
-    public class OperationInspector
+    internal class OperationInspector
     {
         public static OperationInspector Instance { get; set; } = new OperationInspector();
 

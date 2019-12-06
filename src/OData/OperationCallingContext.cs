@@ -10,7 +10,7 @@ namespace SenseNet.OData
         public OperationInfo Operation { get; }
         public HttpContext HttpContext { get; set; }
 
-        public OperationCallingContext(Content content, OperationInfo info)
+        internal OperationCallingContext(Content content, OperationInfo info)
         {
             Content = content;
             Operation = info;

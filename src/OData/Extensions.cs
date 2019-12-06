@@ -33,14 +33,14 @@ namespace SenseNet.OData
         /// <summary>
         /// Adds the OData request object to the items of HttpContext.
         /// </summary>
-        public static void SetODataRequest(this HttpContext httpContext, ODataRequest odataRequest)
+        internal static void SetODataRequest(this HttpContext httpContext, ODataRequest odataRequest)
         {
             httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] = odataRequest;
         }
         /// <summary>
         /// Gets the OData request object from the Items collection.
         /// </summary>
-        public static ODataRequest GetODataRequest(this HttpContext httpContext)
+        internal static ODataRequest GetODataRequest(this HttpContext httpContext)
         {
             return httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] as ODataRequest;
         }

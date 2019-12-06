@@ -15,7 +15,7 @@ using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
 
 namespace SenseNet.OData
 {
-    public class OperationCenter
+    internal class OperationCenter
     {
         internal static readonly bool IsCaseInsensitiveOperationNameEnabled = true;
 

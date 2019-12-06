@@ -17,10 +17,6 @@ namespace SenseNet.ApplicationModel
         public string[] Names { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequiredPermissionsAttribute"/> class.
-        /// </summary>
-        public RequiredPermissionsAttribute() { }
-        /// <summary>
         /// Initializes a new instance of the <see cref="RequiredPermissionsAttribute"/> class with one or more permissions.
         /// </summary>
         /// <param name="permissions">One or more <see cref="SenseNet.ContentRepository.Storage.Security.PermissionType"/> names.
