@@ -53,8 +53,8 @@ namespace SenseNet.OData
                 .Where(a => a is ContentTypesAttribute)
                 .SelectMany(a => ((ContentTypesAttribute) a).Names));
             if (ContentTypes.Length == 0)
-                ContentTypes = new[] {N.GenericContent};
-            else if (ContentTypes.Contains(N.GenericContent) && ContentTypes.Contains(N.ContentType))
+                ContentTypes = new[] {N.CT.GenericContent};
+            else if (ContentTypes.Contains(N.CT.GenericContent) && ContentTypes.Contains(N.CT.ContentType))
                 ContentTypes = _empty;
 
             Scenarios = ParseNames(attributes

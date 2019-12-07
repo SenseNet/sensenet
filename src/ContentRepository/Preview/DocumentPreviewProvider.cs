@@ -1491,17 +1491,17 @@ namespace SenseNet.Preview
         // ===================================================================================================== OData interface
 
         [ODataFunction("GetPreviewImages", Description = "$Action,GetPreviewImages")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
-        [RequiredPermissions(N.Preview)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Preview)]
         public static IEnumerable<Content> GetPreviewImagesForOData(Content content)
         {
             return Current != null ? Current.GetPreviewImages(content) : null;
         }
 
         [ODataFunction]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static object PreviewAvailable(Content content, int page)
         {
             var thumb = Current != null ? Current.GetThumbnailImage(content, page) : null;
@@ -1523,8 +1523,8 @@ namespace SenseNet.Preview
         }
 
         [ODataFunction("GetExistingPreviewImages", Description = "$Action,GetExistingPreviewImages")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<object> GetExistingPreviewImagesForOData(Content content)
         {
             foreach (var image in DocumentPreviewProvider.Current.GetExistingPreviewImages(content))
@@ -1540,8 +1540,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Get page count")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static int GetPageCount(Content content)
         {
             var pageCount = (int)content["PageCount"];
@@ -1570,8 +1570,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Get previews folder")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static object GetPreviewsFolder(Content content, bool empty)
         {
             if (content == null)
@@ -1588,8 +1588,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Set preview status")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static void SetPreviewStatus(Content content, PreviewStatus status)
         {
             if (content == null)
@@ -1599,8 +1599,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Set page count")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static void SetPageCount(Content content, int pageCount)
         {
             if (content == null)
@@ -1638,8 +1638,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Regenerate preview images")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static void RegeneratePreviews(Content content)
         {
             if (content == null)
@@ -1652,8 +1652,8 @@ namespace SenseNet.Preview
         }
 
         [ODataAction(Description = "Check preview images")]
-        [ContentTypes(N.File)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.File)]
+        [AllowedRoles(N.R.Everyone)]
         public static object CheckPreviews(Content content, bool generateMissing)
         {
             if (content == null)

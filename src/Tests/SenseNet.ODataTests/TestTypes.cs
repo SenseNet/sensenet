@@ -28,8 +28,8 @@ namespace SenseNet.ODataTests
         #region Methods for general tests
 
         [ODataFunction]
-        [ContentTypes(N.User, N.Group, "OrgUnit")]
-        [AllowedRoles(N.Administrators, "Editors")]
+        [ContentTypes(N.CT.User, N.CT.Group, "OrgUnit")]
+        [AllowedRoles(N.R.Administrators, "Editors")]
         [RequiredPolicies("Policy1")]
         [RequiredPermissions("See, Run")]
         [Scenario("Scenario1, Scenario2")]
@@ -41,8 +41,8 @@ namespace SenseNet.ODataTests
         }
 
         [ODataAction]
-        [ContentTypes(N.GenericContent, N.ContentType, N.File)] // Causes no content type check ("File" is redundant).
-        [AllowedRoles(N.Administrators, "Editors", "Editors,Visitor")]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType, N.CT.File)] // Causes no content type check ("File" is redundant).
+        [AllowedRoles(N.R.Administrators, "Editors", "Editors,Visitor")]
         [RequiredPolicies("Policy1,Policy2", "Policy2,Policy3")]
         [RequiredPermissions("P1, P2", "P3")]
         public static object[] Op2(Content content,
@@ -131,20 +131,20 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [AllowedRoles(N.Administrators)]
+        [AllowedRoles(N.R.Administrators)]
         public static string AuthorizedByRole_Administrators(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
 
         [ODataFunction]
-        [AllowedRoles(N.Visitor)]
+        [AllowedRoles(N.R.Visitor)]
         public static string AuthorizedByRole_Visitor(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
         }
         [ODataFunction]
-        [AllowedRoles(N.All)]
+        [AllowedRoles(N.R.All)]
         public static string AuthorizedByRole_All(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;
@@ -157,7 +157,7 @@ namespace SenseNet.ODataTests
         }
 
         [ODataFunction]
-        [RequiredPermissions(N.Open)]
+        [RequiredPermissions(N.P.Open)]
         public static string AuthorizedByPermission(Content content, string a)
         {
             return MethodBase.GetCurrentMethod().Name + "-" + a;

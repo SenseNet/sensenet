@@ -15,9 +15,9 @@ namespace SenseNet.Services.Core.Operations
     public static class ContentOperations
     {
         [ODataAction(Icon = "copy", Description = "$Action,CopyBatch")]
-        [ContentTypes(N.Folder)]
-        [AllowedRoles(N.Everyone)]
-        [Scenario(N.GridToolbar)]
+        [ContentTypes(N.CT.Folder)]
+        [AllowedRoles(N.R.Everyone)]
+        [Scenario(N.S.GridToolbar)]
         public static BatchActionResponse CopyBatch(Content content, string targetPath, object[] paths)
         {
             var targetNode = Node.LoadNode(targetPath);
@@ -89,9 +89,9 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction(Icon = "move", Description = "$Action,MoveBatch")]
-        [ContentTypes(N.Folder)]
-        [AllowedRoles(N.Everyone)]
-        [Scenario(N.GridToolbar)]
+        [ContentTypes(N.CT.Folder)]
+        [AllowedRoles(N.R.Everyone)]
+        [Scenario(N.S.GridToolbar)]
         public static BatchActionResponse MoveBatch(Content content, string targetPath, object[] paths)
         {
             var targetNode = Node.LoadNode(targetPath);
@@ -164,9 +164,9 @@ namespace SenseNet.Services.Core.Operations
 
 
         [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch")]
-        [ContentTypes(N.Folder)]
-        [AllowedRoles(N.Everyone)]
-        [Scenario(N.GridToolbar)]
+        [ContentTypes(N.CT.Folder)]
+        [AllowedRoles(N.R.Everyone)]
+        [Scenario(N.S.GridToolbar)]
         public static BatchActionResponse DeleteBatch(Content content, bool permanent, object[] paths)
         {
             // no need to throw an exception if no ids are provided: we simply do not have to delete anything
@@ -248,8 +248,8 @@ namespace SenseNet.Services.Core.Operations
 
 
         [ODataAction(Description = "$Action,GetPermissions")]
-        [ContentTypes(N.GenericContent, N.ContentType)]
-        [AllowedRoles(N.Everyone)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Everyone)]
         public static object GetPermissions(Content content, string identity = null)
         {
             var canSeePermissions = content.Security.HasPermission(PermissionType.SeePermissions);
@@ -342,9 +342,9 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction(Description = "$Action,HasPermission")]
-        [ContentTypes(N.GenericContent, N.ContentType)]
-        [AllowedRoles(N.Everyone)]
-        [RequiredPermissions(N.SeePermissions)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.SeePermissions)]
         public static bool HasPermission(Content content, string[] permissions, string user = null)
         {
             IUser userObject = null;
@@ -375,9 +375,9 @@ namespace SenseNet.Services.Core.Operations
 
 
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
-        [ContentTypes(N.GenericContent, N.ContentType)]
-        [AllowedRoles(N.Everyone)]
-        [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
         [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
         public static object SetPermissions(Content content, string inheritance)
         {
@@ -401,9 +401,9 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
-        [ContentTypes(N.GenericContent, N.ContentType)]
-        [AllowedRoles(N.Everyone)]
-        [RequiredPermissions(N.Open, N.SeePermissions, N.SetPermissions)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
         [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
         public static object SetPermissions(Content content, SetPermissionsRequest r)
         {

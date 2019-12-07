@@ -1649,13 +1649,13 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Administrators) });
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.R.Administrators) });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Developers) });
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.R.Developers) });
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
                         new Attribute[] {new ODataAction(), new AllowedRolesAttribute("Developers,Administrators")});
                     var m4 = AddMethod(new TestMethodInfo("fv3", "Content content, string a", null),
-                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.Developers, "UnknownGroup42")});
+                        new Attribute[] {new ODataAction(), new AllowedRolesAttribute(N.R.Developers, "UnknownGroup42")});
 
                     using (new CurrentUserBlock(User.Administrator))
                     {
@@ -1701,11 +1701,11 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     var m0 = AddMethod(new TestMethodInfo("fv0", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.See) });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.P.See) });
                     var m1 = AddMethod(new TestMethodInfo("fv1", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.Open) });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.P.Open) });
                     var m3 = AddMethod(new TestMethodInfo("fv2", "Content content, string a", null),
-                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.Save) });
+                        new Attribute[] { new ODataAction(), new RequiredPermissionsAttribute(N.P.Save) });
 
                     var user = User.Visitor;
 

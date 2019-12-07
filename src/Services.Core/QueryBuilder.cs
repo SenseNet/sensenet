@@ -32,7 +32,7 @@ namespace SenseNet.Services.Core
         /// <param name="content">Compulsory generic OData action parameter, currently not used.</param>
         /// <returns>Two arrays: one with regular fields and one for aspect fields.</returns>
         [ODataFunction]
-        [AllowedRoles(N.Everyone)]
+        [AllowedRoles(N.R.Everyone)]
         public static string GetMetadata(Content content)
         {
             // collects regular fields
@@ -108,7 +108,7 @@ namespace SenseNet.Services.Core
         }
 
         [ODataFunction]
-        [AllowedRoles(N.Everyone)]
+        [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetQueries(Content content, bool onlyPublic = false)
         {
             if (content == null)
@@ -140,7 +140,7 @@ namespace SenseNet.Services.Core
         }
 
         [ODataAction]
-        [AllowedRoles(N.Everyone)]
+        [AllowedRoles(N.R.Everyone)]
         public static object SaveQuery(Content content, string query, string displayName, string queryType)
         {
             var qt = string.IsNullOrEmpty(queryType)
