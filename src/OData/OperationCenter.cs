@@ -38,8 +38,8 @@ namespace SenseNet.OData
         internal static Dictionary<string, OperationInfo[]> Operations { get; } =
             new Dictionary<string, OperationInfo[]>();
 
-        internal static Dictionary<string, IOperationMethodExecutionPolicy> Policies { get; } =
-            new Dictionary<string, IOperationMethodExecutionPolicy>();
+        internal static Dictionary<string, IOperationMethodPolicy> Policies { get; } =
+            new Dictionary<string, IOperationMethodPolicy>();
 
         public static Type[] SystemParameters { get; } = {typeof(HttpContext), typeof(ODataRequest)};
 
@@ -524,7 +524,7 @@ namespace SenseNet.OData
                     throw new UnauthorizedAccessException();
 
             // Execute the code-based policies (if there is any).
-            if (policies.Length > 0 && !inspector.CheckPolicies(policies, context))
+            if (policies.Length > 0 && inspector.CheckPolicies(policies, context) < OperationMethodVisibility.Enabled)
                 throw new AccessDeniedException(null, null, 0, null, null);
 
             return paramValues;
