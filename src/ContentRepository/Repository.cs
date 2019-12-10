@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
@@ -113,7 +114,9 @@ namespace SenseNet.ContentRepository
             RepositoryInstance.Shutdown();
         }
 
-        [SenseNet.ApplicationModel.ODataFunction]
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static RepositoryVersionInfo GetVersionInfo(Content content)
         {
             return RepositoryVersionInfo.Instance;

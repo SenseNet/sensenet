@@ -342,13 +342,16 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
-        [ODataFunction]
+        [ODataFunction("GetAllContentTypes")]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetListOfAllContentTypes(Content content)
         {
             return ContentType.GetContentTypes().Select(ct => Content.Create(ct));
         }
 
         [ODataFunction]
+        [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetAllowedChildTypesFromCTD(Content content)
         {
             return content.ContentType.AllowedChildTypes.Select(ct => Content.Create(ct));
@@ -381,6 +384,8 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataFunction]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Everyone, N.R.Visitor)]
         public static IEnumerable<Content> Ancestors(Content content)
         {
             var ancestors = new List<Content>();
@@ -455,6 +460,8 @@ namespace SenseNet.ContentRepository
         // ======================================================================================
 
         [ODataAction]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.TakeOwnership)]
         public static void TakeOwnership(Content content, string userOrGroup)
         {
             if (content == null)
@@ -490,6 +497,8 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataAction]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.ForceCheckin)]
         public static string TakeLockOver(Content content, string user)
         {
             content.ContentHandler.Lock.TakeLockOver(GetUserFromString(user));
@@ -528,16 +537,22 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static SenseNet.Security.Messaging.SecurityActivityHistory GetRecentSecurityActivities(Content content)
         {
             return SecurityHandler.SecurityContext.GetRecentActivities();
         }
         [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
             return IndexingActivityHistory.GetHistory();
         }
         [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
             return IndexingActivityHistory.Reset();
@@ -550,6 +565,8 @@ namespace SenseNet.ContentRepository
             throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
         }
         [ODataFunction]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
         {
             var groups = NodeQuery.QueryNodesByType(NodeType.GetByName("Group"), false).Identifiers;

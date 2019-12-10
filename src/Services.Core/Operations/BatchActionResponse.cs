@@ -2,9 +2,9 @@
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace SenseNet.OData
+namespace SenseNet.Services.Core.Operations
 {
-    internal class BatchActionResponse
+    public class BatchActionResponse
     {
         [JsonProperty(PropertyName = "d", Order = 1)]
         public Dictionary<string, object> Contents { get; private set; }

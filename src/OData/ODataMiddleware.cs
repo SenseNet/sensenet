@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -16,10 +17,10 @@ using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
+using SenseNet.Security;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
-
 // ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.OData
@@ -29,6 +30,8 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataMiddleware
     {
+        public static readonly string ODataRequestHttpContextKey = "SenseNet.OData.ODataRequest";
+
         private static readonly IActionResolver DefaultActionResolver = new DefaultActionResolver();
         internal static IActionResolver ActionResolver => Providers.Instance.GetProvider<IActionResolver>() ?? DefaultActionResolver;
 
@@ -43,6 +46,7 @@ namespace SenseNet.OData
         static ODataMiddleware()
         {
             JsonConverters = new List<JsonConverter> {new Newtonsoft.Json.Converters.VersionConverter()};
+
             FieldConverters = new List<FieldConverter>();
             var fieldConverterTypes = TypeResolver.GetTypesByBaseType(typeof(FieldConverter));
             foreach (var fieldConverterType in fieldConverterTypes)
@@ -51,6 +55,9 @@ namespace SenseNet.OData
                 JsonConverters.Add(fieldConverter);
                 FieldConverters.Add(fieldConverter);
             }
+
+            OperationCenter.Discover();
+            Providers.Instance.SetProvider(typeof(IOperationMethodStorage), new OperationMethodStorage());
         }
 
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
@@ -59,8 +66,6 @@ namespace SenseNet.OData
         internal const string ChildrenPropertyName = "Children";
         internal const string BinaryPropertyName = "Binary";
         internal const int ExpansionLimit = int.MaxValue - 1;
-
-        internal ODataRequest ODataRequest { get; private set; }
 
         private readonly RequestDelegate _next;
         // Must have constructor with this signature, otherwise exception at run time
@@ -86,6 +91,8 @@ namespace SenseNet.OData
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         internal async Task ProcessRequestAsync(HttpContext httpContext, ODataRequest odataRequest)
         {
+            httpContext.SetODataRequest(odataRequest);
+
             var request = httpContext.Request;
             var httpMethod = request.Method;
             var inputStream = request.Body;
@@ -99,10 +106,6 @@ namespace SenseNet.OData
                     throw new ODataException("The Request is not an OData request.", ODataExceptionCode.RequestError);
                 }
 
-
-                this.ODataRequest = odataRequest;
-                Exception requestError = this.ODataRequest.RequestError;
-
                 odataWriter = ODataWriter.Create(httpContext, odataRequest);
                 if (odataWriter == null)
                 {
@@ -110,8 +113,10 @@ namespace SenseNet.OData
                     odataWriter.Initialize(odataRequest);
                     throw new ODataException(ODataExceptionCode.InvalidFormatParameter);
                 }
+
                 odataWriter.Initialize(odataRequest);
 
+                var requestError = odataRequest.RequestError;
                 if (requestError != null)
                 {
                     var innerOdataError = requestError as ODataException;
@@ -126,7 +131,8 @@ namespace SenseNet.OData
                 var requestedContent = LoadContentByVersionRequest(odataRequest.RepositoryPath, httpContext);
 
                 var exists = requestedContent != null;
-                if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
+                if (!exists && !odataRequest.IsServiceDocumentRequest && !odataRequest.IsMetadataRequest &&
+                    !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
                     ContentNotFound(httpContext);
                     return;
@@ -151,7 +157,8 @@ namespace SenseNet.OData
                             if (!Node.Exists(odataRequest.RepositoryPath))
                                 ContentNotFound(httpContext);
                             else if (odataRequest.IsCollection)
-                                await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext, odataRequest)
+                                await odataWriter.WriteChildrenCollectionAsync(odataRequest.RepositoryPath, httpContext,
+                                        odataRequest)
                                     .ConfigureAwait(false);
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
@@ -162,6 +169,7 @@ namespace SenseNet.OData
                                 await odataWriter.WriteSingleContentAsync(requestedContent, httpContext)
                                     .ConfigureAwait(false);
                         }
+
                         break;
                     case "PUT": // update
                         if (odataRequest.IsMemberRequest)
@@ -184,6 +192,7 @@ namespace SenseNet.OData
                             await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "MERGE":
                     case "PATCH": // update
@@ -207,6 +216,7 @@ namespace SenseNet.OData
                             await odataWriter.WriteSingleContentAsync(content, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "POST": // invoke an action, create content
                         if (odataRequest.IsMemberRequest)
@@ -224,11 +234,13 @@ namespace SenseNet.OData
                                 ContentNotFound(httpContext);
                                 return;
                             }
+
                             model = Read(inputStream);
                             var newContent = CreateNewContent(model, odataRequest);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
                         }
+
                         break;
                     case "DELETE":
                         if (odataRequest.IsMemberRequest)
@@ -240,7 +252,7 @@ namespace SenseNet.OData
                         else
                         {
                             content = LoadContentOrVirtualChild(odataRequest);
-                            if(content != null)
+                            if (content != null)
                             {
                                 var x = httpContext.Request.Query["permanent"].ToString();
                                 if (x.Equals("true", StringComparison.OrdinalIgnoreCase))
@@ -249,6 +261,7 @@ namespace SenseNet.OData
                                     content.Delete();
                             }
                         }
+
                         break;
                 }
             }
@@ -263,6 +276,18 @@ namespace SenseNet.OData
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
                 await odataWriter.WriteErrorResponseAsync(httpContext, e)
+                    .ConfigureAwait(false);
+            }
+            catch (AccessDeniedException e)
+            {
+                var oe = new ODataException(ODataExceptionCode.Forbidden, e);
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
+                    .ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                var oe = new ODataException(ODataExceptionCode.Unauthorized, e);
+                await odataWriter.WriteErrorResponseAsync(httpContext, oe)
                     .ConfigureAwait(false);
             }
             catch (SenseNetSecurityException e)
@@ -322,6 +347,8 @@ namespace SenseNet.OData
         {
             string models;
             if (inputStream == null)
+                return null;
+            if (inputStream == Stream.Null)
                 return null;
             using (var reader = new StreamReader(inputStream))
                 models = reader.ReadToEnd();
@@ -729,8 +756,33 @@ namespace SenseNet.OData
         public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext)
         {
             return backUri == null
-                ? ActionFramework.GetAction(actionName, context, parameters)
-                : ActionFramework.GetAction(actionName, context, backUri, parameters);
+                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, httpContext)
+                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, httpContext);
+        }
+
+        private ActionBase GetMethodBasedAction(string name, Content content, object state)
+        {
+            var httpContext = (HttpContext) state;
+            OperationCallingContext method;
+            try
+            {
+                //TODO:~ Combine request body and querystring parameters into the 3th parameter.
+                method = OperationCenter.GetMethodByRequest(content, name,
+                    ODataMiddleware.Read(httpContext.Request.Body));
+            }
+            catch (OperationNotFoundException e)
+            {
+                throw new InvalidContentActionException(e, InvalidContentActionReason.UnknownAction, content.Path,
+                    e.Message, name);
+            }
+            catch (AmbiguousMatchException e)
+            {
+                throw new InvalidContentActionException(e, InvalidContentActionReason.UnknownAction, content.Path,
+                    e.Message, name);
+            }
+
+            method.HttpContext = httpContext;
+            return new ODataOperationMethodExecutor(method);
         }
     }
 }

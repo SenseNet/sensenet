@@ -1831,6 +1831,49 @@ namespace SenseNet.ContentRepository.Storage.Security
                             // ReSharper disable once CoVariantArrayConversion
                             PermissionType.BuiltInPermissionTypes);
 
+                        var memberPropertyType = ActiveSchema.PropertyTypes["Members"];
+                        var userNodeType = ActiveSchema.NodeTypes["User"];
+                        var groupNodeType = ActiveSchema.NodeTypes["Group"];
+                        if (data?.DynamicProperties != null)
+                        {
+                            foreach (var versionData in data.DynamicProperties)
+                            {
+                                if (versionData.DynamicProperties == null)
+                                    continue;
+
+                                var properties = versionData.DynamicProperties;
+                                List<int> references = null;
+                                foreach (var property in properties)
+                                {
+                                    if (property.Key.Name == "Members")
+                                    {
+                                        references = (List<int>) property.Value;
+                                        break;
+                                    }
+                                }
+
+                                if (references == null)
+                                    continue;
+
+                                var versionId = versionData.VersionId;
+                                var nodeId = data.Versions.First(x => x.VersionId == versionId).NodeId;
+                                var heads = NodeHead.Get(references);
+
+                                var userMembers = new List<int>();
+                                var groupMembers = new List<int>();
+                                foreach (var head in heads)
+                                {
+                                    var nodeType = head.GetNodeType();
+                                    if (nodeType.IsInstaceOfOrDerivedFrom(userNodeType))
+                                        userMembers.Add(head.Id);
+                                    if (nodeType.IsInstaceOfOrDerivedFrom(groupNodeType))
+                                        groupMembers.Add(head.Id);
+                                }
+
+                                AddMembers(nodeId, userMembers, groupMembers);
+                            }
+                        }
+
                         if (data == null)
                             ed.Apply();
                         else

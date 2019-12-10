@@ -604,7 +604,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
         {
             return CreateNodeType(0, parent, name, className);
         }
-        private NodeType CreateNodeType(int id, NodeType parent, string name, string className)
+        internal NodeType CreateNodeType(int id, NodeType parent, string name, string className)
         {
             NodeType nodeType = new NodeType(id, name, this, className, parent);
             this.NodeTypes.Add(nodeType);

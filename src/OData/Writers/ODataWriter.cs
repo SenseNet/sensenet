@@ -20,6 +20,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
 // ReSharper disable ArrangeThisQualifier
@@ -429,8 +430,9 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var parameters = GetOperationParameters(action, httpContext.Request);
-            var response = action.Execute(content, parameters);
+            var response = action is ODataOperationMethodExecutor odataAction
+                ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
+                : action.Execute(content, GetOperationParameters(action, httpContext.Request));
 
             if (response is Content responseAsContent)
             {
@@ -465,8 +467,9 @@ namespace SenseNet.OData.Writers
             if (action.Forbidden || (action.GetApplication() != null && !action.GetApplication().Security.HasPermission(PermissionType.RunApplication)))
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
-            var parameters = GetOperationParameters(action, inputStream, httpContext, odataReq);
-            var response = action.Execute(content, parameters);
+            var response = action is ODataOperationMethodExecutor odataAction
+            ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
+            : action.Execute(content, GetOperationParameters(action, inputStream, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -796,7 +799,7 @@ namespace SenseNet.OData.Writers
                                 else if (valStr.StartsWith("\""))
                                     values[i] = GetStringArrayFromString(name, valStr, '"');
                                 else
-                                    values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
+                                    values[i] = valStr.Split(',').Select(s => s.Trim()).ToArray();
                             }
                         }
                         else

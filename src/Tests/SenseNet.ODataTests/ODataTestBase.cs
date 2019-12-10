@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
+using SenseNet.Packaging.Steps;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -207,6 +208,7 @@ namespace SenseNet.ODataTests
 
             SnTrace.Flush();
         }
+
         #region Infrastructure
 
         private static RepositoryInstance _repository;
@@ -285,7 +287,7 @@ namespace SenseNet.ODataTests
 
         protected void ODataTest(Action callback)
         {
-            ODataTestAsync(null, () =>
+            ODataTestAsync(null, null, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -293,7 +295,16 @@ namespace SenseNet.ODataTests
         }
         protected void ODataTest(IUser user, Action callback)
         {
-            ODataTestAsync(user, () =>
+            ODataTestAsync(user, null, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }, true).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        protected void ODataTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            ODataTestAsync(null, initialize, () =>
             {
                 callback();
                 return Task.CompletedTask;
@@ -302,23 +313,47 @@ namespace SenseNet.ODataTests
 
         protected Task ODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, callback, true);
+            return ODataTestAsync(null, null, callback, true);
         }
         protected Task ODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, callback, true);
+            return ODataTestAsync(user, null, callback, true);
         }
 
+        protected void IsolatedODataTest(Action callback)
+        {
+            IsolatedODataTestAsync(null, null, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        protected void IsolatedODataTest(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            IsolatedODataTestAsync(null, initialize, () =>
+            {
+                callback();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
         protected Task IsolatedODataTestAsync(Func<Task> callback)
         {
-            return ODataTestAsync(null, callback, false);
+            return IsolatedODataTestAsync(null, null, callback);
+        }
+        protected Task IsolatedODataTestAsync(Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return IsolatedODataTestAsync(null, initialize, callback);
         }
         protected Task IsolatedODataTestAsync(IUser user, Func<Task> callback)
         {
-            return ODataTestAsync(user, callback, false);
+            return IsolatedODataTestAsync(user, null, callback);
+        }
+        protected Task IsolatedODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback)
+        {
+            return ODataTestAsync(user, initialize, callback, false);
         }
 
-        private async Task ODataTestAsync(IUser user, Func<Task> callback, bool reused)
+        private async Task ODataTestAsync(IUser user, Action<RepositoryBuilder> initialize, Func<Task> callback, bool reused)
         {
             Cache.Reset();
 
@@ -328,6 +363,9 @@ namespace SenseNet.ODataTests
                 _repository = null;
 
                 var repoBuilder = CreateRepositoryBuilder();
+                if (initialize != null)
+                    initialize(repoBuilder);
+
                 Indexing.IsOuterSearchEngineEnabled = true;
                 _repository = Repository.Start(repoBuilder);
             }
@@ -515,10 +553,13 @@ namespace SenseNet.ODataTests
         }
 
 
+        protected static JObject GetObject(ODataResponse response)
+        {
+            return (JObject)Deserialize(response.Result);
+        }
         protected static ODataEntityResponse GetEntity(ODataResponse response)
         {
             var text = response.Result;
-            var result = new Dictionary<string, object>();
             var jo = (JObject)Deserialize(text);
             return ODataEntityResponse.Create((JObject)jo["d"]);
         }
@@ -612,5 +653,70 @@ namespace SenseNet.ODataTests
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
+
+        protected string RemoveWhitespaces(string input)
+        {
+            return input
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace("\t", "")
+                .Replace(" ", "");
+        }
+
+        protected string ArrayToString(int[] array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(List<int> array)
+        {
+            return string.Join(",", array.Select(x => x.ToString()));
+        }
+        protected string ArrayToString(IEnumerable<object> array, bool sort = false)
+        {
+            var strings = (IEnumerable<string>)array.Select(x => x.ToString()).ToArray();
+            if (sort)
+                strings = strings.OrderBy(x => x);
+            return string.Join(",", strings);
+        }
+
+        protected class CurrentUserBlock : IDisposable
+        {
+            private readonly IUser _backup;
+            public CurrentUserBlock(IUser user)
+            {
+                _backup = User.Current;
+                User.Current = user;
+            }
+            public void Dispose()
+            {
+                User.Current = _backup;
+            }
+        }
+
+        protected class AllowPermissionBlock : IDisposable
+        {
+            private int _entityId;
+            private int _identityId;
+            private bool _localOnly;
+            PermissionType[] _permissions;
+            public AllowPermissionBlock(int entityId, int identityId, bool localOnly, params PermissionType[] permissions)
+            {
+                _entityId = entityId;
+                _identityId = identityId;
+                _localOnly = localOnly;
+                _permissions = permissions;
+
+                SecurityHandler.CreateAclEditor()
+                    .Allow(entityId, identityId, localOnly, permissions)
+                    .Apply();
+            }
+            public void Dispose()
+            {
+                SecurityHandler.CreateAclEditor()
+                    .ClearPermission(_entityId, _identityId, _localOnly, _permissions)
+                    .Apply();
+            }
+        }
+
     }
 }

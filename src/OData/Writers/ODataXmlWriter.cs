@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core.Operations;
 
 namespace SenseNet.OData.Writers
 {
