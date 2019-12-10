@@ -224,7 +224,9 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public async Task OD_FIX_ModifyWithInvisibleParent()
         {
-            await IsolatedODataTestAsync(async () =>
+            await IsolatedODataTestAsync(
+                builder => { builder.AddAllTestPolicies(); },
+                async () =>
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 var root = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };

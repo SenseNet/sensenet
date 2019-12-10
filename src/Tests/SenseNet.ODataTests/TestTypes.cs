@@ -91,6 +91,12 @@ namespace SenseNet.ODataTests
         {
 
         }
+        [ODataFunction]
+        [RequiredPolicies("ContentNameMustBeRoot")]
+        public static void Op10(Content content)
+        {
+
+        }
 
         #endregion
 

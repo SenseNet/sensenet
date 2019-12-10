@@ -51,21 +51,30 @@ namespace SenseNet.OData
             return permissionTypes.Length == 0 || content.ContentHandler.Security.HasPermission(permissionTypes);
         }
 
-        public virtual bool CheckPolicies(string[] policies, OperationCallingContext context)
+        public virtual OperationMethodVisibility CheckPolicies(string[] policies, OperationCallingContext context)
         {
             if (User.Current.Id == Identifiers.SystemUserId)
-                return true;
+                return OperationMethodVisibility.Enabled;
+
+            var visibilityResult = OperationMethodVisibility.Enabled;
 
             foreach (var policyName in policies)
             {
                 if (!OperationCenter.Policies.TryGetValue(policyName, out var policy))
                     throw new UnknownOperationMethodExecutionPolicyException("Policy not found: " + policyName);
-                if (!policy.CanExecute(User.Current, context))
-                    return false;
+
+                // Check visibility according to the current policy. If this policy is more 
+                // restrictive than previous ones then degrade the final result value;
+                var visibility = policy.GetMethodVisibility(User.Current, context);
+                if (visibility < visibilityResult)
+                    visibilityResult = visibility;
+
+                // no need to execute remaining policies: the action is already inaccessible
+                if (visibilityResult == OperationMethodVisibility.Invisible)
+                    return visibilityResult;
             }
 
-            return true;
+            return visibilityResult;
         }
-
     }
 }

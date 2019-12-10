@@ -250,7 +250,7 @@ namespace SenseNet.ODataTests
                 Assert.IsTrue(info5.IsAsync);
             });
         }
-
+        
         /* ====================================================================== SEARCH METHOD TESTS */
 
         [TestMethod]
@@ -1189,11 +1189,11 @@ namespace SenseNet.ODataTests
 
                     builder
                         // Register an inline policy
-                        .UseOperationMethodExecutionPolicy("VisitorAllowed", 
-                            (user, context) => user.Id == Identifiers.VisitorUserId)
+                        .UseOperationMethodExecutionPolicy("VisitorAllowed", (user, context) => 
+                            user.Id == Identifiers.VisitorUserId ? OperationMethodVisibility.Enabled : OperationMethodVisibility.Disabled)
                         // Register a test policy class
                         .UseOperationMethodExecutionPolicy("AdminDenied",
-                            new DeniedUsersOperationMethodExecutionPolicy(new []{Identifiers.AdministratorUserId}));
+                            new DeniedUsersOperationMethodPolicy(new []{Identifiers.AdministratorUserId}));
 
                 }, () =>
                 {
@@ -1790,6 +1790,40 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_Actions_FilteredByPolicy()
+        {
+            ODataTest(builder =>
+                {
+                    builder.AddAllTestPolicies();
+                },
+                () =>
+                {
+                    OperationCenter.Discover();
+
+                    var os = new OperationMethodStorage();
+                    var original = AccessProvider.Current.GetCurrentUser();
+
+                    try
+                    {
+                        // set the caller user temporarily
+                        AccessProvider.Current.SetCurrentUser(User.Administrator);
+
+                        // Root content: action is in the list
+                        var content = Content.Create(Repository.Root);
+                        Assert.IsTrue(os.GetActions(new ActionBase[0], content, null).Any(a => a.Name == "Op10"));
+
+                        // other content: action is not in the list
+                        content = Content.Create(User.Administrator);
+                        Assert.IsFalse(os.GetActions(new ActionBase[0], content, null).Any(a => a.Name == "Op10"));
+                    }
+                    finally
+                    {
+                        AccessProvider.Current.SetCurrentUser(original);
+                    }
+                });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };
@@ -1853,8 +1887,8 @@ namespace SenseNet.ODataTests
         }
         internal class PolicyStoreSwindler : IDisposable
         {
-            private readonly Dictionary<string, IOperationMethodExecutionPolicy> _backup =
-                new Dictionary<string, IOperationMethodExecutionPolicy>();
+            private readonly Dictionary<string, IOperationMethodPolicy> _backup =
+                new Dictionary<string, IOperationMethodPolicy>();
 
             public PolicyStoreSwindler()
             {
@@ -1879,10 +1913,10 @@ namespace SenseNet.ODataTests
                 _sb.AppendLine($"CheckContentType: {content.ContentType.Name} ==>, {string.Join(",", contentTypes)}");
                 return true;
             }
-            public override bool CheckPolicies(string[] policies, OperationCallingContext context)
+            public override OperationMethodVisibility CheckPolicies(string[] policies, OperationCallingContext context)
             {
                 _sb.AppendLine($"CheckPolicies: {GetRealUserId(User.Current)}, {string.Join(",", policies)}");
-                return true;
+                return OperationMethodVisibility.Enabled;
             }
             public override bool CheckByPermissions(Content content, string[] permissions)
             {
@@ -2035,22 +2069,30 @@ namespace SenseNet.ODataTests
             }
         }
 
-        public class DeniedUsersOperationMethodExecutionPolicy : IOperationMethodExecutionPolicy
+        public class DeniedUsersOperationMethodPolicy : IOperationMethodPolicy
         {
             private readonly int[] _deniedUsers;
 
             public string Name { get; } = "UserDenied";
 
-            public DeniedUsersOperationMethodExecutionPolicy(int[] deniedUserIds)
+            public DeniedUsersOperationMethodPolicy(int[] deniedUserIds)
             {
                 _deniedUsers = deniedUserIds;
             }
-            public bool CanExecute(IUser user, OperationCallingContext context)
+            public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
             {
-                return !_deniedUsers.Contains(user.Id);
+                return _deniedUsers.Contains(user.Id) ? OperationMethodVisibility.Invisible : OperationMethodVisibility.Enabled;
             }
         }
 
+        public class AllowEverythingPolicy : IOperationMethodPolicy
+        {
+            public string Name { get; } = "AllowEverything";
+            public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
+            {
+                return OperationMethodVisibility.Enabled;
+            }
+        }
         #endregion
     }
 }
