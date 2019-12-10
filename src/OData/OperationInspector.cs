@@ -61,7 +61,7 @@ namespace SenseNet.OData
             foreach (var policyName in policies)
             {
                 if (!OperationCenter.Policies.TryGetValue(policyName, out var policy))
-                    throw new UnknownOperationMethodExecutionPolicyException("Policy not found: " + policyName);
+                    throw new UnknownOperationMethodPolicyException("Policy not found: " + policyName);
 
                 // Check visibility according to the current policy. If this policy is more 
                 // restrictive than previous ones then degrade the final result value;

@@ -8,6 +8,9 @@ using SenseNet.ApplicationModel;
 
 namespace SenseNet.OData
 {
+    /// <summary>
+    /// Holds metadata of OData operations.
+    /// </summary>
     [DebuggerDisplay("{ToString()}")]
     public class OperationInfo
     {
@@ -33,6 +36,9 @@ namespace SenseNet.OData
         public string[] Roles { get; private set; }
         public string[] Policies { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the OperationInfo class.
+        /// </summary>
         public OperationInfo(string name, string icon, string description, MethodBase method, Attribute[] attributes)
         {
             Name = name;

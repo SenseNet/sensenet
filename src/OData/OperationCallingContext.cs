@@ -4,6 +4,11 @@ using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
 {
+    /// <summary>
+    /// Context object for custom OData operations. It is available when implementing
+    /// an <see cref="IOperationMethodPolicy"/>. The Content and the Operation
+    /// properties are always filled, other values only if they are available.
+    /// </summary>
     public class OperationCallingContext
     {
         public Content Content { get; }
