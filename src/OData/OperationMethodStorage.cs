@@ -72,7 +72,7 @@ namespace SenseNet.OData
             if (action.OperationInfo.Policies.Length == 0)
                 return true;
 
-            //UNDONE: set HttpContext in OperationCallingContext
+            //TODO:~ set HttpContext in OperationCallingContext
             var context = new OperationCallingContext(content, action.OperationInfo);
 
             switch (inspector.CheckPolicies(action.OperationInfo.Policies, context))
