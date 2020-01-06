@@ -38,6 +38,10 @@ namespace SenseNet.Services.Core
                         SnTrace.Security.Write("Unknown user: {0}", identity.Name);
                     }
                 }
+                else
+                {
+                    User.Current = User.Visitor;
+                }
 
                 await next.Invoke();
             });

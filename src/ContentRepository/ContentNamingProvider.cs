@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository
         /// <returns>The converted name.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
-        [AllowedRoles(N.R.Everyone)]
+        [AllowedRoles(N.R.Everyone, N.R.Visitor)]
         public static string GetNameFromDisplayName(Content content, string displayName)
         {
             return GetNameFromDisplayName(displayName);
