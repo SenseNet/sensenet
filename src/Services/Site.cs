@@ -226,7 +226,7 @@ namespace SenseNet.Portal
             foreach (var url in UrlList.Keys.Where(url => PortalContext.Sites.Keys.Count(k => k == url && PortalContext.Sites[k].Id != this.Id) > 0))
                 throw new ApplicationException(SNSR.GetString(SNSR.Exceptions.Site.UrlAlreadyUsed_2, url, PortalContext.Sites[url].DisplayName));
         }
-        private bool IsValidSiteUrl(string url)
+        internal static bool IsValidSiteUrl(string url)
         {
             var absUrl = "http://" + url;
             if (!Uri.IsWellFormedUriString(absUrl, UriKind.Absolute))
@@ -234,7 +234,7 @@ namespace SenseNet.Portal
             try
             {
                 var uri = new Uri(absUrl);
-                if (uri.Authority != url)
+                if (string.Compare(uri.Authority, url, StringComparison.InvariantCultureIgnoreCase) != 0)
                     return false;
             }
             catch
