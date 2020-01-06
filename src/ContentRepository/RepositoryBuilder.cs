@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
@@ -39,7 +40,9 @@ namespace SenseNet.ContentRepository
         }
 
         #endregion
-        
+
+        public InitialData InitialData { get; set; }
+
         internal static void WriteLog(string name, object provider)
         {
             var message = $"{name} configured: {provider?.GetType().FullName ?? "null"}";

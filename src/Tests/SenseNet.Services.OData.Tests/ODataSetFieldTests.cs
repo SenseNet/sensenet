@@ -12,7 +12,7 @@ using SenseNet.Services.OData.Tests.Results;
 
 namespace SenseNet.Services.OData.Tests
 {
-    [TestClass]
+    //[TestClass]
     public class ODataSetFieldTests : ODataTestClass
     {
         [TestMethod]

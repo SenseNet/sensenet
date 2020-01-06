@@ -3,8 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ODataTests")]
 [assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ContentRepository.InMemory")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests.Common")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]

@@ -8,11 +8,11 @@ tags: [content, ctd, child types, field]
 
 # Text extractors
 
-In an enterprise-grade ECM solution one of the most important features is indexing documents to let users search for (and find) uploaded files. sensenet ECM is able to index not only metadata of documents (like creation date or author) but the **binary content** itself. The latter is called text extracting. This article was written for developers who want to understand the mechanism behind binary indexing and want to create a custom text extractor for a particular file type.
+In an enterprise-grade content management solution one of the most important features is indexing documents to let users search for (and find) uploaded files. sensenet is able to index not only metadata of documents (like creation date or author) but the **binary content** itself. The latter is called text extracting. This article was written for developers who want to understand the mechanism behind binary indexing and want to create a custom text extractor for a particular file type.
 
 ## Text extractors
 
-The algorithm used for extracting text from a binary depends on the type of the file - e.g. we need a different algorithm for extracting text from docx files than from pdfs. sensenet ECM uses a provider approach to solve this task: every file type (extension) has its own text extractor class.
+The algorithm used for extracting text from a binary depends on the type of the file - e.g. we need a different algorithm for extracting text from docx files than from pdfs. sensenet uses a provider approach to solve this task: every file type (extension) has its own text extractor class.
 
 > At application start the system creates an event log entry that contains the loaded text extractors. You may check that list whether the system successfully loaded your custom text extractor or not.
 
@@ -62,7 +62,7 @@ The following list contains the list of built-in text extractors:
 
 ## Custom text extractor
 
-The following example shows how can you create a custom text extractor for the imaginary 'abc' file type. In the *Extract* method you can read the binary and extract the text using the appropriate algorithm. For deploying the plug-in please check the *Settings* section below.
+The following example shows how you can create a custom text extractor for the imaginary 'abc' file type. In the *Extract* method you can read the binary and extract the text using the appropriate algorithm. For deploying the plug-in please check the *Settings* section below.
 
 ```csharp
 public class ABCTextExtractor : TextExtractor
@@ -101,7 +101,7 @@ IndexingTools.AddTextExtract(context.VersionId, text);
 
 The code snippet above does all the necessary database, index and cache operations that are needed to complete the indexing of the content.
 
-> In this case please state that your text extractor is NOT slow (using the IsSlow property). This may sound contradictional but it will tell the system that we do not want to execute a second indexdocument update automatically, we want to do it manually as shown above.
+> In this case please state that your text extractor is NOT slow (using the IsSlow property). This may sound contradictory but it will tell the system that we do not want to execute a second indexdocument update automatically, we want to do it manually as shown above.
 
 ```csharp
 public class ABCTextExtractor : TextExtractor

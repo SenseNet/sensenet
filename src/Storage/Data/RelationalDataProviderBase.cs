@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         protected int IndexBlockSize = 100;
 
-        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
+        public virtual IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         /// <summary>
         /// Constructs a platform-specific context that is able to hold transaction- and connection-related information.
@@ -2166,6 +2166,24 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string LoadEntityTreeScript { get; }
+
+        /// <inheritdoc />
+        public override async Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken)
+        {
+            const string schemaCheckSql = @"
+SELECT CASE WHEN EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Nodes'
+)
+THEN CAST(1 AS BIT)
+ELSE CAST(0 AS BIT) END";
+
+            using (var ctx = CreateDataContext(cancellationToken))
+            {
+                // make sure that database tables exist
+                var result = await ctx.ExecuteScalarAsync(schemaCheckSql).ConfigureAwait(false);
+                return Convert.ToBoolean(result);
+            }
+        }
 
         /* =============================================================================================== Tools */
 

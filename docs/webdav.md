@@ -11,7 +11,7 @@ WebDAV automatically works in sensenet ECM, but there are a few things you may h
 sensenet ECM supports the following authentication schemes with WebDAV:
 
 - **Windows authentication**
-  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your fodlers and files in the Content Repository using your AD user and password.
+  Set up both your sensenet ECM site content to use *Windows* authentication, and your IIS web site to allow Windows authentication. Make sure your AD user is present in the Content Repository under the appropriate domain. You will be able to access your folders and files in the Content Repository using your AD user and password.
 
 - **Basic authentication**
   Set up your sensenet ECM Site to use *Forms* authentication, and your IIS web site to allow *Anonymous* authentication only (do not allow Windows in IIS and allowing Basic is not necessary). You will be able to access the Content Repository using your portal user and password. Please note that operations that use Basic authentication over a non-SSL HTTP connection are disabled by default by your operating system. To enable WebDAV for non-SSL sites with Basic authentication refer to the following article:  [http://support.microsoft.com/kb/2123563](http://support.microsoft.com/kb/2123563).
@@ -89,7 +89,7 @@ The following options can be set (all values are optional and have a reasonably 
 
 - **MockExistingFiles**: some versions of WebDAV clients shipped with Windows will automatically probe on certain files and will fail to continue if those files are not present. Since these files are never present in a sensenet [Content Repository](content-repository.md), the WebDAV handler mocks these files as if they existed there to ensure flawless operation. These files may vary from system-to-system, so if you experience any problems with opening sensenet folders via WebDAV it is possible that your WebDAV client is looking for files not present in the Content Repository. Use fiddler or a debug version of sensenet ECM with dbgview to detect this situation and extend this list with the file names to be mocked as existing.
 - **AutoCheckoutFiles**: if set to true, files opened in Office will be automatically checked out (locked) to the user. Default is false.
-- **WebdavEditExtensions**: a comma separated list of file extensions (if not set, the usual Office types are listed by default). When a file is downloaded from the portal with the 'download' url parameter, only the files with these extensions will get the correct *filename* value in the *Content-Disposion* response header that browsers use to save the file (*currently this feature has nothing to do with the WebDAV functionality*).
+- **WebdavEditExtensions**: a comma separated list of file extensions (if not set, the usual Office types are listed by default). When a file is downloaded from the portal with the 'download' url parameter, only the files with these extensions will get the correct *filename* value in the *Content-Disposition* response header that browsers use to save the file (*currently this feature has nothing to do with the WebDAV functionality*).
 
 ## Custom WebDAV provider
 

@@ -15,7 +15,7 @@ using SenseNet.Services.OData.Tests.Results;
 
 namespace SenseNet.Services.OData.Tests
 {
-    [TestClass]
+    //[TestClass]
     public class ODataGeneralTests : ODataTestClass
     {
         //TODO: Remove inconclusive test result and implement this test.

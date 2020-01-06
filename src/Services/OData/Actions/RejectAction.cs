@@ -17,15 +17,7 @@ namespace SenseNet.Portal.OData.Actions
 
         public override object Execute(Content content, params object[] parameters)
         {
-            if (!(content.ContentHandler is GenericContent))
-                throw new Exception($"Can't reject content '{content.Path}' because its content handler is not a GenericContent. It needs to inherit from GenericContent for collaboration feature support.");
-
-            var rejectReason = parameters.FirstOrDefault() as string ?? string.Empty;
-
-            content["RejectReason"] = rejectReason;
-            content.Reject();
-
-            return content;
+            return ContentOperations.Reject(content, parameters.FirstOrDefault() as string);
         }
     }
 }

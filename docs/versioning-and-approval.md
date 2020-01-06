@@ -12,11 +12,11 @@ Versioning, also known as revision control, is the management of changes to docu
 
 The main goal of versioning is to prevent information from being overwritten or deleted during everyday work with documents. Changes are kept track of, and a mechanism is offered to restore a particular document to a previous version.
 
-The versioning system of **sensenet ECM** also provides mechanisms for keeping the published version of a document under heavy editing visible to outside users, while you continue to work on the latest, draft version.
+The versioning system of **sensenet** also provides mechanisms for keeping the published version of a document under heavy editing visible to outside users, while you continue to work on the latest, draft version.
 
-### Versioning in sensenet ECM
+### Versioning in sensenet
 
-In sensenet ECM, versioning is disabled by default. It can be enabled for content lists or other containers, by setting the value of the Versioning Mode field. Subfolders inherit versioning settings from their parents by default.
+In sensenet, versioning is disabled by default. It can be enabled for content lists or other containers, by setting the value of the Versioning Mode field. Subfolders inherit versioning settings from their parents by default.
 
 **Versioning Mode** settings for folders:
 
@@ -31,7 +31,7 @@ When a new Content is created in the Content Repository with versioning enabled,
 
 ### Approval
 
-sensenet ECM also introduces a basic approval functionality. Regardless of the versioning mode in use, approval can be enabled to control changes.
+sensenet also introduces a basic approval functionality. Regardless of the versioning mode in use, approval can be enabled to control changes.
 
 If approval is required for a certain Content, after changes has been made to the document, the system creates a version labeled ‘Pending for approval’. This version is visible only for administrators and users who have permission to *Approve* or *Reject* it. If the Content is approved, its version number is bumped according to the versioning mode, and gets the A ("*approved*") flag.
 
@@ -41,7 +41,7 @@ This method provides an extra line of defense for keeping mission critical conte
 
 ### Public visibility
 
-Vistors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permission: a user who does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
+Visitors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permission: a user who does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
 The other important thing here to bear in mind is that if a document gets rejected it does not mean that the document is not visible for the public. It only means that the last version that was rejected will not be visible to the public. So for example:
 1. Set approval on a document library to true.
 2. Upload a document - it's state will be pending for approval (you can check it out on versions tab): only users with open minor permissions will be able to see it.
@@ -96,7 +96,7 @@ Administrators can have a *Force undo changes* permission. This means they can d
 
 There are cases when somebody checked out a document, but the user is no longer available (or does not have enough permissions anymore). If force undo changes is not sufficient (e.g. because you want to preserve the content modifications) then administrators are allowed to *take over the lock* on the content. The admin still needs to have *Force undo changes* permission on the content. It is also possible to *pass on the lock to another user*. That user does not have to have force undo changes permission though, only *Save*.
 
-As this action is very rare and used only in eceptional cases, it has a special [audit log](/docs/Logging.md#Audit log) entry:
+As this action is very rare and used only in exceptional cases, it has a special [audit log](/docs/Logging.md#Audit log) entry:
 
 - *LockTakenOver*
 

@@ -60,6 +60,35 @@ namespace SenseNet.Packaging.Steps
             }
         }
 
+        /// <summary>
+        /// Internal import API that lets callers import items from the file system to the repository.
+        /// The repository must be started before calling this method.
+        /// </summary>
+        internal static void Import(string sourcePath, string targetPath = null)
+        {
+            if (!Repository.Started())
+                throw new InvalidOperationException("Please start the repository before running the import.");
+
+            if (string.IsNullOrEmpty(sourcePath))
+                throw new ArgumentNullException(nameof(sourcePath));
+
+            if (!string.IsNullOrEmpty(targetPath))
+            {
+                if (RepositoryPath.IsValidPath(targetPath) != RepositoryPath.PathResult.Correct)
+                    throw new InvalidPathException($"Invalid target path: {targetPath}");
+            }
+            else
+            {
+                targetPath = Repository.RootPath;
+            }
+
+            var importer = new ImporterClass();
+            importer.Run(null, sourcePath, targetPath, ImportLogLevel.Verbose, false);
+
+            if (importer.ErrorOccured)
+                throw new ApplicationException("Error occured during importing, please review the log.");
+        }
+
         [DebuggerDisplay("ContentInfo: Name={Name}; ContentType={ContentTypeName}; IsFolder={IsFolder} ({Attachments.Count} Attachments)")]
         private class ContentInfo
         {
@@ -1161,6 +1190,5 @@ namespace SenseNet.Packaging.Steps
                 }
             }
         }
-
     }
 }

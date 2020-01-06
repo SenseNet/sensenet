@@ -76,6 +76,17 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        internal static ContentTypeManager CreateForTests()
+        {
+            var result = new ContentTypeManager();
+
+            result._contentPaths = new Dictionary<string, string>();
+            result._contentTypes = new Dictionary<string, ContentType>();
+            result.AllFieldNames = new List<string>();
+
+            return result;
+        }
+
         // =======================================================================
 
         private Dictionary<string, string> _contentPaths;
@@ -282,7 +293,7 @@ namespace SenseNet.ContentRepository.Schema
             // #2 Load ContentType
             ContentType contentType = Instance.GetContentTypeByName(name);
 
-            // #3 Parent Node: if it is loaded yet use it (ReferenceEqals)
+            // #3 Parent Node: if it is loaded yet use it (ReferenceEquals)
             Node parentNode;
             if (String.IsNullOrEmpty(parentTypeName))
             {

@@ -32,10 +32,10 @@ namespace SenseNet.Configuration
 
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
-            "SenseNet.Diagnostics.ContextEventPropertyCollector");
+            "SenseNet.Diagnostics.EventPropertyCollector");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(MsSqlDataProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
-            "SenseNet.ContentRepository.Security.UserAccessProvider");
+            "SenseNet.ContentRepository.Security.DesktopAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
         public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
         public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",
@@ -247,7 +247,7 @@ namespace SenseNet.Configuration
         private Lazy<ISnCache> _cacheProvider =
             new Lazy<ISnCache>(() =>
             {
-                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider");
+                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider", true);
                 cache.Events = new CacheEventStore();
                 return cache;
             });

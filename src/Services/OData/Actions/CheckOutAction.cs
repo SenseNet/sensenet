@@ -15,12 +15,7 @@ namespace SenseNet.Portal.OData.Actions
 
         public override object Execute(Content content, params object[] parameters)
         {
-            if (!(content.ContentHandler is GenericContent))
-                throw new Exception($"Can't check out content '{content.Path}' because its content handler is not a GenericContent. It needs to inherit from GenericContent for collaboration feature support.");
-
-            content.CheckOut();
-
-            return content;
+            return ContentOperations.CheckOut(content);
         }
     }
 }

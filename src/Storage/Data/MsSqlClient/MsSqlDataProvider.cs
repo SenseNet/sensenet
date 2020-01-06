@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -18,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
     {
         public override DateTime DateTimeMinValue { get; } = new DateTime(1753, 1, 1, 12, 0, 0);
 
-        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //UNDONE: UNDELETABLE
+        public override IDataPlatform<DbConnection, DbCommand, DbParameter> GetPlatform() { return null; } //TODO:~ UNDELETABLE
 
         public override SnDataContext CreateDataContext(CancellationToken token)
         {
@@ -289,6 +291,19 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         {
             await MsSqlDataInstaller.InstallInitialDataAsync(data, this, ConnectionStrings.ConnectionString, cancellationToken).ConfigureAwait(false);
         }
+        
+        public override async Task InstallDatabaseAsync(CancellationToken cancellationToken)
+        {
+            SnTrace.System.Write("Executing security schema script.");
+            await ExecuteEmbeddedNonQueryScriptAsync(
+                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Security.sql", cancellationToken)
+                .ConfigureAwait(false);
+
+            SnTrace.System.Write("Executing database schema script.");
+            await ExecuteEmbeddedNonQueryScriptAsync(
+                    "SenseNet.Storage.Data.MsSqlClient.Scripts.MsSqlInstall_Schema.sql", cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         /* =============================================================================================== Tools */
 
@@ -377,5 +392,36 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
             return bytes;
         }
 
+        /// <summary>
+        /// Loads the provided embedded SQL script from the current assembly and executes it
+        /// on the configured database.
+        /// </summary>
+        /// <param name="scriptName">Resource identifier.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        private async Task ExecuteEmbeddedNonQueryScriptAsync(string scriptName, CancellationToken cancellationToken)
+        {
+            using (var stream = GetType().Assembly.GetManifestResourceStream(scriptName))
+            {
+                if (stream == null)
+                    throw new InvalidOperationException($"Embedded resource {scriptName} not found.");
+
+                using (var sr = new StreamReader(stream))
+                {
+                    using (var sqlReader = new SqlScriptReader(sr))
+                    {
+                        while (sqlReader.ReadScript())
+                        {
+                            var script = sqlReader.Script;
+
+                            using (var ctx = CreateDataContext(cancellationToken))
+                            {
+                                await ctx.ExecuteNonQueryAsync(script);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

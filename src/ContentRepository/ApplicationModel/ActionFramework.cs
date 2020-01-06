@@ -98,17 +98,24 @@ namespace SenseNet.ApplicationModel
             }
         }
 
-        public static ActionBase GetAction(string name, Content context, object parameters)
+        private static readonly IOperationMethodStorage DefaultOperationMethodStorage = new DefaultOperationMethodStorage();
+        internal static IOperationMethodStorage OperationMethodStorage =>
+            Providers.Instance.GetProvider<IOperationMethodStorage>()
+            ?? DefaultOperationMethodStorage;
+
+        public static ActionBase GetAction(string name, Content context, object parameters,
+            Func<string, Content, object, ActionBase> getDefaultAction = null, object state = null)
         {
             if (context == null)
                 return null;
 
             var backUrl = CompatibilitySupport.Request_RawUrl;
 
-            return GetAction(name, context, backUrl, parameters);
+            return GetAction(name, context, backUrl, parameters, getDefaultAction, state);
         }
 
-        public static ActionBase GetAction(string name, Content context, string backUri, object parameters)
+        public static ActionBase GetAction(string name, Content context, string backUri, object parameters,
+            Func<string, Content, object, ActionBase> getDefaultAction = null, object state = null)
         {
             if (context == null)
                 return null;
@@ -116,12 +123,18 @@ namespace SenseNet.ApplicationModel
             bool existingApplication;
             var app = ApplicationStorage.Instance.GetApplication(name, context, out existingApplication, GetDevice());
 
+//UNDONE: REMOVE HACK
+if (name == "SetPermissions")
+{
+    existingApplication = false;
+    app = null;
+}
             // if app is null, than create action in memory only if this is _not_ an existing application
             // (existing app can be null because of denied access or cleared/disabled status)
             // (we create Service and ClientAction types in memory this way - they do not exist in the tree)
             var action = app != null ? 
                 CreateActionWithPermissions(app, context, backUri, parameters) :
-                (existingApplication ? null : ActionFactory.CreateAction(name, context, backUri, parameters));
+                (existingApplication ? null : ActionFactory.CreateAction(name, context, backUri, parameters, getDefaultAction, state));
 
             return action;
         }
@@ -153,7 +166,7 @@ namespace SenseNet.ApplicationModel
             if (content == null)
                 return string.Empty;
 
-            var act = GetAction(actionName, content, back, null);
+            var act = GetAction(actionName, content, back, (string)null);
             
             return act == null ? string.Empty : act.Uri;
         }
@@ -172,6 +185,10 @@ namespace SenseNet.ApplicationModel
         }
 
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters, string backUri)
+        {
+            return OperationMethodStorage.GetActions(GetStoredActions(context, scenario, scenarioParameters, backUri), context, scenario);
+        }
+        private static IEnumerable<ActionBase> GetStoredActions(Content context, string scenario, string scenarioParameters, string backUri)
         {
             if (!string.IsNullOrEmpty(scenario))
             {

@@ -99,7 +99,13 @@ namespace SenseNet.ContentRepository.Storage.Schema
 	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManeger);
 	    }
 
-	    public static event EventHandler<EventArgs> Start;
+        internal static NodeTypeManager CreateForTests()
+        {
+            return new NodeTypeManager();
+        }
+
+
+        public static event EventHandler<EventArgs> Start;
 		public static event EventHandler<EventArgs> Reset;
 		private static void OnReset()
 		{

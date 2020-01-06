@@ -252,9 +252,9 @@ paket-files/
 *.sln.iml
 
 # sensenet
-/src/nuget/content/Admin/tools/install-services.zip
-/src/nuget/snadmin/install-services/scripts/Create_SenseNet_Database.sql
-/src/nuget/snadmin/install-services/scripts/Create_SenseNet_Azure_Database.sql
-/src/nuget/snadmin/install-services/scripts/MsSqlInstall_Schema.sql
-/src/nuget/snadmin/install-services/scripts/MsSqlInstall_Security.sql
+/src/nuget/content/Admin/tools/*.zip
+/src/nuget/snadmin/install-services/scripts
+/src/nuget/snadmin/install-services-core/import
+/src/nuget/snadmin/install-services-core/scripts
 /docs/nlb-environment.md
+/src/Services.Core.Install/*.zip

@@ -1,13 +1,13 @@
 # Content Repository
 
-A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. The sensenet Content Repository (SNCR) forms the technical underpinning of sensenet ECM. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
+A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. The sensenet Content Repository (SNCR) forms the technical underpinning of sensenet. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
 
 ### Managing Content
 
 The Content Repository provides services to end users for managing content. It has the following features:
 
 - Content storage in one hierarchical tree structure with content types
-- Built-in and custom meta data for content
+- Built-in and custom metadata for content
 - Create (or upload), modify, delete, copy and move content
 - Trash for temporary deletion
 - Ultrafast query and full text search
@@ -15,7 +15,7 @@ The Content Repository provides services to end users for managing content. It h
 - Versioning (version control, version history and locking) for collaboration
 - Import/export
 - WebDAV, so users can map the repository as a remote drive
-- Standard OData REST API for third party applications
+- Standard OData REST API for third-party applications
 
 ### Structured storage of Content
 
@@ -40,7 +40,7 @@ The Content Repository is basically a tree structure of the various stored conte
     - **renderers**
     - **scripts** - JavaScript files
     - **styles** - Css files
-  - **IMS** - folder containing Domains, Organizational units, Groups and [Users](user-content-type.md) in a hierarchical tree structrure
+  - **IMS** - folder containing Domains, Organizational units, Groups and [Users](user-content-type.md) in a hierarchical tree structure
   - **Localization** - resource files with multi-language text content for [Localization](localization.md)
   - **Portlets** - folder of installed Portlets
   - **Sites** - container of defined sites
@@ -50,7 +50,7 @@ The Content Repository is basically a tree structure of the various stored conte
     - **sensenet** - default skin and resources of demo site
   - **System** - system related Content
     - **Devices** - contains Device content which can help you to create specific application pages to display the same content on different devices (e.g. tablet, mobile)
-    - **errormessages** – contains customized site specific html files to display exception messages (the files are grouped in folders by site)
+    - **errormessages** – contains customized site-specific html files to display exception messages (the files are grouped in folders by site)
     - **Renderers** - some renderers used by the base system
     - **Schema**
       - **Aspects** - container for Aspects
@@ -69,12 +69,12 @@ The sensenet Content Repository is built upon a metadata system with pre-defined
 
  ### Metadata indexing for fast search and filtering
 
- Content in the SNCR are indexed using the [Lucene](http://lucene.apache.org/lucene.net/) indexing and search library. The text of binary documents (Micosoft Word, Excel, Adobe PDF, etc) is extracted and can also be searched in SNCR. Lucene provides extremely fast query results even on big (over 10 million content) repositories.
+ Content in the SNCR are indexed using the [Lucene](http://lucene.apache.org/lucene.net/) indexing and search library. The text of binary documents (Microsoft Word, Excel, Adobe PDF, etc) is extracted and can also be searched in SNCR. Lucene provides extremely fast query results even on big (over 10 million content) repositories.
 
  ### Content access and url resolution
 
- Every content in SNCR is identified by its unique Id and its Path. You cannot change a content id, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser points to a url that is registered on the Default_Site.
+ Every content in SNCR is identified by its unique Id and its Path. You cannot change a content id, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example, a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser points to a url that is registered on the Default_Site.
 
  ### Managing sensenet Content Repository
 
-In an ECM system the most frequently used operations are searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet ECM, the [Content Explorer](content-explorer.md) (this is available only if you have the [WebPages](https://github.com/SenseNet/sn-webpages) component or the full sensenet ECM 6.5 product installed).
+In an system the most frequently used operations are searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet, the [Content Explorer](content-explorer.md) (this is available only if you have the [WebPages](https://github.com/SenseNet/sn-webpages) component or the full sensenet ECM 6.5 product installed).

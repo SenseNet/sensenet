@@ -1,6 +1,6 @@
 <Package type='Tool'>
   <Id>SenseNet.DeleteEventLog</Id>
-  <Description>sensenet ECM tool for deleting the provided log and source from the Windows Event log.</Description>
+  <Description>sensenet tool for deleting the provided log and source from the Windows Event log.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
   <Parameters>

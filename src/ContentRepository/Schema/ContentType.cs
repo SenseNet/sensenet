@@ -268,7 +268,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets the list of <see cref="FieldSettings"/> instances that represent the Fields element in the ContentTypeDefionition.
+        /// Gets the list of <see cref="FieldSettings"/> instances that represent the Fields element in the ContentTypeDefinition.
         /// </summary>
         public List<FieldSetting> FieldSettings { get; private set; }
         internal int[] FieldBits { get; set; }
@@ -466,7 +466,7 @@ namespace  SenseNet.ContentRepository.Schema
 
         /// <summary>
         /// Defines a char[] constant that contains all characters that may separate items
-        /// in any ContenTypeDefnition's XmlElemet or XmlAttribute.
+        /// in any ContenTypeDefnition's XmlElement or XmlAttribute.
         /// </summary>
         public static readonly char[] XmlListSeparators = " ,;\t\r\n".ToCharArray();
         private void ParseAllowedChildTypes(XPathNavigator allowedChildTypesElement, IXmlNamespaceResolver nsres)
@@ -660,7 +660,7 @@ namespace  SenseNet.ContentRepository.Schema
             }
             catch (TypeNotFoundException e)
             {
-                throw new ContentRegistrationException($"An error occured during installing '{this.HandlerName}' ContentType: {e.Message}", e);
+                throw new ContentRegistrationException($"An error occurred during installing '{this.HandlerName}' ContentType: {e.Message}", e);
             }
         }
         private void SetFieldSlots(Type handlerType)
