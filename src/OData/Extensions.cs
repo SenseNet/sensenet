@@ -54,7 +54,8 @@ namespace SenseNet.OData
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             IOperationMethodPolicy policy)
         {
-            OperationCenter.Policies.Add(policy.Name, policy);
+            //OperationCenter.Policies.Add(policy.Name, policy);
+            OperationCenter.Policies[policy.Name] = policy;
             return builder;
         }
         /// <summary>
@@ -67,7 +68,8 @@ namespace SenseNet.OData
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             string name, IOperationMethodPolicy policy)
         {
-            OperationCenter.Policies.Add(name, policy);
+            //OperationCenter.Policies.Add(name, policy);
+            OperationCenter.Policies[name] = policy;
             return builder;
         }
         /// <summary>
@@ -79,7 +81,8 @@ namespace SenseNet.OData
         public static RepositoryBuilder UseOperationMethodExecutionPolicy(this RepositoryBuilder builder,
             string name, Func<IUser, OperationCallingContext, OperationMethodVisibility> policyFunction)
         {
-            OperationCenter.Policies.Add(name, new InlineOperationMethodPolicy(name, policyFunction));
+            //OperationCenter.Policies.Add(name, new InlineOperationMethodPolicy(name, policyFunction));
+            OperationCenter.Policies[name] = new InlineOperationMethodPolicy(name, policyFunction);
             return builder;
         }
     }

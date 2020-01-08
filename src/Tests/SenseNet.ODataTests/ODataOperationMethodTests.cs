@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -1076,7 +1079,7 @@ namespace SenseNet.ODataTests
             {
                 // ACTION
                 var response = await ODataGetAsync($"/OData.svc/Root('IMS')/AsyncMethod",
-                    //TODO: querystring parameters are not processed yet.
+                    //TODO:~ querystring parameters are not processed yet.
                     //"?param2=value2&a=value1").ConfigureAwait(false);
                     "").ConfigureAwait(false);
 
@@ -1407,6 +1410,118 @@ namespace SenseNet.ODataTests
             Test<float>(nameof(TestOperations.Enumerable_Float), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1f, 2.2f, 42.42f });
             Test<double>(nameof(TestOperations.Enumerable_Double), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1d, 2.2d, 42.42d });
             Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"{'a':[1.1,2.2,42.42]}", new[] { 1.1m, 2.2m, 42.42m });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Call_Array_QueryString()
+        {
+            #region void Test<T>(string methodName, string queryString, T[] expectedResult)
+            void Test<T>(string methodName, string queryString, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                            null, new TestQueryCollection(queryString));
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = (T[])result;
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.Array_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Array_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Array_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Array_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Array_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Array_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Array_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_List_QueryString()
+        {
+            #region void Test<T>(string methodName, string queryString, T[] expectedResult)
+            void Test<T>(string methodName, string queryString, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                            null, new TestQueryCollection(queryString));
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = (List<T>)result;
+                    Assert.AreEqual(expectedResult.Length, values.Count);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.List_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.List_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.List_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.List_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.List_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.List_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.List_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_Enumerable_QueryString()
+        {
+            #region void Test<T>(string methodName, string queryString, T[] expectedResult)
+            void Test<T>(string methodName, string queryString, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                            null, new TestQueryCollection(queryString));
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = ((IEnumerable<T>)result).ToArray();
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            Test<string>(nameof(TestOperations.Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Enumerable_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Enumerable_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Enumerable_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Enumerable_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
         }
 
         [TestMethod]
@@ -1793,7 +1908,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Actions_FilteredByPolicy()
         {
-            ODataTest(builder =>
+            IsolatedODataTest(builder =>
                 {
                     builder.AddAllTestPolicies();
                 },
@@ -2093,6 +2208,32 @@ namespace SenseNet.ODataTests
                 return OperationMethodVisibility.Enabled;
             }
         }
+
+        private class TestQueryCollection : IQueryCollection
+        {
+            readonly Dictionary<string, StringValues> _collection;
+
+            public TestQueryCollection(string queryString)
+            {
+                var a = queryString
+                    .TrimStart('?')
+                    .Split('&')
+                    .Select(x => x.Split('='))
+                    .GroupBy(x => x[0], x => x[1],
+                    (key, group) => new KeyValuePair<string, StringValues>(
+                        key, new StringValues(group.ToArray())));
+                _collection = new Dictionary<string, StringValues>(a);
+            }
+
+            public IEnumerator<KeyValuePair<string, StringValues>> GetEnumerator() => _collection.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            public bool ContainsKey(string key) => _collection.ContainsKey(key);
+            public bool TryGetValue(string key, out StringValues value) => _collection.TryGetValue(key, out value);
+            public int Count => _collection.Count;
+            public ICollection<string> Keys => _collection.Keys;
+            public StringValues this[string key] => _collection[key];
+        }
+
         #endregion
     }
 }

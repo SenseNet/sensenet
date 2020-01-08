@@ -763,12 +763,14 @@ namespace SenseNet.OData
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
         {
             var httpContext = (HttpContext) state;
+            //var odataRequest = (ODataRequest) httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey];
             OperationCallingContext method;
             try
             {
-                //TODO:~ Combine request body and querystring parameters into the 3th parameter.
+                //UNDONE:~ Combine request body and querystring parameters into the 3th parameter.
                 method = OperationCenter.GetMethodByRequest(content, name,
-                    ODataMiddleware.Read(httpContext.Request.Body));
+                    ODataMiddleware.Read(httpContext.Request.Body),
+                    httpContext.Request.Query);
             }
             catch (OperationNotFoundException e)
             {

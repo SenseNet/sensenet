@@ -141,13 +141,13 @@ namespace SenseNet.OData
 
         public static OperationCallingContext GetMethodByRequest(Content content, string methodName, string requestBody)
         {
-            return GetMethodByRequest(content, methodName, ODataMiddleware.Read(requestBody));
+            return GetMethodByRequest(content, methodName, ODataMiddleware.Read(requestBody), null);
         }
-        internal static OperationCallingContext GetMethodByRequest(Content content, string methodName, JObject requestParameters)
+        internal static OperationCallingContext GetMethodByRequest(
+            Content content, string methodName, JObject requestParameters, IQueryCollection query)
         {
-            var requestParameterNames = requestParameters == null
-            ? new string[0]
-            : requestParameters.Properties().Select(p => p.Name).ToArray();
+            var odataParameters = new ODataParameterCollection(requestParameters, query);
+            var requestParameterNames = odataParameters.Keys.ToArray();
 
             var inspector = OperationInspector.Instance;
             var candidates = GetCandidatesByName(methodName);
@@ -171,14 +171,14 @@ namespace SenseNet.OData
             // Phase-1: search complete type match (strict)
             var contexts = new List<OperationCallingContext>();
             foreach (var candidate in candidates)
-                if (TryParseParameters(candidate, content, requestParameters, true, out var context))
+                if (TryParseParameters(candidate, content, odataParameters, true, out var context))
                     contexts.Add(context);
 
             if (contexts.Count == 0)
             {
                 // Phase-2: search convertible type match
                 foreach (var candidate in candidates)
-                    if (TryParseParameters(candidate, content, requestParameters, false, out var context))
+                    if (TryParseParameters(candidate, content, odataParameters, false, out var context))
                         contexts.Add(context);
             }
 
@@ -220,12 +220,12 @@ namespace SenseNet.OData
                     return false;
             return true;
         }
-        private static bool TryParseParameters(OperationInfo candidate, Content content, JObject requestParameters, bool strict, out OperationCallingContext context)
+        private static bool TryParseParameters(OperationInfo candidate, Content content, ODataParameterCollection odataParameters, bool strict, out OperationCallingContext context)
         {
             context = new OperationCallingContext(content, candidate);
 
             // If there is no any request parameter, the validity of candidate depends on the required parameter count.
-            if (requestParameters == null)
+            if (odataParameters == null)
                 return candidate.RequiredParameterNames.Length == 0;
 
             // Foreach all optional parameters of the method
@@ -234,7 +234,7 @@ namespace SenseNet.OData
                 var name = candidate.OptionalParameterNames[i];
 
                 // If does not exist in the request: continue (move the next parameter)
-                if (!requestParameters.TryGetValue(name, out var value))
+                if (!odataParameters.TryGetValue(name, out var value))
                     continue;
 
                 // If parse request by parameter"s type is not successful: return false
@@ -249,7 +249,7 @@ namespace SenseNet.OData
             for (int i = 0; i < candidate.RequiredParameterNames.Length; i++)
             {
                 var name = candidate.RequiredParameterNames[i];
-                var value = requestParameters[name];
+                var value = odataParameters[name];
                 var type = candidate.RequiredParameterTypes[i];
 
                 // If parse request by parameter"s type is not successful: return false
@@ -261,16 +261,16 @@ namespace SenseNet.OData
             }
             return true;
         }
-        private static bool TryParseParameter(Type type, JToken token, bool strict, out object parsed)
+        private static bool TryParseParameter(Type type, ODataParameterValue parameter, bool strict, out object parsed)
         {
-            if (type == GetTypeAndValue(type, token, out parsed))
+            if (type == GetTypeAndValue(type, parameter, out parsed))
                 return true;
 
             if (!strict)
             {
-                if (token.Type == JTokenType.String)
+                if (parameter.Type == JTokenType.String)
                 {
-                    var stringValue = token.Value<string>();
+                    var stringValue = parameter.Value<string>();
                     if (type == typeof(int))
                     {
                         if (int.TryParse(stringValue, out var v))
@@ -333,44 +333,44 @@ namespace SenseNet.OData
             parsed = null;
             return false;
         }
-        private static Type GetTypeAndValue(Type expectedType, JToken token, out object value)
+        private static Type GetTypeAndValue(Type expectedType, ODataParameterValue parameter, out object value)
         {
             //TODO:~ Generalize this parameter resolution.
             if (expectedType == typeof(ContentOperations.SetPermissionsRequest))
             {
-                value = token.Parent.Parent.ToObject<ContentOperations.SetPermissionsRequest>();
+                value = parameter.ToObject<ContentOperations.SetPermissionsRequest>();
                 return typeof(ContentOperations.SetPermissionsRequest);
             }
 
-            switch (token.Type)
+            switch (parameter.Type)
             {
                 case JTokenType.String:
-                    value = token.Value<string>();
+                    value = parameter.Value<string>();
                     return typeof(string);
                 case JTokenType.Integer:
-                    value = token.Value<int>();
+                    value = parameter.Value<int>();
                     return typeof(int);
                 case JTokenType.Boolean:
-                    value = token.Value<bool>();
+                    value = parameter.Value<bool>();
                     return typeof(bool);
                 case JTokenType.Float:
                     if (expectedType == typeof(float))
                     {
-                        value = token.Value<float>();
+                        value = parameter.Value<float>();
                         return typeof(float);
                     }
                     if (expectedType == typeof(decimal))
                     {
-                        value = token.Value<decimal>();
+                        value = parameter.Value<decimal>();
                         return typeof(decimal);
                     }
-                    value = token.Value<double>();
+                    value = parameter.Value<double>();
                     return typeof(double);
 
                 case JTokenType.Object:
                     try
                     {
-                        value = token.ToObject(expectedType, ValueDeserializer);
+                        value = parameter.ToObject(expectedType, ValueDeserializer);
                         return expectedType;
                     }
                     catch (JsonSerializationException)
@@ -380,48 +380,8 @@ namespace SenseNet.OData
                     }
 
                 case JTokenType.Array:
-                    var array = (JArray)token;
-                    value = null;
-                    try
-                    {
-                        if (expectedType == typeof(string[])) value = array.Select(x => x.ToObject<string>()).ToArray();
-                        else if (expectedType == typeof(int[])) value = array.Select(x => x.ToObject<int>()).ToArray();
-                        else if (expectedType == typeof(long[])) value = array.Select(x => x.ToObject<long>()).ToArray();
-                        else if (expectedType == typeof(bool[])) value = array.Select(x => x.ToObject<bool>()).ToArray();
-                        else if (expectedType == typeof(float[])) value = array.Select(x => x.ToObject<float>()).ToArray();
-                        else if (expectedType == typeof(double[])) value = array.Select(x => x.ToObject<double>()).ToArray();
-                        else if (expectedType == typeof(decimal[])) value = array.Select(x => x.ToObject<decimal>()).ToArray();
-
-                        else if (expectedType == typeof(List<string>)) value = array.Select(x => x.ToObject<string>()).ToList();
-                        else if (expectedType == typeof(List<int>)) value = array.Select(x => x.ToObject<int>()).ToList();
-                        else if (expectedType == typeof(List<long>)) value = array.Select(x => x.ToObject<long>()).ToList();
-                        else if (expectedType == typeof(List<bool>)) value = array.Select(x => x.ToObject<bool>()).ToList();
-                        else if (expectedType == typeof(List<float>)) value = array.Select(x => x.ToObject<float>()).ToList();
-                        else if (expectedType == typeof(List<double>)) value = array.Select(x => x.ToObject<double>()).ToList();
-                        else if (expectedType == typeof(List<decimal>)) value = array.Select(x => x.ToObject<decimal>()).ToList();
-
-                        else if (expectedType == typeof(IEnumerable<string>)) value = array.Select(x => x.ToObject<string>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<int>)) value = array.Select(x => x.ToObject<int>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<long>)) value = array.Select(x => x.ToObject<long>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<bool>)) value = array.Select(x => x.ToObject<bool>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<float>)) value = array.Select(x => x.ToObject<float>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<double>)) value = array.Select(x => x.ToObject<double>()).ToArray();
-                        else if (expectedType == typeof(IEnumerable<decimal>)) value = array.Select(x => x.ToObject<decimal>()).ToArray();
-
-                        else
-                        {
-                            value = array.Select(x => x.ToObject<object>()).ToArray();
-                            return typeof(object[]);
-                        }
-                        return expectedType;
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                    value = array;
-                    return typeof(object);
-
+                    value = parameter.ToArray(expectedType, out var realType);
+                    return realType;
                 case JTokenType.None:
                 case JTokenType.Null:
                 case JTokenType.Undefined:
@@ -432,7 +392,7 @@ namespace SenseNet.OData
                 case JTokenType.Guid:
                 case JTokenType.TimeSpan:
                 case JTokenType.Uri:
-                    value = token.Value<string>();
+                    value = parameter.Value<string>();
                     return typeof(string);
 
                 //case JTokenType.Constructor:
