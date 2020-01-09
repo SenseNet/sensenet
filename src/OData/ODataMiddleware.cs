@@ -767,7 +767,6 @@ namespace SenseNet.OData
             OperationCallingContext method;
             try
             {
-                //UNDONE:~ Combine request body and querystring parameters into the 3th parameter.
                 method = OperationCenter.GetMethodByRequest(content, name,
                     ODataMiddleware.Read(httpContext.Request.Body),
                     httpContext.Request.Query);

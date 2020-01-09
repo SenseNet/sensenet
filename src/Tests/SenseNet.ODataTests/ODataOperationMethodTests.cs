@@ -1126,13 +1126,11 @@ namespace SenseNet.ODataTests
             {
                 // ACTION
                 var response = await ODataGetAsync($"/OData.svc/Root('IMS')/AsyncMethod",
-                    //TODO:~ querystring parameters are not processed yet.
-                    //"?param2=value2&a=value1").ConfigureAwait(false);
-                    "").ConfigureAwait(false);
+                    "?param2=value2&a=value1").ConfigureAwait(false);
 
                 // ASSERT
                 Assert.AreEqual(200, response.StatusCode);
-                Assert.AreEqual("AsyncMethod-[NULL]", response.Result);
+                Assert.AreEqual("AsyncMethod-value1", response.Result);
             }).ConfigureAwait(false);
         }
         [TestMethod]
