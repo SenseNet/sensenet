@@ -4,6 +4,7 @@
   <ContentName>Settings</ContentName>
   <Fields>
     <DisplayName>Settings</DisplayName>
+    <AllowedChildTypes>Settings</AllowedChildTypes>
   </Fields>
   <Permissions>
     <Break />
