@@ -53,7 +53,10 @@ namespace SenseNet.OData
                 case 0:
                     return JToken.Parse("''");
                 case 1:
-                    return JToken.Parse($"'{values.First()}'");
+                    var value = values.First().Replace("'", @"\'");
+                    return JToken.Parse($"'{value}'");
+                    //UNDONE: Parse as object
+                    //return JToken.Parse($"\"{values.First()}\"");
                 default:
                     return JToken.Parse($"['{string.Join("','", values.ToArray())}']");
             }

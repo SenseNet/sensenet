@@ -485,7 +485,7 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc/Root('IMS')/FunctionForQueryStringTest",
-                        "?a=stringValue&b=42")
+                        "?a=stringValue&b=42&rnd=123456789")
                     .ConfigureAwait(false);
 
                 // ASSERT
@@ -500,7 +500,7 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataPostAsync(
                         "/OData.svc/Root('IMS')/FunctionForQueryStringTest",
-                        "?b=442",
+                        "?b=442&rnd=123456789",
                         "{a:\"stringValue\",b:42}")
                     .ConfigureAwait(false);
 
@@ -516,7 +516,7 @@ namespace SenseNet.ODataTests
                 // ACTION
                 var response = await ODataGetAsync(
                         "/OData.svc/Root('IMS')/Array_String",
-                        "?a=ppp&a=qqq&a=rrr")
+                        "?a=ppp&a=qqq&a=rrr&b=1&b=2")
                     .ConfigureAwait(false);
 
                 // ASSERT

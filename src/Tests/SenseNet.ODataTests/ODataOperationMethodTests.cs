@@ -759,6 +759,53 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(0.14d, objects[5]);
             });
         }
+        [TestMethod]
+        public void OD_MBO_Call_Primitives_QueryString()
+        {
+            ODataTest(() =>
+            {
+                var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op1",
+                        null, new TestQueryCollection(@"?a=asdf&b=42&c=true&d=0.12&e=0.13&f=0.14"));
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
+
+                // ASSERT
+                var objects = (object[])result;
+                Assert.AreEqual("asdf", objects[0]);
+                Assert.AreEqual(42, objects[1]);
+                Assert.AreEqual(true, objects[2]);
+                Assert.AreEqual(0.12f, objects[3]);
+                Assert.AreEqual(0.13m, objects[4]);
+                Assert.AreEqual(0.14d, objects[5]);
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_Primitives_QueryString_AposAndQuot()
+        {
+            ODataTest(() =>
+            {
+                var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op2",
+                        null, new TestQueryCollection("?a=(')(\")"));
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
+
+                // ASSERT
+                var objects = (object[])result;
+                Assert.AreEqual("(')(\")", objects[0]);
+            });
+        }
 
         [TestMethod]
         public void OD_MBO_Call_OptionalPrimitives()
@@ -1266,6 +1313,27 @@ namespace SenseNet.ODataTests
                 using (new OperationInspectorSwindler(new AllowEverything()))
                     context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
                         @"{'a':{'Snout': 456, 'Height': 654}}");
+
+                // ACTION
+                object result;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    result = OperationCenter.Invoke(context);
+
+                // ASSERT
+                Assert.AreEqual(typeof(JObject), result.GetType());
+                Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(result.ToString()));
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_JObject_QueryString()
+        {
+            ODataTest(() =>
+            {
+                var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                OperationCallingContext context;
+                using (new OperationInspectorSwindler(new AllowEverything()))
+                    context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
+                        null, new TestQueryCollection(@"a={'Snout': 456, 'Height': 654}"));
 
                 // ACTION
                 object result;
