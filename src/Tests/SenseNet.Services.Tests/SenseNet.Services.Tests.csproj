@@ -158,6 +158,7 @@
     <Compile Include="HttpHelper.cs" />
     <Compile Include="OAuthAuthenticationTests.cs" />
     <Compile Include="ServicesTestUser.cs" />
+    <Compile Include="SiteTests.cs" />
     <Compile Include="TokenAuthenticationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WopiTests.cs" />
