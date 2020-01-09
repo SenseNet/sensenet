@@ -335,7 +335,7 @@ namespace SenseNet.OData
         }
         private static Type GetTypeAndValue(Type expectedType, ODataParameterValue parameter, out object value)
         {
-            //TODO:~ Generalize this parameter resolution.
+            // The only exceptional case.
             if (expectedType == typeof(ContentOperations.SetPermissionsRequest))
             {
                 value = parameter.ToObject<ContentOperations.SetPermissionsRequest>();

@@ -1325,24 +1325,17 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
+        [ExpectedException(typeof(OperationNotFoundException))]
         public void OD_MBO_Call_JObject_QueryString()
         {
+            // This version does not support JSON object in the querystring.
             ODataTest(() =>
             {
                 var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
                 OperationCallingContext context;
                 using (new OperationInspectorSwindler(new AllowEverything()))
                     context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), "Op4",
-                        null, new TestQueryCollection(@"a={'Snout': 456, 'Height': 654}"));
-
-                // ACTION
-                object result;
-                using (new OperationInspectorSwindler(new AllowEverything()))
-                    result = OperationCenter.Invoke(context);
-
-                // ASSERT
-                Assert.AreEqual(typeof(JObject), result.GetType());
-                Assert.AreEqual("{\"Snout\":456,\"Height\":654}", RemoveWhitespaces(result.ToString()));
+                        null, new TestQueryCollection(@"?a={'Snout': 456, 'Height': 654}"));
             });
         }
 

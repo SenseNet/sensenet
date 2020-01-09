@@ -55,15 +55,14 @@ namespace SenseNet.OData
                 case 1:
                     var value = values.First().Replace("'", @"\'");
                     return JToken.Parse($"'{value}'");
-                    //UNDONE: Parse as object
-                    //return JToken.Parse($"\"{values.First()}\"");
                 default:
                     return JToken.Parse($"['{string.Join("','", values.ToArray())}']");
             }
         }
 
-        public T ToObject<T>()
+        internal T ToObject<T>()
         {
+            // The only exceptional case.
             return _jToken == null ? default : _jToken.Parent.Parent.ToObject<T>();
         }
 
