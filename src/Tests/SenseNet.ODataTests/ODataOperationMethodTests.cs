@@ -1693,7 +1693,7 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     AddMethod(new TestMethodInfo("op0", "Content content", null),
-                        new Attribute[] { new ODataAction(), });
+                        new Attribute[] { new ODataAction(), new RequiredPoliciesAttribute("AllowEverything"),  });
                     AddMethod(new TestMethodInfo("op1", "Content content, string a", null),
                         new Attribute[] { new ODataAction(), });
                     AddMethod(new TestMethodInfo("op2", "Content content, string b, int c", null),
