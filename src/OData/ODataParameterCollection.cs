@@ -13,7 +13,6 @@ namespace SenseNet.OData
 
         public ODataParameterCollection(JObject body, IQueryCollection query)
         {
-            //UNDONE:?? Use blacklist or not?
             var names = query?.Keys.Except(ODataRequest.WellKnownQueryStringParameterNames) ?? Array.Empty<string>();
             if (body != null)
                 names = names
