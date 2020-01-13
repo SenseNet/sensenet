@@ -2255,6 +2255,9 @@ namespace SenseNet.ODataTests
             }
             public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
             {
+                if (context.HttpContext == null) //UNDONE: Delete HttpContext check
+                    throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
+
                 return _deniedUsers.Contains(user.Id) ? OperationMethodVisibility.Invisible : OperationMethodVisibility.Enabled;
             }
         }
@@ -2264,6 +2267,9 @@ namespace SenseNet.ODataTests
             public string Name { get; } = "AllowEverything";
             public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
             {
+                if (context.HttpContext == null) //UNDONE: Delete HttpContext check
+                    throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
+
                 return OperationMethodVisibility.Enabled;
             }
         }

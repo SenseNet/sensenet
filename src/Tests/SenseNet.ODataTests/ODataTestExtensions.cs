@@ -1,4 +1,5 @@
-﻿using SenseNet.Configuration;
+﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
 
@@ -24,7 +25,13 @@ namespace SenseNet.ODataTests
                         ? OperationMethodVisibility.Enabled
                         : OperationMethodVisibility.Invisible)
                 .UseOperationMethodExecutionPolicy("VisitorAllowed", (user, context) =>
-                    user.Id == Identifiers.VisitorUserId ? OperationMethodVisibility.Enabled : OperationMethodVisibility.Disabled)
+                {
+                    if(context.HttpContext == null) //UNDONE: Delete HttpContext check
+                        throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
+                    return user.Id == Identifiers.VisitorUserId
+                            ? OperationMethodVisibility.Enabled
+                            : OperationMethodVisibility.Disabled;
+                })
                 .UseOperationMethodExecutionPolicy("AdminDenied",
                     new ODataOperationMethodTests.DeniedUsersOperationMethodPolicy(new[] { Identifiers.AdministratorUserId }));
         }
