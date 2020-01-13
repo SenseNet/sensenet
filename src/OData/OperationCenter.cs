@@ -45,7 +45,7 @@ namespace SenseNet.OData
 
         internal static void Discover()
         {
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().Where(ass => !ass.IsDynamic))
             {
                 try
                 {

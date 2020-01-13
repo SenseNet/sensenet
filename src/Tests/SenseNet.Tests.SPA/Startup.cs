@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.Identity.Experimental;
+using SenseNet.OData;
 using SenseNet.Services.Core;
 
 namespace SenseNet.Tests.SPA
@@ -27,7 +28,10 @@ namespace SenseNet.Tests.SPA
         public void ConfigureServices(IServiceCollection services)
         {
             // Add sensenet-specific user and role stores and configure Identity with default token providers.
-            services.AddSenseNetIdentity()
+            // For testing purposes: add all new users to the admin group.
+            services.AddSenseNetIdentity(
+                    "/Root/IMS/BuiltIn/Portal", 
+                    new []{ "/Root/IMS/BuiltIn/Portal/Administrators" })
                 .AddDefaultUI();
 
             // Add IdentityServer configuration.
@@ -85,6 +89,10 @@ namespace SenseNet.Tests.SPA
 
             app.UseIdentityServer();
             app.UseAuthorization();
+
+            // Add the sensenet-specific OData middleware.
+            app.UseSenseNetOdata();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
