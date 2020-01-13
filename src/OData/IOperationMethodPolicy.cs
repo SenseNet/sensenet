@@ -38,9 +38,6 @@ namespace SenseNet.OData
 
         public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
         {
-            if (context.HttpContext == null) //UNDONE: Delete HttpContext check
-                throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
-
             return Callback(user, context);
         }
 

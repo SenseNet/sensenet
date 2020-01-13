@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -10,7 +11,7 @@ namespace SenseNet.OData
 {
     internal class OperationMethodStorage : IOperationMethodStorage
     {
-        public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario)
+        public IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario, object state)
         {
             var actualRoles =  NodeHead.Get(SecurityHandler.GetGroups()).Select(y => y.Name).ToArray();
             var inspector = OperationInspector.Instance;
@@ -28,7 +29,7 @@ namespace SenseNet.OData
                 .Select(x => new ODataOperationMethodDescriptor(x, GenerateUri(content, x.Name)))
                 .Where(a => Initialize(a, content))
                 .Where(a => FilterByPermissions(inspector, a, content))
-                .Where(a => FilterByPolicies(inspector, a, content))
+                .Where(a => FilterByPolicies(inspector, a, content, state))
                 .ToArray();
 
             return stored.Union(actions).ToArray();
@@ -67,13 +68,13 @@ namespace SenseNet.OData
                 return true;
             return inspector.CheckByRoles(expectedRoles, actualRoles);
         }
-        private bool FilterByPolicies(OperationInspector inspector, ODataOperationMethodDescriptor action, Content content)
+        private bool FilterByPolicies(OperationInspector inspector, ODataOperationMethodDescriptor action, Content content, object state)
         {
             if (action.OperationInfo.Policies.Length == 0)
                 return true;
 
-            //TODO:~ set HttpContext in OperationCallingContext
-            var context = new OperationCallingContext(content, action.OperationInfo);
+            var httpContext = state as HttpContext; // httpContext can be null
+            var context = new OperationCallingContext(content, action.OperationInfo){ HttpContext = httpContext};
 
             switch (inspector.CheckPolicies(action.OperationInfo.Policies, context))
             {

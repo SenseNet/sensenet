@@ -1982,14 +1982,17 @@ namespace SenseNet.ODataTests
                     {
                         // set the caller user temporarily
                         AccessProvider.Current.SetCurrentUser(User.Administrator);
+                        var httpContext = new DefaultHttpContext();
 
                         // Root content: action is in the list
                         var content = Content.Create(Repository.Root);
-                        Assert.IsTrue(os.GetActions(new ActionBase[0], content, null).Any(a => a.Name == "Op10"));
+                        Assert.IsTrue(os.GetActions(new ActionBase[0], content, null, httpContext)
+                            .Any(a => a.Name == "Op10"));
 
                         // other content: action is not in the list
                         content = Content.Create(User.Administrator);
-                        Assert.IsFalse(os.GetActions(new ActionBase[0], content, null).Any(a => a.Name == "Op10"));
+                        Assert.IsFalse(os.GetActions(new ActionBase[0], content, null, httpContext)
+                            .Any(a => a.Name == "Op10"));
                     }
                     finally
                     {
@@ -2255,9 +2258,6 @@ namespace SenseNet.ODataTests
             }
             public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
             {
-                if (context.HttpContext == null) //UNDONE: Delete HttpContext check
-                    throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
-
                 return _deniedUsers.Contains(user.Id) ? OperationMethodVisibility.Invisible : OperationMethodVisibility.Enabled;
             }
         }
@@ -2267,9 +2267,6 @@ namespace SenseNet.ODataTests
             public string Name { get; } = "AllowEverything";
             public OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
             {
-                if (context.HttpContext == null) //UNDONE: Delete HttpContext check
-                    throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
-
                 return OperationMethodVisibility.Enabled;
             }
         }

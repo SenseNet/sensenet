@@ -26,8 +26,6 @@ namespace SenseNet.ODataTests
                         : OperationMethodVisibility.Invisible)
                 .UseOperationMethodExecutionPolicy("VisitorAllowed", (user, context) =>
                 {
-                    if(context.HttpContext == null) //UNDONE: Delete HttpContext check
-                        throw new InvalidOperationException("Incomplete calling context: Missing HttpContext.");
                     return user.Id == Identifiers.VisitorUserId
                             ? OperationMethodVisibility.Enabled
                             : OperationMethodVisibility.Disabled;
