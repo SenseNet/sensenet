@@ -7,6 +7,11 @@ namespace SenseNet.Services.Core
 {
     public static class IdentityExtensions
     {
+        /// <summary>
+        /// Adds the Authentication middleware and a middleware for setting the sensenet current user.
+        /// </summary>
+        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSenseNetAuthentication(this IApplicationBuilder app)
         {
             app.UseAuthentication();
@@ -14,6 +19,11 @@ namespace SenseNet.Services.Core
 
             return app;
         }
+        /// <summary>
+        /// Adds a middleware for setting the sensenet current user.
+        /// </summary>
+        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSenseNetUser(this IApplicationBuilder app)
         {
             app.Use(async (context, next) =>
