@@ -109,6 +109,12 @@ namespace SenseNet.OData
         internal const string CONTENTQUERY = "query";  // url param
         private const string IDREQUEST_REGEX = "/content\\((?<id>\\d+)\\)";
 
+        internal static readonly string[] WellKnownQueryStringParameterNames = new[]
+        {
+            "$top", "$skip", "$orderby", "$inlinecount", "$select", "$expand", "$filter", "$format",
+            "enableautofilters", "enablelifespanfilter", "queryexecutionmode", "metadata", "multistepsave"
+        };
+
         /// <summary>
         /// Gets the value of the "$top" OData parameter if it exists, otherwise returns with 0.
         /// </summary>

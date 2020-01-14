@@ -710,7 +710,7 @@ namespace SenseNet.Portal.OData
         }
         public IEnumerable<ActionBase> GetActions(Content context, string scenario, string backUri)
         {
-            return ActionFramework.GetActions(context, scenario, null, backUri);
+            return ActionFramework.GetActions(context, scenario, null, backUri, HttpContext.Current);
         }
         public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters)
         {

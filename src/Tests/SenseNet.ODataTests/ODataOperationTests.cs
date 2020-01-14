@@ -135,7 +135,7 @@ namespace SenseNet.ODataTests
                     "{param1:\"asdf\",param2:\"qwer\"}").ConfigureAwait(false);
 
                 // ASSERT
-                var expected = "## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: qwer.";
+                var expected = "## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: value2.";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
@@ -145,8 +145,7 @@ namespace SenseNet.ODataTests
 
         /* ============================================================= OPERATION RESULT TESTS */
 
-        //TODO:~ Activate OD_OP_GetSchema test.
-        //[TestMethod]
+        [TestMethod]
         public async Task OD_OP_GetSchema()
         {
             await ODataTestAsync(async () =>
@@ -476,7 +475,54 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
-        // 
+
+        [TestMethod]
+        public async Task OD_OP_QueryString_Func_Get()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root('IMS')/FunctionForQueryStringTest",
+                        "?a=stringValue&b=42&rnd=123456789")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual("FunctionForQueryStringTest-stringValue-42", response.Result);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_QueryString_Func_Post_Override()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                        "/OData.svc/Root('IMS')/FunctionForQueryStringTest",
+                        "?b=442&rnd=123456789",
+                        "{a:\"stringValue\",b:42}")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual("FunctionForQueryStringTest-stringValue-442", response.Result);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_OP_QueryString_StringArray()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataGetAsync(
+                        "/OData.svc/Root('IMS')/Array_String",
+                        "?a=ppp&a=qqq&a=rrr&b=1&b=2")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Assert.AreEqual("[\"ppp\",\"qqq\",\"rrr\"]", RemoveWhitespaces(response.Result));
+            }).ConfigureAwait(false);
+        }
+
         #region /* ===================================================================== ACTION RESOLVER MOCK */
 
         internal class ActionResolverSwindler : IDisposable

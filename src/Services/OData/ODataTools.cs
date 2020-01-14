@@ -138,7 +138,7 @@ namespace SenseNet.Portal.OData
             }
 
             var scenario = request?.Scenario;
-            var actions = ActionFramework.GetActions(content, scenario, null, string.IsNullOrEmpty(backUrl) ? null : backUrl);
+            var actions = ActionFramework.GetActions(content, scenario, null, string.IsNullOrEmpty(backUrl) ? null : backUrl, HttpContext.Current);
 
             return actions.Select(action => new ScenarioAction
             {

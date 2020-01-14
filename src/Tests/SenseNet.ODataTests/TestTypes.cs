@@ -205,5 +205,19 @@ namespace SenseNet.ODataTests
 
         #endregion
 
+        [ODataFunction]
+        [AllowedRoles(N.R.All)]
+        public static string FunctionForQueryStringTest(Content content, string a, int b)
+        {
+            return $"{MethodBase.GetCurrentMethod().Name}-{a}-{b}";
+        }
+
+        [ODataAction]
+        [AllowedRoles(N.R.All)]
+        public static string ActionForQueryStringTest(Content content, string a, int b)
+        {
+            return $"{MethodBase.GetCurrentMethod().Name}-{a}-{b}";
+        }
+
     }
 }

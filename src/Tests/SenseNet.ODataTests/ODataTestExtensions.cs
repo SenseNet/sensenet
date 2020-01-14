@@ -1,4 +1,5 @@
-﻿using SenseNet.Configuration;
+﻿using System;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData;
 
@@ -24,7 +25,11 @@ namespace SenseNet.ODataTests
                         ? OperationMethodVisibility.Enabled
                         : OperationMethodVisibility.Invisible)
                 .UseOperationMethodExecutionPolicy("VisitorAllowed", (user, context) =>
-                    user.Id == Identifiers.VisitorUserId ? OperationMethodVisibility.Enabled : OperationMethodVisibility.Disabled)
+                {
+                    return user.Id == Identifiers.VisitorUserId
+                            ? OperationMethodVisibility.Enabled
+                            : OperationMethodVisibility.Disabled;
+                })
                 .UseOperationMethodExecutionPolicy("AdminDenied",
                     new ODataOperationMethodTests.DeniedUsersOperationMethodPolicy(new[] { Identifiers.AdministratorUserId }));
         }

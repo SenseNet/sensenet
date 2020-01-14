@@ -751,7 +751,7 @@ namespace SenseNet.OData
         }
         public IEnumerable<ActionBase> GetActions(Content context, string scenario, string backUri, HttpContext httpContext)
         {
-            return ActionFramework.GetActions(context, scenario, null, backUri);
+            return ActionFramework.GetActions(context, scenario, null, backUri, httpContext);
         }
         public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext)
         {
@@ -763,12 +763,13 @@ namespace SenseNet.OData
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
         {
             var httpContext = (HttpContext) state;
+            //var odataRequest = (ODataRequest) httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey];
             OperationCallingContext method;
             try
             {
-                //TODO:~ Combine request body and querystring parameters into the 3th parameter.
                 method = OperationCenter.GetMethodByRequest(content, name,
-                    ODataMiddleware.Read(httpContext.Request.Body));
+                    ODataMiddleware.Read(httpContext.Request.Body),
+                    httpContext.Request.Query);
             }
             catch (OperationNotFoundException e)
             {

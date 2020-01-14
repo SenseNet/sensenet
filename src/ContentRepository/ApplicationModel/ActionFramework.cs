@@ -123,12 +123,6 @@ namespace SenseNet.ApplicationModel
             bool existingApplication;
             var app = ApplicationStorage.Instance.GetApplication(name, context, out existingApplication, GetDevice());
 
-//UNDONE: REMOVE HACK
-if (name == "SetPermissions")
-{
-    existingApplication = false;
-    app = null;
-}
             // if app is null, than create action in memory only if this is _not_ an existing application
             // (existing app can be null because of denied access or cleared/disabled status)
             // (we create Service and ClientAction types in memory this way - they do not exist in the tree)
@@ -171,24 +165,24 @@ if (name == "SetPermissions")
             return act == null ? string.Empty : act.Uri;
         }
 
-        public static IEnumerable<ActionBase> GetActions(Content context)
+        public static IEnumerable<ActionBase> GetActions(Content content, object state = null)
         {
-            return GetActions(context, default(string), null);
+            return GetActions(content, default(string), null, state);
         }
 
-        public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters)
+        public static IEnumerable<ActionBase> GetActions(Content content, string scenario, string scenarioParameters, object state = null)
         {
             // UrlEncode's parameter can be null
             var backUrl = HttpUtility.UrlEncode(CompatibilitySupport.Request_RawUrl);
 
-            return GetActions(context, scenario, scenarioParameters, backUrl);
+            return GetActions(content, scenario, scenarioParameters, backUrl, state);
         }
 
-        public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters, string backUri)
+        public static IEnumerable<ActionBase> GetActions(Content content, string scenario, string scenarioParameters, string backUri, object state = null)
         {
-            return OperationMethodStorage.GetActions(GetStoredActions(context, scenario, scenarioParameters, backUri), context, scenario);
+            return OperationMethodStorage.GetActions(GetStoredActions(content, scenario, scenarioParameters, backUri), content, scenario, state);
         }
-        private static IEnumerable<ActionBase> GetStoredActions(Content context, string scenario, string scenarioParameters, string backUri)
+        private static IEnumerable<ActionBase> GetStoredActions(Content content, string scenario, string scenarioParameters, string backUri)
         {
             if (!string.IsNullOrEmpty(scenario))
             {
@@ -196,10 +190,10 @@ if (name == "SetPermissions")
                 var sc = ScenarioManager.GetScenario(scenario, scenarioParameters);
                 if (sc != null)
                 {
-                    return sc.GetActions(context, backUri);
+                    return sc.GetActions(content, backUri);
                 }
             }
-            return GetActionsFromContentRepository(context, scenario, backUri);
+            return GetActionsFromContentRepository(content, scenario, backUri);
         }
 
         public static IEnumerable<ActionBase> GetActions(Content context, string[] scenarios, string backUri)

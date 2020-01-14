@@ -302,8 +302,7 @@ namespace SenseNet.ODataTests
                 }
             });
         }
-        //[TestMethod]
-        //TODO:~ Error in the test
+        [TestMethod]
         public void OD_MBO_BuiltIn_SetPageCount()
         {
             ODataTest(() =>
@@ -315,8 +314,8 @@ namespace SenseNet.ODataTests
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     AssertNoError(response);
-                    Assert.AreEqual(200, response.StatusCode);
-                    Assert.AreEqual("-5", response.Result);
+                    Assert.AreEqual(204, response.StatusCode);
+                    Assert.AreEqual(42, Node.Load<File>(op.TheFile.Id).PageCount);
                 }
             });
         }

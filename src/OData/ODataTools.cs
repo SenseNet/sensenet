@@ -90,7 +90,7 @@ namespace SenseNet.OData
         private static IEnumerable<ScenarioAction> GetActionsWithScenario(Content content, ODataRequest request, HttpContext httpContext)
         {
             var scenario = request?.Scenario;
-            var actions = ActionFramework.GetActions(content, scenario, null, null);
+            var actions = ActionFramework.GetActions(content, scenario, null, null, httpContext);
 
             return actions.Select(action => new ScenarioAction
             {
