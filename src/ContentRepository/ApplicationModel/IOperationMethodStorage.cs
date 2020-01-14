@@ -14,11 +14,10 @@ namespace SenseNet.ApplicationModel
         /// This method will return the provided stored action list extended with
         /// additional in-memory operations.
         /// </summary>
-        /// <param name="storedActions">Actions that loaded from the database.</param>
+        /// <param name="storedActions">Actions loaded from the database.</param>
         /// <param name="content">Related <see cref="Content"/>.</param>
         /// <param name="scenario">Optional scenario filter. Can be null.</param>
-        /// <param name="state">Other helper object. Pass the current HttpContext instance if it exists.</param>
-        /// <returns></returns>
+        /// <param name="state">A state object. Pass the current HttpContext instance if it is available.</param>
         IEnumerable<ActionBase> GetActions(IEnumerable<ActionBase> storedActions, Content content, string scenario, object state = null);
     }
 
