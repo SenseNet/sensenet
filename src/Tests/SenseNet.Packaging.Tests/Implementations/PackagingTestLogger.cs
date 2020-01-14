@@ -6,6 +6,10 @@ namespace SenseNet.Packaging.Tests.Implementations
     {
         public LogLevel AcceptedLevel => LogLevel.File;
         private readonly StringBuilder _sb;
+        public PackagingTestLogger()
+        {
+            _sb = new StringBuilder();
+        }
         public PackagingTestLogger(StringBuilder sb)
         {
             _sb = sb;
