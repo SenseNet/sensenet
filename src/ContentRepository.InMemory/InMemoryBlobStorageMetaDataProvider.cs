@@ -233,7 +233,7 @@ namespace SenseNet.ContentRepository.InMemory
                 Id = binaryDoc.BinaryPropertyId,
                 FileId = binaryDoc.FileId,
                 Checksum = null,
-                FileName = fileDoc == null ? null : new BinaryFileName(fileDoc.FileNameWithoutExtension, fileDoc.Extension),
+                FileName = fileDoc == null ? null : new BinaryFileName(fileDoc.FileNameWithoutExtension.Trim('.'), fileDoc.Extension.Trim('.')),
                 ContentType = fileDoc?.ContentType,
                 Size = fileDoc?.Size ?? 0L,
                 BlobProviderName = fileDoc?.BlobProvider,
