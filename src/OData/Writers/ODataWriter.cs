@@ -470,7 +470,7 @@ namespace SenseNet.OData.Writers
 
             var response = action is ODataOperationMethodExecutor odataAction
             ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
-            : action.Execute(content, await GetOperationParameters(action, inputStream, httpContext, odataReq));
+            : action.Execute(content, await GetOperationParametersAsync(action, inputStream, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -842,7 +842,7 @@ namespace SenseNet.OData.Writers
             }
             return result.ToArray();
         }
-        private async Task<object[]> GetOperationParameters(ActionBase action, Stream inputStream,
+        private async Task<object[]> GetOperationParametersAsync(ActionBase action, Stream inputStream,
             HttpContext httpContext, ODataRequest odataRequest)
         {
             if (action.ActionParameters.Length == 0)
