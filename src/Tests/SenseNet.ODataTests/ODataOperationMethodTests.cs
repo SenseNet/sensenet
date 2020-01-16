@@ -663,21 +663,21 @@ namespace SenseNet.ODataTests
         [ExpectedException(typeof(JsonReaderException))]
         public void OD_MBO_Request_InvalidJson()
         {
-            var request = ODataMiddleware.Read("asdf");
+            var request = ODataMiddleware.ReadToJson("asdf");
         }
         [TestMethod]
         public void OD_MBO_Request_Invalid()
         {
-            var request = ODataMiddleware.Read("");
+            var request = ODataMiddleware.ReadToJson("");
             Assert.IsNull(request);
 
-            request = ODataMiddleware.Read("['asdf']");
+            request = ODataMiddleware.ReadToJson("['asdf']");
             Assert.IsNull(request);
         }
         [TestMethod]
         public void OD_MBO_Request_Object()
         {
-            var request = ODataMiddleware.Read("{'a':'asdf'}");
+            var request = ODataMiddleware.ReadToJson("{'a':'asdf'}");
             Assert.AreEqual(JTokenType.String, request["a"].Type);
             Assert.AreEqual("{\"a\":\"asdf\"}", request.ToString()
                 .Replace("\r", "").Replace("\n", "").Replace(" ", ""));
@@ -685,7 +685,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Models()
         {
-            var request = ODataMiddleware.Read("models=[{'a':'asdf'}]");
+            var request = ODataMiddleware.ReadToJson("models=[{'a':'asdf'}]");
             Assert.AreEqual(JTokenType.String, request["a"].Type);
             Assert.AreEqual("{\"a\":\"asdf\"}", request.ToString()
                 .Replace("\r", "").Replace("\n", "").Replace(" ", ""));
@@ -693,7 +693,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Properties()
         {
-            var request = ODataMiddleware.Read("models=[{'a':42, 'b':false, 'c':'asdf', 'd':[], 'e':{a:12}}]");
+            var request = ODataMiddleware.ReadToJson("models=[{'a':42, 'b':false, 'c':'asdf', 'd':[], 'e':{a:12}}]");
             Assert.AreEqual(JTokenType.Integer, request["a"].Type);
             Assert.AreEqual(JTokenType.Boolean, request["b"].Type);
             Assert.AreEqual(JTokenType.String, request["c"].Type);
@@ -703,7 +703,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_Float()
         {
-            var request = ODataMiddleware.Read("models=[{'a':4.2}]");
+            var request = ODataMiddleware.ReadToJson("models=[{'a':4.2}]");
             Assert.AreEqual(JTokenType.Float, request["a"].Type);
             Assert.AreEqual(4.2f, request["a"].Value<float>());
             Assert.AreEqual(4.2d, request["a"].Value<double>());
@@ -712,7 +712,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_StringArray()
         {
-            var request = ODataMiddleware.Read("models=[{'a':['xxx','yyy','zzz']}]");
+            var request = ODataMiddleware.ReadToJson("models=[{'a':['xxx','yyy','zzz']}]");
 
             var array = (JArray)request["a"];
             Assert.AreEqual(JTokenType.Array, array.Type);
@@ -723,7 +723,7 @@ namespace SenseNet.ODataTests
         [TestMethod]
         public void OD_MBO_Request_ObjectArray()
         {
-            var request = ODataMiddleware.Read("models=[{'a':[1,'xxx',false,42]}]");
+            var request = ODataMiddleware.ReadToJson("models=[{'a':[1,'xxx',false,42]}]");
 
             var array = (JArray)request["a"];
             Assert.AreEqual(JTokenType.Array, array.Type);

@@ -141,7 +141,7 @@ namespace SenseNet.OData
 
         public static OperationCallingContext GetMethodByRequest(Content content, string methodName, string requestBody)
         {
-            return GetMethodByRequest(content, methodName, ODataMiddleware.Read(requestBody), null);
+            return GetMethodByRequest(content, methodName, ODataMiddleware.ReadToJson(requestBody), null);
         }
         internal static OperationCallingContext GetMethodByRequest(
             Content content, string methodName, JObject requestParameters, IQueryCollection query)
