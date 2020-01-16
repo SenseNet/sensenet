@@ -180,7 +180,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = await ReadToJsonAsync(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -205,7 +205,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = await ReadToJsonAsync(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -236,7 +236,7 @@ namespace SenseNet.OData
                                 return;
                             }
 
-                            model = await ReadToJsonAsync(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             var newContent = CreateNewContent(model, odataRequest);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
@@ -352,7 +352,7 @@ namespace SenseNet.OData
             if (inputStream == Stream.Null)
                 return null;
             using (var reader = new StreamReader(inputStream))
-                models = await reader.ReadToEndAsync();
+                models = await reader.ReadToEndAsync().ConfigureAwait(false);
 
             return ReadToJson(models);
         }
@@ -769,7 +769,8 @@ namespace SenseNet.OData
             try
             {
                 method = OperationCenter.GetMethodByRequest(content, name,
-                    ODataMiddleware.ReadToJsonAsync(httpContext.Request.Body).GetAwaiter().GetResult(),
+                    ODataMiddleware.ReadToJsonAsync(httpContext.Request.Body)
+                        .ConfigureAwait(false).GetAwaiter().GetResult(),
                     httpContext.Request.Query);
             }
             catch (OperationNotFoundException e)
