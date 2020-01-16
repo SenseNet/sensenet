@@ -770,7 +770,7 @@ namespace SenseNet.OData
             {
                 method = OperationCenter.GetMethodByRequest(content, name,
                     ODataMiddleware.ReadToJsonAsync(httpContext.Request.Body)
-                        .ConfigureAwait(false).GetAwaiter().GetResult(),
+                        .GetAwaiter().GetResult(),
                     httpContext.Request.Query);
             }
             catch (OperationNotFoundException e)

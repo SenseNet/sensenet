@@ -80,9 +80,9 @@ namespace SenseNet.ContentRepository
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 
             var initialData = builder.InitialData;
-            if(initialData != null)
+            if (initialData != null)
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                    .GetAwaiter().GetResult();
 
             var repositoryInstance = Start((RepositoryStartSettings) builder);
 

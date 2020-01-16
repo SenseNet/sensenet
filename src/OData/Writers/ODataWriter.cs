@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
@@ -469,7 +470,7 @@ namespace SenseNet.OData.Writers
 
             var response = action is ODataOperationMethodExecutor odataAction
             ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
-            : action.Execute(content, GetOperationParameters(action, inputStream, httpContext, odataReq));
+            : action.Execute(content, await GetOperationParameters(action, inputStream, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -841,7 +842,7 @@ namespace SenseNet.OData.Writers
             }
             return result.ToArray();
         }
-        private object[] GetOperationParameters(ActionBase action, Stream inputStream,
+        private async Task<object[]> GetOperationParameters(ActionBase action, Stream inputStream,
             HttpContext httpContext, ODataRequest odataRequest)
         {
             if (action.ActionParameters.Length == 0)
@@ -871,8 +872,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                var model = ODataMiddleware.ReadToJsonAsync(inputStream)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                var model = await ODataMiddleware.ReadToJsonAsync(inputStream);
                 var i = 0;
                 foreach (var parameter in parameters)
                 {
