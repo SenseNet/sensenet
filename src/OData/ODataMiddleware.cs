@@ -361,7 +361,7 @@ namespace SenseNet.OData
         /// </summary>
         /// <param name="models">JSON object that will be deserialized.</param>
         /// <returns>Deserialized JObject instance.</returns>
-        public static JObject ReadToJson(string models)
+        internal static JObject ReadToJson(string models)
         {
             if (string.IsNullOrEmpty(models))
                 return null;
