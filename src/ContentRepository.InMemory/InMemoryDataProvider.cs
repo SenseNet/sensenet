@@ -1530,7 +1530,7 @@ namespace SenseNet.ContentRepository.InMemory
                             Length = buffer.Length,
                         };
                         blobProvider.AllocateAsync(blobStorageContext, CancellationToken.None)
-                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                            .GetAwaiter().GetResult();
                         blobProviderName = blobProvider.GetType().FullName;
                         blobProviderData =
                             BlobStorageContext.SerializeBlobProviderData(blobStorageContext.BlobProviderData);

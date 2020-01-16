@@ -18,7 +18,7 @@ namespace SenseNet.OData
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-                _response.WriteAsync(GetStringBuilder().ToString()).ConfigureAwait(false).GetAwaiter().GetResult();
+                _response.WriteAsync(GetStringBuilder().ToString()).GetAwaiter().GetResult();
             base.Dispose(disposing);
         }
     }

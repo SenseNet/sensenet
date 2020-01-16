@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -179,7 +180,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = Read(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -204,7 +205,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = Read(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -235,7 +236,7 @@ namespace SenseNet.OData
                                 return;
                             }
 
-                            model = Read(inputStream);
+                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
                             var newContent = CreateNewContent(model, odataRequest);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
@@ -343,7 +344,7 @@ namespace SenseNet.OData
 
         /* =================================================================================== */
 
-        internal static JObject Read(Stream inputStream)
+        internal static async Task<JObject> ReadToJsonAsync(Stream inputStream)
         {
             string models;
             if (inputStream == null)
@@ -351,16 +352,16 @@ namespace SenseNet.OData
             if (inputStream == Stream.Null)
                 return null;
             using (var reader = new StreamReader(inputStream))
-                models = reader.ReadToEnd();
+                models = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-            return Read(models);
+            return ReadToJson(models);
         }
         /// <summary>
         /// Helper method for deserializing the given string representation.
         /// </summary>
         /// <param name="models">JSON object that will be deserialized.</param>
         /// <returns>Deserialized JObject instance.</returns>
-        public static JObject Read(string models)
+        internal static JObject ReadToJson(string models)
         {
             if (string.IsNullOrEmpty(models))
                 return null;
@@ -768,7 +769,8 @@ namespace SenseNet.OData
             try
             {
                 method = OperationCenter.GetMethodByRequest(content, name,
-                    ODataMiddleware.Read(httpContext.Request.Body),
+                    ODataMiddleware.ReadToJsonAsync(httpContext.Request.Body)
+                        .GetAwaiter().GetResult(),
                     httpContext.Request.Query);
             }
             catch (OperationNotFoundException e)

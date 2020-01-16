@@ -234,6 +234,7 @@ namespace SenseNet.ODataTests
                     .ConfigureAwait(false);
 
                 // ASSERT
+                AssertNoError(response);
                 Assert.AreEqual(0, response.Result.Length);
                 Assert.AreEqual(204, response.StatusCode); // 204 No Content
             }).ConfigureAwait(false);
@@ -263,6 +264,7 @@ namespace SenseNet.ODataTests
                     .ConfigureAwait(false);
 
                 // ASSERT
+                AssertNoError(response);
                 Assert.AreEqual(0, response.Result.Length);
                 Assert.AreEqual(204, response.StatusCode);
                 var folder = Node.LoadNode(folderRepoPath);
@@ -292,6 +294,7 @@ namespace SenseNet.ODataTests
                     .ConfigureAwait(false);
 
                 // ASSERT 1: Not inherited
+                AssertNoError(response);
                 Assert.AreEqual(0, response.Result.Length);
                 Assert.AreEqual(204, response.StatusCode);
                 var node = Node.LoadNode(content.Id);
