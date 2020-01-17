@@ -79,9 +79,9 @@ namespace SenseNet.ContentRepository.Linq
                     q0 = CombinePathPredicate(q0, contextPath, childrenDef.PathUsage);
             }
 
-            // #4 empty query is invalid in this place
+            // #4 empty query substitution
             if (q0 == null)
-                throw new NotSupportedException("Cannot execute empty query. Expression: " + expression);
+                q0 = new RangePredicate(IndexFieldName.NodeId, new IndexValue(0), null, true, false);
 
             var q1 = OptimizeBooleans(q0);
 

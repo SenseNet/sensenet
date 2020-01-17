@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -857,6 +860,48 @@ Id:<42 .QUICK";
                 try { var x = Content.All.Where(c => c.TypeIs(c.DisplayName)).ToArray(); Assert.Fail("#5 Exception wasn't thrown"); } catch (NotSupportedException) { }
                 try { var x = Content.All.Where(c => c.InFolder(c.WorkspacePath)).ToArray(); Assert.Fail("#6 Exception wasn't thrown"); } catch (NotSupportedException) { }
                 try { var x = Content.All.Where(c => c.InTree(c.WorkspacePath)).ToArray(); Assert.Fail("#7 Exception wasn't thrown"); } catch (NotSupportedException) { }
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_All()
+        {
+            Test(() =>
+            {
+                var expectedNonSystemCount = CreateSafeContentQuery(
+                    "InTree:/Root .COUNTONLY .AUTOFILTERS:ON", QuerySettings.Default).Execute().Count;
+                var expectedAllCount = CreateSafeContentQuery(
+                    "InTree:/Root .COUNTONLY .AUTOFILTERS:OFF", QuerySettings.Default).Execute().Count;
+
+                // ---------------- TEST CASE 1: All non-system contents in ad-hoc order
+                var contentArray = Content.All.ToArray();
+                // ASSERT
+                Assert.AreEqual(expectedNonSystemCount, contentArray.Length);
+                contentArray = contentArray.OrderBy(c => c.Id).ToArray();
+                for (int i = 1; i < contentArray.Length; i++)
+                    Assert.IsTrue(contentArray[i - 1].Id < contentArray[i].Id);
+
+                // ---------------- TEST CASE 2: All contents in ad-hoc order
+                contentArray = Content.All.DisableAutofilters().ToArray();
+                // ASSERT
+                Assert.AreEqual(expectedAllCount, contentArray.Length);
+                contentArray = contentArray.OrderBy(c => c.Id).ToArray();
+                for (int i = 1; i < contentArray.Length; i++)
+                    Assert.IsTrue(contentArray[i - 1].Id < contentArray[i].Id);
+
+                // ---------------- TEST CASE 3: All non-system contents + sort
+                contentArray = Content.All.OrderByDescending(c => c.Id).ToArray();
+                // ASSERT
+                Assert.AreEqual(expectedNonSystemCount, contentArray.Length);
+                for (int i = 1; i < contentArray.Length; i++)
+                    Assert.IsTrue(contentArray[i - 1].Id > contentArray[i].Id);
+
+                // ---------------- TEST CASE 4: All contents + sort
+                contentArray = Content.All.DisableAutofilters().OrderByDescending(c => c.Id).ToArray();
+                // ASSERT
+                Assert.AreEqual(expectedAllCount, contentArray.Length);
+                for (int i = 1; i < contentArray.Length; i++)
+                    Assert.IsTrue(contentArray[i - 1].Id > contentArray[i].Id);
             });
         }
 
