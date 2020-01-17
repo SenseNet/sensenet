@@ -2826,10 +2826,6 @@ VersionId: 260
     <Field name=""AllowedChildTypes"" type=""AllowedChildTypes"">
       <DisplayName>$Ctd-GenericContent,AllowedChildTypes-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,AllowedChildTypes-Description</Description>
-      <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.ContentTypeEnumerableIndexHandler</IndexHandler>
-        <Analyzer>Keyword</Analyzer>
-      </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -2839,10 +2835,6 @@ VersionId: 260
     <Field name=""EffectiveAllowedChildTypes"" type=""AllowedChildTypes"">
       <DisplayName>$Ctd-GenericContent,EffectiveAllowedChildTypes-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,EffectiveAllowedChildTypes-Description</Description>
-      <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.ContentTypeEnumerableIndexHandler</IndexHandler>
-        <Analyzer>Keyword</Analyzer>
-      </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>

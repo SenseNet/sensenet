@@ -20,6 +20,8 @@ namespace SenseNet.ContentRepository.Fields
         {
             if (this.ShortName == "Boolean")
                 return new BooleanIndexHandler();
+            if (this.ShortName == "AllowedChildTypes")
+                return new ContentTypeEnumerableIndexHandler();
             if (NotIndexedList.Contains(this.ShortName))
                 return new NotIndexedIndexFieldHandler();
             return base.CreateDefaultIndexFieldHandler();
