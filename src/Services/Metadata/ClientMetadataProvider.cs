@@ -129,6 +129,7 @@ namespace SenseNet.Services.Metadata
                 AllowIndexing = schemaClass.ContentType.IndexingEnabled,
                 schemaClass.ContentType.AllowIncrementalNaming,
                 AllowedChildTypes = schemaClass.ContentType.AllowedChildTypeNames,
+                schemaClass.ContentType.HandlerName,
                 FieldSettings = schemaClass.ContentType.FieldSettings
                     .Where(f => f.Owner == schemaClass.ContentType)
             }, seralizer);

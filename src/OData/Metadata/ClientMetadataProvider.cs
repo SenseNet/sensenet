@@ -131,7 +131,7 @@ namespace SenseNet.OData.Metadata
                 AllowIndexing = schemaClass.ContentType.IndexingEnabled,
                 schemaClass.ContentType.AllowIncrementalNaming,
                 AllowedChildTypes = schemaClass.ContentType.AllowedChildTypeNames,
-                HandlerName = schemaClass.ContentType.HandlerName,
+                schemaClass.ContentType.HandlerName,
                 FieldSettings = schemaClass.ContentType.FieldSettings
                     .Where(f => f.Owner == schemaClass.ContentType)
             }, seralizer);
