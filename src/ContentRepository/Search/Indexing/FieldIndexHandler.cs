@@ -219,6 +219,34 @@ namespace SenseNet.Search.Indexing
         }
     }
 
+    public class ContentTypeEnumerableIndexHandler : FieldIndexHandler
+    {
+        public override IndexValue Parse(string text)
+        {
+            return new IndexValue(text.ToLowerInvariant());
+        }
+
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            return new IndexValue(((ContentType)value).Name);
+        }
+
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
+        {
+            textExtract = string.Empty;
+            if(field.GetData() is IEnumerable<ContentType> types)
+                return CreateField(field.Name, types.Select(x=>x.Name));
+            return null;
+        }
+
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            if (snField.GetData() is IEnumerable<ContentType> types)
+                return types.Select(x => x.Name).ToArray();
+            return Enumerable.Empty<string>();
+        }
+    }
+
     /* ============================================================= Not implemented IIndexValueConverters */
 
     /// <summary>
