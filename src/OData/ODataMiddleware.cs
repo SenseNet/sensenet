@@ -84,9 +84,7 @@ namespace SenseNet.OData
             // Write headers and body of the HttpResponse
             await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
-            // Call next in the chain if exists
-            if (_next != null)
-                await _next(httpContext).ConfigureAwait(false);
+            // Do not call _next.Invoke because the Response.Body writing is already done.
         }
 
         [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
