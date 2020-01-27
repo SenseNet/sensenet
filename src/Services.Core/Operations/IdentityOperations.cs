@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
@@ -9,7 +6,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Services.Core.Operations
 {
-    internal static class IdentityOperations
+    public static class IdentityOperations
     {
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
@@ -23,18 +20,22 @@ namespace SenseNet.Services.Core.Operations
             if (password == null)
                 throw new ArgumentNullException(nameof(password));
 
-            var user = SystemAccount.Execute(() => User.Load(userName));
-
-            if (user?.CheckPasswordMatch(password) ?? false)
+            // check user in elevated mode, because this is a system operation
+            using (new SystemAccount())
             {
-                return new
+                var user = User.Load(userName);
+
+                if (user?.CheckPasswordMatch(password) ?? false)
                 {
-                    id = user.Id,
-                    email = user.Email,
-                    username = user.Username,
-                    name = user.Name,
-                    loginName = user.LoginName
-                };
+                    return new
+                    {
+                        id = user.Id,
+                        email = user.Email,
+                        username = user.Username,
+                        name = user.Name,
+                        loginName = user.LoginName
+                    };
+                }
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
