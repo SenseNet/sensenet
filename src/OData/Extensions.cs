@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.OData
 {
@@ -24,7 +25,14 @@ namespace SenseNet.OData
                 {
                     appBranch.UseMiddleware<ODataMiddleware>();
 
-                    buildAppBranch?.Invoke(appBranch);
+                    // Register a follow-up middleware defined by the caller or set a terminating, empty middleware.
+                    // If we do not do this, the system will try to set the status code which is not possible as
+                    // the request has already been started by the OData middleware above.
+
+                    if (buildAppBranch != null)
+                        buildAppBranch.Invoke(appBranch);
+                    else
+                        appBranch.Use((context, next) => Task.CompletedTask);
                 });
 
             return builder;
