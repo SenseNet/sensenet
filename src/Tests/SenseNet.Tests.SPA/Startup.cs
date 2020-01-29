@@ -34,6 +34,18 @@ namespace SenseNet.Tests.SPA
                     new []{ "/Root/IMS/BuiltIn/Portal/Administrators" })
                 .AddDefaultUI();
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("default",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:8080")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+            });
+
             // Add IdentityServer configuration.
             var builder = services.AddIdentityServer()
                 .AddAspNetIdentity<SnIdentityUser>()        // configures necessary Identity-related services
@@ -77,6 +89,8 @@ namespace SenseNet.Tests.SPA
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseCors("default");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
