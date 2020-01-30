@@ -951,21 +951,28 @@ namespace SenseNet.ContentRepository
 
             if (originalId == 0)
             {
-                // set creator for performant self permission setting
-                // creator of the user will always be the user itself. this way setting permissions to the creators group on /Root/IMS will be adequate for user permissions
-                // if you need the original creator, use the auditlog
-                Retrier.Retry(3, 200, typeof(Exception), () =>
+                // Set the creator and owner for convenient self permission setting.
+                // The creator and owner of the user will always be the user itself. This way
+                // setting permissions for the Owners group on /Root/IMS will be adequate
+                // for user permissions.
+                // If you need to know who the original creator is, use the audit log.
+                // This is happening inside an elevated block, because the creator user may not have
+                // the TakeOwnership permission which is required for this operation.
+                using (new SystemAccount())
                 {
-                    // need to clear this flag to avoid getting an 'Id <> 0' error during copying
-                    this.CopyInProgress = false;
-                    this.CreatedBy = this;
-                    this.Owner = this;
-                    this.VersionCreatedBy = this;
-                    this.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
-                    this.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
+                    Retrier.Retry(3, 200, typeof(Exception), () =>
+                    {
+                        // need to clear this flag to avoid getting an 'Id <> 0' error during copying
+                        this.CopyInProgress = false;
+                        this.CreatedBy = this;
+                        this.Owner = this;
+                        this.VersionCreatedBy = this;
+                        this.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
+                        this.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
 
-                    base.Save(SavingMode.KeepVersion);
-                });
+                        base.Save(SavingMode.KeepVersion);
+                    });
+                }
 
                 // create profile
                 if (IdentityManagement.UserProfilesEnabled)
