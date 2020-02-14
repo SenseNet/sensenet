@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -33,7 +32,6 @@ namespace SenseNet.Services.Core.Cors
                 {
                     var policyBuilder = new CorsPolicyBuilder();
 
-                    //UNDONE: Load allowed cors domains from settings.
                     var corsSettings =
                         Settings.GetValue<IEnumerable<string>>("Portal", "AllowedOriginDomains", null,
                             new[]
@@ -48,9 +46,7 @@ namespace SenseNet.Services.Core.Cors
                         policyBuilder.WithOrigins(originHeader);
                         if (!string.Equals(originHeader, CorsConstants.AnyOrigin))
                             policyBuilder.AllowCredentials();
-
-                        //UNDONE: set allowed headers and methods
-
+                        
                         var allowedMethods = Settings.GetValue("Portal", "AllowedMethods", null,
                             SnCorsConstants.AccessControlAllowMethodsDefault);
                         var allowedHeaders = Settings.GetValue("Portal", "AllowedHeaders", null,

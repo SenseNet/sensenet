@@ -7,6 +7,13 @@ namespace SenseNet.Services.Core.Cors
 {
     public static class CorsExtensions
     {
+        public static IServiceCollection AddSenseNetCors(this IServiceCollection services)
+        {
+            services.AddCors();
+            services.AddTransient<ICorsPolicyProvider, SnCorsPolicyProvider>();
+
+            return services;
+        }
         public static IServiceCollection AddSenseNetCors(this IServiceCollection services, Action<CorsOptions> setupAction)
         {
             services.AddCors(setupAction);
