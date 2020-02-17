@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using Task = System.Threading.Tasks.Task;
 
-[assembly: InternalsVisibleTo("SenseNet.Services.Core.Tests")]
 namespace SenseNet.Services.Core.Cors
 {
     internal class SnCorsPolicyProvider : ICorsPolicyProvider
