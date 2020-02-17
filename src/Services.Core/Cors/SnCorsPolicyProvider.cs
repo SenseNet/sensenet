@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using Task = System.Threading.Tasks.Task;
 
+[assembly: InternalsVisibleTo("SenseNet.Services.Core.Tests")]
 namespace SenseNet.Services.Core.Cors
 {
     internal class SnCorsPolicyProvider : ICorsPolicyProvider
@@ -19,56 +21,60 @@ namespace SenseNet.Services.Core.Cors
 
         public SnCorsPolicyProvider(IOptions<CorsOptions> options)
         {
-            _options = options.Value;
+            _options = options?.Value ?? new CorsOptions();
         }
 
         public Task<CorsPolicy> GetPolicyAsync(HttpContext context, string policyName)
         {
-            if (string.Equals(policyName, DefaultSenseNetCorsPolicyName, StringComparison.InvariantCultureIgnoreCase))
+            var originHeader = context.Request.Headers["Origin"].FirstOrDefault();
+
+            // unknown policy name or origin header not present: default behavior
+            if (string.IsNullOrEmpty(policyName) || 
+                string.IsNullOrEmpty(originHeader) ||
+                !string.Equals(policyName, DefaultSenseNetCorsPolicyName, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(originHeader, "null", StringComparison.InvariantCultureIgnoreCase))
+                return Task.FromResult(_options.GetPolicy(policyName ?? _options.DefaultPolicyName));
+            
+            var policyBuilder = new CorsPolicyBuilder();
+
+            // Load current CORS settings from the repository. This must not be cached here,
+            // because settings may change at runtime, anytime.
+            var corsSettings =
+                Settings.GetValue<IEnumerable<string>>("Portal", "AllowedOriginDomains", null,
+                    SnCorsConstants.DefaultAllowedDomains);
+
+            // get a configured domain (or template) that matches the origin sent by the client
+            var allowedDomain = GetAllowedDomain(originHeader, corsSettings);
+
+            if (!string.IsNullOrEmpty(allowedDomain))
             {
-                var originHeader = context.Request.Headers["Origin"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(originHeader) &&
-                    string.Compare(originHeader, "null", StringComparison.InvariantCultureIgnoreCase) != 0)
-                {
-                    var policyBuilder = new CorsPolicyBuilder();
+                // template match: set the allowed origin
+                policyBuilder.WithOrigins(originHeader);
 
-                    var corsSettings =
-                        Settings.GetValue<IEnumerable<string>>("Portal", "AllowedOriginDomains", null,
-                            new[]
-                            {
-                                "*.sensenet.com",
-                                "localhost:*"
-                            });
-                    var allowedDomain = GetAllowedDomain(originHeader, corsSettings);
-
-                    if (!string.IsNullOrEmpty(allowedDomain))
-                    {
-                        policyBuilder.WithOrigins(originHeader);
-                        if (!string.Equals(originHeader, CorsConstants.AnyOrigin))
-                            policyBuilder.AllowCredentials();
+                // any origin ('*') and credentials are mutually exclusive
+                if (!string.Equals(originHeader, CorsConstants.AnyOrigin))
+                    policyBuilder.AllowCredentials();
                         
-                        var allowedMethods = Settings.GetValue("Portal", "AllowedMethods", null,
-                            SnCorsConstants.AccessControlAllowMethodsDefault);
-                        var allowedHeaders = Settings.GetValue("Portal", "AllowedHeaders", null,
-                            SnCorsConstants.AccessControlAllowHeadersDefault);
+                var allowedMethods = Settings.GetValue("Portal", "AllowedMethods", null,
+                    SnCorsConstants.AccessControlAllowMethodsDefault);
+                var allowedHeaders = Settings.GetValue("Portal", "AllowedHeaders", null,
+                    SnCorsConstants.AccessControlAllowHeadersDefault);
 
-                        policyBuilder.WithMethods(allowedMethods);
-                        policyBuilder.WithHeaders(allowedHeaders);
-                    }
-
-                    return Task.FromResult(policyBuilder.Build());
-                }
+                policyBuilder.WithMethods(allowedMethods);
+                policyBuilder.WithHeaders(allowedHeaders);
             }
 
-            // default behavior
-            return Task.FromResult(_options.GetPolicy(policyName ?? _options.DefaultPolicyName));
+            return Task.FromResult(policyBuilder.Build());
         }
 
         internal static string GetAllowedDomain(string originDomain, IEnumerable<string> allowedDomains)
         {
             bool TemplateMatch(string template)
             {
-                if (string.IsNullOrEmpty(template) || !template.Contains("*"))
+                if (string.Equals(template, originDomain, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+
+                if (string.IsNullOrEmpty(template))
                     return false;
 
                 // If there is a port wildcard, we will match all ports,
@@ -86,7 +92,6 @@ namespace SenseNet.Services.Core.Cors
 
             return allowedDomains?.FirstOrDefault(d =>
                 d == CorsConstants.AnyOrigin ||
-                string.Compare(d, originDomain, StringComparison.InvariantCultureIgnoreCase) == 0 ||
                 TemplateMatch(d));
         }
     }

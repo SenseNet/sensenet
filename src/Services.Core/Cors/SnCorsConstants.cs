@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SenseNet.Services.Core.Cors
+﻿namespace SenseNet.Services.Core.Cors
 {
     internal class SnCorsConstants
     {
@@ -16,6 +12,12 @@ namespace SenseNet.Services.Core.Cors
             "X-Refresh-Data", "X-Access-Data",
             "X-Requested-With", "Authorization", "Content-Type",
             "Content-Range", "Content-Disposition"
+        };
+
+        internal static readonly string[] DefaultAllowedDomains = 
+        {
+            "*.sensenet.com",
+            "localhost:*"
         };
     }
 }
