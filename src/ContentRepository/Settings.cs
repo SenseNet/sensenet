@@ -235,8 +235,17 @@ namespace SenseNet.ContentRepository
             if (string.IsNullOrEmpty(settingsName))
                 throw new ArgumentNullException(nameof(settingsName));
 
-            return SettingsCache.GetSettingsByName<T>(settingsName, contextPath)
-                ?? Node.Load<T>(RepositoryPath.Combine(SETTINGSCONTAINERPATH, settingsName + "." + EXTENSION));
+            try
+            {
+                return SettingsCache.GetSettingsByName<T>(settingsName, contextPath)
+                       ?? Node.Load<T>(RepositoryPath.Combine(SETTINGSCONTAINERPATH, settingsName + "." + EXTENSION));
+            }
+            catch (Exception ex)
+            {
+                SnTrace.System.WriteError($"Error loading setting: {settingsName}. {ex.Message}");
+            }
+
+            return null;
         }
 
         /// <summary>
