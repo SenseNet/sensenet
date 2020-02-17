@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Linq;
+using Microsoft.AspNetCore.Builder;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
@@ -33,12 +36,15 @@ namespace SenseNet.Services.Core
                 // user in elevated mode (using system account).
 
                 var identity = context?.User?.Identity;
+                User user = null;
+
+                // Currently if the Name property is filled, we try to load users based only
+                // on that value, ignoring the sub claim.
+
                 if (!string.IsNullOrEmpty(identity?.Name))
                 {
-                    // Currently we look for users by their login name. In the future we may add
-                    // a more flexible user discovery algorithm here.
-
-                    var user = SystemAccount.Execute(() => User.Load(identity.Name));
+                    // first look for users by their login name
+                    user = SystemAccount.Execute(() => User.Load(identity.Name));
                     if (user != null)
                     {
                         User.Current = user;
@@ -49,6 +55,24 @@ namespace SenseNet.Services.Core
                     }
                 }
                 else
+                {
+                    // Check if there is a sub claim. Look for sub by its simple name or
+                    // using the longer name defined by the schema below.
+                    var sub = context?.User?.Claims.FirstOrDefault(c =>
+                        c.Type == "sub" || c.Properties.Any(p =>
+                            string.Equals(p.Key,
+                                "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName",
+                                StringComparison.InvariantCultureIgnoreCase) &&
+                            p.Value == "sub"))?.Value;
+                    if (!string.IsNullOrEmpty(sub))
+                    {
+                        // try to recognize sub as a user id or username
+                        user = SystemAccount.Execute(() =>
+                            int.TryParse(sub, out var subId) ? Node.Load<User>(subId) : User.Load(sub));
+                    }
+                }
+
+                if (user == null)
                 {
                     User.Current = User.Visitor;
                 }

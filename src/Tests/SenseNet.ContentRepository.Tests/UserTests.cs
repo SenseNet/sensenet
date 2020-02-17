@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -87,6 +88,73 @@ namespace SenseNet.ContentRepository.Tests
                 // The bug is fixed if the code can run up to this point
                 // but we test the full feature.
                 Assert.AreEqual(group.Id, additionalGroups.First());
+            });
+        }
+
+        [TestMethod]
+        public void User_CreateByRegularUser()
+        {
+            Test(true, () =>
+            {
+                var parentPath = "/Root/IMS/BuiltIn/Temp-" + Guid.NewGuid();
+                var originalUser = AccessProvider.Current.GetOriginalUser();
+
+                try
+                {
+                    User user1;
+                    Content parent;
+
+                    using (new SystemAccount())
+                    {
+                        // create a test container
+                        parent = RepositoryTools.CreateStructure(parentPath, "OrganizationalUnit");
+
+                        // create a test user
+                        user1 = new User(parent.ContentHandler)
+                        {
+                            Name = "sample-sam",
+                            LoginName = "samplesam@example.com",
+                            Email = "samplesam@example.com"
+                        };
+                        user1.Save();
+
+                        // add permissions for this test user (local Add, but not TakeOwnership) and for Owners (everything)
+                        var editor = SnSecurityContext.Create().CreateAclEditor();
+                        editor.Allow(parent.Id, user1.Id, true, PermissionType.AddNew)
+                            .Allow(parent.Id, Identifiers.OwnersGroupId, false, PermissionType.BuiltInPermissionTypes);
+                        editor.Apply();
+                    }
+
+                    AccessProvider.Current.SetCurrentUser(user1);
+
+                    // create a new user in the name of the test user
+                    var user2 = new User(parent.ContentHandler)
+                    {
+                        Name = "newser",
+                        LoginName = "newser@example.com",
+                        Email = "newser@example.com"
+                    };
+
+                    //ACTION
+                    user2.Save();
+
+                    using (new SystemAccount())
+                    {
+                        // user1 could create user2, but cannot open or modify it, because he only has AddNew permission on the parent
+                        Assert.IsFalse(user2.Security.HasPermission(user1, PermissionType.Open));
+
+                        // the new user should have permissions for herself because she is the owner
+                        Assert.IsTrue(user2.Security.HasPermission(user2, PermissionType.Save));
+                    }
+                }
+                finally
+                {
+                    using (new SystemAccount())
+                        if (Node.Exists(parentPath))
+                            Node.ForceDelete(parentPath);
+
+                    AccessProvider.Current.SetCurrentUser(originalUser);
+                }
             });
         }
     }
