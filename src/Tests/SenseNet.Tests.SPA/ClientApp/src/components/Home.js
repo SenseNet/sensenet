@@ -11,6 +11,7 @@ export class Home extends Component {
             <p>
                 <ul>
                     <li><a href='/sensenet'>sensenet test page</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/testfile.txt'>Test file to download</a></li>
                 </ul>
             </p>
 

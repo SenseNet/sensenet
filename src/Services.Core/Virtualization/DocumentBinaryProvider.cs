@@ -127,6 +127,8 @@ namespace SenseNet.Portal.Virtualization
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
+            if (string.IsNullOrEmpty(propertyName))
+                propertyName = DEFAULTBINARY_NAME;
 
             BinaryData binaryData = null;
             var content = Content.Create(node);

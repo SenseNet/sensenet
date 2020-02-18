@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Services.Core.Virtualization
 {
+    /// <summary>
+    /// ASP.NET Core middleware to process binary requests.
+    /// </summary>
     public class BinaryMiddleware
     {
         private readonly RequestDelegate _next;

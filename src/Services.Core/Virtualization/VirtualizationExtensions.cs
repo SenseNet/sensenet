@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Services.Core.Virtualization
 {
@@ -18,23 +20,41 @@ namespace SenseNet.Services.Core.Virtualization
         public static IApplicationBuilder UseSenseNetFiles(this IApplicationBuilder builder,
             Action<IApplicationBuilder> buildAppBranch = null)
         {
-            // add binary middleware only if the request contains the appropriate prefix
-            builder.MapWhen(httpContext => httpContext.Request.Path.StartsWithSegments("/binaryhandler.ashx"),
-                appBranch =>
-                {
-                    appBranch.UseMiddleware<BinaryMiddleware>();
+            // add binary middleware only if the request is recognized to be a binary request
+            builder.MapWhen(IsBinaryRequest, appBranch =>
+            {
+                appBranch.UseMiddleware<BinaryMiddleware>();
 
-                    // Register a follow-up middleware defined by the caller or set a terminating, empty middleware.
-                    // If we do not do this, the system will try to set the status code which is not possible as
-                    // the request has already been started by our middleware above.
+                // Register a follow-up middleware defined by the caller or set a terminating, empty middleware.
+                // If we do not do this, the system will try to set the status code which is not possible as
+                // the request has already been started by our middleware above.
 
-                    if (buildAppBranch != null)
-                        buildAppBranch.Invoke(appBranch);
-                    else
-                        appBranch.Use((context, next) => Task.CompletedTask);
-                });
+                if (buildAppBranch != null)
+                    buildAppBranch.Invoke(appBranch);
+                else
+                    appBranch.Use((context, next) => Task.CompletedTask);
+            });
 
             return builder;
+        }
+
+        private static bool IsBinaryRequest(HttpContext context)
+        {
+            if (context?.Request == null)
+                return false;
+
+            // if the request contains the binary handler prefix
+            if (context.Request.Path.StartsWithSegments("/binaryhandler.ashx"))
+                return true;
+
+            //UNDONE: matching only for the Path is too broad
+            // This may prevent subsequent middleware (e.g. MVC) to run.
+
+            // check if a content exists in the repository with this path
+            if (NodeHead.Get(context.Request.Path) != null)
+                return true;
+
+            return false;
         }
     }
 }

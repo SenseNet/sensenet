@@ -29,6 +29,9 @@ namespace SenseNet.Tests.SPA
                 using (new SystemAccount())
                 {
                     // FOR TESTING PURPOSES: create a default user with a well-known password
+                    // login:    edvin@example.com
+                    // password: Edvin123%
+
                     var parentPath = "/Root/IMS/BuiltIn/Temp";
                     var parent = RepositoryTools.CreateStructure(parentPath, "OrganizationalUnit");
 
@@ -42,8 +45,13 @@ namespace SenseNet.Tests.SPA
                     };
                     user.Save();
 
-                    // create a doclib that contains a file
+                    // set the new user as administrator
+                    Group.Administrators.AddMember(user);
+
+                    // create a container for test content
                     parent = RepositoryTools.CreateStructure("/Root/MyContent", "SystemFolder");
+
+                    // create a doclib that contains a file
                     var docLib = RepositoryTools.CreateStructure("/Root/MyContent/MyFiles", "DocumentLibrary");
 
                     var file = new File(docLib.ContentHandler) {Name = "testfile.txt"};

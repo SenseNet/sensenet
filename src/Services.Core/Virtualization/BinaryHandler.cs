@@ -67,11 +67,16 @@ namespace SenseNet.Services.Core.Virtualization
 
             RequestedNodePath = _context.Request.Query["nodepath"].FirstOrDefault();
 
+            // precedence for identifying the node:
+            //   1. nodeid parameter
+            //   2. nodepath parameter
+            //   3. request path
+
             RequestedNodeHead = RequestedNodeId.HasValue
                 ? NodeHead.Get(RequestedNodeId.Value)
                 : !string.IsNullOrEmpty(RequestedNodePath)
                     ? NodeHead.Get(RequestedNodePath)
-                    : null;
+                    : NodeHead.Get(_context.Request.Path);
 
             var propertyName = _context.Request.Query["propertyname"].FirstOrDefault();
             PropertyName = string.IsNullOrEmpty(propertyName) ? null : propertyName.Replace("$", "#");
@@ -88,6 +93,7 @@ namespace SenseNet.Services.Core.Virtualization
             if (!string.IsNullOrEmpty(maxAgeInDaysStr) && int.TryParse(maxAgeInDaysStr, out var maxAgeInDays))
                 MaxAge = TimeSpan.FromDays(maxAgeInDays);
 
+            //UNDONE: move the whole load mechanism to the async ProcessRequestCore method
             if (RequestedNodeHead != null)
             {
                 if (!SecurityHandler.HasPermission(RequestedNodeHead, PermissionType.Open))
@@ -147,11 +153,10 @@ namespace SenseNet.Services.Core.Virtualization
         /// </summary>
         public async Task ProcessRequestCore()
         {
-            //UNDONE: integrate this to the pipeline
             var requestedNode = RequestedNode;
             var propertyName = PropertyName;
 
-            if (string.IsNullOrEmpty(propertyName) || requestedNode == null)
+            if (requestedNode == null)
             {
                 _context.Response.StatusCode = 404;
                 return;
@@ -164,6 +169,7 @@ namespace SenseNet.Services.Core.Virtualization
                 if (binaryStream == null)
                     return;
 
+                //UNDONE: consider using Image.GetImageStream like in RepositoryFile
                 using (var resizedStream = GetResizedOrOriginalStream(binaryStream, contentType))
                 {
                     // We need to Flush the headers before we start to stream the actual binary.
