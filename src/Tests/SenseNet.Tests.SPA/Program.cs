@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using SenseNet.ContentRepository;
@@ -25,9 +26,9 @@ namespace SenseNet.Tests.SPA
                     .UseTracer(new SnFileSystemTracer());
             }))
             {
-                // FOR TESTING PURPOSES: create a default user with a well-known password
                 using (new SystemAccount())
                 {
+                    // FOR TESTING PURPOSES: create a default user with a well-known password
                     var parentPath = "/Root/IMS/BuiltIn/Temp";
                     var parent = RepositoryTools.CreateStructure(parentPath, "OrganizationalUnit");
 
@@ -40,6 +41,14 @@ namespace SenseNet.Tests.SPA
                         Email = "edvin@example.com"
                     };
                     user.Save();
+
+                    // create a doclib that contains a file
+                    parent = RepositoryTools.CreateStructure("/Root/MyContent", "SystemFolder");
+                    var docLib = RepositoryTools.CreateStructure("/Root/MyContent/MyFiles", "DocumentLibrary");
+
+                    var file = new File(docLib.ContentHandler) {Name = "testfile.txt"};
+                    file.Binary.SetStream(RepositoryTools.GetStreamFromString($"temp text data {DateTime.UtcNow}"));
+                    file.Save();
                 }
 
                 SnTrace.EnableAll();

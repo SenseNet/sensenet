@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SenseNet.Services.Core.Virtualization
@@ -17,6 +14,10 @@ namespace SenseNet.Services.Core.Virtualization
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
+            var bh = new BinaryHandler(httpContext);
+
+            await bh.ProcessRequestCore().ConfigureAwait(false);
+
             // Call next middleware in the chain if exists
             if (_next != null)
                 await _next(httpContext).ConfigureAwait(false);
