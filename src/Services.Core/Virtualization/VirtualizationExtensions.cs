@@ -47,6 +47,9 @@ namespace SenseNet.Services.Core.Virtualization
             if (context.Request.Path.StartsWithSegments("/binaryhandler.ashx"))
                 return true;
 
+            //TODO: recognize urls containing the old 'sn-binary' prefix and
+            // id, property and other parameters.
+
             //UNDONE: matching only for the Path is too broad
             // This may prevent subsequent middleware (e.g. MVC) to run.
 
