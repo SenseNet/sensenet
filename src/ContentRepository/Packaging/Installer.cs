@@ -16,9 +16,16 @@ namespace SenseNet.Packaging
     {
         public RepositoryBuilder RepositoryBuilder { get; }
 
-        public Installer(RepositoryBuilder repositoryBuilder)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Installer"/> class.
+        /// If you construct this object without a RepositoryBuilder, please
+        /// make sure you start the Content Repository manually before attempting
+        /// to install or import anything.
+        /// </summary>
+        /// <param name="repositoryBuilder"></param>
+        public Installer(RepositoryBuilder repositoryBuilder = null)
         {
-            RepositoryBuilder = repositoryBuilder ?? throw new ArgumentNullException(nameof(repositoryBuilder));
+            RepositoryBuilder = repositoryBuilder;
         }
 
         /// <summary>
@@ -139,7 +146,11 @@ namespace SenseNet.Packaging
             Logger.PackageName = "import";
             Logger.Create(LogLevel.Default);
 
-            using (Repository.Start(RepositoryBuilder))
+            if (RepositoryBuilder == null)
+            {
+                ImportBase.Import(sourcePath, targetPath);
+            }
+            else using (Repository.Start(RepositoryBuilder))
             {
                 ImportBase.Import(sourcePath, targetPath);
             }
