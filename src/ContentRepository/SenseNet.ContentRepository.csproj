@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.7.7.1</Version>
+    <Version>7.7.7.2</Version>
     <Authors>kavics,aniko,lajos,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -47,17 +47,7 @@
     <ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj" />
     <ProjectReference Include="..\Common\SenseNet.Common.csproj" />
     <ProjectReference Include="..\Search\SenseNet.Search.csproj" />
-    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj">
-      <ExcludeAssets>all</ExcludeAssets> 
-    </ProjectReference>
+    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="bin\Release\netstandard2.0\SenseNet.Storage.dll">
-      <PackagePath>lib\netstandard2.0</PackagePath>
-      <Pack>true</Pack>
-      <Visible>false</Visible>
-    </None>
-  </ItemGroup>
-
+  
 </Project>
