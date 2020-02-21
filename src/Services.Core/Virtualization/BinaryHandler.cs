@@ -63,24 +63,26 @@ namespace SenseNet.Services.Core.Virtualization
             ParsePropertiesFromContext();
         }
 
-        ////UNDONE: alternative binary handler constructor: call this from routing or remove it
-        ///// <summary>
-        ///// Creates a new instance of BinaryHandlerBase
-        ///// </summary>
-        //public BinaryHandler(Node requestedNode, string propertyName, TimeSpan? maxAge = null, int? width = null, int? height = null)
-        //{
-        //    RequestedNode = requestedNode;
-        //    PropertyName = propertyName;
-        //    Width = width;
-        //    Height = height;
-        //    MaxAge = maxAge;
-        //}
-        
+        //TODO: alternative binary handler constructor: call this from routing
+        /// <summary>
+        /// Creates a new instance of BinaryHandlerBase
+        /// </summary>
+        internal BinaryHandler(Node requestedNode, string propertyName, TimeSpan? maxAge = null, int? width = null, int? height = null)
+        {
+            RequestedNode = requestedNode;
+            PropertyName = propertyName;
+            Width = width;
+            Height = height;
+            MaxAge = maxAge;
+        }
+
         /// <summary>
         /// Processes the request.
         /// </summary>
         public async Task ProcessRequestCore()
         {
+            //UNDONE: port the whole HandleResponseForClientCache feature from PortalContextModule
+
             await InitializeRequestedNodeAsync();
             
             if (RequestedNode == null)
@@ -94,7 +96,6 @@ namespace SenseNet.Services.Core.Virtualization
                 if (binaryStream == null)
                     return;
 
-                // Legacy: we need to Flush the headers before we start to stream the actual binary.
                 _context.Response.ContentType = contentType;
                 _context.Response.Headers.Append("Content-Length", binaryStream.Length.ToString());
 
@@ -103,10 +104,7 @@ namespace SenseNet.Services.Core.Virtualization
                 httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: this.MaxAge);
 
                 _context.Response.StatusCode = 200;
-
-                //UNDONE: find Flush equivalent in .net core or remove this
-                //_context.Response.Flush();
-
+                
                 binaryStream.Position = 0;
 
                 // Let ASP.NET handle sending bytes to the client.
@@ -120,47 +118,34 @@ namespace SenseNet.Services.Core.Virtualization
 
         private async Task InitializeRequestedNodeAsync()
         {
-            if (RequestedNode == null && RequestedNodeHead != null)
+            if (RequestedNode != null || RequestedNodeHead == null)
+                return;
+
+            // TODO: Not ported feature: User's Avatar
+            // If the user does not have Open permission for the requested content
+            // which is a user's image than serve a default avatar image.
+            // Prerequisite: port the IdentityTools.GetDefaultUserAvatarPath
+            // from the old Services project.
+            // if (!SecurityHandler.HasPermission(RequestedNodeHead, PermissionType.Open))
+            // {
+            // }
+
+            //TODO: parse VersionRequest globally, as this value may be needed elsewhere too
+            var versionRequest = _context.Request.Query["version"].FirstOrDefault();
+            if (string.IsNullOrEmpty(versionRequest))
             {
-                if (!SecurityHandler.HasPermission(RequestedNodeHead, PermissionType.Open))
+                RequestedNode = await Node
+                    .LoadNodeAsync(RequestedNodeHead, VersionNumber.LastFinalized, _context.RequestAborted)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                if (VersionNumber.TryParse(versionRequest, out var version))
                 {
-                    // Feature: User's Avatar
-                    // In case this was an attempt to download a user's avatar that the current 
-                    // user does not have access to, serve the default (skin-relative) avatar.
-                    if (RequestedNodeHead.GetNodeType().IsInstaceOfOrDerivedFrom("User") &&
-                        string.CompareOrdinal(PropertyName, "ImageData") == 0)
-                    {
-                        //UNDONE: GetDefaultUserAvatarPath
-                        var avatarPath = string.Empty; //IdentityTools.GetDefaultUserAvatarPath();
-                        if (!string.IsNullOrEmpty(avatarPath))
-                        {
-                            // Set property to default because the default avatar image 
-                            // does not have an ImageData property, only Binary.
-                            PropertyName = "Binary";
-
-                            RequestedNode = await Node.LoadNodeAsync(avatarPath, _context.RequestAborted)
-                                .ConfigureAwait(false);
-                        }
-                    }
-                }
-
-                //TODO: parse VersionRequest globally, as this value may be needed elsewhere too
-                var versionRequest = _context.Request.Query["version"].FirstOrDefault();
-                if (string.IsNullOrEmpty(versionRequest))
-                {
-                    RequestedNode = await Node
-                        .LoadNodeAsync(RequestedNodeHead, VersionNumber.LastFinalized, _context.RequestAborted)
+                    var node = await Node.LoadNodeAsync(RequestedNodeHead, version, _context.RequestAborted)
                         .ConfigureAwait(false);
-                }
-                else
-                {
-                    if (VersionNumber.TryParse(versionRequest, out var version))
-                    {
-                        var node = await Node.LoadNodeAsync(RequestedNodeHead, version, _context.RequestAborted)
-                            .ConfigureAwait(false);
-                        if (node != null && node.SavingState == ContentSavingState.Finalized)
-                            RequestedNode = node;
-                    }
+                    if (node != null && node.SavingState == ContentSavingState.Finalized)
+                        RequestedNode = node;
                 }
             }
         }

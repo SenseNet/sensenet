@@ -49,10 +49,7 @@ namespace SenseNet.Services.Core.Virtualization
 
             //TODO: recognize urls containing the old 'sn-binary' prefix and
             // id, property and other parameters.
-
-            //UNDONE: matching only for the Path is too broad
-            // This may prevent subsequent middleware (e.g. MVC) to run.
-
+            
             // check if a content exists in the repository with this path
             if (NodeHead.Get(context.Request.Path) != null)
                 return true;
