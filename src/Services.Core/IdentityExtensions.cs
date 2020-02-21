@@ -45,11 +45,8 @@ namespace SenseNet.Services.Core
                 {
                     // first look for users by their login name
                     user = SystemAccount.Execute(() => User.Load(identity.Name));
-                    if (user != null)
-                    {
-                        User.Current = user;
-                    }
-                    else
+
+                    if (user == null)
                     {
                         SnTrace.Security.Write("Unknown user: {0}", identity.Name);
                     }
@@ -72,10 +69,7 @@ namespace SenseNet.Services.Core
                     }
                 }
 
-                if (user == null)
-                {
-                    User.Current = User.Visitor;
-                }
+                User.Current = user ?? User.Visitor;
 
                 await next.Invoke();
             });
