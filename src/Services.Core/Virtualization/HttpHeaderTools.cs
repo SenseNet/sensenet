@@ -3,6 +3,12 @@ using System.Linq;
 using System.Web;
 using SenseNet.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.Net.Http.Headers;
+using SenseNet.Portal;
 
 namespace SenseNet.Services.Core.Virtualization
 {
@@ -36,10 +42,10 @@ namespace SenseNet.Services.Core.Virtualization
 
     public class HttpHeaderTools
     {
-        private static readonly string HEADER_CONTENTDISPOSITION_NAME = "Content-Disposition";
         private static readonly string HEADER_CONTENTDISPOSITION_VALUE = "Attachment";
         
         private readonly HttpContext _context;
+        private readonly CacheControlHeaderValue _cacheHeaders = new CacheControlHeaderValue();
 
         public HttpHeaderTools(HttpContext context)
         {
@@ -49,7 +55,7 @@ namespace SenseNet.Services.Core.Virtualization
         // ============================================================================================ Private methods
         private bool IsClientCached(DateTime contentModified)
         {
-            var modifiedSinceHeader = _context.Request.Headers["If-Modified-Since"].FirstOrDefault();
+            var modifiedSinceHeader = _context.Request.Headers[HeaderNames.IfModifiedSince].FirstOrDefault();
             if (modifiedSinceHeader == null) 
                 return false;
 
@@ -65,16 +71,21 @@ namespace SenseNet.Services.Core.Virtualization
         // ============================================================================================ Public methods
         public void SetCacheControlHeaders(int cacheForSeconds)
         {
-            //UNDONE: port the whole HandleResponseForClientCache feature from PortalContextModule
             SetCacheControlHeaders(cacheForSeconds, HttpCacheability.Public);
         }
         public void SetCacheControlHeaders(int cacheForSeconds, HttpCacheability httpCacheability)
         {
             SetCacheControlHeaders(httpCacheability, maxAge: new TimeSpan(0, 0, cacheForSeconds));
         }
-        public void SetCacheControlHeaders(HttpCacheability? httpCacheability = null, DateTime? lastModified = null, TimeSpan? maxAge = null)
+        public void SetCacheControlHeaders(HttpCacheability? httpCacheability = null, 
+            DateTime? lastModified = null, TimeSpan? maxAge = null)
         {
-            var cacheHeaders = _context.Response.GetTypedHeaders().CacheControl;
+            // Cache control headers are stored temporarily in an aggregated object
+            // and written to the single response header. The reason behind this is
+            // that this method may be called multiple times with different kinds
+            // of parameters.
+
+            var writeCacheControlHeader = false;
 
             try
             {
@@ -83,35 +94,42 @@ namespace SenseNet.Services.Core.Virtualization
                     switch (httpCacheability)
                     {
                         case HttpCacheability.NoCache:
-                            cacheHeaders.NoCache = true;
-                            cacheHeaders.NoStore = true;
-                            cacheHeaders.ProxyRevalidate = true;
-                            cacheHeaders.MustRevalidate = true;
+                            _cacheHeaders.NoCache = true;
+                            _cacheHeaders.NoStore = true;
+                            _cacheHeaders.ProxyRevalidate = true;
+                            _cacheHeaders.MustRevalidate = true;
                             break;
                         case HttpCacheability.Private:
-                            cacheHeaders.Private = true;
+                            _cacheHeaders.Private = true;
                             break;
                         case HttpCacheability.Public:
-                            cacheHeaders.Public = true;
+                            _cacheHeaders.Public = true;
                             break;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(httpCacheability), httpCacheability, null);
                     }
+
+                    writeCacheControlHeader = true;
                 }
 
                 if (lastModified.HasValue)
                 {
+                    // make sure that the date is in the past
                     var t = lastModified.Value;
                     if (t > DateTime.UtcNow)
                         t = DateTime.UtcNow;
                     
-                    _context.Response.Headers["Last-Modified"] = t.ToUniversalTime().ToString("r");
+                    _context.Response.Headers[HeaderNames.LastModified] = t.ToUniversalTime().ToString("r");
                 }
 
                 if (maxAge.HasValue)
                 {
-                    cacheHeaders.MaxAge = maxAge.Value;
+                    _cacheHeaders.MaxAge = maxAge.Value;
+                    writeCacheControlHeader = true;
                 }
+
+                if (writeCacheControlHeader)
+                    _context.Response.Headers[HeaderNames.CacheControl] = _cacheHeaders.ToString();
             }
             catch (Exception ex)
             {
@@ -143,7 +161,68 @@ namespace SenseNet.Services.Core.Virtualization
             }
 
             // there must be only one header entry with this name
-            _context.Response.Headers[HEADER_CONTENTDISPOSITION_NAME] = cdHeader;
+            _context.Response.Headers[HeaderNames.ContentDisposition] = cdHeader;
+        }
+
+        /// <summary>
+        /// If the resource requested by the client is still valid based on its modification date and the 
+        /// date sent by the client (in the request header), this method sets 304 (not modified) as 
+        /// the response status and optionally physically ends the response.
+        /// </summary>
+        /// <param name="lastModificationDate">Last modification date of the accessed resource.</param>
+        public bool EndResponseForClientCache(DateTime lastModificationDate)
+        {
+            //  http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+            //  14.25 If-Modified-Since
+            //  14.29 Last-Modified
+
+            if (IsClientCached(lastModificationDate))
+            {
+                _context.Response.StatusCode = 304;
+
+                return true;
+            }
+
+            SetCacheControlHeaders(lastModified: lastModificationDate);
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the appropriate cache header from the portal settings determined by the given path. 
+        /// Settings can be different based on content type or extension. A setting is a match for
+        /// the provided parameters if all the parameters match the setting criteria.
+        /// </summary>
+        /// <param name="path">Context path. If it is empty, the caller gets the global setting.</param>
+        /// <param name="contentType">Content type name. Can be empty.</param>
+        /// <param name="extension">Extension (e.g. js) to load settings for. Can be empty.</param>
+        /// <returns>The found MaxAge setting or null.</returns>
+        public int? GetCacheHeaderSetting(string path, string contentType, string extension = null)
+        {
+            if (extension == null)
+                extension = Path.GetExtension(path)?.ToLower().Trim(' ', '.');
+            
+            var cacheHeaderSettings = Settings.GetValue<IEnumerable<CacheHeaderSetting>>(
+                PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_CACHEHEADERS, path);
+            if (cacheHeaderSettings == null)
+                return null;
+
+            foreach (var chs in cacheHeaderSettings)
+            {
+                // Check if one of the criterias does not match. Empty extension or content type
+                // will not match if these criterias are provided explicitly in the setting.
+                var extMismatch = !string.IsNullOrEmpty(chs.Extension) && chs.Extension != extension;
+                var contentTypeMismatch = !string.IsNullOrEmpty(chs.ContentType) && chs.ContentType != contentType;
+                var pathMismatch = !string.IsNullOrEmpty(chs.Path) && !path.StartsWith(RepositoryPath.Combine(chs.Path, RepositoryPath.PathSeparator));
+
+                if (extMismatch || pathMismatch || contentTypeMismatch)
+                    continue;
+
+                // found a match
+                return chs.MaxAge;
+            }
+
+            return null;
         }
     }
 }

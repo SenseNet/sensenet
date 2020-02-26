@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
+using SenseNet.Preview;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 
@@ -81,7 +83,22 @@ namespace SenseNet.Services.Core.Virtualization
         /// </summary>
         public async Task ProcessRequestCore()
         {
-            //UNDONE: port the whole HandleResponseForClientCache feature from PortalContextModule
+            if (!CheckPermissions())
+            {
+                _context.Response.StatusCode = 404;
+                return;
+            }
+
+            var httpHeaderTools = new HttpHeaderTools(_context);
+            var endResponse = HandleResponseForClientCache(httpHeaderTools);
+            if (endResponse)
+                return;
+
+            //TODO: CheckExecutableType feature is not ported yet from .net framework Services
+            // It was designed to handle executable files like aspx or cshtml.
+            // See the Repository.ExecutableExtensions property for the full list.
+
+            //TODO: the ImgResizeApplication feature is not ported yet from .net framework Services
 
             await InitializeRequestedNodeAsync();
             
@@ -98,10 +115,9 @@ namespace SenseNet.Services.Core.Virtualization
 
                 _context.Response.ContentType = contentType;
                 _context.Response.Headers.Append("Content-Length", binaryStream.Length.ToString());
-
-                var httpHeaderTools = new HttpHeaderTools(_context);
+                
                 httpHeaderTools.SetContentDispositionHeader(fileName);
-                httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: this.MaxAge);
+                httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: MaxAge);
 
                 _context.Response.StatusCode = 200;
                 
@@ -182,6 +198,76 @@ namespace SenseNet.Services.Core.Virtualization
             var maxAgeInDaysStr = _context.Request.Query["maxAge"].FirstOrDefault();
             if (!string.IsNullOrEmpty(maxAgeInDaysStr) && int.TryParse(maxAgeInDaysStr, out var maxAgeInDays))
                 MaxAge = TimeSpan.FromDays(maxAgeInDays);
+        }
+
+        private bool HandleResponseForClientCache(HttpHeaderTools headerTools)
+        {
+            if (RequestedNodeHead == null)
+                return false;
+            
+            var cacheSetting = GetCacheHeaderSetting(headerTools);
+            if (!cacheSetting.HasValue) 
+                return false;
+
+            // cache header (public or private) depends on whether the content is available for anyone
+            var accessibleForVisitor = SystemAccount.Execute(() =>
+                SecurityHandler.HasPermission(User.Visitor, RequestedNodeHead.Id, PermissionType.Open));
+            
+            // set MaxAge by type or extension or a global value as a fallback
+            headerTools.SetCacheControlHeaders(cacheSetting.Value,
+                accessibleForVisitor ? HttpCacheability.Public : HttpCacheability.Private);
+
+            // in case of preview images do NOT return 304, because _undetectable_ permission changes
+            // (on the image or on one of its parents) may change the preview image (e.g. display redaction or not).
+            if (DocumentPreviewProvider.Current?.IsPreviewOrThumbnailImage(RequestedNodeHead) ?? false) 
+                return false;
+
+            // Handle If-Modified-Since and Last-Modified headers: end the response
+            // if the content has not changed since the value posted by the client.
+            var endResponse = headerTools.EndResponseForClientCache(RequestedNodeHead.ModificationDate);
+
+            return endResponse;
+        }
+        private bool CheckPermissions()
+        {
+            if (RequestedNodeHead == null)
+                return false;
+
+            using (new SystemAccount())
+            {
+                return SecurityHandler.HasPermission(User.Current, RequestedNodeHead.Id, PermissionType.Open);
+            }
+        }
+        private int? GetCacheHeaderSetting(HttpHeaderTools headerTools)
+        {
+            if (RequestedNodeHead == null)
+                return null;
+
+            // shortcut: deal with real files only
+            var extension = Path.GetExtension(RequestedNodeHead.Path)?.ToLower().Trim(' ', '.');
+            if (string.IsNullOrEmpty(extension))
+                return null;
+
+            var contentType = RequestedNodeHead.GetNodeType().Name;
+            if (string.IsNullOrEmpty(contentType))
+                return null;
+
+            // try type-related setting first
+            var setting = headerTools.GetCacheHeaderSetting(RequestedNodeHead.Path, contentType, extension);
+            if (!setting.HasValue)
+            {
+                // load global binary cache setting as a fallback
+                var binarySetting = Settings.GetValue(PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_BINARYHANDLER_MAXAGE,
+                    RequestedNodeHead.Path, 0);
+                if (binarySetting > 0)
+                    return binarySetting;
+            }
+            else
+            {
+                return setting;
+            }
+
+            return null;
         }
 
         private Stream GetConvertedStream(out string contentType, out BinaryFileName fileName)

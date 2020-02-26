@@ -50,6 +50,10 @@ namespace SenseNet.Services.Core.Virtualization
             //TODO: recognize urls containing the old 'sn-binary' prefix and
             // id, property and other parameters.
             
+            //UNDONE: add more filters for binary handler
+            // For example handle only File types? OR any content with a binary property?
+            // What about modifier url parameters like 'action'?
+
             // check if a content exists in the repository with this path
             if (NodeHead.Get(context.Request.Path) != null)
                 return true;
