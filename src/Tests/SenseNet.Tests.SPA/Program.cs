@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Packaging;
 
 namespace SenseNet.Tests.SPA
 {
@@ -53,10 +54,14 @@ namespace SenseNet.Tests.SPA
 
                     // create a doclib that contains a file
                     var docLib = RepositoryTools.CreateStructure("/Root/MyContent/MyFiles", "DocumentLibrary");
+                    ((GenericContent)docLib.ContentHandler).AllowChildType("Image", save:true);
 
                     var file = new File(docLib.ContentHandler) {Name = "testfile.txt"};
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString($"temp text data {DateTime.UtcNow}"));
                     file.Save();
+
+                    //var installer = new Installer();
+                    //installer.Import("C:\\temp\\import\\Root");
                 }
 
                 SnTrace.EnableAll();
