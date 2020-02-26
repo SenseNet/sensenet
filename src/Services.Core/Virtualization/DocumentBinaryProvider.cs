@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -10,7 +9,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Tools;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -23,7 +21,7 @@ namespace SenseNet.Portal.Virtualization
         [Obsolete("Use Instance instead.")]
         public static DocumentBinaryProvider Current => Instance;
 
-        private const string DocumentBinaryProviderKey = "DocumentBinaryProvider";
+        internal const string DocumentBinaryProviderKey = "DocumentBinaryProvider";
         private static readonly object SyncRoot = new object();
         public static DocumentBinaryProvider Instance
         {
@@ -35,32 +33,27 @@ namespace SenseNet.Portal.Virtualization
                     lock (SyncRoot)
                     {
                         dbp = Providers.Instance.GetProvider<DocumentBinaryProvider>(DocumentBinaryProviderKey);
-                        if (dbp == null)
+                        if (dbp != null) 
+                            return dbp;
+
+                        // set the default implementation
+                        var defType = typeof(DefaultDocumentBinaryProvider);
+
+                        try
                         {
-                            var baseType = typeof(DocumentBinaryProvider);
-                            var defType = typeof(DefaultDocumentBinaryProvider);
-                            var dbpType = TypeResolver.GetTypesByBaseType(baseType).FirstOrDefault(t =>
-                                              string.Compare(t.FullName, baseType.FullName,
-                                                  StringComparison.InvariantCultureIgnoreCase) != 0 &&
-                                              string.Compare(t.FullName, defType.FullName,
-                                                  StringComparison.InvariantCultureIgnoreCase) != 0) ?? defType;
-
-                            try
-                            {
-                                dbp = Activator.CreateInstance(dbpType) as DocumentBinaryProvider;
-                            }
-                            catch (Exception ex)
-                            {
-                                SnLog.WriteException(ex, $"Error during instantiating document binary provider type {dbpType.FullName}.");
-                            }
-                            
-                            Providers.Instance.SetProvider(DocumentBinaryProviderKey, dbp);
-
-                            if (dbp == null)
-                                SnLog.WriteInformation("DocumentBinaryProvider not present.");
-                            else
-                                SnLog.WriteInformation("DocumentBinaryProvider created: " + dbpType.FullName);
+                            dbp = Activator.CreateInstance(defType) as DocumentBinaryProvider;
                         }
+                        catch (Exception ex)
+                        {
+                            SnLog.WriteException(ex, "Error during instantiating default document binary provider.");
+                        }
+                            
+                        Providers.Instance.SetProvider(DocumentBinaryProviderKey, dbp);
+
+                        if (dbp == null)
+                            SnLog.WriteInformation("DocumentBinaryProvider not present.");
+                        else
+                            SnLog.WriteInformation("DocumentBinaryProvider created: " + defType.FullName);
                     }
                 }
 

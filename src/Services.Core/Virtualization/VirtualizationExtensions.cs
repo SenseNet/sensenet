@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Portal.Virtualization;
+using SenseNet.Tools;
 
 namespace SenseNet.Services.Core.Virtualization
 {
@@ -56,6 +58,18 @@ namespace SenseNet.Services.Core.Virtualization
 
             // we are able to handle file types
             return head != null && head.GetNodeType().IsInstaceOfOrDerivedFrom("File");
+        }
+
+        /// <summary>
+        /// Sets DocumentBinaryProvider instances.
+        /// </summary>
+        public static IRepositoryBuilder UseDocumentBinaryProvider(this IRepositoryBuilder repositoryBuilder, 
+            DocumentBinaryProvider documentBinaryProvider)
+        {
+            Configuration.Providers.Instance.SetProvider(DocumentBinaryProvider.DocumentBinaryProviderKey,
+                documentBinaryProvider);
+
+            return repositoryBuilder;
         }
     }
 }
