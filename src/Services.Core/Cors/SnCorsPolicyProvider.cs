@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
+using SenseNet.Portal;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Cors
@@ -38,7 +39,8 @@ namespace SenseNet.Services.Core.Cors
             // Load current CORS settings from the repository. This must not be cached here,
             // because settings may change at runtime, anytime.
             var corsSettings =
-                Settings.GetValue<IEnumerable<string>>("Portal", "AllowedOriginDomains", null,
+                Settings.GetValue<IEnumerable<string>>(PortalSettings.SETTINGSNAME,
+                    PortalSettings.SETTINGS_ALLOWEDORIGINDOMAINS, null,
                     SnCorsConstants.DefaultAllowedDomains);
 
             // get a configured domain (or template) that matches the origin sent by the client
@@ -53,9 +55,9 @@ namespace SenseNet.Services.Core.Cors
                 if (!string.Equals(originHeader, CorsConstants.AnyOrigin))
                     policyBuilder.AllowCredentials();
                         
-                var allowedMethods = Settings.GetValue("Portal", "AllowedMethods", null,
+                var allowedMethods = Settings.GetValue(PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_ALLOWEDMETHODS, null,
                     SnCorsConstants.AccessControlAllowMethodsDefault);
-                var allowedHeaders = Settings.GetValue("Portal", "AllowedHeaders", null,
+                var allowedHeaders = Settings.GetValue(PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_ALLOWEDHEADERS, null,
                     SnCorsConstants.AccessControlAllowHeadersDefault);
 
                 policyBuilder.WithMethods(allowedMethods);

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using SenseNet.Identity.Experimental;
 using SenseNet.OData;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Virtualization;
 
 namespace SenseNet.Tests.SPA
 {
@@ -95,16 +96,19 @@ namespace SenseNet.Tests.SPA
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
-
+            
             app.UseRouting();
 
-            // Add the Authentication middleware and set sensenet current User.
+            // [sensenet] Add the Authentication middleware and set sensenet current User.
             app.UseSenseNetAuthentication();
-
+            
             app.UseIdentityServer();
             app.UseAuthorization();
 
-            // Add the sensenet-specific OData middleware.
+            // [sensenet] Add the sensenet binary handler
+            app.UseSenseNetFiles();
+
+            // [sensenet] Add the OData middleware.
             app.UseSenseNetOdata();
 
             app.UseEndpoints(endpoints =>

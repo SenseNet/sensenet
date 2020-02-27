@@ -8,11 +8,16 @@ export class Home extends Component {
       <div>
             <h1>Hello, world!</h1>
 
-            <p>
+            <div>
                 <ul>
                     <li><a href='/sensenet'>sensenet test page</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/testfile.txt'>Test file to download</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/gorilla.png'>Test image (png)</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/green.jpg'>Test image (jpg)</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/subfolder/gorilla.png'>Test public image (png)</a></li>
+                    <li><a href='/Root/MyContent/MyFiles/subfolder/green.jpg'>Test public image (jpg)</a></li>
                 </ul>
-            </p>
+            </div>
 
         <p>Welcome to your new single-page application, built with:</p>
         <ul>
