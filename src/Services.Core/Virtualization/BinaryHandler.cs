@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
@@ -114,7 +115,7 @@ namespace SenseNet.Services.Core.Virtualization
                     return;
 
                 _context.Response.ContentType = contentType;
-                _context.Response.Headers.Append("Content-Length", binaryStream.Length.ToString());
+                _context.Response.Headers.Append(HeaderNames.ContentLength, binaryStream.Length.ToString());
                 
                 httpHeaderTools.SetContentDispositionHeader(fileName);
                 httpHeaderTools.SetCacheControlHeaders(lastModified: RequestedNode.ModificationDate, maxAge: MaxAge);
