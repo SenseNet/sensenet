@@ -7,7 +7,6 @@ using Microsoft.Net.Http.Headers;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Preview;
 using File = SenseNet.ContentRepository.File;
@@ -236,7 +235,7 @@ namespace SenseNet.Services.Core.Virtualization
 
             using (new SystemAccount())
             {
-                return SecurityHandler.HasPermission(User.Current, RequestedNodeHead.Id, PermissionType.Open);
+                return SecurityHandler.HasPermission(User.LoggedInUser, RequestedNodeHead.Id, PermissionType.Open);
             }
         }
         private int? GetCacheHeaderSetting(HttpHeaderTools headerTools)
@@ -253,22 +252,13 @@ namespace SenseNet.Services.Core.Virtualization
             if (string.IsNullOrEmpty(contentType))
                 return null;
 
-            // try type-related setting first
-            var setting = headerTools.GetCacheHeaderSetting(RequestedNodeHead.Path, contentType, extension);
-            if (!setting.HasValue)
-            {
-                // load global binary cache setting as a fallback
-                var binarySetting = Settings.GetValue(PortalSettings.SETTINGSNAME, PortalSettings.SETTINGS_BINARYHANDLER_MAXAGE,
-                    RequestedNodeHead.Path, 0);
-                if (binarySetting > 0)
-                    return binarySetting;
-            }
-            else
-            {
-                return setting;
-            }
+            // PORT: there was a global binary cache setting as a fallback
+            // before, but here it would not make sense because it would
+            // mean caching all types of files (including Office files)
+            // which is not desirable.
 
-            return null;
+            // load setting based on extension and content type
+            return headerTools.GetCacheHeaderSetting(RequestedNodeHead.Path, contentType, extension);
         }
 
         private Stream GetConvertedStream(out string contentType, out BinaryFileName fileName)
