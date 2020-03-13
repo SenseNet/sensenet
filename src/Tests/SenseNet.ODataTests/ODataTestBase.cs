@@ -526,6 +526,32 @@ namespace SenseNet.ODataTests
             content.Save();
         }
 
+        protected static void EnsureGenericODataApplicationType()
+        {
+            if (ContentType.GetByName("GenericODataApplication") == null)
+            {
+                ContentTypeInstaller.InstallContentType(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""GenericODataApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.GenericODataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>$Ctd-GenericODataApplication,DisplayName</DisplayName>
+  <Description>$Ctd-GenericODataApplication,Description</Description>
+  <Icon>Application</Icon>
+  <Fields>
+    <Field name=""ClassName"" type=""ShortText"">
+      <DisplayName>$Ctd-GenericODataApplication,ClassName-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,ClassName-Description</Description>
+    </Field>
+    <Field name=""MethodName"" type=""ShortText"">
+      <DisplayName>$Ctd-GenericODataApplication,MethodName-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,MethodName-Description</Description>
+    </Field>
+    <Field name=""Parameters"" type=""LongText"">
+      <DisplayName>$Ctd-GenericODataApplication,Parameters-DisplayName</DisplayName>
+      <Description>$Ctd-GenericODataApplication,Parameters-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>");
+            }
+        }
 
         protected static Workspace CreateWorkspace(string name = null)
         {

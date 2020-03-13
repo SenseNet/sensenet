@@ -93,29 +93,7 @@ namespace SenseNet.ODataTests
         {
             await ODataTestAsync(async () =>
             {
-                if (ContentType.GetByName("GenericODataApplication") == null)
-                {
-                    ContentTypeInstaller.InstallContentType(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<ContentType name=""GenericODataApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.GenericODataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-  <DisplayName>$Ctd-GenericODataApplication,DisplayName</DisplayName>
-  <Description>$Ctd-GenericODataApplication,Description</Description>
-  <Icon>Application</Icon>
-  <Fields>
-    <Field name=""ClassName"" type=""ShortText"">
-      <DisplayName>$Ctd-GenericODataApplication,ClassName-DisplayName</DisplayName>
-      <Description>$Ctd-GenericODataApplication,ClassName-Description</Description>
-    </Field>
-    <Field name=""MethodName"" type=""ShortText"">
-      <DisplayName>$Ctd-GenericODataApplication,MethodName-DisplayName</DisplayName>
-      <Description>$Ctd-GenericODataApplication,MethodName-Description</Description>
-    </Field>
-    <Field name=""Parameters"" type=""LongText"">
-      <DisplayName>$Ctd-GenericODataApplication,Parameters-DisplayName</DisplayName>
-      <Description>$Ctd-GenericODataApplication,Parameters-Description</Description>
-    </Field>
-  </Fields>
-</ContentType>");
-                }
+                EnsureGenericODataApplicationType();
 
                 var appRoot = Node.LoadNode("/Root/(apps)/GenericContent");
                 var app = new GenericODataApplication(appRoot)
@@ -140,6 +118,64 @@ namespace SenseNet.ODataTests
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_WithApp_DifferentMethod()
+        {
+            await ODataTestAsync(async () =>
+            {
+                EnsureGenericODataApplicationType();
+
+                async Task CallActionAndAssert(string expected)
+                {
+                    var response = await ODataPostAsync(
+                        "/OData.svc/Root('IMS')/Function3",
+                        "?param2=value2",
+                        "{param1:\"asdf\",param2:\"qwer\"}").ConfigureAwait(false);
+
+                    // ASSERT
+                    var actual = response.Result;
+                    var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                    var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                    Assert.AreEqual(exp, raw);
+                }
+
+                //ACTION: without an app
+                await CallActionAndAssert("## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: value2.");
+
+                // create an app that points to the SAME method
+                var appRoot = Node.LoadNode("/Root/(apps)/GenericContent");
+                var app = new GenericODataApplication(appRoot)
+                {
+                    Name = "Function3",
+                    ClassName = this.GetType().FullName,
+                    MethodName = "Function3",
+                    Parameters = "string param1, string param2, string param3"
+                };
+                app.Save();
+
+                //ACTION: existing app, same method
+
+                //UNDONE: !!!!!!!! url parameter is not recognized if there is an app
+                await CallActionAndAssert("## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: value2.");
+                //await CallActionAndAssert("## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: qwer.");
+
+                // create a new app with the same name that points to a DIFFERENT method
+                app.ForceDelete();
+                app = new GenericODataApplication(appRoot)
+                {
+                    Name = "Function3",
+                    ClassName = this.GetType().FullName,
+                    MethodName = "Function2",
+                    Parameters = "Microsoft.AspNetCore.Http.HttpContext httpContext, SenseNet.OData.ODataRequest request, string param1"
+                };
+                app.Save();
+
+                //ACTION: with an existing app pointing to a different method
+                await CallActionAndAssert("## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS. Param1: asdf.");
+
             }).ConfigureAwait(false);
         }
 
