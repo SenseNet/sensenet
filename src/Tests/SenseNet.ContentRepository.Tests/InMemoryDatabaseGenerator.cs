@@ -26,6 +26,7 @@ using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
+using BlobStorage = SenseNet.Configuration.BlobStorage;
 using ExecutionContext = SenseNet.Packaging.ExecutionContext;
 
 namespace SenseNet.ContentRepository.Tests
@@ -33,8 +34,55 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class InMemoryDatabaseGenerator : TestBase
     {
+        [TestMethod]
+        public void __nodesWithBlobs()
+        {
+            var tempFolderPath = @"D:\_InitialData";
+
+            Cache.Reset();
+            ContentTypeManager.Reset();
+            Providers.Instance.NodeTypeManeger = null;
+            Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
+
+            var builder = CreateRepositoryBuilder(GetInitialData());
+
+            //Indexing.IsOuterSearchEngineEnabled = false;
+            builder.StartIndexingEngine = false;
+
+            Cache.Reset();
+            ContentTypeManager.Reset();
+
+            var log = new StringBuilder();
+            var loggers = new[] { new TestLogger(log) };
+            var loggerAcc = new PrivateType(typeof(Logger));
+            loggerAcc.SetStaticField("_loggers", loggers);
+            using (Repository.Start(builder))
+            {
+                new SnMaintenance().Shutdown();
+
+                var db = ((InMemoryDataProvider) DataStore.DataProvider).DB;
+                var blobDb = (InMemoryBlobProvider)BlobStorageBase.GetProvider(123);
+
+                var prop = db.Schema.PropertyTypes.First(x => x.Name == "Binary");
+                var node = db.Nodes.First(x => x.Name == "Logging.settings");
+                var version = db.Versions.First(x => x.NodeId == node.NodeId);
+                var binProp = db.BinaryProperties.First(x => x.VersionId == version.VersionId && x.PropertyTypeId == prop.Id);
+                var file = db.Files.First(x => x.FileId == binProp.FileId);
+                var blobCtx = new BlobStorageContext(blobDb, file.BlobProviderData);
+                var stream = blobDb.GetStreamForRead(blobCtx);
+
+
+                using (new SystemAccount())
+                {
+                    Save(tempFolderPath, log.ToString());
+
+                    CreateSourceFile(tempFolderPath);
+                }
+            }
+        }
+
         //[TestMethod]
-        public void xxx() //UNDONE: Delete this method
+        public void __checkNewIndex() //UNDONE: Delete this method
         {
             var index = GetInitialIndex();
             index.Save("D:\\_InitialData\\index\\1.txt");
@@ -199,18 +247,18 @@ namespace SenseNet.ContentRepository.Tests
                 }
             }
         }
-        private RepositoryBuilder CreateRepositoryBuilder()
+        private RepositoryBuilder CreateRepositoryBuilder(InitialData initialData = null)
         {
             var dataProvider = new InMemoryDataProvider();
             Providers.Instance.DataProvider = dataProvider;
-            DataStore.InstallInitialDataAsync(InitialData.Load(new SenseNetServicesInitialData()), CancellationToken.None).GetAwaiter().GetResult();
 
-            return new RepositoryBuilder()
+            var builder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseInitialData(initialData ?? InitialData.Load(new SenseNetServicesInitialData()))
                 .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
@@ -220,6 +268,8 @@ namespace SenseNet.ContentRepository.Tests
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+
+            return builder;
         }
         protected static InMemoryIndex GetInitialIndex()
         {
@@ -457,7 +507,7 @@ namespace SenseNet.ContentRepository.InMemory
                 writer.WriteLine(_template[3]);
 
                 using (var reader = new StreamReader(Path.Combine(tempFolderPath, "nodes.txt"), Encoding.UTF8))
-                    writer.Write(reader.ReadToEnd());
+                    writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
 
                 writer.WriteLine(_template[4]);
 
@@ -495,7 +545,7 @@ namespace SenseNet.ContentRepository.InMemory
         private void WriteBlobs(StreamWriter writer)
         {
             var template = @"                #region  {0}.{1}
-                {{ ""{2}"", @""{3}
+                {{ ""Binary:{2}"", @""{3}
 ""}},
                 #endregion";
 
