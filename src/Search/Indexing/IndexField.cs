@@ -181,5 +181,72 @@ namespace SenseNet.Search.Indexing
         /// <param name="store">Index storing mode.</param>
         /// <param name="termVector">Term vector handling.</param>
         public IndexField(string name, DateTime value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
+
+        public override string ToString()
+        {
+            return ToString(false);
+        }
+        public string ToString(bool stored)
+        {
+            var im = Mode > IndexingMode.Analyzed ? "IM" + (int)Mode + "," : string.Empty;
+            var sm = Store > IndexStoringMode.No ? "SM" + (int)Store + "," : string.Empty;
+            var tv = TermVector > IndexTermVector.No ? "TV" + (int)TermVector + "," : string.Empty;
+
+            return stored
+                ? $"{im}{tv}{base.ToString()}"
+                : $"{im}{sm}{tv}{base.ToString()}";
+        }
+
+        public static IndexField Parse(string src, bool stored)
+        {
+            var mode = IndexingMode.Default;
+            var store = stored ? IndexStoringMode.Yes : IndexStoringMode.Default;
+            var termVector = IndexTermVector.Default;
+
+            var p1 = src.IndexOf(':');
+            var p0 = src.IndexOf(',');
+            while (p0 > 0 && p0 < p1)
+            {
+                var flag = src.Substring(0, 2);
+                int.TryParse(src[2].ToString(), out var flagValue);
+                src = src.Substring(4);
+                switch (flag)
+                {
+                    case "IM": mode = (IndexingMode) flagValue; break;
+                    case "SM": store = (IndexStoringMode) flagValue; break;
+                    case "TV": termVector = (IndexTermVector) flagValue; break;
+                }
+
+                p0 = src.IndexOf(',');
+            }
+
+            // Split name, value, type
+            p0 = src.IndexOf(':');
+            p1 = src.LastIndexOf(':');
+            var name = src.Substring(0, p0);
+            var value = src.Substring(p0 + 1, p1 - p0 - 1);
+            var typeFlag = src.Substring(p1 + 1);
+            switch (typeFlag)
+            {
+                case "S":
+                    return new IndexField(name, value, mode, store, termVector);
+                case "A":
+                    throw new NotSupportedException();
+                case "B":
+                    return new IndexField(name, value == IndexValue.Yes, mode, store, termVector);
+                case "I":
+                    return new IndexField(name, int.Parse(value), mode, store, termVector);
+                case "L":
+                    return new IndexField(name, long.Parse(value), mode, store, termVector);
+                case "F":
+                    return new IndexField(name, float.Parse(value), mode, store, termVector);
+                case "D":
+                    return new IndexField(name, double.Parse(value), mode, store, termVector);
+                case "T":
+                    return new IndexField(name, DateTime.Parse(value), mode, store, termVector);
+                default:
+                    throw new ArgumentException("Unknown type flag: " + typeFlag);
+            }
+        }
     }
 }

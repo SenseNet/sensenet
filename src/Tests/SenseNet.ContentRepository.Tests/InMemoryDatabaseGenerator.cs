@@ -21,6 +21,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Steps;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
@@ -32,6 +33,84 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class InMemoryDatabaseGenerator : TestBase
     {
+        //[TestMethod]
+        public void xxx() //UNDONE: Delete this method
+        {
+            var index = GetInitialIndex();
+            index.Save("D:\\_InitialData\\index\\1.txt");
+            index.Load("D:\\_InitialData\\index\\1.txt");
+            index.Save("D:\\_InitialData\\index\\2.txt");
+        }
+
+        [TestMethod]
+        public void InMemoryDatabaseGenerator_IndexField_2Flags()
+        {
+            var field = new IndexField("FieldName", "value", IndexingMode.Default, IndexStoringMode.Yes,
+                IndexTermVector.WithPositions);
+
+            Assert.AreEqual("SM2,TV3,FieldName:value:S", field.ToString());
+
+            var parsed = IndexField.Parse(field.ToString(), false);
+
+            Assert.AreEqual(field.Name, parsed.Name);
+            Assert.AreEqual(field.Type, parsed.Type);
+            Assert.AreEqual(field.ValueAsString, parsed.ValueAsString);
+            Assert.AreEqual(field.Mode, parsed.Mode);
+            Assert.AreEqual(field.Store, parsed.Store);
+            Assert.AreEqual(field.TermVector, parsed.TermVector);
+        }
+        [TestMethod]
+        public void InMemoryDatabaseGenerator_IndexField_AllFlags()
+        {
+            var field = new IndexField("FieldName", "value", IndexingMode.No, IndexStoringMode.Yes,
+                IndexTermVector.WithPositions);
+
+            Assert.AreEqual("IM3,SM2,TV3,FieldName:value:S", field.ToString());
+
+            var parsed = IndexField.Parse(field.ToString(), false);
+
+            Assert.AreEqual(field.Name, parsed.Name);
+            Assert.AreEqual(field.Type, parsed.Type);
+            Assert.AreEqual(field.ValueAsString, parsed.ValueAsString);
+            Assert.AreEqual(field.Mode, parsed.Mode);
+            Assert.AreEqual(field.Store, parsed.Store);
+            Assert.AreEqual(field.TermVector, parsed.TermVector);
+        }
+        [TestMethod]
+        public void InMemoryDatabaseGenerator_IndexField_AllFlags_Stored()
+        {
+            var field = new IndexField("FieldName", "value", IndexingMode.No, IndexStoringMode.Yes,
+                IndexTermVector.WithPositions);
+
+            Assert.AreEqual("IM3,TV3,FieldName:value:S", field.ToString(true));
+
+            var parsed = IndexField.Parse(field.ToString(), true);
+
+            Assert.AreEqual(field.Name, parsed.Name);
+            Assert.AreEqual(field.Type, parsed.Type);
+            Assert.AreEqual(field.ValueAsString, parsed.ValueAsString);
+            Assert.AreEqual(field.Mode, parsed.Mode);
+            Assert.AreEqual(field.Store, parsed.Store);
+            Assert.AreEqual(field.TermVector, parsed.TermVector);
+        }
+        [TestMethod] //UNDONE: ?? (int)flag 1 will be converted to 0 (e.g. IndexingMode.Analyzed -> IndexingMode.Default)
+        public void InMemoryDatabaseGenerator_IndexField_DefaultFlags()
+        {
+            var field = new IndexField("FieldName", "value", IndexingMode.Analyzed, IndexStoringMode.No,
+                IndexTermVector.No);
+
+            Assert.AreEqual("FieldName:value:S", field.ToString());
+
+            var parsed = IndexField.Parse(field.ToString(), false);
+
+            Assert.AreEqual(field.Name, parsed.Name);
+            Assert.AreEqual(field.Type, parsed.Type);
+            Assert.AreEqual(field.ValueAsString, parsed.ValueAsString);
+            Assert.AreEqual(IndexingMode.Default, parsed.Mode);
+            Assert.AreEqual(IndexStoringMode.Default, parsed.Store);
+            Assert.AreEqual(IndexTermVector.Default, parsed.TermVector);
+        }
+
         //[TestMethod]
         public async System.Threading.Tasks.Task PatchBeforeSn775()
         {
