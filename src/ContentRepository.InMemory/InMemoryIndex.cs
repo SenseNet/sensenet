@@ -423,7 +423,7 @@ namespace SenseNet.ContentRepository.InMemory
             var stored = (JArray)deserialized["Stored"];
             foreach (var storedDoc in stored)
             {
-                if (storedDoc["VersionId"] == null)
+                if (storedDoc["VersionId"] == null) //UNDONE: ?? Delete old algorithm or not?
                 {
                     // Old algorithm
                     var versionId = (int)storedDoc["Item1"];
