@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Tests
 
 
 
-        [TestMethod]
+        [TestMethod] //UNDONE: insert this algorithm to a host software (e.g. console app)
         public void GenerateInMemoryDatabaseFromImport()
         {
             var importPath = @"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import\";
