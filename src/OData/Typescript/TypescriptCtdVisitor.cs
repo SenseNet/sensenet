@@ -78,6 +78,7 @@ export const SchemaStore: Schema[] = [
             WriteLine($"AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
             WriteLine($"AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
             WriteLine($"AllowedChildTypes: [{allowedChildTypes}],");
+            WriteLine($"HandlerName: \"{contentType.HandlerName}\",");
             WriteLine($"FieldSettings: [");
 
             var visitedClass = base.VisitClass(@class);
