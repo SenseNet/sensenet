@@ -63,14 +63,13 @@ namespace SenseNet.ContentRepository.Tests
                 var db = ((InMemoryDataProvider) DataStore.DataProvider).DB;
                 var blobDb = (InMemoryBlobProvider)BlobStorageBase.GetProvider(123);
 
-                var prop = db.Schema.PropertyTypes.First(x => x.Name == "Binary");
-                var node = db.Nodes.First(x => x.Name == "Logging.settings");
-                var version = db.Versions.First(x => x.NodeId == node.NodeId);
-                var binProp = db.BinaryProperties.First(x => x.VersionId == version.VersionId && x.PropertyTypeId == prop.Id);
-                var file = db.Files.First(x => x.FileId == binProp.FileId);
-                var blobCtx = new BlobStorageContext(blobDb, file.BlobProviderData);
-                var stream = blobDb.GetStreamForRead(blobCtx);
-
+                //var prop = db.Schema.PropertyTypes.First(x => x.Name == "Binary");
+                //var node = db.Nodes.First(x => x.Name == "Logging.settings");
+                //var version = db.Versions.First(x => x.NodeId == node.NodeId);
+                //var binProp = db.BinaryProperties.First(x => x.VersionId == version.VersionId && x.PropertyTypeId == prop.Id);
+                //var file = db.Files.First(x => x.FileId == binProp.FileId);
+                //var blobCtx = new BlobStorageContext(blobDb, file.BlobProviderData);
+                //var stream = blobDb.GetStreamForRead(blobCtx);
 
                 using (new SystemAccount())
                 {
@@ -157,6 +156,66 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(IndexingMode.Default, parsed.Mode);
             Assert.AreEqual(IndexStoringMode.Default, parsed.Store);
             Assert.AreEqual(IndexTermVector.Default, parsed.TermVector);
+        }
+
+        [TestMethod]
+        public void InMemoryDatabaseGenerator_HexDump()
+        {
+            string BytesToHex(byte[] bytes)
+            {
+                return string.Join(" ", @bytes.Select(x=>x.ToString("X2")));
+            }
+
+            #region var testCases = new[] ....
+            var testCases = new[]
+            {
+                new byte[0],
+                new byte[] {0x0},
+                new byte[]
+                {
+                    0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
+                },
+                new byte[]
+                {
+                    0xFF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+                },
+                new byte[]
+                {
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                    0X1F
+                },
+                new byte[]
+                {
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E,
+                },
+                new byte[]
+                {
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+                },
+                new byte[]
+                {
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+                    0x2F
+                },
+            };
+            #endregion
+
+            foreach (var expectedBytes in testCases)
+            {
+                var stream = new MemoryStream(expectedBytes);
+
+                // ACTION
+                var dump = GetHexDump(stream);
+                var actualBytes = InitialData.ParseHexDump(dump);
+
+                // ASSERT
+                var expected = BytesToHex(expectedBytes);
+                var actual = BytesToHex(actualBytes);
+                Assert.AreEqual(expected, actual);
+            }
         }
 
         //[TestMethod]
@@ -558,8 +617,10 @@ namespace SenseNet.ContentRepository.InMemory
         {
             if (IsTextFile(file.Name))
                 using (var reader = new StreamReader(file.Binary.GetStream()))
-                    return reader.ReadToEnd().Replace("\"", "\"\"");
-            return "[binarycontent]";
+                    return "[text]:" + Environment.NewLine + 
+                           reader.ReadToEnd().Replace("\"", "\"\"");
+            return "[bytes]:" + Environment.NewLine +
+                   GetHexDump(file.Binary.GetStream());
         }
         private bool IsTextFile(string name)
         {
@@ -578,6 +639,48 @@ namespace SenseNet.ContentRepository.InMemory
             if (name.EndsWith(".ashx", StringComparison.OrdinalIgnoreCase))
                 return true;
             return false;
+        }
+        private string GetHexDump(Stream stream)
+        {
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+
+            var sb = new StringBuilder();
+            var chars = new char[16];
+            var nums = new string[16];
+
+            void AddLine()
+            {
+                sb.Append(string.Join(" ", nums));
+                sb.Append(" ");
+                sb.AppendLine(string.Join("", chars));
+            }
+
+            // add lines
+            var col = 0;
+            foreach (var @byte in bytes)
+            {
+                nums[col] = (@byte.ToString("X2"));
+                chars[col] = @byte < 32 || @byte > 127 ? '.' : (char) @byte;
+                if (++col == 16)
+                {
+                    AddLine();
+                    col = 0;
+                }
+            }
+
+            // rest
+            if (col > 0)
+            {
+                for (var i = col; i < 16; i++)
+                {
+                    nums[i] = "  ";
+                    chars[i] = ' ';
+                }
+                AddLine();
+            }
+
+            return sb.ToString();
         }
     }
 }

@@ -456,6 +456,15 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             if (fileContent == null)
                 return new byte[0];
 
+            if (fileContent.StartsWith("[bytes]:\r\n"))
+            {
+                // bytes
+                return ParseHexDump(fileContent.Substring(10));
+            }
+
+            // text
+            if (fileContent.StartsWith("[text]:\r\n"))
+                fileContent = fileContent.Substring(9);
             var byteCount = Encoding.UTF8.GetByteCount(fileContent);
             var bom = Encoding.UTF8.GetPreamble();
             var bytes = new byte[bom.Length + byteCount];
@@ -466,5 +475,21 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             return bytes;
         }
 
+        internal static byte[] ParseHexDump(string src)
+        {
+            var lines = src.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+            var bytes = new List<byte>(lines.Length * 16);
+            foreach (var line in lines)
+            {
+                var nums = line.Substring(0, 16 * 3).Trim().Split(' ');
+                foreach (var num in nums)
+                {
+                    var @byte = byte.Parse(num, NumberStyles.HexNumber);
+                    bytes.Add(@byte);
+                }
+            }
+
+            return bytes.ToArray();
+        }
     }
 }
