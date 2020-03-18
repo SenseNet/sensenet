@@ -103,6 +103,8 @@ export const SchemaStore: Schema[] = [
             foreach (var propertyInfo in propertyInfos)
             {
                 var name = propertyInfo.Name;
+                if (name == "Type")
+                    continue;
                 var value = GetPropertyValue(property.FieldSetting, propertyInfo);
                 if (value != null)
                     propertyLines.Add($"{name}: {value}");
