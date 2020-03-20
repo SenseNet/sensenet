@@ -17,12 +17,20 @@ namespace SenseNet.Services.Core.Authentication
 
         public User CreateProviderUser(Content content, HttpContext context, string provider, string userId, ClaimInfo[] claims)
         {
-            //UNDONE: configure user parent
-            var user = Content.CreateNew("User", Node.LoadNode("/Root/IMS/BuiltIn/Portal"), userId);
-            user["Email"] = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
+            //UNDONE: configure user parent and user content type
+            var parent = Node.LoadNode("/Root/IMS/BuiltIn/Portal");
+            var providerFieldName = $"{provider}ProviderId";
+
+            var fullName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
+
+            //UNDONE: finalize user content name, it should not be this id
+            var user = Content.CreateNew("User", parent, userId);
+            user[providerFieldName] = userId;
+            user["Email"] = email;
             user["LoginName"] = userId;
-            user["FullName"] = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
-            user.DisplayName = userId;
+            user["FullName"] = fullName;
+            user.DisplayName = fullName;
             user.Save();
 
             //UNDONE: remove admin group membership
