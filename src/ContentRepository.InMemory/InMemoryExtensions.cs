@@ -45,7 +45,13 @@ namespace SenseNet.ContentRepository.InMemory
 
             buildRepository?.Invoke(repositoryBuilder);
 
-            return Repository.Start(repositoryBuilder);
+            var repository = Repository.Start(repositoryBuilder);
+
+            var user = Node.Load<User>(1);
+            user.Password = "admin";
+            user.Save();
+
+            return repository;
         }
 
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ODataTest.WebApp
@@ -19,7 +21,7 @@ namespace SenseNet.ODataTest.WebApp
             using (InMemoryExtensions.StartInMemoryRepository(repositoryBuilder =>
             {
                 repositoryBuilder
-                    .UseAccessProvider(new UserAccessProvider())
+                    .UseAccessProvider(new DesktopAccessProvider())
                     .UseLogger(new SnFileSystemEventLogger())
                     .UseTracer(new SnFileSystemTracer());
             }))
