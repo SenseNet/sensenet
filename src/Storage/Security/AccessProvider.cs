@@ -22,6 +22,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         [Obsolete]
         public static bool IsInitialized => Current != null;
 
+        public abstract int DefaultUserId { get; }
+
         public abstract IUser GetCurrentUser();
 
         public void SetCurrentUser(IUser user)

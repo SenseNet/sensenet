@@ -122,7 +122,7 @@ namespace SenseNet.Services.Core
                     }
                 }
 
-                User.Current = user ?? User.Visitor;
+                User.Current = user ?? User.DefaultUser;
 
                 if (next != null)
                     await next();
