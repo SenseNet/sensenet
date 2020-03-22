@@ -84,8 +84,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     $"{nt.Id,4:#}| {nt.Name,-30}| {nt.ParentName ?? "<null>",-30}| {nt.ClassName,-60}| " +
                     $"[{(string.Join(" ", nt.Properties))}]");
 
-            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | Path");
-            nodeWriter.WriteLine("------- ------- ------- ------- ------- ------- --------- -------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
+            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | CreationDate              | Path");
+            nodeWriter.WriteLine("------- ------- ------- ------- ------- ------- --------- -------- --------- ------- ----------------------------------------- --------------------------------------------------- ------------------------- -----------");
             versionWriter.WriteLine("VersionId| NodeId| Creator| Modifier|  Version");
             versionWriter.WriteLine("---------- ------- ------- ---------- ---------");
             foreach (var nodeId in getNodeIds())
@@ -103,7 +103,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             writer.WriteLine($"{d.NodeId,6:#}| {d.NodeTypeId,6:#}| {d.ParentNodeId,6:#0}| {d.Index,6:#0}| " +
                              $"{d.LastMinorVersionId,6:#}| {d.LastMajorVersionId,6:#}| {d.IsSystem,8}| " +
                              $"{d.CreatedById,7:#}| {d.ModifiedById,8:#}| {d.OwnerId,6:#}| " +
-                             $"{d.Name,-40}| {d.DisplayName,-50}| {d.Path}");
+                             $"{d.Name,-40}| {d.DisplayName,-50}| {d.CreationDate,25:yyyy-MM-dd HH:mm:ss.fffff} | {d.Path}");
         }
         private static void Write(TextWriter writer, VersionData d)
         {
