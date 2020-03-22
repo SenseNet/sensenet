@@ -11,98 +11,10 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.Preview;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using SenseNet.ApplicationModel;
 
 namespace SenseNet.Services.Core.Operations
 {
-    public static class UploadActions 
-    {
-        //UNDONE: add OData action attributes and parameters
-        [ODataAction]
-        public static object Upload(Content content, HttpContext context)
-        {
-            //UNDONE: instantiate handler and call execute
-            var handler = new UploadHandler(content, context);
-
-            return null;
-        }
-
-        //UNDONE: add OData action attributes
-        [ODataAction]
-        public static string FinalizeContent(Content content)
-        {
-            //UNDONE: static vs instance
-            return UploadHandler.FinalizeContent(content);
-        }
-
-        /// <summary>
-        /// Starts a blob write operation by loading an existing content (determined by the
-        /// requested parent resource and the provided file name) or creating a new one.
-        /// It puts the content into a multistep saving state and calls StartChunk. 
-        /// This method is used by clients who intend to use the blob storage client 
-        /// to write files directly to the blob storage.
-        /// </summary>
-        /// <param name="content">Parent content to upload the new file to.</param>
-        /// <param name="name">Name of the new (or existing) content.</param>
-        /// <param name="contentType">Content type of the new content.</param>
-        /// <param name="fullSize">Size of the whole binary.</param>
-        /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
-        public static string StartBlobUploadToParent(Content content, HttpContext context, string name, string contentType, long fullSize, string fieldName = null)
-        {
-            var handler = new UploadHandler(content, context);
-            return handler.StartBlobUploadToParent(name, contentType, fullSize, fieldName);
-        }
-
-        /// <summary>
-        /// Starts a blob write operation by putting the content into a multistep saving state
-        /// and calling StartChunk. This method is used by clients who intend to use the blob
-        /// storage client to write files directly to the blob storage.
-        /// </summary>
-        /// <param name="content">Existing content with a binary field to upload to. In most cases this is a file content.</param>
-        /// <param name="fullSize">Size of the whole binary.</param>
-        /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
-        [ODataAction]
-        public static string StartBlobUpload(Content content, HttpContext context, long fullSize, string fieldName = null)
-        {
-            var handler = new UploadHandler(content, context);
-            return handler.StartBlobUpload(fullSize, fieldName);
-        }
-
-        /// <summary>
-        /// Finishes a blob write operation by calling CommitChunk and finalizing the content.
-        /// This method is used by clients who intend to use the blob storage client 
-        /// to write files directly to the blob storage.
-        /// </summary>
-        /// <param name="content">A content in a multistep saving state.</param>
-        /// <param name="token">Binary token provided by the start operation before.</param>
-        /// <param name="fullSize">Size of the whole binary.</param>
-        /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        /// <param name="fileName">Binary file name to save into the binary metadata.</param>
-        [ODataAction]
-        public static string FinalizeBlobUpload(Content content, HttpContext context, string token, long fullSize, string fieldName = null, string fileName = null)
-        {
-            var handler = new UploadHandler(content, context);
-            return handler.FinalizeBlobUpload(token, fullSize, fieldName, fileName);
-        }
-
-        /// <summary>
-        /// Gets a token from the Content Repository that represents the binary data stored in the specified
-        /// field (by default Binary) of the provided content version.
-        /// </summary>
-        /// ///
-        /// <param name="content">A content with a binary field.</param>
-        /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
-        [ODataFunction]
-        public static string GetBinaryToken(Content content, HttpContext context, string fieldName = null)
-        {
-            var handler = new UploadHandler(content, context);
-            return handler.GetBinaryToken(fieldName);
-        }
-    }
-
+    //UNDONE: find a way to let developers override this class/feature
     internal class UploadHandler
     {
         private readonly HttpContext _httpContext;
@@ -167,7 +79,7 @@ namespace SenseNet.Services.Core.Operations
                     if (_fileLength == 0)
                     {
                         long lengthValue;
-                        var lengthText = _httpContext.Request.Form["FileLength"];
+                        var lengthText = _httpContext.Request.Form["FileLength"].FirstOrDefault();
                         if (!string.IsNullOrEmpty(lengthText) && long.TryParse(lengthText, out lengthValue))
                             _fileLength = lengthValue;
                     }
@@ -184,7 +96,7 @@ namespace SenseNet.Services.Core.Operations
             // 3. otherwise get the first allowed type that is or is derived from file
 
             string contentTypeName = null;
-            var requestedContentTypeName = _httpContext.Request.Form["ContentType"];
+            var requestedContentTypeName = _httpContext.Request.Form["ContentType"].FirstOrDefault();
             if (!string.IsNullOrEmpty(requestedContentTypeName))
             {
                 // try resolving provided type
@@ -233,7 +145,7 @@ namespace SenseNet.Services.Core.Operations
             {
                 if (_propertyName == null)
                 {
-                    var propertyNameStr = _httpContext.Request.Form["PropertyName"];
+                    var propertyNameStr = _httpContext.Request.Form["PropertyName"].FirstOrDefault();
                     if (string.IsNullOrEmpty(propertyNameStr))
                         _propertyName = "Binary";
                     else
@@ -248,7 +160,7 @@ namespace SenseNet.Services.Core.Operations
         {
             get
             {
-                return _httpContext.Request.Form["FileText"];
+                return _httpContext.Request.Form["FileText"].FirstOrDefault();
             }
         }
 
@@ -296,10 +208,10 @@ namespace SenseNet.Services.Core.Operations
 
         protected Content GetContent(Content parent)
         {
-            if (!bool.TryParse(_httpContext.Request.Form["Overwrite"], out bool overwrite))
+            if (!bool.TryParse(_httpContext.Request.Form["Overwrite"].FirstOrDefault(), out bool overwrite))
                 overwrite = true;
 
-            var contentIdVal = _httpContext.Request.Form["ContentId"];
+            var contentIdVal = _httpContext.Request.Form["ContentId"].FirstOrDefault();
             if (overwrite && !string.IsNullOrEmpty(contentIdVal) && int.TryParse(contentIdVal, out int contentId))
             {
                 var content = Content.Load(contentId);
@@ -311,7 +223,7 @@ namespace SenseNet.Services.Core.Operations
                 }
             }
 
-            var fileName = _httpContext.Request.Form["FileName"];
+            var fileName = _httpContext.Request.Form["FileName"].FirstOrDefault();
             var contentTypeName = GetContentTypeName(parent, fileName);
             if (contentTypeName == null)
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
@@ -331,8 +243,6 @@ namespace SenseNet.Services.Core.Operations
         protected virtual Content GetContent(Content parent, string fileName, string contentTypeName, bool overwrite)
         {
             var contentname = ContentNamingProvider.GetNameFromDisplayName(fileName);
-
-            //UNDONE:Content object!
             var path = RepositoryPath.Combine(Content.Path, contentname);
 
             Content content;
@@ -500,15 +410,16 @@ namespace SenseNet.Services.Core.Operations
 
         // ======================================================================== Action
 
-        public object Execute(Content content, params object[] parameters)
+        public object Execute()
         {
             // 1st allowed types check: if allowed content types list is empty, no upload is allowed
-            if (!AllowCreationForEmptyAllowedContentTypes(content.ContentHandler))
+            if (!AllowCreationForEmptyAllowedContentTypes(Content.ContentHandler))
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action","UploadExceptionEmptyAllowedChildTypes"));
 
-            if (_httpContext.Request.Form["create"].FirstOrDefault() != null)
+            // the create parameter is sent in the url
+            if (_httpContext.Request.Query["create"].FirstOrDefault() != null)
             {
-                var uploadedContent = GetContent(content);
+                var uploadedContent = GetContent(Content);
 
                 // check if the content is locked by someone else
                 if (uploadedContent.ContentHandler.Locked && uploadedContent.ContentHandler.LockedBy.Id != User.Current.Id)
@@ -544,7 +455,7 @@ namespace SenseNet.Services.Core.Operations
                 if (file != null && file.Length == 0)
                 {
                     // create content for an empty file if necessary
-                    var emptyFile = GetContent(content);
+                    var emptyFile = GetContent(Content);
                     if (emptyFile != null && emptyFile.IsNew)
                     {
                         emptyFile.Save();
@@ -569,14 +480,14 @@ namespace SenseNet.Services.Core.Operations
 
                 // load the content using the posted chunk token or create a new one
                 // (in case of a small file, when no chunk upload is used)
-                var uploadedContent = UseChunk ? Content.Load(contentId) : GetContent(content);
+                var uploadedContent = UseChunk ? Content.Load(contentId) : GetContent(Content);
 
                 // in case we just loaded this content
                 SetPreviewGenerationPriority(uploadedContent);
 
                 if (file != null)
                 {
-                    SaveFileToRepository(uploadedContent, content, chunkToken, mustFinalize, mustCheckIn, file);
+                    SaveFileToRepository(uploadedContent, Content, chunkToken, mustFinalize, mustCheckIn, file);
                 }
                 else
                 {
