@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace SenseNet.Services.Core.Authentication
 {
@@ -18,7 +19,15 @@ namespace SenseNet.Services.Core.Authentication
     {
         public static SenseNetRegistrationBuilder AddSenseNetRegistration(this AuthenticationBuilder appBuilder)
         {
-            var store = new RegistrationProviderStore();
+            return AddSenseNetRegistration(appBuilder, null);
+        }
+        public static SenseNetRegistrationBuilder AddSenseNetRegistration(this AuthenticationBuilder appBuilder, 
+            Action<RegistrationOptions> configure)
+        {
+            var options = new RegistrationOptions();
+            configure?.Invoke(options);
+
+            var store = new RegistrationProviderStore(options);
 
             appBuilder.Services.AddSingleton(store);
 
