@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Transactions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -21,6 +23,7 @@ using SenseNet.Packaging;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tests;
+using SenseNet.Tools.CommandLineArguments;
 using File = SenseNet.ContentRepository.File;
 // ReSharper disable CoVariantArrayConversion
 
@@ -30,19 +33,109 @@ namespace SenseNet.Tools.SnInitialDataGenerator
     {
         static void Main(string[] args)
         {
-            var importPath = @"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import\";
-            //var importPath = @"D:\_InitialData\defaultdatabase-import\";
-            //var importPath = @"D:\_InitialData\initialtestdata-import\";
-            var tempFolderPath = @"D:\_InitialData\1";
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
 
-            GenerateInMemoryDatabaseFromImport(importPath, tempFolderPath);
+                if (parser.IsHelp)
+                {
+                    Usage(parser);
+                    return;
+                }
+            }
+            catch (ParsingException e)
+            {
+                Usage(e.Result, e.FormattedMessage);
+                return;
+            }
 
-            CreateSourceFiles(tempFolderPath);
+            Prepare(arguments);
+
+            //var importPath = @"D:\dev\github\sensenet\src\nuget\snadmin\install-services\import\";
+            ////var importPath = @"D:\_InitialData\defaultdatabase-import\";
+            ////var importPath = @"D:\_InitialData\initialtestdata-import\";
+
+            //var tempFolderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory , "temp"); //@"D:\_InitialData\1";
+
+            GenerateInMemoryDatabaseFromImport(arguments);
+
+            CreateSourceFiles(arguments);
+        }
+
+        private static void Prepare(Arguments arguments)
+        {
+            // OUTPUT DIRECTORY
+            if (arguments.OutputPath == null)
+                arguments.OutputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output");
+
+            // Check whether the path is an existing file.
+            if (System.IO.File.Exists(arguments.OutputPath))
+                throw new ArgumentException("Invalid output path. Output need to be a directory path.");
+
+            // Clean existing directory or create a new one
+            if (Directory.Exists(arguments.OutputPath))
+            {
+                System.IO.DirectoryInfo directory = new DirectoryInfo(arguments.OutputPath);
+                foreach (FileInfo file in directory.GetFiles())
+                    file.Delete();
+                foreach (DirectoryInfo subDir in directory.GetDirectories())
+                    subDir.Delete(true);
+            }
+            else
+            {
+                Directory.CreateDirectory(arguments.OutputPath);
+            }
+
+            // DATA FILE: Ensure absolute path. Create parent directory if needed.
+            if (arguments.DataFileName == null)
+                arguments.DataFileName = Arguments.DefaultDataFileName;
+            if (!Path.IsPathRooted(arguments.DataFileName))
+                arguments.DataFileName = Path.GetFullPath(Path.Combine(arguments.OutputPath, arguments.DataFileName));
+            var parentPath = Path.GetDirectoryName(arguments.DataFileName);
+            if (!Directory.Exists(parentPath))
+                Directory.CreateDirectory(parentPath);
+
+            // INDEX FILE: Ensure absolute path. Create parent directory if needed.
+            if (arguments.IndexFileName == null)
+                arguments.IndexFileName = Arguments.DefaultIndexFileName;
+            if (!Path.IsPathRooted(arguments.IndexFileName))
+                arguments.IndexFileName = Path.GetFullPath(Path.Combine(arguments.OutputPath, arguments.IndexFileName));
+            parentPath = Path.GetDirectoryName(arguments.IndexFileName);
+            if (!Directory.Exists(parentPath))
+                Directory.CreateDirectory(parentPath);
+
+            // TYPE NAME: Ensure type name and split it to namespace and class name.
+            if (arguments.TypeName == null)
+                arguments.TypeName = Path.GetFileNameWithoutExtension(arguments.DataFileName);
+            var segments = arguments.TypeName.Split('.');
+            if (segments.Length > 1)
+            {
+                arguments.ClassName = segments.Last();
+                arguments.Namespace = string.Join(".", segments.Take(segments.Length - 1));
+            }
+            else
+            {
+                arguments.ClassName = segments[0];
+                arguments.Namespace = "<____namespace____>";
+            }
+        }
+
+        /* ============================================================================ USAGE */
+
+        private static void Usage(ArgumentParser parser, string message = null)
+        {
+            if (message != null)
+            {
+                Console.WriteLine(message);
+                Console.WriteLine();
+            }
+            Console.WriteLine(parser.GetHelpText());
         }
 
         /* ============================================================================ DATABASE AND INDEX BUILDER */
 
-        public static void GenerateInMemoryDatabaseFromImport(string importPath, string tempFolderPath)
+        public static void GenerateInMemoryDatabaseFromImport(Arguments arguments)
         {
             //Providers.PropertyCollectorClassName = typeof(EventPropertyCollector).FullName;
             var builder = CreateRepositoryBuilder();
@@ -52,11 +145,11 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             using (Repository.Start(builder))
             {
                 // IMPORT
-                new Installer(CreateRepositoryBuilder()).Import(importPath);
+                new Installer(CreateRepositoryBuilder()).Import(arguments.ImportPath);
 
                 // Copy importlog
                 using (var reader = new StreamReader(Logger.GetLogFileName()))
-                using (var writer = new StreamWriter(Path.Combine(tempFolderPath, "_importlog.log"), false, Encoding.UTF8))
+                using (var writer = new StreamWriter(Path.Combine(arguments.OutputPath, "_importlog.log"), false, Encoding.UTF8))
                     writer.WriteLine(reader.ReadToEnd());
 
                 // Re-set initial object
@@ -74,8 +167,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
                 // Save database to separated files.
                 Console.Write("Saving data...");
-                SaveData(tempFolderPath);
-                SavePermissions(Providers.Instance.SecurityDataProvider, tempFolderPath);
+                SaveData(arguments.OutputPath);
+                SavePermissions(Providers.Instance.SecurityDataProvider, arguments.OutputPath);
                 Console.WriteLine("ok.");
 
                 // Build index
@@ -102,7 +195,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
                 // Save index
                 Console.Write("Saving index...");
-                var indexFileName = Path.Combine(tempFolderPath, "index.txt");
+                var indexFileName = Path.Combine(arguments.OutputPath, "index.txt");
                 if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
                     searchEngine.Index.Save(indexFileName);
                 Console.WriteLine("ok.");
@@ -216,15 +309,15 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace SenseNet.ContentRepository.InMemory
-{
-    public class ____data____ : IRepositoryDataFile
-    {
-        private ____data____()
-        {
-        }
+namespace {0}
+{{
+    public class {1} : IRepositoryDataFile
+    {{
+        private {1}()
+        {{
+        }}
 
-        public static ____data____ Instance { get; } = new ____data____();
+        public static {1} Instance {{ get; }} = new {1}();
 
         public string PropertyTypes => @""",
 // _template[2]
@@ -324,9 +417,9 @@ namespace SenseNet.ContentRepository.InMemory
         };
         #endregion
 
-        private static void CreateSourceFiles(string tempFolderPath)
+        private static void CreateSourceFiles(Arguments arguments)
         {
-            var path = Path.Combine(tempFolderPath, "__InitialData.cs");
+            var path = Path.Combine(arguments.OutputPath, arguments.DataFileName);
             var version = typeof(Content).Assembly.GetName().Version;
             var now = DateTime.Now.ToString("yyyy-MM-dd");
 
@@ -336,29 +429,29 @@ namespace SenseNet.ContentRepository.InMemory
             {
                 writer.WriteLine(Template[0], now, version);
 
-                writer.WriteLine(Template[1]);
+                writer.WriteLine(Template[1], arguments.Namespace, arguments.ClassName);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "propertyTypes.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "propertyTypes.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd());
 
                 writer.WriteLine(Template[2]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "nodeTypes.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "nodeTypes.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd());
 
                 writer.WriteLine(Template[3]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "nodes.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "nodes.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
 
                 writer.WriteLine(Template[4]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "versions.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "versions.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd());
 
                 writer.WriteLine(Template[5]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "dynamicData.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "dynamicData.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
 
                 writer.WriteLine(Template[6]);
@@ -371,7 +464,7 @@ namespace SenseNet.ContentRepository.InMemory
 
                 writer.WriteLine(Template[8]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "permissions.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "permissions.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd());
 
                 writer.WriteLine(Template[9]);
@@ -379,14 +472,14 @@ namespace SenseNet.ContentRepository.InMemory
 
             // WRITE INDEX
 
-            path = Path.Combine(tempFolderPath, "__InitialIndex.cs");
+            path = Path.Combine(arguments.OutputPath, arguments.IndexFileName);
             using (var writer = new StreamWriter(path, false, Encoding.UTF8))
             {
                 writer.WriteLine(Template[0], now, version);
 
                 writer.Write(Template[10]);
 
-                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "index.txt"), Encoding.UTF8))
+                using (var reader = new StreamReader(Path.Combine(arguments.OutputPath, "index.txt"), Encoding.UTF8))
                     writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
 
                 writer.Write(Template[11]);

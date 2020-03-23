@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SenseNet.Tools" Version="3.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj" />
     <ProjectReference Include="..\..\Common\SenseNet.Common.csproj" />
     <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
