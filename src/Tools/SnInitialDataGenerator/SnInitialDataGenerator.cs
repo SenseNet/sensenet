@@ -4,25 +4,25 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
+using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
 using SenseNet.Packaging;
-using SenseNet.Packaging.Steps;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 using SenseNet.Tests;
-using ExecutionContext = SenseNet.Packaging.ExecutionContext;
+using File = SenseNet.ContentRepository.File;
+// ReSharper disable CoVariantArrayConversion
 
 namespace SenseNet.Tools.SnInitialDataGenerator
 {
@@ -37,8 +37,10 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
             GenerateInMemoryDatabaseFromImport(importPath, tempFolderPath);
 
-            //CreateSourceFiles(tempFolderPath);
+            CreateSourceFiles(tempFolderPath);
         }
+
+        /* ============================================================================ DATABASE AND INDEX BUILDER */
 
         public static void GenerateInMemoryDatabaseFromImport(string importPath, string tempFolderPath)
         {
@@ -49,16 +51,19 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
             using (Repository.Start(builder))
             {
+                // IMPORT
                 new Installer(CreateRepositoryBuilder()).Import(importPath);
 
-                string importLog = null;
+                // Copy importlog
                 using (var reader = new StreamReader(Logger.GetLogFileName()))
-                    importLog = reader.ReadToEnd();
+                using (var writer = new StreamWriter(Path.Combine(tempFolderPath, "_importlog.log"), false, Encoding.UTF8))
+                    writer.WriteLine(reader.ReadToEnd());
 
+                // Re-set initial object
                 User.Current = User.Administrator;
 
+                // Add Admin* permissions on the /Root
                 Console.WriteLine("Set Root permissions.");
-
                 using (new SystemAccount())
                     SecurityHandler.CreateAclEditor()
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId,
@@ -67,6 +72,12 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                             false, PermissionType.BuiltInPermissionTypes)
                         .Apply();
 
+                // Save database to separated files.
+                Console.Write("Saving data...");
+                SaveData(tempFolderPath);
+                Console.WriteLine("ok.");
+
+                // Build index
                 Console.WriteLine("Building index.");
 
                 Indexing.IsOuterSearchEngineEnabled = true;
@@ -80,25 +91,20 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                     var populator = SearchManager.GetIndexPopulator();
                     populator.IndexDocumentRefreshed += (sender, e) =>
                     {
-                        count++;
-                        //if(count % 10 == 0)
-                            Console.Write($"{count} / {nodeCount}   \r");
+                        Console.Write($"{++count} / {nodeCount}   \r");
                     };
                     populator.RebuildIndexDirectlyAsync("/Root",
-                            CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex).ConfigureAwait(false)
-                        .GetAwaiter().GetResult();
+                        CancellationToken.None, IndexRebuildLevel.DatabaseAndIndex)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
                     Console.WriteLine();
                 }
 
-                Console.WriteLine("Saving data.");
-
-                Save(tempFolderPath, importLog);
-
-                Console.WriteLine("Saving index.");
-
+                // Save index
+                Console.Write("Saving index...");
                 var indexFileName = Path.Combine(tempFolderPath, "index.txt");
                 if (SearchManager.SearchEngine is InMemorySearchEngine searchEngine)
                     searchEngine.Index.Save(indexFileName);
+                Console.WriteLine("ok.");
             }
         }
 
@@ -162,11 +168,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             });
         }
 
-        private static void Save(string tempFolderPath, string importLog)
+        private static void SaveData(string tempFolderPath)
         {
-            using (var writer = new StreamWriter(Path.Combine(tempFolderPath, "_importlog.log"), false, Encoding.UTF8))
-                writer.WriteLine(importLog ?? "");
-
             using (var ptw = new StreamWriter(Path.Combine(tempFolderPath, "propertyTypes.txt"), false, Encoding.UTF8))
             using (var ntw = new StreamWriter(Path.Combine(tempFolderPath, "nodeTypes.txt"), false, Encoding.UTF8))
             using (var nw = new StreamWriter(Path.Combine(tempFolderPath, "nodes.txt"), false, Encoding.UTF8))
@@ -179,7 +182,281 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
             var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
             index.Save(Path.Combine(tempFolderPath, "index.txt"));
+        }
 
+        /* ============================================================================ SOURCE FILE GENERATOR */
+
+        private static readonly string[] Template = 
+{
+// _template[0] ---- data start
+@"// Generated by a tool. {0}
+// sensenet version: {1}",
+// _template[1]
+@"using SenseNet.ContentRepository.Storage.DataModel;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+namespace SenseNet.ContentRepository.InMemory
+{
+    public class ____data____ : IRepositoryDataFile
+    {
+        private ____data____()
+        {
+        }
+
+        public static ____data____ Instance { get; } = new ____data____();
+
+        public string PropertyTypes => @""",
+// _template[2]
+@""";
+
+        public string NodeTypes => @""",
+// _template[3]
+@""";
+
+        public string Nodes => @""",
+// _template[4]
+@""";
+
+        public string Versions => @""",
+// _template[5]
+@""";
+
+        public string DynamicData => @""",
+// _template[6]
+@""";
+
+        public IDictionary<string, string> ContentTypeDefinitions =>
+            new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+            {",
+// _template[7]
+@"            });
+
+        public IDictionary<string, string> Blobs =>
+            new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+            {",
+// _template[8]
+@"            });
+
+        public IList<string> Permissions => new List<string>
+        {
+            // ""+E1|Normal|+G1:______________+,Normal|+G2:_____________+_"";
+
+
+            // RECORD STRUCTURE:
+            // Inherited: +, breaked: -
+            // EntityId
+            // |
+            // EntryType: Normal
+            // |
+            // Global: +, Local only: -
+            // IdentityId
+            // :
+            // Permission bits (64 chars): Not set: _, Allow: +, Deny: -
+            //---------------------------------------------------------------------------
+            // See: See
+            // Pre: Preview
+            // PWa: PreviewWithoutWatermark
+            // PRd: PreviewWithoutRedaction
+            // Opn: Open
+            // OpM: OpenMinor
+            // Sav: Save
+            // Pub: Publish
+            // Chk: ForceCheckin
+            // Add: AddNew
+            // Apr: Approve
+            // Del: Delete
+            // ReV: RecallOldVersion
+            // DeV: DeleteOldVersion
+            // ReP: SeePermissions
+            // WrP: SetPermissions
+            // Run: RunApplication
+            // LST: ManageListsAndWorkspaces
+            // Own: TakeOwnership
+            //---------------------------------------------------------------------------
+            //                                                            WrP Del Pub PRd
+            //                                                         Own ReP Apr Sav PWa
+            //                                                          LST DeV Add OpM Pre
+            //            |            custom            ||   unused  |  Run ReV Chk Opn See
+            //            3333333333333333222222222222222211111111111111110000000000000000
+            //            FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210
+",
+// _template[9] ---- data end
+@"
+        };
+    }
+}
+",
+// template[10] ---- index start
+@"namespace SenseNet.ContentRepository
+{
+    public static class ____index____
+    {
+        #region public static readonly string Index
+
+        public static readonly string Index = @""",
+// template[11] ---- index end
+@""";
+        #endregion
+    }
+}
+"
+        };
+        private static void CreateSourceFiles(string tempFolderPath)
+        {
+            var path = Path.Combine(tempFolderPath, "__InitialData.cs");
+            var version = typeof(Content).Assembly.GetName().Version;
+            var now = DateTime.Now.ToString("yyyy-MM-dd");
+
+            // WRITE DATA
+
+            using (var writer = new StreamWriter(path, false, Encoding.UTF8))
+            {
+                writer.WriteLine(Template[0], now, version);
+
+                writer.WriteLine(Template[1]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "propertyTypes.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd());
+
+                writer.WriteLine(Template[2]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "nodeTypes.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd());
+
+                writer.WriteLine(Template[3]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "nodes.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
+
+                writer.WriteLine(Template[4]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "versions.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd());
+
+                writer.WriteLine(Template[5]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "dynamicData.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
+
+                writer.WriteLine(Template[6]);
+
+                WriteCtds(writer);
+
+                writer.WriteLine(Template[7]);
+
+                WriteBlobs(writer);
+
+                writer.WriteLine(Template[8]);
+
+                writer.WriteLine(Template[9]);
+            }
+
+            // WRITE INDEX
+
+            path = Path.Combine(tempFolderPath, "__InitialIndex.cs");
+            using (var writer = new StreamWriter(path, false, Encoding.UTF8))
+            {
+                writer.WriteLine(Template[0], now, version);
+
+                writer.Write(Template[10]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "index.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd().Replace("\"", "\"\""));
+
+                writer.Write(Template[11]);
+            }
+        }
+        private static void WriteCtds(StreamWriter writer)
+        {
+            var template = @"                #region  {0}. {1}
+			    {{ ""{1}"", @""{2}
+""}},
+            #endregion";
+            var count = 0;
+            foreach (var ctd in ContentType.GetContentTypes())
+                writer.WriteLine(template, ++count, ctd.Name, ctd.ToXml().Replace("\"", "\"\""));
+        }
+        private static void WriteBlobs(StreamWriter writer)
+        {
+            var template = @"                #region  {0}.{1}
+                {{ ""Binary:{2}"", @""{3}
+""}},
+                #endregion";
+
+            var files = NodeQuery.QueryNodesByType(NodeType.GetByName("File"), false).Nodes;
+            var count = 0;
+            foreach (var file in files)
+                writer.WriteLine(template, ++count, file.Name, file.Path, GetFileContent((File)file));
+        }
+        private static string GetFileContent(File file)
+        {
+            if (IsTextFile(file.Name))
+                using (var reader = new StreamReader(file.Binary.GetStream()))
+                    return "[text]:" + Environment.NewLine +
+                           reader.ReadToEnd().Replace("\"", "\"\"");
+            return "[bytes]:" + Environment.NewLine +
+                   GetHexDump(file.Binary.GetStream());
+        }
+        private static bool IsTextFile(string name)
+        {
+            if (name.EndsWith(".settings", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".aspx", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".asmx", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".ashx", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
+        }
+        private static string GetHexDump(Stream stream)
+        {
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+
+            var sb = new StringBuilder();
+            var chars = new char[16];
+            var nums = new string[16];
+
+            void AddLine()
+            {
+                sb.Append(string.Join(" ", nums));
+                sb.Append(" ");
+                sb.AppendLine(string.Join("", chars));
+            }
+
+            // add lines
+            var col = 0;
+            foreach (var @byte in bytes)
+            {
+                nums[col] = (@byte.ToString("X2"));
+                chars[col] = @byte < 32 || @byte >= 127 || @byte == '"' || @byte == '\\' ? '.' : (char)@byte;
+                if (++col == 16)
+                {
+                    AddLine();
+                    col = 0;
+                }
+            }
+
+            // rest
+            if (col > 0)
+            {
+                for (var i = col; i < 16; i++)
+                {
+                    nums[i] = "  ";
+                    chars[i] = ' ';
+                }
+                AddLine();
+            }
+
+            return sb.ToString();
         }
 
     }
