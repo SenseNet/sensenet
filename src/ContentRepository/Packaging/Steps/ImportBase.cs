@@ -459,6 +459,8 @@ namespace SenseNet.Packaging.Steps
                     {
                         SetInitialPermissions();
                     }
+
+                    Log(ImportLogLevel.Info, "Content import is successfully finished.");
                 }
             }
 
