@@ -75,6 +75,7 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 // Save database to separated files.
                 Console.Write("Saving data...");
                 SaveData(tempFolderPath);
+                SavePermissions(Providers.Instance.SecurityDataProvider, tempFolderPath);
                 Console.WriteLine("ok.");
 
                 // Build index
@@ -107,7 +108,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 Console.WriteLine("ok.");
             }
         }
-
         private static RepositoryBuilder CreateRepositoryBuilder(InitialData initialData = null)
         {
             var dataProvider = new InMemoryDataProvider();
@@ -183,9 +183,29 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
             index.Save(Path.Combine(tempFolderPath, "index.txt"));
         }
+        private static void SavePermissions(ISecurityDataProvider db, string tempFolderPath)
+        {
+            using (var writer = new StreamWriter(Path.Combine(tempFolderPath, "permissions.txt"), false, Encoding.UTF8))
+            {
+                var breaks = db.LoadSecurityEntities()
+                    .Where(e => !e.IsInherited)
+                    .Select(e => e.Id)
+                    .ToArray();
+
+                var aces = db.LoadAllAces()
+                    .OrderBy(a => a.EntityId)
+                    .ThenBy(e => e.IdentityId);
+
+                foreach (var ace in aces)
+                    writer.WriteLine("            \"{0}{1}\",",
+                        breaks.Contains(ace.EntityId) ? "-" : "+",
+                        ace.ToString().Replace("(", "").Replace(")", ""));
+            }
+        }
 
         /* ============================================================================ SOURCE FILE GENERATOR */
 
+        #region C# templates
         private static readonly string[] Template = 
 {
 // _template[0] ---- data start
@@ -302,6 +322,8 @@ namespace SenseNet.ContentRepository.InMemory
 }
 "
         };
+        #endregion
+
         private static void CreateSourceFiles(string tempFolderPath)
         {
             var path = Path.Combine(tempFolderPath, "__InitialData.cs");
@@ -348,6 +370,9 @@ namespace SenseNet.ContentRepository.InMemory
                 WriteBlobs(writer);
 
                 writer.WriteLine(Template[8]);
+
+                using (var reader = new StreamReader(Path.Combine(tempFolderPath, "permissions.txt"), Encoding.UTF8))
+                    writer.Write(reader.ReadToEnd());
 
                 writer.WriteLine(Template[9]);
             }
