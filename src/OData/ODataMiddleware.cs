@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -371,7 +372,31 @@ namespace SenseNet.OData
             if (p > 0)
                 models = models.Substring(p);
 
-            var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
+            if (!models.StartsWith("{") || !models.EndsWith("}"))
+            {
+                var json = new StringBuilder("{");
+                var pairs = models.Split('&');
+                foreach (var pair in pairs)
+                {
+                    var items = pair.Split('=');
+                    if (items.Length != 2)
+                    {
+                        json.Clear();
+                        break;
+                    }
+                    if (json.Length > 1)
+                        json.Append(",");
+                    json.Append($"\"{items[0]}\":\"{items[1]}\"");
+                }
+
+                if (json.Length > 0)
+                {
+                    json.Append("}");
+                    models = json.ToString();
+                }
+            }
+
+            var settings = new JsonSerializerSettings {DateFormatHandling = DateFormatHandling.IsoDateFormat};
             var serializer = JsonSerializer.Create(settings);
             var jReader = new JsonTextReader(new StringReader(models));
             var deserialized = serializer.Deserialize(jReader);
