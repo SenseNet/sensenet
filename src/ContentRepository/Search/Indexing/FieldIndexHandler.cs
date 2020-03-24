@@ -506,7 +506,7 @@ namespace SenseNet.Search.Indexing
     /// <summary>
     /// Experimental JSON index handler that provides all property values as index values.
     /// </summary>
-    internal class BasicJsonIndexHandler : LongTextIndexHandler
+    internal class GeneralJsonIndexHandler : LongTextIndexHandler
     {       
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {

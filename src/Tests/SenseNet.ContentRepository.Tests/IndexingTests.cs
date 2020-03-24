@@ -463,7 +463,7 @@ namespace SenseNet.ContentRepository.Tests
   <Fields>
     <Field name='JsonExtrafield1' type='LongText'>
         <Indexing>
-         <IndexHandler>SenseNet.Search.Indexing.BasicJsonIndexHandler</IndexHandler>
+         <IndexHandler>SenseNet.Search.Indexing.GeneralJsonIndexHandler</IndexHandler>
       </Indexing>
     </Field>
   </Fields>
