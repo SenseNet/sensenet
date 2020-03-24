@@ -33,7 +33,7 @@ namespace SenseNet.ODataTests
         [ODataFunction]
         public static string Function2(Content content, HttpContext httpContext, ODataRequest request, string param1)
         {
-            return "## Function1 called." +
+            return "## Function2 called." +
                    $" Query: {httpContext.Request.QueryString}." +
                    $" Format: {request.Format}." +
                    $" Path: {(content?.Path ?? "[null]")}." +
@@ -42,10 +42,11 @@ namespace SenseNet.ODataTests
         [ODataFunction]
         public static string Function3(Content content, string param1, string param2, string param3 = null)
         {
-            return "## Function1 called." +
-                   $" Path: {(content?.Path ?? "[null]")}." +
-                   $" Param1: {param1}." +
-                   $" Param2: {param2}.";
+            return "## Function3 called." +
+                    $" Path: {(content?.Path ?? "[null]")}," +
+                    $" Param1: {param1}," +
+                    $" Param2: {param2}," +
+                    $" Param3: {(param3 ?? "[null]")}";
         }
 
         /* ============================================================= METHOD BASED OPERATION TESTS */
@@ -70,6 +71,25 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
         [TestMethod]
+        public async Task OD_MBOP_Invoke_FormEncoded()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function3",
+                    "?param2=value2",
+                    "param1=value1&param3=value3").ConfigureAwait(false);
+
+                // ASSERT
+                var expected = "## Function3 called. Path: /Root/IMS, Param1: value1, Param2: value2, Param3: value3";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
         public async Task OD_MBOP_Invoke_SystemParameters()
         {
             await ODataTestAsync(async () =>
@@ -81,7 +101,7 @@ namespace SenseNet.ODataTests
                     "{param1:\"asdf\"}").ConfigureAwait(false);
 
                 // ASSERT
-                var expected = "## Function1 called. Query: ?param2=value2. Format: json. Path: /Root/IMS. Param1: asdf.";
+                var expected = "## Function2 called. Query: ?param2=value2. Format: json. Path: /Root/IMS. Param1: asdf.";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
@@ -135,7 +155,7 @@ namespace SenseNet.ODataTests
                     "{param1:\"asdf\",param2:\"qwer\"}").ConfigureAwait(false);
 
                 // ASSERT
-                var expected = "## Function1 called. Path: /Root/IMS. Param1: asdf. Param2: value2.";
+                var expected = "## Function3 called. Path: /Root/IMS, Param1: asdf, Param2: value2, Param3:[null]";
                 var actual = response.Result;
                 var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                 var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
