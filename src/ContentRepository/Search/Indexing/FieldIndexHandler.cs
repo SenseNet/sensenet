@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.i18n;
@@ -498,6 +500,90 @@ namespace SenseNet.Search.Indexing
                 return (from object item in enumerableData select Convert.ToString(item, CultureInfo.InvariantCulture).ToLowerInvariant()).ToList();
 
             return new[] { string.Empty };
+        }
+    }
+
+    /// <summary>
+    /// Experimental JSON index handler that provides all property values as index values.
+    /// </summary>
+    internal class BasicJsonIndexHandler : LongTextIndexHandler
+    {       
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
+        {
+            var data = field.GetData() ?? string.Empty;
+            JObject jData = null;
+
+            if (data is string stringData)
+            {
+                textExtract = stringData.ToLowerInvariant();
+
+                try
+                {
+                    jData = JsonConvert.DeserializeObject(stringData, typeof(JObject)) as JObject;
+                }
+                catch (Exception ex)
+                {
+                    var f = field as Field;
+                    SnTrace.Index.WriteError($"Error when converting JSON value. {ex.Message} " +
+                        $"ContentId: {f?.Content?.Id}, Path: {f?.Content?.Path}, Field: {field.Name}");
+                }                
+            }
+            else if (data is JObject jsonData)
+            {
+                // compute text extract
+                textExtract = string.Empty;
+                jData = jsonData;
+            }
+            else
+            {
+                textExtract = string.Empty;
+            }
+
+            var indexFieldValues = new List<string>();
+            if (jData != null)
+            {
+                foreach(var child in jData.Children())
+                {
+                    indexFieldValues.AddRange(GetIndexFieldValuesFromJToken(child, field as Field));
+                }
+            }
+
+            return CreateField(field.Name, indexFieldValues);
+        }
+
+        protected virtual IEnumerable<string> GetIndexFieldValuesFromJToken(JToken token, Field field)
+        {
+            if (token == null)
+                return Array.Empty<string>();
+
+            static string GetIndexValue<T>(JProperty jprop)
+            {
+                return $"{jprop.Path.Replace('.', '#')}#{jprop.Value.Value<T>()}".ToLowerInvariant();
+            }
+
+            if (token is JProperty prop)
+            {          
+                switch (prop.Value.Type)
+                {
+                    case JTokenType.String:
+                        return new string[] { GetIndexValue<string>(prop) };
+                    case JTokenType.Integer:
+                        return new string[] { GetIndexValue<int>(prop) };
+                    case JTokenType.Boolean:
+                        return new string[] { GetIndexValue<bool>(prop) };
+                    case JTokenType.Object:
+                        var childValues = new List<string>();
+                        foreach (var child in prop.Value.Children())
+                        {
+                            childValues.AddRange(GetIndexFieldValuesFromJToken(child, field));
+                        }
+                        return childValues;
+                    case JTokenType.Null:
+                        return new string[] { $"{prop.Path.Replace('.', '#')}#null".ToLowerInvariant() };
+                }
+            }
+
+            return Array.Empty<string>();
         }
     }
 
