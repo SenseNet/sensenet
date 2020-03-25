@@ -224,7 +224,7 @@ namespace SenseNet.OData
                         if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
-                            await odataWriter.WriteOperationResultAsync(inputStream, httpContext, odataRequest)
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
                         else
