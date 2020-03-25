@@ -360,6 +360,63 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Long()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, long a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Byte()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, byte a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+                }
+            });
+        }
+
+        [TestMethod]
         public void OD_MBO_GetMethodByRequest_Decimal()
         {
             ODataTest(() =>
@@ -2162,6 +2219,7 @@ namespace SenseNet.ODataTests
                     case "string": return typeof(string);
                     case "int": return typeof(int);
                     case "long": return typeof(long);
+                    case "byte": return typeof(byte);
                     case "double": return typeof(double);
                     case "decimal": return typeof(decimal);
                     case "float": return typeof(float);

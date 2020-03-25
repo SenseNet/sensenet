@@ -279,6 +279,22 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
+                    if (expectedType == typeof(long))
+                    {
+                        if (long.TryParse(stringValue, out var v))
+                        {
+                            parsed = v;
+                            return true;
+                        }
+                    }
+                    if (expectedType == typeof(byte))
+                    {
+                        if (byte.TryParse(stringValue, out var v))
+                        {
+                            parsed = v;
+                            return true;
+                        }
+                    }
                     if (expectedType == typeof(bool))
                     {
                         if (bool.TryParse(stringValue, out var v))
@@ -348,6 +364,16 @@ namespace SenseNet.OData
                     value = parameter.Value<string>();
                     return typeof(string);
                 case JTokenType.Integer:
+                    if (expectedType == typeof(long))
+                    {
+                        value = parameter.Value<long>();
+                        return typeof(long);
+                    }
+                    if (expectedType == typeof(byte))
+                    {
+                        value = parameter.Value<byte>();
+                        return typeof(byte);
+                    }
                     value = parameter.Value<int>();
                     return typeof(int);
                 case JTokenType.Boolean:
