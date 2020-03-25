@@ -10,10 +10,34 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
-        public static object Upload(Content content, HttpContext context)
+        public static object Upload(Content content, HttpContext context, 
+            long? FileLength = null, string ContentType = null, string PropertyName = null, 
+            string FileText = null, bool? Overwrite = null, int? ContentId = null, 
+            string FileName = null, string ChunkToken = null, bool? UseChunk = null, bool? create = null)
         {
             //UNDONE: convert Execute to async
             var handler = new UploadHandler(content, context);
+
+            if (FileLength.HasValue)
+                handler.FileLength = FileLength.Value;
+            if (ContentType != null)
+                handler.ContentTypeName = ContentType;
+            if (PropertyName != null)
+                handler.PropertyName = PropertyName;
+            if (FileText != null)
+                handler.FileText = FileText;
+            if (Overwrite.HasValue)
+                handler.Overwrite = Overwrite.Value;
+            if (ContentId.HasValue)
+                handler.ContentId = ContentId.Value;
+            if (FileName != null)
+                handler.FileName = FileName;
+            if (ChunkToken != null)
+                handler.ChunkToken = ChunkToken;
+            if (UseChunk.HasValue)
+                handler.UseChunkRequestValue = UseChunk.Value;
+            if (create.HasValue)
+                handler.Create = create.Value;
 
             return handler.Execute();
         }

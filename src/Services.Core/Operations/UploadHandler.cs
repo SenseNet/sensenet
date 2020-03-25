@@ -67,27 +67,32 @@ namespace SenseNet.Services.Core.Operations
         }
 
         private long _fileLength;
-        protected long FileLength
+        protected internal long FileLength
         {
             get
             {
                 if (!_useChunk.HasValue)
                 {
-                    _useChunk = TryParseRangeHeader(out _chunkStart, out _chunkLength, out _fileLength);
+                    _useChunk = TryParseRangeHeader(out _chunkStart, out _chunkLength, out var tempFileLength);
 
-                    // in case of the first request, the length comes from a manual parameter instead of the range header
-                    if (_fileLength == 0)
+                    // In case of the first request, the length comes from a manual parameter 
+                    // instead of the range header. So overwrite it only if the header 
+                    // contains a real value;
+                    if (tempFileLength > 0)
                     {
-                        long lengthValue;
-                        var lengthText = _httpContext.Request.Form["FileLength"].FirstOrDefault();
-                        if (!string.IsNullOrEmpty(lengthText) && long.TryParse(lengthText, out lengthValue))
-                            _fileLength = lengthValue;
+                        _fileLength = tempFileLength;
                     }
                 }
 
                 return _fileLength;
             }
+            set 
+            {
+                _fileLength = value;
+            }
         }
+
+        protected internal string ContentTypeName { get; set; }
 
         protected string GetContentTypeName(Content parent, string fileName)
         {
@@ -96,13 +101,13 @@ namespace SenseNet.Services.Core.Operations
             // 3. otherwise get the first allowed type that is or is derived from file
 
             string contentTypeName = null;
-            var requestedContentTypeName = _httpContext.Request.Form["ContentType"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(requestedContentTypeName))
+
+            if (!string.IsNullOrEmpty(ContentTypeName))
             {
                 // try resolving provided type
-                var ct = ContentType.GetByName(requestedContentTypeName);
+                var ct = ContentType.GetByName(ContentTypeName);
                 if (ct != null)
-                    contentTypeName = requestedContentTypeName;
+                    contentTypeName = ContentTypeName;
             }
             else
             {
@@ -139,30 +144,25 @@ namespace SenseNet.Services.Core.Operations
         }
 
         private string _propertyName;
-        protected string PropertyName
+        protected internal string PropertyName
         {
             get
             {
-                if (_propertyName == null)
-                {
-                    var propertyNameStr = _httpContext.Request.Form["PropertyName"].FirstOrDefault();
-                    if (string.IsNullOrEmpty(propertyNameStr))
-                        _propertyName = "Binary";
-                    else
-                        _propertyName = propertyNameStr;
-                }
-
-                return _propertyName;
+                return _propertyName ?? "Binary";
             }
-        }
-
-        protected string FileText
-        {
-            get
+            set 
             {
-                return _httpContext.Request.Form["FileText"].FirstOrDefault();
+                _propertyName = value;
             }
         }
+
+        protected internal string FileText { get; set; }
+        protected internal bool Overwrite { get; set; } = true;
+        protected internal int? ContentId { get; set; }
+        protected internal string FileName { get; set; }
+        protected internal string ChunkToken { get; set; }        
+        protected internal bool UseChunkRequestValue { get; set; }        
+        protected internal bool? Create { get; set; }        
 
         // ======================================================================== Helper methods
 
@@ -208,13 +208,9 @@ namespace SenseNet.Services.Core.Operations
 
         protected Content GetContent(Content parent)
         {
-            if (!bool.TryParse(_httpContext.Request.Form["Overwrite"].FirstOrDefault(), out bool overwrite))
-                overwrite = true;
-
-            var contentIdVal = _httpContext.Request.Form["ContentId"].FirstOrDefault();
-            if (overwrite && !string.IsNullOrEmpty(contentIdVal) && int.TryParse(contentIdVal, out int contentId))
+            if (Overwrite && ContentId.HasValue)
             {
-                var content = Content.Load(contentId);
+                var content = Content.Load(ContentId.Value);
                 if (content != null)
                 {
                     SetPreviewGenerationPriority(content);
@@ -223,12 +219,11 @@ namespace SenseNet.Services.Core.Operations
                 }
             }
 
-            var fileName = _httpContext.Request.Form["FileName"].FirstOrDefault();
-            var contentTypeName = GetContentTypeName(parent, fileName);
+            var contentTypeName = GetContentTypeName(parent, FileName);
             if (contentTypeName == null)
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
 
-            return GetContent(parent, fileName, contentTypeName, overwrite);
+            return GetContent(parent, FileName, contentTypeName, Overwrite);
         }
 
         protected BinaryData CreateBinaryData(IFormFile file, bool setStream = true)
@@ -385,8 +380,7 @@ namespace SenseNet.Services.Core.Operations
 
         protected void CollectUploadData(out int contentId, out string token, out bool mustFinalize, out bool mustCheckIn)
         {
-            var uploadData = _httpContext.Request.Form["ChunkToken"].FirstOrDefault() ?? string.Empty;
-            var uploadDataArray = uploadData.Split(new[] { '*' });
+            var uploadDataArray = (ChunkToken ?? string.Empty).Split(new[] { '*' });
 
             if (uploadDataArray.Length != 4)
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
@@ -417,7 +411,7 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action","UploadExceptionEmptyAllowedChildTypes"));
 
             // the create parameter is sent in the url
-            if (_httpContext.Request.Query["create"].FirstOrDefault() != null)
+            if (Create.HasValue)
             {
                 var uploadedContent = GetContent(Content);
 
@@ -426,8 +420,6 @@ namespace SenseNet.Services.Core.Operations
                     throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionLocked"));
 
                 var chunkToken = string.Empty;
-                if (!bool.TryParse(_httpContext.Request.Form["UseChunk"].FirstOrDefault(), out bool useChunk))
-                    useChunk = false;
 
                 // If the content is not locked at the start of this process, it will be checked out by the multistep saving mechanism below
                 // and it will be checked in at the end (either manually or by the finalizer method).
@@ -436,7 +428,7 @@ namespace SenseNet.Services.Core.Operations
                 // At the end we will finalize only if we started the multistep save.
                 var mustFinalize = uploadedContent.ContentHandler.SavingState == ContentSavingState.Finalized;
 
-                if (useChunk)
+                if (UseChunkRequestValue)
                 {
                     // Start the multistep saving process only if it was not started by 
                     // somebody else before (e.g. with an initial POST request through OData).
