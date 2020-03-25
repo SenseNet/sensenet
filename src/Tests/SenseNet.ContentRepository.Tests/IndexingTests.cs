@@ -455,6 +455,85 @@ namespace SenseNet.ContentRepository.Tests
 
         #endregion
 
+        #region IndexHandler
+
+        #region <ContentType name='JsonFieldIndexingTestContentType' ...
+        readonly string _jsonFieldIndexingTestContentType = $@"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='JsonFieldIndexingTestContentType' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <Fields>
+    <Field name='JsonExtrafield1' type='LongText'>
+        <Indexing>
+         <IndexHandler>SenseNet.Search.Indexing.GeneralJsonIndexHandler</IndexHandler>
+      </Indexing>
+    </Field>
+  </Fields>
+</ContentType>
+";
+        #endregion
+
+        #region JSON samples
+        private const string Json1 = @"
+{
+    'String': 'abc',
+    'Int': 123,
+    'Array': [ 'a', 'b' ],
+    'Object': {
+        'p1': 'def',
+        'p2': 456
+    },
+    'o2': null
+}
+";
+        private const string Json2 = @"
+{
+    'String': 'ghi',
+    'Int': 789,
+    'Object': {
+        'p1': 'jkl',
+        'p2': 123
+    }
+}
+";
+        #endregion
+
+        [TestMethod]
+        public void Indexing_Json_IndexHandler()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(_jsonFieldIndexingTestContentType);                           
+                
+                var root = CreateTestRoot();
+                var tc1 = Content.CreateNew("JsonFieldIndexingTestContentType", root, "JC1");
+                tc1["JsonExtrafield1"] = Json1;
+                tc1.Save();
+
+                var indexFields = tc1.Fields["JsonExtrafield1"].GetIndexFields(out var textExtract).ToArray();
+                var indexValues = indexFields.Single().StringArrayValue;
+
+                Assert.AreEqual("string#abc", indexValues[0]);
+                Assert.AreEqual("int#123", indexValues[1]);
+                Assert.AreEqual("object#p1#def", indexValues[2]);
+                Assert.AreEqual("object#p2#456", indexValues[3]);
+                Assert.AreEqual("o2#null", indexValues[4]);                
+
+                // create another content with a different json to check querying
+                var tc2 = Content.CreateNew("JsonFieldIndexingTestContentType", root, "JC2");
+                tc2["JsonExtrafield1"] = Json2;
+                tc2.Save();
+
+                var query = CreateSafeContentQuery("JsonExtrafield1:String#abc", QuerySettings.AdminSettings).Execute();
+
+                Assert.AreEqual(tc1.Id, query.Identifiers.Single());
+
+                query = CreateSafeContentQuery("JsonExtrafield1:object#p2#123", QuerySettings.AdminSettings).Execute();
+
+                Assert.AreEqual(tc2.Id, query.Identifiers.Single());
+            });
+        }
+
+        #endregion
+
         // ReSharper disable once InconsistentNaming
         private class TestEventLoggerForIndexing_ExecuteUnprocessed_FaultTolerance : IEventLogger
         {

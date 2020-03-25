@@ -261,17 +261,21 @@ namespace SenseNet.OData
             }
             return true;
         }
-        private static bool TryParseParameter(Type type, ODataParameterValue parameter, bool strict, out object parsed)
+        private static bool TryParseParameter(Type expectedType, ODataParameterValue parameter, bool strict, out object parsed)
         {
-            if (type == GetTypeAndValue(type, parameter, out parsed))
+            if (expectedType == GetTypeAndValue(expectedType, parameter, out parsed))
                 return true;
+
+            Type nullableBaseType;
+            if ((nullableBaseType = Nullable.GetUnderlyingType(expectedType)) != null)
+                expectedType = nullableBaseType;
 
             if (!strict)
             {
                 if (parameter.Type == JTokenType.String)
                 {
                     var stringValue = parameter.Value<string>();
-                    if (type == typeof(int))
+                    if (expectedType == typeof(int))
                     {
                         if (int.TryParse(stringValue, out var v))
                         {
@@ -279,7 +283,23 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (type == typeof(bool))
+                    if (expectedType == typeof(long))
+                    {
+                        if (long.TryParse(stringValue, out var v))
+                        {
+                            parsed = v;
+                            return true;
+                        }
+                    }
+                    if (expectedType == typeof(byte))
+                    {
+                        if (byte.TryParse(stringValue, out var v))
+                        {
+                            parsed = v;
+                            return true;
+                        }
+                    }
+                    if (expectedType == typeof(bool))
                     {
                         if (bool.TryParse(stringValue, out var v))
                         {
@@ -287,7 +307,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (type == typeof(decimal))
+                    if (expectedType == typeof(decimal))
                     {
                         if (decimal.TryParse(stringValue, out var v))
                         {
@@ -300,7 +320,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (type == typeof(float))
+                    if (expectedType == typeof(float))
                     {
                         if (float.TryParse(stringValue, out var v))
                         {
@@ -313,7 +333,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (type == typeof(double))
+                    if (expectedType == typeof(double))
                     {
                         if (double.TryParse(stringValue, out var v))
                         {
@@ -326,7 +346,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    //TODO: try parse further opportunities from string to "type"
+                    //TODO: try parse further opportunities from string to "expectedType"
                 }
             }
 
@@ -348,9 +368,39 @@ namespace SenseNet.OData
                     value = parameter.Value<string>();
                     return typeof(string);
                 case JTokenType.Integer:
+                    if (expectedType == typeof(int?))
+                    {
+                        value = parameter.Value<int?>();
+                        return typeof(int?);
+                    }
+                    if (expectedType == typeof(long))
+                    {
+                        value = parameter.Value<long>();
+                        return typeof(long);
+                    }
+                    if (expectedType == typeof(long?))
+                    {
+                        value = parameter.Value<long?>();
+                        return typeof(long?);
+                    }
+                    if (expectedType == typeof(byte))
+                    {
+                        value = parameter.Value<byte>();
+                        return typeof(byte);
+                    }
+                    if (expectedType == typeof(byte?))
+                    {
+                        value = parameter.Value<byte?>();
+                        return typeof(byte?);
+                    }
                     value = parameter.Value<int>();
                     return typeof(int);
                 case JTokenType.Boolean:
+                    if (expectedType == typeof(bool?))
+                    {
+                        value = parameter.Value<bool?>();
+                        return typeof(bool?);
+                    }
                     value = parameter.Value<bool>();
                     return typeof(bool);
                 case JTokenType.Float:
@@ -359,14 +409,28 @@ namespace SenseNet.OData
                         value = parameter.Value<float>();
                         return typeof(float);
                     }
+                    if (expectedType == typeof(float?))
+                    {
+                        value = parameter.Value<float?>();
+                        return typeof(float?);
+                    }
                     if (expectedType == typeof(decimal))
                     {
                         value = parameter.Value<decimal>();
                         return typeof(decimal);
                     }
+                    if (expectedType == typeof(decimal?))
+                    {
+                        value = parameter.Value<decimal?>();
+                        return typeof(decimal?);
+                    }
+                    if (expectedType == typeof(double?))
+                    {
+                        value = parameter.Value<double?>();
+                        return typeof(double?);
+                    }
                     value = parameter.Value<double>();
                     return typeof(double);
-
                 case JTokenType.Object:
                     try
                     {
