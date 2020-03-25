@@ -33,10 +33,13 @@ namespace SenseNet.Services.Core.Authentication
             var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
                 await Content.LoadAsync(parentPath, cancellationToken);
 
-            var providerFieldName = $"{provider}ProviderId";
-
             var fullName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
             var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
+
+            // Fill the field with an initial JSON data containing a single provider data.
+            // Later, if the user already exists, this field needs to be edited: the new id
+            // should be inserted instead of overwriting the current value.
+            var external = $"{{ \"{provider}\": {{ \"Id\": \"{userId}\", \"Completed\": false }} }}";
 
             // User content name will be the email.
             // Current behavior: if a user with the same name exists, make sure we create 
@@ -44,9 +47,9 @@ namespace SenseNet.Services.Core.Authentication
             var name = ContentNamingProvider.GetNameFromDisplayName(email);
             if (Node.Exists(RepositoryPath.Combine(parent.Path, name)))
                 name = ContentNamingProvider.IncrementNameSuffixToLastName(name, parent.Id);
-                        
+            
             var user = Content.CreateNew(userType, parent.ContentHandler, name);
-            user[providerFieldName] = userId;
+            user["ExternalUserProviders"] = external;
             user["Email"] = email;
             user["FullName"] = fullName;
             user.DisplayName = fullName;
