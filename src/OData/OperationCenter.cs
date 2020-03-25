@@ -266,6 +266,10 @@ namespace SenseNet.OData
             if (expectedType == GetTypeAndValue(expectedType, parameter, out parsed))
                 return true;
 
+            Type nullableBaseType;
+            if ((nullableBaseType = Nullable.GetUnderlyingType(expectedType)) != null)
+                expectedType = nullableBaseType;
+
             if (!strict)
             {
                 if (parameter.Type == JTokenType.String)
@@ -364,19 +368,39 @@ namespace SenseNet.OData
                     value = parameter.Value<string>();
                     return typeof(string);
                 case JTokenType.Integer:
+                    if (expectedType == typeof(int?))
+                    {
+                        value = parameter.Value<int?>();
+                        return typeof(int?);
+                    }
                     if (expectedType == typeof(long))
                     {
                         value = parameter.Value<long>();
                         return typeof(long);
+                    }
+                    if (expectedType == typeof(long?))
+                    {
+                        value = parameter.Value<long?>();
+                        return typeof(long?);
                     }
                     if (expectedType == typeof(byte))
                     {
                         value = parameter.Value<byte>();
                         return typeof(byte);
                     }
+                    if (expectedType == typeof(byte?))
+                    {
+                        value = parameter.Value<byte?>();
+                        return typeof(byte?);
+                    }
                     value = parameter.Value<int>();
                     return typeof(int);
                 case JTokenType.Boolean:
+                    if (expectedType == typeof(bool?))
+                    {
+                        value = parameter.Value<bool?>();
+                        return typeof(bool?);
+                    }
                     value = parameter.Value<bool>();
                     return typeof(bool);
                 case JTokenType.Float:
@@ -385,14 +409,28 @@ namespace SenseNet.OData
                         value = parameter.Value<float>();
                         return typeof(float);
                     }
+                    if (expectedType == typeof(float?))
+                    {
+                        value = parameter.Value<float?>();
+                        return typeof(float?);
+                    }
                     if (expectedType == typeof(decimal))
                     {
                         value = parameter.Value<decimal>();
                         return typeof(decimal);
                     }
+                    if (expectedType == typeof(decimal?))
+                    {
+                        value = parameter.Value<decimal?>();
+                        return typeof(decimal?);
+                    }
+                    if (expectedType == typeof(double?))
+                    {
+                        value = parameter.Value<double?>();
+                        return typeof(double?);
+                    }
                     value = parameter.Value<double>();
                     return typeof(double);
-
                 case JTokenType.Object:
                     try
                     {
