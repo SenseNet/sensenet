@@ -872,7 +872,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                var model = await ODataMiddleware.ReadToJsonAsync(inputStream);
+                var model = await ODataMiddleware.ReadToJsonAsync(httpContext);
                 var i = 0;
                 foreach (var parameter in parameters)
                 {
