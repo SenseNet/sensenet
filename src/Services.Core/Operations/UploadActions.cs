@@ -13,7 +13,7 @@ namespace SenseNet.Services.Core.Operations
         public static object Upload(Content content, HttpContext context, 
             long? FileLength = null, string ContentType = null, string PropertyName = null, 
             string FileText = null, bool? Overwrite = null, int? ContentId = null, 
-            string FileName = null, string ChunkToken = null, bool? UseChunk = null, bool? create = null)
+            string FileName = null, string ChunkToken = null, bool? UseChunk = null, string create = null)
         {
             //UNDONE: convert Execute to async
             var handler = new UploadHandler(content, context);
@@ -36,8 +36,10 @@ namespace SenseNet.Services.Core.Operations
                 handler.ChunkToken = ChunkToken;
             if (UseChunk.HasValue)
                 handler.UseChunkRequestValue = UseChunk.Value;
-            if (create.HasValue)
-                handler.Create = create.Value;
+
+            // this is a loosely coupled parameter, the value can be anything
+            if (create != null)
+                handler.Create = true;
 
             return handler.Execute();
         }
