@@ -358,6 +358,209 @@ namespace SenseNet.ODataTests
                 }
             });
         }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Bool_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, bool? a", null));
+
+                    // ACTION strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":true}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(true, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""true""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(true, context.Parameters["a"]);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Int_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, int? a", null));
+
+                    // ACTION strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":12345678}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(12345678, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""12345678""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(12345678, context.Parameters["a"]);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Long()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, long a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Long_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, long? a", null));
+
+                    // ACTION strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(123456789L, context.Parameters["a"]);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Byte()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, byte a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Byte_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, byte? a", null));
+
+                    // ACTION strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":142}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
+
+                    // ACTION not strict
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""142""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual((byte)142, context.Parameters["a"]);
+                }
+            });
+        }
 
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Decimal()
@@ -376,6 +579,51 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789m, context.Parameters["a"]);
+
+                    // ACTION not strict, localized
+                    Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789m, context.Parameters["a"]);
+
+                    // ACTION not strict, globalized
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789m, context.Parameters["a"]);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Decimal_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, decimal? a", null));
+
+                    // ACTION strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789m, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
@@ -434,6 +682,51 @@ namespace SenseNet.ODataTests
                 }
             });
         }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Float_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, float? a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789f, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
+
+                    // ACTION not strict, localized
+                    Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789f, context.Parameters["a"]);
+
+                    // ACTION not strict, globalized
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789f, context.Parameters["a"]);
+                }
+            });
+        }
 
         [TestMethod]
         public void OD_MBO_GetMethodByRequest_Double()
@@ -452,6 +745,51 @@ namespace SenseNet.ODataTests
                     Assert.AreEqual(m, context.Operation);
                     Assert.AreEqual(1, context.Parameters.Count);
                     Assert.AreEqual(0.123456789d, context.Parameters["a"]);
+
+                    // ACTION not strict, localized
+                    Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0,123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789d, context.Parameters["a"]);
+
+                    // ACTION not strict, globalized
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":""0.123456789""}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789d, context.Parameters["a"]);
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_Double_Nullable()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m = AddMethod(new TestMethodInfo("fv1", "Content content, double? a", null));
+
+                    // ACTION-1 strict
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":0.123456789}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(0.123456789d, context.Parameters["a"]);
+
+                    // ACTION null
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(), "fv1", @"{""a"":null}");
+                    // ASSERT
+                    Assert.AreEqual(m, context.Operation);
+                    Assert.AreEqual(1, context.Parameters.Count);
+                    Assert.AreEqual(null, context.Parameters["a"]);
 
                     // ACTION not strict, localized
                     Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("hu-hu");
@@ -2160,22 +2498,42 @@ namespace SenseNet.ODataTests
                 {
                     case "Content": return typeof(Content);
                     case "string": return typeof(string);
+                    case "object": return typeof(object);
+
                     case "int": return typeof(int);
                     case "long": return typeof(long);
+                    case "byte": return typeof(byte);
                     case "double": return typeof(double);
                     case "decimal": return typeof(decimal);
                     case "float": return typeof(float);
                     case "bool": return typeof(bool);
-                    case "object": return typeof(object);
+
+                    case "int?": return typeof(int?);
+                    case "long?": return typeof(long?);
+                    case "byte?": return typeof(byte?);
+                    case "double?": return typeof(double?);
+                    case "decimal?": return typeof(decimal?);
+                    case "float?": return typeof(float?);
+                    case "bool?": return typeof(bool?);
 
                     case "string[]": return typeof(string[]);
+                    case "object[]": return typeof(object[]);
+
                     case "int[]": return typeof(int[]);
+                    case "byte[]": return typeof(byte[]);
                     case "long[]": return typeof(long[]);
                     case "double[]": return typeof(double[]);
                     case "decimal[]": return typeof(decimal[]);
                     case "float[]": return typeof(float[]);
                     case "bool[]": return typeof(bool[]);
-                    case "object[]": return typeof(object[]);
+
+                    case "int?[]": return typeof(int?[]);
+                    case "byte?[]": return typeof(byte?[]);
+                    case "long?[]": return typeof(long?[]);
+                    case "double?[]": return typeof(double?[]);
+                    case "decimal?[]": return typeof(decimal?[]);
+                    case "float?[]": return typeof(float?[]);
+                    case "bool?[]": return typeof(bool?[]);
 
                     // disallowed types
                     case "DateTime": return typeof(DateTime);
