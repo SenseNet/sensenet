@@ -1,6 +1,7 @@
 ﻿using System;
-using System.IO;
+using IO = System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -9,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests.Implementations;
+using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 
 namespace SenseNet.Tests.SelfTest
 {
@@ -200,7 +202,7 @@ namespace SenseNet.Tests.SelfTest
                 content[decimalFieldName] = decimalValue;
                 content[textFieldName] = textValue;
                 content.ContentHandler.SetReference(referenceFieldName, referenceValue);
-                ((BinaryData)content[binaryFieldName]).SetStream(new MemoryStream(buffer));
+                ((BinaryData)content[binaryFieldName]).SetStream(new IO.MemoryStream(buffer));
                 content.Save();
 
                 // ASSERT
@@ -221,6 +223,66 @@ namespace SenseNet.Tests.SelfTest
                 var actual = string.Join(",", b.Select(x => x.ToString()));
                 Assert.AreEqual(expected, actual);
             });
+        }
+
+        [TestMethod]
+        public void InMemDb_ChunkUpload_NewFile()
+        {
+            Test(async () =>
+            {
+                var root = CreateTestRoot();
+                var file = new File(root) {Name = "File1.txt"};
+                file.Binary.ContentType = "application/octet-stream";
+                //file.Binary.FileName = "File1.txt";
+                file.Save();
+
+                var chunks = new[]
+                {
+                    new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                    new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+                    new byte[] {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+                    new byte[] {4, 4 }
+                };
+                var chunkSize = chunks[0].Length;
+
+                // START CHUNK
+                var versionId = file.VersionId;
+                var propertyTypeId = PropertyType.GetByName("Binary").Id;
+                var fullSize = 50L;
+                var token = await BlobStorage.StartChunkAsync(versionId, propertyTypeId, fullSize, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // WRITE CHUNKS
+                for (int i = 0; i < chunks.Length; i++)
+                {
+                    var offset = i * chunkSize;
+                    var chunk = chunks[i];
+                    await BlobStorage.WriteChunkAsync(versionId, token, chunk, offset, fullSize,
+                        CancellationToken.None).ConfigureAwait(false);
+                }
+
+                // COMMIT CHUNK
+                await BlobStorage.CommitChunkAsync(versionId, propertyTypeId, token, fullSize, null, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                Cache.Reset();
+                file = Node.Load<File>(file.Id);
+                var length = Convert.ToInt32(file.Binary.Size);
+                var buffer = new byte[length];
+                using (var stream = file.Binary.GetStream())
+                    stream.Read(buffer, 0, length);
+                Assert.AreEqual(
+                    "11111111111111112222222222222222333333333333333344",
+                    new string(buffer.Select(b=>(char)(b+'0')).ToArray()));
+            }).GetAwaiter().GetResult();
+        }
+
+        private SystemFolder CreateTestRoot()
+        {
+            var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+            node.Save();
+            return node;
         }
     }
 }
