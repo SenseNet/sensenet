@@ -11,6 +11,8 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.Preview;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -206,11 +208,11 @@ namespace SenseNet.Services.Core.Operations
             return false;
         }
 
-        protected Content GetContent(Content parent)
+        protected async Task<Content> GetContentAsync(Content parent, CancellationToken cancellationToken)
         {
             if (Overwrite && ContentId.HasValue)
             {
-                var content = Content.Load(ContentId.Value);
+                var content = await Content.LoadAsync(ContentId.Value, cancellationToken).ConfigureAwait(false);
                 if (content != null)
                 {
                     SetPreviewGenerationPriority(content);
@@ -223,7 +225,7 @@ namespace SenseNet.Services.Core.Operations
             if (contentTypeName == null)
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
 
-            return GetContent(parent, FileName, contentTypeName, Overwrite);
+            return await GetContentAsync(parent, FileName, contentTypeName, Overwrite, cancellationToken).ConfigureAwait(false);
         }
 
         protected BinaryData CreateBinaryData(IFormFile file, bool setStream = true)
@@ -235,7 +237,8 @@ namespace SenseNet.Services.Core.Operations
 
         // ======================================================================== Virtual methods
 
-        protected virtual Content GetContent(Content parent, string fileName, string contentTypeName, bool overwrite)
+        protected virtual async Task<Content> GetContentAsync(Content parent, string fileName, string contentTypeName, bool overwrite,
+            CancellationToken cancellationToken)
         {
             var contentname = ContentNamingProvider.GetNameFromDisplayName(fileName);
             var path = RepositoryPath.Combine(Content.Path, contentname);
@@ -245,7 +248,7 @@ namespace SenseNet.Services.Core.Operations
             if (overwrite)
             {
                 // check if content exists
-                content = Content.Load(path);
+                content = await Content.LoadAsync(path, cancellationToken).ConfigureAwait(false);
                 if (content != null)
                 {
                     SetPreviewGenerationPriority(content);
@@ -266,8 +269,8 @@ namespace SenseNet.Services.Core.Operations
             return content;
         }
 
-        protected virtual void SaveFileToRepository(Content uploadedContent, Content parent, string token, bool mustFinalize, 
-            bool mustCheckIn, IFormFile file)
+        protected virtual async System.Threading.Tasks.Task SaveFileToRepositoryAsync(Content uploadedContent, Content parent, string token, bool mustFinalize, 
+            bool mustCheckIn, IFormFile file, CancellationToken cancellationToken)
         {
             if (uploadedContent.ContentHandler.Locked && uploadedContent.ContentHandler.LockedBy.Id != User.Current.Id)
                 throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionLocked"));
@@ -292,7 +295,7 @@ namespace SenseNet.Services.Core.Operations
                     // finalize only if the multistep save was started by this process
                     if (mustFinalize || mustCheckIn)
                     {
-                        uploadedContent = Content.Load(uploadedContent.Id);
+                        uploadedContent = await Content.LoadAsync(uploadedContent.Id, cancellationToken).ConfigureAwait(false);
 
                         SetPreviewGenerationPriority(uploadedContent);
 
@@ -404,7 +407,7 @@ namespace SenseNet.Services.Core.Operations
 
         // ======================================================================== Action
 
-        public object Execute()
+        public async Task<object> ExecuteAsync(CancellationToken cancellationToken)
         {
             // 1st allowed types check: if allowed content types list is empty, no upload is allowed
             if (!AllowCreationForEmptyAllowedContentTypes(Content.ContentHandler))
@@ -413,7 +416,7 @@ namespace SenseNet.Services.Core.Operations
             // the create parameter is sent in the url
             if (Create.HasValue)
             {
-                var uploadedContent = GetContent(Content);
+                var uploadedContent = await GetContentAsync(Content, cancellationToken).ConfigureAwait(false);
 
                 // check if the content is locked by someone else
                 if (uploadedContent.ContentHandler.Locked && uploadedContent.ContentHandler.LockedBy.Id != User.Current.Id)
@@ -447,7 +450,7 @@ namespace SenseNet.Services.Core.Operations
                 if (file != null && file.Length == 0)
                 {
                     // create content for an empty file if necessary
-                    var emptyFile = GetContent(Content);
+                    var emptyFile = await GetContentAsync(Content, cancellationToken).ConfigureAwait(false);
                     if (emptyFile != null && emptyFile.IsNew)
                     {
                         emptyFile.Save();
@@ -472,14 +475,17 @@ namespace SenseNet.Services.Core.Operations
 
                 // load the content using the posted chunk token or create a new one
                 // (in case of a small file, when no chunk upload is used)
-                var uploadedContent = UseChunk ? Content.Load(contentId) : GetContent(Content);
+                var uploadedContent = UseChunk 
+                    ? await Content.LoadAsync(contentId, cancellationToken).ConfigureAwait(false) 
+                    : await GetContentAsync(Content, cancellationToken).ConfigureAwait(false);
 
                 // in case we just loaded this content
                 SetPreviewGenerationPriority(uploadedContent);
 
                 if (file != null)
                 {
-                    SaveFileToRepository(uploadedContent, Content, chunkToken, mustFinalize, mustCheckIn, file);
+                    await SaveFileToRepositoryAsync(uploadedContent, Content, chunkToken, 
+                        mustFinalize, mustCheckIn, file, cancellationToken);
                 }
                 else
                 {
@@ -510,13 +516,16 @@ namespace SenseNet.Services.Core.Operations
 
             return string.Empty;
         }
-        public string StartBlobUploadToParent(string name, string contentType, long fullSize, string fieldName = null)
+        public async Task<string> StartBlobUploadToParentAsync(string name, string contentType, 
+            long fullSize, CancellationToken cancellationToken, string fieldName = null)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
 
             // load or create the content
-            var file = Content.Load(RepositoryPath.Combine(Content.Path, name));
+            var file = await Content.LoadAsync(RepositoryPath.Combine(Content.Path, name), 
+                cancellationToken).ConfigureAwait(false);
+
             if (file == null)
             {
                 if (string.IsNullOrEmpty(contentType))
@@ -545,7 +554,8 @@ namespace SenseNet.Services.Core.Operations
             return $"{{ id: '{content.Id}', token: '{token}', versionId: {content.ContentHandler.VersionId} }}";
         }
 
-        public string FinalizeBlobUpload(string token, long fullSize, string fieldName = null, string fileName = null)
+        public async Task<string> FinalizeBlobUploadAsync(string token, long fullSize, CancellationToken cancellationToken,
+            string fieldName = null, string fileName = null)
         {
             if (string.IsNullOrEmpty(token))
                 throw new ArgumentNullException(nameof(token));
@@ -561,7 +571,8 @@ namespace SenseNet.Services.Core.Operations
             });
 
             // reload the content to have a fresh object after commit chunk
-            return FinalizeContent(Content.Load(Content.Id));
+            var content = await Content.LoadAsync(Content.Id, cancellationToken).ConfigureAwait(false);
+            return FinalizeContent(content);
         }
         public string GetBinaryToken(string fieldName = null)
         {

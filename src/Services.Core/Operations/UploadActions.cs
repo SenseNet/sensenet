@@ -1,21 +1,23 @@
 ﻿using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using System.Threading.Tasks;
 
 namespace SenseNet.Services.Core.Operations
 {
     public static class UploadActions
     {
-        //UNDONE: add OData action attributes and parameters
+        //UNDONE: port Resume upload action
+
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
-        public static object Upload(Content content, HttpContext context, 
+        [RequiredPermissions(N.P.AddNew)]
+        public static Task<object> Upload(Content content, HttpContext context, 
             long? FileLength = null, string ContentType = null, string PropertyName = null, 
             string FileText = null, bool? Overwrite = null, int? ContentId = null, 
             string FileName = null, string ChunkToken = null, bool? UseChunk = null, string create = null)
         {
-            //UNDONE: convert Execute to async
             var handler = new UploadHandler(content, context);
 
             if (FileLength.HasValue)
@@ -41,13 +43,13 @@ namespace SenseNet.Services.Core.Operations
             if (create != null)
                 handler.Create = true;
 
-            return handler.Execute();
+            return handler.ExecuteAsync(context.RequestAborted);
         }
 
-        //UNDONE: add OData action attributes
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
+        [RequiredPermissions(N.P.Save)]
         public static string FinalizeContent(Content content)
         {
             //UNDONE: static vs instance
@@ -70,10 +72,11 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
-        public static string StartBlobUploadToParent(Content content, HttpContext context, string name, string contentType, long fullSize, string fieldName = null)
+        [RequiredPermissions(N.P.AddNew)]
+        public static Task<string> StartBlobUploadToParent(Content content, HttpContext context, string name, string contentType, long fullSize, string fieldName = null)
         {
             var handler = new UploadHandler(content, context);
-            return handler.StartBlobUploadToParent(name, contentType, fullSize, fieldName);
+            return handler.StartBlobUploadToParentAsync(name, contentType, fullSize, context.RequestAborted, fieldName);
         }
 
         /// <summary>
@@ -88,6 +91,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
+        [RequiredPermissions(N.P.Save)]
         public static string StartBlobUpload(Content content, HttpContext context, long fullSize, string fieldName = null)
         {
             var handler = new UploadHandler(content, context);
@@ -107,10 +111,11 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
-        public static string FinalizeBlobUpload(Content content, HttpContext context, string token, long fullSize, string fieldName = null, string fileName = null)
+        [RequiredPermissions(N.P.Save)]
+        public static Task<string> FinalizeBlobUpload(Content content, HttpContext context, string token, long fullSize, string fieldName = null, string fileName = null)
         {
             var handler = new UploadHandler(content, context);
-            return handler.FinalizeBlobUpload(token, fullSize, fieldName, fileName);
+            return handler.FinalizeBlobUploadAsync(token, fullSize, context.RequestAborted, fieldName, fileName);
         }
 
         /// <summary>
