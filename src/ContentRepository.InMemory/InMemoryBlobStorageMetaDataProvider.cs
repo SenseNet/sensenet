@@ -372,6 +372,9 @@ namespace SenseNet.ContentRepository.InMemory
             if (fileDoc == null)
                 return null;
 
+            // Switch to the new file
+            binaryDoc.FileId = fileId;
+
             // Reset staging and set metadata
             fileDoc.Staging = false;
             if (source != null)
@@ -382,21 +385,31 @@ namespace SenseNet.ContentRepository.InMemory
                 fileDoc.Size = source.Size;
             }
 
-            // Switch to the new file
-            binaryDoc.FileId = fileId;
-
             // Done
             return STT.Task.CompletedTask;
         }
 
         public virtual STT.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // This method is not supported in this provider because the FileDoc
+            // does not have enough information (IsDeleted & CreationDate).
+
+            return STT.Task.CompletedTask;
         }
 
         public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // Delete the orphaned files immediately (see the comment in the CleanupFilesSetDeleteFlagAsync).
+
+            var db = DataProvider.DB;
+
+            var allFileIds = db.BinaryProperties.Select(x => x.FileId).ToArray();
+            var filesIdsToDelete = db.Files.Where(x => !x.Staging && !allFileIds.Contains(x.Id)).Select(x=>x.FileId);
+            foreach (var fileId in filesIdsToDelete)
+                db.Files.Remove(fileId);
+
+            // Done: return false because all items are deleted.
+            return STT.Task.FromResult(false);
         }
     }
 }
