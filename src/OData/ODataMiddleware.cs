@@ -354,7 +354,7 @@ namespace SenseNet.OData
             // property to load post fields automatically, including file fragments. 
             // In this case we cannot read the response manually, because 
             // the stream can be read only once.
-            if ((context?.Request?.ContentType?.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) ?? 0) > 0)
+            if ((context?.Request?.ContentType?.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0)
             {
                 var dict = new Dictionary<string, string>();
                 foreach (var formItem in context.Request.Form.Where(fi => !string.IsNullOrEmpty(fi.Key)))
