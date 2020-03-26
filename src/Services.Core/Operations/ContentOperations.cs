@@ -247,7 +247,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
 
-        [ODataAction(Description = "$Action,GetPermissions")]
+        [ODataFunction(Description = "$Action,GetPermissions")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object GetPermissions(Content content, string identity = null)
@@ -341,7 +341,7 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
-        [ODataAction(Description = "$Action,HasPermission")]
+        [ODataFunction(Description = "$Action,HasPermission")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.SeePermissions)]

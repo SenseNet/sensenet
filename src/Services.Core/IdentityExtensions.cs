@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
@@ -21,6 +23,7 @@ namespace SenseNet.Services.Core
         /// Default is false.
         /// </summary>
         public bool AddJwtCookie { get; set; }
+        public Func<ClaimsPrincipal, Task<User>> FindUserAsync { get; set; }
     }
 
     internal static class IdentityConstants
@@ -36,6 +39,8 @@ namespace SenseNet.Services.Core
         internal const string JwtCookieName = ".sn.auth";
         internal const string HeaderAuthorization = "Authorization";
         internal const string HeaderBearerPrefix = "Bearer ";
+
+        internal static readonly string[] ClaimIdentifiers = new string[] { "sub", "client_sub" };
     }
 
     public static class IdentityExtensions
@@ -66,7 +71,7 @@ namespace SenseNet.Services.Core
                 app.UseSenseNetJwtCookieReader();
 
             app.UseAuthentication();
-            app.UseSenseNetUser();
+            app.UseSenseNetUser(options, null);
 
             // add the optional cookie writer middleware - default is false
             if (options.AddJwtCookie)
@@ -74,7 +79,7 @@ namespace SenseNet.Services.Core
 
             return app;
         }
-        
+
         /// <summary>
         /// Adds a middleware for setting the sensenet current user.
         /// </summary>
@@ -82,43 +87,52 @@ namespace SenseNet.Services.Core
         /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSenseNetUser(this IApplicationBuilder app)
         {
+            return UseSenseNetUser(app, new SenseNetAuthenticationOptions(), null);
+        }
+
+        /// <summary>
+        /// Adds a middleware for setting the sensenet current user.
+        /// </summary>
+        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        private static IApplicationBuilder UseSenseNetUser(this IApplicationBuilder app, SenseNetAuthenticationOptions options, 
+            Action<SenseNetAuthenticationOptions> configure)
+        {
+            configure?.Invoke(options);
+
             app.Use(async (context, next) =>
             {
-                // At this point the user is already authenticated, which means
-                // we can trust the information in the identity: we load the
-                // user in elevated mode (using system account).
-
                 var identity = context?.User?.Identity;
                 User user = null;
 
-                // Currently if the Name property is filled, we try to load users based only
-                // on that value, ignoring the sub claim.
-
-                if (!string.IsNullOrEmpty(identity?.Name))
+                // At this point the user is already authenticated, which means
+                // we can trust the information in the identity: we load the
+                // user in elevated mode (using system account).
+                if (identity?.IsAuthenticated ?? false)
                 {
-                    // first look for users by their login name
-                    user = SystemAccount.Execute(() => User.Load(identity.Name));
-
-                    if (user == null)
+                    // if the caller provided a custom user loader method
+                    if (options.FindUserAsync != null)
                     {
-                        SnTrace.Security.Write("Unknown user: {0}", identity.Name);
+                        user = await options.FindUserAsync(context.User);
                     }
-                }
-                else
-                {
-                    // Check if there is a sub claim. Look for sub by its simple name or
-                    // using the longer name defined by the schema below.
-                    var sub = context?.User?.Claims.FirstOrDefault(c =>
-                        c.Type == "sub" || c.Properties.Any(p =>
-                            string.Equals(p.Key,
-                                "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName",
-                                StringComparison.InvariantCultureIgnoreCase) &&
-                            p.Value == "sub"))?.Value;
-                    if (!string.IsNullOrEmpty(sub))
-                    {
-                        // try to recognize sub as a user id or username
-                        user = SystemAccount.Execute(() =>
-                            int.TryParse(sub, out var subId) ? Node.Load<User>(subId) : User.Load(sub));
+                    else
+                    { 
+                        // Check if there is a sub claim. Look for sub by its simple name or
+                        // using the longer name defined by the schema below.
+                        var sub = context.User.FindFirst(c =>
+                            IdentityConstants.ClaimIdentifiers.Contains(c.Type) ||
+                            c.Properties.Any(p =>
+                                string.Equals(p.Key,
+                                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claimproperties/ShortTypeName",
+                                    StringComparison.InvariantCultureIgnoreCase) &&
+                                p.Value == "sub"))?.Value;
+
+                        if (!string.IsNullOrEmpty(sub))
+                        {
+                            // try to recognize sub as a user id or username
+                            user = SystemAccount.Execute(() =>
+                                int.TryParse(sub, out var subId) ? Node.Load<User>(subId) : User.Load(sub));
+                        }
                     }
                 }
 

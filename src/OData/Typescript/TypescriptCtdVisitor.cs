@@ -78,6 +78,7 @@ export const SchemaStore: Schema[] = [
             WriteLine($"AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
             WriteLine($"AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
             WriteLine($"AllowedChildTypes: [{allowedChildTypes}],");
+            WriteLine($"HandlerName: \"{contentType.HandlerName}\",");
             WriteLine($"FieldSettings: [");
 
             var visitedClass = base.VisitClass(@class);
@@ -103,6 +104,8 @@ export const SchemaStore: Schema[] = [
             foreach (var propertyInfo in propertyInfos)
             {
                 var name = propertyInfo.Name;
+                if (name == "Type")
+                    continue;
                 var value = GetPropertyValue(property.FieldSetting, propertyInfo);
                 if (value != null)
                     propertyLines.Add($"{name}: {value}");
