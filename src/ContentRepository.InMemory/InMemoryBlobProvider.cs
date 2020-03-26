@@ -152,7 +152,7 @@ namespace SenseNet.ContentRepository.InMemory
         {
             var data = (InMemoryBlobProviderData)context.BlobProviderData;
             var target = _blobStorage[data.BlobId];
-            Array.Copy(buffer, offset, target, offset, buffer.Length - offset);
+            Array.Copy(buffer, 0, target, offset, buffer.Length);
             return STT.Task.CompletedTask;
         }
 
