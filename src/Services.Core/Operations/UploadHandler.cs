@@ -16,7 +16,9 @@ using System.Threading;
 
 namespace SenseNet.Services.Core.Operations
 {
-    //UNDONE: find a way to let developers override this class/feature
+    //TODO: let developers override this class/feature
+    // Review the potential virtual methods in this class
+    // and insert a hook in actions that uses it.
     internal class UploadHandler
     {
         private readonly HttpContext _httpContext;
@@ -94,56 +96,7 @@ namespace SenseNet.Services.Core.Operations
             }
         }
 
-        protected internal string ContentTypeName { get; set; }
-
-        protected string GetContentTypeName(Content parent, string fileName)
-        {
-            // 1. if contenttype post parameter is defined we will use that without respect to allowed types
-            // 2. otherwise check configured upload types (by extension) and use it if it is allowed
-            // 3. otherwise get the first allowed type that is or is derived from file
-
-            string contentTypeName = null;
-
-            if (!string.IsNullOrEmpty(ContentTypeName))
-            {
-                // try resolving provided type
-                var ct = ContentType.GetByName(ContentTypeName);
-                if (ct != null)
-                    contentTypeName = ContentTypeName;
-            }
-            else
-            {
-                if (!(parent.ContentHandler is GenericContent gc))
-                    return null;
-
-                var allowedTypes = gc.GetAllowedChildTypes().ToArray();
-
-                // check configured upload types (by extension) and use it if it is allowed
-                var fileContentType = UploadHelper.GetContentType(fileName, parent.Path);
-                if (!string.IsNullOrEmpty(fileContentType))
-                {
-                    if (allowedTypes.Select(ct => ct.Name).Contains(fileContentType))
-                        contentTypeName = fileContentType;
-                }
-
-                if (string.IsNullOrEmpty(contentTypeName))
-                {
-                    // get the first allowed type that is or is derived from file
-                    if (allowedTypes.Any(ct => ct.Name == "File"))
-                    {
-                        contentTypeName = "File";
-                    }
-                    else
-                    {
-                        var fileDescendant = allowedTypes.FirstOrDefault(ct => ct.IsInstaceOfOrDerivedFrom("File"));
-                        if (fileDescendant != null)
-                            contentTypeName = fileDescendant.Name;
-                    }
-                }
-            }
-
-            return contentTypeName;
-        }
+        protected internal string ContentTypeName { get; set; }       
 
         private string _propertyName;
         protected internal string PropertyName
@@ -166,78 +119,9 @@ namespace SenseNet.Services.Core.Operations
         protected internal bool UseChunkRequestValue { get; set; }        
         protected internal bool? Create { get; set; }        
 
-        // ======================================================================== Helper methods
+        // ======================================================================== POTENTIAL Virtual methods
 
-        private const string contentDispHeaderPrefix = "filename=";
-        protected string GetFileName(IFormFile file)
-        {
-            if (UseChunk)
-            {
-                // Content-Disposition: attachment; filename="x.png"
-                var contentDispHeader = _httpContext.Request.Headers["Content-Disposition"].FirstOrDefault() ?? string.Empty;
-                var idx = contentDispHeader.IndexOf(contentDispHeaderPrefix, StringComparison.InvariantCultureIgnoreCase);
-                var fileInQuotes = contentDispHeader.Substring(idx + contentDispHeaderPrefix.Length);
-                var fileName = fileInQuotes.Replace("\"", "");
-                return HttpUtility.UrlDecode(fileName);
-            }
-            else
-            {
-                var fileNames = file.FileName.Split(new char[] { '\\' });
-                var fileName = fileNames[fileNames.Length - 1];
-                return fileName;
-            }
-        }
-
-        protected bool TryParseRangeHeader(out long chunkStart, out int chunkLength, out long fullLength)
-        {
-            // parse chunk information
-            chunkStart = 0;
-            chunkLength = 0;
-            fullLength = 0;
-            var rangeHeader = _httpContext.Request.Headers["Content-Range"].FirstOrDefault() ?? string.Empty;
-            if (!string.IsNullOrEmpty(rangeHeader))
-            {
-                var fullinfo = rangeHeader.Substring("bytes ".Length).Split('/');
-                fullLength = Int64.Parse(fullinfo[1]);
-                var chunkinfo = fullinfo[0].Split('-');
-                chunkStart = Int64.Parse(chunkinfo[0]);
-                var chunkEnd = Int64.Parse(chunkinfo[1]);
-                chunkLength = Convert.ToInt32(chunkEnd - chunkStart + 1);
-                return true;
-            }
-            return false;
-        }
-
-        protected async Task<Content> GetContentAsync(Content parent, CancellationToken cancellationToken)
-        {
-            if (Overwrite && ContentId.HasValue)
-            {
-                var content = await Content.LoadAsync(ContentId.Value, cancellationToken).ConfigureAwait(false);
-                if (content != null)
-                {
-                    SetPreviewGenerationPriority(content);
-
-                    return content;
-                }
-            }
-
-            var contentTypeName = GetContentTypeName(parent, FileName);
-            if (contentTypeName == null)
-                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
-
-            return await GetContentAsync(parent, FileName, contentTypeName, Overwrite, cancellationToken).ConfigureAwait(false);
-        }
-
-        protected BinaryData CreateBinaryData(IFormFile file, bool setStream = true)
-        {
-            var fileName = UseChunk ? GetFileName(file) : file?.FileName;
-
-            return UploadHelper.CreateBinaryData(fileName, setStream ? file?.OpenReadStream() : null, file?.ContentType);
-        }
-
-        // ======================================================================== Virtual methods
-
-        protected virtual async Task<Content> GetContentAsync(Content parent, string fileName, string contentTypeName, bool overwrite,
+        protected async Task<Content> GetContentAsync(Content parent, string fileName, string contentTypeName, bool overwrite,
             CancellationToken cancellationToken)
         {
             var contentname = ContentNamingProvider.GetNameFromDisplayName(fileName);
@@ -269,7 +153,7 @@ namespace SenseNet.Services.Core.Operations
             return content;
         }
 
-        protected virtual async System.Threading.Tasks.Task SaveFileToRepositoryAsync(Content uploadedContent, Content parent, string token, bool mustFinalize, 
+        protected async System.Threading.Tasks.Task SaveFileToRepositoryAsync(Content uploadedContent, Content parent, string token, bool mustFinalize, 
             bool mustCheckIn, IFormFile file, CancellationToken cancellationToken)
         {
             if (uploadedContent.ContentHandler.Locked && uploadedContent.ContentHandler.LockedBy.Id != User.Current.Id)
@@ -344,68 +228,8 @@ namespace SenseNet.Services.Core.Operations
                     uploadedContent.CheckIn();
             }
         }
-
-        // ======================================================================== Helper methods
-
-        public static bool AllowCreationForEmptyAllowedContentTypes(Node node)
-        {
-            if (node is GenericContent parent)
-            {
-                if (parent.GetAllowedChildTypes().Count() == 0)
-                    return false;
-            }
-            return true;
-        }
-
-        protected string GetJsonFromContent(Content content, IFormFile file)
-        {
-            if (content == null)
-                return string.Empty;
-
-            var result = new
-            {
-                Url = content.Path,
-                Thumbnail_url = content.Path,
-                Name = content.Name,
-                Length = UseChunk ? FileLength : (file != null ? file.Length : FileText.Length),
-                Type = content.ContentType.Name,
-                Id = content.Id
-            };
-
-            //UNDONE: check serialized value
-            var js = JsonConvert.SerializeObject(result);
-            return js;
-
-            //var js = new JavaScriptSerializer();
-            //var jsonObj = js.Serialize(result);
-            //return jsonObj;
-        }
-
-        protected void CollectUploadData(out int contentId, out string token, out bool mustFinalize, out bool mustCheckIn)
-        {
-            var uploadDataArray = (ChunkToken ?? string.Empty).Split(new[] { '*' });
-
-            if (uploadDataArray.Length != 4)
-                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
-
-            if (!Int32.TryParse(uploadDataArray[0], out contentId))
-                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
-
-            token = uploadDataArray[1];
-
-            if (!bool.TryParse(uploadDataArray[2], out mustFinalize))
-                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
-            if (!bool.TryParse(uploadDataArray[3], out mustCheckIn))
-                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
-        }
-
-        protected internal static void SetPreviewGenerationPriority(Content content)
-        {
-            if (content?.ContentHandler is ContentRepository.File file)
-                file.PreviewGenerationPriority = TaskManagement.Core.TaskPriority.Important;
-        }
-
-        // ======================================================================== Action
+        
+        // ======================================================================== Public API
 
         public async Task<object> ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -506,9 +330,7 @@ namespace SenseNet.Services.Core.Operations
             }
         }
 
-        // ======================================================================== OData
-
-        public static string FinalizeContent(Content content)
+        public string FinalizeContent(Content content)
         {
             SetPreviewGenerationPriority(content);
 
@@ -516,6 +338,7 @@ namespace SenseNet.Services.Core.Operations
 
             return string.Empty;
         }
+
         public async Task<string> StartBlobUploadToParentAsync(string name, string contentType, 
             long fullSize, CancellationToken cancellationToken, string fieldName = null)
         {
@@ -538,12 +361,11 @@ namespace SenseNet.Services.Core.Operations
 
             return StartBlobUpload(file, fullSize, fieldName);
         }
-
         public string StartBlobUpload(long fullSize, string fieldName = null)
         {
             return StartBlobUpload(Content, fullSize, fieldName);
         }
-        public static string StartBlobUpload(Content content, long fullSize, string fieldName = null)
+        protected string StartBlobUpload(Content content, long fullSize, string fieldName = null)
         {
             // we have to put the content into a state that enables chunk write operations
             if (content.ContentHandler.SavingState == ContentSavingState.Finalized)
@@ -574,6 +396,7 @@ namespace SenseNet.Services.Core.Operations
             var content = await Content.LoadAsync(Content.Id, cancellationToken).ConfigureAwait(false);
             return FinalizeContent(content);
         }
+
         public string GetBinaryToken(string fieldName = null)
         {
             // workaround for empty string (not null, so an optional argument is not enough)
@@ -587,6 +410,176 @@ namespace SenseNet.Services.Core.Operations
                 throw new InvalidOperationException("Empty binary value: " + fieldName);
 
             return $"{{ token: '{binaryData.GetToken()}', versionId: {Content.ContentHandler.VersionId} }}";
+        }
+
+        // ======================================================================== Helper methods
+
+        protected string GetContentTypeName(Content parent, string fileName)
+        {
+            // 1. if contenttype post parameter is defined we will use that without respect to allowed types
+            // 2. otherwise check configured upload types (by extension) and use it if it is allowed
+            // 3. otherwise get the first allowed type that is or is derived from file
+
+            string contentTypeName = null;
+
+            if (!string.IsNullOrEmpty(ContentTypeName))
+            {
+                // try resolving provided type
+                var ct = ContentType.GetByName(ContentTypeName);
+                if (ct != null)
+                    contentTypeName = ContentTypeName;
+            }
+            else
+            {
+                if (!(parent.ContentHandler is GenericContent gc))
+                    return null;
+
+                var allowedTypes = gc.GetAllowedChildTypes().ToArray();
+
+                // check configured upload types (by extension) and use it if it is allowed
+                var fileContentType = UploadHelper.GetContentType(fileName, parent.Path);
+                if (!string.IsNullOrEmpty(fileContentType))
+                {
+                    if (allowedTypes.Select(ct => ct.Name).Contains(fileContentType))
+                        contentTypeName = fileContentType;
+                }
+
+                if (string.IsNullOrEmpty(contentTypeName))
+                {
+                    // get the first allowed type that is or is derived from file
+                    if (allowedTypes.Any(ct => ct.Name == "File"))
+                    {
+                        contentTypeName = "File";
+                    }
+                    else
+                    {
+                        var fileDescendant = allowedTypes.FirstOrDefault(ct => ct.IsInstaceOfOrDerivedFrom("File"));
+                        if (fileDescendant != null)
+                            contentTypeName = fileDescendant.Name;
+                    }
+                }
+            }
+
+            return contentTypeName;
+        }
+
+        private const string contentDispHeaderPrefix = "filename=";
+        protected string GetFileName(IFormFile file)
+        {
+            if (UseChunk)
+            {
+                // Content-Disposition: attachment; filename="x.png"
+                var contentDispHeader = _httpContext.Request.Headers["Content-Disposition"].FirstOrDefault() ?? string.Empty;
+                var idx = contentDispHeader.IndexOf(contentDispHeaderPrefix, StringComparison.InvariantCultureIgnoreCase);
+                var fileInQuotes = contentDispHeader.Substring(idx + contentDispHeaderPrefix.Length);
+                var fileName = fileInQuotes.Replace("\"", "");
+                return HttpUtility.UrlDecode(fileName);
+            }
+            else
+            {
+                var fileNames = file.FileName.Split(new char[] { '\\' });
+                var fileName = fileNames[fileNames.Length - 1];
+                return fileName;
+            }
+        }
+
+        protected bool TryParseRangeHeader(out long chunkStart, out int chunkLength, out long fullLength)
+        {
+            // parse chunk information
+            chunkStart = 0;
+            chunkLength = 0;
+            fullLength = 0;
+            var rangeHeader = _httpContext.Request.Headers["Content-Range"].FirstOrDefault() ?? string.Empty;
+            if (!string.IsNullOrEmpty(rangeHeader))
+            {
+                var fullinfo = rangeHeader.Substring("bytes ".Length).Split('/');
+                fullLength = Int64.Parse(fullinfo[1]);
+                var chunkinfo = fullinfo[0].Split('-');
+                chunkStart = Int64.Parse(chunkinfo[0]);
+                var chunkEnd = Int64.Parse(chunkinfo[1]);
+                chunkLength = Convert.ToInt32(chunkEnd - chunkStart + 1);
+                return true;
+            }
+            return false;
+        }
+
+        protected async Task<Content> GetContentAsync(Content parent, CancellationToken cancellationToken)
+        {
+            if (Overwrite && ContentId.HasValue)
+            {
+                var content = await Content.LoadAsync(ContentId.Value, cancellationToken).ConfigureAwait(false);
+                if (content != null)
+                {
+                    SetPreviewGenerationPriority(content);
+
+                    return content;
+                }
+            }
+
+            var contentTypeName = GetContentTypeName(parent, FileName);
+            if (contentTypeName == null)
+                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidContentType"));
+
+            return await GetContentAsync(parent, FileName, contentTypeName, Overwrite, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected BinaryData CreateBinaryData(IFormFile file, bool setStream = true)
+        {
+            var fileName = UseChunk ? GetFileName(file) : file?.FileName;
+
+            return UploadHelper.CreateBinaryData(fileName, setStream ? file?.OpenReadStream() : null, file?.ContentType);
+        }
+
+        protected static bool AllowCreationForEmptyAllowedContentTypes(Node node)
+        {
+            if (node is GenericContent parent)
+            {
+                if (!parent.GetAllowedChildTypes().Any())
+                    return false;
+            }
+            return true;
+        }
+
+        protected string GetJsonFromContent(Content content, IFormFile file)
+        {
+            if (content == null)
+                return string.Empty;
+
+            var result = new
+            {
+                Url = content.Path,
+                Thumbnail_url = content.Path,
+                Name = content.Name,
+                Length = UseChunk ? FileLength : (file != null ? file.Length : FileText.Length),
+                Type = content.ContentType.Name,
+                Id = content.Id
+            };
+
+            return JsonConvert.SerializeObject(result);
+        }
+
+        protected void CollectUploadData(out int contentId, out string token, out bool mustFinalize, out bool mustCheckIn)
+        {
+            var uploadDataArray = (ChunkToken ?? string.Empty).Split(new[] { '*' });
+
+            if (uploadDataArray.Length != 4)
+                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
+
+            if (!int.TryParse(uploadDataArray[0], out contentId))
+                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
+
+            token = uploadDataArray[1];
+
+            if (!bool.TryParse(uploadDataArray[2], out mustFinalize))
+                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
+            if (!bool.TryParse(uploadDataArray[3], out mustCheckIn))
+                throw new Exception(SenseNetResourceManager.Current.GetString("Action", "UploadExceptionInvalidRequest"));
+        }
+
+        protected internal static void SetPreviewGenerationPriority(Content content)
+        {
+            if (content?.ContentHandler is ContentRepository.File file)
+                file.PreviewGenerationPriority = TaskManagement.Core.TaskPriority.Important;
         }
     }
 }

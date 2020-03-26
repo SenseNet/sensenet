@@ -50,10 +50,10 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
-        public static string FinalizeContent(Content content)
+        public static string FinalizeContent(Content content, HttpContext context)
         {
-            //UNDONE: static vs instance
-            return UploadHandler.FinalizeContent(content);
+            var handler = new UploadHandler(content, context);
+            return handler.FinalizeContent(content);
         }
 
         /// <summary>
