@@ -7,8 +7,6 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class UploadActions
     {
-        //UNDONE: port Resume upload action
-
         [ODataAction]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.All)]
