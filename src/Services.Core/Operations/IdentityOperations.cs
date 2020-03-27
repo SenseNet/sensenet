@@ -65,7 +65,7 @@ namespace SenseNet.Services.Core.Operations
                 : JsonConvert.DeserializeObject(claims, typeof(ClaimInfo[])) as ClaimInfo[];
 
             var user = await registrationProvider.CreateProviderUserAsync(content, context, provider, 
-                userId, claimsList, context.RequestAborted);
+                userId, claimsList, context.RequestAborted).ConfigureAwait(false);
 
             return Content.Create(user);
         }

@@ -31,7 +31,7 @@ namespace SenseNet.Services.Core.Authentication
             var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
 
             var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
-                await Content.LoadAsync(parentPath, cancellationToken);
+                await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
 
             var fullName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
             var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
@@ -56,7 +56,7 @@ namespace SenseNet.Services.Core.Authentication
 
             user.Save();
 
-            await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken);
+            await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken).ConfigureAwait(false);
 
             return user.ContentHandler as User;
         }
