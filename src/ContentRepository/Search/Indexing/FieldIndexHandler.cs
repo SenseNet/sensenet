@@ -513,10 +513,12 @@ namespace SenseNet.Search.Indexing
             var data = field.GetData() ?? string.Empty;
             JObject jData = null;
 
+            // These fields are technical fields, we should not let users
+            // search for their values in fulltext queries.
+            textExtract = string.Empty;
+
             if (data is string stringData)
             {
-                textExtract = stringData.ToLowerInvariant();
-
                 try
                 {
                     jData = JsonConvert.DeserializeObject(stringData, typeof(JObject)) as JObject;
@@ -530,13 +532,7 @@ namespace SenseNet.Search.Indexing
             }
             else if (data is JObject jsonData)
             {
-                // compute text extract
-                textExtract = string.Empty;
                 jData = jsonData;
-            }
-            else
-            {
-                textExtract = string.Empty;
             }
 
             var indexFieldValues = new List<string>();

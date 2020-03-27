@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Services.Core.Authentication;
 
 namespace SenseNet.Services.Core.Operations
 {
+    public class ClaimInfo
+    {
+        public string Type { get; set; }
+        public string Value { get; set; }
+    }
+
     public static class IdentityOperations
     {
         [ODataAction]
@@ -39,6 +48,26 @@ namespace SenseNet.Services.Core.Operations
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
+        }
+
+        [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task<Content> CreateUserByProvider(Content content, HttpContext context, string provider, 
+            string userId, string claims)
+        {
+            if (!(context.RequestServices.GetService(typeof(RegistrationProviderStore)) is RegistrationProviderStore providerStore))
+                throw new InvalidOperationException("sensenet user registration service is not available.");
+
+            var registrationProvider = providerStore.Get(provider);
+            var claimsList = string.IsNullOrEmpty(claims)
+                ? Array.Empty<ClaimInfo>()
+                : JsonConvert.DeserializeObject(claims, typeof(ClaimInfo[])) as ClaimInfo[];
+
+            var user = await registrationProvider.CreateProviderUserAsync(content, context, provider, 
+                userId, claimsList, context.RequestAborted).ConfigureAwait(false);
+
+            return Content.Create(user);
         }
     }
 }
