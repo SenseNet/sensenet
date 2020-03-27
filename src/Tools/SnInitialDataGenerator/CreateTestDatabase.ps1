@@ -1,7 +1,7 @@
 ﻿.\SnInitialDataGenerator.exe `
  -IMPORT ..\..\..\..\..\nuget\snadmin\install-services\import `
- -DT SenseNet.Tests.InMemoryTestDatabase `
+ -DT SenseNet.ContentRepository.InMemory.InMemoryTestDatabase `
  -IT InMemoryTestIndex `
- -DF ..\..\..\..\..\..\Tests\SenseNet.Tests\InMemoryTestDatabase.cs `
- -IF ..\..\..\..\..\..\Tests\SenseNet.Tests\InMemoryTestIndex.cs `
+ -DF ..\..\..\..\..\..\ContentRepository.InMemory\InMemoryTestDatabase.cs `
+ -IF ..\..\..\..\..\..\ContentRepository.InMemory\InMemoryTestIndex.cs `
  -S Localization
