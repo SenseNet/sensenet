@@ -162,6 +162,16 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
+        [ODataAction(Icon = "delete", Description = "$Action,Delete")]
+        [ContentTypes(N.CT.GenericContent)]
+        [AllowedRoles(N.R.Everyone)]
+        [Scenario(N.S.ListItem)]
+        [RequiredPermissions(N.P.Delete)]
+        public static object Delete(Content content, bool permanent = false)
+        {
+            content.Delete(permanent);
+            return null;
+        }
 
         [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch")]
         [ContentTypes(N.CT.Folder)]
