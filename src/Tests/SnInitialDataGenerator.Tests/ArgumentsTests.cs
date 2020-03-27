@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Tools.CommandLineArguments;
@@ -424,6 +425,136 @@ namespace SnInitialDataGenerator.Tests
             Assert.AreEqual(expectedDbClass, arguments.DatabaseClassName);
             Assert.AreEqual(expectedIndexNamespace, arguments.IndexNamespace);
             Assert.AreEqual(expectedIndexClass, arguments.IndexClassName);
+        }
+
+        [TestMethod]
+        public void DataGen_Args_ImportPathTrailing()
+        {
+            var expectedPath = $"A{VOL}{DIR}import{DIR}";
+            var args = new[]
+            {
+                "-IMPORT", expectedPath
+            };
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
+            }
+            catch (ParsingException e)
+            {
+                Assert.Fail(e.FormattedMessage);
+            }
+
+            // ACTION
+            arguments.PrepareProperties();
+
+            // ASSERT
+            Assert.AreEqual(expectedPath, arguments.ImportPath);
+        }
+
+        [TestMethod]
+        public void DataGen_Args_Skipped()
+        {
+            var args = new[]
+            {
+                "-IMPORT", ImportPath, "-S", "aaa\\bbb,Aaa\\Ccc,bbb"
+            };
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
+            }
+            catch (ParsingException e)
+            {
+                Assert.Fail(e.FormattedMessage);
+            }
+
+            // ACTION
+            arguments.PrepareProperties();
+
+            // ASSERT
+            Assert.AreEqual(3, arguments.SkippedPathArray.Length);
+            Assert.AreEqual("/Root/aaa/bbb", arguments.SkippedPathArray[0]);
+            Assert.AreEqual("/Root/Aaa/Ccc", arguments.SkippedPathArray[1]);
+            Assert.AreEqual("/Root/bbb", arguments.SkippedPathArray[2]);
+        }
+        [TestMethod]
+        public void DataGen_Args_Skipped_Trailing()
+        {
+            var args = new[]
+            {
+                "-IMPORT", ImportPath, "-S", "aaa,bbb,bbb\\"
+            };
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
+            }
+            catch (ParsingException e)
+            {
+                Assert.Fail(e.FormattedMessage);
+            }
+
+            // ACTION
+            arguments.PrepareProperties();
+
+            // ASSERT
+            Assert.AreEqual(3, arguments.SkippedPathArray.Length);
+            Assert.AreEqual("/Root/aaa", arguments.SkippedPathArray[0]);
+            Assert.AreEqual("/Root/bbb", arguments.SkippedPathArray[1]);
+            Assert.AreEqual("/Root/bbb/", arguments.SkippedPathArray[2]);
+        }
+        [TestMethod]
+        public void DataGen_Args_Skipped_EmptyPath()
+        {
+            var args = new[]
+            {
+                "-IMPORT", ImportPath, "-S", "aaa,"
+            };
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
+            }
+            catch (ParsingException e)
+            {
+                Assert.Fail(e.FormattedMessage);
+            }
+
+            // ACTION
+            arguments.PrepareProperties();
+
+            // ASSERT
+            Assert.AreEqual(2, arguments.SkippedPathArray.Length);
+            Assert.AreEqual("/Root/aaa", arguments.SkippedPathArray[0]);
+            Assert.AreEqual("/Root", arguments.SkippedPathArray[1]);
+        }
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void DataGen_Args_Skipped_OneSlash()
+        {
+            var args = new[]
+            {
+                "-IMPORT", ImportPath, "-S", "aaa,,\\"
+            };
+            var arguments = new Arguments();
+            try
+            {
+                var parser = ArgumentParser.Parse(args, arguments);
+            }
+            catch (ParsingException e)
+            {
+                Assert.Fail(e.FormattedMessage);
+            }
+
+            // ACTION
+            arguments.PrepareProperties();
+
+            // ASSERT
+            Assert.AreEqual(3, arguments.SkippedPathArray.Length);
+            Assert.AreEqual("/Root/aaa", arguments.SkippedPathArray[0]);
+            Assert.AreEqual("/Root", arguments.SkippedPathArray[1]);
+            Assert.AreEqual("/Root/", arguments.SkippedPathArray[2]);
         }
     }
 }

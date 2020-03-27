@@ -34,25 +34,34 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         static void Main(string[] args)
         {
             var arguments = new Arguments();
+            ArgumentParser parser = null;
             try
             {
-                var parser = ArgumentParser.Parse(args, arguments);
+                parser = ArgumentParser.Parse(args, arguments);
 
                 if (parser.IsHelp)
                 {
                     Usage(parser);
                     return;
                 }
+
+                arguments.Prepare();
             }
             catch (ParsingException e)
             {
                 Usage(e.Result, e.FormattedMessage);
                 return;
             }
+            catch (Exception e)
+            {
+                Usage(parser, e.Message);
+                return;
+            }
 
-            arguments.Prepare();
 
             GenerateInMemoryDatabaseFromImport(arguments);
+
+            RemoveSkippedPaths(arguments);
 
             CreateSourceFiles(arguments);
         }
@@ -229,6 +238,43 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                     writer.WriteLine("            \"{0}{1}\",",
                         breaks.Contains(ace.EntityId) ? "-" : "+",
                         ace.ToString().Replace("(", "").Replace(")", ""));
+            }
+        }
+
+        private static readonly string[] ProtectedContents = new[]
+        {
+            "/Root",
+            "/Root/System",
+            "/Root/System/Schema",
+            "/Root/System/Schema/ContentTypes",
+            "/Root/System/Schema/ContentTypes/ContentType",
+            "/Root/System/Schema/ContentTypes/GenericContent",
+        };
+        private static void RemoveSkippedPaths(Arguments arguments)
+        {
+            Console.WriteLine("Remove unnecessary subtrees ({0}):", arguments.SkippedPathArray.Length);
+            foreach (var skippedPath in arguments.SkippedPathArray)
+            {
+                if(ProtectedContents.Contains(skippedPath, StringComparer.CurrentCultureIgnoreCase))
+                {
+                    Console.WriteLine("not removed: {0}", skippedPath);
+                    continue;
+                }
+
+                var node = Node.LoadNode(skippedPath);
+                if (node == null)
+                {
+                    Console.WriteLine("not found:   {0}", skippedPath);
+                    continue;
+                }
+                if (node.Id < 1000)
+                {
+                    Console.WriteLine("not removed: {0}", skippedPath);
+                    continue;
+                }
+
+                Node.ForceDelete(skippedPath);
+                Console.WriteLine("    removed: {0}", skippedPath);
             }
         }
 
