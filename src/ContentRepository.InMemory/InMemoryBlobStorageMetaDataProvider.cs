@@ -377,12 +377,13 @@ namespace SenseNet.ContentRepository.InMemory
 
             // Reset staging and set metadata
             fileDoc.Staging = false;
+            fileDoc.Size = fullSize;
+
             if (source != null)
             {
                 fileDoc.ContentType = source.ContentType;
                 fileDoc.Extension = source.FileName.Extension;
                 fileDoc.FileNameWithoutExtension = source.FileName.FileNameWithoutExtension;
-                fileDoc.Size = source.Size;
             }
 
             // Done
@@ -404,7 +405,11 @@ namespace SenseNet.ContentRepository.InMemory
             var db = DataProvider.DB;
 
             var allFileIds = db.BinaryProperties.Select(x => x.FileId).ToArray();
-            var filesIdsToDelete = db.Files.Where(x => !x.Staging && !allFileIds.Contains(x.Id)).Select(x=>x.FileId);
+            var filesIdsToDelete = db.Files
+                .Where(x => !x.Staging && !allFileIds.Contains(x.Id))
+                .Select(x=>x.FileId)
+                .ToArray();
+
             foreach (var fileId in filesIdsToDelete)
                 db.Files.Remove(fileId);
 

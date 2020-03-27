@@ -357,7 +357,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                await WriteOperationResultAsync(httpContext, req)
+                await WriteGetOperationResultAsync(httpContext, req)
                     .ConfigureAwait(false);
             }
         }
@@ -408,7 +408,7 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles GET operations. Parameters come from the URL or the request stream.
         /// </summary>
-        internal async Task WriteOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WriteGetOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
@@ -449,7 +449,7 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WriteOperationResultAsync(Stream inputStream, HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
@@ -470,7 +470,7 @@ namespace SenseNet.OData.Writers
 
             var response = action is ODataOperationMethodExecutor odataAction
             ? (odataAction.IsAsync ? await odataAction.ExecuteAsync(content) : action.Execute(content))
-            : action.Execute(content, await GetOperationParametersAsync(action, inputStream, httpContext, odataReq));
+            : action.Execute(content, await GetOperationParametersAsync(action, httpContext, odataReq));
 
             if (response is Content responseAsContent)
             {
@@ -842,12 +842,13 @@ namespace SenseNet.OData.Writers
             }
             return result.ToArray();
         }
-        private async Task<object[]> GetOperationParametersAsync(ActionBase action, Stream inputStream,
+        private async Task<object[]> GetOperationParametersAsync(ActionBase action,
             HttpContext httpContext, ODataRequest odataRequest)
         {
             if (action.ActionParameters.Length == 0)
                 return ActionParameter.EmptyValues;
 
+            var inputStream = httpContext?.Request?.Body;
             var values = new object[action.ActionParameters.Length];
 
             var parameters = action.ActionParameters;
@@ -872,7 +873,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                var model = await ODataMiddleware.ReadToJsonAsync(inputStream);
+                var model = await ODataMiddleware.ReadToJsonAsync(httpContext);
                 var i = 0;
                 foreach (var parameter in parameters)
                 {
