@@ -153,6 +153,8 @@
     <Compile Include="SelfTest\InMemorySearchTests.cs" />
     <Compile Include="SelfTest\SafeQueries.cs" />
     <Compile Include="TestBase.cs" />
+    <Compile Include="InMemoryTestDatabase.cs" />
+    <Compile Include="InMemoryTestIndex.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>
