@@ -475,7 +475,7 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             return bytes;
         }
 
-        internal static byte[] ParseHexDump(string src)
+        public static byte[] ParseHexDump(string src)
         {
             var lines = src.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
             var bytes = new List<byte>(lines.Length * 16);

@@ -368,7 +368,7 @@ namespace SenseNet.Tests
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(InitialTestData.Instance));
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestDatabase.Instance/*<?OLD>InitialTestData.Instance*/));
         }
 
         private static InMemoryIndex _initialIndex;
@@ -377,7 +377,7 @@ namespace SenseNet.Tests
             if (_initialIndex == null)
             {
                 var index = new InMemoryIndex();
-                index.Load(new StringReader(InitialTestIndex.Index));
+                index.Load(new StringReader(InMemoryTestIndex.Index/*<?OLD>InitialTestIndex.Index*/));
                 _initialIndex = index;
             }
             return _initialIndex.Clone();

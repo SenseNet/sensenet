@@ -176,7 +176,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         protected static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();
-            index.Load(new StringReader(InitialTestIndex.Index));
+            //UNDONE:!!!! Check initial index during installation
+            //index.Load(new StringReader(InitialTestIndex.Index));
             return index;
         }
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
@@ -524,7 +525,7 @@ namespace {0}
                 return true;
             return false;
         }
-        private static string GetHexDump(Stream stream)
+        public static string GetHexDump(Stream stream)
         {
             var bytes = new byte[stream.Length];
             stream.Read(bytes, 0, bytes.Length);
