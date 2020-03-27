@@ -12,6 +12,18 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Services.Core.Authentication
 {
+    /// <summary>
+    /// Default implementation for the <see cref="IRegistrationProvider"/> interface.
+    /// Provides a basic algorithm for creating new users and filling their
+    /// most important fields - e.g. email or name.
+    /// </summary>
+    /// <remarks>
+    /// Developers may inherit from this class and provide their own implementation
+    /// using the helper methods of this built-in implementation.
+    /// Use the <see cref="AuthenticationExtensions.AddProvider"/> method during
+    /// application start to register a custom instance for a particular 
+    /// authentication provider (e.g. Google or Facebook).
+    /// </remarks>
     public class DefaultRegistrationProvider : IRegistrationProvider
     {
         public string DefaultParentPath { get; protected internal set; }

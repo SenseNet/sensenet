@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace SenseNet.Services.Core.Authentication
 {
+    /// <summary>
+    /// Central in-memory storage for registration providers.
+    /// There will be a singleton instance of this class in an application
+    /// that will be registered during app start.
+    /// </summary>
     internal class RegistrationProviderStore
     {
         private readonly IDictionary<string, IRegistrationProvider> Providers = new Dictionary<string, IRegistrationProvider>();
