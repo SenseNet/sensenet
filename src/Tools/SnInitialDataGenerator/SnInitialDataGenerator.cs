@@ -58,12 +58,11 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 return;
             }
 
-
             GenerateInMemoryDatabaseFromImport(arguments);
 
-            RemoveSkippedPaths(arguments);
-
             CreateSourceFiles(arguments);
+
+            Console.WriteLine("Done.");
         }
 
         /* ============================================================================ USAGE */
@@ -109,6 +108,10 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                         .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId,
                             false, PermissionType.BuiltInPermissionTypes)
                         .Apply();
+
+                // Use the path-blacklist
+                Console.WriteLine("Remove unnecessary subtrees ({0}):", arguments.SkippedPathArray.Length);
+                RemoveSkippedPaths(arguments);
 
                 // Save database to separated files.
                 Console.Write("Saving data...");
@@ -252,7 +255,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         };
         private static void RemoveSkippedPaths(Arguments arguments)
         {
-            Console.WriteLine("Remove unnecessary subtrees ({0}):", arguments.SkippedPathArray.Length);
             foreach (var skippedPath in arguments.SkippedPathArray)
             {
                 if(ProtectedContents.Contains(skippedPath, StringComparer.CurrentCultureIgnoreCase))
@@ -401,12 +403,15 @@ namespace {0}
 
         private static void CreateSourceFiles(Arguments arguments)
         {
+            Console.WriteLine("Generate C# source files");
+
             var path = Path.Combine(arguments.OutputPath, arguments.DataFileName);
             var version = typeof(Content).Assembly.GetName().Version;
             var now = DateTime.Now.ToString("yyyy-MM-dd");
 
             // WRITE DATA
 
+            Console.Write("writing {0} ...", arguments.DataFileName);
             using (var writer = new StreamWriter(path, false, Encoding.UTF8))
             {
                 writer.WriteLine(Template[0], now, version);
@@ -451,9 +456,11 @@ namespace {0}
 
                 writer.WriteLine(Template[9]);
             }
+            Console.WriteLine("ok.");
 
             // WRITE INDEX
 
+            Console.Write("writing {0} ...", arguments.IndexFileName);
             path = Path.Combine(arguments.OutputPath, arguments.IndexFileName);
             using (var writer = new StreamWriter(path, false, Encoding.UTF8))
             {
@@ -466,6 +473,7 @@ namespace {0}
 
                 writer.Write(Template[11]);
             }
+            Console.WriteLine("ok.");
         }
         private static void WriteCtds(StreamWriter writer)
         {

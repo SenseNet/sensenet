@@ -20,4 +20,13 @@
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="CreateSnServicesDatabase.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CreateTestDatabase.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
