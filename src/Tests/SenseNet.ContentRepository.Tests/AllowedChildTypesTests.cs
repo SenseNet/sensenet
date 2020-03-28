@@ -440,7 +440,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private class TestStructure
         {
-            public Site Site1;
+            public Workspace Site1;
             public Workspace Workspace1;
             public Folder Folder1;
         }
@@ -453,10 +453,10 @@ namespace SenseNet.ContentRepository.Tests
             var action = new PortalContext.ReloadSiteListDistributedAction();
             action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-            var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
+            var sites = new Folder(Repository.Root) { Name = "Sites" };
             sites.Save();
 
-            var site = new Site(sites) { Name = "Site1", UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
+            var site = new Workspace(sites) { Name = "Site1" };
             site.Save();
 
             var workspace = new Workspace(site) { Name = "Workspace1" };
