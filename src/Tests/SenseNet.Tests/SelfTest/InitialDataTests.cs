@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
+using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
 using Task = System.Threading.Tasks.Task;
 
@@ -129,7 +130,7 @@ namespace SenseNet.Tests.SelfTest
                 "-2|Normal|+7:_____________________________________________+++++++++++++++++++",
                 "+6|Normal|-6:_______________________________________________________________+",
                 // break is relevant because this is the first entry.
-                "-1113|Normal|+6:_______________________________________________________________+",
+                "-1000|Normal|+6:_______________________________________________________________+",
             };
             InitialDataTest(() =>
             {
@@ -163,7 +164,7 @@ namespace SenseNet.Tests.SelfTest
                 Assert.IsTrue(actions[2].Break);
                 Assert.IsFalse(actions[2].Unbreak);
                 Assert.AreEqual(1, actions[2].Entries.Count);
-                Assert.AreEqual(1113, actions[2].Entries[0].EntityId);
+                Assert.AreEqual(1000, actions[2].Entries[0].EntityId);
                 Assert.AreEqual(6, actions[2].Entries[0].IdentityId);
                 Assert.AreEqual(1UL, actions[2].Entries[0].AllowBits);
                 Assert.AreEqual(0UL, actions[2].Entries[0].DenyBits);
@@ -178,7 +179,7 @@ namespace SenseNet.Tests.SelfTest
                 Permissions = new List<string>
                 {
                     "+6|Normal|-6:_______________________________________________________________+",
-                    "-1113|Normal|+6:_______________________________________________________________+",
+                    "-1000|Normal|+6:_______________________________________________________________+",
                 }
             };
 
@@ -189,10 +190,10 @@ namespace SenseNet.Tests.SelfTest
                 Assert.AreEqual(1, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has no any permission.
                 Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1113, PermissionType.See));
+                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // There is no break.
                 Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsTrue(SecurityHandler.IsEntityInherited(1113));
+                Assert.IsTrue(SecurityHandler.IsEntityInherited(1000));
 
                 // ACTION
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
@@ -202,10 +203,10 @@ namespace SenseNet.Tests.SelfTest
                 Assert.AreEqual(1 , SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has See permission on both contents.
                 Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 1113, PermissionType.See));
+                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // The second content is not inherited.
                 Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsFalse(SecurityHandler.IsEntityInherited(1113));
+                Assert.IsFalse(SecurityHandler.IsEntityInherited(1000));
             });
         }
 
@@ -234,12 +235,18 @@ namespace SenseNet.Tests.SelfTest
                 using (new SystemAccount())
                 {
                     if (withSecurity)
+                    {
+                        var sdbp = new PrivateType(typeof(MemoryDataProvider));
+                        var db = (DatabaseStorage)sdbp.GetStaticFieldOrProperty("Storage");
+                        db.Aces.Clear();
+
                         SecurityHandler.CreateAclEditor()
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
                                 PermissionType.BuiltInPermissionTypes)
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,
                                 PermissionType.BuiltInPermissionTypes)
                             .Apply();
+                    }
 
                     new SnMaintenance().Shutdown();
 
