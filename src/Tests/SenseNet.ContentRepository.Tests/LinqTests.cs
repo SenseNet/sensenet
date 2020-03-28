@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tests;
@@ -360,8 +361,8 @@ namespace SenseNet.ContentRepository.Tests
                 q = GetQueryString(Content.All.Where(c => (bool) c["Hidden"]));
                 Assert.AreEqual("Hidden:yes", q);
 
-                q = GetQueryString(Content.All.OfType<Portal.Site>().Where(c => c.EnableClientBasedCulture));
-                Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes", q);
+                q = GetQueryString(Content.All.OfType<Workspace>().Where(c => c.IsWallContainer));
+                Assert.AreEqual("+TypeIs:workspace +IsWallContainer:yes", q);
             });
         }
 
@@ -383,13 +384,13 @@ namespace SenseNet.ContentRepository.Tests
                 q = GetQueryString(Content.All.Where(c => !(bool) c["Hidden"]));
                 Assert.AreEqual("Hidden:no", q);
 
-                q = GetQueryString(Content.All.OfType<Portal.Site>().Where(c => !c.EnableClientBasedCulture));
-                Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:no", q);
+                q = GetQueryString(Content.All.OfType<Workspace>().Where(c => !c.IsWallContainer));
+                Assert.AreEqual("+TypeIs:workspace +IsWallContainer:no", q);
 
                 q =
                     GetQueryString(
-                        Content.All.Where(c => !((Portal.Site) c.ContentHandler).EnableClientBasedCulture));
-                Assert.AreEqual("EnableClientBasedCulture:no", q);
+                        Content.All.Where(c => !((Workspace) c.ContentHandler).IsWallContainer));
+                Assert.AreEqual("IsWallContainer:no", q);
             });
         }
 

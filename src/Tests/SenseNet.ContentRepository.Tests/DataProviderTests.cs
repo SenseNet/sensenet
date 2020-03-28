@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Portal;
@@ -726,9 +727,9 @@ namespace SenseNet.ContentRepository.Tests
             {
                 // Create a small subtree
                 var root = new SystemFolder(Repository.Root) { Name = "TestRoot" }; root.Save();
-                var site1 = new Site(root) { Name = "Site1" }; site1.Save();
+                var site1 = new Workspace(root) { Name = "Site1" }; site1.Save();
                 site1.AllowChildTypes(new[] { "Task" }); site1.Save();
-                site1 = Node.Load<Site>(site1.Id);
+                site1 = Node.Load<Workspace>(site1.Id);
                 var folder1 = new Folder(site1) { Name = "Folder1" }; folder1.Save();
                 var folder2 = new Folder(folder1) { Name = "Folder2" }; folder2.Save();
                 var folder3 = new Folder(folder1) { Name = "Folder3" }; folder3.Save();
@@ -738,7 +739,7 @@ namespace SenseNet.ContentRepository.Tests
                 var systemFolder1 = new SystemFolder(doclib1) { Name = "SystemFolder1" }; systemFolder1.Save();
                 var file2 = new File(systemFolder1) { Name = "File2" }; file2.Save();
                 var memoList1 = new ContentList(folder1, "MemoList") { Name = "MemoList1" }; memoList1.Save();
-                var site2 = new Site(root) { Name = "Site2" }; site2.Save();
+                var site2 = new Workspace(root) { Name = "Site2" }; site2.Save();
 
                 // ACTION
                 var types = await DataStore.LoadChildTypesToAllowAsync(folder1.Id, CancellationToken.None);
