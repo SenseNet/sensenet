@@ -266,7 +266,7 @@ namespace SenseNet.ODataTests
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestDatabase.Instance/*<?OLD>DefaultDatabase.Instance*/));
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance/*<?OLD>DefaultDatabase.Instance*/));
         }
 
         private static InMemoryIndex _initialIndex;

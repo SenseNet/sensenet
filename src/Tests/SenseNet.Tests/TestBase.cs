@@ -368,7 +368,7 @@ namespace SenseNet.Tests
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestDatabase.Instance/*<?OLD>InitialTestData.Instance*/));
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance/*<?OLD>InitialTestData.Instance*/));
         }
 
         private static InMemoryIndex _initialIndex;

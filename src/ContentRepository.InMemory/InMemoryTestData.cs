@@ -6,13 +6,13 @@ using System.Collections.ObjectModel;
 
 namespace SenseNet.ContentRepository.InMemory
 {
-    public class InMemoryTestDatabase : IRepositoryDataFile
+    public class InMemoryTestData : IRepositoryDataFile
     {
-        private InMemoryTestDatabase()
+        private InMemoryTestData()
         {
         }
 
-        public static InMemoryTestDatabase Instance { get; } = new InMemoryTestDatabase();
+        public static InMemoryTestData Instance { get; } = new InMemoryTestData();
 
         public string PropertyTypes => @"
   Id| DataType  | Mapping| Name
