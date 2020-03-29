@@ -120,8 +120,11 @@ namespace SenseNet.ContentRepository.Tests
 
                         // add permissions for this test user (local Add, but not TakeOwnership) and for Owners (everything)
                         var editor = SnSecurityContext.Create().CreateAclEditor();
-                        editor.Allow(parent.Id, user1.Id, true, PermissionType.AddNew)
-                            .Allow(parent.Id, Identifiers.OwnersGroupId, false, PermissionType.BuiltInPermissionTypes);
+                        editor
+                            .Allow(parent.Id, user1.Id, true, PermissionType.AddNew)
+                            .Allow(parent.Id, Identifiers.OwnersGroupId, false, PermissionType.BuiltInPermissionTypes)
+                            // technical permission for content types
+                            .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.See);
                         editor.Apply();
                     }
 

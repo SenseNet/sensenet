@@ -137,7 +137,21 @@ namespace SenseNet.ODataTests
 </ContentType>");
                 }
 
-                var appRoot = Node.LoadNode("/Root/(apps)/GenericContent");
+                var apps = Node.LoadNode("/Root/(apps)");
+                if (apps == null)
+                {
+                    apps = new Folder(Repository.Root) {Name = "(apps)"};
+                    apps.Save();
+                }
+                var appRoot = Node.Load<GenericContent>("/Root/(apps)/GenericContent");
+                if (appRoot == null)
+                {
+                    appRoot = new Folder(Repository.Root) { Name = "GenericContent" };
+                    appRoot.Save();
+                }
+
+                appRoot.AllowChildType(ContentType.GetByName("GenericODataApplication"), true);
+
                 var app = new GenericODataApplication(appRoot)
                 {
                     Name = "Function2",
