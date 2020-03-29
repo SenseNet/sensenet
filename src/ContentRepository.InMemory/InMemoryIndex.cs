@@ -423,9 +423,9 @@ namespace SenseNet.ContentRepository.InMemory
             var stored = (JArray)deserialized["Stored"];
             foreach (var storedDoc in stored)
             {
-                if (storedDoc["VersionId"] == null) //UNDONE: ?? Delete old algorithm or not?
+                if (storedDoc["VersionId"] == null)
                 {
-                    // Old algorithm
+                    // Old algorithm (backward compatibility)
                     var versionId = (int)storedDoc["Item1"];
                     var indexFields = ((JArray)storedDoc["Item2"]).Select(x => CreateIndexField((JObject)x)).ToList();
                     StoredData.Add(new Tuple<int, List<IndexField>>(versionId, indexFields));

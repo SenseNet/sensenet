@@ -176,7 +176,6 @@ namespace SenseNet.Tools.SnInitialDataGenerator
         protected static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();
-            //UNDONE:!!!! Check initial index during installation
             //index.Load(new StringReader(InitialTestIndex.Index));
             return index;
         }
