@@ -61,7 +61,7 @@ namespace SnInitialDataGenerator.Tests
             Assert.AreEqual(field.Store, parsed.Store);
             Assert.AreEqual(field.TermVector, parsed.TermVector);
         }
-        [TestMethod] //UNDONE: ?? (int)flag 1 will be converted to 0 (e.g. IndexingMode.Analyzed -> IndexingMode.Default)
+        [TestMethod]
         public void InMemoryDatabaseGenerator_IndexField_DefaultFlags()
         {
             var field = new IndexField("FieldName", "value", IndexingMode.Analyzed, IndexStoringMode.No,
