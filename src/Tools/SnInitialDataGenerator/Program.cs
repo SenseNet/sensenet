@@ -29,7 +29,7 @@ using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Tools.SnInitialDataGenerator
 {
-    internal class SnInitialDataGenerator
+    internal class Program
     {
         static void Main(string[] args)
         {
