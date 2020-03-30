@@ -57,11 +57,23 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /* ===================================================================================== SAVE */
 
         /// <summary>
-        /// Persists the initial data from the active repository to the given readers.
+        /// Persists the initial data from the active repository to separated files in the given directory.
         /// Initial data is the passed schema and nodes. If the schema is null,
         /// the whole current schema will be written.
+        /// WARNING: The saved files are not contains the whole database but help for the C# source file generation.
         /// </summary>
-        public static void Save(TextWriter propertyTypeWriter, TextWriter nodeTypeWriter, TextWriter nodeWriter,
+        public static void Save(string tempFolderPath, SchemaEditor schema, Func<IEnumerable<int>> getNodeIds)
+        {
+            using (var ptw = new StreamWriter(Path.Combine(tempFolderPath, "propertyTypes.txt"), false, Encoding.UTF8))
+            using (var ntw = new StreamWriter(Path.Combine(tempFolderPath, "nodeTypes.txt"), false, Encoding.UTF8))
+            using (var nw = new StreamWriter(Path.Combine(tempFolderPath, "nodes.txt"), false, Encoding.UTF8))
+            using (var vw = new StreamWriter(Path.Combine(tempFolderPath, "versions.txt"), false, Encoding.UTF8))
+            using (var dw = new StreamWriter(Path.Combine(tempFolderPath, "dynamicData.txt"), false, Encoding.UTF8))
+                InitialData.Save(ptw, ntw, nw, vw, dw, schema,
+                    getNodeIds);
+        }
+
+        internal static void Save(TextWriter propertyTypeWriter, TextWriter nodeTypeWriter, TextWriter nodeWriter,
             TextWriter versionWriter, TextWriter dynamicDataWriter,
             SchemaEditor schema, Func<IEnumerable<int>> getNodeIds)
         {
@@ -214,6 +226,9 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
         /* ===================================================================================== LOAD */
 
+        /// <summary>
+        /// Loads the initial data from the given <see cref="IRepositoryDataFile"/> instance.
+        /// </summary>
         public static InitialData Load(IRepositoryDataFile dataFile)
         {
             InitialData initialData;
@@ -235,9 +250,20 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /* ------------------------------------------------------------------------------------------ */
 
         /// <summary>
-        /// Loads the initial data from the given readers.
+        /// Loads the initial data from the given directory.
+        /// WARNING: The saved files are not contains the whole database but help for the C# source file generation.
         /// </summary>
-        public static InitialData Load(TextReader propertyTypeReader, TextReader nodeTypeReader,
+        public static InitialData Load(string tempFolderPath)
+        {
+            using (var ptr = new StreamReader(Path.Combine(tempFolderPath, "propertyTypes.txt")))
+            using (var ntr = new StreamReader(Path.Combine(tempFolderPath, "nodeTypes.txt")))
+            using (var nr = new StreamReader(Path.Combine(tempFolderPath, "nodes.txt")))
+            using (var vr = new StreamReader(Path.Combine(tempFolderPath, "versions.txt")))
+            using (var dr = new StreamReader(Path.Combine(tempFolderPath, "dynamicData.txt")))
+                return Load(ptr, ntr, nr, vr, dr);
+        }
+
+        private static InitialData Load(TextReader propertyTypeReader, TextReader nodeTypeReader,
             TextReader nodeReader, TextReader versionReader, TextReader dynamicDataReader)
         {
             var propertyTypes = ParseDatamodels<PropertyTypeData>(ReadLines(propertyTypeReader));
@@ -473,6 +499,53 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             Encoding.UTF8.GetBytes(fileContent, 0, fileContent.Length, bytes, bom.Length);
 
             return bytes;
+        }
+
+        public static string GetHexDump(Stream stream)
+        {
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+
+            return GetHexDump(bytes);
+        }
+        public static string GetHexDump(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+            var chars = new char[16];
+            var nums = new string[16];
+
+            void AddLine()
+            {
+                sb.Append(string.Join(" ", nums));
+                sb.Append(" ");
+                sb.AppendLine(string.Join("", chars));
+            }
+
+            // add lines
+            var col = 0;
+            foreach (var @byte in bytes)
+            {
+                nums[col] = (@byte.ToString("X2"));
+                chars[col] = @byte < 32 || @byte >= 127 || @byte == '"' || @byte == '\\' ? '.' : (char)@byte;
+                if (++col == 16)
+                {
+                    AddLine();
+                    col = 0;
+                }
+            }
+
+            // rest
+            if (col > 0)
+            {
+                for (var i = col; i < 16; i++)
+                {
+                    nums[i] = "  ";
+                    chars[i] = ' ';
+                }
+                AddLine();
+            }
+
+            return sb.ToString();
         }
 
         public static byte[] ParseHexDump(string src)

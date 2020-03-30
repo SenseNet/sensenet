@@ -129,7 +129,7 @@ namespace SnInitialDataGenerator.Tests
                 var stream = new MemoryStream(expectedBytes);
 
                 // ACTION
-                var dump = GetHexDump(stream);
+                var dump = InitialData.GetHexDump(stream);
                 var actualBytes = InitialData.ParseHexDump(dump);
 
                 // ASSERT
@@ -151,7 +151,7 @@ namespace SnInitialDataGenerator.Tests
             var stream = new MemoryStream(bytes);
 
             // ACTION
-            var dump = GetHexDump(stream);
+            var dump = InitialData.GetHexDump(stream);
 
             // ASSERT
             var lines = dump.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
@@ -163,13 +163,6 @@ namespace SnInitialDataGenerator.Tests
                 "................................";
             
             Assert.AreEqual(expected, actual);
-        }
-
-        /* ============================================================================== */
-
-        private string GetHexDump(MemoryStream stream)
-        {
-            return SenseNet.Tools.SnInitialDataGenerator.SnInitialDataGenerator.GetHexDump(stream);
         }
 
     }

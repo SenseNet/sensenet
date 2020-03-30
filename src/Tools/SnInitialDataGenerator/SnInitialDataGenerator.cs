@@ -211,15 +211,10 @@ namespace SenseNet.Tools.SnInitialDataGenerator
 
         private static void SaveData(string tempFolderPath)
         {
-            using (var ptw = new StreamWriter(Path.Combine(tempFolderPath, "propertyTypes.txt"), false, Encoding.UTF8))
-            using (var ntw = new StreamWriter(Path.Combine(tempFolderPath, "nodeTypes.txt"), false, Encoding.UTF8))
-            using (var nw = new StreamWriter(Path.Combine(tempFolderPath, "nodes.txt"), false, Encoding.UTF8))
-            using (var vw = new StreamWriter(Path.Combine(tempFolderPath, "versions.txt"), false, Encoding.UTF8))
-            using (var dw = new StreamWriter(Path.Combine(tempFolderPath, "dynamicData.txt"), false, Encoding.UTF8))
-                InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes
-                        .OrderBy(x => x.Id)
-                        .Select(x => x.NodeId));
+            InitialData.Save(tempFolderPath, null,
+                () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.NodeId));
 
             var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
             index.Save(Path.Combine(tempFolderPath, "index.txt"));
@@ -504,7 +499,7 @@ namespace {0}
                     return "[text]:" + Environment.NewLine +
                            reader.ReadToEnd().Replace("\"", "\"\"");
             return "[bytes]:" + Environment.NewLine +
-                   GetHexDump(file.Binary.GetStream());
+                InitialData.GetHexDump(file.Binary.GetStream());
         }
         private static bool IsTextFile(string name)
         {
@@ -523,48 +518,6 @@ namespace {0}
             if (name.EndsWith(".ashx", StringComparison.OrdinalIgnoreCase))
                 return true;
             return false;
-        }
-        public static string GetHexDump(Stream stream)
-        {
-            var bytes = new byte[stream.Length];
-            stream.Read(bytes, 0, bytes.Length);
-
-            var sb = new StringBuilder();
-            var chars = new char[16];
-            var nums = new string[16];
-
-            void AddLine()
-            {
-                sb.Append(string.Join(" ", nums));
-                sb.Append(" ");
-                sb.AppendLine(string.Join("", chars));
-            }
-
-            // add lines
-            var col = 0;
-            foreach (var @byte in bytes)
-            {
-                nums[col] = (@byte.ToString("X2"));
-                chars[col] = @byte < 32 || @byte >= 127 || @byte == '"' || @byte == '\\' ? '.' : (char)@byte;
-                if (++col == 16)
-                {
-                    AddLine();
-                    col = 0;
-                }
-            }
-
-            // rest
-            if (col > 0)
-            {
-                for (var i = col; i < 16; i++)
-                {
-                    nums[i] = "  ";
-                    chars[i] = ' ';
-                }
-                AddLine();
-            }
-
-            return sb.ToString();
         }
 
     }

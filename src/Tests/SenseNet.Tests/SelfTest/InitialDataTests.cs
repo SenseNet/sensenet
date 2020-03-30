@@ -46,17 +46,11 @@ namespace SenseNet.Tests.SelfTest
                     op.Successful = true;
                 }
 
-                using (var ptw = new StreamWriter(@"D:\_InitialData\propertyTypes.txt", false, Encoding.UTF8))
-                using (var ntw = new StreamWriter(@"D:\_InitialData\nodeTypes.txt", false, Encoding.UTF8))
-                using (var nw = new StreamWriter(@"D:\_InitialData\nodes.txt", false, Encoding.UTF8))
-                using (var vw = new StreamWriter(@"D:\_InitialData\versions.txt", false, Encoding.UTF8))
-                using (var dw = new StreamWriter(@"D:\_InitialData\dynamicData.txt", false, Encoding.UTF8))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                InitialData.Save(@"D:\_InitialData", null,
+                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\_InitialData\index.txt");
-
             });
         }
 
@@ -65,13 +59,8 @@ namespace SenseNet.Tests.SelfTest
         {
             Test(() =>
             {
-                using (var ptw = new StreamWriter(@"D:\propertyTypes.txt", false))
-                using (var ntw = new StreamWriter(@"D:\nodeTypes.txt", false))
-                using (var nw = new StreamWriter(@"D:\nodes.txt", false))
-                using (var vw = new StreamWriter(@"D:\versions.txt", false))
-                using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                InitialData.Save(@"D:\_InitialData", null,
+                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");
@@ -81,15 +70,8 @@ namespace SenseNet.Tests.SelfTest
         //[TestMethod]
         public void InitialData_Parse()
         {
-            InitialData initialData;
-            {
-                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
-                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
-                using (var nr = new StreamReader(@"D:\nodes.txt"))
-                using (var vr = new StreamReader(@"D:\versions.txt"))
-                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
-                    initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
-            }
+            var initialData = InitialData.Load(@"D:\_InitialData");
+            
             Assert.IsTrue(initialData.Nodes.Any());
             Assert.Inconclusive();
         }
@@ -99,12 +81,12 @@ namespace SenseNet.Tests.SelfTest
             Test(() =>
             {
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
-                index.Save(@"D:\index.txt");
+                index.Save(@"D:\_InitialData\index.txt");
 
                 var loaded = new InMemoryIndex();
                 loaded.Load(@"D:\index.txt");
 
-                loaded.Save(@"D:\index1.txt");
+                loaded.Save(@"D:\_InitialData\index1.txt");
             });
             Assert.Inconclusive();
         }
