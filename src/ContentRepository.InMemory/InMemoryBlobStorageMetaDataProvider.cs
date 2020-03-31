@@ -292,26 +292,129 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.FromResult(result);
         }
 
-        public Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
+        public async Task<string> StartChunkAsync(IBlobProvider blobProvider, int versionId, int propertyTypeId, long fullSize,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var db = DataProvider.DB;
+
+            // Get related objects
+            var binaryDoc =
+                db.BinaryProperties.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            if (binaryDoc == null)
+                return null;
+
+            var fileDoc = db.Files.FirstOrDefault(x => x.FileId == binaryDoc.FileId);
+            if (fileDoc == null)
+                return null;
+            if (fileDoc.Staging)
+                return null;
+
+            // Create context
+            var binaryPropertyId = binaryDoc.BinaryPropertyId;
+            var fileId = fileDoc.FileId;
+
+            var providerName = fileDoc.BlobProvider;
+            var providerTextData = fileDoc.BlobProviderData;
+
+            var provider = BlobStorageBase.GetProvider(providerName);
+            var context = new BlobStorageContext(provider, providerTextData)
+            {
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = fullSize,
+            };
+
+            // Allocate a new blob
+            await blobProvider.AllocateAsync(context, cancellationToken);
+            var blobProviderName = blobProvider.GetType().FullName;
+            var blobProviderData = BlobStorageContext.SerializeBlobProviderData(context.BlobProviderData);
+
+            // Insert a new file row
+            var contentType = fileDoc.ContentType;
+            var fileNameWithoutExtension = fileDoc.FileNameWithoutExtension;
+            var extension = fileDoc.Extension;
+            var newFileId = db.Files.GetNextId();
+            db.Files.Insert(new FileDoc
+            {
+                FileId =  newFileId,
+                BlobProvider = blobProviderName,
+                BlobProviderData = blobProviderData,
+                ContentType = contentType,
+                Extension = extension,
+                FileNameWithoutExtension = fileNameWithoutExtension,
+                Size = fullSize,
+                Staging = true,
+            });
+
+            // Return a token
+            return new ChunkToken
+            {
+                VersionId = versionId,
+                PropertyTypeId = propertyTypeId,
+                BinaryPropertyId = binaryPropertyId,
+                FileId = newFileId
+            }.GetToken();
         }
 
         public STT.Task CommitChunkAsync(int versionId, int propertyTypeId, int fileId, long fullSize, BinaryDataValue source,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // Get related objects
+            var db = DataProvider.DB;
+
+            var binaryDoc =
+                db.BinaryProperties.FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            if (binaryDoc == null)
+                return null;
+
+            var fileDoc = db.Files.FirstOrDefault(x => x.FileId == fileId);
+            if (fileDoc == null)
+                return null;
+
+            // Switch to the new file
+            binaryDoc.FileId = fileId;
+
+            // Reset staging and set metadata
+            fileDoc.Staging = false;
+            fileDoc.Size = fullSize;
+
+            if (source != null)
+            {
+                fileDoc.ContentType = source.ContentType;
+                fileDoc.Extension = source.FileName.Extension;
+                fileDoc.FileNameWithoutExtension = source.FileName.FileNameWithoutExtension;
+            }
+
+            // Done
+            return STT.Task.CompletedTask;
         }
 
         public virtual STT.Task CleanupFilesSetDeleteFlagAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // This method is not supported in this provider because the FileDoc
+            // does not have enough information (IsDeleted & CreationDate).
+
+            return STT.Task.CompletedTask;
         }
 
         public virtual Task<bool> CleanupFilesAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            // Delete the orphaned files immediately (see the comment in the CleanupFilesSetDeleteFlagAsync).
+
+            var db = DataProvider.DB;
+
+            var allFileIds = db.BinaryProperties.Select(x => x.FileId).ToArray();
+            var filesIdsToDelete = db.Files
+                .Where(x => !x.Staging && !allFileIds.Contains(x.Id))
+                .Select(x=>x.FileId)
+                .ToArray();
+
+            foreach (var fileId in filesIdsToDelete)
+                db.Files.Remove(fileId);
+
+            // Done: return false because all items are deleted.
+            return STT.Task.FromResult(false);
         }
     }
 }

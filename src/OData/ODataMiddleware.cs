@@ -181,7 +181,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
+                            model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -206,7 +206,7 @@ namespace SenseNet.OData
                         }
                         else
                         {
-                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
+                            model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
                             content = LoadContentOrVirtualChild(odataRequest);
                             if (content == null)
                             {
@@ -224,7 +224,7 @@ namespace SenseNet.OData
                         if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
-                            await odataWriter.WriteOperationResultAsync(inputStream, httpContext, odataRequest)
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest)
                                 .ConfigureAwait(false);
                         }
                         else
@@ -237,7 +237,7 @@ namespace SenseNet.OData
                                 return;
                             }
 
-                            model = await ReadToJsonAsync(inputStream).ConfigureAwait(false);
+                            model = await ReadToJsonAsync(httpContext).ConfigureAwait(false);
                             var newContent = CreateNewContent(model, odataRequest);
                             await odataWriter.WriteSingleContentAsync(newContent, httpContext)
                                 .ConfigureAwait(false);
@@ -345,9 +345,28 @@ namespace SenseNet.OData
 
         /* =================================================================================== */
 
-        internal static async Task<JObject> ReadToJsonAsync(Stream inputStream)
+        internal static async Task<JObject> ReadToJsonAsync(HttpContext context)
         {
+            var inputStream = context?.Request.Body;
             string models;
+          
+            // In case of a multipart Upload request we have to use the Form
+            // property to load post fields automatically, including file fragments. 
+            // In this case we cannot read the response manually, because 
+            // the stream can be read only once.
+            if ((context?.Request?.ContentType?.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) ?? -1) >= 0)
+            {
+                var dict = new Dictionary<string, string>();
+                foreach (var formItem in context.Request.Form.Where(fi => !string.IsNullOrEmpty(fi.Key)))
+                {
+                    dict[formItem.Key] = formItem.Value.FirstOrDefault();
+                }
+
+                models = JsonConvert.SerializeObject(dict);
+
+                return ReadToJson(models);
+            }
+
             if (inputStream == null)
                 return null;
             if (inputStream == Stream.Null)
@@ -366,7 +385,7 @@ namespace SenseNet.OData
         {
             if (string.IsNullOrEmpty(models))
                 return null;
-
+            
             var firstChar = models.Last() == ']' ? '[' : '{';
             var p = models.IndexOf(firstChar);
             if (p > 0)
@@ -794,7 +813,7 @@ namespace SenseNet.OData
             try
             {
                 method = OperationCenter.GetMethodByRequest(content, name,
-                    ODataMiddleware.ReadToJsonAsync(httpContext.Request.Body)
+                    ODataMiddleware.ReadToJsonAsync(httpContext)
                         .GetAwaiter().GetResult(),
                     httpContext.Request.Query);
             }
