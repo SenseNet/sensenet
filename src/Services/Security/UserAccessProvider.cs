@@ -1,14 +1,11 @@
 using SenseNet.ContentRepository.Storage.Security;
 using System.Web;
 using System.Threading;
-using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Security
 {
     public class UserAccessProvider : AccessProvider
     {
-        public override int DefaultUserId => Identifiers.VisitorUserId;
-
         private IUser CurrentUser
         {
             get
