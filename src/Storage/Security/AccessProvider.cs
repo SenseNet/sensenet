@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         [Obsolete]
         public static bool IsInitialized => Current != null;
 
-        public abstract int DefaultUserId { get; }
+        public virtual int DefaultUserId => Identifiers.VisitorUserId;
 
         public abstract IUser GetCurrentUser();
 

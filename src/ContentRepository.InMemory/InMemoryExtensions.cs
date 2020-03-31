@@ -47,10 +47,6 @@ namespace SenseNet.ContentRepository.InMemory
 
             var repository = Repository.Start(repositoryBuilder);
 
-            var user = Node.Load<User>(1);
-            user.Password = "admin";
-            user.Save();
-
             return repository;
         }
 

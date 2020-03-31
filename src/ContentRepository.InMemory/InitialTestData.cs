@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 
 namespace SenseNet.ContentRepository.InMemory
 {
-    [Obsolete("Use InMemoryTestDatabase.", true)]
+    [Obsolete("Use InMemoryTestData.", true)]
     public class InitialTestData : IRepositoryDataFile
     {
         private InitialTestData()
