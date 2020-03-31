@@ -63,5 +63,10 @@ namespace SenseNet.Search.Querying
         /// Gets the name of the term.
         /// </summary>
         public string Name { get; }
+
+        public override string ToString()
+        {
+            return $"{Name}:{base.ToString()}";
+        }
     }
 }

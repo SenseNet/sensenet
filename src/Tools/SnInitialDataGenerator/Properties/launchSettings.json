@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SnInitialDataGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "-IMPORT D:\\dev\\github\\sensenet\\src\\nuget\\snadmin\\install-services\\import\\ -OUTPUT D:\\_InitialData\\3 -DF ..\\5\\1\\database.cs -IF ..\\5\\q\\index.cs -DT SenseNet.InitialData.Database -IT Index"
+    }
+  }
+}

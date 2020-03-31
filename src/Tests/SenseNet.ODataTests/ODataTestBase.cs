@@ -266,14 +266,14 @@ namespace SenseNet.ODataTests
         private static InitialData _initialData;
         protected static InitialData GetInitialData()
         {
-            return _initialData ?? (_initialData = InitialData.Load(DefaultDatabase.Instance));
+            return _initialData ?? (_initialData = InitialData.Load(InMemoryTestData.Instance));
         }
 
         private static InMemoryIndex _initialIndex;
         protected static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();
-            index.Load(new StringReader(DefaultIndex.Index));
+            index.Load(new StringReader(InMemoryTestIndex.Index));
             _initialIndex = index;
             return _initialIndex;
         }

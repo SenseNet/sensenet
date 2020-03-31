@@ -6,6 +6,8 @@ namespace SenseNet.ContentRepository.Security
 {
     public class UserAccessProvider : AccessProvider
     {
+        public override int DefaultUserId => Identifiers.VisitorUserId;
+
         private readonly AsyncLocal<IUser> _currentUser = new AsyncLocal<IUser>();
 
         public override IUser GetCurrentUser()

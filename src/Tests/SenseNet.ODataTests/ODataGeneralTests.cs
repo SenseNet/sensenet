@@ -989,7 +989,7 @@ namespace SenseNet.ODataTests
           ""uri"": ""/odata.svc/Root/IMS/BuiltIn/Portal('Developers')"",
           ""type"": ""Group""
         },
-        ""Id"": 1356,
+        ""Id"": 1325,
         ""Name"": ""Developers""
       }
     ],

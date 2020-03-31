@@ -57,6 +57,7 @@ namespace SenseNet.ContentRepository
         /// Gets the Visitor user.
         /// </summary>
         public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
+        public static User DefaultUser => SystemAccount.Execute(() => Load<User>(AccessProvider.Current.DefaultUserId));
 
         private static User _somebody;
         private static object _somebodyLock = new object();

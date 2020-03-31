@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>SenseNet.Tools.SnInitialDataGenerator</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SenseNet.Tools" Version="3.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj" />
+    <ProjectReference Include="..\..\Common\SenseNet.Common.csproj" />
+    <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
+    <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj" />
+    <ProjectReference Include="..\..\Search\SenseNet.Search.csproj" />
+    <ProjectReference Include="..\..\Services.Core\SenseNet.Services.Core.csproj" />
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CreateSnServicesDatabase.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CreateTestDatabase.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

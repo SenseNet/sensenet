@@ -1,5 +1,8 @@
-﻿namespace SenseNet.ContentRepository
+﻿using System;
+
+namespace SenseNet.ContentRepository
 {
+    [Obsolete("Use the SenseNetServicesIndex.", true)]
     public static class DefaultIndex
     {
         #region public static readonly string Index

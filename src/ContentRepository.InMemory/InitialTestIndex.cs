@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Tests
 {
+    [Obsolete("Use InMemoryTestIndex.", true)]
     public static class InitialTestIndex
     {
         #region public static readonly string Index

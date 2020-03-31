@@ -3,6 +3,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Security.Principal;
 using System.Threading;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Security
@@ -24,6 +25,8 @@ namespace SenseNet.ContentRepository.Security
 
     public class DesktopAccessProvider : AccessProvider
     {
+        public override int DefaultUserId => Identifiers.AdministratorUserId;
+
         private bool _initialized;
 
         private IUser CurrentUser

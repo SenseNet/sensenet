@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.InMemory
                     .UseLogger(new DebugWriteLoggerAdapter())
                     //.UseAccessProvider(new UserAccessProvider())
                     .UseDataProvider(dataProvider)
-                    .UseInitialData(InitialData.Load(DefaultDatabase.Instance))
+                    .UseInitialData(InitialData.Load(SenseNetServicesData.Instance))
                     .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
                     .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                     .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -45,7 +45,9 @@ namespace SenseNet.ContentRepository.InMemory
 
             buildRepository?.Invoke(repositoryBuilder);
 
-            return Repository.Start(repositoryBuilder);
+            var repository = Repository.Start(repositoryBuilder);
+
+            return repository;
         }
 
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
@@ -81,7 +83,7 @@ namespace SenseNet.ContentRepository.InMemory
         private static InMemoryIndex GetInitialIndex()
         {
             var index = new InMemoryIndex();
-            index.Load(new StringReader(DefaultIndex.Index));
+            index.Load(new StringReader(SenseNetServicesIndex.Index));
 
             return index;
         }

@@ -355,10 +355,25 @@ namespace SenseNet.ContentRepository.InMemory
                                  .ToArray()));
             }
 
-            var data = new { Index = index, Stored = StoredData };
+            var data = new {Index = index, Stored = SerializeStoredData(StoredData)};
 
             using (var writer = new StreamWriter(fileName, false))
                 JsonSerializer.Create(SerializerSettings).Serialize(writer, data);
+        }
+
+        private class StoredItemModel
+        {
+            public int VersionId;
+            public List<string> IndexFields;
+        }
+
+        private List<StoredItemModel> SerializeStoredData(List<Tuple<int, List<IndexField>>> data)
+        {
+            return data.Select(srcItem => new StoredItemModel
+            {
+                VersionId = srcItem.Item1,
+                IndexFields = srcItem.Item2.Select(srcField => srcField.ToString(true)).ToList()
+            }).ToList();
         }
 
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
@@ -390,7 +405,7 @@ namespace SenseNet.ContentRepository.InMemory
 
                     foreach (var termData in values.Select(v => v.ToString()).ToArray())
                     {
-                        var p = termData.LastIndexOf(":");
+                        var p = termData.LastIndexOf(":", StringComparison.Ordinal);
                         var name = termData.Substring(0, p);
                         var idSrc = termData.Substring(p + 1);
                         var ids = idSrc.Split(',').Select(int.Parse).ToList();
@@ -406,12 +421,25 @@ namespace SenseNet.ContentRepository.InMemory
             }
 
             var stored = (JArray)deserialized["Stored"];
-            foreach (JObject tuple in stored)
+            foreach (var storedDoc in stored)
             {
-                var versionId = (int)tuple["Item1"];
-                var indexFields = ((JArray)tuple["Item2"]).Select(x=> CreateIndexField((JObject)x)).ToList();
-
-                StoredData.Add(new Tuple<int, List<IndexField>>(versionId, indexFields));
+                if (storedDoc["VersionId"] == null)
+                {
+                    // Old algorithm (backward compatibility)
+                    var versionId = (int)storedDoc["Item1"];
+                    var indexFields = ((JArray)storedDoc["Item2"]).Select(x => CreateIndexField((JObject)x)).ToList();
+                    StoredData.Add(new Tuple<int, List<IndexField>>(versionId, indexFields));
+                }
+                else
+                {
+                    // New algorithm
+                    var versionId = storedDoc["VersionId"].Value<int>();
+                    var indexFields = storedDoc["IndexFields"]
+                        .Select(x => x.ToString())
+                        .Select(x => IndexField.Parse(x, true))
+                        .ToList();
+                    StoredData.Add(new Tuple<int, List<IndexField>>(versionId, indexFields));
+                }
             }
         }
 

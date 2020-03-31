@@ -57,11 +57,23 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /* ===================================================================================== SAVE */
 
         /// <summary>
-        /// Persists the initial data from the active repository to the given readers.
+        /// Persists the initial data from the active repository to separated files in the given directory.
         /// Initial data is the passed schema and nodes. If the schema is null,
         /// the whole current schema will be written.
+        /// WARNING: The saved files are not contains the whole database but help for the C# source file generation.
         /// </summary>
-        public static void Save(TextWriter propertyTypeWriter, TextWriter nodeTypeWriter, TextWriter nodeWriter,
+        public static void Save(string tempFolderPath, SchemaEditor schema, Func<IEnumerable<int>> getNodeIds)
+        {
+            using (var ptw = new StreamWriter(Path.Combine(tempFolderPath, "propertyTypes.txt"), false, Encoding.UTF8))
+            using (var ntw = new StreamWriter(Path.Combine(tempFolderPath, "nodeTypes.txt"), false, Encoding.UTF8))
+            using (var nw = new StreamWriter(Path.Combine(tempFolderPath, "nodes.txt"), false, Encoding.UTF8))
+            using (var vw = new StreamWriter(Path.Combine(tempFolderPath, "versions.txt"), false, Encoding.UTF8))
+            using (var dw = new StreamWriter(Path.Combine(tempFolderPath, "dynamicData.txt"), false, Encoding.UTF8))
+                InitialData.Save(ptw, ntw, nw, vw, dw, schema,
+                    getNodeIds);
+        }
+
+        internal static void Save(TextWriter propertyTypeWriter, TextWriter nodeTypeWriter, TextWriter nodeWriter,
             TextWriter versionWriter, TextWriter dynamicDataWriter,
             SchemaEditor schema, Func<IEnumerable<int>> getNodeIds)
         {
@@ -84,8 +96,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
                     $"{nt.Id,4:#}| {nt.Name,-30}| {nt.ParentName ?? "<null>",-30}| {nt.ClassName,-60}| " +
                     $"[{(string.Join(" ", nt.Properties))}]");
 
-            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | Path");
-            nodeWriter.WriteLine("------- ------- -------  ------ ------- ------- --------- ------- ----------------------------------------- --------------------------------------------------- -------------------------------------");
+            nodeWriter.WriteLine("NodeId| TypeId| Parent|  Index| MinorV| MajorV| IsSystem| Creator| Modifier| Owner | Name                                    | DisplayName                                       | CreationDate              | Path");
+            nodeWriter.WriteLine("------- ------- ------- ------- ------- ------- --------- -------- --------- ------- ----------------------------------------- --------------------------------------------------- ------------------------- -----------");
             versionWriter.WriteLine("VersionId| NodeId| Creator| Modifier|  Version");
             versionWriter.WriteLine("---------- ------- ------- ---------- ---------");
             foreach (var nodeId in getNodeIds())
@@ -102,8 +114,8 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         {
             writer.WriteLine($"{d.NodeId,6:#}| {d.NodeTypeId,6:#}| {d.ParentNodeId,6:#0}| {d.Index,6:#0}| " +
                              $"{d.LastMinorVersionId,6:#}| {d.LastMajorVersionId,6:#}| {d.IsSystem,8}| " +
-                             $"{d.CreatedById,7:#}| {d.ModifiedById,8:#}| " +
-                             $"{d.OwnerId,6:#}| {d.Name,-40}| {d.DisplayName,-50}| {d.Path}");
+                             $"{d.CreatedById,7:#}| {d.ModifiedById,8:#}| {d.OwnerId,6:#}| " +
+                             $"{d.Name,-40}| {d.DisplayName,-50}| {d.CreationDate,25:yyyy-MM-dd HH:mm:ss.fffff} | {d.Path}");
         }
         private static void Write(TextWriter writer, VersionData d)
         {
@@ -214,6 +226,9 @@ namespace SenseNet.ContentRepository.Storage.DataModel
 
         /* ===================================================================================== LOAD */
 
+        /// <summary>
+        /// Loads the initial data from the given <see cref="IRepositoryDataFile"/> instance.
+        /// </summary>
         public static InitialData Load(IRepositoryDataFile dataFile)
         {
             InitialData initialData;
@@ -235,9 +250,20 @@ namespace SenseNet.ContentRepository.Storage.DataModel
         /* ------------------------------------------------------------------------------------------ */
 
         /// <summary>
-        /// Loads the initial data from the given readers.
+        /// Loads the initial data from the given directory.
+        /// WARNING: The saved files are not contains the whole database but help for the C# source file generation.
         /// </summary>
-        public static InitialData Load(TextReader propertyTypeReader, TextReader nodeTypeReader,
+        public static InitialData Load(string tempFolderPath)
+        {
+            using (var ptr = new StreamReader(Path.Combine(tempFolderPath, "propertyTypes.txt")))
+            using (var ntr = new StreamReader(Path.Combine(tempFolderPath, "nodeTypes.txt")))
+            using (var nr = new StreamReader(Path.Combine(tempFolderPath, "nodes.txt")))
+            using (var vr = new StreamReader(Path.Combine(tempFolderPath, "versions.txt")))
+            using (var dr = new StreamReader(Path.Combine(tempFolderPath, "dynamicData.txt")))
+                return Load(ptr, ntr, nr, vr, dr);
+        }
+
+        private static InitialData Load(TextReader propertyTypeReader, TextReader nodeTypeReader,
             TextReader nodeReader, TextReader versionReader, TextReader dynamicDataReader)
         {
             var propertyTypes = ParseDatamodels<PropertyTypeData>(ReadLines(propertyTypeReader));
@@ -456,6 +482,15 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             if (fileContent == null)
                 return new byte[0];
 
+            if (fileContent.StartsWith("[bytes]:\r\n"))
+            {
+                // bytes
+                return ParseHexDump(fileContent.Substring(10));
+            }
+
+            // text
+            if (fileContent.StartsWith("[text]:\r\n"))
+                fileContent = fileContent.Substring(9);
             var byteCount = Encoding.UTF8.GetByteCount(fileContent);
             var bom = Encoding.UTF8.GetPreamble();
             var bytes = new byte[bom.Length + byteCount];
@@ -466,5 +501,68 @@ namespace SenseNet.ContentRepository.Storage.DataModel
             return bytes;
         }
 
+        public static string GetHexDump(Stream stream)
+        {
+            var bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+
+            return GetHexDump(bytes);
+        }
+        public static string GetHexDump(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+            var chars = new char[16];
+            var nums = new string[16];
+
+            void AddLine()
+            {
+                sb.Append(string.Join(" ", nums));
+                sb.Append(" ");
+                sb.AppendLine(string.Join("", chars));
+            }
+
+            // add lines
+            var col = 0;
+            foreach (var @byte in bytes)
+            {
+                nums[col] = (@byte.ToString("X2"));
+                chars[col] = @byte < 32 || @byte >= 127 || @byte == '"' || @byte == '\\' ? '.' : (char)@byte;
+                if (++col == 16)
+                {
+                    AddLine();
+                    col = 0;
+                }
+            }
+
+            // rest
+            if (col > 0)
+            {
+                for (var i = col; i < 16; i++)
+                {
+                    nums[i] = "  ";
+                    chars[i] = ' ';
+                }
+                AddLine();
+            }
+
+            return sb.ToString();
+        }
+
+        public static byte[] ParseHexDump(string src)
+        {
+            var lines = src.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+            var bytes = new List<byte>(lines.Length * 16);
+            foreach (var line in lines)
+            {
+                var nums = line.Substring(0, 16 * 3).Trim().Split(' ');
+                foreach (var num in nums)
+                {
+                    var @byte = byte.Parse(num, NumberStyles.HexNumber);
+                    bytes.Add(@byte);
+                }
+            }
+
+            return bytes.ToArray();
+        }
     }
 }

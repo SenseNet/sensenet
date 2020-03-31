@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.Diagnostics;
+using SenseNet.Security.Data;
 using SenseNet.Tests.Implementations;
 using Task = System.Threading.Tasks.Task;
 
@@ -45,17 +46,11 @@ namespace SenseNet.Tests.SelfTest
                     op.Successful = true;
                 }
 
-                using (var ptw = new StreamWriter(@"D:\_InitialData\propertyTypes.txt", false, Encoding.UTF8))
-                using (var ntw = new StreamWriter(@"D:\_InitialData\nodeTypes.txt", false, Encoding.UTF8))
-                using (var nw = new StreamWriter(@"D:\_InitialData\nodes.txt", false, Encoding.UTF8))
-                using (var vw = new StreamWriter(@"D:\_InitialData\versions.txt", false, Encoding.UTF8))
-                using (var dw = new StreamWriter(@"D:\_InitialData\dynamicData.txt", false, Encoding.UTF8))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                InitialData.Save(@"D:\_InitialData", null,
+                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\_InitialData\index.txt");
-
             });
         }
 
@@ -64,13 +59,8 @@ namespace SenseNet.Tests.SelfTest
         {
             Test(() =>
             {
-                using (var ptw = new StreamWriter(@"D:\propertyTypes.txt", false))
-                using (var ntw = new StreamWriter(@"D:\nodeTypes.txt", false))
-                using (var nw = new StreamWriter(@"D:\nodes.txt", false))
-                using (var vw = new StreamWriter(@"D:\versions.txt", false))
-                using (var dw = new StreamWriter(@"D:\dynamicData.txt", false))
-                    InitialData.Save(ptw, ntw, nw, vw, dw, null,
-                        () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
+                InitialData.Save(@"D:\_InitialData", null,
+                    () => ((InMemoryDataProvider)DataStore.DataProvider).DB.Nodes.Select(x => x.NodeId));
 
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
                 index.Save(@"D:\index.txt");
@@ -80,15 +70,8 @@ namespace SenseNet.Tests.SelfTest
         //[TestMethod]
         public void InitialData_Parse()
         {
-            InitialData initialData;
-            {
-                using (var ptr = new StreamReader(@"D:\propertyTypes.txt"))
-                using (var ntr = new StreamReader(@"D:\nodeTypes.txt"))
-                using (var nr = new StreamReader(@"D:\nodes.txt"))
-                using (var vr = new StreamReader(@"D:\versions.txt"))
-                using (var dr = new StreamReader(@"D:\dynamicData.txt"))
-                    initialData = InitialData.Load(ptr, ntr, nr, vr, dr);
-            }
+            var initialData = InitialData.Load(@"D:\_InitialData");
+            
             Assert.IsTrue(initialData.Nodes.Any());
             Assert.Inconclusive();
         }
@@ -98,12 +81,12 @@ namespace SenseNet.Tests.SelfTest
             Test(() =>
             {
                 var index = ((InMemorySearchEngine)Providers.Instance.SearchEngine).Index;
-                index.Save(@"D:\index.txt");
+                index.Save(@"D:\_InitialData\index.txt");
 
                 var loaded = new InMemoryIndex();
                 loaded.Load(@"D:\index.txt");
 
-                loaded.Save(@"D:\index1.txt");
+                loaded.Save(@"D:\_InitialData\index1.txt");
             });
             Assert.Inconclusive();
         }
@@ -129,7 +112,7 @@ namespace SenseNet.Tests.SelfTest
                 "-2|Normal|+7:_____________________________________________+++++++++++++++++++",
                 "+6|Normal|-6:_______________________________________________________________+",
                 // break is relevant because this is the first entry.
-                "-1113|Normal|+6:_______________________________________________________________+",
+                "-1000|Normal|+6:_______________________________________________________________+",
             };
             InitialDataTest(() =>
             {
@@ -163,7 +146,7 @@ namespace SenseNet.Tests.SelfTest
                 Assert.IsTrue(actions[2].Break);
                 Assert.IsFalse(actions[2].Unbreak);
                 Assert.AreEqual(1, actions[2].Entries.Count);
-                Assert.AreEqual(1113, actions[2].Entries[0].EntityId);
+                Assert.AreEqual(1000, actions[2].Entries[0].EntityId);
                 Assert.AreEqual(6, actions[2].Entries[0].IdentityId);
                 Assert.AreEqual(1UL, actions[2].Entries[0].AllowBits);
                 Assert.AreEqual(0UL, actions[2].Entries[0].DenyBits);
@@ -178,7 +161,7 @@ namespace SenseNet.Tests.SelfTest
                 Permissions = new List<string>
                 {
                     "+6|Normal|-6:_______________________________________________________________+",
-                    "-1113|Normal|+6:_______________________________________________________________+",
+                    "-1000|Normal|+6:_______________________________________________________________+",
                 }
             };
 
@@ -189,10 +172,10 @@ namespace SenseNet.Tests.SelfTest
                 Assert.AreEqual(1, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has no any permission.
                 Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1113, PermissionType.See));
+                Assert.IsFalse(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // There is no break.
                 Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsTrue(SecurityHandler.IsEntityInherited(1113));
+                Assert.IsTrue(SecurityHandler.IsEntityInherited(1000));
 
                 // ACTION
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
@@ -202,10 +185,10 @@ namespace SenseNet.Tests.SelfTest
                 Assert.AreEqual(1 , SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);
                 // Visitor has See permission on both contents.
                 Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 6, PermissionType.See));
-                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 1113, PermissionType.See));
+                Assert.IsTrue(SecurityHandler.HasPermission(User.Visitor, 1000, PermissionType.See));
                 // The second content is not inherited.
                 Assert.IsTrue(SecurityHandler.IsEntityInherited(6));
-                Assert.IsFalse(SecurityHandler.IsEntityInherited(1113));
+                Assert.IsFalse(SecurityHandler.IsEntityInherited(1000));
             });
         }
 
@@ -234,12 +217,18 @@ namespace SenseNet.Tests.SelfTest
                 using (new SystemAccount())
                 {
                     if (withSecurity)
+                    {
+                        var sdbp = new PrivateType(typeof(MemoryDataProvider));
+                        var db = (DatabaseStorage)sdbp.GetStaticFieldOrProperty("Storage");
+                        db.Aces.Clear();
+
                         SecurityHandler.CreateAclEditor()
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false,
                                 PermissionType.BuiltInPermissionTypes)
                             .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false,
                                 PermissionType.BuiltInPermissionTypes)
                             .Apply();
+                    }
 
                     new SnMaintenance().Shutdown();
 

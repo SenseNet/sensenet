@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+// ReSharper disable StringLiteralTypo
 
 namespace SenseNet.Search
 {
@@ -135,5 +136,41 @@ namespace SenseNet.Search
         /// Gets the type-independent string representation of the value.
         /// </summary>
         public string ValueAsString { get; }
+
+        public override string ToString()
+        {
+            var type = "SABILFDT"[(int)Type];
+            string value;
+            switch (Type)
+            {
+                case IndexValueType.String:
+                    value = StringValue;
+                    break;
+                case IndexValueType.StringArray:
+                    throw new NotSupportedException();
+                case IndexValueType.Bool:
+                    value = BooleanValue ? IndexValue.Yes : IndexValue.No;
+                    break;
+                case IndexValueType.Int:
+                    value = IntegerValue.ToString(CultureInfo.InvariantCulture);
+                    break;
+                case IndexValueType.Long:
+                    value = LongValue.ToString(CultureInfo.InvariantCulture);
+                    break;
+                case IndexValueType.Float:
+                    value = SingleValue.ToString(CultureInfo.InvariantCulture);
+                    break;
+                case IndexValueType.Double:
+                    value = DoubleValue.ToString(CultureInfo.InvariantCulture);
+                    break;
+                case IndexValueType.DateTime:
+                    value = DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return $"{value}:{type}";
+        }
     }
 }

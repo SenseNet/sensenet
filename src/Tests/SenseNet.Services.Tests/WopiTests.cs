@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
@@ -1518,16 +1519,16 @@ namespace SenseNet.Services.Tests
 
         private const string TestSiteName = "WopiTestSite";
         private static string TestSitePath => RepositoryPath.Combine("/Root/Sites", TestSiteName);
-        private static Site CreateTestSite()
+        private static Workspace CreateTestSite()
         {
             var sites = Node.Load<Folder>("/Root/Sites");
             if (sites == null)
             {
-                sites = new Folder(Repository.Root, "Sites") {Name = "Sites"};
+                sites = new Folder(Repository.Root) {Name = "Sites"};
                 sites.Save();
             }
 
-            var site = new Site(sites) { Name = TestSiteName, UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
+            var site = new Workspace(sites) { Name = TestSiteName };
             site.AllowChildType("File");
             site.Save();
 
@@ -1619,16 +1620,16 @@ namespace SenseNet.Services.Tests
             using(new SystemAccount())
                 WopiTestPrivate(callback, null);
         }
-        private void WopiTest(Action<Site> callback)
+        private void WopiTest(Action<Workspace> callback)
         {
             using (new SystemAccount())
                 WopiTestPrivate(null, callback);
         }
-        private void WopiTestWithAdmin(Action<Site> callback)
+        private void WopiTestWithAdmin(Action<Workspace> callback)
         {
             WopiTestPrivate(null, callback);
         }
-        private void WopiTestPrivate(Action callback1, Action<Site> callback2)
+        private void WopiTestPrivate(Action callback1, Action<Workspace> callback2)
         {
             SharedLock.RemoveAllLocks(CancellationToken.None);
             var site = CreateTestSite();

@@ -153,7 +153,6 @@
     <Compile Include="LoggerTests.cs" />
     <Compile Include="MaintenanceTests.cs" />
     <Compile Include="NodeTests.cs" />
-    <Compile Include="InMemoryDatabaseGenerator.cs" />
     <Compile Include="UnknownContentHandlerTests.cs" />
     <Compile Include="SharedLockTests.cs" />
     <Compile Include="SharingTests.cs" />
@@ -161,7 +160,6 @@
     <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="NotifyChangedTests.cs" />
-    <Compile Include="PortalContextTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProvidersTests.cs" />
     <Compile Include="RepositoryStartTests.cs" />
