@@ -2,7 +2,7 @@
 using System.Net;
 using System.Runtime.Serialization;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     [Serializable]
     public class InvalidWopiRequestException : Exception

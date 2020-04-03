@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>Sense/Net Inc.</Company>
+    <Copyright>Copyright © Sense/Net Inc.</Copyright>
+    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sensenet csp content repository wopi office</PackageTags>
+    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <Product>sensenet Wopi</Product>
+    <Description>WOPI protocol and Office Online editing implementation for the sensenet platform.</Description>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OData\SenseNet.OData.csproj" />
+    <ProjectReference Include="..\Services.Core\SenseNet.Services.Core.csproj" />
+  </ItemGroup>
+
+</Project>

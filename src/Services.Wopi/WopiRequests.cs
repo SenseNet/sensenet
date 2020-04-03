@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     internal abstract class FilesRequest : WopiRequest
     {

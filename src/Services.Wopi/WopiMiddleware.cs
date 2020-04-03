@@ -9,13 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-//using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     /// <summary>
     /// A middleware for processing WOPI requests.

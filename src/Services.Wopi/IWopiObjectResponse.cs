@@ -1,4 +1,4 @@
-﻿namespace SenseNet.Services.Core.Wopi
+﻿namespace SenseNet.Services.Wopi
 {
     internal interface IWopiObjectResponse
     {

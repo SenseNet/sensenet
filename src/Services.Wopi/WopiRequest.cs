@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     public enum WopiRequestType
     {

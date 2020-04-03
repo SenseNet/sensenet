@@ -3,7 +3,7 @@ using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     /// <summary>
     /// Registers a WopiNodeOperationValidator instance as an INodeOperationValidator.

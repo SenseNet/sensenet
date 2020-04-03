@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using File = SenseNet.ContentRepository.File;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     internal class GetFileResponse : WopiResponse, IWopiBinaryResponse
     {

@@ -4,7 +4,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     //UNDONE: convert Wopi actions to method-based actions with policies
     internal abstract class WopiOpenAction : ActionBase

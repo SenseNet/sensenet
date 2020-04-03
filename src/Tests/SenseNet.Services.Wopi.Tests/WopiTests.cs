@@ -1,33 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Win32.SafeHandles;
-using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
-using SenseNet.Portal;
-using SenseNet.Portal.Virtualization;
-using SenseNet.Services.Core.Wopi;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
 
-namespace SenseNet.Services.Tests
+namespace SenseNet.Services.Wopi.Tests
 {
     [TestClass]
     public class WopiTests : TestBase

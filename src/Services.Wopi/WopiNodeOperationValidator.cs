@@ -3,7 +3,7 @@ using System.Threading;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     /// <summary>
     /// Checks whether the save, move or delete operation is allowed by the 

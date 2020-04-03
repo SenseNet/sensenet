@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     internal interface IWopiBinaryResponse
     {

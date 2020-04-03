@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     // See https://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html
 

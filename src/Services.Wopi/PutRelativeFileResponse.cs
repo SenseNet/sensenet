@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace SenseNet.Services.Core.Wopi
+namespace SenseNet.Services.Wopi
 {
     [JsonObject(MemberSerialization.OptOut)]
     internal class PutRelativeFileResponse : WopiResponse, IWopiObjectResponse
