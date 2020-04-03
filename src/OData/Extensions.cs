@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
-using Task = System.Threading.Tasks.Task;
+using SenseNet.Services.Core;
 
 namespace SenseNet.OData
 {
@@ -20,21 +20,46 @@ namespace SenseNet.OData
             Action<IApplicationBuilder> buildAppBranch = null)
         {
             // add OData middleware only if the request contains the appropriate prefix
-            builder.MapWhen(httpContext => httpContext.Request.Path.StartsWithSegments("/odata.svc"),
-                appBranch =>
-                {
-                    appBranch.UseMiddleware<ODataMiddleware>();
+            builder.MapMiddlewareWhen<ODataMiddleware>("/odata.svc", buildAppBranch);            
 
-                    // Register a follow-up middleware defined by the caller or set a terminating, empty middleware.
-                    // If we do not do this, the system will try to set the status code which is not possible as
-                    // the request has already been started by the OData middleware above.
+            return builder;
+        }
 
-                    if (buildAppBranch != null)
-                        buildAppBranch.Invoke(appBranch);
-                    else
-                        appBranch.Use((context, next) => Task.CompletedTask);
-                });
-
+        /// <summary>
+        /// Adds an <see cref="IOperationMethodPolicy"/> instance to the list of active policies.
+        /// Uses the Name property of the instance.
+        /// </summary>
+        /// <param name="builder">The <see cref="IApplicationBuilder"/> instance.</param>        
+        /// <param name="policy">An <see cref="IOperationMethodPolicy"/> instance.</param>
+        public static IApplicationBuilder UseOperationMethodExecutionPolicy(this IApplicationBuilder builder,
+            IOperationMethodPolicy policy)
+        {
+            OperationCenter.Policies[policy.Name] = policy;
+            return builder;
+        }
+        /// <summary>
+        /// Adds an <see cref="IOperationMethodPolicy"/> implementation instance to the active policies.
+        /// This method renames the policy (does not use the Name property of the instance).
+        /// </summary>
+        /// <param name="builder">The <see cref="IApplicationBuilder"/> instance.</param>
+        /// <param name="name">New name of the policy.</param>
+        /// <param name="policy">An <see cref="IOperationMethodPolicy"/> instance.</param>
+        public static IApplicationBuilder UseOperationMethodExecutionPolicy(this IApplicationBuilder builder,
+            string name, IOperationMethodPolicy policy)
+        {
+            OperationCenter.Policies[name] = policy;
+            return builder;
+        }
+        /// <summary>
+        /// Adds an inline Func&lt;IUser, OperationCallingContext, bool&gt; as an OperationMethod execution policy.
+        /// </summary>
+        /// <param name="builder">The <see cref="IApplicationBuilder"/> instance.</param>
+        /// <param name="name">Name of the policy.</param>
+        /// <param name="policyFunction">The policy function to execute.</param>
+        public static IApplicationBuilder UseOperationMethodExecutionPolicy(this IApplicationBuilder builder,
+            string name, Func<IUser, OperationCallingContext, OperationMethodVisibility> policyFunction)
+        {
+            OperationCenter.Policies[name] = new InlineOperationMethodPolicy(name, policyFunction);
             return builder;
         }
 

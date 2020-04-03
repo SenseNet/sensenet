@@ -1485,7 +1485,7 @@ namespace SenseNet.Services.Wopi.Tests
             
             void CreateAndAssertWopiAction(Content content, string actionType, bool visibleExpected, bool forbiddenExpected)
             {
-                var (forbidden, visible) = WopiOpenAction.InitializeInternal(content, actionType, "test");
+                var (forbidden, visible) = WopiOpenMethodPolicy.InitializeInternal(content, actionType, "test");
 
                 Assert.AreEqual(visibleExpected, visible ?? true, content.Name);
                 Assert.AreEqual(forbiddenExpected, forbidden ?? false, content.Name);
