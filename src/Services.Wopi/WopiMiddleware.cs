@@ -47,6 +47,11 @@ namespace SenseNet.Services.Wopi
         internal async Task ProcessRequestAsync(HttpContext context, bool calledFromTest)
         {
             var wopiRequest = WopiRequest.Parse(context);
+
+            // set current user based on the access token
+            if (!calledFromTest)
+                SetCurrentUser(wopiRequest);
+
             var webResponse = context.Response;
             var wopiResponse = GetResponse(wopiRequest);
 
@@ -86,8 +91,6 @@ namespace SenseNet.Services.Wopi
 
                 await webResponse.Body.WriteAsync(Encoding.UTF8.GetBytes(output), 0, output.Length)
                     .ConfigureAwait(false);
-
-                //webResponse.Flush();
             }
         }
         internal WopiResponse GetResponse(WopiRequest wopiRequest)
@@ -214,6 +217,26 @@ namespace SenseNet.Services.Wopi
         private static readonly char[] DisabledUserIdChars = "<>\"#{}^[]`\\/".ToCharArray();
         public static readonly string AccessTokenFeatureName = "Wopi";
 
+        private void SetCurrentUser(WopiRequest wopiRequest)
+        {            
+            var tokenValue = wopiRequest.AccessTokenValue;
+            var contentId = wopiRequest is FilesRequest fileRequest ? int.Parse(fileRequest.FileId) : 0;
+            var token = AccessTokenVault.GetToken(tokenValue, contentId, AccessTokenFeatureName);
+            if (token == null)
+                throw new UnauthorizedAccessException(); // 404
+
+            using (new SystemAccount())
+            {
+                if (Node.LoadNode(token.UserId) is IUser user)
+                {
+                    // TODO: This method only sets the User.Current property in sensenet, not the
+                    // main context User in Asp.Net. Check if it would be better if we changed 
+                    // or modified the context user earlier in the pipeline.
+
+                    ContentRepository.User.Current = user;
+                }
+            }
+        }
         private string GetUserId(IUser user)
         {
             return DisabledUserIdChars.Aggregate(user.Name, (current, c) => current.Replace(c, '_'));

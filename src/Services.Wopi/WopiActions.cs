@@ -16,8 +16,8 @@ namespace SenseNet.Services.Wopi
     {
         private static readonly TimeSpan DefaultTokenTimeout = TimeSpan.FromHours(3);
 
-        //UNDONE: add new odata attributes to wopi actions
         [ODataFunction]
+        [RequiredPermissions(N.P.Open)]
         public static object GetWopiData(Content content, HttpContext context, string action)
         {
             if (!(content.ContentHandler is File))
