@@ -16,6 +16,7 @@ using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace SenseNet.Services.Wopi.Tests
 {
@@ -1232,15 +1233,15 @@ namespace SenseNet.Services.Wopi.Tests
                 var mimeType = "text/plain";
                 var file = CreateTestFile(site, "File1.txt", "filecontent1", mimeType);
 
-                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                var (output, response) = WopiGetResponse($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
                 {
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
-                }) as GetFileResponse;
+                }).GetAwaiter().GetResult();
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-                AssertHeader(response.Headers, "ContentType", mimeType);
-                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+                Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode);
+                Assert.AreEqual(mimeType, response.ContentType);
+                Assert.AreEqual("filecontent1", output);
             });
         }
         [TestMethod]
@@ -1250,15 +1251,14 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
 
-                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                var (output, response) = WopiGetResponse($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
                 {
                     new[] {"Header1", "Value-1"}
-                });
+                }).GetAwaiter().GetResult();
 
-                var getFileResponse = response as GetFileResponse;
-                Assert.IsNotNull(getFileResponse);
-                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.StatusCode);
-                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(getFileResponse.GetResponseStream()));
+                Assert.IsNotNull(response);
+                Assert.AreEqual((int)HttpStatusCode.OK, response.StatusCode);
+                Assert.AreEqual("filecontent1", output);
             });
         }
         [TestMethod]
@@ -1521,6 +1521,22 @@ namespace SenseNet.Services.Wopi.Tests
                 var wopiRequest = WopiRequest.Parse(hc);
 
                 return new WopiMiddleware(null).GetResponse(wopiRequest);
+            }
+        }
+        private async Task<(string output, HttpResponse response)> WopiGetResponse(string resource, string queryString, string[][] headers)
+        {
+            using (var output = new MemoryStream())
+            {
+                var hc = CreateHttpContext("GET", resource, queryString, output, headers, null);
+                //var wopiRequest = WopiRequest.Parse(hc);
+
+                var wm = new WopiMiddleware(null);
+                await wm.ProcessRequestAsync(hc, true).ConfigureAwait(true);
+
+                output.Seek(0, SeekOrigin.Begin);
+                var outputString = RepositoryTools.GetStreamString(output);
+                
+                return (outputString, hc.Response);
             }
         }
 

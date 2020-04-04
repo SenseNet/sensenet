@@ -1,10 +1,8 @@
-﻿using System.IO;
-
-namespace SenseNet.Services.Wopi
+﻿namespace SenseNet.Services.Wopi
 {
     internal interface IWopiBinaryResponse
     {
+        ContentRepository.File File { get; }
         string FileName { get; }
-        Stream GetResponseStream();
     }
 }

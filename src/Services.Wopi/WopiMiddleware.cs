@@ -59,10 +59,9 @@ namespace SenseNet.Services.Wopi
             if (!string.IsNullOrEmpty(wopiResponse.ContentType))
                 webResponse.ContentType = wopiResponse.ContentType;
 
-            // Set response headers if any (works well only in IIS evironment).
-            if(!calledFromTest)
-                foreach (var item in wopiResponse.Headers)
-                    webResponse.Headers.Add(item.Key, item.Value);
+            // Set response headers.
+            foreach (var item in wopiResponse.Headers)
+                webResponse.Headers.Add(item.Key, item.Value);
 
             // Set HTTP Status code.
             webResponse.StatusCode = (int)wopiResponse.StatusCode;
@@ -70,16 +69,9 @@ namespace SenseNet.Services.Wopi
             // Write binary content
             if (wopiResponse is IWopiBinaryResponse wopiBinaryResponse)
             {
-                //UNDONE: use BinaryHandler instead of duplicating the feature here
-                var stream = wopiBinaryResponse.GetResponseStream();
-                if (!calledFromTest)
-                {
-                    var hht = new HttpHeaderTools(context);
-                    hht.SetContentDispositionHeader(wopiBinaryResponse.FileName);
-                    context.Response.Headers.Append(HeaderNames.ContentLength, stream.Length.ToString());
-                }
-
-                await stream.CopyToAsync(context.Response.Body).ConfigureAwait(false);
+                //TODO: provide custom binary field name if available
+                var binaryHandler = new BinaryHandler(context, wopiBinaryResponse.File);                                
+                await binaryHandler.ProcessRequestCore().ConfigureAwait(false);
                 return;
             }
 
