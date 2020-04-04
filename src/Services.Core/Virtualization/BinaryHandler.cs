@@ -56,7 +56,7 @@ namespace SenseNet.Services.Core.Virtualization
 
         private readonly HttpContext _context;
         /// <summary>
-        /// Creates a new instance of BinaryHandlerBase
+        /// Creates a new instance of BinaryHandler.
         /// </summary>
         public BinaryHandler(HttpContext context)
         {
@@ -65,13 +65,16 @@ namespace SenseNet.Services.Core.Virtualization
             ParsePropertiesFromContext();
         }
 
-        //TODO: alternative binary handler constructor: call this from routing
         /// <summary>
-        /// Creates a new instance of BinaryHandlerBase
+        /// Creates a new instance of BinaryHandler.
         /// </summary>
-        internal BinaryHandler(Node requestedNode, string propertyName, TimeSpan? maxAge = null, int? width = null, int? height = null)
+        public BinaryHandler(HttpContext context, Node requestedNode, string propertyName = null, TimeSpan? maxAge = null, int? width = null, int? height = null)
         {
-            RequestedNode = requestedNode;
+            _context = context;
+
+            RequestedNode = requestedNode ?? throw new ArgumentNullException(nameof(requestedNode));
+            RequestedNodeHead = NodeHead.Get(requestedNode.Id);
+
             PropertyName = propertyName;
             Width = width;
             Height = height;
