@@ -56,36 +56,10 @@ namespace SenseNet.Services.Wopi
     {
         public override string WopiActionType { get; } = "view";
         public override string Name { get; } = "WopiOpenView";
-
-        public override OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
-        {
-            var baseResult = base.GetMethodVisibility(user, context);
-
-            //UNDONE: remove comment
-            // check permissions only if the action is not already forbidden
-            //if (baseResult == OperationMethodVisibility.Enabled && 
-            //    !context.Content.Security.HasPermission(PermissionType.Open))
-            //    return OperationMethodVisibility.Disabled;
-
-            return baseResult;
-        }
     }
     internal class WopiOpenEditMethodPolicy : WopiOpenMethodPolicy
     {
         public override string WopiActionType { get; } = "edit";
         public override string Name { get; } = "WopiOpenEdit";
-
-        public override OperationMethodVisibility GetMethodVisibility(IUser user, OperationCallingContext context)
-        {            
-            var baseResult = base.GetMethodVisibility(user, context);
-
-            //UNDONE: remove comment
-            // check permissions only if the action is not already forbidden
-            //if (baseResult == OperationMethodVisibility.Enabled &&
-            //    !context.Content.Security.HasPermission(PermissionType.Save))
-            //    return OperationMethodVisibility.Disabled;
-
-            return baseResult;
-        }
     }
 }

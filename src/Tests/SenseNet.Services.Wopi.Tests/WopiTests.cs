@@ -17,6 +17,7 @@ using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using SenseNet.Services.Wopi.Tests.Accessors;
 
 namespace SenseNet.Services.Wopi.Tests
 {
@@ -1305,16 +1306,13 @@ namespace SenseNet.Services.Wopi.Tests
         [TestMethod]
         public void Wopi_Proc_GetFile_GreaterThan2GB()
         {
-            Assert.Inconclusive("PrivateObject in tests");
-
             WopiTest(site =>
             {
                 var size3GB = 3L * 1024L * 1024L * 1024L;
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
 
-                //UNDONE: PrivateObject in tests
-                //var binaryAcc = new PrivateObject(file.Binary);
-                //binaryAcc.SetProperty("Size", size3GB);
+                var binaryAcc = new ObjectAccessor(file.Binary);
+                binaryAcc.SetProperty("Size", size3GB);
 
                 file.Save();
                 file = Node.Load<File>(file.Id);
