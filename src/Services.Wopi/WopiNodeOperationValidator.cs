@@ -1,0 +1,65 @@
+﻿using System.Linq;
+using System.Threading;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
+
+namespace SenseNet.Services.Wopi
+{
+    /// <summary>
+    /// Checks whether the save, move or delete operation is allowed by the 
+    /// current shared lock state of the content.
+    /// </summary>
+    internal class WopiNodeOperationValidator : INodeOperationValidator
+    {
+        public bool CheckSaving(Node node, ChangedData[] changeData, out string errorMessage)
+        {
+            errorMessage = null;
+
+            // Do not check newly created node
+            if (changeData == null)
+                return true;
+
+            //TODO: handle non-defaul binary fields
+            // Changing metadata is always allowed except rename
+            var isFileContentChanged = changeData.Any(x => x.Name == "Binary");
+            var isNameChanged = changeData.Any(x => x.Name == "Name");
+            if (!isFileContentChanged && !isNameChanged)
+                return true;
+
+            // Changing file content is always allowed for Wopi
+            var expectedSharedLock = node.GetCachedData(WopiService.ExpectedSharedLock);
+            var isWopiPutFile = !string.IsNullOrEmpty(expectedSharedLock as string);
+            if (isWopiPutFile)
+                return true;
+
+            // Everything is allowed if the node is not locked
+            var existingLock = SharedLock.GetLock(node.Id, CancellationToken.None);
+            if (existingLock == null)
+                return true;
+
+            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
+        }
+        public bool CheckMoving(Node source, Node target, out string errorMessage)
+        {
+            errorMessage = null;
+
+            // Everything is allowed if the file is not locked
+            var existingLock = SharedLock.GetLock(source.Id, CancellationToken.None);
+            if (existingLock == null)
+                return true;
+
+            throw new LockedNodeException(source.Lock, "The content is already open elsewhere.");
+        }
+        public bool CheckDeletion(Node node, out string errorMessage)
+        {
+            errorMessage = null;
+
+            // Everything is allowed if the file is not locked
+            var existingLock = SharedLock.GetLock(node.Id, CancellationToken.None);
+            if (existingLock == null)
+                return true;
+
+            throw new LockedNodeException(node.Lock, "The content is already open elsewhere.");
+        }
+    }
+}
