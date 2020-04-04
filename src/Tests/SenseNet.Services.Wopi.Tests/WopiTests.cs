@@ -1519,8 +1519,9 @@ namespace SenseNet.Services.Wopi.Tests
             {
                 var hc = CreateHttpContext(httpMethod, resource, queryString, output, headers, inputStream);
                 var wopiRequest = WopiRequest.Parse(hc);
+                var mw = new WopiMiddleware(null);
 
-                return new WopiMiddleware(null).GetResponse(wopiRequest);
+                return mw.GetResponseAsync(wopiRequest, CancellationToken.None).GetAwaiter().GetResult();
             }
         }
         private async Task<(string output, HttpResponse response)> WopiGetResponse(string resource, string queryString, string[][] headers)

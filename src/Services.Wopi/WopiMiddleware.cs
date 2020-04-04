@@ -50,10 +50,10 @@ namespace SenseNet.Services.Wopi
 
             // set current user based on the access token
             if (!calledFromTest)
-                SetCurrentUser(wopiRequest);
+                await SetCurrentUserAsync(wopiRequest, context.RequestAborted).ConfigureAwait(false);
 
             var webResponse = context.Response;
-            var wopiResponse = GetResponse(wopiRequest);
+            var wopiResponse = await GetResponseAsync(wopiRequest, context.RequestAborted).ConfigureAwait(false);
 
             // Set content type if it is known.
             if (!string.IsNullOrEmpty(wopiResponse.ContentType))
@@ -85,30 +85,37 @@ namespace SenseNet.Services.Wopi
                     .ConfigureAwait(false);
             }
         }
-        internal WopiResponse GetResponse(WopiRequest wopiRequest)
+        internal async Task<WopiResponse> GetResponseAsync(WopiRequest wopiRequest, CancellationToken cancellationToken)
         {
-            //UNDONE: convert wopi process methods to async
-
             switch (wopiRequest.RequestType)
             {
                 case WopiRequestType.CheckFileInfo:
-                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiRequest);
+                    return await ProcessCheckFileInfoRequestAsync((CheckFileInfoRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.GetLock:
-                    return ProcessGetLockRequest((GetLockRequest)wopiRequest);
+                    return await ProcessGetLockRequestAsync((GetLockRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.Lock:
-                    return ProcessLockRequest((LockRequest)wopiRequest);
+                    return await ProcessLockRequestAsync((LockRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.Unlock:
-                    return ProcessUnlockRequest((UnlockRequest)wopiRequest);
+                    return await ProcessUnlockRequestAsync((UnlockRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.RefreshLock:
-                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiRequest);
+                    return await ProcessRefreshLockRequestAsync((RefreshLockRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.UnlockAndRelock:
-                    return ProcessUnlockAndRelockRequest((UnlockAndRelockRequest)wopiRequest);
+                    return await ProcessUnlockAndRelockRequestAsync((UnlockAndRelockRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.GetFile:
-                    return ProcessGetFileRequest((GetFileRequest)wopiRequest);
+                    return await ProcessGetFileRequestAsync((GetFileRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.PutFile:
-                    return ProcessPutFileRequest((PutFileRequest)wopiRequest);
+                    return await ProcessPutFileRequestAsync((PutFileRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.PutRelativeFile:
-                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiRequest);
+                    return await ProcessPutRelativeFileRequestAsync((PutRelativeFileRequest)wopiRequest, cancellationToken)
+                        .ConfigureAwait(false);
                 case WopiRequestType.DeleteFile:
                 case WopiRequestType.RenameFile:
                 case WopiRequestType.CheckContainerInfo:
@@ -129,7 +136,8 @@ namespace SenseNet.Services.Wopi
             }
         }
 
-        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiRequest)
+        private async Task<WopiResponse> ProcessCheckFileInfoRequestAsync(CheckFileInfoRequest wopiRequest, 
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
@@ -139,7 +147,7 @@ namespace SenseNet.Services.Wopi
             File file;
             using (new SystemAccount())
             {
-                file = Node.LoadNode(contentId) as File;
+                file = await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) as File;
                 if (file == null)
                     return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
             }
@@ -209,17 +217,18 @@ namespace SenseNet.Services.Wopi
         private static readonly char[] DisabledUserIdChars = "<>\"#{}^[]`\\/".ToCharArray();
         public static readonly string AccessTokenFeatureName = "Wopi";
 
-        private void SetCurrentUser(WopiRequest wopiRequest)
+        private async Task SetCurrentUserAsync(WopiRequest wopiRequest, CancellationToken cancellationToken)
         {            
             var tokenValue = wopiRequest.AccessTokenValue;
             var contentId = wopiRequest is FilesRequest fileRequest ? int.Parse(fileRequest.FileId) : 0;
-            var token = AccessTokenVault.GetToken(tokenValue, contentId, AccessTokenFeatureName);
+            var token = await AccessTokenVault.GetTokenAsync(tokenValue, contentId, AccessTokenFeatureName, cancellationToken)
+                .ConfigureAwait(false);
             if (token == null)
                 throw new UnauthorizedAccessException(); // 404
 
             using (new SystemAccount())
             {
-                if (Node.LoadNode(token.UserId) is IUser user)
+                if (await Node.LoadNodeAsync(token.UserId, cancellationToken).ConfigureAwait(false) is IUser user)
                 {
                     // TODO: This method only sets the User.Current property in sensenet, not the
                     // main context User in Asp.Net. Check if it would be better if we changed 
@@ -291,11 +300,12 @@ namespace SenseNet.Services.Wopi
             }
         }
 
-        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiRequest)
+        private async Task<WopiResponse> ProcessPutRelativeFileRequestAsync(PutRelativeFileRequest wopiRequest, 
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var allowIncrementalNaming = wopiRequest.SuggestedTarget != null;
@@ -308,7 +318,7 @@ namespace SenseNet.Services.Wopi
             if (!allowIncrementalNaming)
             {
                 var targetPath = $"{file.ParentPath}/{targetName}";
-                var node = Node.LoadNode(targetPath);
+                var node = await Node.LoadNodeAsync(targetPath, cancellationToken).ConfigureAwait(false);
                 if (node != null)
                 {
                     if (!allowOverwrite || !(node is File loadedFile))
@@ -339,11 +349,12 @@ namespace SenseNet.Services.Wopi
                 Url = url,
             };
         }
-        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiRequest)
+        private async Task<WopiResponse> ProcessGetLockRequestAsync(GetLockRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
 
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None) ?? string.Empty;
@@ -357,11 +368,12 @@ namespace SenseNet.Services.Wopi
                 }
             };
         }
-        private WopiResponse ProcessLockRequest(LockRequest wopiRequest)
+        private async Task<WopiResponse> ProcessLockRequestAsync(LockRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
@@ -397,11 +409,12 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockRequest(UnlockRequest wopiRequest)
+        private async Task<WopiResponse> ProcessUnlockRequestAsync(UnlockRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
@@ -432,11 +445,12 @@ namespace SenseNet.Services.Wopi
             SharedLock.Unlock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiRequest)
+        private async Task<WopiResponse> ProcessRefreshLockRequestAsync(RefreshLockRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
@@ -467,11 +481,12 @@ namespace SenseNet.Services.Wopi
             SharedLock.RefreshLock(contentId, existingLock, CancellationToken.None);
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
-        private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiRequest)
+        private async Task<WopiResponse> ProcessUnlockAndRelockRequestAsync(UnlockAndRelockRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
@@ -503,11 +518,12 @@ namespace SenseNet.Services.Wopi
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
 
-        private WopiResponse ProcessGetFileRequest(GetFileRequest wopiRequest)
+        private async Task<WopiResponse> ProcessGetFileRequestAsync(GetFileRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
             if(!IsPreconditionOk(wopiRequest, file))
                 return new WopiResponse { StatusCode = HttpStatusCode.PreconditionFailed };
@@ -531,11 +547,12 @@ namespace SenseNet.Services.Wopi
             return wopiRequest.MaxExpectedSize.Value >= length;
         }
 
-        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiRequest)
+        private async Task<WopiResponse> ProcessPutFileRequestAsync(PutFileRequest wopiRequest,
+            CancellationToken cancellationToken)
         {
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
+            if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             return ProcessPutFileRequest(file, wopiRequest.Lock, wopiRequest.RequestStream);
