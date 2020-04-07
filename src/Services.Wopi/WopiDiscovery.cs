@@ -44,7 +44,13 @@ namespace SenseNet.Services.Wopi
                             discoveryXml.Load(discoveryStream);
                         }
                     }
-                }, (i, ex) => ex == null || i > 3);
+                }, (i, ex) =>
+                {
+                    if (ex != null)
+                        SnLog.WriteException(ex, $"Error during Office Online Server {oosUrl} discovery.");
+
+                    return ex == null || i > 3;
+                });
 
                 if (discoveryXml.DocumentElement == null)
                     SnLog.WriteWarning($"Could not connect to Office Online Server {oosUrl} for available actions.");
