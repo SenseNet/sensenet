@@ -978,6 +978,14 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
 ";
         #endregion
 
+        protected override string GetCurrentIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetCurrentIndexingActivityStatus
+DECLARE @Last int
+SELECT TOP 1 @Last = IndexingActivityId FROM IndexingActivities WHERE RunningState = 'Done' ORDER BY CreationDate DESC
+SELECT @Last IndexingActivityId, 'Done' RunningState
+UNION ALL
+SELECT IndexingActivityId, RunningState FROM IndexingActivities WHERE RunningState != 'Done' AND IndexingActivityId < @Last
+";
+
         #region LoadIndexingActivitiesSkeletonScript
         private string LoadIndexingActivitiesSkeletonScript => @"-- MsSqlDataProvider.{0}
 {1}SELECT TOP(@Top)

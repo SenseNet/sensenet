@@ -996,7 +996,17 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== IndexingActivity */
 
         /// <summary>
+        /// Gets the current indexing activity status. Contains the latest executed activity id and gaps.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <returns>A Task that represents the asynchronous operation and wraps the current indexing activity status.</returns>
+        public static Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        {
+            return DataProvider.GetCurrentIndexingActivityStatusAsync(cancellationToken);
+        }
+        /// <summary>
         /// Gets the latest IndexingActivityId or 0.
+        /// This method is used in the distributed indexing scenario.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
         public static Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)

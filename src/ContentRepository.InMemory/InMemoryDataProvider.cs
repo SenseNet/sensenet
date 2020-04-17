@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
@@ -1004,6 +1005,12 @@ namespace SenseNet.ContentRepository.InMemory
                     .ToArray();
                 return STT.Task.FromResult((IEnumerable<int>)result);
             }
+        }
+
+        public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        {
+            //UNDONE: Not implemented: InMemoryDataProvider.GetCurrentIndexingActivityStatusAsync
+            throw new NotImplementedException();
         }
 
         /* =============================================================================================== IndexingActivity */

@@ -176,11 +176,25 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Gets the current <see cref="IndexingActivityStatus"/> instance
         /// containing the last executed indexing activity id and ids of missing indexing activities.
+        /// This method is used in the distributed indexing scenario.
+        /// The indexing activity status comes from the index.
         /// </summary>
         /// <returns>The current indexing activity status.</returns>
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();
+        }
+        /// <summary>
+        /// Gets the current <see cref="IndexingActivityStatus"/> instance
+        /// containing the last executed indexing activity id and ids of missing indexing activities.
+        /// This method is used in the centralized indexing scenario.
+        /// The indexing activity status comes from the database.
+        /// </summary>
+        /// <returns>The current indexing activity status.</returns>
+        public static IndexingActivityStatus LoadCurrentIndexingActivityStatus()
+        {
+            return DataStore.GetCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /*========================================================================================== Commit */

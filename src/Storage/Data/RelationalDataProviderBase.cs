@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -1612,6 +1613,14 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string GetLastIndexingActivityIdScript { get; }
+
+        /// <inheritdoc />
+        public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        {
+            //UNDONE: Not implemented: RelationalDataProviderBase.GetCurrentIndexingActivityStatusAsync
+            throw new NotImplementedException();
+        }
+        protected abstract string GetCurrentIndexingActivityStatusScript { get; }
 
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)
