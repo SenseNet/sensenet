@@ -143,7 +143,9 @@ namespace SenseNet.Services.Wopi
             // Uses SystemAccount
             var userPermissions = GetUserPermissions(file, user);
 
-            var version = $"{file.Version}.{file.Binary.FileId}";
+            // this version has to be unique and change when the binary changes
+            var version = $"{file.Version}.{file.Binary.FileId}." +
+                          $"{file.VersionModificationDate:yyyy-MM-ddTHH:mm:ss.fffffffZ}";
 
             return new CheckFileInfoResponse
             {

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -158,7 +157,9 @@ namespace SenseNet.Services.Wopi
             // Uses SystemAccount
             var userPermissions = GetUserPermissions(file, user);
 
-            var version = $"{file.Version}.{file.Binary.FileId}";
+            // this version has to be unique and change when the binary changes
+            var version = $"{file.Version}.{file.Binary.FileId}." +
+                          $"{file.VersionModificationDate:yyyy-MM-ddTHH:mm:ss.fffffffZ}";
 
             return new CheckFileInfoResponse
             {
