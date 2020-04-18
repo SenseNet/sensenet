@@ -1009,6 +1009,28 @@ namespace SenseNet.ContentRepository.InMemory
 
         public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var orderedActivities = DB.IndexingActivities.OrderBy(x => x.Id).ToArray();
+
+                var last = orderedActivities.LastOrDefault(x => x.RunningState == IndexingActivityRunningState.Done);
+                if (last == null)
+                    return STT.Task.FromResult(IndexingActivityStatus.Startup);
+
+                var gaps = orderedActivities
+                    .Where(x => x.RunningState != IndexingActivityRunningState.Done && x.Id < last.Id)
+                    .Select(x=>x.Id)
+                    .ToArray();
+
+                return STT.Task.FromResult(
+                    new IndexingActivityStatus
+                    {
+                        LastActivityId = last.Id,
+                        Gaps = gaps
+                    });
+            }
+
             //UNDONE: Not implemented: InMemoryDataProvider.GetCurrentIndexingActivityStatusAsync
             throw new NotImplementedException();
         }

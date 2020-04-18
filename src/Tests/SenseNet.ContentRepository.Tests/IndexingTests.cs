@@ -640,6 +640,53 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
         }
 
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_LoadCurrentIndexingActivityStatus()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
+
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                var emptyState = IndexManager.LoadCurrentIndexingActivityStatus();
+
+                Assert.AreEqual("0()", emptyState.ToString());
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Running,
+                    IndexingActivityRunningState.Running,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Waiting,
+                    IndexingActivityRunningState.Waiting,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = IndexingActivityType.AddDocument,
+                    Path = "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = x,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                var state = IndexManager.LoadCurrentIndexingActivityStatus();
+
+                Assert.AreEqual("15(13,14)", state.ToString());
+            });
+        }
+
+
         private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = "_IndexingTests" };
