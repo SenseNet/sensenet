@@ -1615,10 +1615,28 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetLastIndexingActivityIdScript { get; }
 
         /// <inheritdoc />
-        public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        public override async Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            //UNDONE: Not implemented: RelationalDataProviderBase.GetCurrentIndexingActivityStatusAsync
-            throw new NotImplementedException();
+            //UNDONE: Not tested: RelationalDataProviderBase.GetCurrentIndexingActivityStatusAsync
+            using (var ctx = CreateDataContext(cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetCurrentIndexingActivityStatusScript,
+                    async (reader, cancel) =>
+                    {
+                        var states = new List<(int Id, string State)>();
+                        while (await reader.ReadAsync(cancel))
+                            states.Add((Id: reader.GetInt32(0), State: reader.GetString(1)));
+
+                        if (states.Count == 0)
+                            return IndexingActivityStatus.Startup;
+
+                        return new IndexingActivityStatus
+                        {
+                            LastActivityId = states[0].Id,
+                            Gaps = states.Skip(1).Select(x => x.Id).ToArray()
+                        };
+                    }).ConfigureAwait(false);
+            }
         }
         protected abstract string GetCurrentIndexingActivityStatusScript { get; }
 

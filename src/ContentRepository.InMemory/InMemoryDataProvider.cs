@@ -1030,9 +1030,6 @@ namespace SenseNet.ContentRepository.InMemory
                         Gaps = gaps
                     });
             }
-
-            //UNDONE: Not implemented: InMemoryDataProvider.GetCurrentIndexingActivityStatusAsync
-            throw new NotImplementedException();
         }
 
         /* =============================================================================================== IndexingActivity */
