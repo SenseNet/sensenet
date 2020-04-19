@@ -38,6 +38,21 @@ namespace SenseNet.Search.Indexing
         Task ShutDownAsync(CancellationToken cancellationToken);
 
         /// <summary>
+        /// Takes a snapshot of the index and copies it to the configured or well known place.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task BackupAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Takes a snapshot of the index and copies it to the given target.
+        /// Target is typically a directory in the filesystem.
+        /// </summary>
+        /// <param name="target">Path of the target directory or any other target definition.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task BackupAsync(string target, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Deletes the current index and creates a brand new empty one.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>

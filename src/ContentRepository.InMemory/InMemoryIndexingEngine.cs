@@ -34,6 +34,16 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
+        public STT.Task BackupAsync(CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public STT.Task BackupAsync(string target, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
         public STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
             Index.Clear();
