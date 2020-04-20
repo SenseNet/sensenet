@@ -351,7 +351,14 @@ namespace SenseNet.Configuration
         public NodeObserver[] NodeObservers
         {
             get { return _nodeObservers.Value; }
-            set { _nodeObservers = new Lazy<NodeObserver[]>(() => value); }
+            set
+            {
+                _nodeObservers = new Lazy<NodeObserver[]>(() => value);
+
+                SnLog.WriteInformation("NodeObservers have changed. ", EventId.RepositoryLifecycle,
+                    properties: new Dictionary<string, object>
+                        {{"Types", string.Join(", ", value?.Select(n => n.GetType().Name) ?? Array.Empty<string>())}});
+            }
         }
         #endregion
 
