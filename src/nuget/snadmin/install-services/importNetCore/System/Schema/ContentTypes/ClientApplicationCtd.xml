@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="ClientApplication" parentType="Application" handler="SenseNet.ApplicationModel.ClientApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ClientApplication,DisplayName</DisplayName>
+  <Description>$Ctd-ClientApplication,Description</Description>
+  <Icon>Application</Icon>
+  <Fields>
+    <Field name="Parameters" type="LongText">
+      <DisplayName>$Ctd-ClientApplication,Parameters-DisplayName</DisplayName>
+      <Description>$Ctd-ClientApplication,Parameters-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>
