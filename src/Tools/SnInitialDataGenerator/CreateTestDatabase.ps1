@@ -1,5 +1,5 @@
 ﻿.\SnInitialDataGenerator.exe `
- -IMPORT ..\..\..\..\..\nuget\snadmin\install-services\import `
+ -IMPORT ..\..\..\..\..\nuget\snadmin\install-services-core\import `
  -DT SenseNet.ContentRepository.InMemory.InMemoryTestData `
  -IT InMemoryTestIndex `
  -DF ..\..\..\..\..\..\ContentRepository.InMemory\InMemoryTestData.cs `
