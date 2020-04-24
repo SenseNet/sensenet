@@ -23,5 +23,11 @@ Get-ChildItem -Path $source -Recurse -Exclude $exclude |
   }
  } -Force -Exclude $exclude
 
+ # Copy import items from the netcore-only folder. We cannot store files in source 
+ # control directly in the install-services-core folder, because it would confuse
+ # git what to commit and what to ignore.
+
+ Copy-Item $installSourceSnAdminPath\install-services\importNetCore\** $destination -Container -Recurse -Force
+
 # Create the install package.
 Compress-Archive -Path "$installSourceSnAdminPath\install-services-core\*" -Force -CompressionLevel Optimal -DestinationPath $installPackagePath

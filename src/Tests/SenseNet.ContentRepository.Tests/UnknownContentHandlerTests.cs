@@ -26,6 +26,17 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void UnknownHandler_CreateContent()
         {
+            void AssertFolderTypeValidity(bool isValid)
+            {
+                // check if all related Folder types are (in)valid - according to the expectation
+                foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values
+                    .Where(ct => ct.IsInstaceOfOrDerivedFrom("Folder")))
+                {
+                    Assert.AreEqual(!isValid, contentType.IsInvalid,
+                        $"ContentType {contentType.Name} IsInvalid is not what we expected.");
+                }
+            }
+
             Test(() =>
             {
                 // allow the File type in the root because we'll need it later
@@ -38,21 +49,18 @@ namespace SenseNet.ContentRepository.Tests
                 sysFolder.Save();
                 var originalFieldNames = string.Join(",", sysFolder.Fields.Keys);
 
+                // all Folder types should be valid at this point
+                AssertFolderTypeValidity(true);
+
                 // set the handler of the Folder type to an unknown value
                 SetContentHandler("Folder", "UnknownCreateContent");
 
                 ResetAndFailToCreateContent();
 
                 parent = Node.Load<GenericContent>("/Root");
-                var folderType = ContentTypeManager.Instance.GetContentTypeByName("Folder");
-
+                
                 // check if all related types are marked as unknown
-                foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
-                {
-                    Assert.AreEqual(string.Equals(contentType.Path, folderType.Path) ||
-                                    contentType.Path.StartsWith(folderType.Path + RepositoryPath.PathSeparator),
-                        contentType.IsInvalid);
-                }
+                AssertFolderTypeValidity(false);
 
                 // load a previously created system folder and iterate through its fields
                 sysFolder = Content.Load(sysFolder.Id);

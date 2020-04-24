@@ -1166,7 +1166,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual("BuiltIn_Admin", response.OwnerId);
                 Assert.AreEqual(fileContent.Length + 3, response.Size); // +UTF-8 BOM: 0xEF 0xBB 0xBF
                 Assert.AreEqual("BuiltIn_Admin", response.UserId);
-                Assert.AreEqual($"{file.Version}.{file.Binary.FileId}", response.Version);
+                Assert.AreEqual($"{file.Version}.{file.Binary.FileId}.{file.VersionModificationDate:yyyy-MM-ddTHH:mm:ss.fffffffZ}", response.Version);
                 Assert.AreEqual(0, response.SupportedShareUrlTypes.Length);
                 Assert.IsFalse(response.SupportsCobalt);
                 Assert.IsFalse(response.SupportsContainers);
