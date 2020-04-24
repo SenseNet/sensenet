@@ -557,6 +557,58 @@ namespace SenseNet.ODataTests
             }).ConfigureAwait(false);
         }
 
+        [TestMethod]
+        public void OD_OP_RepositoryApps_ClientApp()
+        {
+            Application CreateApp(Node parent, string name, string scenario)
+            {
+                var tempApp1 = new ClientApplication(parent)
+                {
+                    Name = name,
+                    Scenario = scenario,
+                    Parameters = "string p1, int p2"
+                };
+                tempApp1.Save(SavingMode.KeepVersion);
+
+                return tempApp1;
+            }
+
+            // this needs to be isolated so that test content can be created freely
+            IsolatedODataTest(() =>
+            {
+                // create at least one app with a scenario
+                var parentPath1 = "/Root/(apps)/GenericContent";
+                var parent = RepositoryTools.CreateStructure(parentPath1, "SystemFolder");
+                CreateApp(parent.ContentHandler, "app1", "SC1,SC2");
+                CreateApp(parent.ContentHandler, "app2", "SC2,SC3");
+                
+                var dar = new DefaultActionResolver();
+
+                // check if the default action list contains the app-based client action
+                var action = dar.GetActions(Content.Create(Repository.Root), null, null, 
+                    new DefaultHttpContext()).Single(a => a.Name == "app1");
+
+                Assert.AreEqual(2, action.ActionParameters.Length);
+                Assert.AreEqual("p1", action.ActionParameters[0].Name);
+                Assert.AreEqual("p2", action.ActionParameters[1].Name);
+
+                // check if scenario 'SC1' contains the action
+                var actions = dar.GetActions(Content.Create(Repository.Root), "SC1", null,
+                    new DefaultHttpContext()).ToArray();
+
+                Assert.AreEqual(1, actions.Length);
+                Assert.IsNotNull(actions.Single(a => a.Name == "app1"));
+
+                // check if scenario 'SC2' contains both actions
+                actions = dar.GetActions(Content.Create(Repository.Root), "SC2", null,
+                    new DefaultHttpContext()).ToArray();
+
+                Assert.AreEqual(2, actions.Length);
+                Assert.IsNotNull(actions.Single(a => a.Name == "app1"));
+                Assert.IsNotNull(actions.Single(a => a.Name == "app2"));
+            });
+        }
+
         #region /* ===================================================================== ACTION RESOLVER MOCK */
 
         internal class ActionResolverSwindler : IDisposable
