@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "approve", Description = "$Action,Approve")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Approve)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
         public static Content Approve(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "checkin", Description = "$Action,CheckIn")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
         public static Content CheckIn(Content content, string checkInComments = null)
         {
             checkInComments ??= string.Empty;
@@ -51,7 +51,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "checkout", Description = "$Action,CheckOut")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static Content CheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "publish", Description = "$Action,Publish")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Publish)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
         public static Content Publish(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -97,7 +97,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "undocheckout", Description = "$Action,UndoCheckOut")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static Content UndoCheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -111,7 +111,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
-        [Scenario(N.S.ListItem, N.S.ExploreActions)]
+        [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static Content ForceUndoCheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))

@@ -85,6 +85,8 @@ namespace SenseNet.ApplicationModel
             public const string SimpleListItem = "SimpleListItem";
             public const string ReadOnlyListItem = "ReadOnlyListItem";
             public const string DocumentDetails = "DocumentDetails";
+            public const string ContextMenu = "ContextMenu";
+            public const string BatchActions = "BatchActions";
         }
     }
 }
