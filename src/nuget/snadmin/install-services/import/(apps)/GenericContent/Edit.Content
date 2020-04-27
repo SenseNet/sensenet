@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>ClientAction</ContentType>
+  <ContentName>Edit</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[$Action,Edit]]></DisplayName>
+    <Icon><![CDATA[edit]]></Icon>
+    <RequiredPermissions>See;Open;OpenMinor;Save</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
