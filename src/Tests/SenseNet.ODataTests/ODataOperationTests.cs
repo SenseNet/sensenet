@@ -140,7 +140,7 @@ namespace SenseNet.ODataTests
                 var apps = Node.LoadNode("/Root/(apps)");
                 if (apps == null)
                 {
-                    apps = new Folder(Repository.Root) {Name = "(apps)"};
+                    apps = new SystemFolder(Repository.Root) {Name = "(apps)"};
                     apps.Save();
                 }
                 var appRoot = Node.Load<GenericContent>("/Root/(apps)/GenericContent");
@@ -150,7 +150,7 @@ namespace SenseNet.ODataTests
                     appRoot.Save();
                 }
 
-                appRoot.AllowChildType(ContentType.GetByName("GenericODataApplication"), true);
+                //appRoot.AllowChildType(ContentType.GetByName("GenericODataApplication"), true);
 
                 var app = new GenericODataApplication(appRoot)
                 {
@@ -578,7 +578,9 @@ namespace SenseNet.ODataTests
             {
                 // create at least one app with a scenario
                 var parentPath1 = "/Root/(apps)/GenericContent";
-                var parent = RepositoryTools.CreateStructure(parentPath1, "SystemFolder");
+                var parent = RepositoryTools.CreateStructure(parentPath1, "SystemFolder") 
+                             ?? Content.Load(parentPath1);
+
                 CreateApp(parent.ContentHandler, "app1", "SC1,SC2");
                 CreateApp(parent.ContentHandler, "app2", "SC2,SC3");
                 

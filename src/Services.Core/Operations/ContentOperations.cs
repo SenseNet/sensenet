@@ -17,7 +17,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Icon = "copy", Description = "$Action,CopyBatch")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
-        [Scenario(N.S.GridToolbar)]
+        [Scenario(N.S.GridToolbar, N.S.BatchActions)]
         public static BatchActionResponse CopyBatch(Content content, string targetPath, object[] paths)
         {
             var targetNode = Node.LoadNode(targetPath);
@@ -91,7 +91,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Icon = "move", Description = "$Action,MoveBatch")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
-        [Scenario(N.S.GridToolbar)]
+        [Scenario(N.S.GridToolbar, N.S.BatchActions)]
         public static BatchActionResponse MoveBatch(Content content, string targetPath, object[] paths)
         {
             var targetNode = Node.LoadNode(targetPath);
@@ -165,7 +165,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Icon = "delete", Description = "$Action,Delete")]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.Everyone)]
-        [Scenario(N.S.ListItem)]
+        [Scenario(N.S.ListItem, N.S.ContextMenu)]
         [RequiredPermissions(N.P.Delete)]
         public static object Delete(Content content, bool permanent = false)
         {
@@ -176,7 +176,7 @@ namespace SenseNet.Services.Core.Operations
         [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
-        [Scenario(N.S.GridToolbar)]
+        [Scenario(N.S.GridToolbar, N.S.BatchActions)]
         public static BatchActionResponse DeleteBatch(Content content, bool permanent, object[] paths)
         {
             // no need to throw an exception if no ids are provided: we simply do not have to delete anything
@@ -388,7 +388,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
-        [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
+        [Scenario( N.S.WorkspaceActions, N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static object SetPermissions(Content content, string inheritance)
         {
             var editor = SecurityHandler.CreateAclEditor();
@@ -414,7 +414,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
-        [Scenario("WorkspaceActions", "ListItem", "ExploreActions")]
+        [Scenario( N.S.WorkspaceActions, N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
         public static object SetPermissions(Content content, SetPermissionsRequest r)
         {
             var request = r;

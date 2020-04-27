@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>ClientApplication</ContentType>
+  <ContentName>LoadCollection</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[LoadCollection]]></DisplayName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
