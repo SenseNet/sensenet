@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ContentMetaData>
-  <ContentType>ClientAction</ContentType>
-  <ContentName>Browse</ContentName>
+  <ContentType>ClientApplication</ContentType>
+  <ContentName>Versions</ContentName>
   <Fields>
-    <DisplayName><![CDATA[$Action,Browse]]></DisplayName>
-    <ActionTypeName></ActionTypeName>
-    <Icon><![CDATA[browse]]></Icon>
-    <RequiredPermissions>Open</RequiredPermissions>
+    <DisplayName><![CDATA[$Action,Versions]]></DisplayName>
+    <Icon><![CDATA[versions]]></Icon>
+    <RequiredPermissions>Open;RecallOldVersion</RequiredPermissions>
   </Fields>
   <Permissions>
     <Clear />

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ContentMetaData>
-  <ContentType>ClientAction</ContentType>
+  <ContentType>ClientApplication</ContentType>
   <ContentName>Edit</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,Edit]]></DisplayName>
