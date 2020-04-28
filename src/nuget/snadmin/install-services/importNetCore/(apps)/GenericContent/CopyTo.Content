@@ -4,7 +4,7 @@
   <ContentName>CopyTo</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,CopyTo]]></DisplayName>
-    <Scenario>ContexMenu</Scenario>
+    <Scenario>ContextMenu</Scenario>
     <Icon><![CDATA[copy]]></Icon>
     <RequiredPermissions>Save</RequiredPermissions>
   </Fields>

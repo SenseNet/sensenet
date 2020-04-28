@@ -4,7 +4,7 @@
   <ContentName>Edit</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,Edit]]></DisplayName>
-    <Scenario>ContexMenu</Scenario>
+    <Scenario>ContextMenu</Scenario>
     <Icon><![CDATA[edit]]></Icon>
     <RequiredPermissions>See;Open;OpenMinor;Save</RequiredPermissions>
   </Fields>

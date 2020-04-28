@@ -4,7 +4,7 @@
   <ContentName>MoveTo</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,MoveTo]]></DisplayName>
-    <Scenario>ContexMenu</Scenario>
+    <Scenario>ContextMenu</Scenario>
     <Icon><![CDATA[move]]></Icon>
     <RequiredPermissions>OpenMinor;Save</RequiredPermissions>
   </Fields>
