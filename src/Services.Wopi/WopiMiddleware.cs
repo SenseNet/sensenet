@@ -8,10 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Wopi
 {
@@ -49,7 +51,11 @@ namespace SenseNet.Services.Wopi
 
             // set current user based on the access token
             if (!calledFromTest)
-                await SetCurrentUserAsync(wopiRequest, context.RequestAborted).ConfigureAwait(false);
+            {
+                var user = await GetCurrentUserAsync(wopiRequest, context.RequestAborted).ConfigureAwait(false);
+                if (user != null)
+                    User.Current = user;
+            }
 
             var webResponse = context.Response;
             var wopiResponse = await GetResponseAsync(wopiRequest, context.RequestAborted).ConfigureAwait(false);
@@ -141,7 +147,7 @@ namespace SenseNet.Services.Wopi
             if (!int.TryParse(wopiRequest.FileId, out var contentId))
                 return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
 
-            var user = ContentRepository.User.Current;
+            var user = User.Current;
 
             File file;
             using (new SystemAccount())
@@ -152,7 +158,7 @@ namespace SenseNet.Services.Wopi
             }
 
             // The owner have to load with original (not elevated) user
-            var owner = file.Owner as IUser ?? ContentRepository.User.Somebody;
+            var owner = file.Owner as IUser ?? User.Somebody;
 
             // Uses SystemAccount
             var userPermissions = GetUserPermissions(file, user);
@@ -218,7 +224,7 @@ namespace SenseNet.Services.Wopi
         private static readonly char[] DisabledUserIdChars = "<>\"#{}^[]`\\/".ToCharArray();
         public static readonly string AccessTokenFeatureName = "Wopi";
 
-        private async Task SetCurrentUserAsync(WopiRequest wopiRequest, CancellationToken cancellationToken)
+        private async Task<IUser> GetCurrentUserAsync(WopiRequest wopiRequest, CancellationToken cancellationToken)
         {            
             var tokenValue = wopiRequest.AccessTokenValue;
             var contentId = wopiRequest is FilesRequest fileRequest ? int.Parse(fileRequest.FileId) : 0;
@@ -235,9 +241,11 @@ namespace SenseNet.Services.Wopi
                     // main context User in Asp.Net. Check if it would be better if we changed 
                     // or modified the context user earlier in the pipeline.
 
-                    ContentRepository.User.Current = user;
+                    return user;
                 }
             }
+
+            return null;
         }
         private string GetUserId(IUser user)
         {
