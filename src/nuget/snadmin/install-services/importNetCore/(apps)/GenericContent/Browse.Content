@@ -4,6 +4,7 @@
   <ContentName>Browse</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,Browse]]></DisplayName>
+    <Scenario>ContexMenu</Scenario>
     <Icon><![CDATA[browse]]></Icon>
     <RequiredPermissions>Open</RequiredPermissions>
   </Fields>

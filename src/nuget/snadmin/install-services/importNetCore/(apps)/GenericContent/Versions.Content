@@ -4,6 +4,7 @@
   <ContentName>Versions</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,Versions]]></DisplayName>
+    <Scenario>ContexMenu</Scenario>
     <Icon><![CDATA[versions]]></Icon>
     <RequiredPermissions>Open;RecallOldVersion</RequiredPermissions>
   </Fields>
