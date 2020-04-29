@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
@@ -564,20 +565,38 @@ namespace SenseNet.Services.Wopi
             if (!(await Node.LoadNodeAsync(contentId, cancellationToken).ConfigureAwait(false) is File file))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
-            return ProcessPutFileRequest(file, wopiRequest.Lock, wopiRequest.RequestStream);
+            return await ProcessPutFileRequestAsync(file, wopiRequest.Lock, wopiRequest.RequestStream, 
+                    cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>Method for tests</summary>
-        internal static WopiResponse ProcessPutFileRequest(File file, string lockValue, Stream stream)
+        internal static async Task<WopiResponse> ProcessPutFileRequestAsync(File file, string lockValue, Stream stream,
+            CancellationToken cancellationToken)
         {
+            static bool AreLocksEqual(string existing, string current)
+            {
+                if (existing == current)
+                    return true;
+                if (existing == null || current == null || current.Length < 40)
+                    return false;
+
+                // Locks are considered equal if the existing lock is a superset
+                // of the one in the current request. OOS generates JSON formatted
+                // locks and sometimes modifies them by adding additional properties.
+                return existing.Contains(current.Trim('{', '}'));
+            }
+
             var existingLock = SharedLock.GetLock(file.Id, CancellationToken.None);
             if (existingLock == null)
             {
                 if (file.Binary.Size != 0)
                     return new WopiResponse { StatusCode = HttpStatusCode.Conflict };
             }
-            if (existingLock != lockValue)
+            if (!AreLocksEqual(existingLock, lockValue))
             {
+                SnTrace.ContentOperation.WriteError("WOPI lock conflict during PUT file request. " +
+                                               $"File id: {file.Id}. Request lock: {GetEscapedLock(lockValue)}");
+
                 return new WopiResponse
                 {
                     StatusCode = HttpStatusCode.Conflict,
@@ -589,15 +608,38 @@ namespace SenseNet.Services.Wopi
                 };
             }
 
-            var binaryData = file.Binary;
-            binaryData.SetStream(stream);
+            try
+            {
+                //TODO: find a more resource-friendly stream solution
+                // We have to copy the whole stream to an intermediate storage
+                // because the request stream does not support stream.Length
+                // (at least not always), which is needed by the underlying
+                // repository storage.
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream, 81920, cancellationToken).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
 
-            file.Binary = binaryData;
+                var binaryData = file.Binary;
+                binaryData.SetStream(memoryStream);
 
-            SaveFile(file, existingLock);
+                file.Binary = binaryData;
+
+                SaveFile(file, existingLock);
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex, $"Error saving file {file.Id} in WOPI middleware.");
+                throw;
+            }
+
             //TODO:WOPI Set X-WOPI-ItemVersion header if needed.
             return new WopiResponse { StatusCode = HttpStatusCode.OK };
         }
+        private static string GetEscapedLock(string lockValue)
+        {
+            return lockValue?.Replace('{', '*').Replace('}', '*') ?? string.Empty;
+        }
+
         private static void SaveFile(File file, string lockValue)
         {
             file.SetCachedData(WopiService.ExpectedSharedLock, lockValue);
