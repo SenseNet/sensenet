@@ -88,5 +88,15 @@ namespace SenseNet.ApplicationModel
             public const string ContextMenu = "ContextMenu";
             public const string BatchActions = "BatchActions";
         }
+
+        /* ==================================================================== POLICY NAMES */
+
+        /// <summary>
+        /// Defines policy name constants for the <see cref="RequiredPoliciesAttribute"/> attribute.
+        /// </summary>
+        public static class Pol
+        {
+            public const string VersioningAndApproval = "VersioningAndApproval";
+        }
     }
 }

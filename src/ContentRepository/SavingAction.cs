@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository
 {
     public class SavingAction : NodeSaveSettings
     {
-        private static readonly string[] VERSIONING_ACTIONS = new[] { "checkin", "checkout", "undocheckout", "forceundocheckout", "publish", "approve", "reject" };
+        internal static readonly string[] VERSIONING_ACTIONS = new[] { "checkin", "checkout", "undocheckout", "forceundocheckout", "publish", "approve", "reject" };
 
         public static SavingAction Create(Node node)
         {
@@ -851,6 +851,34 @@ namespace SenseNet.ContentRepository
                         throw new SnNotSupportedException("Unknown StateAction: " + stateAction);
                 }
             }
+        }
+
+        /// <summary>
+        /// Determines if the provided versioning or approving action
+        /// is valid for the content based on its state and the
+        /// permissions of the current user.
+        /// </summary>
+        public static bool IsValidVersioningAction(Node node, string actionName)
+        {
+            if (string.IsNullOrEmpty(actionName) || node == null || !(node is GenericContent generic))
+                return true;
+            
+            actionName = actionName.ToLower();
+
+            return actionName switch
+            {
+                "checkin" => HasCheckIn(generic),
+                "checkout" => (generic.VersioningMode > VersioningType.None || 
+                               generic is IFile || 
+                               generic.NodeType.IsInstaceOfOrDerivedFrom("Page")) && 
+                              HasCheckOut(generic),
+                "undocheckout" => HasUndoCheckOut(generic),
+                "forceundocheckout" => HasForceUndoCheckOutRight(generic),
+                "publish" => generic.VersioningMode > VersioningType.None && HasPublish(generic),
+                "approve" => generic.Approvable,
+                "reject" => generic.Approvable,
+                _ => true
+            };
         }
 
         public static bool HasCheckIn(Node node)

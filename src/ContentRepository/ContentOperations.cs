@@ -16,6 +16,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Approve)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content Approve(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -29,6 +30,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Icon = "checkin", Description = "$Action,CheckIn")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
         public static Content CheckIn(Content content, string checkInComments = null)
         {
@@ -52,6 +54,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content CheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -66,6 +69,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Publish)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content Publish(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -79,6 +83,7 @@ namespace SenseNet.ContentRepository
         [ODataAction(Description = "$Action,Reject")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content Reject(Content content, string rejectReason = null)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -98,6 +103,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content UndoCheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
@@ -112,6 +118,7 @@ namespace SenseNet.ContentRepository
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
+        [RequiredPolicies(N.Pol.VersioningAndApproval)]
         public static Content ForceUndoCheckOut(Content content)
         {
             if (!(content.ContentHandler is GenericContent))
