@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>ClientApplication</ContentType>
+  <ContentName>Add</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[$Action,Add]]></DisplayName>
+    <Scenario>ContextMenu</Scenario>
+    <Icon><![CDATA[add]]></Icon>
+    <RequiredPermissions>AddNew</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
