@@ -420,6 +420,9 @@ namespace SenseNet.OData.Writers
                 // check if this is a versioning action (e.g. a checkout)
                 SavingAction.AssertVersioningAction(content, odataReq.PropertyName, true);
 
+                SnTrace.System.WriteError($"OData: {odataReq.PropertyName} operation not found " +
+                                          $"for content {content.Path} and user {User.Current.Username}.");
+
                 throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, content.Path, null, odataReq.PropertyName);
             }
 

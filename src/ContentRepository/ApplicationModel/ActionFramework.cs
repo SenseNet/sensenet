@@ -122,6 +122,10 @@ namespace SenseNet.ApplicationModel
 
             bool existingApplication;
             var app = ApplicationStorage.Instance.GetApplication(name, context, out existingApplication, GetDevice());
+            
+            if (app == null && existingApplication)
+                SnTrace.System.Write($"GetAction: app {name} exists but not available for " +
+                                     $"content {context.Path} and user {User.Current.Username}.");
 
             // if app is null, than create action in memory only if this is _not_ an existing application
             // (existing app can be null because of denied access or cleared/disabled status)
