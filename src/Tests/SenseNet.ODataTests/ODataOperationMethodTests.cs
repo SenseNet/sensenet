@@ -2365,45 +2365,35 @@ namespace SenseNet.ODataTests
                     {
                         OperationCenter.Discover();
 
-                        IUser backupUser = null;
-                        try
-                        {
-                            // We have to execute the test in the name of a regular
-                            // user, not SystemUser - otherwise all policy checks
-                            // would be skipped.
-                            backupUser = User.Current;
-                            User.Current = User.Administrator;
+                        // We have to execute the test in the name of a regular
+                        // user, not SystemUser - otherwise all policy checks
+                        // would be skipped.
+                        using var _ = new CurrentUserBlock(User.Administrator);
 
-                            // V0.1.D
-                            AssertActions(fileContent, new[] {"checkout", "publish"});
+                        // V0.1.D
+                        AssertActions(fileContent, new[] { "checkout", "publish" });
 
-                            file.CheckOut();
+                        file.CheckOut();
 
-                            // V0.2.L
-                            AssertActions(fileContent, new[] {"checkin", "undocheckout", "publish"});
+                        // V0.2.L
+                        AssertActions(fileContent, new[] { "checkin", "undocheckout", "publish" });
 
-                            file.CheckIn();
-                            file.Publish();
+                        file.CheckIn();
+                        file.Publish();
 
-                            // V0.2.P
-                            AssertActions(fileContent, new[] {"approve", "reject", "checkout"});
+                        // V0.2.P
+                        AssertActions(fileContent, new[] { "approve", "reject", "checkout" });
 
-                            file.Reject();
+                        file.Reject();
 
-                            // V0.2.R
-                            AssertActions(fileContent, new[] {"checkout", "publish"});
+                        // V0.2.R
+                        AssertActions(fileContent, new[] { "checkout", "publish" });
 
-                            file.Publish();
-                            file.Approve();
+                        file.Publish();
+                        file.Approve();
 
-                            // V1.0.A
-                            AssertActions(fileContent, new[] {"checkout"});
-
-                        }
-                        finally
-                        {
-                            User.Current = backupUser;
-                        }
+                        // V1.0.A
+                        AssertActions(fileContent, new[] { "checkout" });
                     }
                 });
 
