@@ -2423,6 +2423,39 @@ namespace SenseNet.ODataTests
             }
         }
 
+        [TestMethod]
+        public void OD_MBO_Actions_TrashBag()
+        {
+            ODataTest(() =>
+            {
+                using var _ = new CleanOperationCenterBlock();
+                OperationCenter.Discover();
+
+                // prepare test file
+                const string parentPath = "/Root/MyFiles";
+                var parent = RepositoryTools.CreateStructure(parentPath, "SystemFolder")
+                             ?? Content.Load(parentPath);
+                var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
+                file.Save();
+
+                // delete to the Trash
+                file.Delete();
+
+                // reload to get the new trashbag parent
+                file = Node.Load<File>(file.Id);
+                if (!(file.Parent is TrashBag bag))
+                    throw new InvalidOperationException("File is not in the Trash.");
+
+                var bagContent = Content.Create(bag);
+                var oms = new OperationMethodStorage();
+                var actions = oms.GetActions(
+                    ActionFramework.GetActionsFromContentRepository(bagContent, null, null),
+                    bagContent, null, null).ToArray();
+
+                Assert.IsNotNull(actions.SingleOrDefault(a => a.Name == "Restore"), "Restore action not available.");
+            });
+        }
+
         /* ====================================================================== TOOLS */
 
         private readonly Attribute[] _defaultAttributes = new Attribute[] { new ODataFunction() };

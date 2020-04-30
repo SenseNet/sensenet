@@ -23,10 +23,10 @@ namespace SenseNet.Services
                 //public static string ContentAlreadyExists_1 = "$Error_Portal:OData_ContentAlreadyExists_1";
                 public static string ErrorContentNotFound = "$Error_Portal:ErrorContentNotFound";
 
-                //public static string RestoreExistingName = "$Error_Portal:OData_Restore_ExistingName";
-                //public static string RestoreForbiddenContentType = "$Error_Portal:OData_Restore_ForbiddenContentType";
-                //public static string RestoreNoParent = "$Error_Portal:OData_Restore_NoParent";
-                //public static string RestorePermissionError = "$Error_Portal:OData_Restore_PermissionError";
+                public static string RestoreExistingName = "$Error_Portal:OData_Restore_ExistingName";
+                public static string RestoreForbiddenContentType = "$Error_Portal:OData_Restore_ForbiddenContentType";
+                public static string RestoreNoParent = "$Error_Portal:OData_Restore_NoParent";
+                public static string RestorePermissionError = "$Error_Portal:OData_Restore_PermissionError";
             }
         }
 
