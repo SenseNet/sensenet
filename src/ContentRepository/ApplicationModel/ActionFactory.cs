@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Versioning;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 using SenseNet.Tools;
 // ReSharper disable CheckNamespace
 
@@ -33,7 +32,7 @@ namespace SenseNet.ApplicationModel
             // check versioning action validity
             if (!SavingAction.IsValidVersioningAction(context?.ContentHandler, actionName))
                 return null;
-
+            
             if (string.IsNullOrEmpty(actionType))
                 actionType = Actions.DefaultActionType;
 
@@ -43,8 +42,11 @@ namespace SenseNet.ApplicationModel
                 if (getDefaultAction != null)
                     action = getDefaultAction(actionType, context, state);
                 if (action == null)
+                {
+                    SnTrace.System.WriteError($"ActionFactory: Unknown action {actionType} for content {context?.Path}");
                     throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, context.Path,
                         null, actionType);
+                }
             }
 
 

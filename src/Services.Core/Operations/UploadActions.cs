@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using System.Threading.Tasks;
@@ -8,9 +9,10 @@ namespace SenseNet.Services.Core.Operations
     public static class UploadActions
     {
         [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public static Task<object> Upload(Content content, HttpContext context, 
             long? FileLength = null, string ContentType = null, string PropertyName = null, 
             string FileText = null, bool? Overwrite = null, int? ContentId = null, 
@@ -45,7 +47,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
         public static string FinalizeContent(Content content, HttpContext context)
@@ -62,13 +64,14 @@ namespace SenseNet.Services.Core.Operations
         /// to write files directly to the blob storage.
         /// </summary>
         /// <param name="content">Parent content to upload the new file to.</param>
+        /// <param name="context">The current HttpContext if available.</param>
         /// <param name="name">Name of the new (or existing) content.</param>
         /// <param name="contentType">Content type of the new content.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
         [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.AddNew)]
         public static Task<string> StartBlobUploadToParent(Content content, HttpContext context, string name, string contentType, long fullSize, string fieldName = null)
@@ -83,11 +86,12 @@ namespace SenseNet.Services.Core.Operations
         /// storage client to write files directly to the blob storage.
         /// </summary>
         /// <param name="content">Existing content with a binary field to upload to. In most cases this is a file content.</param>
+        /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <returns>Chunk write token, content id and version id in a JSON object.</returns>
         [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
         public static string StartBlobUpload(Content content, HttpContext context, long fullSize, string fieldName = null)
@@ -102,12 +106,13 @@ namespace SenseNet.Services.Core.Operations
         /// to write files directly to the blob storage.
         /// </summary>
         /// <param name="content">A content in a multistep saving state.</param>
+        /// <param name="context">The current HttpContext if available.</param>
         /// <param name="token">Binary token provided by the start operation before.</param>
         /// <param name="fullSize">Size of the whole binary.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         /// <param name="fileName">Binary file name to save into the binary metadata.</param>
         [ODataAction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         [RequiredPermissions(N.P.Save)]
         public static Task<string> FinalizeBlobUpload(Content content, HttpContext context, string token, long fullSize, string fieldName = null, string fileName = null)
@@ -122,9 +127,10 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// ///
         /// <param name="content">A content with a binary field.</param>
+        /// <param name="context">The current HttpContext if available.</param>
         /// <param name="fieldName">Optional custom binary field name, if it is other than 'Binary'.</param>
         [ODataFunction]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.All)]
         public static string GetBinaryToken(Content content, HttpContext context, string fieldName = null)
         {

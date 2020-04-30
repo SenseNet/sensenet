@@ -819,13 +819,25 @@ namespace SenseNet.OData
             }
             catch (OperationNotFoundException e)
             {
+                SnTrace.System.WriteError($"Operation {name} not found. " +
+                                          $"Content: {content.Path}, User: {User.Current.Username}");
+
                 throw new InvalidContentActionException(e, InvalidContentActionReason.UnknownAction, content.Path,
                     e.Message, name);
             }
             catch (AmbiguousMatchException e)
             {
+                SnTrace.System.WriteError($"Operation {name} is ambiguous. " +
+                                          $"Content: {content.Path}, User: {User.Current.Username}");
+
                 throw new InvalidContentActionException(e, InvalidContentActionReason.UnknownAction, content.Path,
                     e.Message, name);
+            }
+            catch(Exception ex)
+            {
+                SnTrace.System.WriteError($"Error during discovery of method {name}. {ex.Message} " +
+                                          $"Content: {content.Path}, User: {User.Current.Username}");
+                throw;
             }
 
             method.HttpContext = httpContext;
