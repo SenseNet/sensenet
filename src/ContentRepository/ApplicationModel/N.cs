@@ -21,6 +21,7 @@ namespace SenseNet.ApplicationModel
             public const string Group = "Group";
             public const string User = "User";
             public const string PortalRoot = "PortalRoot";
+            public const string TrashBag = "TrashBag";
         }
 
         /* ==================================================================== ROLE NAMES */

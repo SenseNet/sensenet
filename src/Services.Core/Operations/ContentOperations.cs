@@ -588,5 +588,53 @@ namespace SenseNet.Services.Core.Operations
             public string Custom32;
         }
 
+        [ODataAction(Icon = "restore", Description = "$Action,Restore")]
+        [ContentTypes(N.CT.TrashBag)]
+        [AllowedRoles(N.R.Everyone)]
+        [RequiredPermissions(N.P.Save)]
+        [Scenario(N.S.ListItem, N.S.ExploreToolbar, N.S.ContextMenu)]
+        public static object Restore(Content content, string destination = null, bool? newname = null)
+        {
+            if (!(content?.ContentHandler is TrashBag tb))
+                throw new InvalidContentActionException("The resource content must be a TrashBag.");
+
+            if (string.IsNullOrEmpty(destination))
+                destination = tb.OriginalPath;
+
+            try
+            {
+                if (newname.HasValue)
+                    TrashBin.Restore(tb, destination, newname.Value);
+                else
+                    TrashBin.Restore(tb, destination);
+            }
+            catch (RestoreException rex)
+            {
+                string msg;
+
+                switch (rex.ResultType)
+                {
+                    case RestoreResultType.ExistingName:
+                        msg = SNSR.GetString(SNSR.Exceptions.OData.RestoreExistingName);
+                        break;
+                    case RestoreResultType.ForbiddenContentType:
+                        msg = SNSR.GetString(SNSR.Exceptions.OData.RestoreForbiddenContentType);
+                        break;
+                    case RestoreResultType.NoParent:
+                        msg = SNSR.GetString(SNSR.Exceptions.OData.RestoreNoParent);
+                        break;
+                    case RestoreResultType.PermissionError:
+                        msg = SNSR.GetString(SNSR.Exceptions.OData.RestorePermissionError);
+                        break;
+                    default:
+                        msg = rex.Message;
+                        break;
+                }
+
+                throw new Exception(msg);
+            }
+
+            return null;
+        }
     }
 }
