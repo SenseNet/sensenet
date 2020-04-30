@@ -17,6 +17,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Versioning;
 using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedVariable
@@ -2337,6 +2338,89 @@ namespace SenseNet.ODataTests
                         AccessProvider.Current.SetCurrentUser(original);
                     }
                 });
+        }
+
+        [TestMethod]
+        public void OD_MBO_Actions_VersioningActions()
+        {
+            ODataTest(
+                builder => { builder.AddAllTestPolicies(); },
+                () =>
+                {
+                    // prepare test file
+                    const string parentPath = "/Root/MyFiles";
+                    var parent = RepositoryTools.CreateStructure(parentPath, "SystemFolder")
+                                 ?? Content.Load(parentPath);
+                    var file = new File(parent.ContentHandler)
+                    {
+                        Name = Guid.NewGuid() + ".docx",
+                        VersioningMode = VersioningType.MajorAndMinor,
+                        ApprovingMode = ApprovingType.True
+                    };
+                    file.Save();
+
+                    var fileContent = Content.Create(file);
+
+                    using (new CleanOperationCenterBlock())
+                    {
+                        OperationCenter.Discover();
+
+                        // We have to execute the test in the name of a regular
+                        // user, not SystemUser - otherwise all policy checks
+                        // would be skipped.
+                        using var _ = new CurrentUserBlock(User.Administrator);
+
+                        // V0.1.D
+                        AssertActions(fileContent, new[] { "checkout", "publish" });
+
+                        file.CheckOut();
+
+                        // V0.2.L
+                        AssertActions(fileContent, new[] { "checkin", "undocheckout", "publish" });
+
+                        file.CheckIn();
+                        file.Publish();
+
+                        // V0.2.P
+                        AssertActions(fileContent, new[] { "approve", "reject", "checkout" });
+
+                        file.Reject();
+
+                        // V0.2.R
+                        AssertActions(fileContent, new[] { "checkout", "publish" });
+
+                        file.Publish();
+                        file.Approve();
+
+                        // V1.0.A
+                        AssertActions(fileContent, new[] { "checkout" });
+                    }
+                });
+
+            void AssertActions(Content content, string[] visible)
+            {
+                var oms = new OperationMethodStorage();
+                var actions = oms.GetActions(
+                    ActionFramework.GetActionsFromContentRepository(content, null, null),
+                    content, null, null).ToArray();
+                
+                foreach (var actionName in SavingAction.VERSIONING_ACTIONS)
+                {
+                    var action = actions.SingleOrDefault(a =>
+                        string.Equals(a.Name, actionName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (visible.Contains(actionName))
+                    {
+                        // the actions list MUST contain this
+                        Assert.IsNotNull(action, $"Action {actionName} is missing from the list.");
+                    }
+                    else
+                    {
+                        // the actions list must NOT contain this
+                        Assert.IsNull(action, $"Action {actionName} should NOT be in the list.");
+                    }
+                }
+            }
         }
 
         /* ====================================================================== TOOLS */
