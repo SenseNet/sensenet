@@ -31,7 +31,8 @@ namespace SenseNet.ODataTests
                             : OperationMethodVisibility.Disabled;
                 })
                 .UseOperationMethodExecutionPolicy("AdminDenied",
-                    new ODataOperationMethodTests.DeniedUsersOperationMethodPolicy(new[] { Identifiers.AdministratorUserId }));
+                    new ODataOperationMethodTests.DeniedUsersOperationMethodPolicy(new[] { Identifiers.AdministratorUserId }))
+                .UseOperationMethodExecutionPolicy(new VersioningOperationMethodPolicy());
         }
     }
 }

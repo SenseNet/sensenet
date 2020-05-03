@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>ClientApplication</ContentType>
+  <ContentName>MoveTo</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[$Action,MoveTo]]></DisplayName>
+    <Scenario>ContextMenu</Scenario>
+    <Icon><![CDATA[move]]></Icon>
+    <RequiredPermissions>OpenMinor;Save</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Versioning;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 using SenseNet.Tools;
 // ReSharper disable CheckNamespace
 
@@ -31,9 +30,9 @@ namespace SenseNet.ApplicationModel
             var actionName = application != null ? application.Name : actionType;
 
             // check versioning action validity
-            if (IsInvalidVersioningAction(context, actionName))
+            if (!SavingAction.IsValidVersioningAction(context?.ContentHandler, actionName))
                 return null;
-
+            
             if (string.IsNullOrEmpty(actionType))
                 actionType = Actions.DefaultActionType;
 
@@ -43,8 +42,11 @@ namespace SenseNet.ApplicationModel
                 if (getDefaultAction != null)
                     action = getDefaultAction(actionType, context, state);
                 if (action == null)
+                {
+                    SnTrace.System.WriteError($"ActionFactory: Unknown action {actionType} for content {context?.Path}");
                     throw new InvalidContentActionException(InvalidContentActionReason.UnknownAction, context.Path,
                         null, actionType);
+                }
             }
 
 
@@ -52,37 +54,7 @@ namespace SenseNet.ApplicationModel
 
             return action.Visible ? action : null;
         }
-
-        private static bool IsInvalidVersioningAction(Content context, string actionName)
-        {
-            if (string.IsNullOrEmpty(actionName) || context == null)
-                return false;
-
-            actionName = actionName.ToLower();
-
-            if (!(context.ContentHandler is GenericContent generic))
-                return false;
-
-            switch (actionName)
-            {
-                case "checkin":
-                    return !SavingAction.HasCheckIn(generic);
-                case "checkout":
-                    return (generic.VersioningMode <= VersioningType.None && !(generic is IFile || generic.NodeType.IsInstaceOfOrDerivedFrom("Page"))) || !SavingAction.HasCheckOut(generic);
-                case "undocheckout":
-                    return !SavingAction.HasUndoCheckOut(generic);
-                case "forceundocheckout":
-                    return !SavingAction.HasForceUndoCheckOutRight(generic);
-                case "publish":
-                    return (generic.VersioningMode <= VersioningType.None || !SavingAction.HasPublish(generic));
-                case "approve":
-                case "reject":
-                    return !generic.Approvable;
-                default:
-                    return false;
-            }
-        }
-
+        
         // ======================================================================== Action type handling
 
         private static Dictionary<string, Type> _actionCache;

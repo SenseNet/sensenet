@@ -35,6 +35,7 @@ namespace SenseNet.ContentRepository.Sharing
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.SetPermissions)]
+        [Scenario(N.S.ContextMenu, N.S.BatchActions)]
         public static object Share(Content content, string token, SharingLevel level, SharingMode mode, bool sendNotification)
         {
             var gc = EnsureContent(content);

@@ -21,6 +21,7 @@ namespace SenseNet.ApplicationModel
             public const string Group = "Group";
             public const string User = "User";
             public const string PortalRoot = "PortalRoot";
+            public const string TrashBag = "TrashBag";
         }
 
         /* ==================================================================== ROLE NAMES */
@@ -85,6 +86,18 @@ namespace SenseNet.ApplicationModel
             public const string SimpleListItem = "SimpleListItem";
             public const string ReadOnlyListItem = "ReadOnlyListItem";
             public const string DocumentDetails = "DocumentDetails";
+            public const string ContextMenu = "ContextMenu";
+            public const string BatchActions = "BatchActions";
+        }
+
+        /* ==================================================================== POLICY NAMES */
+
+        /// <summary>
+        /// Defines policy name constants for the <see cref="RequiredPoliciesAttribute"/> attribute.
+        /// </summary>
+        public static class Pol
+        {
+            public const string VersioningAndApproval = "VersioningAndApproval";
         }
     }
 }

@@ -1,5 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Resources>
+<ResourceClass name="Ctd-ClientApplication">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Client Application</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Represents a client-side action.</value>
+        </data>
+        <data name="Parameters-DisplayName" xml:space="preserve">
+          <value>Parameters</value>
+        </data>
+        <data name="Parameters-Description" xml:space="preserve">
+          <value>Comma separated parameter list. One parameter consists of two words: type and name. Type is fully qualified except some simple types (e.g. string, int, Content etc.).</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Kliens Alkalmazás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Kliens oldali akciót reprezentál.</value>
+        </data>
+        <data name="Parameters-DisplayName" xml:space="preserve">
+          <value>Paraméterek</value>
+        </data>
+        <data name="Parameters-Description" xml:space="preserve">
+          <value>Vesszővel elválasztott paraméter lista. Egy paraméter a típusnévből és a paraméternévből áll. A típust néhány kivételtől eltekintve (string, int, Content stb.)
+          teljes névvel kell megadni. Továbbiak a dokumentációban.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-ContentLink">
     <Languages>
       <Language cultureName="en">

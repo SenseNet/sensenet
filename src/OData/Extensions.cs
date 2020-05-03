@@ -20,7 +20,9 @@ namespace SenseNet.OData
             Action<IApplicationBuilder> buildAppBranch = null)
         {
             // add OData middleware only if the request contains the appropriate prefix
-            builder.MapMiddlewareWhen<ODataMiddleware>("/odata.svc", buildAppBranch);            
+            builder.MapMiddlewareWhen<ODataMiddleware>("/odata.svc", buildAppBranch);
+
+            builder.UseOperationMethodExecutionPolicy(new VersioningOperationMethodPolicy());
 
             return builder;
         }

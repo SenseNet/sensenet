@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Transactions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
@@ -19,10 +17,10 @@ using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Tests;
 using SenseNet.Tools.CommandLineArguments;
 using File = SenseNet.ContentRepository.File;
 // ReSharper disable CoVariantArrayConversion
@@ -155,6 +153,8 @@ namespace SenseNet.Tools.SnInitialDataGenerator
             Providers.Instance.DataProvider = dataProvider;
 
             var builder = new RepositoryBuilder()
+                .UseTracer(new SnFileSystemTracer())
+                .UseLogger(new SnFileSystemEventLogger())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
@@ -168,8 +168,9 @@ namespace SenseNet.Tools.SnInitialDataGenerator
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
+                .EnableNodeObservers(TypeResolver.GetType("SenseNet.ContentRepository.SettingsCache"))
                 //.EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
+                .UseTraceCategories("System", "Test", "Event", "Custom") as RepositoryBuilder;
 
             return builder;
         }

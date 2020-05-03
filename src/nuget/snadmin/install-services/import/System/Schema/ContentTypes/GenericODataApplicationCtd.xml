@@ -7,10 +7,16 @@
     <Field name="ClassName" type="ShortText">
       <DisplayName>$Ctd-GenericODataApplication,ClassName-DisplayName</DisplayName>
       <Description>$Ctd-GenericODataApplication,ClassName-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+      </Configuration>
     </Field>
     <Field name="MethodName" type="ShortText">
       <DisplayName>$Ctd-GenericODataApplication,MethodName-DisplayName</DisplayName>
       <Description>$Ctd-GenericODataApplication,MethodName-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+      </Configuration>
     </Field>
     <Field name="Parameters" type="LongText">
       <DisplayName>$Ctd-GenericODataApplication,Parameters-DisplayName</DisplayName>
