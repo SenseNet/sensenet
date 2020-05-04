@@ -651,7 +651,8 @@ namespace SenseNet.ContentRepository.Tests
                 // Empty test
                 db.IndexingActivities.Clear();
 
-                var emptyState = IndexManager.LoadCurrentIndexingActivityStatus();
+                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Assert.AreEqual("0()", emptyState.ToString());
 
@@ -680,12 +681,64 @@ namespace SenseNet.ContentRepository.Tests
                 foreach (var item in items)
                     db.IndexingActivities.Insert(item);
 
-                var state = IndexManager.LoadCurrentIndexingActivityStatus();
+                // ACTION
+                var state = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
 
+                // ASSERT
                 Assert.AreEqual("15(13,14)", state.ToString());
             });
         }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_RestoreIndexingActivityStatus()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
 
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = IndexingActivityType.AddDocument,
+                    Path = "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = x,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                var state = new IndexingActivityStatus { LastActivityId = 15, Gaps = new[] { 13, 14 } };
+
+                // ACTION
+                IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var expected = "11:Done,12:Done,13:Waiting,14:Waiting,15:Done,16:Waiting,17:Waiting";
+                var actual = string.Join(",", db.IndexingActivities
+                    .OrderBy(x => x.IndexingActivityId)
+                    .Select(x => $"{x.Id}:{x.RunningState}"));
+
+                Assert.AreEqual(expected, actual);
+            });
+        }
 
         private GenericContent CreateTestRoot()
         {

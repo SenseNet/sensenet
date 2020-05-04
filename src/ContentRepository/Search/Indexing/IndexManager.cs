@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// This method is used in the distributed indexing scenario.
         /// The indexing activity status comes from the index.
         /// </summary>
-        /// <returns>The current indexing activity status.</returns>
+        /// <returns>The current <see cref="IndexingActivityStatus"/> instance.</returns>
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();
@@ -190,11 +190,29 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// This method is used in the centralized indexing scenario.
         /// The indexing activity status comes from the database.
         /// </summary>
-        /// <returns>The current indexing activity status.</returns>
-        public static IndexingActivityStatus LoadCurrentIndexingActivityStatus()
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the current
+        /// <see cref="IndexingActivityStatus"/> instance.</returns>
+        public static STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            return DataStore.GetCurrentIndexingActivityStatusAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return DataStore.GetCurrentIndexingActivityStatusAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Restores the indexing activity status.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <remarks>
+        /// To ensure the index and database integrity, this method marks the indexing activities to re-executable
+        /// that was executed after the backup-status was queried. In the CentralizedIndexingActivityQueue's
+        /// startup-sequence these activities will be executed before any other new indexing-activity.
+        /// </remarks>
+        /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static STT.Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status,  CancellationToken cancellationToken)
+        {
+            return DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken);
         }
 
         /*========================================================================================== Commit */

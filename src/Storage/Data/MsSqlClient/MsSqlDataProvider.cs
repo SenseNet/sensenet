@@ -12,6 +12,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -369,6 +370,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             return isDeadLock;
         }
+
 
         protected override long ConvertTimestampToInt64(object timestamp)
         {

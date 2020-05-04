@@ -1032,6 +1032,22 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
+        public override STT.Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var orderedActivities = DB.IndexingActivities.OrderBy(x => x.Id).ToArray();
+
+                foreach (var item in orderedActivities.Where(x => x.IndexingActivityId > status.LastActivityId))
+                    item.RunningState = IndexingActivityRunningState.Waiting;
+
+                foreach (var item in orderedActivities.Where(x => status.Gaps.Contains(x.IndexingActivityId)))
+                    item.RunningState = IndexingActivityRunningState.Waiting;
+            }
+            return STT.Task.CompletedTask;
+        }
+
         /* =============================================================================================== IndexingActivity */
 
         public override Task<int> GetLastIndexingActivityIdAsync(CancellationToken cancellationToken)

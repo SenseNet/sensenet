@@ -988,6 +988,8 @@ IF @Last IS NOT NULL BEGIN
 END
 ";
 
+        protected override string GetRestoreIndexingActivityStatusScript => "";
+
         #region LoadIndexingActivitiesSkeletonScript
         private string LoadIndexingActivitiesSkeletonScript => @"-- MsSqlDataProvider.{0}
 {1}SELECT TOP(@Top)
