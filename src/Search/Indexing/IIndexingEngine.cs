@@ -40,7 +40,7 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// Takes a snapshot of the index and copies it to the configured or well known place.
         /// </summary>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task BackupAsync(CancellationToken cancellationToken);
         /// <summary>
@@ -48,9 +48,17 @@ namespace SenseNet.Search.Indexing
         /// Target is typically a directory in the filesystem.
         /// </summary>
         /// <param name="target">Path of the target directory or any other target definition.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
         Task BackupAsync(string target, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Restores the index files from the given source.
+        /// </summary>
+        /// <param name="source">Path of the source directory that contains the index files to restore.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        Task RestoreAsync(string source, CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes the current index and creates a brand new empty one.
