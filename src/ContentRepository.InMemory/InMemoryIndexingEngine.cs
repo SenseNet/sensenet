@@ -44,11 +44,6 @@ namespace SenseNet.ContentRepository.InMemory
             throw new SnNotSupportedException();
         }
 
-        public STT.Task RestoreAsync(string source, CancellationToken cancellationToken)
-        {
-            throw new SnNotSupportedException();
-        }
-
         public STT.Task ClearIndexAsync(CancellationToken cancellationToken)
         {
             Index.Clear();

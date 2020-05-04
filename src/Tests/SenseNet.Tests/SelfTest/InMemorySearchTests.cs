@@ -1079,11 +1079,6 @@ namespace SenseNet.Tests.SelfTest
                     throw new NotImplementedException();
                 }
 
-                public Task RestoreAsync(string source, CancellationToken cancellationToken)
-                {
-                    throw new NotImplementedException();
-                }
-
                 public Task ClearIndexAsync(CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();

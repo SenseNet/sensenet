@@ -54,11 +54,6 @@ namespace SenseNet.Search
                 throw new SnNotSupportedException();
             }
 
-            public Task RestoreAsync(string source, CancellationToken cancellationToken)
-            {
-                throw new SnNotSupportedException();
-            }
-
             public Task ClearIndexAsync(CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
