@@ -1641,11 +1641,20 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetCurrentIndexingActivityStatusScript { get; }
 
         /// <inheritdoc />
-        public override Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        public override async Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var gaps = string.Join(",", status.Gaps.Select(x => x.ToString()));
+            using (var ctx = CreateDataContext(cancellationToken))
+                await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@LastActivityId", DbType.Int32, status.LastActivityId),
+                        ctx.CreateParameter("@Gaps", DbType.String, int.MaxValue, gaps)
+                    });
+                }).ConfigureAwait(false);
         }
-        protected abstract string GetRestoreIndexingActivityStatusScript { get; }
+        protected abstract string RestoreIndexingActivityStatusScript { get; }
 
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)

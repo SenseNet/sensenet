@@ -978,6 +978,7 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
 ";
         #endregion
 
+        #region GetCurrentIndexingActivityStatusScript
         protected override string GetCurrentIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetCurrentIndexingActivityStatus
 DECLARE @Last int
 SELECT TOP 1 @Last = IndexingActivityId FROM IndexingActivities WHERE RunningState = 'Done' ORDER BY CreationDate DESC
@@ -987,8 +988,15 @@ IF @Last IS NOT NULL BEGIN
     SELECT IndexingActivityId, RunningState FROM IndexingActivities WHERE RunningState != 'Done' AND IndexingActivityId < @Last
 END
 ";
-
-        protected override string GetRestoreIndexingActivityStatusScript => "";
+        #endregion
+        #region RestoreIndexingActivityStatusScript
+        protected override string RestoreIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetRestoreIndexingActivityStatus
+DECLARE @GapTable AS TABLE(Gap INT)
+INSERT INTO @GapTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Gaps, ',')
+UPDATE IndexingActivities SET RunningState = 'Waiting'
+	WHERE IndexingActivityId > @LastActivityId OR IndexingActivityId IN (SELECT Gap FROM @GapTable)
+";
+        #endregion
 
         #region LoadIndexingActivitiesSkeletonScript
         private string LoadIndexingActivitiesSkeletonScript => @"-- MsSqlDataProvider.{0}
