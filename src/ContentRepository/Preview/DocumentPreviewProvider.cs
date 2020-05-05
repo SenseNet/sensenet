@@ -1610,13 +1610,14 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
+        [ContentTypes(N.CT.PreviewImage)]
+        [AllowedRoles(N.R.Everyone)]
         public static void SetInitialPreviewProperties(Content content)
         {
             if (content == null)
-                throw new ArgumentNullException("content");
+                throw new ArgumentNullException(nameof(content));
 
-            var previewImage = content.ContentHandler as Image;
-            if (previewImage == null)
+            if (!(content.ContentHandler is Image previewImage))
                 throw new InvalidOperationException("This content is not an image.");
 
             var document = GetDocumentForPreviewImage(NodeHead.Get(content.Id));
@@ -1707,6 +1708,7 @@ namespace SenseNet.Preview
         }
 
         [ODataAction]
+        [AllowedRoles(N.R.Everyone)]
         public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)
         {
             SnTaskManager.OnTaskFinished(result);

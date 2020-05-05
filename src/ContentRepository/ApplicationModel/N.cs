@@ -18,6 +18,8 @@ namespace SenseNet.ApplicationModel
             public const string GenericContent = "GenericContent";
             public const string Folder = "Folder";
             public const string File = "File";
+            public const string Image = "Image";
+            public const string PreviewImage = "PreviewImage";
             public const string Group = "Group";
             public const string User = "User";
             public const string PortalRoot = "PortalRoot";
