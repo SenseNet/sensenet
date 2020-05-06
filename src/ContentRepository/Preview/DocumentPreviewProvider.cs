@@ -126,52 +126,12 @@ namespace SenseNet.Preview
 
         // ===================================================================================================== Static provider instance
 
-        private static DocumentPreviewProvider _current;
-        private static readonly object _lock = new object();
-        private static bool _isInitialized;
-        public static DocumentPreviewProvider Current
-        {
-            get
-            {
-                // This property has a duplicate in the Storage layer in the PreviewProvider
-                // class. If you change this, please propagate changes there.
-
-                if ((_current == null) && (!_isInitialized))
-                {
-                    lock (_lock)
-                    {
-                        if ((_current == null) && (!_isInitialized))
-                        {
-                            try
-                            {
-                                _current = (DocumentPreviewProvider)TypeResolver.CreateInstance(Providers.DocumentPreviewProviderClassName);
-                            }
-                            catch (TypeNotFoundException) // rethrow
-                            {
-                                throw new ConfigurationErrorsException(string.Concat(SR.Exceptions.Configuration.Msg_DocumentPreviewProviderImplementationDoesNotExist, ": ", Providers.DocumentPreviewProviderClassName));
-                            }
-                            catch (InvalidCastException) // rethrow
-                            {
-                                throw new ConfigurationErrorsException(string.Concat(SR.Exceptions.Configuration.Msg_InvalidDocumentPreviewProviderImplementation, ": ", Providers.DocumentPreviewProviderClassName));
-                            }
-                            finally
-                            {
-                                _isInitialized = true;
-                            }
-
-                            if (_current == null)
-                                SnLog.WriteInformation("DocumentPreviewProvider not present.");
-                            else
-                                SnLog.WriteInformation("DocumentPreviewProvider created: " + _current.GetType().FullName, properties: new Dictionary<string, object>
-                                {
-                                    { "SupportedTaskNames", string.Join(", ", _current.GetSupportedTaskNames())}
-                                });
-                        }
-                    }
-                }
-                return _current;
-            }
-        }
+        // This property has a duplicate in the Storage layer in the PreviewProvider
+        // class. If you change this, please propagate changes there.
+        // In this layer we assume that the provider is an instance of the DocumentPreviewProvider
+        // class that we are in now. The setter extension methods in the Preview package
+        // will make sure this is true.
+        public static DocumentPreviewProvider Current => (DocumentPreviewProvider)Providers.Instance.PreviewProvider;
 
         // ===================================================================================================== Helper methods
 
