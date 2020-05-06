@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+	<ContentType>Domain</ContentType>
+	<Permissions>
+		<Clear />
+		<Identity path="/Root/IMS/BuiltIn/Portal/Everyone" propagation="LocalOnly">
+		  <Open>Allow</Open>
+		</Identity>
+		<Identity path="/Root/IMS/BuiltIn/Portal/Visitor" propagation="LocalOnly">
+		  <Open>Allow</Open>
+		</Identity>
+	</Permissions>
+</ContentMetaData>
