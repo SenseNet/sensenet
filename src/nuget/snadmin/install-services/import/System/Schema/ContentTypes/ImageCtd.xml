@@ -5,18 +5,34 @@
   <Icon>Image</Icon>
   <Preview>true</Preview>
   <Fields>
-    <Field name="Keywords" type="LongText">
-      <DisplayName>$Ctd-Image,Keywords-DisplayName</DisplayName>
-      <Description>$Ctd-Image,Keywords-Description</Description>
+  <Field name="Name" type="ShortText">
+      <DisplayName>$Ctd-Image,Name-DisplayName</DisplayName>
+      <Configuration>
+        <FieldIndex>0</FieldIndex>
+      </Configuration>
     </Field>
     <Field name="DateTaken" type="DateTime">
       <DisplayName>$Ctd-Image,DateTaken-DisplayName</DisplayName>
       <Description>$Ctd-Image,DateTaken-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
+        <FieldIndex>1</FieldIndex>
       </Configuration>
     </Field>
-    <Field name="Index" type="Integer"></Field>
+    <Field name="Keywords" type="LongText">
+      <DisplayName>$Ctd-Image,Keywords-DisplayName</DisplayName>
+      <Description>$Ctd-Image,Keywords-Description</Description>
+      <Configuration>
+        <FieldIndex>2</FieldIndex>
+      </Configuration>
+    </Field>
+    <Field name="Index" type="Integer">
+    <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name="Version" type="Version">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -28,12 +44,25 @@
       <DisplayName>$Ctd-Image,Width-DisplayName</DisplayName>
       <Configuration>
         <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Height" type="Integer">
       <DisplayName>$Ctd-Image,Height-DisplayName</DisplayName>
       <Configuration>
         <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
   </Fields>

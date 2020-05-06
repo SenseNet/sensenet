@@ -14,11 +14,15 @@
     <Field name="DisplayName" type="ShortText">
       <Configuration>
         <VisibleNew>Hide</VisibleNew>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleBrowse>Hide</VisibleBrowse>
       </Configuration>
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
         <VisibleNew>Hide</VisibleNew>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleBrowse>Hide</VisibleBrowse>
       </Configuration>
     </Field>
     <Field name="Version" type="Version">
