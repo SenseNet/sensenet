@@ -219,12 +219,20 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (!SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
                 throw new SnNotSupportedException();
 
+            // No action is required if the status is the default
+            if (status.LastActivityId <= 0)
+                return IndexingActivityStatusRestoreResult.NotNecessary;
+
+            // Request to restore the running state of the stored activities by the status.
             var result = await DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken);
 
-            await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
-                IndexingActivityStatus.Startup, cancellationToken);
+            // Reset activity status in the index if an actual operation happened.
+            if(result == IndexingActivityStatusRestoreResult.Restored)
+                await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
+                    IndexingActivityStatus.Startup, cancellationToken);
 
             return result;
+
         }
 
         /*========================================================================================== Commit */
