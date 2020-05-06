@@ -44,7 +44,7 @@
           <Type>Group</Type>
         </AllowedTypes>
         <SelectionRoot>
-          <Path>/Root/IMS</Path>
+          <Path>/Root/IMS/Public</Path>
           <Path>/Root</Path>
         </SelectionRoot>
         <VisibleBrowse>Show</VisibleBrowse>
