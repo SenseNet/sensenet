@@ -990,11 +990,57 @@ END
 ";
         #endregion
         #region RestoreIndexingActivityStatusScript
-        protected override string RestoreIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetRestoreIndexingActivityStatus
-DECLARE @GapTable AS TABLE(Gap INT)
-INSERT INTO @GapTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Gaps, ',')
-UPDATE IndexingActivities SET RunningState = 'Waiting'
-	WHERE IndexingActivityId > @LastActivityId OR IndexingActivityId IN (SELECT Gap FROM @GapTable)
+        protected override string RestoreIndexingActivityStatusScript => @"-- MsSqlDataProvider.RestoreIndexingActivityStatus
+BEGIN TRAN
+	-- Lock the entire table
+	DECLARE @Dummy int
+	SELECT TOP 1 @Dummy = IndexingActivityId FROM IndexingActivities WITH (TABLOCKX)
+
+	DECLARE @Result varchar(20) -- AlreadyRestored, Restored, NotNecessary
+
+	-- Create state-string in {Last}({Gap}) format
+	IF @Gaps IS NULL SET @Gaps = ''
+	DECLARE @StateString nvarchar(max)
+	SELECT @StateString = CONVERT(nvarchar(50), @LastActivityId) + '(' + @Gaps + ')'
+
+	-- Return if this state is already restored
+	IF EXISTS (SELECT TOP 1 * FROM IndexingActivities WHERE Path = 'RESTORE' AND Extension = @StateString)
+		SELECT @Result = 'AlreadyRestored'
+	ELSE BEGIN
+		-- Get last executed activity
+		DECLARE @LastInDb int
+		SELECT TOP 1 @LastInDb = IndexingActivityId FROM IndexingActivities WHERE RunningState = 'Done' ORDER BY CreationDate DESC
+		IF @LastInDb IS NULL
+			SET @LastInDb = 0
+
+		-- Get not executed activities before last executed
+		DECLARE @GapsInDb VARCHAR(MAX)
+		SELECT @GapsInDb = CASE WHEN @GapsInDb IS NULL THEN CONVERT(nvarchar(50), T.IndexingActivityId) ELSE @GapsInDb + ',' + CONVERT(nvarchar(50), T.IndexingActivityId) END
+		FROM IndexingActivities AS T
+		WHERE RunningState != 'Done' AND IndexingActivityId < @LastInDb ORDER BY CreationDate
+
+		-- Return if the database has not changed after the index backup.
+		IF @LastActivityId = @LastInDb AND @Gaps = @GapsInDb
+			SELECT @Result = 'NotNecessary'
+		ELSE BEGIN
+			-- Do restore
+			SELECT @Result = 'Restored'
+
+			DECLARE @GapTable AS TABLE(Gap INT)
+			INSERT INTO @GapTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Gaps, ',')
+
+			-- All affected activities should be in the 'Waiting' state
+			UPDATE IndexingActivities SET RunningState = 'Waiting'
+			WHERE IndexingActivityId > @LastActivityId OR IndexingActivityId IN (SELECT Gap FROM @GapTable)
+
+			-- Insert a temporary recovery point
+			INSERT INTO IndexingActivities
+				(ActivityType, CreationDate, RunningState, LockTime, NodeId, VersionId, Path, VersionTimestamp, Extension) VALUES
+				('RemoveTree', GETUTCDATE(), 'Done', GETUTCDATE(), 0, 0, 'RESTORE', 0, @StateString)
+		END
+	END
+	SELECT @Result
+COMMIT TRAN
 ";
         #endregion
 

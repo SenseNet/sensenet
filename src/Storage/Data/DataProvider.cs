@@ -642,7 +642,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public abstract Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status,
+        public abstract Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status,
             CancellationToken cancellationToken);
 
         /// <summary>

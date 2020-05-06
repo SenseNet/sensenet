@@ -210,9 +210,21 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        public static STT.Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status,  CancellationToken cancellationToken)
+        public static async STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(
+            IndexingActivityStatus status,  CancellationToken cancellationToken)
         {
-            return DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken);
+            // Running state of the activity is only used in the centralized indexing scenario. 
+            // Additionally, the activity table can be too large in the distributed indexing scenario
+            // so it would be blocked for a long time by RestoreIndexingActivityStatusAsync.
+            if (!SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
+                throw new SnNotSupportedException();
+
+            var result = await DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken);
+
+            await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
+                IndexingActivityStatus.Startup, cancellationToken);
+
+            return result;
         }
 
         /*========================================================================================== Commit */

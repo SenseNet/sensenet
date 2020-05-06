@@ -727,8 +727,18 @@ namespace SenseNet.ContentRepository.Tests
                 var state = new IndexingActivityStatus { LastActivityId = 15, Gaps = new[] { 13, 14 } };
 
                 // ACTION
-                IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                var inMemEngine = (InMemoryIndexingEngine)SearchManager.SearchEngine.IndexingEngine;
+                try
+                {
+                    inMemEngine.IndexIsCentralized = true;
+
+                    IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    inMemEngine.IndexIsCentralized = false;
+                }
 
                 // ASSERT
                 var expected = "11:Done,12:Done,13:Waiting,14:Waiting,15:Done,16:Waiting,17:Waiting";

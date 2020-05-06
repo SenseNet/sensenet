@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         public bool Running { get; private set; }
 
-        public bool IndexIsCentralized => false;
+        public bool IndexIsCentralized { get; set; } = false;
 
         public InMemoryIndexingEngine(InMemorySearchEngine searchEngine)
         {

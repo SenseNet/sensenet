@@ -1032,8 +1032,9 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
-        public override STT.Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        public override STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
         {
+            //TODO: Implement the full algorithm if needed. See MsSqlDataProvider.RestoreIndexingActivityStatusScript.
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)
             {
@@ -1045,7 +1046,7 @@ namespace SenseNet.ContentRepository.InMemory
                 foreach (var item in orderedActivities.Where(x => status.Gaps.Contains(x.IndexingActivityId)))
                     item.RunningState = IndexingActivityRunningState.Waiting;
             }
-            return STT.Task.CompletedTask;
+            return STT.Task.FromResult(IndexingActivityStatusRestoreResult.Restored);
         }
 
         /* =============================================================================================== IndexingActivity */

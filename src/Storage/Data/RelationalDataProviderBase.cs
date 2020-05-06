@@ -1641,11 +1641,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetCurrentIndexingActivityStatusScript { get; }
 
         /// <inheritdoc />
-        public override async Task RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        public override async Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
         {
+            IndexingActivityStatusRestoreResult result;
+
             var gaps = string.Join(",", status.Gaps.Select(x => x.ToString()));
             using (var ctx = CreateDataContext(cancellationToken))
-                await ctx.ExecuteNonQueryAsync(UpdateIndexingActivityRunningStateScript, cmd =>
+            {
+                var rawResult = await ctx.ExecuteScalarAsync(RestoreIndexingActivityStatusScript, cmd =>
                 {
                     cmd.Parameters.AddRange(new[]
                     {
@@ -1653,6 +1656,11 @@ namespace SenseNet.ContentRepository.Storage.Data
                         ctx.CreateParameter("@Gaps", DbType.String, int.MaxValue, gaps)
                     });
                 }).ConfigureAwait(false);
+                var stringResult = rawResult == DBNull.Value ? string.Empty : (string)rawResult;
+                result = (IndexingActivityStatusRestoreResult)Enum.Parse(typeof(IndexingActivityStatusRestoreResult), stringResult, true);
+            }
+
+            return result;
         }
         protected abstract string RestoreIndexingActivityStatusScript { get; }
 
