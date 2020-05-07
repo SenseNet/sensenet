@@ -53,6 +53,11 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
                     ClientType = "adminui",
                     ClientId = "spa"
                 });
+                options.Clients.Add(new SnIdentityServerClient
+                {
+                    ClientType = "client",
+                    ClientId = "client"
+                });
             });
 
             return appBuilder;
