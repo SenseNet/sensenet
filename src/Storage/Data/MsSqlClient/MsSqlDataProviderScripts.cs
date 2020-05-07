@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -978,6 +979,12 @@ SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END
 ";
         #endregion
 
+        #region DeleteRestorePointsScript
+        protected override string DeleteRestorePointsScript => @"-- MsSqlDataProvider.DeleteRestorePoints
+DELETE FROM IndexingActivities WHERE ActivityType = 'Restore'
+";
+
+        #endregion
         #region GetCurrentIndexingActivityStatusScript
         protected override string GetCurrentIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetCurrentIndexingActivityStatus
 DECLARE @Last int
@@ -1004,7 +1011,7 @@ BEGIN TRAN
 	SELECT @StateString = CONVERT(nvarchar(50), @LastActivityId) + '(' + @Gaps + ')'
 
 	-- Return if this state is already restored
-	IF EXISTS (SELECT TOP 1 * FROM IndexingActivities WHERE Path = 'RESTORE' AND Extension = @StateString)
+	IF EXISTS (SELECT * FROM IndexingActivities WHERE ActivityType = 'Restore' AND Extension = @StateString)
 		SELECT @Result = 'AlreadyRestored'
 	ELSE BEGIN
 		-- Get last executed activity
@@ -1036,7 +1043,7 @@ BEGIN TRAN
 			-- Insert a temporary recovery point
 			INSERT INTO IndexingActivities
 				(ActivityType, CreationDate, RunningState, LockTime, NodeId, VersionId, Path, VersionTimestamp, Extension) VALUES
-				('RemoveTree', GETUTCDATE(), 'Done', GETUTCDATE(), 0, 0, 'RESTORE', 0, @StateString)
+				('Restore', GETUTCDATE(), 'Done', GETUTCDATE(), 0, 0, '', 0, @StateString)
 		END
 	END
 	SELECT @Result

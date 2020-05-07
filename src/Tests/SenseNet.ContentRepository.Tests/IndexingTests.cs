@@ -642,6 +642,57 @@ namespace SenseNet.ContentRepository.Tests
 
 
         [TestMethod, TestCategory("IR")]
+        public void Indexing_DeleteRestorePoints()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
+
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual("0()", emptyState.ToString());
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.Restore,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.Restore,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.RemoveTree,
+                    IndexingActivityType.Restore,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = x,
+                    Path = x == IndexingActivityType.Restore ? "" : "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = IndexingActivityRunningState.Done,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                // ACTION
+                IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var expected = @"AddDocument,AddDocument,AddDocument,AddDocument,RemoveTree";
+                var actual =string.Join(",", db.IndexingActivities.Select(x => x.ActivityType.ToString()));
+                Assert.AreEqual(expected, actual);
+            });
+        }
+        [TestMethod, TestCategory("IR")]
         public void Indexing_LoadCurrentIndexingActivityStatus()
         {
             Test(() =>

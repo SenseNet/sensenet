@@ -1615,6 +1615,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string GetLastIndexingActivityIdScript { get; }
 
         /// <inheritdoc />
+        public override async Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        {
+            using (var ctx = CreateDataContext(cancellationToken))
+                await ctx.ExecuteNonQueryAsync(DeleteRestorePointsScript).ConfigureAwait(false);
+        }
+        protected abstract string DeleteRestorePointsScript { get; }
+
+        /// <inheritdoc />
         public override async Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
             //UNDONE: Not tested: RelationalDataProviderBase.GetCurrentIndexingActivityStatusAsync

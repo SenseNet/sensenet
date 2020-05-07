@@ -184,6 +184,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();
         }
+
+        /// <summary>
+        /// Deletes all restore points from the database.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public static STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        {
+            return DataStore.DeleteRestorePointsAsync(cancellationToken);
+        }
         /// <summary>
         /// Gets the current <see cref="IndexingActivityStatus"/> instance
         /// containing the last executed indexing activity id and ids of missing indexing activities.

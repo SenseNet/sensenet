@@ -1007,6 +1007,20 @@ namespace SenseNet.ContentRepository.InMemory
             }
         }
 
+        public override STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var activitiesToDelete = DB.IndexingActivities
+                    .Where(x => x.ActivityType == IndexingActivityType.Restore)
+                    .ToArray();
+                foreach (var item in activitiesToDelete)
+                    DB.IndexingActivities.Remove(item);
+            }
+            return STT.Task.CompletedTask;
+        }
+
         public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
