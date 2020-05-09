@@ -207,6 +207,23 @@ namespace SenseNet.Configuration
         }
         #endregion
 
+        #region private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>
+        private Lazy<IPreviewProvider> _previewProvider = new Lazy<IPreviewProvider>(() => 
+            CreateProviderInstance<IPreviewProvider>(DocumentPreviewProviderClassName,"DocumentPreviewProvider"));
+
+        /// <summary>
+        /// Preview provider instance. Do NOT set this property directly,
+        /// because it has to be an instance of the DocumentPreviewProvider class
+        /// that resides in the ContentRepository layer.
+        /// Use the extension methods on the IRepositoryBuilder api instead.
+        /// </summary>
+        public virtual IPreviewProvider PreviewProvider
+        {
+            get => _previewProvider.Value;
+            set { _previewProvider = new Lazy<IPreviewProvider>(() => value); }
+        }
+        #endregion
+
         #region private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>
         private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>(() =>
         {

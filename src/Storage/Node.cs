@@ -4874,7 +4874,11 @@ namespace SenseNet.ContentRepository.Storage
             }
             else if (IsHeadOnly && !SeeEnabledProperties.Contains(propertyType.Name)) // && AccessProvider.Current.GetCurrentUser().Id != -1)
             {
-                throw new InvalidOperationException(String.Concat("Invalid property access attempt on a See-only node. The accessible properties are: ", String.Join(", ", SeeEnabledProperties), "."));
+                SnTrace.Repository.WriteError($"Invalid property access attempt on a See-only node: {Path}");
+
+                throw new InvalidOperationException(
+                    "Invalid property access attempt on a See-only node. " +
+                    $"The accessible properties are: {string.Join(", ", SeeEnabledProperties)}.");
             }
         }
         private void AssertLock()

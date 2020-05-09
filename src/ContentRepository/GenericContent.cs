@@ -1804,6 +1804,15 @@ namespace SenseNet.ContentRepository
 
         private void UpdateRelatedWorkflows()
         {
+            // Update workflows only if the Workflow component is installed - otherwise
+            // the query below would lead to an Unknown field exception.
+            if (!RepositoryVersionInfo.Instance.Components.Any(c =>
+                string.Equals(c.ComponentId, "SenseNet.Workflow", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                _keepWorkflowsAlive = false;
+                return;
+            }
+
             // Certain workflows (e.g. approving) are designed to be aborted when a Content changes, but in case
             // certain system operations (e.g. updating a page count on a document) this should not happen.
             // So after saving the Content we update the related workflows to contain the same timestamp
