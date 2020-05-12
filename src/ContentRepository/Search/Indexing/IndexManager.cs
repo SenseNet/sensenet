@@ -214,9 +214,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// This method is used in the centralized indexing scenario.
         /// </summary>
         /// <remarks>
-        /// To ensure the index and database integrity, this method marks the indexing activities to re-executable
-        /// that was executed after the backup-status was queried. In the CentralizedIndexingActivityQueue's
-        /// startup-sequence these activities will be executed before any other new indexing-activity.
+        /// To ensure index and database integrity, this method marks indexing activities
+        /// that were executed after the backup status was queried as executables. In the
+        /// CentralizedIndexingActivityQueue's startup sequence these activities will be
+        /// executed before new indexing activities that were added later.
         /// </remarks>
         /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
@@ -243,7 +244,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     IndexingActivityStatus.Startup, cancellationToken);
 
             return result;
-
         }
 
         /*========================================================================================== Commit */
