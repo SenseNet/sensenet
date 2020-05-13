@@ -6,6 +6,8 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
 {
+    public enum IndexBackupResult { Finished, AlreadyExecuting }
+
     /// <summary>
     /// Describes a class that executes the indexing operations. Only one instance is used.
     /// </summary>
@@ -42,7 +44,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        Task BackupAsync(CancellationToken cancellationToken);
+        Task<IndexBackupResult> BackupAsync(CancellationToken cancellationToken);
         /// <summary>
         /// Takes a snapshot of the index and copies it to the given target.
         /// Target is typically a directory in the filesystem.
@@ -50,7 +52,7 @@ namespace SenseNet.Search.Indexing
         /// <param name="target">Path of the target directory or any other target definition.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation.</returns>
-        Task BackupAsync(string target, CancellationToken cancellationToken);
+        Task<IndexBackupResult> BackupAsync(string target, CancellationToken cancellationToken);
 
         /// <summary>
         /// Deletes the current index and creates a brand new empty one.
