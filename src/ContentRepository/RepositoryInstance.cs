@@ -184,7 +184,7 @@ namespace SenseNet.ContentRepository
             if (IndexManager.IndexingEngine.IndexIsCentralized)
             {
                 ConsoleWriteLine("Reading IndexingActivityStatus from index:");
-                //var status = IndexManager.GetCurrentIndexingActivityStatus();
+
                 var status = IndexManager.IndexingEngine.ReadActivityStatusFromIndexAsync(CancellationToken.None)
                     .GetAwaiter().GetResult();
                 ConsoleWriteLine($"  Status: {status}");
