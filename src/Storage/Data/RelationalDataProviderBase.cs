@@ -1625,7 +1625,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <inheritdoc />
         public override async Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            //UNDONE: Not tested: RelationalDataProviderBase.GetCurrentIndexingActivityStatusAsync
             using (var ctx = CreateDataContext(cancellationToken))
             {
                 return await ctx.ExecuteReaderAsync(GetCurrentIndexingActivityStatusScript,
