@@ -206,7 +206,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <see cref="IndexingActivityStatus"/> instance.</returns>
         public static STT.Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            return DataStore.GetCurrentIndexingActivityStatusAsync(cancellationToken);
+            return DataStore.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
         }
 
         /// <summary>
@@ -236,7 +236,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return IndexingActivityStatusRestoreResult.NotNecessary;
 
             // Request to restore the running state of the stored activities by the status.
-            var result = await DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken);
+            var result = await DataStore.RestoreIndexingActivityStatusAsync(status, cancellationToken)
+                .ConfigureAwait(false);
 
             // Reset activity status in the index if an actual operation happened.
             if(result == IndexingActivityStatusRestoreResult.Restored)

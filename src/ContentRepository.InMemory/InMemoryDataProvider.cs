@@ -1021,7 +1021,7 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public override Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        public override Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lock (DB)

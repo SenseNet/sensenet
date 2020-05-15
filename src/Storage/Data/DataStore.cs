@@ -1012,9 +1012,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the current indexing activity status.</returns>
-        public static Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        public static Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
-            return DataProvider.GetCurrentIndexingActivityStatusAsync(cancellationToken);
+            return DataProvider.LoadCurrentIndexingActivityStatusAsync(cancellationToken);
         }
         /// <summary>
         /// Restores the indexing activity status.

@@ -1623,7 +1623,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected abstract string DeleteRestorePointsScript { get; }
 
         /// <inheritdoc />
-        public override async Task<IndexingActivityStatus> GetCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        public override async Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
         {
             using (var ctx = CreateDataContext(cancellationToken))
             {
