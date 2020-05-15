@@ -242,7 +242,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // Reset activity status in the index if an actual operation happened.
             if(result == IndexingActivityStatusRestoreResult.Restored)
                 await SearchManager.SearchEngine.IndexingEngine.WriteActivityStatusToIndexAsync(
-                    IndexingActivityStatus.Startup, cancellationToken);
+                    IndexingActivityStatus.Startup, cancellationToken).ConfigureAwait(false);
 
             return result;
         }
