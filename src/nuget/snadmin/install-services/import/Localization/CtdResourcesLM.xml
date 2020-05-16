@@ -32,6 +32,94 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-Link">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Link</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A link that navigates to a URL.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Text</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>This will be the text of the link.</value>
+        </data>
+        <data name="Url-DisplayName" xml:space="preserve">
+          <value>URL</value>
+        </data>
+        <data name="Url-Description" xml:space="preserve">
+          <value>Type a URL to this field to represent the link.</value>
+        </data>
+        <data name="Description-DisplayName" xml:space="preserve">
+          <value>Notes</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value>Write your notes here.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Hivatkozás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Hivatkozás, ami egy URL-re navigál.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Szöveg</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Ezzel a szöveggel fog megjelenni a link.</value>
+        </data>
+        <data name="Url-DisplayName" xml:space="preserve">
+          <value>URL</value>
+        </data>
+        <data name="Url-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Description-DisplayName" xml:space="preserve">
+          <value>Megjegyzések</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-LinkList">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Link List</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A container type for storing Links.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Name of the Link List</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Hivatkozáslista</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Tároló hivatkozásoknak.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>A link lista neve</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-ListItem">
     <Languages>
       <Language cultureName="en">

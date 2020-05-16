@@ -69,6 +69,44 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-EventList">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Event List</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A special container type to store calendar events.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Name of the calendar</value>
+        </data>
+        <data name="RegistrationFolder-DisplayName" xml:space="preserve">
+          <value>Registration folder</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Eseménylista</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Speciális tároló eseményekhez.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Eseménylista neve</value>
+        </data>
+        <data name="RegistrationFolder-DisplayName" xml:space="preserve">
+          <value>Regisztrációs mappa</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-ExecutableFile">
     <Languages>
       <Language cultureName="en">
