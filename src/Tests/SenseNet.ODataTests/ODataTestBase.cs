@@ -521,7 +521,25 @@ namespace SenseNet.ODataTests
             var content = Content.Create(User.Administrator);
             if (((IEnumerable<Node>)content["Manager"]).Any())
                 return;
-            content["Manager"] = User.Administrator;
+
+            Node manager;
+            if (!Node.Exists("/Root/IMS/Public/Manager0"))
+            {
+                var container = Node.LoadNode("/Root/IMS/Public");
+                manager = new User(container)
+                {
+                    Name = "Manager0",
+                    Enabled = true,
+                    Email = "manager0@example.com"
+                };
+                manager.Save();
+            }
+            else
+            {
+                manager = Node.LoadNode("/Root/IMS/Public/Manager0");
+            }
+
+            content["Manager"] = manager;
             content["Email"] = "anybody@somewhere.com";
             content.Save();
         }
