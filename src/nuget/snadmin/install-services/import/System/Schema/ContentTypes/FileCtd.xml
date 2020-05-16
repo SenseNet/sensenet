@@ -33,21 +33,21 @@
     </Field>
     <Field name="ModifiedBy" type="Reference">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="ModificationDate" type="DateTime">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Locked" type="Boolean">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
@@ -56,7 +56,7 @@
       <DisplayName>$Ctd-File,Size-DisplayName</DisplayName>
       <Description>$Ctd-File,Size-Description</Description>
       <Configuration>
-        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
         <ReadOnly>true</ReadOnly>
@@ -94,42 +94,42 @@
     <Field name="Version" type="Version">
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Shapes" type="LongText">
       <DisplayName>$Ctd-File,Shapes-DisplayName</DisplayName>
       <Description>$Ctd-File,Shapes-Description</Description>
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="PageAttributes" type="LongText">
       <DisplayName>$Ctd-File,PageAttributes-DisplayName</DisplayName>
       <Description>$Ctd-File,PageAttributes-Description</Description>
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+         <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Watermark" type="ShortText">
       <DisplayName>$Ctd-File,Watermark-DisplayName</DisplayName>
       <Description>$Ctd-File,Watermark-Description</Description>
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+         <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
   </Fields>

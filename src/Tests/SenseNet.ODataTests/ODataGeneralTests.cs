@@ -576,7 +576,7 @@ namespace SenseNet.ODataTests
             {
                 var managers = new User[3];
                 var resources = new User[9];
-                var container = Node.LoadNode("/Root/IMS/BuiltIn/Portal");
+                var container = Node.LoadNode("/Root/IMS/Public");
                 for (int i = 0; i < managers.Length; i++)
                 {
                     managers[i] = new User(container)

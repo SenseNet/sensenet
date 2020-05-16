@@ -1,6 +1,263 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Resources>
-<ResourceClass name="Ctd-ClientApplication">
+  <ResourceClass name="Ctd-CalendarEvent">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Calendar Event</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A content type for defining calendar events.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Title</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Title of the event</value>
+        </data>
+        <data name="Location-DisplayName" xml:space="preserve">
+          <value>Location</value>
+        </data>
+        <data name="Location-Description" xml:space="preserve">
+          <value>The event will be held here</value>
+        </data>
+        <data name="StartDate-DisplayName" xml:space="preserve">
+          <value>Start date</value>
+        </data>
+        <data name="EndDate-DisplayName" xml:space="preserve">
+          <value>End date</value>
+        </data>
+        <data name="Lead-DisplayName" xml:space="preserve">
+          <value>Lead</value>
+        </data>
+        <data name="Lead-Description" xml:space="preserve">
+          <value>Short lead of the event.</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value>Detailed description of the event.</value>
+        </data>
+        <data name="AllDay-DisplayName" xml:space="preserve">
+          <value>All-day event</value>
+        </data>
+        <data name="AllDay-Description" xml:space="preserve">
+          <value>The event encompasses one or more entire days.</value>
+        </data>
+        <data name="EventUrl-DisplayName" xml:space="preserve">
+          <value>URL</value>
+        </data>
+        <data name="EventUrl-Description" xml:space="preserve">
+          <value>Further information on event.</value>
+        </data>
+        <data name="RequiresRegistration-DisplayName" xml:space="preserve">
+          <value>Requires registration</value>
+        </data>
+        <data name="RegistrationForm-DisplayName" xml:space="preserve">
+          <value>Registration form</value>
+        </data>
+        <data name="OwnerEmail-DisplayName" xml:space="preserve">
+          <value>Event owner's e-mail</value>
+        </data>
+        <data name="OwnerEmail-Description" xml:space="preserve">
+          <value>The list of email addresses to where a notification message containing submitted values are sent after submitting the form. The addresses should be separated by ";", "," or new line.</value>
+        </data>
+        <data name="NotificationMode-DisplayName" xml:space="preserve">
+          <value>Notification mode</value>
+        </data>
+        <data name="NotificationMode-Email" xml:space="preserve">
+          <value>Email</value>
+        </data>
+        <data name="NotificationMode-EmailDigest" xml:space="preserve">
+          <value>Email Digest</value>
+        </data>
+        <data name="NotificationMode-None" xml:space="preserve">
+          <value>None</value>
+        </data>
+        <data name="EmailTemplate-DisplayName" xml:space="preserve">
+          <value>Email template</value>
+        </data>
+        <data name="EmailTemplate-Description" xml:space="preserve">
+          <value>The template of the email message sent to the administrators. By default the template of notification email sent to the submitter is the same as the one sent to the recipients given in the email list above. Form content can be inserted with the "{0}" string.</value>
+        </data>
+        <data name="EmailTemplateSubmitter-DisplayName" xml:space="preserve">
+          <value>Submitter email template</value>
+        </data>
+        <data name="EmailTemplateSubmitter-Description" xml:space="preserve">
+          <value>The template of the email message sent to the submitter. By default the template of notification email sent to the submitter is the same as the one sent to the recipients given in the email list above. Form content can be inserted with the "{0}" string.</value>
+        </data>
+        <data name="EmailFrom-DisplayName" xml:space="preserve">
+          <value>Email from</value>
+        </data>
+        <data name="EmailFrom-Description" xml:space="preserve">
+          <value>This address is displayed in the "From" field of the notification email sen to the admin.</value>
+        </data>
+        <data name="EmailFromSubmitter-DisplayName" xml:space="preserve">
+          <value>Subbmitter email from</value>
+        </data>
+        <data name="EmailFromSubmitter-Description" xml:space="preserve">
+          <value>This address is displayed in the "From" field of the user notification email sent to submitters. Default is "mailerservice@example.com".</value>
+        </data>
+        <data name="EmailField-DisplayName" xml:space="preserve">
+          <value>Email field</value>
+        </data>
+        <data name="EmailField-Description" xml:space="preserve">
+          <value>The name of the field specified among ContentList fields containing the submitter's email address. Ie.: "#Email" or "#SubmitterEmail".</value>
+        </data>
+        <data name="MaxParticipants-DisplayName" xml:space="preserve">
+          <value>Max Participants</value>
+        </data>
+        <data name="MaxParticipants-Description" xml:space="preserve">
+          <value>The maximum number of participants which can apply for the event.</value>
+        </data>
+        <data name="NumParticipants-DisplayName" xml:space="preserve">
+          <value>Current number of participants</value>
+        </data>
+        <data name="NumParticipants-Description" xml:space="preserve">
+          <value>The number of participants applied for the event.</value>
+        </data>
+        <data name="EventType-DisplayName" xml:space="preserve">
+          <value>Event type</value>
+        </data>
+        <data name="EventType-Deadline" xml:space="preserve">
+          <value>Deadline</value>
+        </data>
+        <data name="EventType-Meeting" xml:space="preserve">
+          <value>Meeting</value>
+        </data>
+        <data name="EventType-Demo" xml:space="preserve">
+          <value>Demo</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Esemény</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Title of the event</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Esemény típusú tartalom.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Cím</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Az esemény címe</value>
+        </data>
+        <data name="Location-DisplayName" xml:space="preserve">
+          <value>Helyszín</value>
+        </data>
+        <data name="Location-Description" xml:space="preserve">
+          <value>Itt lesz megtartva az esemény.</value>
+        </data>
+        <data name="StartDate-DisplayName" xml:space="preserve">
+          <value>Kezdődátum</value>
+        </data>
+        <data name="EndDate-DisplayName" xml:space="preserve">
+          <value>Végdátum</value>
+        </data>
+        <data name="Lead-DisplayName" xml:space="preserve">
+          <value>Bevezető</value>
+        </data>
+        <data name="Lead-Description" xml:space="preserve">
+          <value>Az esemény rövid bevezetője.</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value>Az esemény részletei.</value>
+        </data>
+        <data name="AllDay-DisplayName" xml:space="preserve">
+          <value>Egésznapos esemény</value>
+        </data>
+        <data name="AllDay-Description" xml:space="preserve">
+          <value>Az esemény egy vagy több egész napon át tart.</value>
+        </data>
+        <data name="EventUrl-DisplayName" xml:space="preserve">
+          <value>Eseményhez tartozó url</value>
+        </data>
+        <data name="EventUrl-Description" xml:space="preserve">
+          <value>További információk az eseményről itt érhetőek el.</value>
+        </data>
+        <data name="RequiresRegistration-DisplayName" xml:space="preserve">
+          <value>Regisztrációhoz kötött</value>
+        </data>
+        <data name="RegistrationForm-DisplayName" xml:space="preserve">
+          <value>Regisztrációs űrlap</value>
+        </data>
+        <data name="OwnerEmail-DisplayName" xml:space="preserve">
+          <value>Az esemény szervezőjének e-mailcíme</value>
+        </data>
+        <data name="OwnerEmail-Description" xml:space="preserve">
+          <value>Azon felhasználók e-mail címeinek listája, akik értesítést kapnak egy-egy jelentkezés után. Az e-mail címeket törje új sorba, vagy válassza el vesszővel, vagy pontosvesszővel.</value>
+        </data>
+        <data name="NotificationMode-DisplayName" xml:space="preserve">
+          <value>Értesítés módja</value>
+        </data>
+        <data name="NotificationMode-Email" xml:space="preserve">
+          <value>E-mail</value>
+        </data>
+        <data name="NotificationMode-EmailDigest" xml:space="preserve">
+          <value>E-mail kivonat</value>
+        </data>
+        <data name="NotificationMode-None" xml:space="preserve">
+          <value>Nincs</value>
+        </data>
+        <data name="EmailTemplate-DisplayName" xml:space="preserve">
+          <value>E-mail sablon</value>
+        </data>
+        <data name="EmailTemplate-Description" xml:space="preserve">
+          <value>Az a sablon, amellyel az adminisztrátorok számára az e-mail értesítések kiküldésre kerülnek. Az űrlap adatai "{0}" formában adhatók meg.</value>
+        </data>
+        <data name="EmailTemplateSubmitter-DisplayName" xml:space="preserve">
+          <value>Kitöltők e-mail sablonja</value>
+        </data>
+        <data name="EmailTemplateSubmitter-Description" xml:space="preserve">
+          <value>Az a sablon, amellyel a kitöltők számára az e-mail értesítések kiküldésre kerülnek. Az űrlap adatai "{0}" formában adhatók meg.</value>
+        </data>
+        <data name="EmailFrom-DisplayName" xml:space="preserve">
+          <value>E-mail küldője</value>
+        </data>
+        <data name="EmailFrom-Description" xml:space="preserve">
+          <value>Ez az e-mail cím jelenik meg az adminisztrátornak kiküldött e-mail 'Feladó' mezőjében.</value>
+        </data>
+        <data name="EmailFromSubmitter-DisplayName" xml:space="preserve">
+          <value>E-mail küldője kitöltők esetén</value>
+        </data>
+        <data name="EmailFromSubmitter-Description" xml:space="preserve">
+          <value>Ez az e-mail cím jelenik meg a kitöltőnek kiküldött e-mail 'Feladó' mezőjében. Alapértelmezett érték "mailerservice@example.com".</value>
+        </data>
+        <data name="EmailField-DisplayName" xml:space="preserve">
+          <value>E-mail mező</value>
+        </data>
+        <data name="EmailField-Description" xml:space="preserve">
+          <value>Annak a mezőnek neve, amely tartalmazza a kitöltő e-mail címét. Pl.: "#Email" vagy "#SubmitterEmail".</value>
+        </data>
+        <data name="MaxParticipants-DisplayName" xml:space="preserve">
+          <value>Résztvevők maximum száma</value>
+        </data>
+        <data name="MaxParticipants-Description" xml:space="preserve">
+          <value>Az a maximum érték, amennyi résztvevő jelentkezhet az eseményre.</value>
+        </data>
+        <data name="NumParticipants-DisplayName" xml:space="preserve">
+          <value>Résztvevők aktuális száma</value>
+        </data>
+        <data name="NumParticipants-Description" xml:space="preserve">
+          <value>Ennyi résztvevő jelentkezett eddig az eseményre.</value>
+        </data>
+        <data name="EventType-DisplayName" xml:space="preserve">
+          <value>Esemény típusa</value>
+        </data>
+        <data name="EventType-Deadline" xml:space="preserve">
+          <value>Határidő</value>
+        </data>
+        <data name="EventType-Meeting" xml:space="preserve">
+          <value>Megbeszélés</value>
+        </data>
+        <data name="EventType-Demo" xml:space="preserve">
+          <value>Bemutató</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-ClientApplication">
     <Languages>
       <Language cultureName="en">
         <data name="DisplayName" xml:space="preserve">

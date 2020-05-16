@@ -1,0 +1,58 @@
+<ContentType name="LinkList" parentType="ItemList" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-LinkList,DisplayName</DisplayName>
+  <Description>$Ctd-LinkList,Description</Description>
+  <Icon>ContentList</Icon>
+  <AllowedChildTypes>Link</AllowedChildTypes>
+  <Fields>
+  <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-LinkList,DisplayName-DisplayName</DisplayName>
+      <Description>$Ctd-LinkList,DisplayName-Description</Description>
+    </Field>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <DefaultValue>Links</DefaultValue>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  <Field name="Version" type="Version">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="InheritableVersioningMode" type="InheritableVersioningMode">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="InheritableApprovingMode" type="InheritableApprovingMode">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="AllowedChildTypes" type="AllowedChildTypes">
+      <DisplayName>$Ctd-GenericContent,AllowedChildTypes-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,AllowedChildTypes-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="OwnerWhenVisitor" type="Reference">
+    <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

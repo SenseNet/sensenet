@@ -1,0 +1,227 @@
+<ContentType name="CalendarEvent" parentType="ListItem" handler="SenseNet.ContentRepository.CalendarEvent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-CalendarEvent,DisplayName</DisplayName>
+  <Description>$Ctd-CalendarEvent,Description</Description>
+  <Icon>CalendarEvent</Icon>
+  <Fields>
+    <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,DisplayName-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,DisplayName-Description</Description>
+    </Field>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleNew>Hide</VisibleNew>
+        <VisibleEdit>Hide</VisibleEdit>
+      </Configuration>
+    </Field>
+    <Field name="Location" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,Location-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,Location-Description</Description>
+    </Field>
+    <Field name="StartDate" type="DateTime">
+      <DisplayName>$Ctd-CalendarEvent,StartDate-DisplayName</DisplayName>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <Compulsory>true</Compulsory>
+        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="EndDate" type="DateTime">
+      <DisplayName>$Ctd-CalendarEvent,EndDate-DisplayName</DisplayName>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <Compulsory>true</Compulsory>
+        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="Lead" type="LongText">
+      <DisplayName>$Ctd-CalendarEvent,Lead-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,Lead-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <ControlHint>sn:RichText</ControlHint>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Description>$Ctd-CalendarEvent,Description-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="AllDay" type="Boolean">
+      <DisplayName>$Ctd-CalendarEvent,AllDay-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,AllDay-Description</Description>
+    </Field>
+    <Field name="EventUrl" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,EventUrl-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EventUrl-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <!-- registration fields-->
+    <Field name="RequiresRegistration" type="Boolean">
+      <DisplayName>$Ctd-CalendarEvent,RequiresRegistration-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="RegistrationForm" type="Reference">
+      <DisplayName>$Ctd-CalendarEvent,RegistrationForm-DisplayName</DisplayName>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowedTypes>
+          <Type>EventRegistrationForm</Type>
+        </AllowedTypes>
+        <SelectionRoot>
+          <Path>/Root</Path>
+        </SelectionRoot>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="OwnerEmail" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,OwnerEmail-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,OwnerEmail-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="NotificationMode" type="Choice">
+      <DisplayName>$Ctd-CalendarEvent,NotificationMode-DisplayName</DisplayName>
+      <Configuration>
+        <Options>
+          <Option value="E-mail" selected="true">$Ctd-CalendarEvent,NotificationMode-Email</Option>
+          <Option value="E-mail digest">$Ctd-CalendarEvent,NotificationMode-EmailDigest</Option>
+          <Option value="None">$Ctd-CalendarEvent,NotificationMode-None</Option>
+        </Options>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EmailTemplate" type="LongText">
+      <DisplayName>$Ctd-CalendarEvent,EmailTemplate-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EmailTemplate-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EmailTemplateSubmitter" type="LongText">
+      <DisplayName>$Ctd-CalendarEvent,EmailTemplateSubmitter-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EmailTemplateSubmitter-Description</Description>
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EmailFrom" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,EmailFrom-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EmailFrom-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EmailFromSubmitter" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,EmailFromSubmitter-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EmailFromSubmitter-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EmailField" type="ShortText">
+      <DisplayName>$Ctd-CalendarEvent,EmailField-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,EmailField-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="MaxParticipants" type="Integer">
+      <DisplayName>$Ctd-CalendarEvent,MaxParticipants-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,MaxParticipants-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="NumParticipants" type="Integer">
+      <DisplayName>$Ctd-CalendarEvent,NumParticipants-DisplayName</DisplayName>
+      <Description>$Ctd-CalendarEvent,NumParticipants-DisplayName</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>True</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="Version" type="Version">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Index" type="Integer">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="EventType" type="Choice">
+      <DisplayName>$Ctd-CalendarEvent,EventType-DisplayName</DisplayName>
+      <Configuration>
+      <AllowMultiple>True</AllowMultiple>
+        <Options>
+          <Option value="Deadline" selected="true">$Ctd-CalendarEvent,EventType-Deadline</Option>
+          <Option value="Meeting">$Ctd-CalendarEvent,EventType-Meeting</Option>
+          <Option value="Demo">$Ctd-CalendarEvent,EventType-Demo</Option>
+        </Options>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ModifiedBy" type="Reference">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ModificationDate" type="DateTime">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>
