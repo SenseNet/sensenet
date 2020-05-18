@@ -44,12 +44,22 @@ namespace SenseNet.Search
                 return Task.CompletedTask;
             }
 
-            public Task<IndexBackupResult> BackupAsync(CancellationToken cancellationToken)
+            public Task<BackupResponse> BackupAsync(CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }
 
-            public Task<IndexBackupResult> BackupAsync(string target, CancellationToken cancellationToken)
+            public Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
+            {
+                throw new SnNotSupportedException();
+            }
+
+            public Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken)
+            {
+                throw new SnNotSupportedException();
+            }
+
+            public Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
             }

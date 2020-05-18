@@ -34,12 +34,22 @@ namespace SenseNet.ContentRepository.InMemory
             return STT.Task.CompletedTask;
         }
 
-        public STT.Task<IndexBackupResult> BackupAsync(CancellationToken cancellationToken)
+        public STT.Task<BackupResponse> BackupAsync(CancellationToken cancellationToken)
         {
             throw new SnNotSupportedException();
         }
 
-        public STT.Task<IndexBackupResult> BackupAsync(string target, CancellationToken cancellationToken)
+        public STT.Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken)
         {
             throw new SnNotSupportedException();
         }
