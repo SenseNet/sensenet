@@ -10,7 +10,7 @@ namespace SenseNet.Search.Indexing
     public enum BackupState
     {
         /// <summary>
-        /// Default value: there is no running backup.
+        /// Default value: there is no running backup and history is empty.
         /// </summary>
         Stopped,
         /// <summary>
@@ -22,17 +22,20 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         AlreadyStarted,
         /// <summary>
-        /// Indicates to the caller that the backup is finished immediately and
-        /// no more action required.
+        /// Indicates that the last backup is finished immediately.
         /// </summary>
         Finished,
+        /// <summary>
+        /// Indicates that the break of the running backup has been requested.
+        /// </summary>
+        CancelRequested,
+        /// <summary>
+        ///  Indicates to the caller that the backup operation is broken without any error.
+        /// </summary>
+        Canceled,
         /// <summary>
         /// Indicates that an error occured.
         /// </summary>
         Faulted,
-        /// <summary>
-        ///  Indicates to the caller that the backup operation is broken without any error.
-        /// </summary>
-        Canceled
     }
 }
