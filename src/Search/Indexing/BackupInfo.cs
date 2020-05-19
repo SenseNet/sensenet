@@ -43,5 +43,23 @@ namespace SenseNet.Search.Indexing
         /// In case of currently executing or successfully finished operations the value is null.
         /// </summary>
         public string Message { get; set; }
+
+        /// <summary>
+        /// Creates a copy.
+        /// </summary>
+        public BackupInfo Clone()
+        {
+            return new BackupInfo
+            {
+                StartedAt = StartedAt,
+                FinishedAt = FinishedAt,
+                TotalBytes = TotalBytes,
+                CopiedBytes = CopiedBytes,
+                CountOfFiles = CountOfFiles,
+                CopiedFiles = CopiedFiles,
+                CurrentlyCopiedFile = CurrentlyCopiedFile,
+                Message = Message
+            };
+        }
     }
 }
