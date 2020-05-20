@@ -12,7 +12,7 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// Default value: there is no running backup and history is empty.
         /// </summary>
-        Stopped,
+        Initial,
         /// <summary>
         /// Indicates to the caller that the backup has started successfully.
         /// </summary>
@@ -20,7 +20,7 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// Indicates to the caller that the backup is running.
         /// </summary>
-        AlreadyStarted,
+        Executing,
         /// <summary>
         /// Indicates that the last backup is finished immediately.
         /// </summary>
