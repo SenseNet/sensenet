@@ -1069,11 +1069,6 @@ namespace SenseNet.Tests.SelfTest
                     return Task.CompletedTask;
                 }
 
-                public Task<BackupResponse> BackupAsync(CancellationToken cancellationToken)
-                {
-                    throw new NotImplementedException();
-                }
-
                 public Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();

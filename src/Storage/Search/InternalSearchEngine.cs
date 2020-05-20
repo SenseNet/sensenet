@@ -44,11 +44,6 @@ namespace SenseNet.Search
                 return Task.CompletedTask;
             }
 
-            public Task<BackupResponse> BackupAsync(CancellationToken cancellationToken)
-            {
-                throw new SnNotSupportedException();
-            }
-
             public Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
             {
                 throw new SnNotSupportedException();
