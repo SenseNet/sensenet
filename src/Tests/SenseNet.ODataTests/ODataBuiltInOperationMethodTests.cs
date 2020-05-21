@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,6 +13,12 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
+using SenseNet.ODataTests.Accessors;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
+using File = SenseNet.ContentRepository.File;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.ODataTests
 {
@@ -341,7 +351,177 @@ namespace SenseNet.ODataTests
             });
         }
 
-        /* ======================================================================  */
+        /* ====================================================================== Index Backup */
+
+        #region Classes for Index Backup tests: Swindler, SearchEngine, IndexingEngine
+        internal class SearchEngineSwindler : Swindler<ISearchEngine>
+        {
+            public SearchEngineSwindler(ISearchEngine searchEngine)
+                : base(searchEngine,
+                    () => Providers.Instance.SearchEngine,
+                    (x) => Providers.Instance.SearchEngine = x)
+            {
+            }
+        }
+        private class IndexingEngineForIndexBackupTests : IIndexingEngine
+        {
+            public bool Running { get; }
+            public bool IndexIsCentralized { get; }
+            public Task StartAsync(TextWriter consoleOut, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+            public Task ShutDownAsync(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+            public Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(new BackupResponse
+                {
+                    State = BackupState.Started,
+                    Current = new BackupInfo
+                    {
+                        StartedAt = DateTime.UtcNow,
+                        TotalBytes = 123456L,
+                        CountOfFiles = 42,
+                    },
+                    History = new BackupInfo[0]
+                });
+            }
+            public Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken)
+            {
+                return Task.FromResult(new BackupResponse
+                {
+                    State = BackupState.Executing,
+                    Current = new BackupInfo
+                    {
+                        StartedAt = DateTime.UtcNow,
+                        TotalBytes = 123456L,
+                        CountOfFiles = 42,
+                        CopiedBytes = 12345L,
+                        CopiedFiles = 4,
+                        CurrentlyCopiedFile = "File5"
+                    },
+                    History = new BackupInfo[0]
+                });
+            }
+            public Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken)
+            {
+                return Task.FromResult(new BackupResponse
+                {
+                    State = BackupState.CancelRequested,
+                    Current = new BackupInfo
+                    {
+                        StartedAt = DateTime.UtcNow,
+                        TotalBytes = 123456L,
+                        CountOfFiles = 42,
+                        CopiedBytes = 12345L,
+                        CopiedFiles = 4,
+                        CurrentlyCopiedFile = "File5",
+                        Message = "Canceled"
+                    },
+                    History = new BackupInfo[0]
+                });
+            }
+            public Task ClearIndexAsync(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+            public Task<IndexingActivityStatus> ReadActivityStatusFromIndexAsync(CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+            public Task WriteActivityStatusToIndexAsync(IndexingActivityStatus state, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+            public Task WriteIndexAsync(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+        }
+        private class SearchEngineForIndexBackupTests:ISearchEngine
+        {
+            private ISearchEngine _wrapped = Providers.Instance.SearchEngine;
+
+            public IIndexingEngine IndexingEngine { get; } = new IndexingEngineForIndexBackupTests();
+            public IQueryEngine QueryEngine => _wrapped.QueryEngine;
+            public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
+            {
+                return _wrapped.GetAnalyzers();
+            }
+            public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+            {
+                _wrapped.SetIndexingInfo(indexingInfo);
+            }
+        }
+        #endregion
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_BackupIndex()
+        {
+            ODataTest(() =>
+            {
+                using (new SearchEngineSwindler(new SearchEngineForIndexBackupTests()))
+                {
+                    var response = ODataPostAsync(
+                            $"/OData.svc/('Root')/{nameof(RepositoryTools.BackupIndex)}",
+                            "",
+                            "models=[{'target':'Q:\\\\BackupDir'}]")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    AssertNoError(response);
+                    Assert.AreEqual(200, response.StatusCode);
+                    var result = GetObject(response);
+                    Assert.AreEqual((int)BackupState.Started, result["State"].Value<int>());
+                    Assert.AreEqual(42, result["Current"]["CountOfFiles"].Value<int>());
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_BuiltIn_QueryIndexBackup()
+        {
+            ODataTest(() =>
+            {
+                using (new SearchEngineSwindler(new SearchEngineForIndexBackupTests()))
+                {
+                    var response = ODataPostAsync(
+                            $"/OData.svc/('Root')/{nameof(RepositoryTools.QueryIndexBackup)}",
+                            "",
+                            "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    AssertNoError(response);
+                    Assert.AreEqual(200, response.StatusCode);
+                    var result = GetObject(response);
+                    Assert.AreEqual((int)BackupState.Executing, result["State"].Value<int>());
+                    Assert.AreEqual(4, result["Current"]["CopiedFiles"].Value<int>());
+                }
+            });
+        }
+        [TestMethod]
+        public void OD_MBO_BuiltIn_CancelIndexBackup()
+        {
+            ODataTest(() =>
+            {
+                using (new SearchEngineSwindler(new SearchEngineForIndexBackupTests()))
+                {
+                    var response = ODataPostAsync(
+                            $"/OData.svc/('Root')/{nameof(RepositoryTools.CancelIndexBackup)}",
+                            "",
+                            "")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    AssertNoError(response);
+                    Assert.AreEqual(200, response.StatusCode);
+                    var result = GetObject(response);
+                    Assert.AreEqual((int)BackupState.CancelRequested, result["State"].Value<int>());
+                    Assert.AreEqual("Canceled", result["Current"]["Message"].Value<string>());
+                }
+            });
+        }
 
         /* ====================================================================== TOOLS */
 

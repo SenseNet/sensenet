@@ -21,6 +21,7 @@ using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -456,7 +457,42 @@ namespace SenseNet.ContentRepository
 
             return isFolder;
         }
-        
+
+        // Index backup =========================================================================
+
+        [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static BackupResponse BackupIndex(Content content, string target)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = engine.BackupAsync(target, CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return response;
+        }
+
+        [ODataFunction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static BackupResponse QueryIndexBackup(Content content)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = engine.QueryBackupAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return response;
+        }
+
+        [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
+        public static BackupResponse CancelIndexBackup(Content content)
+        {
+            var engine = Providers.Instance.SearchEngine.IndexingEngine;
+            var response = engine.CancelBackupAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return response;
+        }
+
         // ======================================================================================
 
         [ODataAction]
