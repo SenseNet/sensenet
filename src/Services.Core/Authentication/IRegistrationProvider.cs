@@ -30,6 +30,7 @@ namespace SenseNet.Services.Core.Authentication
         /// <summary>
         /// Create local users using username and a password.
         /// </summary>
-        Task<User> CreateLocalUserAsync(Content content, HttpContext context, string userName, string password, CancellationToken cancellationToken);
+        Task<User> CreateLocalUserAsync(Content content, HttpContext context, string userName, 
+            string password, string email, CancellationToken cancellationToken);
     }
 }

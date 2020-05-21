@@ -30,10 +30,36 @@ namespace SenseNet.Services.Core.Authentication
         public string DefaultUserType { get; protected internal set; }
         public ICollection<string> DefaultGroups { get; protected internal set; }
 
-        public Task<User> CreateLocalUserAsync(Content content, HttpContext context, string userName, string password, 
-            CancellationToken cancellationToken)
+        public async Task<User> CreateLocalUserAsync(Content content, HttpContext context, string userName, string password, 
+            string email, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            //UNDONE: move duplicated code to a standalone method
+            var parentPath = string.IsNullOrEmpty(DefaultParentPath) ? "/Root/IMS/Public" : DefaultParentPath;
+            var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
+
+            var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
+                         await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
+
+            //UNDONE: decide which properties are mandatory and how do we compute values
+
+            // User content name will be the email.
+            // Current behavior: if a user with the same name exists, make sure we create 
+            // a new one and let the application deal with merging them later.
+            var name = ContentNamingProvider.GetNameFromDisplayName(email);
+            if (Node.Exists(RepositoryPath.Combine(parent.Path, name)))
+                name = ContentNamingProvider.IncrementNameSuffixToLastName(name, parent.Id);
+
+            var user = Content.CreateNew(userType, parent.ContentHandler, name);
+            user["Email"] = email;
+            user["LoginName"] = userName;
+            user["FullName"] = name;
+            user.DisplayName = name;
+
+            user.Save();
+
+            await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken).ConfigureAwait(false);
+
+            return user.ContentHandler as User;
         }
 
         public async Task<User> CreateProviderUserAsync(Content content, HttpContext context, string provider, string userId, 
