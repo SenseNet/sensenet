@@ -24,6 +24,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 case IndexingActivityType.UpdateDocument: activity = new UpdateDocumentActivity(); break;
                 case IndexingActivityType.RemoveTree: activity = new RemoveTreeActivity(); break;
                 case IndexingActivityType.Rebuild: activity = new RebuildActivity(); break;
+                case IndexingActivityType.Restore: activity = new RestoreActivity(); break;
                 default: throw new NotSupportedException("Unknown IndexingActivityType: " + activityType);
             }
             activity.ActivityType = activityType;

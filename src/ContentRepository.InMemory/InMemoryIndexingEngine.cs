@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.InMemory
 
         public bool Running { get; private set; }
 
-        public bool IndexIsCentralized => false;
+        public bool IndexIsCentralized { get; set; } = false;
 
         public InMemoryIndexingEngine(InMemorySearchEngine searchEngine)
         {
@@ -32,6 +32,21 @@ namespace SenseNet.ContentRepository.InMemory
         {
             Running = false;
             return STT.Task.CompletedTask;
+        }
+
+        public STT.Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken)
+        {
+            throw new SnNotSupportedException();
         }
 
         public STT.Task ClearIndexAsync(CancellationToken cancellationToken)

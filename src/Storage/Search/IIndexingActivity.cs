@@ -28,7 +28,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <summary>
         /// Rebuild the index. Value = 5.
         /// </summary>
-        Rebuild
+        Rebuild,
+        /// <summary>
+        /// Indicates that the index was restored. Value = 6.
+        /// </summary>
+        Restore
     }
 
     /// <summary>

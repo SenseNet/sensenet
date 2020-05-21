@@ -626,6 +626,33 @@ namespace SenseNet.ContentRepository.Storage.Data
         /* =============================================================================================== IndexingActivity */
 
         /// <summary>
+        /// Deletes all restore points from the database.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public abstract Task DeleteRestorePointsAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Gets the current <see cref="IndexingActivityStatus"/> instance
+        /// containing the last executed indexing activity id and ids of missing indexing activities.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the current
+        /// <see cref="IndexingActivityStatus"/> instance.</returns>
+        public abstract Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(
+            CancellationToken cancellationToken);
+        /// <summary>
+        /// Restores the indexing activity status.
+        /// This method is used in the centralized indexing scenario.
+        /// </summary>
+        /// <param name="status">An <see cref="IndexingActivityStatus"/> instance that contains the latest executed activity id and gaps.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation.</returns>
+        public abstract Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status,
+            CancellationToken cancellationToken);
+
+        /// <summary>
         /// Gets the latest IndexingActivityId or 0.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>

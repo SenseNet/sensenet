@@ -640,6 +640,167 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
         }
 
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_DeleteRestorePoints()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
+
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual("0()", emptyState.ToString());
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.Restore,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.Restore,
+                    IndexingActivityType.AddDocument,
+                    IndexingActivityType.RemoveTree,
+                    IndexingActivityType.Restore,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = x,
+                    Path = x == IndexingActivityType.Restore ? "" : "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = IndexingActivityRunningState.Done,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                // ACTION
+                IndexManager.DeleteRestorePointsAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                var expected = @"AddDocument,AddDocument,AddDocument,AddDocument,RemoveTree";
+                var actual =string.Join(",", db.IndexingActivities.Select(x => x.ActivityType.ToString()));
+                Assert.AreEqual(expected, actual);
+            });
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_LoadCurrentIndexingActivityStatus()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
+
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                var emptyState = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                Assert.AreEqual("0()", emptyState.ToString());
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Running,
+                    IndexingActivityRunningState.Running,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Waiting,
+                    IndexingActivityRunningState.Waiting,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = IndexingActivityType.AddDocument,
+                    Path = "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = x,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                // ACTION
+                var state = IndexManager.LoadCurrentIndexingActivityStatusAsync(CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                // ASSERT
+                Assert.AreEqual("15(13,14)", state.ToString());
+            });
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_RestoreIndexingActivityStatus()
+        {
+            Test(() =>
+            {
+                var db = ((InMemoryDataProvider)DataStore.DataProvider).DB;
+
+                // Empty test
+                db.IndexingActivities.Clear();
+
+                // Real test
+                var i = 10;
+                var items = new[]
+                {
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                    IndexingActivityRunningState.Done,
+                }.Select(x => new IndexingActivityDoc
+                {
+                    IndexingActivityId = ++i,
+                    ActivityType = IndexingActivityType.AddDocument,
+                    Path = "/Root/" + i,
+                    CreationDate = new DateTime(2020, 04, 18, 0, 0, i),
+                    NodeId = 95000 + i,
+                    RunningState = x,
+                    VersionId = 91000 + i
+                });
+
+                foreach (var item in items)
+                    db.IndexingActivities.Insert(item);
+
+                var state = new IndexingActivityStatus { LastActivityId = 15, Gaps = new[] { 13, 14 } };
+
+                // ACTION
+                var inMemEngine = (InMemoryIndexingEngine)SearchManager.SearchEngine.IndexingEngine;
+                try
+                {
+                    inMemEngine.IndexIsCentralized = true;
+
+                    IndexManager.RestoreIndexingActivityStatusAsync(state, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    inMemEngine.IndexIsCentralized = false;
+                }
+
+                // ASSERT
+                var expected = "11:Done,12:Done,13:Waiting,14:Waiting,15:Done,16:Waiting,17:Waiting";
+                var actual = string.Join(",", db.IndexingActivities
+                    .OrderBy(x => x.IndexingActivityId)
+                    .Select(x => $"{x.Id}:{x.RunningState}"));
+
+                Assert.AreEqual(expected, actual);
+            });
+        }
+
         private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = "_IndexingTests" };

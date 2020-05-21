@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
@@ -975,6 +976,78 @@ SELECT NodeId FROM Versions (NOLOCK) WHERE NodeId >= @FromId AND NodeId <= @ToId
         #region GetLastIndexingActivityIdScript
         protected override string GetLastIndexingActivityIdScript => @"-- MsSqlDataProvider.GetLastIndexingActivityId
 SELECT CASE WHEN i.last_value IS NULL THEN 0 ELSE CONVERT(int, i.last_value) END last_value FROM sys.identity_columns i JOIN sys.tables t ON i.object_id = t.object_id WHERE t.name = 'IndexingActivities'
+";
+        #endregion
+
+        #region DeleteRestorePointsScript
+        protected override string DeleteRestorePointsScript => @"-- MsSqlDataProvider.DeleteRestorePoints
+DELETE FROM IndexingActivities WHERE ActivityType = 'Restore'
+";
+
+        #endregion
+        #region GetCurrentIndexingActivityStatusScript
+        protected override string GetCurrentIndexingActivityStatusScript => @"-- MsSqlDataProvider.GetCurrentIndexingActivityStatus
+DECLARE @Last int
+SELECT TOP 1 @Last = IndexingActivityId FROM IndexingActivities WHERE RunningState = 'Done' ORDER BY CreationDate DESC
+IF @Last IS NOT NULL BEGIN
+    SELECT @Last IndexingActivityId, 'Done' RunningState
+    UNION ALL
+    SELECT IndexingActivityId, RunningState FROM IndexingActivities WHERE RunningState != 'Done' AND IndexingActivityId < @Last
+END
+";
+        #endregion
+        #region RestoreIndexingActivityStatusScript
+        protected override string RestoreIndexingActivityStatusScript => @"-- MsSqlDataProvider.RestoreIndexingActivityStatus
+BEGIN TRAN
+	-- Lock the entire table
+	DECLARE @Dummy int
+	SELECT TOP 1 @Dummy = IndexingActivityId FROM IndexingActivities WITH (TABLOCKX)
+
+	DECLARE @Result varchar(20) -- AlreadyRestored, Restored, NotNecessary
+
+	-- Create state-string in {Last}({Gap}) format
+	IF @Gaps IS NULL SET @Gaps = ''
+	DECLARE @StateString nvarchar(max)
+	SELECT @StateString = CONVERT(nvarchar(50), @LastActivityId) + '(' + @Gaps + ')'
+
+	-- Return if this state is already restored
+	IF EXISTS (SELECT * FROM IndexingActivities WHERE ActivityType = 'Restore' AND Extension = @StateString)
+		SELECT @Result = 'AlreadyRestored'
+	ELSE BEGIN
+		-- Get last executed activity
+		DECLARE @LastInDb int
+		SELECT TOP 1 @LastInDb = IndexingActivityId FROM IndexingActivities WHERE RunningState = 'Done' ORDER BY CreationDate DESC
+		IF @LastInDb IS NULL
+			SET @LastInDb = 0
+
+		-- Get not executed activities before last executed
+		DECLARE @GapsInDb VARCHAR(MAX)
+		SELECT @GapsInDb = CASE WHEN @GapsInDb IS NULL THEN CONVERT(nvarchar(50), T.IndexingActivityId) ELSE @GapsInDb + ',' + CONVERT(nvarchar(50), T.IndexingActivityId) END
+		FROM IndexingActivities AS T
+		WHERE RunningState != 'Done' AND IndexingActivityId < @LastInDb ORDER BY CreationDate
+
+		-- Return if the database has not changed after the index backup.
+		IF @LastActivityId = @LastInDb AND @Gaps = @GapsInDb
+			SELECT @Result = 'NotNecessary'
+		ELSE BEGIN
+			-- Do restore
+			SELECT @Result = 'Restored'
+
+			DECLARE @GapTable AS TABLE(Gap INT)
+			INSERT INTO @GapTable SELECT CONVERT(int, [value]) FROM STRING_SPLIT(@Gaps, ',')
+
+			-- All affected activities should be in the 'Waiting' state
+			UPDATE IndexingActivities SET RunningState = 'Waiting'
+			WHERE IndexingActivityId > @LastActivityId OR IndexingActivityId IN (SELECT Gap FROM @GapTable)
+
+			-- Insert a temporary recovery point
+			INSERT INTO IndexingActivities
+				(ActivityType, CreationDate, RunningState, LockTime, NodeId, VersionId, Path, VersionTimestamp, Extension) VALUES
+				('Restore', GETUTCDATE(), 'Done', GETUTCDATE(), 0, 0, '', 0, @StateString)
+		END
+	END
+	SELECT @Result
+COMMIT TRAN
 ";
         #endregion
 

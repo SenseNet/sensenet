@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -1612,6 +1613,63 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
         }
         protected abstract string GetLastIndexingActivityIdScript { get; }
+
+        /// <inheritdoc />
+        public override async Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        {
+            using (var ctx = CreateDataContext(cancellationToken))
+                await ctx.ExecuteNonQueryAsync(DeleteRestorePointsScript).ConfigureAwait(false);
+        }
+        protected abstract string DeleteRestorePointsScript { get; }
+
+        /// <inheritdoc />
+        public override async Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        {
+            using (var ctx = CreateDataContext(cancellationToken))
+            {
+                return await ctx.ExecuteReaderAsync(GetCurrentIndexingActivityStatusScript,
+                    async (reader, cancel) =>
+                    {
+                        var states = new List<(int Id, string State)>();
+                        while (await reader.ReadAsync(cancel))
+                            states.Add((Id: reader.GetInt32(0), State: reader.GetString(1)));
+
+                        if (states.Count == 0)
+                            return IndexingActivityStatus.Startup;
+
+                        return new IndexingActivityStatus
+                        {
+                            LastActivityId = states[0].Id,
+                            Gaps = states.Skip(1).Select(x => x.Id).ToArray()
+                        };
+                    }).ConfigureAwait(false);
+            }
+        }
+        protected abstract string GetCurrentIndexingActivityStatusScript { get; }
+
+        /// <inheritdoc />
+        public override async Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        {
+            IndexingActivityStatusRestoreResult result;
+
+            var gaps = string.Join(",", status.Gaps.Select(x => x.ToString()));
+            using (var ctx = CreateDataContext(cancellationToken))
+            {
+                var rawResult = await ctx.ExecuteScalarAsync(RestoreIndexingActivityStatusScript, cmd =>
+                {
+                    cmd.Parameters.AddRange(new[]
+                    {
+                        ctx.CreateParameter("@LastActivityId", DbType.Int32, status.LastActivityId),
+                        ctx.CreateParameter("@Gaps", DbType.String, int.MaxValue, gaps)
+                    });
+                }).ConfigureAwait(false);
+                var stringResult = rawResult == DBNull.Value ? string.Empty : (string)rawResult;
+                result = (IndexingActivityStatusRestoreResult)Enum.Parse(typeof(IndexingActivityStatusRestoreResult), stringResult, true);
+            }
+
+            return result;
+        }
+        protected abstract string RestoreIndexingActivityStatusScript { get; }
 
         public override async Task<IIndexingActivity[]> LoadIndexingActivitiesAsync(int fromId, int toId, int count, bool executingUnprocessedActivities,
             IIndexingActivityFactory activityFactory, CancellationToken cancellationToken)

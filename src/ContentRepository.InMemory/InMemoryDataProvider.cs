@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
 
@@ -1004,6 +1005,62 @@ namespace SenseNet.ContentRepository.InMemory
                     .ToArray();
                 return STT.Task.FromResult((IEnumerable<int>)result);
             }
+        }
+
+        public override STT.Task DeleteRestorePointsAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var activitiesToDelete = DB.IndexingActivities
+                    .Where(x => x.ActivityType == IndexingActivityType.Restore)
+                    .ToArray();
+                foreach (var item in activitiesToDelete)
+                    DB.IndexingActivities.Remove(item);
+            }
+            return STT.Task.CompletedTask;
+        }
+
+        public override Task<IndexingActivityStatus> LoadCurrentIndexingActivityStatusAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var orderedActivities = DB.IndexingActivities.OrderBy(x => x.Id).ToArray();
+
+                var last = orderedActivities.LastOrDefault(x => x.RunningState == IndexingActivityRunningState.Done);
+                if (last == null)
+                    return STT.Task.FromResult(IndexingActivityStatus.Startup);
+
+                var gaps = orderedActivities
+                    .Where(x => x.RunningState != IndexingActivityRunningState.Done && x.Id < last.Id)
+                    .Select(x=>x.Id)
+                    .ToArray();
+
+                return STT.Task.FromResult(
+                    new IndexingActivityStatus
+                    {
+                        LastActivityId = last.Id,
+                        Gaps = gaps
+                    });
+            }
+        }
+
+        public override STT.Task<IndexingActivityStatusRestoreResult> RestoreIndexingActivityStatusAsync(IndexingActivityStatus status, CancellationToken cancellationToken)
+        {
+            //TODO: Implement the full algorithm if needed. See MsSqlDataProvider.RestoreIndexingActivityStatusScript.
+            cancellationToken.ThrowIfCancellationRequested();
+            lock (DB)
+            {
+                var orderedActivities = DB.IndexingActivities.OrderBy(x => x.Id).ToArray();
+
+                foreach (var item in orderedActivities.Where(x => x.IndexingActivityId > status.LastActivityId))
+                    item.RunningState = IndexingActivityRunningState.Waiting;
+
+                foreach (var item in orderedActivities.Where(x => status.Gaps.Contains(x.IndexingActivityId)))
+                    item.RunningState = IndexingActivityRunningState.Waiting;
+            }
+            return STT.Task.FromResult(IndexingActivityStatusRestoreResult.Restored);
         }
 
         /* =============================================================================================== IndexingActivity */

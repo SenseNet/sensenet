@@ -1068,6 +1068,22 @@ namespace SenseNet.Tests.SelfTest
                     Running = false;
                     return Task.CompletedTask;
                 }
+
+                public Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
+
                 public Task ClearIndexAsync(CancellationToken cancellationToken)
                 {
                     throw new NotImplementedException();

@@ -38,6 +38,28 @@ namespace SenseNet.Search.Indexing
         Task ShutDownAsync(CancellationToken cancellationToken);
 
         /// <summary>
+        /// Takes a snapshot of the index and copies it to the given target.
+        /// Target is typically a directory in the filesystem.
+        /// The backup is exclusive operation, can be started only once.
+        /// </summary>
+        /// <param name="target">Path of the target directory or any other target definition.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
+        Task<BackupResponse> BackupAsync(string target, CancellationToken cancellationToken);
+        /// <summary>
+        /// Queries the backup state in the system.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
+        Task<BackupResponse> QueryBackupAsync(CancellationToken cancellationToken);
+        /// <summary>
+        /// Requests the stopping the currently running backup operation.
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
+        Task<BackupResponse> CancelBackupAsync(CancellationToken cancellationToken);
+
+        /// <summary>
         /// Deletes the current index and creates a brand new empty one.
         /// </summary>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is None.</param>

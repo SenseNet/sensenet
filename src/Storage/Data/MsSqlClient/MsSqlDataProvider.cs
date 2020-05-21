@@ -369,7 +369,7 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
 
             return isDeadLock;
         }
-
+        
         protected override long ConvertTimestampToInt64(object timestamp)
         {
             if (timestamp == null)
