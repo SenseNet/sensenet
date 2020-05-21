@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
+using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository
 {
@@ -463,33 +464,33 @@ namespace SenseNet.ContentRepository
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static BackupResponse BackupIndex(Content content, string target)
+        public static async STT.Task<BackupResponse> BackupIndex(Content content, string target)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
-            var response = engine.BackupAsync(target, CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var response = await engine.BackupAsync(target, CancellationToken.None)
+                .ConfigureAwait(false);
             return response;
         }
 
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static BackupResponse QueryIndexBackup(Content content)
+        public static async STT.Task<BackupResponse> QueryIndexBackup(Content content)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
-            var response = engine.QueryBackupAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var response = await engine.QueryBackupAsync(CancellationToken.None)
+                .ConfigureAwait(false);
             return response;
         }
 
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
-        public static BackupResponse CancelIndexBackup(Content content)
+        public static async STT.Task<BackupResponse> CancelIndexBackup(Content content)
         {
             var engine = Providers.Instance.SearchEngine.IndexingEngine;
-            var response = engine.CancelBackupAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var response = await engine.CancelBackupAsync(CancellationToken.None)
+                .ConfigureAwait(false);
             return response;
         }
 
