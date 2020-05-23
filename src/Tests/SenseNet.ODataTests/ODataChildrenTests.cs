@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Workspaces;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Portal;
+using SenseNet.Search;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
@@ -246,6 +247,33 @@ namespace SenseNet.ODataTests
                 entities = GetEntities(response);
                 Assert.AreEqual(1, entities.Length);
                 Assert.IsTrue(entities[0].Name.StartsWith("SF"));
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_GET_Children_Binary_Expand()
+        {
+            await ODataChildrenTest(async () =>
+            {
+                var settingContent = Content.Load("/Root/System/Settings");
+                settingContent.ChildrenDefinition.EnableAutofilters = FilterStatus.Disabled;
+                var settingContents = settingContent.Children.ToArray();
+                var expectedTexts = settingContents
+                    .ToDictionary(
+                        x => x.Name,
+                        x => RepositoryTools.GetStreamString(((File) x.ContentHandler).Binary.GetStream()));
+
+                // ACTION
+                var response = await ODataGetAsync(
+                        $"/OData.svc/Root/System/Settings",
+                        "?metadata=no&$select=Id,Name,Binary&$expand=Binary")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var entities = GetEntities(response);
+                var texts = entities.ToDictionary(x => x.Name, x => x.AllProperties["Binary"].ToString() ?? "null");
+                foreach (var name in expectedTexts.Keys)
+                    Assert.AreEqual(name + ":" + expectedTexts[name], name + ":" + texts[name]);
             }).ConfigureAwait(false);
         }
     }

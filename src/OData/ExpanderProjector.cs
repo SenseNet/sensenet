@@ -241,6 +241,8 @@ namespace SenseNet.OData
         {
             if (!(field is ReferenceField refField))
             {
+                if (field is BinaryField binaryField)
+                    return ProjectBinaryField(binaryField);
                 if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
                 return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, selection, httpContext);
@@ -254,6 +256,11 @@ namespace SenseNet.OData
             return isMultiRef
                 ? ProjectMultiRefContents(refField.GetData(), expansion, selection, httpContext)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection, httpContext);
+        }
+        private object ProjectBinaryField(BinaryField field)
+        {
+            return RepositoryTools.GetStreamString(
+                field.Content.ContentHandler.GetBinary(field.Name).GetStream());
         }
         private List<ODataEntity> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
