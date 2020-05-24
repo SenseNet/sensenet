@@ -271,7 +271,7 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 var entities = GetEntities(response);
-                var texts = entities.ToDictionary(x => x.Name, x => x.AllProperties["Binary"].ToString() ?? "null");
+                var texts = entities.ToDictionary(x => x.Name, x => ((JObject)x.AllProperties["Binary"])["text"].ToString() ?? "null");
                 foreach (var name in expectedTexts.Keys)
                     Assert.AreEqual(name + ":" + expectedTexts[name], name + ":" + texts[name]);
             }).ConfigureAwait(false);

@@ -6,8 +6,11 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using SenseNet.OData.Writers;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 // ReSharper disable ArrangeThisQualifier
 
@@ -242,7 +245,7 @@ namespace SenseNet.OData
             if (!(field is ReferenceField refField))
             {
                 if (field is BinaryField binaryField)
-                    return ProjectBinaryField(binaryField);
+                    return ProjectBinaryField(binaryField, httpContext);
                 if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
                 return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, selection, httpContext);
@@ -257,11 +260,36 @@ namespace SenseNet.OData
                 ? ProjectMultiRefContents(refField.GetData(), expansion, selection, httpContext)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection, httpContext);
         }
-        private object ProjectBinaryField(BinaryField field)
+        private object ProjectBinaryField(BinaryField field, HttpContext httpContext)
         {
-            return RepositoryTools.GetStreamString(
-                field.Content.ContentHandler.GetBinary(field.Name).GetStream());
+            var maxSize = 500 * 1024;
+
+            var stream = DocumentBinaryProvider.Instance.GetStream(field.Content.ContentHandler, 
+                field.Name, httpContext, out var contentType, out var binaryFileName);
+
+            return new
+            {
+                fileName = binaryFileName.ToString(),
+                contentType = contentType,
+                truncated = stream.Length > maxSize,
+                text = ReadBinaryContent(contentType, maxSize, stream)
+            };
         }
+        private string ReadBinaryContent(string contentType, int maxSize, Stream stream)
+        {
+            var size = Convert.ToInt32(Math.Min(stream.Length, maxSize));
+
+            var buffer = new char[size];
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
+                reader.ReadBlockAsync(buffer, 0, size)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            while (size > 0 && buffer[size - 1] == (char) 0)
+                size--;
+
+            return new string(buffer, 0, size);
+        }
+
         private List<ODataEntity> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             var contents = new List<ODataEntity>();
