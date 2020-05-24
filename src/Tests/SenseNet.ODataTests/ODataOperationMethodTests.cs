@@ -1839,6 +1839,16 @@ namespace SenseNet.ODataTests
             }
             #endregion
 
+            // one item
+            Test<string>(nameof(TestOperations.Array_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Array_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Array_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Array_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Array_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Array_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Array_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
             Test<string>(nameof(TestOperations.Array_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.Array_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
             Test<long>(nameof(TestOperations.Array_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
@@ -1876,6 +1886,16 @@ namespace SenseNet.ODataTests
             }
             #endregion
 
+            // one item
+            Test<string>(nameof(TestOperations.Optional_Array_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Optional_Array_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Optional_Array_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Optional_Array_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Optional_Array_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Optional_Array_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_Array_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
             Test<string>(nameof(TestOperations.Optional_Array_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.Optional_Array_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
             Test<long>(nameof(TestOperations.Optional_Array_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
@@ -1914,6 +1934,16 @@ namespace SenseNet.ODataTests
             }
             #endregion
 
+            // one item
+            Test<string>(nameof(TestOperations.List_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.List_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.List_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.List_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.List_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.List_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.List_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
             Test<string>(nameof(TestOperations.List_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.List_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
             Test<long>(nameof(TestOperations.List_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
@@ -1951,6 +1981,16 @@ namespace SenseNet.ODataTests
             }
             #endregion
 
+            // one item
+            Test<string>(nameof(TestOperations.Optional_List_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Optional_List_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Optional_List_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Optional_List_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Optional_List_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Optional_List_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_List_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
             Test<string>(nameof(TestOperations.Optional_List_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.Optional_List_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
             Test<long>(nameof(TestOperations.Optional_List_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
@@ -1989,6 +2029,24 @@ namespace SenseNet.ODataTests
             }
             #endregion
 
+            // one item
+            Test<string>(nameof(TestOperations.Enumerable_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Enumerable_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Enumerable_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Enumerable_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Enumerable_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Enumerable_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
+            Test<string>(nameof(TestOperations.Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Enumerable_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Enumerable_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Enumerable_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Enumerable_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Enumerable_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
+
             Test<string>(nameof(TestOperations.Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
             Test<long>(nameof(TestOperations.Enumerable_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
@@ -2025,6 +2083,24 @@ namespace SenseNet.ODataTests
                 });
             }
             #endregion
+
+            // one item
+            Test<string>(nameof(TestOperations.Optional_Enumerable_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Optional_Enumerable_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Optional_Enumerable_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Optional_Enumerable_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Optional_Enumerable_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Optional_Enumerable_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_Enumerable_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
+            Test<string>(nameof(TestOperations.Optional_Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Optional_Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Optional_Enumerable_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Optional_Enumerable_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Optional_Enumerable_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Optional_Enumerable_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_Enumerable_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
 
             Test<string>(nameof(TestOperations.Optional_Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
             Test<int>(nameof(TestOperations.Optional_Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
