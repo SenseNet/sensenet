@@ -131,6 +131,8 @@ namespace SenseNet.OData
         {
             if (!(field is ReferenceField refField))
             {
+                if (field is BinaryField binaryField)
+                    return TextFileHandler.ProjectBinaryField(binaryField, null, httpContext);
                 if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
                 return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, httpContext);
