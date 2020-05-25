@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
 using Microsoft.AspNetCore.Http;
 using SC = SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
-using SenseNet.OData.Metadata.Model;
 using SenseNet.Portal.Virtualization;
 
 namespace SenseNet.OData
@@ -30,19 +28,12 @@ namespace SenseNet.OData
             public static string MaxExpandableSize = "MaxExpandableSize";
         }
 
-        private static readonly string DefaultTextFileExtensions = "md txt js";
+        private static readonly string[] DefaultTextFileExtensions = { "md", "txt", "js" };
 
-        private static string[] TextFileExtensions => new Lazy<string[]>(() =>
-            SC.Settings.GetValue(
-                Settings.SettingsName,
-                Settings.Extensions,
-                null, DefaultTextFileExtensions).Split(' ')).Value;
-
-        private static int MaxExpandableSize => new Lazy<int>(() =>
-            SC.Settings.GetValue(
-                Settings.SettingsName,
-                Settings.MaxExpandableSize,
-                null, 500 * 1024)).Value;
+        private static string[] TextFileExtensions => SC.Settings.GetValue(
+            Settings.SettingsName,
+            Settings.Extensions,
+            null, DefaultTextFileExtensions);
 
         internal static object ProjectBinaryField(BinaryField field, string[] selection, HttpContext httpContext)
         {
@@ -54,9 +45,11 @@ namespace SenseNet.OData
             string message;
             var contentName = field.Content.Name;
             var extension = Path.GetExtension(contentName)?.Trim('.');
+            var maxSize = SC.Settings.GetValue(Settings.SettingsName, Settings.MaxExpandableSize, 
+                null, 500 * 1024);
 
-            if (stream.Length > MaxExpandableSize)
-                message = $"Size limit exceed. Limit: {MaxExpandableSize}, size: {stream.Length}";
+            if (stream.Length > maxSize)
+                message = $"Size limit exceed. Limit: {maxSize}, size: {stream.Length}";
             else if (!TextFileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 message = $"*.{extension} is not a text file.";
             else
@@ -90,6 +83,5 @@ namespace SenseNet.OData
 
             return new string(buffer, 0, size);
         }
-
     }
 }
