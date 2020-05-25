@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
 
@@ -275,6 +276,7 @@ namespace SenseNet.OData
                 if (parameter.Type == JTokenType.String)
                 {
                     var stringValue = parameter.Value<string>();
+                    #region int, long, byte, bool, decimal, float, double
                     if (expectedType == typeof(int))
                     {
                         if (int.TryParse(stringValue, out var v))
@@ -283,7 +285,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(long))
+                    else if (expectedType == typeof(long))
                     {
                         if (long.TryParse(stringValue, out var v))
                         {
@@ -291,7 +293,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(byte))
+                    else if (expectedType == typeof(byte))
                     {
                         if (byte.TryParse(stringValue, out var v))
                         {
@@ -299,7 +301,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(bool))
+                    else if (expectedType == typeof(bool))
                     {
                         if (bool.TryParse(stringValue, out var v))
                         {
@@ -307,7 +309,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(decimal))
+                    else if (expectedType == typeof(decimal))
                     {
                         if (decimal.TryParse(stringValue, out var v))
                         {
@@ -320,7 +322,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(float))
+                    else if (expectedType == typeof(float))
                     {
                         if (float.TryParse(stringValue, out var v))
                         {
@@ -333,7 +335,7 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
-                    if (expectedType == typeof(double))
+                    else if (expectedType == typeof(double))
                     {
                         if (double.TryParse(stringValue, out var v))
                         {
@@ -346,6 +348,114 @@ namespace SenseNet.OData
                             return true;
                         }
                     }
+                    #endregion
+                    #region string[]
+                    else if (expectedType == typeof(List<string>))
+                    {
+                        parsed = new List<string> { stringValue };
+                        return true;
+                    }
+                    else if (expectedType == typeof(string[]) || expectedType == typeof(IEnumerable<string>))
+                    {
+                        parsed = new string[] { stringValue };
+                        return true;
+                    }
+                    #endregion
+                    #region int[]
+                    else if (typeof(IEnumerable<int>).IsAssignableFrom(expectedType))
+                    {
+                        if (int.TryParse(stringValue, out var v))
+                        {
+                            if (expectedType == typeof(List<int>))
+                                parsed = new List<int> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region long[]
+                    else if (typeof(IEnumerable<long>).IsAssignableFrom(expectedType))
+                    {
+                        if (long.TryParse(stringValue, out var v))
+                        {
+                            if(expectedType == typeof(List<long>))
+                                parsed = new List<long> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region byte[]
+                    else if (typeof(IEnumerable<byte>).IsAssignableFrom(expectedType))
+                    {
+                        if (byte.TryParse(stringValue, out var v))
+                        {
+                            if (expectedType == typeof(List<byte>))
+                                parsed = new List<byte> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region bool[]
+                    else if (typeof(IEnumerable<bool>).IsAssignableFrom(expectedType))
+                    {
+                        if (bool.TryParse(stringValue, out var v))
+                        {
+                            if (expectedType == typeof(List<bool>))
+                                parsed = new List<bool> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region decimal[]
+                    else if (typeof(IEnumerable<decimal>).IsAssignableFrom(expectedType))
+                    {
+                        if (decimal.TryParse(stringValue, out var v) ||
+                            decimal.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out v))
+                        {
+                            if (expectedType == typeof(List<decimal>))
+                                parsed = new List<decimal> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region float[]
+                    else if (typeof(IEnumerable<float>).IsAssignableFrom(expectedType))
+                    {
+                        if (float.TryParse(stringValue, out var v) ||
+                            float.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out v))
+                        {
+                            if (expectedType == typeof(List<float>))
+                                parsed = new List<float> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+                    #region double[]
+                    else if (typeof(IEnumerable<double>).IsAssignableFrom(expectedType))
+                    {
+                        if (double.TryParse(stringValue, out var v) ||
+                            double.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out v))
+                        {
+                            if (expectedType == typeof(List<double>))
+                                parsed = new List<double> { v };
+                            else
+                                parsed = new[] { v };
+                            return true;
+                        }
+                    }
+                    #endregion
+
                     //TODO: try parse further opportunities from string to "expectedType"
                 }
             }
@@ -353,6 +463,8 @@ namespace SenseNet.OData
             parsed = null;
             return false;
         }
+
+
         private static Type GetTypeAndValue(Type expectedType, ODataParameterValue parameter, out object value)
         {
             // The only exceptional case.

@@ -1840,13 +1840,13 @@ namespace SenseNet.ODataTests
             #endregion
 
             // one item
-            Test<string>(nameof(TestOperations.Array_String), @"?a=xxx", new[] { "xxx" });
+            //Test<string>(nameof(TestOperations.Array_String), @"?a=xxx", new[] { "xxx" });
             Test<int>(nameof(TestOperations.Array_Int), @"?a=42", new[] { 42 });
-            Test<long>(nameof(TestOperations.Array_Long), @"?a=42", new[] { 42L });
-            Test<bool>(nameof(TestOperations.Array_Bool), @"?a=true", new[] { true });
-            Test<float>(nameof(TestOperations.Array_Float), @"?a=42.42", new[] { 42.42f });
-            Test<double>(nameof(TestOperations.Array_Double), @"?a=42.42", new[] { 42.42d });
-            Test<decimal>(nameof(TestOperations.Array_Decimal), @"?a=42.42", new[] { 42.42m });
+            //Test<long>(nameof(TestOperations.Array_Long), @"?a=42", new[] { 42L });
+            //Test<bool>(nameof(TestOperations.Array_Bool), @"?a=true", new[] { true });
+            //Test<float>(nameof(TestOperations.Array_Float), @"?a=42.42", new[] { 42.42f });
+            //Test<double>(nameof(TestOperations.Array_Double), @"?a=42.42", new[] { 42.42d });
+            //Test<decimal>(nameof(TestOperations.Array_Decimal), @"?a=42.42", new[] { 42.42m });
 
             // more items
             Test<string>(nameof(TestOperations.Array_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
