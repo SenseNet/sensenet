@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.OData;
+using SenseNet.ODataTests.Accessors;
 
 namespace SenseNet.ODataTests
 {
@@ -145,25 +148,64 @@ namespace SenseNet.ODataTests
             AssertSequenceEqual(predicates, array);
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_decimal()
+        public void OD_OdataArray_Parse_decimal_HU()
         {
-            var numbers = new[] { 1.1m, 2.1m, 42.1m };
-            var array = new ODataArray<decimal>("1.1, 2.1, 42.1");
-            AssertSequenceEqual(numbers, array);
+            using (CultureHack("hu-HU"))
+            {
+                var numbers = new[] { 1.1m, 2.1m, 42.1m };
+                var array = new ODataArray<decimal>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_float()
+        public void OD_OdataArray_Parse_decimal_US()
         {
-            var numbers = new[] { 1.1f, 2.1f, 42.1f };
-            var array = new ODataArray<float>("1.1, 2.1, 42.1");
-            AssertSequenceEqual(numbers, array);
+            using (CultureHack("en-US"))
+            {
+                var numbers = new[] { 1.1m, 2.1m, 42.1m };
+                var array = new ODataArray<decimal>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_double()
+        public void OD_OdataArray_Parse_float_HU()
         {
-            var numbers = new[] { 1.1d, 2.1d, 42.1d };
-            var array = new ODataArray<double>("1.1, 2.1, 42.1");
-            AssertSequenceEqual(numbers, array);
+            using (CultureHack("hu-HU"))
+            {
+                var numbers = new[] { 1.1f, 2.1f, 42.1f };
+                var array = new ODataArray<float>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_float_US()
+        {
+            using (CultureHack("en-US"))
+            {
+                var numbers = new[] { 1.1f, 2.1f, 42.1f };
+                var array = new ODataArray<float>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_double_HU()
+        {
+            using (CultureHack("hu-HU"))
+            {
+                var numbers = new[] { 1.1d, 2.1d, 42.1d };
+                var array = new ODataArray<double>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_double_US()
+        {
+            using (CultureHack("en-US"))
+            {
+                var numbers = new[] { 1.1d, 2.1d, 42.1d };
+                var array = new ODataArray<double>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
         }
         [TestMethod]
         public void OD_OdataArray_Parse_TestItem()
@@ -181,6 +223,17 @@ namespace SenseNet.ODataTests
             var array = new ODataArray<TestItem>("#1.1, #2.1, #42.1");
 
             AssertSequenceEqual(numbers, array.Select(x => x.Value));
+        }
+
+
+        /* =============================================================== Tools */
+
+        private IDisposable CultureHack(string cultureName)
+        {
+            var culture = CultureInfo.GetCultureInfo(cultureName);
+            return new Swindler<CultureInfo>(culture,
+                () => Thread.CurrentThread.CurrentCulture,
+                (c) => Thread.CurrentThread.CurrentCulture = c);
         }
 
     }
