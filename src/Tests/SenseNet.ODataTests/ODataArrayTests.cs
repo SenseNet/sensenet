@@ -148,16 +148,6 @@ namespace SenseNet.ODataTests
             AssertSequenceEqual(predicates, array);
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_decimal_HU()
-        {
-            using (CultureHack("hu-HU"))
-            {
-                var numbers = new[] { 1.1m, 2.1m, 42.1m };
-                var array = new ODataArray<decimal>("1.1, 2.1, 42.1");
-                AssertSequenceEqual(numbers, array);
-            }
-        }
-        [TestMethod]
         public void OD_OdataArray_Parse_decimal_US()
         {
             using (CultureHack("en-US"))
@@ -168,12 +158,22 @@ namespace SenseNet.ODataTests
             }
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_float_HU()
+        public void OD_OdataArray_Parse_decimal_HU()
         {
             using (CultureHack("hu-HU"))
             {
-                var numbers = new[] { 1.1f, 2.1f, 42.1f };
-                var array = new ODataArray<float>("1.1, 2.1, 42.1");
+                var numbers = new[] { 1.1m, 2.1m, 42.1m };
+                var array = new ODataArray<decimal>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_decimal_HU_Comma()
+        {
+            using (CultureHack("hu"))
+            {
+                var numbers = new[] { 1.1m, 2.1m, 42.1m };
+                var array = new ODataArray<decimal>("; 1,1; 2,1; 42,1");
                 AssertSequenceEqual(numbers, array);
             }
         }
@@ -188,12 +188,22 @@ namespace SenseNet.ODataTests
             }
         }
         [TestMethod]
-        public void OD_OdataArray_Parse_double_HU()
+        public void OD_OdataArray_Parse_float_HU()
         {
             using (CultureHack("hu-HU"))
             {
-                var numbers = new[] { 1.1d, 2.1d, 42.1d };
-                var array = new ODataArray<double>("1.1, 2.1, 42.1");
+                var numbers = new[] { 1.1f, 2.1f, 42.1f };
+                var array = new ODataArray<float>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_float_HU_Comma()
+        {
+            using (CultureHack("hu"))
+            {
+                var numbers = new[] { 1.1f, 2.1f, 42.1f };
+                var array = new ODataArray<float>("; 1,1; 2,1; 42,1");
                 AssertSequenceEqual(numbers, array);
             }
         }
@@ -204,6 +214,26 @@ namespace SenseNet.ODataTests
             {
                 var numbers = new[] { 1.1d, 2.1d, 42.1d };
                 var array = new ODataArray<double>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_double_HU()
+        {
+            using (CultureHack("hu-HU"))
+            {
+                var numbers = new[] { 1.1d, 2.1d, 42.1d };
+                var array = new ODataArray<double>("1.1, 2.1, 42.1");
+                AssertSequenceEqual(numbers, array);
+            }
+        }
+        [TestMethod]
+        public void OD_OdataArray_Parse_double_HU_Comma()
+        {
+            using (CultureHack("hu"))
+            {
+                var numbers = new[] { 1.1d, 2.1d, 42.1d };
+                var array = new ODataArray<double>("; 1,1; 2,1; 42,1");
                 AssertSequenceEqual(numbers, array);
             }
         }
@@ -220,11 +250,29 @@ namespace SenseNet.ODataTests
         public void OD_OdataArray_Parse_TestItem_Error()
         {
             var numbers = new[] { 1, 2, 42 };
+            // Incompetent type. Needs TestItemArray
             var array = new ODataArray<TestItem>("#1.1, #2.1, #42.1");
-
             AssertSequenceEqual(numbers, array.Select(x => x.Value));
         }
 
+        [TestMethod]
+        public void OD_OdataArray_Parse_Separator()
+        {
+            var words = new[] {"word1", "word2"};
+            // Comma is the default but can be specified.
+            AssertSequenceEqual(words, new ODataArray<string>("word1,word2"));
+            AssertSequenceEqual(words, new ODataArray<string>(",word1,word2"));
+            AssertSequenceEqual(words, new ODataArray<string>(";word1;word2"));
+            AssertSequenceEqual(words, new ODataArray<string>(":word1:word2"));
+            AssertSequenceEqual(words, new ODataArray<string>("|word1|word2"));
+
+            words = new[] { "", "word1", "", "word2", "" };
+            // First char is a separator so leading one empty string needs two characters.
+            AssertSequenceEqual(words, new ODataArray<string>(",,word1,,word2,"));
+            AssertSequenceEqual(words, new ODataArray<string>(";;word1;;word2;"));
+            AssertSequenceEqual(words, new ODataArray<string>("::word1::word2:"));
+            AssertSequenceEqual(words, new ODataArray<string>("||word1||word2|"));
+        }
 
         /* =============================================================== Tools */
 
