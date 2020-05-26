@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StringLiteralTypo
@@ -149,6 +150,22 @@ namespace SenseNet.ODataTests
         [ODataFunction] public static IEnumerable<float> Optional_Enumerable_Float(Content content, IEnumerable<float> a = null) => a;
         [ODataFunction] public static IEnumerable<double> Optional_Enumerable_Double(Content content, IEnumerable<double> a = null) => a;
         [ODataFunction] public static IEnumerable<decimal> Optional_Enumerable_Decimal(Content content, IEnumerable<decimal> a = null) => a;
+
+        [ODataFunction] public static IEnumerable<string> ODataArray_String(Content content, ODataArray<string> a) => a;
+        [ODataFunction] public static IEnumerable<int> ODataArray_Int(Content content, ODataArray<int> a) => a;
+        [ODataFunction] public static IEnumerable<long> ODataArray_Long(Content content, ODataArray<long> a) => a;
+        [ODataFunction] public static IEnumerable<bool> ODataArray_Bool(Content content, ODataArray<bool> a) => a;
+        [ODataFunction] public static IEnumerable<float> ODataArray_Float(Content content, ODataArray<float> a) => a;
+        [ODataFunction] public static IEnumerable<double> ODataArray_Double(Content content, ODataArray<double> a) => a;
+        [ODataFunction] public static IEnumerable<decimal> ODataArray_Decimal(Content content, ODataArray<decimal> a) => a;
+
+        [ODataFunction] public static IEnumerable<string> Optional_ODataArray_String(Content content, ODataArray<string> a = null) => a;
+        [ODataFunction] public static IEnumerable<int> Optional_ODataArray_Int(Content content, ODataArray<int> a = null) => a;
+        [ODataFunction] public static IEnumerable<long> Optional_ODataArray_Long(Content content, ODataArray<long> a = null) => a;
+        [ODataFunction] public static IEnumerable<bool> Optional_ODataArray_Bool(Content content, ODataArray<bool> a = null) => a;
+        [ODataFunction] public static IEnumerable<float> Optional_ODataArray_Float(Content content, ODataArray<float> a = null) => a;
+        [ODataFunction] public static IEnumerable<double> Optional_ODataArray_Double(Content content, ODataArray<double> a = null) => a;
+        [ODataFunction] public static IEnumerable<decimal> Optional_ODataArray_Decimal(Content content, ODataArray<decimal> a = null) => a;
 
         #endregion
 

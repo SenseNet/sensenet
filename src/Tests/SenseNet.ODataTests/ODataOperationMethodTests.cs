@@ -2093,14 +2093,101 @@ namespace SenseNet.ODataTests
             Test<float>(nameof(TestOperations.Optional_Enumerable_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
             Test<double>(nameof(TestOperations.Optional_Enumerable_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
             Test<decimal>(nameof(TestOperations.Optional_Enumerable_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
+        }
 
-            Test<string>(nameof(TestOperations.Optional_Enumerable_String), @"?a=xxx&a=yyy&a=zzz", new[] { "xxx", "yyy", "zzz" });
-            Test<int>(nameof(TestOperations.Optional_Enumerable_Int), @"?a=1&a=2&a=42", new[] { 1, 2, 42 });
-            Test<long>(nameof(TestOperations.Optional_Enumerable_Long), @"?a=1&a=2&a=42", new[] { 1L, 2L, 42L });
-            Test<bool>(nameof(TestOperations.Optional_Enumerable_Bool), @"?a=true&a=false&a=true", new[] { true, false, true });
-            Test<float>(nameof(TestOperations.Optional_Enumerable_Float), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1f, 2.2f, 42.42f });
-            Test<double>(nameof(TestOperations.Optional_Enumerable_Double), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1d, 2.2d, 42.42d });
-            Test<decimal>(nameof(TestOperations.Optional_Enumerable_Decimal), @"?a=1.1&a=2.2&a=42.42", new[] { 1.1m, 2.2m, 42.42m });
+        [TestMethod]
+        public void OD_MBO_Call_OdataArray_QueryString()
+        {
+            #region void Test<T>(string methodName, string queryString, T[] expectedResult)
+            void Test<T>(string methodName, string queryString, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                            null, new TestQueryCollection(queryString));
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = ((IEnumerable<T>)result).ToArray();
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            // one item
+            Test<string>(nameof(TestOperations.ODataArray_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.ODataArray_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.ODataArray_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.ODataArray_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.ODataArray_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.ODataArray_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.ODataArray_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
+            Test<string>(nameof(TestOperations.ODataArray_String), @"?a=xxx,yyy,zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.ODataArray_Int), @"?a=1,2,42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.ODataArray_Long), @"?a=1,2,42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.ODataArray_Bool), @"?a=true,false,true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.ODataArray_Float), @"?a=1.1,2.2,42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.ODataArray_Double), @"?a=1.1,2.2,42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.ODataArray_Decimal), @"?a=1.1,2.2,42.42", new[] { 1.1m, 2.2m, 42.42m });
+        }
+        [TestMethod]
+        public void OD_MBO_Call_OdataArray_Optional_QueryString()
+        {
+            #region void Test<T>(string methodName, string queryString, T[] expectedResult)
+            void Test<T>(string methodName, string queryString, T[] expectedResult)
+            {
+                ODataTest(() =>
+                {
+                    var _ = ODataMiddleware.ODataRequestHttpContextKey; // need to touch ODataMiddleware
+                    OperationCallingContext context;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        context = OperationCenter.GetMethodByRequest(GetContent(null, "User"), methodName,
+                            null, new TestQueryCollection(queryString));
+
+                    // ACTION
+                    object result;
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        result = OperationCenter.Invoke(context);
+
+                    // ASSERT
+                    var values = ((IEnumerable<T>)result).ToArray();
+                    Assert.AreEqual(expectedResult.Length, values.Length);
+                    for (var i = 0; i < expectedResult.Length; i++)
+                        Assert.AreEqual(expectedResult[i], values[i],
+                            $"Assert.AreEqual failed. Expected: {expectedResult[i]}. Actual: {values[i]}");
+                });
+            }
+            #endregion
+
+            // one item
+            Test<string>(nameof(TestOperations.Optional_ODataArray_String), @"?a=xxx", new[] { "xxx" });
+            Test<int>(nameof(TestOperations.Optional_ODataArray_Int), @"?a=42", new[] { 42 });
+            Test<long>(nameof(TestOperations.Optional_ODataArray_Long), @"?a=42", new[] { 42L });
+            Test<bool>(nameof(TestOperations.Optional_ODataArray_Bool), @"?a=true", new[] { true });
+            Test<float>(nameof(TestOperations.Optional_ODataArray_Float), @"?a=42.42", new[] { 42.42f });
+            Test<double>(nameof(TestOperations.Optional_ODataArray_Double), @"?a=42.42", new[] { 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_ODataArray_Decimal), @"?a=42.42", new[] { 42.42m });
+
+            // more items
+            Test<string>(nameof(TestOperations.Optional_ODataArray_String), @"?a=xxx,yyy,zzz", new[] { "xxx", "yyy", "zzz" });
+            Test<int>(nameof(TestOperations.Optional_ODataArray_Int), @"?a=1,2,42", new[] { 1, 2, 42 });
+            Test<long>(nameof(TestOperations.Optional_ODataArray_Long), @"?a=1,2,42", new[] { 1L, 2L, 42L });
+            Test<bool>(nameof(TestOperations.Optional_ODataArray_Bool), @"?a=true,false,true", new[] { true, false, true });
+            Test<float>(nameof(TestOperations.Optional_ODataArray_Float), @"?a=1.1,2.2,42.42", new[] { 1.1f, 2.2f, 42.42f });
+            Test<double>(nameof(TestOperations.Optional_ODataArray_Double), @"?a=1.1,2.2,42.42", new[] { 1.1d, 2.2d, 42.42d });
+            Test<decimal>(nameof(TestOperations.Optional_ODataArray_Decimal), @"?a=1.1,2.2,42.42", new[] { 1.1m, 2.2m, 42.42m });
         }
 
         [TestMethod]

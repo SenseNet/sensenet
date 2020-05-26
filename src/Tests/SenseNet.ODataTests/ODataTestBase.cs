@@ -696,6 +696,12 @@ namespace SenseNet.ODataTests
                 strings = strings.OrderBy(x => x);
             return string.Join(",", strings);
         }
+        protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        {
+            var e = string.Join(", ", expected.Select(x => x.ToString()));
+            var a = string.Join(", ", actual.Select(x => x.ToString()));
+            Assert.AreEqual(e, a);
+        }
 
         protected class CurrentUserBlock : IDisposable
         {
