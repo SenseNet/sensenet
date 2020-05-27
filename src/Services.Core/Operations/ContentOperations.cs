@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.OData;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -355,7 +356,7 @@ namespace SenseNet.Services.Core.Operations
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.SeePermissions)]
-        public static bool HasPermission(Content content, string[] permissions, string user = null)
+        public static bool HasPermission(Content content, ODataArray<string> permissions, string user = null)
         {
             IUser userObject = null;
             if (!string.IsNullOrEmpty(user))
