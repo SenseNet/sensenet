@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +15,7 @@ using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
 using SenseNet.Portal;
 using SenseNet.Search;
+using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
@@ -251,7 +253,45 @@ namespace SenseNet.ODataTests
         }
 
         [TestMethod]
-        public async Task OD_GET_Children_Binary_Expand()
+        public async Task OD_GET_Children_Binary_Expand_RejectedByCharacter()
+        {
+            await ODataChildrenTest(async () =>
+            {
+                var contentName = "non-text.settings";
+                WriteNonTextSettings(contentName, new byte[] {0x1F, 0x20});
+
+                var expectedTexts = GetTextContents();
+
+                // ACTION
+                var response = await ODataGetAsync(
+                        $"/OData.svc/Root/System/Settings",
+                        "?metadata=no&$select=Id,Name,Binary&$expand=Binary")
+                    .ConfigureAwait(false);
+
+                // ASSERT
+                var entities = GetEntities(response);
+                var messages = entities.ToDictionary(x => x.Name,
+                    x => ((JObject) x.AllProperties["Binary"])["Message"]?.ToString() ?? "null");
+                foreach (var name in messages.Keys)
+                {
+                    if (name == contentName)
+                        Assert.IsTrue(messages[contentName].StartsWith("Not a text file."));
+                    else
+                        Assert.AreEqual(name + ":", name + ":" + messages[name]);
+                }
+                var texts = entities.ToDictionary(x => x.Name, x => ((JObject)x.AllProperties["Binary"])["Text"]?.ToString() ?? "null");
+                foreach (var name in expectedTexts.Keys)
+                {
+                    if (name == contentName)
+                        Assert.IsTrue(texts[contentName] == string.Empty);
+                    else
+                        Assert.AreEqual(name + ":" + expectedTexts[name], name + ":" + texts[name]);
+                }
+            }).ConfigureAwait(false);
+        }
+
+        [TestMethod]
+        public async Task OD_GET_Children_Binary_Expand_EnabledByExtension()
         {
             await ODataChildrenTest(async () =>
             {
@@ -290,7 +330,7 @@ namespace SenseNet.ODataTests
                 // ASSERT
                 var entities = GetEntities(response);
                 var messages = entities.ToDictionary(x => x.Name, x => ((JObject)x.AllProperties["Binary"])["Message"]?.ToString() ?? "null");
-                Assert.IsTrue(messages.Any(x=>x.Value.Contains("is not a text file")));
+                Assert.IsTrue(messages.Any(x=>x.Value.Contains("not a text file", StringComparison.OrdinalIgnoreCase)));
             }).ConfigureAwait(false);
         }
         [TestMethod]
@@ -311,6 +351,17 @@ namespace SenseNet.ODataTests
                 var messages = entities.ToDictionary(x => x.Name, x => ((JObject)x.AllProperties["Binary"])["Message"]?.ToString() ?? "null");
                 Assert.IsTrue(messages.Any(x => x.Value.StartsWith("Size limit exceed.")));
             }).ConfigureAwait(false);
+        }
+
+        private void WriteNonTextSettings(string name, byte[] buffer)
+        {
+            var settings = new SenseNet.ContentRepository.Settings(Node.LoadNode(Repository.SettingsFolderPath))
+            {
+                Name = name
+            };
+            settings.Binary.ContentType = "application/octet-stream";
+            settings.Binary.SetStream(new MemoryStream(buffer));
+            settings.Save();
         }
 
         private void WriteTextFileSettings(string settingsJson)

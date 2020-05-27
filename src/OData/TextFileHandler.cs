@@ -28,12 +28,14 @@ namespace SenseNet.OData
             public static string MaxExpandableSize = "MaxExpandableSize";
         }
 
-        private static readonly string[] DefaultTextFileExtensions = { "md", "txt", "js", "settings" };
+        private static readonly string[] DefaultTextFileExtensions = { /*"md", "txt", "js", "settings"*/ };
 
         private static string[] TextFileExtensions => SC.Settings.GetValue(
             Settings.SettingsName,
             Settings.Extensions,
             null, DefaultTextFileExtensions);
+
+        private static readonly char[] Whitespaces = "\t\r\n".ToCharArray();
 
         internal static object ProjectBinaryField(BinaryField field, string[] selection, HttpContext httpContext)
         {
@@ -42,18 +44,26 @@ namespace SenseNet.OData
             var stream = DocumentBinaryProvider.Instance.GetStream(field.Content.ContentHandler,
                 field.Name, httpContext, out var contentType, out var binaryFileName);
 
-            string message;
+            var message = string.Empty;
             var contentName = field.Content.Name;
             var extension = Path.GetExtension(contentName)?.Trim('.');
             var maxSize = SC.Settings.GetValue(Settings.SettingsName, Settings.MaxExpandableSize, 
-                null, 500 * 1024);
+                null, 1024 * 1024);
 
             if (stream.Length > maxSize)
+            {
                 message = $"Size limit exceed. Limit: {maxSize}, size: {stream.Length}";
-            else if (!TextFileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                message = $"*.{extension} is not a text file.";
+            }
             else
-                message = string.Empty;
+            {
+                var whitelist = TextFileExtensions;
+                if (whitelist.Length > 0 && !whitelist.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                    message = $"Not a text file. The *.{extension} is restricted by the file extension list.";
+            }
+
+            var text = string.IsNullOrEmpty(message)
+                ? ReadBinaryContent(stream, out message)
+                : null;
 
             var result = new Dictionary<string, object>();
             if (allSelected || selection.Contains(Expansion.FileName))
@@ -65,10 +75,10 @@ namespace SenseNet.OData
             if (allSelected || selection.Contains(Expansion.Message))
                 result.Add(Expansion.Message, message);
             if (allSelected || selection.Contains(Expansion.Text))
-                result.Add(Expansion.Text, string.IsNullOrEmpty(message) ? ReadBinaryContent(stream) : null);
+                result.Add(Expansion.Text, text);
             return result;
         }
-        private static string ReadBinaryContent(Stream stream)
+        private static string ReadBinaryContent(Stream stream, out string message)
         {
             var size = Convert.ToInt32(stream.Length);
 
@@ -81,6 +91,17 @@ namespace SenseNet.OData
             while (size > 0 && buffer[size - 1] == (char)0)
                 size--;
 
+            // search non-text characters: 0x7f and c < 0x20 except common whitespaces: 0x09, 0x0A, 0x0D (\t \n \r).
+            for (var i = 0; i < size; i++)
+            {
+                var c = buffer[i];
+                if (c != (char) 127 && (c >= (char) 32 || Whitespaces.Contains(c)))
+                    continue;
+                message = "Not a text file. Contains one or more non-text characters";
+                return null;
+            }
+
+            message = string.Empty;
             return new string(buffer, 0, size);
         }
     }
