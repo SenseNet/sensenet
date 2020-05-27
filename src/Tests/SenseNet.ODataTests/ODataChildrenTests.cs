@@ -255,7 +255,7 @@ namespace SenseNet.ODataTests
         {
             await ODataChildrenTest(async () =>
             {
-                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 100000,  ""Extensions"": ""md txt js settings"" }");
+                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 100000,  ""Extensions"": [ ""md"", ""txt"", ""js"", ""settings"" ] }");
                 var expectedTexts = GetTextContents();
 
                 // ACTION
@@ -279,7 +279,7 @@ namespace SenseNet.ODataTests
         {
             await ODataChildrenTest(async () =>
             {
-                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 100000,  ""Extensions"": ""md txt js"" }");
+                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 100000,  ""Extensions"": [ ""md"", ""txt"", ""js"" ] }");
 
                 // ACTION
                 var response = await ODataGetAsync(
@@ -298,7 +298,7 @@ namespace SenseNet.ODataTests
         {
             await ODataChildrenTest(async () =>
             {
-                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 10,  ""Extensions"": ""md txt js settings"" }");
+                WriteTextFileSettings(@"{ ""MaxExpandableSize"": 10,  ""Extensions"": [ ""md"", ""txt"", ""js"", ""settings"" ] }");
 
                 // ACTION
                 var response = await ODataGetAsync(
@@ -332,6 +332,5 @@ namespace SenseNet.ODataTests
                     x => x.Name,
                     x => RepositoryTools.GetStreamString(((File)x.ContentHandler).Binary.GetStream()));
         }
-
     }
 }
