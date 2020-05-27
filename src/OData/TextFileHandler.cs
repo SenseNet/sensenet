@@ -28,7 +28,7 @@ namespace SenseNet.OData
             public static string MaxExpandableSize = "MaxExpandableSize";
         }
 
-        private static readonly string[] DefaultTextFileExtensions = { "md", "txt", "js" };
+        private static readonly string[] DefaultTextFileExtensions = { "md", "txt", "js", "settings" };
 
         private static string[] TextFileExtensions => SC.Settings.GetValue(
             Settings.SettingsName,
