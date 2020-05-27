@@ -19,6 +19,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
+using SSCO = SenseNet.Services.Core.Operations;
 
 namespace SenseNet.ODataTests
 {
@@ -522,6 +523,27 @@ namespace SenseNet.ODataTests
                 }
             });
         }
+
+        /* ======================================================================  */
+
+        [TestMethod]
+        public void OD_MBO_BuiltIn_HasPermissions()
+        {
+            ODataTest(() =>
+            {
+                using (new SearchEngineSwindler(new SearchEngineForIndexBackupTests()))
+                {
+                    var response = ODataGetAsync(
+                            $"/OData.svc/('Root')/{nameof(SSCO.ContentOperations.HasPermission)}",
+                            "?permissions=See&permissions=Open")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    Assert.AreEqual(200, response.StatusCode);
+                    Assert.AreEqual("true", response.Result);
+                }
+            });
+        }
+
 
         /* ====================================================================== TOOLS */
 

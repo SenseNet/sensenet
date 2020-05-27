@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.OData;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.OData
@@ -97,6 +99,31 @@ namespace SenseNet.OData
                 Action = action,
                 Scenario = scenario
             });
+        }
+
+        internal static ODataArray CreateODataArray(Type type, object[] data)
+        {
+            return CreateODataArray(type, data, false);
+        }
+        internal static ODataArray CreateODataArray(Type type, string data)
+        {
+            return CreateODataArray(type, data, true);
+        }
+        private static ODataArray CreateODataArray(Type type, object data, bool fromString)
+        {
+            var ctorParamType = fromString ? typeof(string) : typeof(object[]);
+            var ctor = type.GetConstructors().Where(c =>
+            {
+                var p = c.GetParameters();
+                if (p.Length != 1)
+                    return false;
+                return p[0].ParameterType == ctorParamType;
+            }).FirstOrDefault();
+
+            if (ctor == null)
+                throw new MissingMemberException($"Missing constructor: {type.Name}(object[]).");
+
+            return (ODataArray)ctor.Invoke(new [] { data });
         }
     }
 }
