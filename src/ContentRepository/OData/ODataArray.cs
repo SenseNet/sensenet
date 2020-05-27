@@ -12,8 +12,8 @@ namespace SenseNet.ContentRepository.OData
         public static readonly char[] AvailableSeparators = ",;:|".ToCharArray();
     }
     /// <summary>
-    /// Represents an enumerable parameter of the OData Method Based Operation.
-    /// The value can be parsed from json array, querystring array and comma separated list.
+    /// Represents an enumerable parameter of an OData Method Based Operation.
+    /// The value can be parsed from a json array, querystring array or a comma separated list.
     /// </summary>
     public class ODataArray<T> : ODataArray, IEnumerable<T>
     {
@@ -75,11 +75,11 @@ namespace SenseNet.ContentRepository.OData
         }
         public virtual T Parse(string inputValue)
         {
-            throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support, override the 'T Parse(string)' method");
+            throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support it, override the 'T Parse(string)' method");
         }
         public virtual T Convert(object inputValue)
         {
-            throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support, override the 'T Parse(string)' method");
+            throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support it, override the 'T Parse(object)' method");
         }
 
         /* ============================================================= IList<T> implementation */
