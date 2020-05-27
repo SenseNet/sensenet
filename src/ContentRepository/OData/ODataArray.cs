@@ -3,19 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace SenseNet.ContentRepository.OData
 {
+    public class ODataArray
+    {
+        public static readonly char DefaultSeparator = ',';
+        public static readonly char[] AvailableSeparators = ",;:|".ToCharArray();
+    }
     /// <summary>
     /// Represents an enumerable parameter of the OData Method Based Operation.
     /// The value can be parsed from json array, querystring array and comma separated list.
     /// </summary>
-    public class ODataArray<T> : IEnumerable<T>
+    public class ODataArray<T> : ODataArray, IEnumerable<T>
     {
-        public static readonly char DefaultSeparator = ',';
-        public static readonly char[] AvailableSeparators = ",;:|".ToCharArray();
-
         private readonly List<T> _list;
 
         public ODataArray(IEnumerable<T> collection)
@@ -25,6 +26,10 @@ namespace SenseNet.ContentRepository.OData
         public ODataArray(string commaSeparated)
         {
             _list = ParseList(commaSeparated);
+        }
+        public ODataArray(object[] rawItems)
+        {
+            _list = new List<T>(rawItems.Select(Convert).ToArray());
         }
 
         private List<T> ParseList(string commaSeparated)
@@ -69,6 +74,10 @@ namespace SenseNet.ContentRepository.OData
             return array.Select(Parse).ToList();
         }
         public virtual T Parse(string inputValue)
+        {
+            throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support, override the 'T Parse(string)' method");
+        }
+        public virtual T Convert(object inputValue)
         {
             throw new NotSupportedException($"ODataArray<{typeof(T).Name}> is not supported. To support, override the 'T Parse(string)' method");
         }

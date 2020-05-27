@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -167,6 +166,8 @@ namespace SenseNet.ODataTests
         [ODataFunction] public static IEnumerable<double> Optional_ODataArray_Double(Content content, ODataArray<double> a = null) => a;
         [ODataFunction] public static IEnumerable<decimal> Optional_ODataArray_Decimal(Content content, ODataArray<decimal> a = null) => a;
 
+        [ODataFunction] public static IEnumerable<ODataArrayTests.TestItem> ODataArray_TestItemArray(Content content, ODataArrayTests.TestItemArray a) => a;
+        [ODataFunction] public static IEnumerable<ODataArrayTests.TestItem> Optional_ODataArray_TestItemArray(Content content, ODataArrayTests.TestItemArray a) => a;
         #endregion
 
         #region Methods for real calls

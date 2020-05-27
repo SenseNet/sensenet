@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.OData;
 using SenseNet.Services.Core.Operations;
 
 namespace SenseNet.OData
@@ -93,6 +94,21 @@ namespace SenseNet.OData
                 if (expectedType == typeof(IEnumerable<float>)) return array.Select(x => x.ToObject<float>()).ToArray();
                 if (expectedType == typeof(IEnumerable<double>)) return array.Select(x => x.ToObject<double>()).ToArray();
                 if (expectedType == typeof(IEnumerable<decimal>)) return array.Select(x => x.ToObject<decimal>()).ToArray();
+
+                if (expectedType == typeof(ODataArray<string>)) return new ODataArray<string>((IEnumerable<string>)array.Select(x => x.ToObject<string>()).ToArray());
+                if (expectedType == typeof(ODataArray<int>)) return new ODataArray<int>(array.Select(x => x.ToObject<int>()).ToArray());
+                if (expectedType == typeof(ODataArray<long>)) return new ODataArray<long>(array.Select(x => x.ToObject<long>()).ToArray());
+                if (expectedType == typeof(ODataArray<bool>)) return new ODataArray<bool>(array.Select(x => x.ToObject<bool>()).ToArray());
+                if (expectedType == typeof(ODataArray<float>)) return new ODataArray<float>(array.Select(x => x.ToObject<float>()).ToArray());
+                if (expectedType == typeof(ODataArray<double>)) return new ODataArray<double>(array.Select(x => x.ToObject<double>()).ToArray());
+                if (expectedType == typeof(ODataArray<decimal>)) return new ODataArray<decimal>(array.Select(x => x.ToObject<decimal>()).ToArray());
+
+                if (typeof(ODataArray).IsAssignableFrom(expectedType))
+                {
+                    realType = expectedType;
+                    var ctorParam = array.Select(x => x.ToObject<object>()).ToArray();
+                    return ODataTools.CreateODataArray(expectedType, ctorParam);
+                }
 
                 realType = typeof(object[]);
                 return array.Select(x => x.ToObject<object>()).ToArray();

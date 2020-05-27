@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace SenseNet.ODataTests
     [TestClass]
     public class ODataArrayTests : ODataTestBase
     {
-        private struct TestItem
+        public struct TestItem
         {
             public int Value { get; }
 
@@ -27,20 +28,38 @@ namespace SenseNet.ODataTests
                 var numChars = src.Where(char.IsDigit).ToArray();
                 Value = int.Parse(new string(numChars));
             }
+
+            public override int GetHashCode()
+            {
+                return Value.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                    return false;
+                return this.Value.Equals(((TestItem) obj).Value);
+            }
+
+            public override string ToString()
+            {
+                return "#" + Value;
+            }
         }
 
-        private class TestItemArray : ODataArray<TestItem>
+        public class TestItemArray : ODataArray<TestItem>
         {
-            public TestItemArray(IEnumerable<TestItem> collection) : base(collection)
-            {
-            }
-            public TestItemArray(string commaSeparated) : base(commaSeparated)
-            {
-            }
+            public TestItemArray(IEnumerable<TestItem> collection) : base(collection) { }
+            public TestItemArray(string commaSeparated) : base(commaSeparated) { }
+            public TestItemArray(object[] items) : base(items) { }
 
             public override TestItem Parse(string inputValue)
             {
                 return new TestItem(inputValue);
+            }
+            public override TestItem Convert(object inputValue)
+            {
+                return new TestItem(inputValue.ToString());
             }
         }
 
@@ -48,7 +67,7 @@ namespace SenseNet.ODataTests
         public void OD_OdataArray_Creation_string()
         {
             var strings = new[] { "item1", "item2", "item3" };
-            var array = new ODataArray<string>(strings);
+            var array = new ODataArray<string>((IEnumerable<string>)strings);
 
             AssertSequenceEqual(strings, array);
         }

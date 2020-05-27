@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.Search.Indexing;
+using SenseNet.ContentRepository.OData;
 using SenseNet.Security;
 using ContentOperations = SenseNet.Services.Core.Operations.ContentOperations;
 
@@ -350,6 +350,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region string[]
+                    else if (expectedType == typeof(ODataArray<string>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<string>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (expectedType == typeof(List<string>))
                     {
                         parsed = new List<string> { stringValue };
@@ -357,11 +366,20 @@ namespace SenseNet.OData
                     }
                     else if (expectedType == typeof(string[]) || expectedType == typeof(IEnumerable<string>))
                     {
-                        parsed = new string[] { stringValue };
+                        parsed = new[] { stringValue };
                         return true;
                     }
                     #endregion
                     #region int[]
+                    else if (expectedType == typeof(ODataArray<int>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<int>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<int>).IsAssignableFrom(expectedType))
                     {
                         if (int.TryParse(stringValue, out var v))
@@ -375,11 +393,20 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region long[]
+                    else if (expectedType == typeof(ODataArray<long>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<long>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<long>).IsAssignableFrom(expectedType))
                     {
                         if (long.TryParse(stringValue, out var v))
                         {
-                            if(expectedType == typeof(List<long>))
+                            if (expectedType == typeof(List<long>))
                                 parsed = new List<long> { v };
                             else
                                 parsed = new[] { v };
@@ -388,6 +415,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region byte[]
+                    else if (expectedType == typeof(ODataArray<byte>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<byte>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<byte>).IsAssignableFrom(expectedType))
                     {
                         if (byte.TryParse(stringValue, out var v))
@@ -401,6 +437,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region bool[]
+                    else if (expectedType == typeof(ODataArray<bool>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<bool>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<bool>).IsAssignableFrom(expectedType))
                     {
                         if (bool.TryParse(stringValue, out var v))
@@ -414,6 +459,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region decimal[]
+                    else if (expectedType == typeof(ODataArray<decimal>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<decimal>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<decimal>).IsAssignableFrom(expectedType))
                     {
                         if (decimal.TryParse(stringValue, out var v) ||
@@ -428,6 +482,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region float[]
+                    else if (expectedType == typeof(ODataArray<float>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<float>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<float>).IsAssignableFrom(expectedType))
                     {
                         if (float.TryParse(stringValue, out var v) ||
@@ -442,6 +505,15 @@ namespace SenseNet.OData
                     }
                     #endregion
                     #region double[]
+                    else if (expectedType == typeof(ODataArray<double>))
+                    {
+                        try
+                        {
+                            parsed = new ODataArray<double>(stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */}
+                    }
                     else if (typeof(IEnumerable<double>).IsAssignableFrom(expectedType))
                     {
                         if (double.TryParse(stringValue, out var v) ||
@@ -455,6 +527,16 @@ namespace SenseNet.OData
                         }
                     }
                     #endregion
+
+                    else if (typeof(ODataArray).IsAssignableFrom(expectedType))
+                    {
+                        try
+                        {
+                            parsed = ODataTools.CreateODataArray(expectedType, stringValue);
+                            return true;
+                        }
+                        catch { /* ignored */ }
+                    }
 
                     //TODO: try parse further opportunities from string to "expectedType"
                 }
