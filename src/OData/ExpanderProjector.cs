@@ -6,8 +6,11 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using SenseNet.OData.Writers;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 // ReSharper disable ArrangeThisQualifier
 
@@ -241,6 +244,8 @@ namespace SenseNet.OData
         {
             if (!(field is ReferenceField refField))
             {
+                if (field is BinaryField binaryField)
+                    return TextFileHandler.ProjectBinaryField(binaryField, selection.Select(x=>x.Name).ToArray(), httpContext);
                 if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
                 return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion, selection, httpContext);
@@ -255,6 +260,7 @@ namespace SenseNet.OData
                 ? ProjectMultiRefContents(refField.GetData(), expansion, selection, httpContext)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion, selection, httpContext);
         }
+
         private List<ODataEntity> ProjectMultiRefContents(object references, List<Property> expansion, List<Property> selection, HttpContext httpContext)
         {
             var contents = new List<ODataEntity>();
