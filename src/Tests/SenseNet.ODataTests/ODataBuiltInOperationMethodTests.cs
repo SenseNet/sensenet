@@ -209,7 +209,7 @@ namespace SenseNet.ODataTests
                 File file;
                 using (new CurrentUserBlock(User.Administrator))
                 {
-                    file = new File(CreateTestRoot("TestFiles")) { Name = "File-1" };
+                    file = new File(CreateTestRoot("TestFiles")) { Name = Guid.NewGuid().ToString() };
                     file.Save();
                     Assert.AreEqual(Identifiers.AdministratorUserId, file.OwnerId);
                 }
@@ -320,7 +320,7 @@ namespace SenseNet.ODataTests
         {
             ODataTest(() =>
             {
-                using (var op = new FileOperation("File-1"))
+                using (var op = new FileOperation(Guid.NewGuid().ToString()))
                 {
                     var response = ODataPostAsync($"{op.Url}/SetPageCount", "",
                             "models=[{'pageCount':42}]")

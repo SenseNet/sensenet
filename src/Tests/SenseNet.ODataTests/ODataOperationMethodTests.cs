@@ -996,6 +996,51 @@ namespace SenseNet.ODataTests
             });
         }
 
+        [TestMethod]
+        public void OD_MBO_GetMethodByRequest_CaseInsensitiveParamNames()
+        {
+            ODataTest(() =>
+            {
+                using (new CleanOperationCenterBlock())
+                {
+                    var m0 = AddMethod(new TestMethodInfo("method0", "Content content, string param1", null));
+                    var m1 = AddMethod(new TestMethodInfo("method1", "Content content", "string param1"));
+
+                    OperationCallingContext ctx;
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method0", @"models=[{ param1:""asdf""}]");
+                    Assert.AreEqual(m0, ctx.Operation);
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method0", @"models=[{ Param1:""asdf""}]");
+                    Assert.AreEqual(m0, ctx.Operation);
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method0", @"models=[{ pArAm1:""asdf""}]");
+                    Assert.AreEqual(m0, ctx.Operation);
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method1", @"models=[{ param1:""asdf""}]");
+                    Assert.AreEqual(m1, ctx.Operation);
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method1", @"models=[{ Param1:""asdf""}]");
+                    Assert.AreEqual(m1, ctx.Operation);
+
+                    using (new OperationInspectorSwindler(new AllowEverything()))
+                        ctx = OperationCenter.GetMethodByRequest(GetContent(),
+                            "method1", @"models=[{ pArAm1:""asdf""}]");
+                    Assert.AreEqual(m1, ctx.Operation);
+                }
+            });
+        }
+
         /* ====================================================================== REQUEST PARSING TESTS */
 
         [TestMethod]

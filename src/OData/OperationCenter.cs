@@ -217,7 +217,7 @@ namespace SenseNet.OData
         private static bool AllRequiredParametersExist(OperationInfo info, string[] requestParameterNames)
         {
             foreach (var requiredParameterName in info.RequiredParameterNames)
-                if (!requestParameterNames.Contains(requiredParameterName))
+                if (!requestParameterNames.Contains(requiredParameterName, StringComparer.OrdinalIgnoreCase))
                     return false;
             return true;
         }
