@@ -86,14 +86,19 @@ namespace SenseNet.ODataTests
         {
 
         }
-        [ODataFunction("Op9_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+        [ODataFunction(DisplayName = "Operation-Nine")]
         public static void Op9(Content content)
+        {
+
+        }
+        [ODataFunction("Op10_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+        public static void Op10(Content content)
         {
 
         }
         [ODataFunction]
         [RequiredPolicies("ContentNameMustBeRoot")]
-        public static void Op10(Content content)
+        public static void Op11(Content content)
         {
 
         }

@@ -1143,6 +1143,16 @@ namespace SenseNet.ODataTests
                 var actions = actionsProperty.Value as JArray;
                 Assert.IsNotNull(actions);
                 Assert.IsTrue(actions.Any());
+                var action = (JObject) actions[0];
+                Assert.IsNotNull(action["Name"]);
+                Assert.IsNotNull(action["DisplayName"]);
+                Assert.IsNotNull(action["Index"]);
+                Assert.IsNotNull(action["Icon"]);
+                Assert.IsNotNull(action["Url"]);
+                Assert.IsNotNull(action["IsODataAction"]);
+                Assert.IsNotNull(action["ActionParameters"]);
+                Assert.IsNotNull(action["Scenario"]);
+                Assert.IsNotNull(action["Forbidden"]);
             });
         }
 

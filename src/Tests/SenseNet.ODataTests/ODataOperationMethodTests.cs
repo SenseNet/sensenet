@@ -225,9 +225,13 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("Lorem ipsum ...", info.Description);
                 Assert.AreEqual("Application", info.Icon);
 
-                // [ODataFunction("Op9_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+                //[ODataFunction(DisplayName = "Operation-Nine")]
                 info = AddMethod(typeof(TestOperations).GetMethod("Op9"));
-                Assert.AreEqual("Op9_Renamed", info.Name);
+                Assert.AreEqual("Operation-Nine", info.DisplayName);
+
+                // [ODataFunction("Op10_Renamed", Description = "Lorem ipsum ...", Icon = "icon94")]
+                info = AddMethod(typeof(TestOperations).GetMethod("Op10"));
+                Assert.AreEqual("Op10_Renamed", info.Name);
                 Assert.AreEqual("Lorem ipsum ...", info.Description);
                 Assert.AreEqual("icon94", info.Icon);
             });
@@ -2724,12 +2728,12 @@ namespace SenseNet.ODataTests
                         // Root content: action is in the list
                         var content = Content.Create(Repository.Root);
                         Assert.IsTrue(os.GetActions(new ActionBase[0], content, null, httpContext)
-                            .Any(a => a.Name == "Op10"));
+                            .Any(a => a.Name == "Op11"));
 
                         // other content: action is not in the list
                         content = Content.Create(User.Administrator);
                         Assert.IsFalse(os.GetActions(new ActionBase[0], content, null, httpContext)
-                            .Any(a => a.Name == "Op10"));
+                            .Any(a => a.Name == "Op11"));
                     }
                     finally
                     {
