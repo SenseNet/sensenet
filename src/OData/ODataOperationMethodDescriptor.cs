@@ -17,6 +17,12 @@ namespace SenseNet.OData
         public override bool CausesStateChange { get; }
         public override ActionParameter[] ActionParameters { get; }
 
+        public string DisplayName
+        {
+            get => Text ?? OperationInfo.DisplayName;
+            set => Text = value;
+        }
+
         private string _icon;
         public override string Icon
         {
@@ -48,6 +54,7 @@ namespace SenseNet.OData
         {
             base.Initialize(context, backUri, application, parameters);
             Name = OperationInfo.Name;
+            DisplayName = OperationInfo.DisplayName;
         }
     }
 }
