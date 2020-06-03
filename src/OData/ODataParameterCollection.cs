@@ -10,6 +10,7 @@ namespace SenseNet.OData
     internal class ODataParameterCollection : IReadOnlyDictionary<string, ODataParameterValue>
     {
         private readonly Dictionary<string, ODataParameterValue> _allParameters;
+        private readonly Dictionary<string, ODataParameterValue> _allParametersLowercase;
 
         public ODataParameterCollection(JObject body, IQueryCollection query)
         {
@@ -29,16 +30,17 @@ namespace SenseNet.OData
                     allParams.Add(name, new ODataParameterValue(body[name]));
             }
             _allParameters = allParams;
+            _allParametersLowercase = _allParameters.ToDictionary(x => x.Key.ToLowerInvariant(), x => x.Value);
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public IEnumerator<KeyValuePair<string, ODataParameterValue>> GetEnumerator() => _allParameters.GetEnumerator();
 
         public int Count => _allParameters.Count;
-        public bool ContainsKey(string key) => _allParameters.ContainsKey(key);
-        public bool TryGetValue(string key, out ODataParameterValue value) => _allParameters.TryGetValue(key, out value);
+        public bool ContainsKey(string key) => _allParametersLowercase.ContainsKey(key.ToLowerInvariant());
+        public bool TryGetValue(string key, out ODataParameterValue value) => _allParametersLowercase.TryGetValue(key.ToLowerInvariant(), out value);
 
-        public ODataParameterValue this[string key] => _allParameters[key];
+        public ODataParameterValue this[string key] => _allParametersLowercase[key.ToLowerInvariant()];
 
         public IEnumerable<string> Keys => _allParameters.Keys;
         public IEnumerable<ODataParameterValue> Values => _allParameters.Values;
