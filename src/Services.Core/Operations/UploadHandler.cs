@@ -269,8 +269,11 @@ namespace SenseNet.Services.Core.Operations
             }
             else
             {
-                // handle uploaded chunks/stream
-                var file = _httpContext.Request.Form.Files.Count > 0 ? _httpContext.Request.Form.Files[0] : null;
+                // handle uploaded chunks/stream/text
+                IFormFile file = null;
+                if(string.IsNullOrEmpty(FileText))
+                    file = _httpContext.Request.Form.Files.Count > 0 ? _httpContext.Request.Form.Files[0] : null;
+
                 if (file != null && file.Length == 0)
                 {
                     // create content for an empty file if necessary
