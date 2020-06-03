@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using SenseNet.Diagnostics;
 using SenseNet.OData;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Virtualization;
 
 namespace SenseNet.ODataTest.WebApp
 {
@@ -50,6 +51,8 @@ namespace SenseNet.ODataTest.WebApp
             app.UseSenseNetAuthentication();
 
             app.UseMvc();
+
+            app.UseSenseNetFiles();
 
             app.UseSenseNetOdata();
         }
