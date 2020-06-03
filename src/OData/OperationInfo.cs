@@ -17,6 +17,7 @@ namespace SenseNet.OData
         private readonly string _icon;
 
         public string Name { get; }
+        public string DisplayName { get; }
         public string Icon => _icon ?? "Application";
         public string Description { get; }
 
@@ -39,10 +40,11 @@ namespace SenseNet.OData
         /// <summary>
         /// Initializes a new instance of the OperationInfo class.
         /// </summary>
-        public OperationInfo(string name, string icon, string description, MethodBase method, Attribute[] attributes)
+        public OperationInfo(string name, string displayName, string icon, string description, MethodBase method, Attribute[] attributes)
         {
             Name = name;
             _icon = icon;
+            DisplayName = displayName;
             Description = description;
             Method = method;
             Attributes = attributes;
