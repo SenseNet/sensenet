@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
 using Task = System.Threading.Tasks.Task;
