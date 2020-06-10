@@ -30,47 +30,17 @@ namespace SenseNet.Services.Core.Authentication
         public string DefaultUserType { get; protected internal set; }
         public ICollection<string> DefaultGroups { get; protected internal set; }
 
-        public async Task<User> CreateLocalUserAsync(Content content, HttpContext context, string userName, string password, 
+        public async Task<User> CreateLocalUserAsync(Content content, HttpContext context, string loginName, string password, 
             string email, CancellationToken cancellationToken)
         {
-            //UNDONE: move duplicated code to a standalone method
-            var parentPath = string.IsNullOrEmpty(DefaultParentPath) ? "/Root/IMS/Public" : DefaultParentPath;
-            var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
-
-            var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
-                         await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
-
-            //UNDONE: decide which properties are mandatory and how do we compute values
-
-            // User content name will be the email.
-            // Current behavior: if a user with the same name exists, make sure we create 
-            // a new one and let the application deal with merging them later.
-            var name = ContentNamingProvider.GetNameFromDisplayName(email);
-            if (Node.Exists(RepositoryPath.Combine(parent.Path, name)))
-                name = ContentNamingProvider.IncrementNameSuffixToLastName(name, parent.Id);
-
-            var user = Content.CreateNew(userType, parent.ContentHandler, name);
-            user["Email"] = email;
-            user["LoginName"] = userName;
-            user["FullName"] = name;
-            user.DisplayName = name;
-
-            user.Save();
-
-            await AddUserToDefaultGroupsAsync(user.ContentHandler as User, cancellationToken).ConfigureAwait(false);
-
-            return user.ContentHandler as User;
+            // content name: login name, because the email may be empty
+            return await CreateUser(loginName, loginName, email, loginName, 
+                user => {}, cancellationToken);
         }
 
         public async Task<User> CreateProviderUserAsync(Content content, HttpContext context, string provider, string userId, 
             ClaimInfo[] claims, CancellationToken cancellationToken)
         {
-            var parentPath = string.IsNullOrEmpty(DefaultParentPath) ? "/Root/IMS/Public" : DefaultParentPath;
-            var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
-
-            var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
-                await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
-
             var fullName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? string.Empty;
             var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
 
@@ -79,18 +49,36 @@ namespace SenseNet.Services.Core.Authentication
             // should be inserted instead of overwriting the current value.
             var external = $"{{ \"{provider}\": {{ \"Id\": \"{userId}\", \"Completed\": false }} }}";
 
-            // User content name will be the email.
-            // Current behavior: if a user with the same name exists, make sure we create 
+            // content name: email
+            return await CreateUser(email, email, email, fullName, user =>
+            {
+                user["ExternalUserProviders"] = external;
+            }, cancellationToken);
+        }
+
+        protected async Task<User> CreateUser(string nameCandidate, string loginName, string email, string fullName,
+            Action<Content> setProperties, CancellationToken cancellationToken)
+        {
+            var parentPath = string.IsNullOrEmpty(DefaultParentPath) ? "/Root/IMS/Public" : DefaultParentPath;
+            var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
+
+            var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
+                         await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
+
+            // If a user with the same name exists, make sure we create 
             // a new one and let the application deal with merging them later.
-            var name = ContentNamingProvider.GetNameFromDisplayName(email);
+            var name = ContentNamingProvider.GetNameFromDisplayName(nameCandidate);
             if (Node.Exists(RepositoryPath.Combine(parent.Path, name)))
                 name = ContentNamingProvider.IncrementNameSuffixToLastName(name, parent.Id);
-            
+
             var user = Content.CreateNew(userType, parent.ContentHandler, name);
-            user["ExternalUserProviders"] = external;
+            user["LoginName"] = loginName;
             user["Email"] = email;
-            user["FullName"] = fullName;
-            user.DisplayName = fullName;
+            user["FullName"] = string.IsNullOrEmpty(fullName) ? name : fullName;
+            user.DisplayName = string.IsNullOrEmpty(fullName) ? name : fullName;
+            user["Enabled"] = true;
+
+            setProperties?.Invoke(user);
 
             user.Save();
 
