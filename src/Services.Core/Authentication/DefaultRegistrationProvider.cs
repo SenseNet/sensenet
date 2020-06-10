@@ -34,8 +34,11 @@ namespace SenseNet.Services.Core.Authentication
             string email, CancellationToken cancellationToken)
         {
             // content name: login name, because the email may be empty
-            return await CreateUser(loginName, loginName, email, loginName, 
-                user => {}, cancellationToken);
+            return await CreateUser(loginName, loginName, email, loginName,
+                user =>
+                {
+                    user["Password"] = password;
+                }, cancellationToken);
         }
 
         public async Task<User> CreateProviderUserAsync(Content content, HttpContext context, string provider, string userId, 
