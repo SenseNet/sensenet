@@ -69,5 +69,21 @@ namespace SenseNet.Services.Core.Operations
 
             return Content.Create(user);
         }
+
+        [ODataAction]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Administrators)]
+        public static async Task<Content> CreateLocalUser(Content content, HttpContext context, string loginName, 
+            string password, string email)
+        {
+            if (!(context.RequestServices.GetService(typeof(RegistrationProviderStore)) is RegistrationProviderStore providerStore))
+                throw new InvalidOperationException("sensenet user registration service is not available.");
+
+            var registrationProvider = providerStore.Get("local");
+            var user = await registrationProvider.CreateLocalUserAsync(content, context, loginName,
+                password, email, context.RequestAborted).ConfigureAwait(false);
+
+            return Content.Create(user);
+        }
     }
 }
