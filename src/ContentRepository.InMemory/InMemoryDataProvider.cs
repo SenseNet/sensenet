@@ -1621,25 +1621,20 @@ namespace SenseNet.ContentRepository.InMemory
         }
         private IEnumerable<Package> GetInitialPackages()
         {
-            var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                @"..\..\..\..\..\nuget\snadmin\install-services-core\manifest.xml"));
-            string manifestXml;
-            using (var reader = new StreamReader(path))
-                manifestXml = reader.ReadToEnd();
-            var xml = new XmlDocument();
-            xml.LoadXml(manifestXml);
-            var root = xml.DocumentElement;
+            var asm = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "SenseNet.ContentRepository");
+            var version = asm?.GetName().Version ?? Version.Parse("0.0.0");
 
             var package = new Package
             {
-                ComponentId = root.SelectSingleNode("Id").InnerText,
-                Description = root.SelectSingleNode("Description").InnerText,
-                PackageType = (PackageType)Enum.Parse(typeof(PackageType), root.Attributes["type"].Value),
-                ReleaseDate = DateTime.Parse(root.SelectSingleNode("ReleaseDate").InnerText),
-                ComponentVersion = Version.Parse(root.SelectSingleNode("Version").InnerText),
+                ComponentId = "SenseNet.Services",
+                Description = "sensenet Services",
+                PackageType = PackageType.Install,
+                ReleaseDate = DateTime.UtcNow,
+                ComponentVersion = version,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Successful,
-                Manifest = manifestXml
+                Manifest = ""
             };
 
             return new[] {package};
