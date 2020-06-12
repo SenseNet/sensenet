@@ -1,0 +1,30 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:59925",
+      "sslPort": 44362
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Path",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "SnWebApplication.Api.InMem.TokenAuth": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Path",
+      "applicationUrl": "https://localhost:44362",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
