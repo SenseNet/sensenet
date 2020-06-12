@@ -69,6 +69,8 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 options.AddJwtCookie = true;
             });
 
+            app.UseAuthorization();
+
             // [sensenet] Add the sensenet binary handler
             app.UseSenseNetFiles();
 

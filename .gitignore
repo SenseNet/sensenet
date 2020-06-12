@@ -258,3 +258,5 @@ paket-files/
 /src/nuget/snadmin/install-services-core/scripts
 /docs/nlb-environment.md
 /src/Services.Core.Install/*.zip
+**/App_Data/LuceneIndex
+**/App_Data/LocalIndex

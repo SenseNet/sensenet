@@ -1,3 +1,6 @@
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -5,15 +8,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
+using SenseNet.Diagnostics;
 using SenseNet.OData;
+using SenseNet.Search.Lucene29;
+using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Services.Core.Cors;
 using SenseNet.Services.Core.Virtualization;
 using SenseNet.Services.Wopi;
 
-namespace SnWebApplication.Api.InMem.Admin
+namespace SnWebApplication.Api.Sql.TokenAuth
 {
     public class Startup
     {
@@ -29,8 +39,19 @@ namespace SnWebApplication.Api.InMem.Admin
         {
             services.AddRazorPages();
 
-            // [sensenet]: Authentication: switched off below
+            JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+            // [sensenet]: Authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = Configuration["sensenet:authentication:authority"];
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+
+                    options.Audience = "sensenet";
+                })
+                .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"])
                 .AddSenseNetRegistration(options =>
                 {
                     // add newly registered users to this group
@@ -61,15 +82,6 @@ namespace SnWebApplication.Api.InMem.Admin
                 options.AddJwtCookie = true;
             });
 
-            // [sensenet]: Authentication: in this test project everybody
-            // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            app.Use(async (context, next) =>
-            {
-                User.Current = User.Administrator;
-                if (next != null)
-                    await next();
-            });
-
             app.UseAuthorization();
 
             // [sensenet] Add the sensenet binary handler
@@ -90,6 +102,26 @@ namespace SnWebApplication.Api.InMem.Admin
                                                       "more information on how to call the REST API.");
                 });
             });
+        }
+
+        internal static RepositoryBuilder GetRepositoryBuilder(IConfiguration configuration, IHostEnvironment environment)
+        {
+            // assemble a SQL-specific repository
+
+            var repositoryBuilder = new RepositoryBuilder()
+                .UseConfiguration(configuration)
+                .UseLogger(new SnFileSystemEventLogger())
+                .UseTracer(new SnFileSystemTracer())
+                .UseAccessProvider(new UserAccessProvider())
+                .UseDataProvider(new MsSqlDataProvider())
+                .UseSecurityDataProvider(new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
+                .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
+                .StartWorkflowEngine(false)
+                .UseTraceCategories("Event", "Custom", "System") as RepositoryBuilder;
+
+            Providers.Instance.PropertyCollector = new EventPropertyCollector();
+
+            return repositoryBuilder;
         }
     }
 }
