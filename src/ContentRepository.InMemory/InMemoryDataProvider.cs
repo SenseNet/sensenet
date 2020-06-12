@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -1483,6 +1484,15 @@ namespace SenseNet.ContentRepository.InMemory
                 }
                 ContentTypeManager.Reset();
             }
+
+            var provider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            if (provider is InMemoryPackageStorageProvider inMemProvider)
+            {
+                foreach (var package in GetInitialPackages())
+                    inMemProvider.SavePackageAsync(package, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
             return STT.Task.CompletedTask;
         }
         private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData, InitialData data)
@@ -1609,6 +1619,27 @@ namespace SenseNet.ContentRepository.InMemory
                 }
             }
         }
+        private IEnumerable<Package> GetInitialPackages()
+        {
+            var asm = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "SenseNet.ContentRepository");
+            var version = asm?.GetName().Version ?? Version.Parse("0.0.0");
+
+            var package = new Package
+            {
+                ComponentId = "SenseNet.Services",
+                Description = "sensenet Services",
+                PackageType = PackageType.Install,
+                ReleaseDate = DateTime.UtcNow,
+                ComponentVersion = version,
+                ExecutionDate = DateTime.UtcNow,
+                ExecutionResult = ExecutionResult.Successful,
+                Manifest = ""
+            };
+
+            return new[] {package};
+        }
+
         public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
