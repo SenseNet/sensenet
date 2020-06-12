@@ -124,7 +124,6 @@
     <Compile Include="Implementations\TestDataReader.cs" />
     <Compile Include="Implementations\TestDbParameterCollection.cs" />
     <Compile Include="Implementations\TestPackageStorageProvider.cs" />
-    <Compile Include="Implementations\InMemoryPackageStorageProvider.cs" />
     <Compile Include="PackagingEzReleaseTests.cs" />
     <Compile Include="PackagingTestBase.cs" />
     <Compile Include="PackagingTests.cs" />

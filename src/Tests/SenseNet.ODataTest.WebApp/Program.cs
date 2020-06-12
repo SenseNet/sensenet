@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
