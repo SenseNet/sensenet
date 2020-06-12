@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -1483,6 +1484,15 @@ namespace SenseNet.ContentRepository.InMemory
                 }
                 ContentTypeManager.Reset();
             }
+
+            var provider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            if (provider is InMemoryPackageStorageProvider inMemProvider)
+            {
+                foreach (var package in GetInitialPackages())
+                    inMemProvider.SavePackageAsync(package, CancellationToken.None)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
             return STT.Task.CompletedTask;
         }
         private void InstallNodeSafe(NodeHeadData nData, VersionData vData, DynamicPropertyData dData, InitialData data)
@@ -1609,6 +1619,32 @@ namespace SenseNet.ContentRepository.InMemory
                 }
             }
         }
+        private IEnumerable<Package> GetInitialPackages()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                @"..\..\..\..\..\nuget\snadmin\install-services-core\manifest.xml"));
+            string manifestXml;
+            using (var reader = new StreamReader(path))
+                manifestXml = reader.ReadToEnd();
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestXml);
+            var root = xml.DocumentElement;
+
+            var package = new Package
+            {
+                ComponentId = root.SelectSingleNode("Id").InnerText,
+                Description = root.SelectSingleNode("Description").InnerText,
+                PackageType = (PackageType)Enum.Parse(typeof(PackageType), root.Attributes["type"].Value),
+                ReleaseDate = DateTime.Parse(root.SelectSingleNode("ReleaseDate").InnerText),
+                ComponentVersion = Version.Parse(root.SelectSingleNode("Version").InnerText),
+                ExecutionDate = DateTime.UtcNow,
+                ExecutionResult = ExecutionResult.Successful,
+                Manifest = manifestXml
+            };
+
+            return new[] {package};
+        }
+
         public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
