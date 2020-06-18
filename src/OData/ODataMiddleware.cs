@@ -803,10 +803,9 @@ namespace SenseNet.OData
         }
         public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext, IConfiguration appConfig)
         {
-            (HttpContext httpContext, IConfiguration appConfig) args = (httpContext, appConfig);
             return backUri == null
-                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, args)
-                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, args);
+                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, (httpContext, appConfig))
+                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, (httpContext, appConfig));
         }
 
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
