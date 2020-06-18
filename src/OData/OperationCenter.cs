@@ -723,8 +723,8 @@ namespace SenseNet.OData
                         paramValues[i] = context.HttpContext;
                     else if (methodParams[i].ParameterType == typeof(ODataRequest))
                         paramValues[i] = context.HttpContext.GetODataRequest();
-                    //else if (methodParams[i].ParameterType == typeof(IConfiguration))
-                    //    paramValues[i] = context.HttpContext.get;
+                    else if (methodParams[i].ParameterType == typeof(IConfiguration))
+                        paramValues[i] = context.ApplicationConfiguration;
                     else
                         paramValues[i] = methodParams[i].DefaultValue;
                 }

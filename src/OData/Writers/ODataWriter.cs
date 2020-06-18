@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
@@ -298,7 +299,7 @@ namespace SenseNet.OData.Writers
         /// <param name="count"></param>
         protected abstract Task WriteCountAsync(HttpContext httpContext, int count);
 
-        internal async Task WriteContentPropertyAsync(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
+        internal async Task WriteContentPropertyAsync(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
@@ -357,7 +358,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                await WriteGetOperationResultAsync(httpContext, req)
+                await WriteGetOperationResultAsync(httpContext, req, appConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -408,13 +409,13 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles GET operations. Parameters come from the URL or the request stream.
         /// </summary>
-        internal async Task WriteGetOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WriteGetOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -452,14 +453,14 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
