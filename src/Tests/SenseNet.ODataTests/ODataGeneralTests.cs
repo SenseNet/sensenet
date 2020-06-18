@@ -35,7 +35,7 @@ namespace SenseNet.ODataTests
                 httpContext.Response.Body = new MemoryStream();
 
                 // ACTION
-                var odata = new ODataMiddleware(null);
+                var odata = new ODataMiddleware(null, null);
                 await odata.ProcessRequestAsync(httpContext, null).ConfigureAwait(false);
 
                 // ASSERT

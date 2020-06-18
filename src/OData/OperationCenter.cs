@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -42,7 +43,7 @@ namespace SenseNet.OData
         internal static Dictionary<string, IOperationMethodPolicy> Policies { get; } =
             new Dictionary<string, IOperationMethodPolicy>();
 
-        public static Type[] SystemParameters { get; } = {typeof(HttpContext), typeof(ODataRequest)};
+        public static Type[] SystemParameters { get; } = {typeof(HttpContext), typeof(ODataRequest), typeof(IConfiguration) };
 
         internal static void Discover()
         {
@@ -722,6 +723,8 @@ namespace SenseNet.OData
                         paramValues[i] = context.HttpContext;
                     else if (methodParams[i].ParameterType == typeof(ODataRequest))
                         paramValues[i] = context.HttpContext.GetODataRequest();
+                    //else if (methodParams[i].ParameterType == typeof(IConfiguration))
+                    //    paramValues[i] = context.HttpContext.get;
                     else
                         paramValues[i] = methodParams[i].DefaultValue;
                 }

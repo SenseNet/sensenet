@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -37,6 +40,13 @@ namespace SenseNet.ODataTests
                    $" Query: {httpContext.Request.QueryString}." +
                    $" Format: {request.Format}." +
                    $" Path: {(content?.Path ?? "[null]")}." +
+                   $" Param1: {param1}.";
+        }
+        [ODataFunction]
+        public static string Function22(Content content, IConfiguration configuration, string param1)
+        {
+            return "## Function22 called." +
+                   $" Config: {configuration?.GetType().Name ?? "(null)"}." +
                    $" Param1: {param1}.";
         }
         [ODataFunction]
@@ -108,6 +118,33 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual(exp, raw);
             }).ConfigureAwait(false);
         }
+
+        private class TestConfigForSystemParametersTest : IConfiguration
+        {
+            public IConfigurationSection GetSection(string key) { throw new NotImplementedException(); }
+            public IEnumerable<IConfigurationSection> GetChildren() { throw new NotImplementedException(); }
+            public IChangeToken GetReloadToken() { throw new NotImplementedException(); }
+            public string this[string key] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        }
+        [TestMethod]
+        public async Task OD_MBOP_Invoke_SystemParameters_IConfig()
+        {
+            await ODataTestAsync(async () =>
+            {
+                // ACTION
+                var response = await ODataPostAsync(
+                    "/OData.svc/Root('IMS')/Function22", "",
+                    "{param1:\"asdf\"}", new TestConfigForSystemParametersTest()).ConfigureAwait(false);
+
+                // ASSERT
+                var expected = "## Function22 called. Config: {TestConfigForSystemParametersTest}. Param1: asdf.";
+                var actual = response.Result;
+                var raw = actual.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                var exp = expected.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
+                Assert.AreEqual(exp, raw);
+            }).ConfigureAwait(false);
+        }
+
         [TestMethod]
         public async Task OD_MBOP_Invoke_WithApp()
         {

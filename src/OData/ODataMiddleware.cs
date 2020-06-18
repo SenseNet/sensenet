@@ -17,6 +17,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
@@ -70,10 +71,12 @@ namespace SenseNet.OData
         internal const int ExpansionLimit = int.MaxValue - 1;
 
         private readonly RequestDelegate _next;
+        private readonly IConfiguration _config;
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config)
         {
             _next = next;
+            _config = config;
         }
 
 
