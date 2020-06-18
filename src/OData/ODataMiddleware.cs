@@ -803,17 +803,15 @@ namespace SenseNet.OData
         }
         public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext, IConfiguration appConfig)
         {
-            var state = new Tuple<HttpContext, IConfiguration>(httpContext, appConfig);
+            (HttpContext httpContext, IConfiguration appConfig) args = (httpContext, appConfig);
             return backUri == null
-                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, state)
-                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, state);
+                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, args)
+                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, args);
         }
 
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
         {
-            var tuple = (Tuple<HttpContext, IConfiguration>) state;
-            var httpContext = tuple.Item1;
-            var config = tuple.Item2;
+            var (httpContext, config) = ((HttpContext, IConfiguration))state;
 
             //var odataRequest = (ODataRequest) httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey];
             OperationCallingContext method;
