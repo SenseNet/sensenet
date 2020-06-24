@@ -9,12 +9,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
-    <PackageReference Include="SenseNet.OData" Version="0.0.7" />
     <PackageReference Include="SenseNet.Search.Lucene29.Local" Version="7.4.1" />
     <PackageReference Include="SenseNet.Security.EFCSecurityStore" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
     <ProjectReference Include="..\..\Services.Core.Install\SenseNet.Services.Core.Install.csproj" />
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <ExcludeAssets>all</ExcludeAssets>
