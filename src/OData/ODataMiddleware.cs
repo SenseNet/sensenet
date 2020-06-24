@@ -17,6 +17,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
@@ -70,10 +71,12 @@ namespace SenseNet.OData
         internal const int ExpansionLimit = int.MaxValue - 1;
 
         private readonly RequestDelegate _next;
+        private readonly IConfiguration _appConfig;
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config)
         {
             _next = next;
+            _appConfig = config;
         }
 
 
@@ -165,7 +168,7 @@ namespace SenseNet.OData
                             else if (odataRequest.IsMemberRequest)
                                 await odataWriter.WriteContentPropertyAsync(
                                         odataRequest.RepositoryPath, odataRequest.PropertyName,
-                                        odataRequest.IsRawValueRequest, httpContext, odataRequest)
+                                        odataRequest.IsRawValueRequest, httpContext, odataRequest, _appConfig)
                                     .ConfigureAwait(false);
                             else
                                 await odataWriter.WriteSingleContentAsync(requestedContent, httpContext)
@@ -224,7 +227,7 @@ namespace SenseNet.OData
                         if (odataRequest.IsMemberRequest)
                         {
                             // MEMBER REQUEST
-                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest)
+                            await odataWriter.WritePostOperationResultAsync(httpContext, odataRequest, _appConfig)
                                 .ConfigureAwait(false);
                         }
                         else
@@ -786,7 +789,7 @@ namespace SenseNet.OData
     {
         GenericScenario GetScenario(string name, string parameters, HttpContext httpContext);
         IEnumerable<ActionBase> GetActions(Content context, string scenario, string backUri, HttpContext httpContext);
-        ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext);
+        ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext, IConfiguration appConfig);
     }
     internal class DefaultActionResolver : IActionResolver
     {
@@ -798,16 +801,17 @@ namespace SenseNet.OData
         {
             return ActionFramework.GetActions(context, scenario, null, backUri, httpContext);
         }
-        public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext)
+        public ActionBase GetAction(Content context, string scenario, string actionName, string backUri, object parameters, HttpContext httpContext, IConfiguration appConfig)
         {
             return backUri == null
-                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, httpContext)
-                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, httpContext);
+                ? ActionFramework.GetAction(actionName, context, parameters, GetMethodBasedAction, (httpContext, appConfig))
+                : ActionFramework.GetAction(actionName, context, backUri, parameters, GetMethodBasedAction, (httpContext, appConfig));
         }
 
         private ActionBase GetMethodBasedAction(string name, Content content, object state)
         {
-            var httpContext = (HttpContext) state;
+            var (httpContext, config) = ((HttpContext, IConfiguration))state;
+
             //var odataRequest = (ODataRequest) httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey];
             OperationCallingContext method;
             try
@@ -841,6 +845,7 @@ namespace SenseNet.OData
             }
 
             method.HttpContext = httpContext;
+            method.ApplicationConfiguration = config;
             return new ODataOperationMethodExecutor(method);
         }
     }

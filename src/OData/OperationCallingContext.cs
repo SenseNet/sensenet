@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using SenseNet.ContentRepository;
 
 namespace SenseNet.OData
@@ -14,6 +15,7 @@ namespace SenseNet.OData
         public Content Content { get; }
         public OperationInfo Operation { get; }
         public HttpContext HttpContext { get; set; }
+        public IConfiguration ApplicationConfiguration { get; set; }
 
         internal OperationCallingContext(Content content, OperationInfo info)
         {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -397,36 +398,36 @@ namespace SenseNet.ODataTests
             }
         }
 
-        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString)
+        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, null, "GET");
+            return ODataProcessRequestAsync(resource, queryString, null, "GET", config);
         }
-        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString)
+        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, null, "DELETE");
+            return ODataProcessRequestAsync(resource, queryString, null, "DELETE", config);
         }
-        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT", config);
         }
-        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH", config);
         }
-        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE", config);
         }
-        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST", config);
         }
-        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod)
+        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod);
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod, config);
         }
         private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
-            string requestBodyJson, string httpMethod)
+            string requestBodyJson, string httpMethod, IConfiguration config)
         {
             var httpContext = CreateHttpContext(resource, queryString);
             var request = httpContext.Request;
@@ -438,7 +439,7 @@ namespace SenseNet.ODataTests
 
             httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null);
+            var odata = new ODataMiddleware(null, config);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
