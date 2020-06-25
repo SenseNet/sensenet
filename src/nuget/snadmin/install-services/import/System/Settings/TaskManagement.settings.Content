@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="TaskManagement.settings" />
     <GlobalOnly>true</GlobalOnly>
+    <Index>400</Index>
   </Fields>
   <Permissions>
     <Clear />

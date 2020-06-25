@@ -4,6 +4,7 @@
   <ContentName>OfficeOnline.settings</ContentName>
   <Fields>
     <Binary attachment="OfficeOnline.settings" />
+    <Index>40</Index>
   </Fields>
   <Permissions>
     <Clear />
