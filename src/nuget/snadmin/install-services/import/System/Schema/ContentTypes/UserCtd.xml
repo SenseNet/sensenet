@@ -188,7 +188,6 @@
         <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
-        <Visible>true</Visible>
         <FieldIndex>190</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
@@ -202,7 +201,6 @@
         <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
-        <Visible>true</Visible>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>

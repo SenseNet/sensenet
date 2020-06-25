@@ -27,9 +27,10 @@
     </Field>
     <Field name="Version" type="Version">
       <Configuration>
+      <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Hide</VisibleEdit>
-        <VisibleNew>Hide</VisibleNew>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Members" type="Reference">
@@ -83,9 +84,10 @@
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <FieldIndex>10</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
   </Fields>
