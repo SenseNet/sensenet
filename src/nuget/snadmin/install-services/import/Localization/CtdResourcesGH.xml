@@ -187,7 +187,7 @@
           <value>Major and minor</value>
         </data>
         <data name="InheritableVersioningMode-DisplayName" xml:space="preserve">
-          <value>Version history</value>
+          <value>Versioning mode</value>
         </data>
         <data name="InheritableVersioningMode-Description" xml:space="preserve">
           <value>Specify whether the system should create a new version whenever you create or modify a content below this content.</value>
@@ -914,8 +914,14 @@
   <ResourceClass name="Ctd-Group">
     <Languages>
       <Language cultureName="en">
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
         <data name="DisplayName" xml:space="preserve">
           <value>Group</value>
+        </data>
+        <data name="Index-DisplayName" xml:space="preserve">
+          <value>Index</value>
         </data>
         <data name="Description" xml:space="preserve">
           <value>You can categorize users and groups into groups according to any criteria.</value>
@@ -940,8 +946,14 @@
         </data>
       </Language>
       <Language cultureName="hu">
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
         <data name="DisplayName" xml:space="preserve">
           <value>Csoport</value>
+        </data>
+        <data name="Index-DisplayName" xml:space="preserve">
+          <value>Index</value>
         </data>
         <data name="Description" xml:space="preserve">
           <value>Felhasználók csoportosítására szolgáló gyűjtőegység. Tagjai lehetnek további csoportok is.</value>
