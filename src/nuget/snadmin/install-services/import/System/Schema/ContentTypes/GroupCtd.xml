@@ -29,8 +29,8 @@
       <Configuration>
       <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Show</VisibleEdit>
-        <VisibleNew>Show</VisibleNew>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
     <Field name="Members" type="Reference">
