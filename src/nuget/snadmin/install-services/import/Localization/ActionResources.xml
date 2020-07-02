@@ -1,0 +1,884 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Action">
+    <Languages>
+      <Language cultureName="en">
+        <data name="Add" xml:space="preserve">
+          <value>Add</value>
+        </data>
+        <data name="Edit" xml:space="preserve">
+          <value>Edit</value>
+        </data>
+        <data name="Browse" xml:space="preserve">
+          <value>Browse</value>
+        </data>
+        <data name="Delete" xml:space="preserve">
+          <value>Delete</value>
+        </data>
+        <data name="CopyAppLocal" xml:space="preserve">
+          <value>CopyAppLocal</value>
+        </data>
+        <data name="DeleteLocal" xml:space="preserve">
+          <value>DeleteLocal</value>
+        </data>
+        <data name="Manage" xml:space="preserve">
+          <value>Manage</value>
+        </data>
+        <data name="AddField" xml:space="preserve">
+          <value>Add field</value>
+        </data>
+        <data name="DeleteField" xml:space="preserve">
+          <value>Delete field</value>
+        </data>
+        <data name="EditField" xml:space="preserve">
+          <value>Edit field</value>
+        </data>
+        <data name="IncomingEmailSettings" xml:space="preserve">
+          <value>Incoming email settings</value>
+        </data>
+        <data name="ManageFields" xml:space="preserve">
+          <value>Manage fields</value>
+        </data>
+        <data name="ManageViews" xml:space="preserve">
+          <value>Manage views</value>
+        </data>
+        <data name="Settings" xml:space="preserve">
+          <value>Settings</value>
+        </data>
+        <data name="DeleteBatchTarget" xml:space="preserve">
+          <value>Delete batch target</value>
+        </data>
+        <data name="Explore" xml:space="preserve">
+          <value>Explore</value>
+        </data>
+        <data name="GetPermissions" xml:space="preserve">
+          <value>Get permissions</value>
+        </data>
+        <data name="HasPermission" xml:space="preserve">
+          <value>Has permissions</value>
+        </data>
+        <data name="SetPermissions" xml:space="preserve">
+          <value>Set permissions</value>
+        </data>
+        <data name="DeleteBatch" xml:space="preserve">
+          <value>DeleteBatch</value>
+        </data>
+        <data name="Approve" xml:space="preserve">
+          <value>Approve or reject</value>
+        </data>
+        <data name="Reject" xml:space="preserve">
+          <value>Reject</value>
+        </data>
+        <data name="GetPermissions-DisplayName" xml:space="preserve">
+          <value>Get permissions</value>
+        </data>
+        <data name="HasPermission-DisplayName" xml:space="preserve">
+          <value>Has permission</value>
+        </data>
+        <data name="SetPermissions-DisplayName" xml:space="preserve">
+          <value>Set permissions</value>
+        </data>
+        <data name="Delete-DisplayName" xml:space="preserve">
+          <value>Delete</value>
+        </data>
+        <data name="Approve-DisplayName" xml:space="preserve">
+          <value>Approve or reject</value>
+        </data>
+        <data name="Reject-DisplayName" xml:space="preserve">
+          <value>Reject</value>
+        </data>
+        <data name="Cancel" xml:space="preserve">
+          <value>Cancel</value>
+        </data>
+        <data name="Download" xml:space="preserve">
+          <value>Download</value>
+        </data>
+        <data name="BinarySpecial" xml:space="preserve">
+          <value>Edit in browser</value>
+        </data>
+        <data name="Edit-in-Microsoft-Office" xml:space="preserve">
+          <value>Edit in Microsoft Office</value>
+        </data>
+        <data name="CopyBatch" xml:space="preserve">
+          <value>Copy selected</value>
+        </data>
+        <data name="CopyBatch-DisplayName" xml:space="preserve">
+          <value>Copy selected</value>
+        </data>
+        <data name="ImportFromCsv" xml:space="preserve">
+          <value>Import from CSV</value>
+        </data>
+        <data name="Upload" xml:space="preserve">
+          <value>Upload</value>
+        </data>
+        <data name="EditAndUpload" xml:space="preserve">
+          <value>Edit and Upload</value>
+        </data>
+        <data name="UploadAutoType" xml:space="preserve">
+          <value>Auto</value>
+        </data>
+        <data name="UploadAddFiles" xml:space="preserve">
+          <value>Add files...</value>
+        </data>
+        <data name="UploadAddFile" xml:space="preserve">
+          <value>Add file...</value>
+        </data>
+        <data name="UploadUploadAs" xml:space="preserve">
+          <value>Upload files as</value>
+        </data>
+        <data name="UploadStartUpload" xml:space="preserve">
+          <value>Start upload</value>
+        </data>
+        <data name="Close" xml:space="preserve">
+          <value>Close</value>
+        </data>
+        <data name="UploadDragAndDrop" xml:space="preserve">
+          <value>Drop files here!</value>
+        </data>
+        <data name="UploadDragAndDropOneFile" xml:space="preserve">
+          <value>Drop a file here!</value>
+        </data>
+        <data name="UploadOtherError" xml:space="preserve">
+          <value>An error occurred during uploading.</value>
+        </data>
+        <data name="UploadNoAllowedTypeError" xml:space="preserve">
+          <value>No File type is allowed to be uploaded here.</value>
+        </data>
+        <data name="UploadExceptionLocked" xml:space="preserve">
+          <value>The file is locked by another user.</value>
+        </data>
+        <data name="UploadExceptionInvalidRequest" xml:space="preserve">
+          <value>Invalid request.</value>
+        </data>
+        <data name="UploadExceptionInvalidContentType" xml:space="preserve">
+          <value>A content of this type cannot be created here.</value>
+        </data>
+        <data name="UploadExceptionEmptyAllowedChildTypes" xml:space="preserve">
+          <value>Allowed child types list is empty!</value>
+        </data>
+        <data name="ContentLinkBatch" xml:space="preserve">
+          <value>Create content links</value>
+        </data>
+        <data name="DeleteBatch" xml:space="preserve">
+          <value>Delete selected</value>
+        </data>
+        <data name="DeleteBatch-DisplayName" xml:space="preserve">
+          <value>Delete selected</value>
+        </data>
+        <data name="ExportToCsv" xml:space="preserve">
+          <value>Export to CSV</value>
+        </data>
+        <data name="MoveBatch" xml:space="preserve">
+          <value>Move selected</value>
+        </data>
+        <data name="MoveBatch-DisplayName" xml:space="preserve">
+          <value>Move selected</value>
+        </data>
+        <data name="MoveInProgressDialogTitle" xml:space="preserve">
+          <value>Move in progress...</value>
+        </data>
+        <data name="MoveDialogTitle" xml:space="preserve">
+          <value>Move</value>
+        </data>
+        <data name="MoveDialogContent" xml:space="preserve">
+          <value>Content moved successfully.</value>
+        </data>
+        <data name="CopyInProgressDialogTitle" xml:space="preserve">
+          <value>Copy in progress...</value>
+        </data>
+        <data name="CopyDialogTitle" xml:space="preserve">
+          <value>Copy</value>
+        </data>
+        <data name="CopyDialogContent" xml:space="preserve">
+          <value>Content copied successfully.</value>
+        </data>
+        <data name="ErrorDialogTitle" xml:space="preserve">
+          <value>Error</value>
+        </data>
+        <data name="ErrorOccurred" xml:space="preserve">
+          <value>An error occurred.</value>
+        </data>
+        <data name="ErrorContentNotFound" xml:space="preserve">
+          <value>Content does not exist at {0}.</value>
+        </data>
+        <data name="ActionList" xml:space="preserve">
+          <value>Action list</value>
+        </data>
+        <data name="ApplicationList" xml:space="preserve">
+          <value>ApplicationList</value>
+        </data>
+        <data name="CheckIn" xml:space="preserve">
+          <value>Check in</value>
+        </data>
+        <data name="CheckOut" xml:space="preserve">
+          <value>Check out</value>
+        </data>
+        <data name="CheckIn-DisplayName" xml:space="preserve">
+          <value>Check in</value>
+        </data>
+        <data name="CheckOut-DisplayName" xml:space="preserve">
+          <value>Check out</value>
+        </data>
+        <data name="ContentLinker" xml:space="preserve">
+          <value>ContentLinker</value>
+        </data>
+        <data name="CopyToTarget" xml:space="preserve">
+          <value>Copy to target</value>
+        </data>
+        <data name="DeleteBatchTarget" xml:space="preserve">
+          <value>Delete batch target</value>
+        </data>
+        <data name="DeleteNotification" xml:space="preserve">
+          <value>DeleteNotification</value>
+        </data>
+        <data name="Preview" xml:space="preserve">
+          <value>Preview</value>
+        </data>
+        <data name="ExploreSearch" xml:space="preserve">
+          <value>ExploreSearch</value>
+        </data>
+        <data name="ForceUndoCheckOut" xml:space="preserve">
+          <value>Force undo changes</value>
+        </data>
+        <data name="ForceUndoCheckOut-DisplayName" xml:space="preserve">
+          <value>Force undo changes</value>
+        </data>
+        <data name="MoveField" xml:space="preserve">
+          <value>Move field</value>
+        </data>
+        <data name="MoveToTarget" xml:space="preserve">
+          <value>Move to target</value>
+        </data>
+        <data name="Notification" xml:space="preserve">
+          <value>Set Notification</value>
+        </data>
+        <data name="Publish" xml:space="preserve">
+          <value>Publish</value>
+        </data>
+        <data name="Publish-DisplayName" xml:space="preserve">
+          <value>Publish</value>
+        </data>
+        <data name="PurgeFromProxy" xml:space="preserve">
+          <value>Purge from Proxy</value>
+        </data>
+        <data name="Rename" xml:space="preserve">
+          <value>Rename</value>
+        </data>
+        <data name="RestoreVersion" xml:space="preserve">
+          <value>Restore version</value>
+        </data>
+        <data name="RestoreVersion-DisplayName" xml:space="preserve">
+          <value>Restore version</value>
+        </data>
+        <data name="Search" xml:space="preserve">
+          <value>Search</value>
+        </data>
+        <data name="UndoCheckOut" xml:space="preserve">
+          <value>Undo changes</value>
+        </data>
+        <data name="Versions" xml:space="preserve">
+          <value>Versions</value>
+        </data>
+        <data name="UndoCheckOut-DisplayName" xml:space="preserve">
+          <value>Undo changes</value>
+        </data>
+        <data name="Versions-DisplayName" xml:space="preserve">
+          <value>Versions</value>
+        </data>
+        <data name="CopyTo" xml:space="preserve">
+          <value>Copy to</value>
+        </data>
+        <data name="EditContentType" xml:space="preserve">
+          <value>Edit content type</value>
+        </data>
+        <data name="MoveTo" xml:space="preserve">
+          <value>Move to</value>
+        </data>
+        <data name="Rss" xml:space="preserve">
+          <value>Rss</value>
+        </data>
+        <data name="Share" xml:space="preserve">
+          <value>Share</value>
+        </data>
+        <data name="DeleteContentList" xml:space="preserve">
+          <value>Delete content list</value>
+        </data>
+        <data name="DeleteLibrary" xml:space="preserve">
+          <value>Delete library</value>
+        </data>
+        <data name="OpenLink" xml:space="preserve">
+          <value>Open link</value>
+        </data>
+        <data name="Portlets" xml:space="preserve">
+          <value>Portlets</value>
+        </data>
+        <data name="BackupIndex" xml:space="preserve">
+          <value>BackupIndex</value>
+        </data>
+        <data name="EditTemplates" xml:space="preserve">
+          <value>Edit templates</value>
+        </data>
+        <data name="UpdateBlacklist" xml:space="preserve">
+          <value>Update blacklist</value>
+        </data>
+        <data name="EditProfile" xml:space="preserve">
+          <value>Edit profile</value>
+        </data>
+        <data name="ManageGroups" xml:space="preserve">
+          <value>Manage groups</value>
+        </data>
+        <data name="Profile" xml:space="preserve">
+          <value>My site</value>
+        </data>
+        <data name="SetActivation" xml:space="preserve">
+          <value>Set activation</value>
+        </data>
+        <data name="CopyViewLocal" xml:space="preserve">
+          <value>Copy view local</value>
+        </data>
+        <data name="Logout" xml:space="preserve">
+          <value>Log out</value>
+        </data>
+        <data name="Set-as-default" xml:space="preserve">
+          <value>Set as default</value>
+        </data>
+        <data name="Abort" xml:space="preserve">
+          <value>Abort</value>
+        </data>
+        <data name="DeleteWorkspace" xml:space="preserve">
+          <value>Delete workspace</value>
+        </data>
+        <data name="WorkspaceSettings" xml:space="preserve">
+          <value>Workspace settings</value>
+        </data>
+        <data name="NotifyMeAboutChanges" xml:space="preserve">
+          <value>Notify me about changes</value>
+        </data>
+        <data name="WorkspacePermissions" xml:space="preserve">
+          <value>Workspace permissions</value>
+        </data>
+        <data name="Synchronize-from-Active-Directory" xml:space="preserve">
+          <value>Synchronize from Active Directory</value>
+        </data>
+        <data name="Synchronize" xml:space="preserve">
+          <value>Synchronize</value>
+        </data>
+        <data name="Create" xml:space="preserve">
+          <value>Create</value>
+        </data>
+        <data name="EditProperties" xml:space="preserve">
+          <value>Edit properties</value>
+        </data>
+        <data name="Notify me" xml:space="preserve">
+          <value>NotifyMe</value>
+        </data>
+        <data name="Purge" xml:space="preserve">
+          <value>Empty Trash Bin</value>
+        </data>
+        <data name="ContentPurge" xml:space="preserve">
+          <value>Purge</value>
+        </data>
+        <data name="Restore" xml:space="preserve">
+          <value>Restore</value>
+        </data>
+        <data name="Restore-DisplayName" xml:space="preserve">
+          <value>Restore</value>
+        </data>
+        <data name="RecentChanges" xml:space="preserve">
+          <value>Recent changes</value>
+        </data>
+        <data name="OpenInContentExplorer" xml:space="preserve">
+          <value>Open in Content Explorer</value>
+        </data>
+        <data name="AddAspects" xml:space="preserve">
+          <value>Add Aspects</value>
+        </data>
+        <data name="AddFields" xml:space="preserve">
+          <value>Add Fields</value>
+        </data>
+        <data name="RemoveAspects" xml:space="preserve">
+          <value>Remove Aspects</value>
+        </data>
+        <data name="RemoveFields" xml:space="preserve">
+          <value>Remove Fields</value>
+        </data>
+        <data name="RemoveAllAspects" xml:space="preserve">
+          <value>Remove All Aspects</value>
+        </data>
+        <data name="RemoveAllFields" xml:space="preserve">
+          <value>Remove All Fields</value>
+        </data>
+        <data name="RetrieveFields" xml:space="preserve">
+          <value>List Aspect Fields</value>
+        </data>
+        <data name="GetPreviewImages" xml:space="preserve">
+          <value>Get preview images</value>
+        </data>
+        <data name="GetExistingPreviewImages" xml:space="preserve">
+          <value>Get existing preview images</value>
+        </data>
+        <data name="ExportToPdf" xml:space="preserve">
+          <value>Download as pdf</value>
+        </data>
+        <data name="PasswordChange" xml:space="preserve">
+          <value>Change password</value>
+        </data>
+        <data name="UploadResume" xml:space="preserve">
+          <value>Resume upload</value>
+        </data>
+        <data name="WebPartDisplayMode" xml:space="preserve">
+          <value>WebPart display mode</value>
+        </data>
+        <data name="WebPartDisplayModeDescription" xml:space="preserve">
+          <value>Switches between the Browse and Edit webpart display modes.</value>
+        </data>
+        <data name="WopiOpenEdit-DisplayName" xml:space="preserve">
+          <value>Edit in Office Online</value>
+        </data>
+        <data name="WopiOpenView-DisplayName" xml:space="preserve">
+          <value>View in Office Online</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="Add" xml:space="preserve">
+          <value>Hozzáadás</value>
+        </data>
+        <data name="Edit" xml:space="preserve">
+          <value>Szerkesztés</value>
+        </data>
+        <data name="Browse" xml:space="preserve">
+          <value>Megtekintés</value>
+        </data>
+        <data name="Delete" xml:space="preserve">
+          <value>Törlés</value>
+        </data>
+        <data name="CopyAppLocal" xml:space="preserve">
+          <value>CopyAppLocal</value>
+        </data>
+        <data name="DeleteLocal" xml:space="preserve">
+          <value>DeleteLocal</value>
+        </data>
+        <data name="Manage" xml:space="preserve">
+          <value>Adminsztrálás</value>
+        </data>
+        <data name="AddField" xml:space="preserve">
+          <value>Mező hozzáadása</value>
+        </data>
+        <data name="DeleteField" xml:space="preserve">
+          <value>Mező törlése</value>
+        </data>
+        <data name="EditField" xml:space="preserve">
+          <value>Mező szerkesztése</value>
+        </data>
+        <data name="IncomingEmailSettings" xml:space="preserve">
+          <value>Beérkező email beállítások</value>
+        </data>
+        <data name="ManageFields" xml:space="preserve">
+          <value>Mezők adminisztrálása</value>
+        </data>
+        <data name="ManageViews" xml:space="preserve">
+          <value>Nézetek adminisztrálása</value>
+        </data>
+        <data name="Settings" xml:space="preserve">
+          <value>Beállítások</value>
+        </data>
+        <data name="DeleteBatchTarget" xml:space="preserve">
+          <value>Törlése</value>
+        </data>
+        <data name="Explore" xml:space="preserve">
+          <value>Explore</value>
+        </data>
+        <data name="GetPermissions" xml:space="preserve">
+          <value>Jogosultságok lekérdezése</value>
+        </data>
+        <data name="HasPermission" xml:space="preserve">
+          <value>Jogosultságok ellenőrzése</value>
+        </data>
+        <data name="SetPermissions" xml:space="preserve">
+          <value>Jogosultságok beállítása</value>
+        </data>
+        <data name="DeleteBatch" xml:space="preserve">
+          <value>Törlés</value>
+        </data>
+        <data name="Approve" xml:space="preserve">
+          <value>Jóváhagyás vagy elutasítás</value>
+        </data>
+        <data name="GetPermissions-DisplayName" xml:space="preserve">
+          <value>Jogosultságok lekérdezése</value>
+        </data>
+        <data name="HasPermission-DisplayName" xml:space="preserve">
+          <value>Jogosultságok ellenőrzése</value>
+        </data>
+        <data name="SetPermissions-DisplayName" xml:space="preserve">
+          <value>Jogosultságok beállítása</value>
+        </data>
+        <data name="Delete-DisplayName" xml:space="preserve">
+          <value>Törlés</value>
+        </data>
+        <data name="Approve-DisplayName" xml:space="preserve">
+          <value>Jóváhagyás vagy elutasítás</value>
+        </data>
+        <data name="Cancel" xml:space="preserve">
+          <value>Mégsem</value>
+        </data>
+        <data name="Download" xml:space="preserve">
+          <value>Letöltés</value>
+        </data>
+        <data name="BinarySpecial" xml:space="preserve">
+          <value>Szerkesztés böngészőben</value>
+        </data>
+        <data name="Edit-in-Microsoft-Office" xml:space="preserve">
+          <value>Szerkesztés Microsoft Office-szal</value>
+        </data>
+        <data name="CopyBatch" xml:space="preserve">
+          <value>Kijelöltek másolása</value>
+        </data>
+        <data name="CopyBatch-DisplayName" xml:space="preserve">
+          <value>Kijelöltek másolása</value>
+        </data>
+        <data name="IFrameUpload" xml:space="preserve">
+          <value>IFrameUpload</value>
+        </data>
+        <data name="ImportFromCsv" xml:space="preserve">
+          <value>Importálás CSV fájlból</value>
+        </data>
+        <data name="Upload" xml:space="preserve">
+          <value>Feltöltés</value>
+        </data>
+        <data name="EditAndUpload" xml:space="preserve">
+          <value>Szerkesztés és feltöltés</value>
+        </data>
+        <data name="UploadAutoType" xml:space="preserve">
+          <value>Auto</value>
+        </data>
+        <data name="UploadAddFiles" xml:space="preserve">
+          <value>Fájlok hozzáadása...</value>
+        </data>
+        <data name="UploadUploadAs" xml:space="preserve">
+          <value>Feltöltés mint</value>
+        </data>
+        <data name="UploadStartUpload" xml:space="preserve">
+          <value>Feltöltés</value>
+        </data>
+        <data name="Close" xml:space="preserve">
+          <value>Bezárás</value>
+        </data>
+        <data name="UploadDragAndDrop" xml:space="preserve">
+          <value>Drop a file here!</value>
+        </data>
+        <data name="UploadOtherError" xml:space="preserve">
+          <value>Hiba történt a feltöltés közben.</value>
+        </data>
+        <data name="UploadNoAllowedTypeError" xml:space="preserve">
+          <value>Itt nem engedélyezett Fájl típus feltöltése.</value>
+        </data>
+        <data name="UploadExceptionLocked" xml:space="preserve">
+          <value>A fájlt egy másik felhasználó zárolta.</value>
+        </data>
+        <data name="UploadExceptionInvalidRequest" xml:space="preserve">
+          <value>Hiba történt a küldés során.</value>
+        </data>
+        <data name="UploadExceptionInvalidContentType" xml:space="preserve">
+          <value>Ezen a helyen nem hozható létre a megadott típusú tartalom.</value>
+        </data>
+        <data name="UploadExceptionEmptyAllowedChildTypes" xml:space="preserve">
+          <value>Az engedélyezett típusok listája üres!</value>
+        </data>
+        <data name="ContentLinkBatch" xml:space="preserve">
+          <value>Tartalom-hivatkozások létrehozása</value>
+        </data>
+        <data name="DeleteBatch" xml:space="preserve">
+          <value>Kijelöltek törlése</value>
+        </data>
+        <data name="DeleteBatch-DisplayName" xml:space="preserve">
+          <value>Kijelöltek törlése</value>
+        </data>
+        <data name="ExportToCsv" xml:space="preserve">
+          <value>Exportálás CSV fájlba</value>
+        </data>
+        <data name="MoveBatch" xml:space="preserve">
+          <value>Kijelöltek mozgatása</value>
+        </data>
+        <data name="MoveBatch-DisplayName" xml:space="preserve">
+          <value>Kijelöltek mozgatása</value>
+        </data>
+        <data name="MoveInProgressDialogTitle" xml:space="preserve">
+          <value>Mozgatás folyamatban...</value>
+        </data>
+        <data name="MoveDialogTitle" xml:space="preserve">
+          <value>Mozgatás</value>
+        </data>
+        <data name="MoveDialogContent" xml:space="preserve">
+          <value>Mozgatás sikeresen végrehajtva.</value>
+        </data>
+        <data name="CopyInProgressDialogTitle" xml:space="preserve">
+          <value>Másolás folyamatban...</value>
+        </data>
+        <data name="CopyDialogTitle" xml:space="preserve">
+          <value>Másolás</value>
+        </data>
+        <data name="CopyDialogContent" xml:space="preserve">
+          <value>Másolás sikeresen végrehajtva.</value>
+        </data>
+        <data name="ErrorDialogTitle" xml:space="preserve">
+          <value>Hiba</value>
+        </data>
+        <data name="ErrorOccurred" xml:space="preserve">
+          <value>Hiba lépett fel a művelet végrehajtása során.</value>
+        </data>
+        <data name="ErrorContentNotFound" xml:space="preserve">
+          <value>Nincs tartalom a {0} útvonalon.</value>
+        </data>
+        <data name="ActionList" xml:space="preserve">
+          <value>Műveletlista</value>
+        </data>
+        <data name="ApplicationList" xml:space="preserve">
+          <value>Alkalmazáslista</value>
+        </data>
+        <data name="CheckIn" xml:space="preserve">
+          <value>Visszatesz</value>
+        </data>
+        <data name="CheckOut" xml:space="preserve">
+          <value>Kivesz</value>
+        </data>
+        <data name="CheckIn-DisplayName" xml:space="preserve">
+          <value>Visszatesz</value>
+        </data>
+        <data name="CheckOut-DisplayName" xml:space="preserve">
+          <value>Kivesz</value>
+        </data>
+        <data name="ContentLinker" xml:space="preserve">
+          <value>Hivatkozáskészítő</value>
+        </data>
+        <data name="CopyToTarget" xml:space="preserve">
+          <value>Másolás</value>
+        </data>
+        <data name="DeleteBatchTarget" xml:space="preserve">
+          <value>Törlés</value>
+        </data>
+        <data name="DeleteNotification" xml:space="preserve">
+          <value>Értesítés törlése</value>
+        </data>
+        <data name="Preview" xml:space="preserve">
+          <value>Részletek</value>
+        </data>
+        <data name="ExploreSearch" xml:space="preserve">
+          <value>ExploreSearch</value>
+        </data>
+        <data name="ForceUndoCheckOut" xml:space="preserve">
+          <value>Kényszerített visszavonás</value>
+        </data>
+        <data name="ForceUndoCheckOut-DisplayName" xml:space="preserve">
+          <value>Kényszerített visszavonás</value>
+        </data>
+        <data name="MoveField" xml:space="preserve">
+          <value>Mező mozgatása</value>
+        </data>
+        <data name="MoveToTarget" xml:space="preserve">
+          <value>Mozgatás</value>
+        </data>
+        <data name="Notification" xml:space="preserve">
+          <value>Értesítések beállítása</value>
+        </data>
+        <data name="Publish" xml:space="preserve">
+          <value>Publikálás</value>
+        </data>
+        <data name="Publish-DisplayName" xml:space="preserve">
+          <value>Publikálás</value>
+        </data>
+        <data name="PurgeFromProxy" xml:space="preserve">
+          <value>Proxy végleges törlése</value>
+        </data>
+        <data name="Rename" xml:space="preserve">
+          <value>Átnevezés</value>
+        </data>
+        <data name="RestoreVersion" xml:space="preserve">
+          <value>Verzió visszaállítása</value>
+        </data>
+        <data name="Search" xml:space="preserve">
+          <value>Keresés</value>
+        </data>
+        <data name="UndoCheckOut" xml:space="preserve">
+          <value>Módosítások visszavonása</value>
+        </data>
+        <data name="UndoCheckOut-DisplayName" xml:space="preserve">
+          <value>Módosítások visszavonása</value>
+        </data>
+        <data name="Unregister" xml:space="preserve">
+          <value>Unregister</value>
+        </data>
+        <data name="Versions" xml:space="preserve">
+          <value>Verziók</value>
+        </data>
+        <data name="CopyTo" xml:space="preserve">
+          <value>Másolás</value>
+        </data>
+        <data name="Versions-DisplayName" xml:space="preserve">
+          <value>Verziók</value>
+        </data>
+        <data name="CopyTo-DisplayName" xml:space="preserve">
+          <value>Másolás</value>
+        </data>
+        <data name="EditContentType" xml:space="preserve">
+          <value>Tartalomtípus szerkesztése</value>
+        </data>
+        <data name="MoveTo" xml:space="preserve">
+          <value>Mozgatás</value>
+        </data>
+        <data name="MoveTo-DisplayName" xml:space="preserve">
+          <value>Mozgatás</value>
+        </data>
+        <data name="Rss" xml:space="preserve">
+          <value>Rss</value>
+        </data>
+        <data name="Share" xml:space="preserve">
+          <value>Megosztás</value>
+        </data>
+        <data name="DeleteContentList" xml:space="preserve">
+          <value>Tartalomlista törlése</value>
+        </data>
+        <data name="DeleteLibrary" xml:space="preserve">
+          <value>Könyvtár törlése</value>
+        </data>
+        <data name="OpenLink" xml:space="preserve">
+          <value>Link megnyitása</value>
+        </data>
+        <data name="Portlets" xml:space="preserve">
+          <value>Portletek</value>
+        </data>
+        <data name="EditTemplates" xml:space="preserve">
+          <value>Sablonok szerkesztése</value>
+        </data>
+        <data name="ManageQuestions" xml:space="preserve">
+          <value>Kérdések adminisztrálása</value>
+        </data>
+        <data name="Evaluate" xml:space="preserve">
+          <value>Kiértékelés</value>
+        </data>
+        <data name="UpdateBlacklist" xml:space="preserve">
+          <value>Kivétellista frissítése</value>
+        </data>
+        <data name="EditProfile" xml:space="preserve">
+          <value>Profil szerkesztése</value>
+        </data>
+        <data name="ManageGroups" xml:space="preserve">
+          <value>Csoportok adminisztrálása</value>
+        </data>
+        <data name="NotificationAdmin" xml:space="preserve">
+          <value>Értesítések adminisztrálása</value>
+        </data>
+        <data name="Profile" xml:space="preserve">
+          <value>Saját oldalam</value>
+        </data>
+        <data name="SetActivation" xml:space="preserve">
+          <value>Aktiválás</value>
+        </data>
+        <data name="CopyViewLocal" xml:space="preserve">
+          <value>Copy view local</value>
+        </data>
+        <data name="Logout" xml:space="preserve">
+          <value>Kilépés</value>
+        </data>
+        <data name="Set-as-default" xml:space="preserve">
+          <value>Beállítás alapértelmezettként</value>
+        </data>
+        <data name="Abort" xml:space="preserve">
+          <value>Megszakítás</value>
+        </data>
+        <data name="DeleteWorkspace" xml:space="preserve">
+          <value>Munkaterület törlése</value>
+        </data>
+        <data name="WorkspaceSettings" xml:space="preserve">
+          <value>Munkaterület beállítása</value>
+        </data>
+        <data name="NotifyMeAboutChanges" xml:space="preserve">
+          <value>Értesíts a változásokról</value>
+        </data>
+        <data name="WorkspacePermissions" xml:space="preserve">
+          <value>Munkaterület jogosultságok</value>
+        </data>
+        <data name="Synchronize-from-Active-Directory" xml:space="preserve">
+          <value>Szinkronizálás Active Directory-ból</value>
+        </data>
+        <data name="Synchronize" xml:space="preserve">
+          <value>Szinkronizálás</value>
+        </data>
+        <data name="Create" xml:space="preserve">
+          <value>Lértrehozás</value>
+        </data>
+        <data name="EditProperties" xml:space="preserve">
+          <value>Szerkesztés</value>
+        </data>
+        <data name="Notify me" xml:space="preserve">
+          <value>Értesíts</value>
+        </data>
+        <data name="Purge" xml:space="preserve">
+          <value>Kuka elemeinek végleges törlése</value>
+        </data>
+        <data name="ContentPurge" xml:space="preserve">
+          <value>Végleges törlés</value>
+        </data>
+        <data name="Restore" xml:space="preserve">
+          <value>Visszaállítás</value>
+        </data>
+        <data name="Restore-DisplayName" xml:space="preserve">
+          <value>Visszaállítás</value>
+        </data>
+        <data name="RecentChanges" xml:space="preserve">
+          <value>Legutolsó változások</value>
+        </data>
+        <data name="OpenInContentExplorer" xml:space="preserve">
+          <value>Megnyitás Tartalom intézőben</value>
+        </data>
+        <data name="AddAspects" xml:space="preserve">
+          <value>Aspektusok hozzáadása</value>
+        </data>
+        <data name="AddFields" xml:space="preserve">
+          <value>Mezők hozzáadása</value>
+        </data>
+        <data name="RemoveAspects" xml:space="preserve">
+          <value>Aspektusok törlése</value>
+        </data>
+        <data name="RemoveFields" xml:space="preserve">
+          <value>Mezők törlése</value>
+        </data>
+        <data name="RemoveAllAspects" xml:space="preserve">
+          <value>Összes Aspektus törlése</value>
+        </data>
+        <data name="RemoveAllFields" xml:space="preserve">
+          <value>Összes Mező törlése</value>
+        </data>
+        <data name="RetrieveFields" xml:space="preserve">
+          <value>Aspektus mezők listája</value>
+        </data>
+        <data name="GetPreviewImages" xml:space="preserve">
+          <value>Előnézeti képek</value>
+        </data>
+        <data name="GetExistingPreviewImages" xml:space="preserve">
+          <value>Elkészült előnézeti képek</value>
+        </data>
+        <data name="ExportToPdf" xml:space="preserve">
+          <value>Letöltés pdf-ként</value>
+        </data>
+        <data name="PasswordChange" xml:space="preserve">
+          <value>Jelszómódosítás</value>
+        </data>
+        <data name="UploadResume" xml:space="preserve">
+          <value>Feltöltés folytatása</value>
+        </data>
+        <data name="WebPartDisplayMode" xml:space="preserve">
+          <value>WebPart megjelenítési mód</value>
+        </data>
+        <data name="WebPartDisplayModeDescription" xml:space="preserve">
+          <value>Lehetővé teszi a Browse és Edit mód közötti váltást a WebPart rendszerben.</value>
+        </data>
+        <data name="WopiOpenEdit-DisplayName" xml:space="preserve">
+          <value>Szerkesztés Office Online-ban</value>
+        </data>
+        <data name="WopiOpenView-DisplayName" xml:space="preserve">
+          <value>Megtekintés Office Online-ban</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

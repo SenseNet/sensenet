@@ -52,16 +52,15 @@ namespace SenseNet.Services.Wopi
             };
         }
 
-        [ODataFunction(Icon = "office")]
         [RequiredPermissions(N.P.Open)]
-        [RequiredPolicies("WopiOpenView")]
+        [RequiredPolicies("WopiOpenView", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
         [Scenario(N.S.ContextMenu)]
         public static object WopiOpenView(Content content)
         {
             // This method serves only action listing and will not actually execute.
             return null;
         }
-        [ODataFunction(Icon = "office")]
+        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies("WopiOpenEdit")]
         [Scenario(N.S.ContextMenu)]
