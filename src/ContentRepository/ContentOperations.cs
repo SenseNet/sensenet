@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository
     /// </summary>
     public static class ContentOperations
     {
-        [ODataAction(Icon = "approve", Description = "$Action,Approve")]
+        [ODataAction(Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Approve)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
@@ -27,7 +27,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "checkin", Description = "$Action,CheckIn")]
+        [ODataAction(Icon = "checkin", Description = "$Action,CheckIn", DisplayName = "$Action,CheckIn-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies(N.Pol.VersioningAndApproval)]
@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "checkout", Description = "$Action,CheckOut")]
+        [ODataAction(Icon = "checkout", Description = "$Action,CheckOut", DisplayName = "$Action,CheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "publish", Description = "$Action,Publish")]
+        [ODataAction(Icon = "publish", Description = "$Action,Publish", DisplayName = "$Action,Publish-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Publish)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.SimpleApprovableListItem, N.S.ContextMenu)]
@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Description = "$Action,Reject")]
+        [ODataAction(Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies(N.Pol.VersioningAndApproval)]
@@ -99,7 +99,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "undocheckout", Description = "$Action,UndoCheckOut")]
+        [ODataAction(Icon = "undocheckout", Description = "$Action,UndoCheckOut", DisplayName = "$Action,UndoCheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -114,7 +114,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut")]
+        [ODataAction(Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut", DisplayName = "$Action,ForceUndoCheckout-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
         [Scenario(N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
-        [ODataAction(Icon = "restoreversion", Description = "$Action,RestoreVersion")]
+        [ODataAction(Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.RecallOldVersion)]
         public static Content RestoreVersion(Content content, string version)

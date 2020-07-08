@@ -26,6 +26,7 @@
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
+        <FieldIndex>10</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
@@ -132,6 +133,18 @@
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Path" type="ShortText">
+      <DisplayName>$Ctd-Workspace,Path-DisplayName</DisplayName>
+      <Description>$Ctd-Workspace,Path-Description</Description>
+      <Configuration>
+        <FieldIndex>11</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>false</AllowMultiple>
+        <ControlHint>sn:Path</ControlHint>
       </Configuration>
     </Field>
   </Fields>

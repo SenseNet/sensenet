@@ -190,6 +190,9 @@
         <data name="Description" xml:space="preserve">
           <value>A type for binary documents, images, etc.</value>
         </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Filename</value>
+        </data>
         <data name="Binary-DisplayName" xml:space="preserve">
           <value>Binary</value>
         </data>
@@ -242,6 +245,9 @@
         </data>
         <data name="Description" xml:space="preserve">
           <value>Dokumentumok, képek és egyéb szöveges vagy bináris tartalmak tárolására szolgáló típus.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Fájlnév</value>
         </data>
         <data name="Binary-DisplayName" xml:space="preserve">
           <value>Bináris</value>

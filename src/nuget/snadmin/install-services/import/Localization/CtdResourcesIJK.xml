@@ -3,11 +3,11 @@
   <ResourceClass name="Ctd-Image">
     <Languages>
       <Language cultureName="en">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Image</value>
-        </data>
         <data name="Description" xml:space="preserve">
-          <value>A special Document type for storing images.</value>
+          <value>A special file type for images.</value>
+        </data>
+         <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Filename</value>
         </data>
         <data name="Keywords-DisplayName" xml:space="preserve">
           <value>Keywords</value>
@@ -29,11 +29,11 @@
         </data>
       </Language>
       <Language cultureName="hu">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Kép</value>
-        </data>
         <data name="Description" xml:space="preserve">
-          <value>Speciális dokumentum típus képeknek.</value>
+          <value>Speciális fájl típus képek tárolásához.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Filenév</value>
         </data>
         <data name="Keywords-DisplayName" xml:space="preserve">
           <value>Kulcsszavak</value>
@@ -59,19 +59,25 @@
   <ResourceClass name="Ctd-ImageLibrary">
     <Languages>
       <Language cultureName="en">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Image library</value>
-        </data>
         <data name="Description" xml:space="preserve">
-          <value>A special List for storing images.</value>
+          <value>A container type for storing images.</value>
+        </data>
+         <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Name of the Image Gallery</value>
         </data>
       </Language>
       <Language cultureName="hu">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Galéria</value>
+      <data name="Description" xml:space="preserve">
+          <value>Képek tárolására.</value>
         </data>
-        <data name="Description" xml:space="preserve">
-          <value>Speciális típus képek listázására.</value>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>A képgaléria neve</value>
         </data>
       </Language>
     </Languages>

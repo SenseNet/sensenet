@@ -845,19 +845,25 @@
   <ResourceClass name="Ctd-DocumentLibrary">
     <Languages>
       <Language cultureName="en">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Document library</value>
+       <data name="Description" xml:space="preserve">
+          <value>A container type for storing and organizing documents.</value>
         </data>
-        <data name="Description" xml:space="preserve">
-          <value>A special List for storing documents.</value>
+         <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>Name of the Document Library</value>
         </data>
       </Language>
       <Language cultureName="hu">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Dokumentumtár</value>
+      <data name="Description" xml:space="preserve">
+          <value>Tároló dokumentumok tárolására és rendszerezésére.</value>
         </data>
-        <data name="Description" xml:space="preserve">
-          <value>Speciális lista dokumentumok tárolására.</value>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>A dokumentumtár neve</value>
         </data>
       </Language>
     </Languages>

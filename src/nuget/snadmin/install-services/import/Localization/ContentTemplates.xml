@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="ContentTemplates">
+    <Languages>
+      <Language cultureName="en">
+        <data name="CustomList" xml:space="preserve">
+          <value>Custom List</value>
+        </data>
+        <data name="DocumentLibrary" xml:space="preserve">
+          <value>Document library</value>
+        </data>
+        <data name="DocumentWorkspace" xml:space="preserve">
+          <value>Document workspace</value>
+        </data>
+        <data name="ListView" xml:space="preserve">
+          <value>List view</value>
+        </data>
+        <data name="Calendar" xml:space="preserve">
+          <value>Calendar</value>
+        </data>
+        <data name="Groups" xml:space="preserve">
+          <value>Groups</value>
+        </data>
+        <data name="Members" xml:space="preserve">
+          <value>Members</value>
+        </data>
+        <data name="Owners" xml:space="preserve">
+          <value>Owners</value>
+        </data>
+        <data name="Visitors" xml:space="preserve">
+          <value>Visitors</value>
+        </data>
+        <data name="Links" xml:space="preserve">
+          <value>Links</value>
+        </data>
+        <data name="Memos" xml:space="preserve">
+          <value>Memos</value>
+        </data>
+        <data name="Tasks" xml:space="preserve">
+          <value>Tasks</value>
+        </data>
+        <data name="GalleryLight" xml:space="preserve">
+          <value>Gallery (light)</value>
+        </data>
+        <data name="ImageLibrary" xml:space="preserve">
+          <value>Image gallery</value>
+        </data>
+        <data name="ProjectWorkspace" xml:space="preserve">
+          <value>Project workspace</value>
+        </data>
+        <data name="SalesWorkspace" xml:space="preserve">
+          <value>Sales workspace</value>
+        </data>
+        <data name="Workspace" xml:space="preserve">
+          <value>Workspace</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="CustomList" xml:space="preserve">
+          <value>Egyéni lista</value>
+        </data>
+        <data name="DocumentLibrary" xml:space="preserve">
+          <value>Dokumentumtár</value>
+        </data>
+        <data name="DocumentWorkspace" xml:space="preserve">
+          <value>Dokumentum munkaterület</value>
+        </data>
+        <data name="ListView" xml:space="preserve">
+          <value>Lista nézet</value>
+        </data>
+        <data name="Calendar" xml:space="preserve">
+          <value>Naptár</value>
+        </data>
+        <data name="Groups" xml:space="preserve">
+          <value>Csoportok</value>
+        </data>
+        <data name="Members" xml:space="preserve">
+          <value>Tagok</value>
+        </data>
+        <data name="Owners" xml:space="preserve">
+          <value>Tulajdonosok</value>
+        </data>
+        <data name="Visitors" xml:space="preserve">
+          <value>Látogatók</value>
+        </data>
+        <data name="Links" xml:space="preserve">
+          <value>Hivatkozások</value>
+        </data>
+        <data name="Memos" xml:space="preserve">
+          <value>Emlékeztetők</value>
+        </data>
+        <data name="Tasks" xml:space="preserve">
+          <value>Feladatok</value>
+        </data>
+        <data name="GalleryLight" xml:space="preserve">
+          <value>Galéria (régi)</value>
+        </data>
+        <data name="ImageLibrary" xml:space="preserve">
+          <value>Galéria</value>
+        </data>
+        <data name="ProjectWorkspace" xml:space="preserve">
+          <value>Projekt munkaterület</value>
+        </data>
+        <data name="SalesWorkspace" xml:space="preserve">
+          <value>Sales munkaterület</value>
+        </data>
+        <data name="Workspace" xml:space="preserve">
+          <value>Munkaterület</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

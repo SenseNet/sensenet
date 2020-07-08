@@ -854,6 +854,9 @@
         <data name="WorkspaceInheritableApprovingMode-Description" xml:space="preserve">
           <value>Specify whether new or changed content under this workspace should remain draft until approved.</value>
         </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Path</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -900,6 +903,9 @@
         </data>
         <data name="WorkspaceInheritableApprovingMode-Description" xml:space="preserve">
           <value>Adja meg, hogy az új vagy módosított tartalmakat a munkaterület alatt jóvá kell-e hagyni, mielőtt megjelennek publikusan.</value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Elérési útvonal</value>
         </data>
       </Language>
     </Languages>

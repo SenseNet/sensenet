@@ -4,6 +4,7 @@
   <ContentName>Sharing.settings</ContentName>
   <Fields>
     <Binary attachment="Sharing.settings" />
+    <Index>60</Index>
   </Fields>
   <Permissions>
     <Clear />

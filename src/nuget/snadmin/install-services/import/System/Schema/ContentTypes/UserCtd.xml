@@ -16,7 +16,7 @@
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
         <Compulsory>true</Compulsory>
-        <MaxLength>20</MaxLength>
+        <MaxLength>100</MaxLength>
         <ControlHint>sn:ShortText</ControlHint>
       </Configuration>
     </Field>
@@ -188,7 +188,6 @@
         <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
-        <Visible>true</Visible>
         <FieldIndex>190</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
@@ -202,7 +201,6 @@
         <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
-        <Visible>true</Visible>
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
