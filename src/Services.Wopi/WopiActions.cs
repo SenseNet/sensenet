@@ -52,8 +52,9 @@ namespace SenseNet.Services.Wopi
             };
         }
 
+        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
         [RequiredPermissions(N.P.Open)]
-        [RequiredPolicies("WopiOpenView", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
+        [RequiredPolicies("WopiOpenView")]
         [Scenario(N.S.ContextMenu)]
         public static object WopiOpenView(Content content)
         {
