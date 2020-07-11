@@ -4533,6 +4533,22 @@ VersionId: 411
         <VisibleNew>Advanced</VisibleNew>
       </Configuration>
     </Field>
+    <Field name=""AllRoles"" type=""AllRoles"">
+      <DisplayName>$Ctd-Group,AllRoles-DisplayName</DisplayName>
+      <Description>$Ctd-Group,AllRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
+    <Field name=""DirectRoles"" type=""DirectRoles"">
+      <DisplayName>$Ctd-Group,DirectRoles-DisplayName</DisplayName>
+      <Description>$Ctd-Group,DirectRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
   </Fields>
 </ContentType>
 
@@ -5193,6 +5209,22 @@ VersionId: 411
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
+    </Field>
+    <Field name=""AllRoles"" type=""AllRoles"">
+      <DisplayName>$Ctd-User,AllRoles-DisplayName</DisplayName>
+      <Description>$Ctd-User,AllRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
+    <Field name=""DirectRoles"" type=""DirectRoles"">
+      <DisplayName>$Ctd-User,DirectRoles-DisplayName</DisplayName>
+      <Description>$Ctd-User,DirectRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
     </Field>
   </Fields>
 </ContentType>
