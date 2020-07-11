@@ -938,6 +938,18 @@
         <data name="LastSync-Description" xml:space="preserve">
           <value>Date of last synchronization.</value>
         </data>
+        <data name="AllRoles-DisplayName" xml:space="preserve">
+          <value>All Roles</value>
+        </data>
+        <data name="AllRoles-Description" xml:space="preserve">
+          <value>Roles that this group is a member of directly or indirectly.</value>
+        </data>
+        <data name="DirectRoles-DisplayName" xml:space="preserve">
+          <value>Direct Roles</value>
+        </data>
+        <data name="DirectRoles-Description" xml:space="preserve">
+          <value>Roles that this group is a member of directly.</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -963,6 +975,18 @@
         </data>
         <data name="LastSync-Description" xml:space="preserve">
           <value>Utolsó AD szinkronizálás ideje.</value>
+        </data>
+        <data name="AllRoles-DisplayName" xml:space="preserve">
+          <value>Az összes szerepkör</value>
+        </data>
+        <data name="AllRoles-Description" xml:space="preserve">
+          <value>Azon szerepkörök listája, amelyekben ez a csoport közvetlenül vagy közvetve tag.</value>
+        </data>
+        <data name="DirectRoles-DisplayName" xml:space="preserve">
+          <value>Közvetlen szerepkörök</value>
+        </data>
+        <data name="DirectRoles-Description" xml:space="preserve">
+          <value>Azon szerepkörök listája, amelyekben ez a csoport közvetlenül tag.</value>
         </data>
       </Language>
     </Languages>

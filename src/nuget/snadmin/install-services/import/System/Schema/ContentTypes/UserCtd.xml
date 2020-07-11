@@ -381,5 +381,21 @@
         <IndexHandler>SenseNet.Search.Indexing.GeneralJsonIndexHandler</IndexHandler>
       </Indexing>
     </Field>
+    <Field name="AllRoles" type="AllRoles">
+      <DisplayName>$Ctd-User,AllRoles-DisplayName</DisplayName>
+      <Description>$Ctd-User,AllRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
+    <Field name="DirectRoles" type="DirectRoles">
+      <DisplayName>$Ctd-User,DirectRoles-DisplayName</DisplayName>
+      <Description>$Ctd-User,DirectRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
   </Fields>
 </ContentType>

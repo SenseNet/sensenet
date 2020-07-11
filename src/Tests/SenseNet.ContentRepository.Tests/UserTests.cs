@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -158,6 +159,82 @@ namespace SenseNet.ContentRepository.Tests
 
                     AccessProvider.Current.SetCurrentUser(originalUser);
                 }
+            });
+        }
+
+        [TestMethod]
+        public void User_Roles()
+        {
+            string GetNames(IEnumerable<Node> list)
+            {
+                return string.Join(", ", list.Select(x => x.Name));
+            }
+
+            Test(() =>
+            {
+                var adminContent = Content.Create(User.Administrator);
+                var allAdminRoles = adminContent["AllRoles"];
+                var directAdminRoles = adminContent["DirectRoles"];
+
+                var group1 = new Group(OrganizationalUnit.Portal) { Name = "Group-1" };
+                group1.Save();
+                var group2 = new Group(OrganizationalUnit.Portal) { Name = "Group-2" };
+                group2.Save();
+
+                // ACTION-1: Create user
+                var user = new User(OrganizationalUnit.Portal)
+                {
+                    Name = "User-1",
+                    Email = "user1@example.com",
+                    Enabled = true
+                };
+                user.Save();
+
+                // ASSERT-1: There are no known roles
+                var content = Content.Create(user);
+                var allRoles = GetNames((IEnumerable<Node>) content["AllRoles"]);
+                var directRoles = GetNames((IEnumerable<Node>)content["DirectRoles"]);
+                Assert.IsFalse(allRoles.Contains("Group-1"));
+                Assert.IsFalse(directRoles.Contains("Group-1"));
+                Assert.IsFalse(allRoles.Contains("Group-2"));
+                Assert.IsFalse(directRoles.Contains("Group-2"));
+
+                // ACTION-2: Set direct member
+                group1.AddMember(user);
+
+                // ASSERT-2
+                content = Content.Create(user);
+                allRoles = GetNames((IEnumerable<Node>)content["AllRoles"]);
+                directRoles = GetNames((IEnumerable<Node>)content["DirectRoles"]);
+                Assert.IsTrue(allRoles.Contains("Group-1"));
+                Assert.IsTrue(directRoles.Contains("Group-1"));
+                Assert.IsFalse(allRoles.Contains("Group-2"));
+                Assert.IsFalse(directRoles.Contains("Group-2"));
+
+                // ACTION-3: Set indirect member
+                group2.AddMember(group1);
+
+                // ASSERT-3:
+                content = Content.Create(user);
+                allRoles = GetNames((IEnumerable<Node>)content["AllRoles"]);
+                directRoles = GetNames((IEnumerable<Node>)content["DirectRoles"]);
+                Assert.IsTrue(allRoles.Contains("Group-1"));
+                Assert.IsTrue(directRoles.Contains("Group-1"));
+                Assert.IsTrue(allRoles.Contains("Group-2"));
+                Assert.IsFalse(directRoles.Contains("Group-2"));
+
+                // ACTION-4: Remove direct member
+                group1.RemoveMember(user);
+
+                // ASSERT-4
+                content = Content.Create(user);
+                allRoles = GetNames((IEnumerable<Node>)content["AllRoles"]);
+                directRoles = GetNames((IEnumerable<Node>)content["DirectRoles"]);
+                Assert.IsFalse(allRoles.Contains("Group-1"));
+                Assert.IsFalse(directRoles.Contains("Group-1"));
+                Assert.IsFalse(allRoles.Contains("Group-2"));
+                Assert.IsFalse(directRoles.Contains("Group-2"));
+
             });
         }
     }
