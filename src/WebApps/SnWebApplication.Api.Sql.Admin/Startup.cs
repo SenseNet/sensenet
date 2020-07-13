@@ -96,8 +96,8 @@ namespace SnWebApplication.Api.Sql.Admin
 
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync("sensenet is listening. Visit https://sensenet.com for " +
-                                                      "more information on how to call the REST API.");
+                    await context.Response.WriteLimitedAsync("sensenet is listening. Visit https://sensenet.com for " +
+                                                             "more information on how to call the REST API.");
                 });
             });
         }

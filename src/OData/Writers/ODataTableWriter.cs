@@ -46,7 +46,7 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString(), httpContext.RequestAborted);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
             }
         }
         /// <inheritdoc />
@@ -95,7 +95,7 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString(), httpContext.RequestAborted);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
             }
         }
         /// <inheritdoc />
@@ -204,7 +204,7 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString(), httpContext.RequestAborted);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
             }
         }
         /// <inheritdoc />
@@ -251,7 +251,7 @@ namespace SenseNet.OData.Writers
 
                 var resp = httpContext.Response;
                 resp.ContentType = "text/html";
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString(), httpContext.RequestAborted);
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
             }
         }
 

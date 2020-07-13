@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 
 namespace SenseNet.OData.Writers
@@ -29,7 +30,7 @@ namespace SenseNet.OData.Writers
                 edmx.WriteXml(writer);
                 result = writer.GetStringBuilder().ToString();
             }
-            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
+            await WriteRawAsync(result, httpContext).ConfigureAwait(false);
         }
         /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }

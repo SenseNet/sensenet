@@ -13,7 +13,7 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Gets maximum size of response in bytes. Default: 7340032 (7 MB)
         /// </summary>
-        public static int MaxResponseLength { get; }
-            = GetInt(SectionName, "MaxResponseLength", 7340032);
+        public static int MaxResponseLengthInBytes { get; }
+            = GetInt(SectionName, "MaxResponseLengthInBytes", 7340032);
     }
 }

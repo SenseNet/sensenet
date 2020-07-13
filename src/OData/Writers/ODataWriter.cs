@@ -22,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
@@ -984,7 +985,8 @@ namespace SenseNet.OData.Writers
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected virtual async Task WriteRawAsync(object response, HttpContext httpContext)
         {
-            await httpContext.Response.WriteAsync(response.ToString()).ConfigureAwait(false);
+            await httpContext.Response.WriteLimitedAsync(response.ToString(), httpContext.RequestAborted)
+                .ConfigureAwait(false);
         }
 
     }

@@ -62,7 +62,7 @@ namespace SenseNet.OData.Writers
                         + ". Valid names: enums, complextypes, contenttypes, resources, schemas, fieldsettings.");
             }
 
-            await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString());
+            await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
         }
         /// <summary>This method is not supported in this writer.</summary>
         protected override Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }

@@ -12,7 +12,7 @@ namespace SenseNet.Services.Core
 
         public SnResponseLengthLimiter(int limit = 0)
         {
-            Limit = limit > 0 ? limit : Limits.MaxResponseLength;
+            Limit = limit > 0 ? limit : Limits.MaxResponseLengthInBytes;
         }
 
         public void AssertLimit(HttpContext httpContext, string text)

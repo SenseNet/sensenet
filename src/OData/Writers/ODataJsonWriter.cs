@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.OData;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 
 namespace SenseNet.OData.Writers
@@ -32,7 +33,7 @@ namespace SenseNet.OData.Writers
                 edmx.WriteJson(writer);
                 result = writer.GetStringBuilder().ToString();
             }
-            await httpContext.Response.WriteAsync(result).ConfigureAwait(false);
+            await WriteRawAsync(result, httpContext).ConfigureAwait(false);
         }
         /// <inheritdoc />
         protected override async Task WriteServiceDocumentAsync(HttpContext httpContext, IEnumerable<string> names)
@@ -43,7 +44,7 @@ namespace SenseNet.OData.Writers
                 JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                     .Serialize(writer, x);
 
-                await httpContext.Response.WriteAsync(writer.GetStringBuilder().ToString());
+                await WriteRawAsync(writer.GetStringBuilder().ToString(), httpContext);
             }
         }
         /// <inheritdoc />
@@ -110,7 +111,7 @@ namespace SenseNet.OData.Writers
             }
 
             httpContext.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
-            await httpContext.Response.WriteAsync(text);
+            await WriteRawAsync(text, httpContext);
         }
 
         protected async Task WriteAsync(object response, HttpContext httpContext)
@@ -141,7 +142,7 @@ namespace SenseNet.OData.Writers
                 text = writer.GetStringBuilder().ToString();
             }
             resp.ContentType = "application/json;odata=verbose;charset=utf-8";
-            await resp.WriteAsync(text).ConfigureAwait(false);
+            await resp.WriteLimitedAsync(text).ConfigureAwait(false);
         }
 
     }
