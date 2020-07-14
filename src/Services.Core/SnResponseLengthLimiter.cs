@@ -24,5 +24,10 @@ namespace SenseNet.Services.Core
             if (newLength > Limit)
                 throw new ApplicationException($"Response limit exceeded.");
         }
+
+        public long GetCurrentLength(HttpContext httpContext)
+        {
+            return (long?)httpContext.Items[ResponseLength] ?? 0L;
+        }
     }
 }

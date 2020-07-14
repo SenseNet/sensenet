@@ -15,20 +15,6 @@ namespace SenseNet.Services.Core.Tests
     public class ResponseLengthLimiterTests : TestBase
     {
         [TestMethod]
-        public void ResponseLengthLimiter_1()
-        {
-            using (GetSwindler())
-            {
-                Test(() =>
-                {
-                    var expected = "Response-1";
-                    var actual = GetResponse(expected);
-                    Assert.AreEqual(actual, expected);
-                });
-            }
-        }
-
-        [TestMethod]
         public void ResponseLengthLimiter_Greater()
         {
             using (GetSwindler())
@@ -39,19 +25,22 @@ namespace SenseNet.Services.Core.Tests
                         string actual;
                         try
                         {
-                            actual = GetResponse(expected);
+                            actual = GetResponse((httpContext) =>
+                            {
+                                httpContext.Response.WriteLimitedAsync(expected)
+                                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                            });
                         }
                         catch (ApplicationException e)
                         {
                             actual = e.Message;
                         }
 
-                        Assert.AreEqual(actual, "Response limit exceeded.");
+                        Assert.AreEqual("Response limit exceeded.", actual);
                     }
                 );
             }
         }
-
         [TestMethod]
         public void ResponseLengthLimiter_Equals()
         {
@@ -60,12 +49,15 @@ namespace SenseNet.Services.Core.Tests
                 Test((builder) => { builder.UseResponseLengthLimiter(10); }, () =>
                 {
                     var expected = "Response-1";
-                    var actual = GetResponse(expected);
-                    Assert.AreEqual(actual, expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        httpContext.Response.WriteLimitedAsync(expected)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    });
+                    Assert.AreEqual(expected, actual);
                 });
             }
         }
-
         [TestMethod]
         public void ResponseLengthLimiter_Lower()
         {
@@ -74,19 +66,59 @@ namespace SenseNet.Services.Core.Tests
                 Test((builder) => { builder.UseResponseLengthLimiter(11); }, () =>
                 {
                     var expected = "Response-1";
-                    var actual = GetResponse(expected);
-                    Assert.AreEqual(actual, expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        httpContext.Response.WriteLimitedAsync(expected)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    });
+                    Assert.AreEqual(expected, actual);
                 });
             }
         }
+        [TestMethod]
+        public void ResponseLengthLimiter_WriteMoreTimes()
+        {
+            using (GetSwindler())
+            {
+                Test((builder) => { builder.UseResponseLengthLimiter(29); }, () =>
+                    {
+                        var expected = "Response-1";
+                        var limiter = Providers.Instance.GetProvider<IResponseLengthLimiter>();
 
-        private static string GetResponse(string expectedResponse)
+                        string actual;
+                        try
+                        {
+                            actual = GetResponse((httpContext) =>
+                            {
+                                var response = httpContext.Response;
+                                Assert.AreEqual(0L, limiter.GetCurrentLength(httpContext));
+
+                                response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
+                                Assert.AreEqual(10L, limiter.GetCurrentLength(httpContext));
+
+                                response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
+                                Assert.AreEqual(20L, limiter.GetCurrentLength(httpContext));
+
+                                response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
+                            });
+                        }
+                        catch (ApplicationException e)
+                        {
+                            actual = e.Message;
+                        }
+
+                        Assert.AreEqual("Response limit exceeded.", actual);
+                    }
+                );
+            }
+        }
+
+        private static string GetResponse(Action<HttpContext> writeAction)
         {
             var httpContext = CreateHttpContext("/example,com", "?a=b");
             httpContext.Response.Body = new MemoryStream();
 
-            httpContext.Response.WriteLimitedAsync(expectedResponse)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            writeAction(httpContext);
 
             var responseOutput = httpContext.Response.Body;
             responseOutput.Seek(0, SeekOrigin.Begin);
