@@ -15,5 +15,8 @@ namespace SenseNet.Configuration
         /// </summary>
         public static int MaxResponseLengthInBytes { get; }
             = GetInt(SectionName, "MaxResponseLengthInBytes", 7340032);
+
+        public static int MaxFileLengthInBytes { get; }
+            = GetInt(SectionName, "MaxFileLengthInBytes", 7340032);
     }
 }

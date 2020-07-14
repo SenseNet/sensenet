@@ -12,14 +12,14 @@ using SenseNet.Tests;
 namespace SenseNet.Services.Core.Tests
 {
     [TestClass]
-    public class ResponseLengthLimiterTests : TestBase
+    public class ResponseLimiterTests : TestBase
     {
         [TestMethod]
         public void ResponseLengthLimiter_Greater()
         {
             using (GetSwindler())
             {
-                Test((builder) => { builder.UseResponseLengthLimiter(9); }, () =>
+                Test((builder) => { builder.UseResponseLimiter(9); }, () =>
                     {
                         var expected = "Response-1";
                         string actual;
@@ -36,7 +36,7 @@ namespace SenseNet.Services.Core.Tests
                             actual = e.Message;
                         }
 
-                        Assert.AreEqual("Response limit exceeded.", actual);
+                        Assert.AreEqual("Response length limit exceeded.", actual);
                     }
                 );
             }
@@ -46,7 +46,7 @@ namespace SenseNet.Services.Core.Tests
         {
             using (GetSwindler())
             {
-                Test((builder) => { builder.UseResponseLengthLimiter(10); }, () =>
+                Test((builder) => { builder.UseResponseLimiter(10); }, () =>
                 {
                     var expected = "Response-1";
                     var actual = GetResponse((httpContext) =>
@@ -63,7 +63,7 @@ namespace SenseNet.Services.Core.Tests
         {
             using (GetSwindler())
             {
-                Test((builder) => { builder.UseResponseLengthLimiter(11); }, () =>
+                Test((builder) => { builder.UseResponseLimiter(11); }, () =>
                 {
                     var expected = "Response-1";
                     var actual = GetResponse((httpContext) =>
@@ -80,10 +80,10 @@ namespace SenseNet.Services.Core.Tests
         {
             using (GetSwindler())
             {
-                Test((builder) => { builder.UseResponseLengthLimiter(29); }, () =>
+                Test((builder) => { builder.UseResponseLimiter(29); }, () =>
                     {
                         var expected = "Response-1";
-                        var limiter = Providers.Instance.GetProvider<IResponseLengthLimiter>();
+                        var limiter = Providers.Instance.GetProvider<IResponseLimiter>();
 
                         string actual;
                         try
@@ -91,13 +91,13 @@ namespace SenseNet.Services.Core.Tests
                             actual = GetResponse((httpContext) =>
                             {
                                 var response = httpContext.Response;
-                                Assert.AreEqual(0L, limiter.GetCurrentLength(httpContext));
+                                Assert.AreEqual(0L, limiter.GetCurrentResponseLength(httpContext));
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
-                                Assert.AreEqual(10L, limiter.GetCurrentLength(httpContext));
+                                Assert.AreEqual(10L, limiter.GetCurrentResponseLength(httpContext));
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
-                                Assert.AreEqual(20L, limiter.GetCurrentLength(httpContext));
+                                Assert.AreEqual(20L, limiter.GetCurrentResponseLength(httpContext));
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
                             });
@@ -107,7 +107,7 @@ namespace SenseNet.Services.Core.Tests
                             actual = e.Message;
                         }
 
-                        Assert.AreEqual("Response limit exceeded.", actual);
+                        Assert.AreEqual("Response length limit exceeded.", actual);
                     }
                 );
             }
@@ -142,9 +142,9 @@ namespace SenseNet.Services.Core.Tests
 
         private IDisposable GetSwindler()
         {
-            return new Swindler<IResponseLengthLimiter>(null,
-                () => Providers.Instance.GetProvider<IResponseLengthLimiter>(),
-                (x) => Providers.Instance.SetProvider(typeof(IResponseLengthLimiter), x)
+            return new Swindler<IResponseLimiter>(null,
+                () => Providers.Instance.GetProvider<IResponseLimiter>(),
+                (x) => Providers.Instance.SetProvider(typeof(IResponseLimiter), x)
             );
         }
 

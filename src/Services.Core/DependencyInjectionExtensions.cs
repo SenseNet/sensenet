@@ -13,9 +13,9 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <param name="builder">The IRepositoryBuilder instance.</param>
         /// <param name="maxLength">Limit value in bytes (optional).</param>
         /// <returns>The IRepositoryBuilder instance.</returns>
-        public static IRepositoryBuilder UseResponseLengthLimiter(this IRepositoryBuilder builder, int maxLength = 0)
+        public static IRepositoryBuilder UseResponseLimiter(this IRepositoryBuilder builder, int maxLength = 0)
         {
-            Providers.Instance.SetProvider(typeof(IResponseLengthLimiter), new SnResponseLengthLimiter(maxLength));
+            Providers.Instance.SetProvider(typeof(IResponseLimiter), new SnResponseLimiter(maxLength));
 
             return builder;
         }

@@ -21,7 +21,9 @@ namespace SenseNet.Services.Core
         public static async Task WriteLimitedAsync(this HttpResponse response, string text,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Providers.Instance.GetProvider<IResponseLengthLimiter>()?.AssertLimit(response.HttpContext, text);
+            if (text != null)
+                Providers.Instance.GetProvider<IResponseLimiter>()?
+                    .AssertResponseLimit(response.HttpContext, text.Length);
             await response.WriteAsync(text, cancellationToken);
         }
 
@@ -36,7 +38,9 @@ namespace SenseNet.Services.Core
         public static async Task WriteLimitedAsync(this HttpResponse response, string text, Encoding encoding,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Providers.Instance.GetProvider<IResponseLengthLimiter>()?.AssertLimit(response.HttpContext, text);
+            if(text != null)
+                Providers.Instance.GetProvider<IResponseLimiter>()?
+                    .AssertResponseLimit(response.HttpContext, text.Length);
             await response.WriteAsync(text, encoding, cancellationToken);
         }
     }
