@@ -1,7 +1,4 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Http;
-
-namespace SenseNet.Services.Core
+﻿namespace SenseNet.Services.Core
 {
     public interface IResponseLimiter
     {
@@ -25,7 +22,7 @@ namespace SenseNet.Services.Core
         /// If the passed value exceeds the configured MaxResponseLengthInBytes limit,
         /// ApplicationException will be thrown.
         /// </summary>
-        /// <param name="responseLength">Desired length.</param>
+        /// <param name="responseLength">The length of response to write.</param>
         void AssertResponseLimit(long responseLength);
     }
 }

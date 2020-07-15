@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -97,8 +98,8 @@ namespace SnWebApplication.Api.Sql.TokenAuth
 
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteLimitedAsync("sensenet is listening. Visit https://sensenet.com for " +
-                                                             "more information on how to call the REST API.");
+                    await context.Response.WriteAsync("sensenet is listening. Visit https://sensenet.com for " +
+                                                      "more information on how to call the REST API.");
                 });
             });
         }

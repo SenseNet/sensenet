@@ -141,9 +141,11 @@ namespace SenseNet.OData.Writers
                 serializer.Serialize(writer, response);
                 text = writer.GetStringBuilder().ToString();
             }
-            resp.ContentType = "application/json;odata=verbose;charset=utf-8";
-            await resp.WriteLimitedAsync(text).ConfigureAwait(false);
-        }
 
+            ResponseLimiter.AssertResponseLength(resp.Body.Length + text.Length);
+
+            resp.ContentType = "application/json;odata=verbose;charset=utf-8";
+            await resp.WriteAsync(text).ConfigureAwait(false);
+        }
     }
 }

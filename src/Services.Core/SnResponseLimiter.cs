@@ -1,9 +1,20 @@
 ﻿using System;
-using Microsoft.AspNetCore.Http;
 using SenseNet.Configuration;
 
 namespace SenseNet.Services.Core
 {
+    public class ResponseLimiter
+    {
+        public static void AssertResponseLength(long length)
+        {
+            Providers.Instance.GetProvider<IResponseLimiter>()?.AssertResponseLimit(length);
+        }
+        public static void AssertFileLength(long length)
+        {
+            Providers.Instance.GetProvider<IResponseLimiter>()?.AssertFileLength(length);
+        }
+    }
+
     /// <inheritdoc/>
     public class SnResponseLimiter : IResponseLimiter
     {

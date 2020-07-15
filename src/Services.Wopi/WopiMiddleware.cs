@@ -88,7 +88,9 @@ namespace SenseNet.Services.Wopi
                 var settings = new JsonSerializerSettings {Formatting = Formatting.Indented};
                 var output = JsonConvert.SerializeObject(wopiResponse, settings);
 
-                await webResponse.Body.WriteLimitedAsync(Encoding.UTF8.GetBytes(output), 0, output.Length)
+                var buffer = Encoding.UTF8.GetBytes(output);
+                ResponseLimiter.AssertResponseLength(buffer.Length);
+                await webResponse.Body.WriteAsync(buffer, 0, buffer.Length)
                     .ConfigureAwait(false);
             }
         }
