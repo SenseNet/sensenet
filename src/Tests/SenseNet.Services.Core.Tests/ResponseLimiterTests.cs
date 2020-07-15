@@ -16,8 +16,7 @@ namespace SenseNet.Services.Core.Tests
     [TestClass]
     public class ResponseLimiterTests : TestBase
     {
-        // Abbreviations in the test names
-        // FL: file length, RL: response length, FRL: Combined file and response length 
+        // Abbreviations in the test names: FL: file length, RL: response length
 
         [TestMethod]
         public void Limiter_FL_Greater()
@@ -71,7 +70,6 @@ namespace SenseNet.Services.Core.Tests
                 );
             }
         }
-
         [TestMethod]
         public void Limiter_FL_Greater_Async()
         {
@@ -154,6 +152,7 @@ namespace SenseNet.Services.Core.Tests
                 );
             }
         }
+
         [TestMethod]
         public void Limiter_FL_Equals()
         {
@@ -172,18 +171,77 @@ namespace SenseNet.Services.Core.Tests
             }
         }
         [TestMethod]
-        public void Limiter_FL_Lower()
+        public void Limiter_FL_Equals_Buffer()
         {
             using (GetResetResponseLimiterSwindler())
             {
-                Test((builder) => { builder.UseResponseLimiter(11, 11); }, () =>
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
                 {
                     var expected = "Response-1";
                     var stream = CreateStream(expected);
                     var actual = GetResponse((httpContext) =>
                     {
-                        stream.CopyToLimited(httpContext.Response.Body);
+                        stream.CopyToLimited(httpContext.Response.Body, 5);
                     });
+
+                    Assert.AreEqual(expected, actual);
+                });
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Equals_Async()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    var expected = "Response-1";
+                    var stream = CreateStream(expected);
+                    var actual = GetResponse(httpContext =>
+                    {
+                        stream.CopyToLimitedAsync(httpContext.Response.Body)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    });
+
+                    Assert.AreEqual(expected, actual);
+                });
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Equals_Async_Buffer()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    var expected = "Response-1";
+                    var stream = CreateStream(expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        stream.CopyToLimitedAsync(httpContext.Response.Body, 5)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    });
+
+                    Assert.AreEqual(expected, actual);
+                });
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Equals_Async_Buffer_CancellationToken()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    var expected = "Response-1";
+                    var stream = CreateStream(expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        stream
+                            .CopyToLimitedAsync(httpContext.Response.Body, 5, CancellationToken.None)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                    });
+
                     Assert.AreEqual(expected, actual);
                 });
             }
@@ -286,12 +344,6 @@ namespace SenseNet.Services.Core.Tests
                     }
                 );
             }
-        }
-
-        [TestMethod]
-        public void Limiter_FRL_Greater()
-        {
-            Assert.Fail("Not implemented");
         }
 
         /* =========================================================================== TOOLS */
