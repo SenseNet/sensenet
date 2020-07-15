@@ -89,7 +89,7 @@ namespace SenseNet.Services.Wopi
                 var output = JsonConvert.SerializeObject(wopiResponse, settings);
 
                 var buffer = Encoding.UTF8.GetBytes(output);
-                ResponseLimiter.AssertResponseLength(buffer.Length);
+                ResponseLimiter.AssertResponseLength(webResponse, buffer.Length);
                 await webResponse.Body.WriteAsync(buffer, 0, buffer.Length)
                     .ConfigureAwait(false);
             }

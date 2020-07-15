@@ -142,7 +142,7 @@ namespace SenseNet.OData.Writers
                 text = writer.GetStringBuilder().ToString();
             }
 
-            ResponseLimiter.AssertResponseLength(resp.Body.Length + text.Length);
+            ResponseLimiter.AssertResponseLength(resp, text.Length);
 
             resp.ContentType = "application/json;odata=verbose;charset=utf-8";
             await resp.WriteAsync(text).ConfigureAwait(false);

@@ -1,4 +1,6 @@
-﻿namespace SenseNet.Services.Core
+﻿using Microsoft.AspNetCore.Http;
+
+namespace SenseNet.Services.Core
 {
     public interface IResponseLimiter
     {
@@ -22,7 +24,17 @@
         /// If the passed value exceeds the configured MaxResponseLengthInBytes limit,
         /// ApplicationException will be thrown.
         /// </summary>
-        /// <param name="responseLength">The length of response to write.</param>
-        void AssertResponseLimit(long responseLength);
+        /// <param name="totalLength">The length of response to write.</param>
+        void AssertResponseLength(long totalLength);
+
+        /// <summary>
+        /// If the length of <paramref name="response"/> and <paramref name="partialLength"/> exceeds the
+        /// configured MaxResponseLengthInBytes limit, ApplicationException will be thrown.
+        /// If this method is called more times in one HTTP request, the <paramref name="partialLength"/> values
+        /// will be summarized.
+        /// </summary>
+        /// <param name="response">The response that will be written.</param>
+        /// <param name="partialLength">The current length of data to write.</param>
+        void AssertResponseLength(HttpResponse response, long partialLength);
     }
 }
