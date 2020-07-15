@@ -9,22 +9,22 @@ namespace SenseNet.Services.Core
     {
         private const string ResponseLength = "ResponseLength";
 
-        public int MaxFileLengthInBytes { get; }
-        public int MaxResponseLengthInBytes { get; }
+        public long MaxFileLengthInBytes { get; }
+        public long MaxResponseLengthInBytes { get; }
 
-        public SnResponseLimiter(int maxResponseLengthInBytes = 0, int maxFileLengthInBytes = 0)
+        public SnResponseLimiter(long maxResponseLengthInBytes = 0, long maxFileLengthInBytes = 0)
         {
             MaxResponseLengthInBytes = maxResponseLengthInBytes > 0 ? maxResponseLengthInBytes : Limits.MaxResponseLengthInBytes;
             MaxFileLengthInBytes = maxFileLengthInBytes > 0 ? maxFileLengthInBytes : Limits.MaxFileLengthInBytes;
         }
 
-        public void AssertFileLength(int fileLength)
+        public void AssertFileLength(long fileLength)
         {
             if (fileLength > MaxFileLengthInBytes)
                 throw new ApplicationException($"File length limit exceeded.");
         }
 
-        public void AssertResponseLimit(HttpContext httpContext, int textLength)
+        public void AssertResponseLimit(HttpContext httpContext, long textLength)
         {
             var length = (long?)httpContext.Items[ResponseLength] ?? 0;
             var newLength = length + textLength;

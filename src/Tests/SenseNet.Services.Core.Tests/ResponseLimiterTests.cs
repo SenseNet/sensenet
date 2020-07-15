@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -14,10 +16,183 @@ namespace SenseNet.Services.Core.Tests
     [TestClass]
     public class ResponseLimiterTests : TestBase
     {
+        // Abbreviations in the test names
+        // FL: file length, RL: response length, FRL: Combined file and response length 
+
         [TestMethod]
-        public void ResponseLengthLimiter_Greater()
+        public void Limiter_FL_Greater()
         {
-            using (GetSwindler())
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(9, 9); }, () =>
+                {
+                    var stream = CreateStream("Response-1");
+                    string actual;
+                    try
+                    {
+                        actual = GetResponse(httpContext =>
+                        {
+                            stream.CopyToLimited(httpContext.Response.Body);
+                        });
+                    }
+                    catch (ApplicationException e)
+                    {
+                        actual = e.Message;
+                    }
+
+                    Assert.AreEqual("File length limit exceeded.", actual);
+                }
+                );
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Greater_Buffer()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(9, 9); }, () =>
+                {
+                    var stream = CreateStream("Response-1");
+                    string actual;
+                    try
+                    {
+                        actual = GetResponse((httpContext) =>
+                        {
+                            stream.CopyToLimited(httpContext.Response.Body, 5);
+                        });
+                    }
+                    catch (ApplicationException e)
+                    {
+                        actual = e.Message;
+                    }
+
+                    Assert.AreEqual("File length limit exceeded.", actual);
+                }
+                );
+            }
+        }
+
+        [TestMethod]
+        public void Limiter_FL_Greater_Async()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(9, 9); }, () =>
+                    {
+                        var stream = CreateStream("Response-1");
+                        string actual;
+                        try
+                        {
+                            actual = GetResponse(httpContext =>
+                            {
+                                stream.CopyToLimitedAsync(httpContext.Response.Body)
+                                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                            });
+                        }
+                        catch (ApplicationException e)
+                        {
+                            actual = e.Message;
+                        }
+
+                        Assert.AreEqual("File length limit exceeded.", actual);
+                    }
+                );
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Greater_Async_Buffer()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(9, 9); }, () =>
+                    {
+                        var stream = CreateStream("Response-1");
+                        string actual;
+                        try
+                        {
+                            actual = GetResponse((httpContext) =>
+                            {
+                                stream.CopyToLimitedAsync(httpContext.Response.Body, 5)
+                                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                            });
+                        }
+                        catch (ApplicationException e)
+                        {
+                            actual = e.Message;
+                        }
+
+                        Assert.AreEqual("File length limit exceeded.", actual);
+                    }
+                );
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Greater_Async_Buffer_CancellationToken()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(9, 9); }, () =>
+                    {
+                        var stream = CreateStream("Response-1");
+                        string actual;
+                        try
+                        {
+                            actual = GetResponse((httpContext) =>
+                            {
+                                stream
+                                    .CopyToLimitedAsync(httpContext.Response.Body, 5, CancellationToken.None)
+                                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                            });
+                        }
+                        catch (ApplicationException e)
+                        {
+                            actual = e.Message;
+                        }
+
+                        Assert.AreEqual("File length limit exceeded.", actual);
+                    }
+                );
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Equals()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    var expected = "Response-1";
+                    var stream = CreateStream(expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        stream.CopyToLimited(httpContext.Response.Body);
+                    });
+                    Assert.AreEqual(expected, actual);
+                });
+            }
+        }
+        [TestMethod]
+        public void Limiter_FL_Lower()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(11, 11); }, () =>
+                {
+                    var expected = "Response-1";
+                    var stream = CreateStream(expected);
+                    var actual = GetResponse((httpContext) =>
+                    {
+                        stream.CopyToLimited(httpContext.Response.Body);
+                    });
+                    Assert.AreEqual(expected, actual);
+                });
+            }
+        }
+
+        [TestMethod]
+        public void Limiter_RL_Greater()
+        {
+            using (GetResetResponseLimiterSwindler())
             {
                 Test((builder) => { builder.UseResponseLimiter(9); }, () =>
                     {
@@ -42,9 +217,9 @@ namespace SenseNet.Services.Core.Tests
             }
         }
         [TestMethod]
-        public void ResponseLengthLimiter_Equals()
+        public void Limiter_RL_Equals()
         {
-            using (GetSwindler())
+            using (GetResetResponseLimiterSwindler())
             {
                 Test((builder) => { builder.UseResponseLimiter(10); }, () =>
                 {
@@ -59,9 +234,9 @@ namespace SenseNet.Services.Core.Tests
             }
         }
         [TestMethod]
-        public void ResponseLengthLimiter_Lower()
+        public void Limiter_RL_Lower()
         {
-            using (GetSwindler())
+            using (GetResetResponseLimiterSwindler())
             {
                 Test((builder) => { builder.UseResponseLimiter(11); }, () =>
                 {
@@ -76,9 +251,9 @@ namespace SenseNet.Services.Core.Tests
             }
         }
         [TestMethod]
-        public void ResponseLengthLimiter_WriteMoreTimes()
+        public void Limiter_RL_WriteMoreTimes()
         {
-            using (GetSwindler())
+            using (GetResetResponseLimiterSwindler())
             {
                 Test((builder) => { builder.UseResponseLimiter(29); }, () =>
                     {
@@ -113,6 +288,19 @@ namespace SenseNet.Services.Core.Tests
             }
         }
 
+        [TestMethod]
+        public void Limiter_FRL_Greater()
+        {
+            Assert.Fail("Not implemented");
+        }
+
+        /* =========================================================================== TOOLS */
+
+        private Stream CreateStream(string payLoad)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(payLoad));
+        }
+
         private static string GetResponse(Action<HttpContext> writeAction)
         {
             var httpContext = CreateHttpContext("/example,com", "?a=b");
@@ -140,7 +328,7 @@ namespace SenseNet.Services.Core.Tests
             return httpContext;
         }
 
-        private IDisposable GetSwindler()
+        private IDisposable GetResetResponseLimiterSwindler()
         {
             return new Swindler<IResponseLimiter>(null,
                 () => Providers.Instance.GetProvider<IResponseLimiter>(),
