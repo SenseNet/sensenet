@@ -72,6 +72,64 @@ namespace SenseNet.Services.Core.Tests
         }
 
         [TestMethod]
+        public void Limiter_FileLength_Upgrade()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    ResponseLimiter.ModifyFileLengthLimit(20);
+                    var responses = new string[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            ResponseLimiter.AssertFileLength(i + 19);
+                            responses[i] = "Ok.";
+                        }
+                        catch (ApplicationException e)
+                        {
+                            responses[i] = e.Message;
+                        }
+
+                    }
+                    var actual = string.Join(" ", responses);
+                    Assert.AreEqual("Ok. Ok. File length limit exceeded.", actual);
+                }
+                );
+            }
+        }
+        [TestMethod]
+        public void Limiter_ResponseLength_Upgrade()
+        {
+            using (GetResetResponseLimiterSwindler())
+            {
+                Test((builder) => { builder.UseResponseLimiter(10, 10); }, () =>
+                {
+                    ResponseLimiter.ModifyResponseLengthLimit(20);
+                    var responses = new string[3];
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            ResponseLimiter.AssertResponseLength(i + 19);
+                            responses[i] = "Ok.";
+                        }
+                        catch (ApplicationException e)
+                        {
+                            responses[i] = e.Message;
+                        }
+
+                    }
+                    var actual = string.Join(" ", responses);
+                    Assert.AreEqual("Ok. Ok. Response length limit exceeded.", actual);
+                }
+                );
+            }
+        }
+
+
+        [TestMethod]
         public void Limiter_ResponseLength_AssertMore()
         {
             using (GetResetResponseLimiterSwindler())

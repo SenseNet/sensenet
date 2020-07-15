@@ -5,13 +5,13 @@ namespace SenseNet.Services.Core
     public interface IResponseLimiter
     {
         /// <summary>
-        /// Gets the maximum file length in bytes.
+        /// Gets or sets the maximum file length in bytes.
         /// </summary>
-        long MaxFileLengthInBytes { get; }
+        long MaxFileLengthInBytes { get; set; }
         /// <summary>
-        /// Gets the maximum response length in bytes.
+        /// Gets or sets the maximum response length in bytes.
         /// </summary>
-        long MaxResponseLengthInBytes { get; }
+        long MaxResponseLengthInBytes { get; set;  }
 
         /// <summary>
         /// If the passed value exceeds the configured MaxFileLengthInBytes limit,

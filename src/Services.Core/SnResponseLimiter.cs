@@ -22,13 +22,30 @@ namespace SenseNet.Services.Core
         {
             return (long?)response.HttpContext.Items[SnResponseLimiter.ResponseLength] ?? 0L;
         }
+
+        public static void ModifyResponseLengthLimit(long maxResponseLengthInBytes)
+        {
+            var provider = Providers.Instance.GetProvider<IResponseLimiter>();
+            if(provider != null)
+                provider.MaxResponseLengthInBytes = maxResponseLengthInBytes;
+        }
+
+        public static void ModifyFileLengthLimit(long maxFileLengthInBytes)
+        {
+            var provider = Providers.Instance.GetProvider<IResponseLimiter>();
+            if (provider != null)
+                provider.MaxFileLengthInBytes = maxFileLengthInBytes;
+        }
     }
 
     /// <inheritdoc/>
     public class SnResponseLimiter : IResponseLimiter
     {
-        public long MaxFileLengthInBytes { get; }
-        public long MaxResponseLengthInBytes { get; }
+        /// <inheritdoc/>
+        public long MaxFileLengthInBytes { get; set; }
+
+        /// <inheritdoc/>
+        public long MaxResponseLengthInBytes { get; set; }
 
         public SnResponseLimiter(long maxResponseLengthInBytes = 0, long maxFileLengthInBytes = 0)
         {
