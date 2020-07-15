@@ -324,13 +324,13 @@ namespace SenseNet.Services.Core.Tests
                             actual = GetResponse((httpContext) =>
                             {
                                 var response = httpContext.Response;
-                                Assert.AreEqual(0L, limiter.GetCurrentResponseLength(httpContext));
+                                Assert.AreEqual(0L, response.Body.Length);
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
-                                Assert.AreEqual(10L, limiter.GetCurrentResponseLength(httpContext));
+                                Assert.AreEqual(10L, response.Body.Length);
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
-                                Assert.AreEqual(20L, limiter.GetCurrentResponseLength(httpContext));
+                                Assert.AreEqual(20L, response.Body.Length);
 
                                 response.WriteLimitedAsync(expected).ConfigureAwait(false).GetAwaiter().GetResult();
                             });

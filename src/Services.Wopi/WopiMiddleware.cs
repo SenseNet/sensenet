@@ -12,6 +12,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;

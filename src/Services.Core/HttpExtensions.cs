@@ -23,7 +23,7 @@ namespace SenseNet.Services.Core
         {
             if (text != null)
                 Providers.Instance.GetProvider<IResponseLimiter>()?
-                    .AssertResponseLimit(response.HttpContext, text.Length);
+                    .AssertResponseLimit(response.Body.Length + text.Length);
             await response.WriteAsync(text, cancellationToken);
         }
 
@@ -40,7 +40,7 @@ namespace SenseNet.Services.Core
         {
             if(text != null)
                 Providers.Instance.GetProvider<IResponseLimiter>()?
-                    .AssertResponseLimit(response.HttpContext, text.Length);
+                    .AssertResponseLimit(response.Body.Length + text.Length);
             await response.WriteAsync(text, encoding, cancellationToken);
         }
     }

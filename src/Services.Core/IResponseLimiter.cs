@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace SenseNet.Services.Core
 {
@@ -21,19 +22,10 @@ namespace SenseNet.Services.Core
         void AssertFileLength(long fileLength);
 
         /// <summary>
-        /// Aggregates the "textLength" using the httpContext as a background storage.
-        /// If the aggregated value exceeds the configured MaxResponseLengthInBytes limit,
+        /// If the passed value exceeds the configured MaxResponseLengthInBytes limit,
         /// ApplicationException will be thrown.
         /// </summary>
-        /// <param name="httpContext">The current HttpContext instance.</param>
-        /// <param name="textLength">The length of the text to write.</param>
-        void AssertResponseLimit(HttpContext httpContext, long textLength);
-
-        /// <summary>
-        /// Returns all written bytes. Designed only test purposes.
-        /// </summary>
-        /// <param name="httpContext">The current HttpContext instance.</param>
-        /// <returns>Byte count.</returns>
-        long GetCurrentResponseLength(HttpContext httpContext);
+        /// <param name="responseLength">Desired length.</param>
+        void AssertResponseLimit(long responseLength);
     }
 }

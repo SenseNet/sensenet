@@ -209,7 +209,7 @@ namespace SenseNet.Services.Core
                 throw new ArgumentNullException(nameof(stream));
 
             Providers.Instance.GetProvider<IResponseLimiter>()?
-                .AssertFileLength(stream.Length + count);
+                .AssertResponseLimit(stream.Length + count);
 
             await stream.WriteAsync(buffer, offset, count);
         }

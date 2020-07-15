@@ -7,8 +7,6 @@ namespace SenseNet.Services.Core
     /// <inheritdoc/>
     public class SnResponseLimiter : IResponseLimiter
     {
-        private const string ResponseLength = "ResponseLength";
-
         public long MaxFileLengthInBytes { get; }
         public long MaxResponseLengthInBytes { get; }
 
@@ -24,19 +22,10 @@ namespace SenseNet.Services.Core
                 throw new ApplicationException($"File length limit exceeded.");
         }
 
-        public void AssertResponseLimit(HttpContext httpContext, long textLength)
+        public void AssertResponseLimit(long responseLength)
         {
-            var length = (long?)httpContext.Items[ResponseLength] ?? 0;
-            var newLength = length + textLength;
-            httpContext.Items[ResponseLength] = newLength;
-
-            if (newLength > MaxResponseLengthInBytes)
+            if (responseLength > MaxResponseLengthInBytes)
                 throw new ApplicationException($"Response length limit exceeded.");
-        }
-
-        public long GetCurrentResponseLength(HttpContext httpContext)
-        {
-            return (long?)httpContext.Items[ResponseLength] ?? 0L;
         }
     }
 }
