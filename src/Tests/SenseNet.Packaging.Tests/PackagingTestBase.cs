@@ -8,6 +8,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
 using Task = System.Threading.Tasks.Task;

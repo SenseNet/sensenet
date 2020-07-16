@@ -7,8 +7,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.InMemory;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {

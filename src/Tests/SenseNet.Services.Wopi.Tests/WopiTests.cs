@@ -17,6 +17,7 @@ using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Wopi.Tests.Accessors;
 
 namespace SenseNet.Services.Wopi.Tests

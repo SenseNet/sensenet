@@ -4,6 +4,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Lucene29;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Services.Core.Install;

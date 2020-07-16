@@ -6,12 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
-using SenseNet.OData;
-using SenseNet.Services.Core;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication;
-using SenseNet.Services.Core.Cors;
-using SenseNet.Services.Core.Virtualization;
-using SenseNet.Services.Wopi;
 
 namespace SnWebApplication.Api.InMem.Admin
 {

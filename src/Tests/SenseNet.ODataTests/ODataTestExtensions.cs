@@ -1,6 +1,6 @@
-﻿using System;
-using SenseNet.Configuration;
+﻿using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 
 namespace SenseNet.ODataTests

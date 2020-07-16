@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging;
 using SenseNet.Security;
 using SenseNet.Security.Data;
