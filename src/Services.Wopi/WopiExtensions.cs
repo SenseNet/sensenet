@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using SenseNet.OData;
 using SenseNet.Services.Core;
+using SenseNet.Services.Wopi;
 using System;
 
-namespace SenseNet.Services.Wopi
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class WopiExtensions
     {

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
 {

@@ -1,10 +1,11 @@
 ﻿using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Tests.Implementations;
 using SenseNet.Tools;
 
-namespace SenseNet.Tests.Implementations
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
-
-    public static class RepositoryBuilderExtensions
+    public static class TestingDataProviderExtension
     {
         public static IRepositoryBuilder UseTestingDataProviderExtension(this IRepositoryBuilder repositoryBuilder, ITestingDataProviderExtension provider)
         {

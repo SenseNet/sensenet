@@ -6,7 +6,7 @@ using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Packaging;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.Tests.SPA
 {

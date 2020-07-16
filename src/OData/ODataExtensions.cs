@@ -1,13 +1,14 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.OData;
 using SenseNet.Services.Core;
 
-namespace SenseNet.OData
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
-    public static class Extensions
+    public static class ODataExtensions
     {
         /// <summary>
         /// Registers the sensenet OData middleware in the pipeline
@@ -63,21 +64,6 @@ namespace SenseNet.OData
         {
             OperationCenter.Policies[name] = new InlineOperationMethodPolicy(name, policyFunction);
             return builder;
-        }
-
-        /// <summary>
-        /// Adds the OData request object to the items of HttpContext.
-        /// </summary>
-        internal static void SetODataRequest(this HttpContext httpContext, ODataRequest odataRequest)
-        {
-            httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] = odataRequest;
-        }
-        /// <summary>
-        /// Gets the OData request object from the Items collection.
-        /// </summary>
-        internal static ODataRequest GetODataRequest(this HttpContext httpContext)
-        {
-            return httpContext.Items[ODataMiddleware.ODataRequestHttpContextKey] as ODataRequest;
         }
 
         /// <summary>
