@@ -1,30 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Tools;
-// ReSharper disable CheckNamespace
 
+// ReSharper disable CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    /// <summary>
-    /// Extension methods for the shared lock feature.
-    /// </summary>
-    public static class SharedLockDataProviderExtensions
-    {
-        /// <summary>
-        /// Sets the current <see cref="ISharedLockDataProviderExtension"/> instance that will be responsible
-        /// for managing shared locks.
-        /// </summary>
-        /// <param name="builder">The IRepositoryBuilder instance.</param>
-        /// <param name="provider">The extension instance to set.</param>
-        /// <returns>The updated IRepositoryBuilder.</returns>
-        public static IRepositoryBuilder UseSharedLockDataProviderExtension(this IRepositoryBuilder builder, ISharedLockDataProviderExtension provider)
-        {
-            DataStore.DataProvider.SetExtension(typeof(ISharedLockDataProviderExtension), provider);
-            return builder;
-        }
-    }
-
     /// <summary>
     /// Defines methods for handling shared lock storage.
     /// </summary>

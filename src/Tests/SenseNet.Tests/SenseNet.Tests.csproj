@@ -137,7 +137,7 @@
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
     <Compile Include="NodeDataChecker.cs" />
-    <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
+    <Compile Include="Implementations\TestingDataProviderExtension.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

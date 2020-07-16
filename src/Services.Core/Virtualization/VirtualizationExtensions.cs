@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
+using SenseNet.Services.Core.Virtualization;
 using SenseNet.Tools;
 
-namespace SenseNet.Services.Core.Virtualization
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class VirtualizationExtensions
     {
