@@ -22,6 +22,7 @@ using SenseNet.Tools;
 using System.Security;
 using SenseNet.ContentRepository.Security;
 using SenseNet.Tools.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 
 namespace SenseNet.Services
 {
