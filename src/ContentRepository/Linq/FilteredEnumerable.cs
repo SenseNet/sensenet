@@ -39,11 +39,15 @@ namespace SenseNet.ContentRepository.Linq
             foreach (Node item in _enumerable)
             {
                 AllCount++;
+
+                if (!_isOk(Content.Create(item)))
+                    continue;
                 if (skipped++ < _skip)
                     continue;
                 if (_top == 0 || count++ < _top)
-                    if (_isOk(Content.Create(item)))
-                        yield return item;
+                    yield return item;
+                else
+                    yield break;
             }
         }
     }
