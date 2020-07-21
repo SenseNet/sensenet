@@ -25,7 +25,8 @@ namespace SenseNet.Search
         /// </summary>
         public static string EmptyText => SnQuery.EmptyText;
 
-        private static readonly string[] QuerySettingParts = { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
+        private static string[] QuerySettingParts { get; } =
+            Cql.Keyword.QuerySettingKeywords.Select(x=>x.Substring(1)).ToArray(); 
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
         private static readonly string RegexCommentEndMulti = "\\*/|\\z";
@@ -285,9 +286,16 @@ namespace SenseNet.Search
                 }
 
                 // remove the setting from the original position and store it
-                queryText = queryText.Remove(match.Index, match.Length);
+                // Patch match.value: it cannot ends with ') '.
+                var matchValue = match.Value;
+                if (matchValue.EndsWith(") "))
+                    matchValue = matchValue.Substring(0, matchValue.Length - 2);
+                else if (matchValue.EndsWith(")"))
+                    matchValue = matchValue.Substring(0, matchValue.Length - 1);
+
+                queryText = queryText.Remove(match.Index, matchValue.Length);
                 index = match.Index;
-                backParts += " " + match.Value;
+                backParts += " " + matchValue + " ";
             }
 
             // add the stored settings to the end of the query
