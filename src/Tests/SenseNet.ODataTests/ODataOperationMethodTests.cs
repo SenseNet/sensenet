@@ -18,6 +18,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedVariable

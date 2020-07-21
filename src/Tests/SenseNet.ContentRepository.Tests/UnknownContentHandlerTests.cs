@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Storage;
 using SenseNet.Tests;

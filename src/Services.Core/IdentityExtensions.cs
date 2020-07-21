@@ -9,7 +9,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Services.Core
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public class SenseNetAuthenticationOptions
     {

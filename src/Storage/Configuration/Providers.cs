@@ -390,6 +390,17 @@ namespace SenseNet.Configuration
 
         #endregion
 
+        #region ContentProtector
+        private Lazy<ContentProtector> _contentProtector =
+            new Lazy<ContentProtector>(() => new ContentProtector());
+        public virtual ContentProtector ContentProtector
+        {
+            get => _contentProtector.Value;
+            set { _contentProtector = new Lazy<ContentProtector>(() => value); }
+        }
+
+        #endregion
+
         internal NodeTypeManager NodeTypeManeger { get; set; }
 
         public ICompatibilitySupport CompatibilitySupport { get; set; } =

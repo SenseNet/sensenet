@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests;
 // ReSharper disable UnusedVariable
 

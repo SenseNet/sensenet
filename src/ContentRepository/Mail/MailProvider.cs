@@ -96,15 +96,4 @@ namespace SenseNet.ContentRepository.Mail
     public class DefaultMailProvider : MailProvider
     {
     }
-
-    public static class MailProviderExtensions
-    {
-        public static IRepositoryBuilder UseMailProvider(this IRepositoryBuilder repositoryBuilder, MailProvider mailProvider)
-        {
-            Providers.Instance.SetProvider(typeof(MailProvider), mailProvider);
-            SnLog.WriteInformation($"MailProvider created: {mailProvider?.GetType().FullName}");
-
-            return repositoryBuilder;
-        }
-    }
 }

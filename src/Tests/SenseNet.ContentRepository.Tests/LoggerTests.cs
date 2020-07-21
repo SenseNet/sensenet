@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,6 +7,7 @@ using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 using SenseNet.Tools.Diagnostics;

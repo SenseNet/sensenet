@@ -6,6 +6,7 @@ using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Scripting
 {
     public static class Evaluator
@@ -73,7 +74,7 @@ namespace SenseNet.ContentRepository.Storage.Scripting
             var tagName = src.Substring(start, end - start);
             var startTag = string.Concat("[Script:", tagName, "]");
             src = src.Replace(startTag, "").Replace("[/Script]", "");
-            
+
             var evaluator = Providers.Instance.GetProvider<IEvaluator>(GetFullTagName(tagName));
             if (evaluator == null)
                 return src;
@@ -110,21 +111,6 @@ namespace SenseNet.ContentRepository.Storage.Scripting
                 return GetFullTagName(tagAttribute.TagName);
 
             return string.Empty;
-        }
-    }
-
-    public static class EvaluatorExtensions
-    {
-        public static IRepositoryBuilder UseScriptEvaluator(this IRepositoryBuilder repositoryBuilder, IEvaluator evaluator)
-        {
-            if (evaluator == null)
-                return repositoryBuilder;
-
-            var fullTagName = Evaluator.GetFullTagName(evaluator.GetType());
-            if (!string.IsNullOrEmpty(fullTagName))
-                Providers.Instance.SetProvider(fullTagName, evaluator);
-
-            return repositoryBuilder;
         }
     }
 }

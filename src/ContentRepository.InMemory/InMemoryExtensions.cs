@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tools;
