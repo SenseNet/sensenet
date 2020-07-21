@@ -22,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
@@ -978,13 +979,16 @@ namespace SenseNet.OData.Writers
         }
 
         /// <summary>
-        /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
+        /// Writes an object to the webresponse.
         /// </summary>
         /// <param name="response">The object that will be written.</param>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected virtual async Task WriteRawAsync(object response, HttpContext httpContext)
         {
-            await httpContext.Response.WriteAsync(response.ToString()).ConfigureAwait(false);
+            var text = response.ToString();
+            ResponseLimiter.AssertResponseLength(httpContext.Response, text.Length);
+            await httpContext.Response.WriteAsync(text, httpContext.RequestAborted)
+                .ConfigureAwait(false);
         }
 
     }

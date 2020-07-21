@@ -12,6 +12,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Virtualization;
 using File = SenseNet.ContentRepository.File;
 using Task = System.Threading.Tasks.Task;
@@ -87,7 +88,9 @@ namespace SenseNet.Services.Wopi
                 var settings = new JsonSerializerSettings {Formatting = Formatting.Indented};
                 var output = JsonConvert.SerializeObject(wopiResponse, settings);
 
-                await webResponse.Body.WriteAsync(Encoding.UTF8.GetBytes(output), 0, output.Length)
+                var buffer = Encoding.UTF8.GetBytes(output);
+                ResponseLimiter.AssertResponseLength(webResponse, buffer.Length);
+                await webResponse.Body.WriteAsync(buffer, 0, buffer.Length)
                     .ConfigureAwait(false);
             }
         }
