@@ -47,6 +47,11 @@
             /// <summary>Value: ".ALLVERSIONS"</summary>
             public const string AllVersions = ".ALLVERSIONS";
 
+            public static readonly string[] QuerySettingKeywords = new[]
+            {
+                Select, Skip, Top, Sort, ReverseSort, Autofilters, Lifespan, CountOnly, Quick, AllVersions
+            };
+
             /// <summary>Value: "ON"</summary>
             public const string On = "ON";
             /// <summary>Value: "OFF"</summary>
