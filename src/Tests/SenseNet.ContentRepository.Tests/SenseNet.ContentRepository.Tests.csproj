@@ -139,6 +139,7 @@
     <Compile Include="ClientMetadataProviderTests.cs" />
     <Compile Include="ComponentVersionTests.cs" />
     <Compile Include="ContentHandlers\EnumTestNode.cs" />
+    <Compile Include="ContentProtectorTests.cs" />
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="CryptoApiTests.cs" />

@@ -3587,6 +3587,7 @@ namespace SenseNet.ContentRepository.Storage
                 using (TreeLock.AcquireAsync(CancellationToken.None, this.Path, RepositoryPath.Combine(target.Path, this.Name)).GetAwaiter().GetResult())
                 {
                     var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
+                    ContentProtector.AssertIsDeletable(this.Path);
                     FireOnMoving(args);
                     if (args.Cancel)
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
@@ -4316,6 +4317,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     node.Security.AssertSubtree(PermissionType.Delete);
                     node.AssertLock();
+                    node.AssertDeletion();
                 }
                 catch (Exception e)
                 {
@@ -4679,6 +4681,8 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void AssertMoving(Node target)
         {
+            ContentProtector.AssertIsDeletable(this.Path);
+
             var validators = NodeOperationValidators;
             if (validators == null)
                 return;
@@ -4689,6 +4693,8 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void AssertDeletion()
         {
+            ContentProtector.AssertIsDeletable(this.Path);
+
             var validators = NodeOperationValidators;
             if (validators == null)
                 return;
