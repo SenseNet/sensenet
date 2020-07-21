@@ -127,6 +127,7 @@ namespace SenseNet.Services.Core.Virtualization
                 binaryStream.Position = 0;
 
                 // Let ASP.NET handle sending bytes to the client.
+                ResponseLimiter.AssertFileLength(binaryStream.Length);
                 await binaryStream.CopyToAsync(_context.Response.Body);
             }
 

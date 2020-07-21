@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.OData;
-using SenseNet.Services.Core;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
