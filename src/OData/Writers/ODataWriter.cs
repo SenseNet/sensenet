@@ -244,6 +244,7 @@ namespace SenseNet.OData.Writers
                     }
                     else
                     {
+                        //UNDONE: Missing $orderby
                         foreach (Node item in enumerable)
                         {
                             allcount++;
@@ -261,6 +262,50 @@ namespace SenseNet.OData.Writers
                 }
             }
         }
+
+        private async Task WriteActionsAsync(ODataActionItem[] actionItems, HttpContext httpContext, ODataRequest req)
+        {
+            if (actionItems == null)
+                return;
+
+            var projector = Projector.Create(req, true);
+
+            var skipped = 0;
+            var allcount = 0;
+            var count = 0;
+            var realcount = 0;
+            var contents = new List<ODataEntity>();
+            var actionContents = ConvertActionsToContentArray(actionItems, httpContext, req);
+            if (req.HasFilter)
+            {
+                var actionNodes = actionContents.Select(x=>x.ContentHandler).ToArray();
+                var filtered = new FilteredEnumerable(actionNodes, (LambdaExpression)req.Filter, req.Top, req.Skip);
+                foreach (Node item in filtered)
+                    contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
+                allcount = filtered.AllCount;
+                realcount = contents.Count;
+            }
+            else
+            {
+                //UNDONE: Missing $orderby
+                foreach (var item in actionContents)
+                {
+                    allcount++;
+                    if (skipped++ < req.Skip)
+                        continue;
+                    if (req.Top == 0 || count++ < req.Top)
+                    {
+                        contents.Add(CreateFieldDictionary(item, projector, httpContext));
+                        realcount++;
+                    }
+                }
+            }
+
+            await WriteMultipleContentAsync(httpContext, contents,
+                    req.InlineCount == InlineCount.AllPages ? allcount : realcount)
+                .ConfigureAwait(false);
+        }
+
         private async Task WriteSingleRefContentAsync(object references, HttpContext httpContext)
         {
             if (references != null)
@@ -310,9 +355,8 @@ namespace SenseNet.OData.Writers
 
             if (propertyName == ODataMiddleware.ActionsPropertyName)
             {
-                await WriteActionsPropertyAsync(httpContext, 
-                    ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue)
-                    .ConfigureAwait(false);
+                var actionItems = ODataTools.GetActionItems(content, req, httpContext).ToArray();
+                await WriteActionsAsync(actionItems, httpContext, req);
                 return;
             }
             if (propertyName == ODataMiddleware.ChildrenPropertyName)
@@ -741,6 +785,31 @@ namespace SenseNet.OData.Writers
         }
 
         // --------------------------------------------------------------------------------------------------------------- utilities
+
+        private Content[] ConvertActionsToContentArray(IEnumerable<ODataActionItem> actions, HttpContext httpContext, ODataRequest request)
+        {
+            //UNDONE: Place better storage.
+            #region var ctd = @"...
+            var ctd = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""Action"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Name"" type=""ShortText"" />
+    <Field name=""DisplayName"" type=""ShortText"" />
+    <Field name=""Index"" type=""Integer"" />
+    <Field name=""Icon"" type=""ShortText"" />
+    <Field name=""Url"" type=""ShortText"" />
+    <Field name=""IsODataAction"" type=""Boolean"" />
+    <Field name=""ActionParameters"" type=""LongText"" />
+    <Field name=""Scenario"" type=""ShortText"" />
+    <Field name=""Forbidden"" type=""Boolean"" />
+  </Fields>
+</ContentType>
+";
+            #endregion
+
+            //UNDONE: Performance: do not create new ContentType for every new item in the list
+            return actions.Select(x => Content.Create(x, ctd)).ToArray();
+        }
 
         private object[] GetOperationParameters(ActionBase action, HttpRequest request)
         {

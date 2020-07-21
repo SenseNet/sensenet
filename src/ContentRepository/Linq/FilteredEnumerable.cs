@@ -36,6 +36,7 @@ namespace SenseNet.ContentRepository.Linq
         {
             var skipped = 0;
             var count = 0;
+            //UNDONE: Missing $orderby
             foreach (Node item in _enumerable)
             {
                 AllCount++;
