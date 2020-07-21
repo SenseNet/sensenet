@@ -5,7 +5,7 @@ using SenseNet.Tools;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
-    public static class DependencyInjectionExtensions
+    public static class ResponseLimiterExtensions
     {
         /// <summary>
         /// Switches the ResponseLengthLimiter feature on.
