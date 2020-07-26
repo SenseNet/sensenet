@@ -422,7 +422,7 @@ namespace SenseNet.OData
 
             // --------------------------------------------------------------- $filter
             var filterStr = req["$filter"];
-            new ODataParser().Parse(filterStr, this);
+            this.Filter = new ODataParser().Parse(filterStr);
 
             var formatName = req["$format"].ToString();
             this.Format = ParseFormat(formatName);

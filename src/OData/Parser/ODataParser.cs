@@ -10,7 +10,6 @@ namespace SenseNet.OData.Parser
 {
     internal class ODataParser
     {
-        private ODataRequest req;
         private ODataLexer lexer;
         public ODataLexer Lexer { get { return lexer; } }
         private ExpressionBuilder builder;
@@ -21,20 +20,16 @@ namespace SenseNet.OData.Parser
             builder = new ExpressionBuilder(this);
         }
 
-        internal void Parse(string filter, ODataRequest req)
+        internal LambdaExpression Parse(string filter)
         {
-            this.req = req;
-            if (filter != null) parseFilterExpr(filter);
-        }
-        private void parseFilterExpr(string filter)
-        {
+            if (filter == null)
+                return null;
             this.lexer = new ODataLexer(filter);
             var expr = this.parseExpr();
             var token = this.lexer.Token;
             if (token != null && token.TokenType != TokenType.EOF)
                 throw SyntaxError(String.Concat("Unexpected ", token.TokenType.ToString(), " in $filter: '", token.Value, "'."));
-            var final = Expression.Lambda(expr, this.Builder.x);
-            this.req.Filter = final;
+            return Expression.Lambda(expr, this.Builder.x);
         }
 
         /***************************************************     BNF    *****************************************************/
