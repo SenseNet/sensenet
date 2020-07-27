@@ -766,8 +766,7 @@ namespace SenseNet.OData.Writers
 ";
             #endregion
 
-            //UNDONE: Performance: do not create new ContentType for every new item in the list
-            return actions.Select(x => Content.Create(x, ctd)).ToArray();
+            return Content.CreateCollection(actions, ctd);
         }
 
         private object[] GetOperationParameters(ActionBase action, HttpRequest request)

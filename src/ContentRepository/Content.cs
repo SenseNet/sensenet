@@ -2028,6 +2028,18 @@ namespace SenseNet.ContentRepository
             var node = new RuntimeContentHandler(objectToEdit, contentType);
             return new Content(node, contentType);
         }
+        public static Content[] CreateCollection<T>(IEnumerable<T> objects, string ctd)
+        {
+            if (objects == null)
+                throw new ArgumentNullException(nameof(objects));
+
+            var contentType = ContentType.Create(typeof(T), ctd);
+            if (contentType == null)
+                throw new ApplicationException("Cannot create content from a " + typeof(T).FullName);
+
+            var result = objects.Select(x => new Content(new RuntimeContentHandler(x, contentType), contentType));
+            return result.ToArray();
+        }
 
         public class RuntimeContentHandler : Node
         {
