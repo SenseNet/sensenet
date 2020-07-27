@@ -146,11 +146,16 @@ namespace SenseNet.OData
                 }
                 if (!content.Fields.TryGetValue(propertyName, out var field))
                 {
+                    var expansion = GetPropertyFromList(propertyName, expandTree);
                     switch (propertyName)
                     {
                         case ACTIONSPROPERTY:
-                            //UNDONE: Use $select
-                            AddField(content, expandTree, outfields, ACTIONSPROPERTY, httpContext, GetActions);
+                            AddField(content, expansion, outfields, propertyName, httpContext, (c, ctx) =>
+                            {
+                                var actions = Content.CreateCollection(GetActions(c, ctx), ODataActionItem.Ctd);
+                                return ProjectMultiRefContents(actions.Select(cnt => cnt.ContentHandler),
+                                    expansion.Children, property.Children, httpContext);
+                            });
                             break;
                         case ICONPROPERTY:
                             outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
@@ -159,8 +164,7 @@ namespace SenseNet.OData
                             outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataMiddleware.BinaryPropertyName));
                             break;
                         case ODataMiddleware.ChildrenPropertyName:
-                            var expansion = GetPropertyFromList(ODataMiddleware.ChildrenPropertyName, expandTree);
-                            AddField(content, expansion, outfields, ODataMiddleware.ChildrenPropertyName, httpContext,
+                            AddField(content, expansion, outfields, propertyName, httpContext,
                                 (c, ctx) =>
                                 {
                                     // disable autofilters by default the same way as in ODataWriter.WriteChildrenCollection
