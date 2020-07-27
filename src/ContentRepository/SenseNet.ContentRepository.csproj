@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.7.12.5</Version>
+    <Version>7.7.13</Version>
     <Authors>kavics,aniko,lajos,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -35,10 +35,10 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.0.0" />
-    <PackageReference Include="SenseNet.Preview" Version="7.1.0" />
+    <PackageReference Include="SenseNet.Preview" Version="7.2.0" />
     <PackageReference Include="SenseNet.Security" Version="4.1.0" />
-    <PackageReference Include="SenseNet.TaskManagement.Core" Version="2.0.1.1" />
-    <PackageReference Include="SenseNet.Tools" Version="3.2.3" />
+    <PackageReference Include="SenseNet.TaskManagement.Core" Version="2.1.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.4" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
