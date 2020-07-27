@@ -6,6 +6,8 @@ using System.Linq.Expressions;
 
 namespace SenseNet.ContentRepository.Linq
 {
+    //UNDONE: Rewrite all usage
+    [Obsolete("Use FilteredContentEnumerable instead.", false)]
     public class FilteredEnumerable : IEnumerable<Node>
     {
         private readonly IEnumerable _enumerable;
@@ -36,7 +38,6 @@ namespace SenseNet.ContentRepository.Linq
         {
             var skipped = 0;
             var count = 0;
-            //UNDONE: Missing $orderby
             foreach (Node item in _enumerable)
             {
                 AllCount++;

@@ -229,36 +229,16 @@ namespace SenseNet.OData.Writers
             {
                 if (references is IEnumerable enumerable)
                 {
-                    var skipped = 0;
-                    var allcount = 0;
-                    var count = 0;
-                    var realcount = 0;
-                    var contents = new List<ODataEntity>();
-                    if (req.HasFilter)
-                    {
-                        var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
-                        foreach (Node item in filtered)
-                            contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
-                        allcount = filtered.AllCount;
-                        realcount = contents.Count;
-                    }
-                    else
-                    {
-                        //UNDONE: Missing $orderby
-                        foreach (Node item in enumerable)
-                        {
-                            allcount++;
-                            if (skipped++ < req.Skip)
-                                continue;
-                            if (req.Top == 0 || count++ < req.Top)
-                            {
-                                contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
-                                realcount++;
-                            }
-                        }
-                    }
-                    await WriteMultipleContentAsync(httpContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount)
-                        .ConfigureAwait(false);
+                    var filteredEnumerable = new FilteredContentEnumerable(enumerable, 
+                        (LambdaExpression)req.Filter, req.Sort, req.Top, req.Skip);
+
+                    var contents = filteredEnumerable
+                        .Select(x => CreateFieldDictionary(x, projector, httpContext))
+                        .ToArray();
+
+                    var count = req.InlineCount == InlineCount.AllPages ? filteredEnumerable.AllCount : contents.Length;
+
+                    await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
                 }
             }
         }
@@ -270,40 +250,19 @@ namespace SenseNet.OData.Writers
 
             var projector = Projector.Create(req, true);
 
-            var skipped = 0;
-            var allcount = 0;
-            var count = 0;
-            var realcount = 0;
-            var contents = new List<ODataEntity>();
-            var actionContents = ConvertActionsToContentArray(actionItems, httpContext, req);
-            if (req.HasFilter)
-            {
-                var actionNodes = actionContents.Select(x=>x.ContentHandler).ToArray();
-                var filtered = new FilteredEnumerable(actionNodes, (LambdaExpression)req.Filter, req.Top, req.Skip);
-                foreach (Node item in filtered)
-                    contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
-                allcount = filtered.AllCount;
-                realcount = contents.Count;
-            }
-            else
-            {
-                //UNDONE: Missing $orderby
-                foreach (var item in actionContents)
-                {
-                    allcount++;
-                    if (skipped++ < req.Skip)
-                        continue;
-                    if (req.Top == 0 || count++ < req.Top)
-                    {
-                        contents.Add(CreateFieldDictionary(item, projector, httpContext));
-                        realcount++;
-                    }
-                }
-            }
+            var enumerable = ConvertActionsToContentArray(actionItems, httpContext, req);
 
-            await WriteMultipleContentAsync(httpContext, contents,
-                    req.InlineCount == InlineCount.AllPages ? allcount : realcount)
-                .ConfigureAwait(false);
+            var filteredEnumerable = new FilteredContentEnumerable(enumerable,
+                (LambdaExpression)req.Filter, req.Sort, req.Top, req.Skip);
+
+            var contents = filteredEnumerable
+                .Select(x => CreateFieldDictionary(x, projector, httpContext))
+                .ToArray();
+
+            var count = req.InlineCount == InlineCount.AllPages ? filteredEnumerable.AllCount : contents.Length;
+
+            await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
+
         }
 
         private async Task WriteSingleRefContentAsync(object references, HttpContext httpContext)
