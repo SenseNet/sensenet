@@ -2425,6 +2425,8 @@ namespace SenseNet.ContentRepository
             {
                 if (content is ContentType)
                     return ContentType.GetByName("ContentType").FieldSettings.Select(f => f.Name).ToArray();
+                if(content is RuntimeContentHandler dynamicContent)
+                    return dynamicContent.ContentType.FieldSettings.Select(f => f.Name).ToArray();
                 return allNames;
             }
 
