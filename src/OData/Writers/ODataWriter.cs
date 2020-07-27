@@ -250,7 +250,7 @@ namespace SenseNet.OData.Writers
 
             var projector = Projector.Create(req, true);
 
-            var enumerable = ConvertActionsToContentArray(actionItems, httpContext, req);
+            var enumerable = Content.CreateCollection(actionItems, ODataActionItem.Ctd);
 
             var filteredEnumerable = new FilteredContentEnumerable(enumerable,
                 (LambdaExpression)req.Filter, req.Sort, req.Top, req.Skip);
@@ -262,7 +262,6 @@ namespace SenseNet.OData.Writers
             var count = req.InlineCount == InlineCount.AllPages ? filteredEnumerable.AllCount : contents.Length;
 
             await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
-
         }
 
         private async Task WriteSingleRefContentAsync(object references, HttpContext httpContext)
@@ -744,30 +743,6 @@ namespace SenseNet.OData.Writers
         }
 
         // --------------------------------------------------------------------------------------------------------------- utilities
-
-        private Content[] ConvertActionsToContentArray(IEnumerable<ODataActionItem> actions, HttpContext httpContext, ODataRequest request)
-        {
-            //UNDONE: Place better storage.
-            #region var ctd = @"...
-            var ctd = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<ContentType name=""Action"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
-  <Fields>
-    <Field name=""Name"" type=""ShortText"" />
-    <Field name=""DisplayName"" type=""ShortText"" />
-    <Field name=""Index"" type=""Integer"" />
-    <Field name=""Icon"" type=""ShortText"" />
-    <Field name=""Url"" type=""ShortText"" />
-    <Field name=""IsODataAction"" type=""Boolean"" />
-    <Field name=""ActionParameters"" type=""LongText"" />
-    <Field name=""Scenario"" type=""ShortText"" />
-    <Field name=""Forbidden"" type=""Boolean"" />
-  </Fields>
-</ContentType>
-";
-            #endregion
-
-            return Content.CreateCollection(actions, ctd);
-        }
 
         private object[] GetOperationParameters(ActionBase action, HttpRequest request)
         {
