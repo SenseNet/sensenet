@@ -31,6 +31,29 @@ namespace SenseNet.ODataTests
             });
         }
         [TestMethod]
+        public void FilteredEnumerable_NodeOrContent_AllCount()
+        {
+            ODataTest(() =>
+            {
+                var refNodes = new NodeList<Node>(ContentType.GetContentTypes().Select(ct => ct.Id).ToArray());
+                var refContents = refNodes.Select(Content.Create).ToArray();
+
+                var enumerable1 = new FilteredContentEnumerable(refNodes, null, null, 5, 0);
+                var enumerable2 = new FilteredContentEnumerable(refContents, null, null, 5, 0);
+                var result1 = enumerable1.ToArray();
+                var result2 = enumerable2.ToArray();
+
+                var allCount1 = enumerable1.AllCount;
+                var allCount2 = enumerable2.AllCount;
+                Assert.AreEqual(refNodes.Count, refContents.Length);
+                Assert.AreEqual(refNodes.Count, allCount1);
+                Assert.AreEqual(allCount1, allCount2);
+                Assert.AreEqual(5, result1.Length);
+                Assert.AreEqual(5, result2.Length);
+            });
+        }
+
+        [TestMethod]
         public void FilteredEnumerable_Sort()
         {
             ODataTest(() =>

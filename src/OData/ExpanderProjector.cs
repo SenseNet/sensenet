@@ -149,6 +149,7 @@ namespace SenseNet.OData
                     switch (propertyName)
                     {
                         case ACTIONSPROPERTY:
+                            //UNDONE: Use $select
                             AddField(content, expandTree, outfields, ACTIONSPROPERTY, httpContext, GetActions);
                             break;
                         case ICONPROPERTY:

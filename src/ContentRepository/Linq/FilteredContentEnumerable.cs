@@ -50,8 +50,10 @@ namespace SenseNet.ContentRepository.Linq
         }
         public IEnumerator<Content> GetEnumerator()
         {
-            var enumerable = _contentEnumerable ?? CreateContentEnumerable(_nodeEnumerable);
+            var source = _contentEnumerable?.ToArray() ?? _nodeEnumerable.Select(Content.Create).ToArray();
+            AllCount = source.Length;
 
+            IEnumerable<Content> enumerable = source;
             if (_filter != null)
                 enumerable = enumerable.Where(_filter);
             if (_sort.Length > 0)
@@ -63,15 +65,6 @@ namespace SenseNet.ContentRepository.Linq
 
             foreach (var item in enumerable)
                 yield return item;
-        }
-
-        private IEnumerable<Content> CreateContentEnumerable(IEnumerable nodeEnumerable)
-        {
-            foreach (Node node in nodeEnumerable)
-            {
-                AllCount++;
-                yield return Content.Create(node);
-            }
         }
 
         private IEnumerable<Content> CreateSortedEnumerable(IEnumerable<Content> input, SortInfo[] sort)
