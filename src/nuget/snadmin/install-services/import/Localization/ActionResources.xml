@@ -54,6 +54,9 @@
         <data name="GetPermissions" xml:space="preserve">
           <value>Get permissions</value>
         </data>
+        <data name="GetAcl" xml:space="preserve">
+          <value>Get access control list</value>
+        </data>
         <data name="HasPermission" xml:space="preserve">
           <value>Has permissions</value>
         </data>
@@ -71,6 +74,9 @@
         </data>
         <data name="GetPermissions-DisplayName" xml:space="preserve">
           <value>Get permissions</value>
+        </data>
+        <data name="GetAcl-DisplayName" xml:space="preserve">
+          <value>Get ACL</value>
         </data>
         <data name="HasPermission-DisplayName" xml:space="preserve">
           <value>Has permission</value>
@@ -491,6 +497,9 @@
         <data name="GetPermissions" xml:space="preserve">
           <value>Jogosultságok lekérdezése</value>
         </data>
+        <data name="GetAcl" xml:space="preserve">
+          <value>Jogosultságok (ACL) lekérdezése</value>
+        </data>
         <data name="HasPermission" xml:space="preserve">
           <value>Jogosultságok ellenőrzése</value>
         </data>
@@ -505,6 +514,9 @@
         </data>
         <data name="GetPermissions-DisplayName" xml:space="preserve">
           <value>Jogosultságok lekérdezése</value>
+        </data>
+        <data name="GetAcl-DisplayName" xml:space="preserve">
+          <value>Jogosultságok (ACL) lekérdezése</value>
         </data>
         <data name="HasPermission-DisplayName" xml:space="preserve">
           <value>Jogosultságok ellenőrzése</value>
