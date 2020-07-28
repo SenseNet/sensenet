@@ -164,9 +164,24 @@ namespace SenseNet.Services.Core
             if (node == null)
                 throw new ArgumentException("Identity not found");
 
-            //TODO: domain
             string domain = null;
-            var kind = node is User ? SnIdentityKind.User : node is Group ? SnIdentityKind.Group : SnIdentityKind.OrganizationalUnit;
+            string avatar = null;
+            SnIdentityKind kind;
+            if (node is User userNode)
+            {
+                kind = SnIdentityKind.User;
+                domain = userNode.Domain;
+                avatar = userNode.AvatarUrl;
+            }
+            else if (node is Group groupNode)
+            {
+                kind = SnIdentityKind.Group;
+                domain = groupNode.Domain?.Name;
+            }
+            else
+            {
+                kind = SnIdentityKind.OrganizationalUnit;
+            }
 
             return new Dictionary<string, object>
             {
@@ -175,7 +190,8 @@ namespace SenseNet.Services.Core
                 { "name", node.Name },
                 { "displayName", SNSR.GetString(node.DisplayName) },
                 { "domain", domain },
-                { "kind", kind.ToString().ToLower() }
+                { "kind", kind.ToString().ToLower() },
+                { "avatar", avatar }
             };
         }
     }
