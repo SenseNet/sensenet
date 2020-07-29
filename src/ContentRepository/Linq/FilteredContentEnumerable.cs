@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Linq
                 if (_filter == null)
                     throw new InvalidOperationException(
                         "Invalid filterExpression (LambdaExpression): return value must be bool, " +
-                        "parameter need to be " + typeof(Node).FullName);
+                        "parameter has to be " + typeof(Content).FullName);
             }
         }
 
