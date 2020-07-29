@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
+using SenseNet.Testing;
 using SenseNet.Tests;
 
 namespace SenseNet.Search.Tests
@@ -19,7 +20,7 @@ namespace SenseNet.Search.Tests
             Assert.IsFalse(indexDoc.Any(f => f.Name == passwordFieldName));
             Assert.IsNull(indexDoc.GetStringValue(passwordFieldName));
 
-            var indexDocAcc = new PrivateObject(indexDoc);
+            var indexDocAcc = new ObjectAccessor(indexDoc);
             var fields = (Dictionary<string, IndexField>)indexDocAcc.GetFieldOrProperty("_fields");
             Assert.IsFalse(fields.ContainsKey(passwordFieldName));
         }
@@ -33,7 +34,7 @@ namespace SenseNet.Search.Tests
             Assert.IsFalse(indexDoc.Any(f => f.Name == passwordHashFieldName));
             Assert.IsNull(indexDoc.GetStringValue(passwordHashFieldName));
 
-            var indexDocAcc = new PrivateObject(indexDoc);
+            var indexDocAcc = new ObjectAccessor(indexDoc);
             var fields = (Dictionary<string, IndexField>)indexDocAcc.GetFieldOrProperty("_fields");
             Assert.IsFalse(fields.ContainsKey(passwordHashFieldName));
         }

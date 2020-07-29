@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Testing;
 
 namespace SenseNet.Search.Tests
 {
@@ -471,7 +472,7 @@ namespace SenseNet.Search.Tests
         {
             var s = new String(Enumerable.Range(1, 256 - 32).Select(i => (char)i).ToArray());
             var lexer = new CqlLexer(s);
-            var lexerAcc = new PrivateObject(lexer);
+            var lexerAcc = new ObjectAccessor(lexer);
             var thrown = false;
             try
             {
