@@ -10,7 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core.Implementations;
 using static SenseNet.Tests.Tools;
 using Task = System.Threading.Tasks.Task;
 

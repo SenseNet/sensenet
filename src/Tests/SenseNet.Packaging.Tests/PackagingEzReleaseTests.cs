@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -49,7 +48,7 @@ namespace SenseNet.Packaging.Tests
             var component = new TestComponent(componentName, supportedVersionString, false);
             try
             {
-                var componentInfo = SnComponentInfo.Create(component);
+                var _ = SnComponentInfo.Create(component);
                 Assert.Fail();
             }
             catch (ApplicationException)
@@ -155,6 +154,7 @@ namespace SenseNet.Packaging.Tests
             public string ComponentId { get; }
             public Version SupportedVersion { get; }
 
+            // ReSharper disable once UnusedMember.Local
             public TestComponent()
             {
                 // Default contructor is needed to support automatic instantiation.
@@ -172,6 +172,8 @@ namespace SenseNet.Packaging.Tests
                 return _allowed;
             }
 
+            // ReSharper disable once UnassignedGetOnlyAutoProperty
+            // ReSharper disable once UnusedMember.Local
             public SnPatch[] Patches { get; }
         }
     }

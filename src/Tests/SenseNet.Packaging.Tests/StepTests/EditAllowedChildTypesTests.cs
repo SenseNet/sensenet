@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Testing;
 using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests.StepTests
@@ -17,7 +18,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             // preparing logger
             _log = new StringBuilder();
             var loggers = new[] { new PackagingTestLogger(_log) };
-            var loggerAcc = new PrivateType(typeof(Logger));
+            var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
         }
 

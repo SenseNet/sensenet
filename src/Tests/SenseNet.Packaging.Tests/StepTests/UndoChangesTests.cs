@@ -5,6 +5,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Testing;
 using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests.StepTests
@@ -20,7 +21,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             // preparing logger
             _log = new StringBuilder();
             var loggers = new[] {new PackagingTestLogger(_log)};
-            var loggerAcc = new PrivateType(typeof(Logger));
+            var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
         }
         [TestCleanup]
