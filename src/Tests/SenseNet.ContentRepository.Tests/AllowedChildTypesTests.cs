@@ -449,11 +449,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             InstallCarContentType();
 
-            // need to reset the pinned site list
-            //UNDONE: check: is deletable?
-            //var action = new PortalContext.ReloadSiteListDistributedAction();
-            //action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
-
             var sites = new Folder(Repository.Root) { Name = "Sites" };
             sites.Save();
 
