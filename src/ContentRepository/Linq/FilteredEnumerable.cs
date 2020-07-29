@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 
 namespace SenseNet.ContentRepository.Linq
 {
+    [Obsolete("Use FilteredContentEnumerable instead.")]
     public class FilteredEnumerable : IEnumerable<Node>
     {
         private readonly IEnumerable _enumerable;
@@ -39,11 +40,15 @@ namespace SenseNet.ContentRepository.Linq
             foreach (Node item in _enumerable)
             {
                 AllCount++;
+
+                if (!_isOk(Content.Create(item)))
+                    continue;
                 if (skipped++ < _skip)
                     continue;
                 if (_top == 0 || count++ < _top)
-                    if (_isOk(Content.Create(item)))
-                        yield return item;
+                    yield return item;
+                else
+                    yield break;
             }
         }
     }

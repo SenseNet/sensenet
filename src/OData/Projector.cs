@@ -42,6 +42,10 @@ namespace SenseNet.OData
         }
         protected ODataSimpleMeta GetMetadata(Content content, string selfurl, MetadataFormat format, HttpContext httpContext)
         {
+            var dynamicContent = content.ContentHandler is Content.RuntimeContentHandler;
+            if (dynamicContent)
+                selfurl = string.Empty;
+
             if (format == MetadataFormat.Minimal)
             {
                 return new ODataSimpleMeta
@@ -50,6 +54,15 @@ namespace SenseNet.OData
                     Type = content.ContentType.Name,
                 };
             }
+
+            if(dynamicContent)
+                return new ODataFullMeta
+                {
+                    Uri = selfurl,
+                    Type = content.ContentType.Name,
+                    Actions = new ODataOperation[0],
+                    Functions = new ODataOperation[0],
+                };
 
             var snActions = ODataTools.GetActions(content, this.Request, httpContext).ToArray();
 

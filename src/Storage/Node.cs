@@ -390,7 +390,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             get
             {
-                if (_data.ParentId == 0)
+                if (_data == null || _data.ParentId == 0)
                     return null;
                 try
                 {
