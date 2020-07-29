@@ -24,7 +24,7 @@ using SenseNet.Testing;
 using SenseNet.Tests.Core.Implementations;
 using STT = System.Threading.Tasks;
 
-namespace SenseNet.Tests
+namespace SenseNet.Tests.Core
 {
     [TestClass]
     public class TestBase

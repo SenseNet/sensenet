@@ -1,7 +1,7 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Tests
+namespace SenseNet.Tests.Core
 {
     public static class Extensions
     {

@@ -7,7 +7,7 @@ using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.Testing;
 
-namespace SenseNet.Tests
+namespace SenseNet.Tests.Core
 {
     public class Tools
     {

@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Testing;
 
-namespace SenseNet.Tests
+namespace SenseNet.Tests.Core
 {
     public class NodeDataChecker
     {
