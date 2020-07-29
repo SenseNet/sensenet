@@ -5,8 +5,9 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -80,7 +81,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Provider_Configured_ByName()
         {
-            var providersInstanceAcc = new PrivateObject(Providers.Instance);
+            var providersInstanceAcc = new ObjectAccessor(Providers.Instance);
             var providersByName = (Dictionary<string, object>) providersInstanceAcc.GetFieldOrProperty("_providersByName");
             providersByName.Clear();
 

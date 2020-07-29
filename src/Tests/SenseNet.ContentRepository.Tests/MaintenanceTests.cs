@@ -6,7 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.InMemory;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -28,7 +29,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class MaintenanceTests : TestBase
     {
-        private static readonly PrivateType SnMaintenanceAcc = new PrivateType(typeof(SnMaintenance));
+        private static readonly TypeAccessor SnMaintenanceAcc = new TypeAccessor(typeof(SnMaintenance));
         private static object _adsyncAvailableBackup;
 
         [ClassInitialize]

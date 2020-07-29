@@ -8,7 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Versioning;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -182,13 +183,13 @@ namespace SenseNet.ContentRepository.Tests
 
         private Node LoadNode(NodeHead head, VersionNumber version)
         {
-            var nodeAcc = new PrivateType(typeof(Node));
+            var nodeAcc = new TypeAccessor(typeof(Node));
             var node = (Node)nodeAcc.InvokeStatic("LoadNode", head, version);
             return node;
         }
         private List<Node> LoadNodes(IEnumerable<NodeHead> heads, VersionNumber version)
         {
-            var nodeAcc = new PrivateType(typeof(Node));
+            var nodeAcc = new TypeAccessor(typeof(Node));
             var nodes = (List<Node>)nodeAcc.InvokeStatic("LoadNodes", heads, version);
             return nodes;
         }

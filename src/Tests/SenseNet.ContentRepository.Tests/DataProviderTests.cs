@@ -23,8 +23,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 using IsolationLevel = System.Data.IsolationLevel;
 using STT = System.Threading.Tasks;
 
@@ -2630,9 +2631,10 @@ namespace SenseNet.ContentRepository.Tests
                 var testNode = new SystemFolder(Repository.Root) { Name = "TestNode" };
 
                 // Prepare for this test
-                var flags = BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance;
-                var nodeAcc = new PrivateObject((Node)testNode, new PrivateType(typeof(Node)));
-                nodeAcc.SetField("_data", flags, new NodeDataForDeadlockTest(testNode.Data));
+                //UNDONE: check conversion: PrivateObject -> ObjectAccessor
+                //var flags = BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance;
+                var nodeAcc = new ObjectAccessor((Node)testNode);
+                nodeAcc.SetField("_data", new NodeDataForDeadlockTest(testNode.Data));
 
                 var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
                 testLogger.Warnings.Clear();

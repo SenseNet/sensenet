@@ -6,16 +6,15 @@ using System.Text;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search;
-using SenseNet.Services.ContentStore;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Fields;
-using SenseNet.Portal.OData;
+using SenseNet.OData;
 using Newtonsoft.Json;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using SenseNet.Search.Indexing;
 using SenseNet.Configuration;
 using SenseNet.Portal;
@@ -868,16 +867,16 @@ namespace SenseNet.ContentRepository.Tests
                 node.Save();
             return node;
         }
-        private static Site CreateTestSite()
-        {
-            var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
-            sites.Save();
+        //private static Site CreateTestSite()
+        //{
+        //    var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
+        //    sites.Save();
 
-            var site = new Site(sites) { Name = "TestSite", UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
-            site.Save();
+        //    var site = new Site(sites) { Name = "TestSite", UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
+        //    site.Save();
 
-            return site;
-        }
+        //    return site;
+        //}
 
         internal static Aspect EnsureAspect(string name)
         {

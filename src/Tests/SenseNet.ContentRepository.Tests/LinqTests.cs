@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 // ReSharper disable RedundantBoolCompare
 
 namespace SenseNet.ContentRepository.Tests

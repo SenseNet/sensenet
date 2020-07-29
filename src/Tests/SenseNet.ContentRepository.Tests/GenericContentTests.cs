@@ -2,7 +2,7 @@
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using System;
 using System.Linq;
 using SenseNet.Configuration;

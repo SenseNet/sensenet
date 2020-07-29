@@ -10,7 +10,7 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Security;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 // ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
@@ -18,24 +18,25 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class UserTests : TestBase
     {
-        private class TestMembershipExtender : MembershipExtenderBase
-        {
-            public override MembershipExtension GetExtension(IUser user)
-            {
-                if (!(user is User userContent))
-                    return EmptyExtension;
-                if (userContent.DisplayName != "User_sensenet393_BugReproduction")
-                    return EmptyExtension;
+        //UNDONE: Commented out because of missing PortalContext
+        //private class TestMembershipExtender : MembershipExtenderBase
+        //{
+        //    public override MembershipExtension GetExtension(IUser user)
+        //    {
+        //        if (!(user is User userContent))
+        //            return EmptyExtension;
+        //        if (userContent.DisplayName != "User_sensenet393_BugReproduction")
+        //            return EmptyExtension;
 
-                // this line can cause infinite recursion.
-                var requestedNode = PortalContext.Current.ContextNode;
+        //        // this line can cause infinite recursion.
+        //        var requestedNode = PortalContext.Current.ContextNode;
 
-                var groupIds = ((User) requestedNode).GetDynamicGroups(2);
+        //        var groupIds = ((User) requestedNode).GetDynamicGroups(2);
 
-                var testGroup = (IGroup)Node.LoadNode("/Root/IMS/BuiltIn/Portal/TestGroup");
-                return new MembershipExtension(new []{ testGroup });
-            }
-        }
+        //        var testGroup = (IGroup)Node.LoadNode("/Root/IMS/BuiltIn/Portal/TestGroup");
+        //        return new MembershipExtension(new []{ testGroup });
+        //    }
+        //}
 
         //UNDONE: Commented out because of missing reference to SenseNet.Tests.Hosting
         //[TestMethod]

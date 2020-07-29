@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 // ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests

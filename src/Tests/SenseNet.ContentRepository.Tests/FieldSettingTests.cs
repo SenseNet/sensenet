@@ -11,9 +11,10 @@ using SNC = SenseNet.ContentRepository;
 using System.Xml.XPath;
 using System.Xml;
 using System.Linq;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Tests.ContentHandlers;
+using SenseNet.Testing;
 
 namespace SenseNet.ContentRepository.Tests.Schema
 {
@@ -439,11 +440,12 @@ namespace SenseNet.ContentRepository.Tests.Schema
         private void GetReadOnlyAndCompulsory(string contentTypeName, out bool readOnly, out bool compulsory)
         {
             ContentType contentType = ContentTypeManager.Current.GetContentTypeByName(contentTypeName);
-            PrivateObject obj = new PrivateObject(contentType);
+            var obj = new ObjectAccessor(contentType);
             object o = obj.GetProperty("FieldSettings");
-            PrivateObject setting = new PrivateObject(((IList)o)[0]);
-            readOnly = (bool)setting.GetProperty("ReadOnly", new object[0]);
-            compulsory = (bool)setting.GetProperty("Compulsory", new object[0]);
+            //UNDONE: check conversion: PrivateObject -> ObjectAccessor
+            var setting = new ObjectAccessor(((IList)o)[0]);
+            readOnly = (bool)setting.GetProperty("ReadOnly");
+            compulsory = (bool)setting.GetProperty("Compulsory");
         }
 
         //======================================================================================= Derived FieldSetting tests
@@ -555,7 +557,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool isValid;
                 FieldValidationResult validationResult;
 
-                PrivateType fieldSettingAccessor = new PrivateType(typeof(ShortTextFieldSetting));
+                var fieldSettingAccessor = new TypeAccessor(typeof(ShortTextFieldSetting));
                 string minLengthError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("MinLengthName");
                 string maxLengthError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("MaxLengthName");
                 string regexError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("RegexName");
@@ -621,7 +623,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool isValid;
                 FieldValidationResult validationResult;
 
-                PrivateType fieldSettingAccessor = new PrivateType(typeof(ShortTextFieldSetting));
+                var fieldSettingAccessor = new TypeAccessor(typeof(ShortTextFieldSetting));
                 string compulsoryError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("CompulsoryName");
 
                 //====
@@ -673,7 +675,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool isValid;
                 FieldValidationResult validationResult;
 
-                PrivateType fieldSettingAccessor = new PrivateType(typeof(XmlFieldSetting));
+                var fieldSettingAccessor = new TypeAccessor(typeof(XmlFieldSetting));
                 string compulsoryError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("CompulsoryName");
                 string namespaceError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("ExpectedXmlNamespaceName");
                 string notWellformedXmlError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("NotWellformedXmlName");
@@ -783,7 +785,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 bool isValid;
                 FieldValidationResult validationResult;
 
-                PrivateType fieldSettingAccessor = new PrivateType(typeof(PasswordFieldSetting));
+                var fieldSettingAccessor = new TypeAccessor(typeof(PasswordFieldSetting));
                 string minLengthError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("MinLengthName");
                 string maxLengthError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("MaxLengthName");
                 string regexError = (string)fieldSettingAccessor.GetStaticFieldOrProperty("RegexName");
@@ -1253,7 +1255,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
                 selection.Add(ChoiceField.EXTRAVALUEPREFIX + setExtraValue);
             field.SetData(selection);
 
-            new PrivateObject(field).Invoke("Save", false);
+            new ObjectAccessor(field).Invoke("Save", false);
 
             result = (string)content.ContentHandler["ChoiceTest"];
             isValid = field.IsValid;
@@ -1306,7 +1308,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
             //-- select item
             field.SetData((int)selectValue);
-            new PrivateObject(field).Invoke("Save", false);
+            new ObjectAccessor(field).Invoke("Save", false);
 
             result = (EnumTestNode.TestEnum)contentHandler.TestProperty;
             isValid = field.IsValid;
@@ -1353,7 +1355,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 1
                 field.SetData(14);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 int result = (int)content.ContentHandler["IntegerTest"];
                 bool isValid = field.IsValid;
                 Assert.AreEqual(14, result);
@@ -1361,7 +1363,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 2
                 field.SetData(50);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 result = (int)content.ContentHandler["IntegerTest"];
                 isValid = field.IsValid;
                 Assert.AreEqual(50, result);
@@ -1369,7 +1371,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 3
                 field.SetData(0);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 result = (int)content.ContentHandler["IntegerTest"];
                 isValid = field.IsValid;
                 Assert.AreEqual(0, result);
@@ -1419,7 +1421,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 1
                 field.SetData(14);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 decimal result = (decimal)content.ContentHandler["NumberTest"];
                 bool isValid = field.IsValid;
                 Assert.AreEqual(14m, result);
@@ -1427,7 +1429,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 2
                 field.SetData(50);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 result = (decimal)content.ContentHandler["NumberTest"];
                 isValid = field.IsValid;
                 Assert.AreEqual(50m, result);
@@ -1435,7 +1437,7 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
                 // case 3
                 field.SetData(0);
-                new PrivateObject(field).Invoke("Save", false);
+                new ObjectAccessor(field).Invoke("Save", false);
                 result = (decimal)content.ContentHandler["NumberTest"];
                 isValid = field.IsValid;
                 Assert.AreEqual(0m, result);
