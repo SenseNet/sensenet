@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
 using SenseNet.Testing;
 using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Search.Tests
 {

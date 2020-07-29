@@ -1,13 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Querying.Parser;
-using SenseNet.Tests;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Search.Tests
 {

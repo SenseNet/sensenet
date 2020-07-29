@@ -6,7 +6,7 @@ using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Testing;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Packaging.Tests.StepTests
 {

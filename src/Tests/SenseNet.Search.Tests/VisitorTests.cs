@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Search.Tests
 {

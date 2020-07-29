@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Search.Tests
 {
