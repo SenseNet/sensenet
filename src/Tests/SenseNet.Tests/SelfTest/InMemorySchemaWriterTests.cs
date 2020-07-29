@@ -15,7 +15,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================== PropertyType */
 
         [TestMethod]
-        public void InMemSchemaWriter_CreatePropertyType()
+        public void InMemSchemaWriter_FW_CreatePropertyType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -33,7 +33,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual(false, propType.IsContentListProperty);
         }
         [TestMethod]
-        public void InMemSchemaWriter_CreateContentListPropertyType()
+        public void InMemSchemaWriter_FW_CreateContentListPropertyType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -51,7 +51,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual(true, propType.IsContentListProperty);
         }
         [TestMethod]
-        public void InMemSchemaWriter_DeletePropertyType()
+        public void InMemSchemaWriter_FW_DeletePropertyType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.PropertyTypes.Add(new PropertyTypeData
@@ -78,7 +78,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================== NodeType */
 
         [TestMethod]
-        public void InMemSchemaWriter_CreateRootNodeType_WithoutClassName()
+        public void InMemSchemaWriter_FW_CreateRootNodeType_WithoutClassName()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -95,7 +95,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual(null, nodeType.ClassName);
         }
         [TestMethod]
-        public void InMemSchemaWriter_CreateRootNodeType_WithClassName()
+        public void InMemSchemaWriter_FW_CreateRootNodeType_WithClassName()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -112,7 +112,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("NT1Class", nodeType.ClassName);
         }
         [TestMethod]
-        public void InMemSchemaWriter_CreateNodeType_WithParent()
+        public void InMemSchemaWriter_FW_CreateNodeType_WithParent()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -133,7 +133,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("NT1Class", nodeType.ClassName);
         }
         [TestMethod]
-        public void InMemSchemaWriter_ModifyNodeType()
+        public void InMemSchemaWriter_FW_ModifyNodeType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData
@@ -154,7 +154,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("NT0Class_modified", nodeType.ClassName);
         }
         [TestMethod]
-        public void InMemSchemaWriter_DeleteNodeType()
+        public void InMemSchemaWriter_FW_DeleteNodeType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData
@@ -176,7 +176,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================== ContentListType */
 
         [TestMethod]
-        public void InMemSchemaWriter_CreateContentListType()
+        public void InMemSchemaWriter_FW_CreateContentListType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
 
@@ -191,7 +191,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("LT1", listType.Name);
         }
         [TestMethod]
-        public void InMemSchemaWriter_DeleteContentListType()
+        public void InMemSchemaWriter_FW_DeleteContentListType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.ContentListTypes.Add(new ContentListTypeData { Id = 1, Name = "LT0" });
@@ -219,7 +219,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================== PropertyType assignment */
 
         [TestMethod]
-        public void InMemSchemaWriter_AddPropertyTypeToNodeType_Declared()
+        public void InMemSchemaWriter_FW_AddPropertyTypeToNodeType_Declared()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData { Id = 1, Name = "NT0", ParentName = null, ClassName = "NT0Class" });
@@ -238,7 +238,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("PT0,PT1", ArrayToString(schema.NodeTypes[0].Properties));
         }
         [TestMethod]
-        public void InMemSchemaWriter_AddPropertyTypeToNodeType_Inherited()
+        public void InMemSchemaWriter_FW_AddPropertyTypeToNodeType_Inherited()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData { Id = 1, Name = "NT0", ParentName = null, ClassName = "NT0Class" });
@@ -257,7 +257,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("PT1", ArrayToString(schema.NodeTypes[0].Properties));
         }
         [TestMethod]
-        public void InMemSchemaWriter_AddPropertyTypeToContentListType()
+        public void InMemSchemaWriter_FW_AddPropertyTypeToContentListType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.ContentListTypes.Add(new ContentListTypeData() { Id = 1, Name = "LT0" });
@@ -280,7 +280,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod]
-        public void InMemSchemaWriter_RemovePropertyTypeFromNodeType()
+        public void InMemSchemaWriter_FW_RemovePropertyTypeFromNodeType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData
@@ -310,7 +310,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("PT1,PT3", ArrayToString(schema.NodeTypes[0].Properties));
         }
         [TestMethod]
-        public void InMemSchemaWriter_RemovePropertyTypeFromContentListType()
+        public void InMemSchemaWriter_FW_RemovePropertyTypeFromContentListType()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.ContentListTypes.Add(new ContentListTypeData()
@@ -338,7 +338,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod]
-        public void InMemSchemaWriter_UpdatePropertyTypeDeclarationState()
+        public void InMemSchemaWriter_FW_UpdatePropertyTypeDeclarationState()
         {
             (RepositorySchemaData schema, SchemaWriter writer) = CreateEmptySchemaAndWriter();
             schema.NodeTypes.Add(new NodeTypeData

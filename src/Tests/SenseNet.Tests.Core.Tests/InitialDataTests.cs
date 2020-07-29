@@ -23,7 +23,7 @@ namespace SenseNet.Tests.Core.Tests
     public class InitialDataTests : TestBase
     {
         //[TestMethod]
-        public async Task InitialData_RebuildIndex()
+        public async Task InitialData_Core_RebuildIndex()
         {
             if (SnTrace.SnTracers.Count != 2)
                 SnTrace.SnTracers.Add(new SnDebugViewTracer());
@@ -53,7 +53,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         //[TestMethod]
-        public void InitialData_Create()
+        public void InitialData_Core_Create()
         {
             Test(() =>
             {
@@ -66,7 +66,7 @@ namespace SenseNet.Tests.Core.Tests
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_Parse()
+        public void InitialData_Core_Parse()
         {
             var initialData = InitialData.Load(@"D:\_InitialData");
             
@@ -74,7 +74,7 @@ namespace SenseNet.Tests.Core.Tests
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_LoadIndex()
+        public void InitialData_Core_LoadIndex()
         {
             Test(() =>
             {
@@ -89,7 +89,7 @@ namespace SenseNet.Tests.Core.Tests
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_CtdLoad()
+        public void InitialData_Core_CtdLoad()
         {
             InitialDataTest(() =>
             {
@@ -101,7 +101,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InitialData_Permissions_Parse()
+        public void InitialData_Core_Permissions_Parse()
         {
             var src = new List<string>
             {
@@ -152,7 +152,7 @@ namespace SenseNet.Tests.Core.Tests
             });
         }
         [TestMethod]
-        public void InitialData_Permissions_Apply()
+        public void InitialData_Core_Permissions_Apply()
         {
             var initialData = new InitialData
             {

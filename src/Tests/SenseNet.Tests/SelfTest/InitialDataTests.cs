@@ -25,7 +25,7 @@ namespace SenseNet.Tests.SelfTest
     public class InitialDataTests : TestBase
     {
         //[TestMethod]
-        public async Task InitialData_RebuildIndex()
+        public async Task InitialData_FW_RebuildIndex()
         {
             if (SnTrace.SnTracers.Count != 2)
                 SnTrace.SnTracers.Add(new SnDebugViewTracer());
@@ -55,7 +55,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         //[TestMethod]
-        public void InitialData_Create()
+        public void InitialData_FW_Create()
         {
             Test(() =>
             {
@@ -68,7 +68,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_Parse()
+        public void InitialData_FW_Parse()
         {
             var initialData = InitialData.Load(@"D:\_InitialData");
             
@@ -76,7 +76,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_LoadIndex()
+        public void InitialData_FW_LoadIndex()
         {
             Test(() =>
             {
@@ -91,7 +91,7 @@ namespace SenseNet.Tests.SelfTest
             Assert.Inconclusive();
         }
         //[TestMethod]
-        public void InitialData_CtdLoad()
+        public void InitialData_FW_CtdLoad()
         {
             InitialDataTest(() =>
             {
@@ -103,7 +103,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod]
-        public void InitialData_Permissions_Parse()
+        public void InitialData_FW_Permissions_Parse()
         {
             var src = new List<string>
             {
@@ -154,7 +154,7 @@ namespace SenseNet.Tests.SelfTest
             });
         }
         [TestMethod]
-        public void InitialData_Permissions_Apply()
+        public void InitialData_FW_Permissions_Apply()
         {
             var initialData = new InitialData
             {

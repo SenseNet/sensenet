@@ -19,7 +19,7 @@ namespace SenseNet.Tests.Core.Tests
     public class InMemoryDataProviderTests : TestBase
     {
         [TestMethod]
-        public void InMemDb_LoadRootById()
+        public void InMemDb_Core_LoadRootById()
         {
             Test(() =>
             {
@@ -31,7 +31,7 @@ namespace SenseNet.Tests.Core.Tests
 
         }
         [TestMethod]
-        public void InMemDb_LoadRootByPath()
+        public void InMemDb_Core_LoadRootByPath()
         {
             Test(() =>
             {
@@ -41,7 +41,7 @@ namespace SenseNet.Tests.Core.Tests
             });
         }
         [TestMethod]
-        public void InMemDb_Create()
+        public void InMemDb_Core_Create()
         {
             Node node;
             Test(() =>
@@ -67,7 +67,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_FlatPropertyLoaded()
+        public void InMemDb_Core_FlatPropertyLoaded()
         {
             Test(() =>
             {
@@ -76,7 +76,7 @@ namespace SenseNet.Tests.Core.Tests
             });
         }
         [TestMethod]
-        public void InMemDb_FlatPropertyWrite()
+        public void InMemDb_Core_FlatPropertyWrite()
         {
             Test(() =>
             {
@@ -96,7 +96,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_TextPropertyWrite()
+        public void InMemDb_Core_TextPropertyWrite()
         {
             Test(() =>
             {
@@ -123,7 +123,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_ReferencePropertyLoaded()
+        public void InMemDb_Core_ReferencePropertyLoaded()
         {
             Test(() =>
             {
@@ -134,7 +134,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_ReferencePropertyWrite()
+        public void InMemDb_Core_ReferencePropertyWrite()
         {
             Test(() =>
             {
@@ -157,7 +157,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_SaveAndLoadNewNodeWithAllDynamicDataTypes()
+        public void InMemDb_Core_SaveAndLoadNewNodeWithAllDynamicDataTypes()
         {
             Test(() =>
             {
@@ -227,7 +227,7 @@ namespace SenseNet.Tests.Core.Tests
         }
 
         [TestMethod]
-        public void InMemDb_ChunkUpload_NewFile()
+        public void InMemDb_Core_ChunkUpload_NewFile()
         {
             Test(async () =>
             {
