@@ -18,5 +18,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.Wopi.Tests")]
 
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
