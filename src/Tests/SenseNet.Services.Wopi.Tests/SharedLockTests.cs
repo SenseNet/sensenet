@@ -1,5 +1,4 @@
-﻿//UNDONE: Commented out because of missing reference to WopiHandler, PortalContext
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
