@@ -1,5 +1,4 @@
-﻿//UNDONE: Commented out because of missing reference to SenseNet.Packaging.Tests
-using System;
+﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
