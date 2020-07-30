@@ -211,8 +211,9 @@ namespace SenseNet.Extensions.DependencyInjection
                             new CookieOptions
                             {
                                 IsEssential = true,
+                                Secure = true,
                                 HttpOnly = true,
-                                SameSite = SameSiteMode.Strict,
+                                SameSite = SameSiteMode.None,
                                 Expires = expDate
                             });
                     }
