@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class UserTests : TestBase
     {
-        //UNDONE: Commented out because of missing PortalContext
+        //TODO: Rewrite this class when a MembershipExtender alternative is developing.
         //private class TestMembershipExtender : MembershipExtenderBase
         //{
         //    public override MembershipExtension GetExtension(IUser user)
@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Tests
         //    }
         //}
 
-        //UNDONE: Commented out because of missing reference to SenseNet.Tests.Hosting
+        //TODO: Rewrite this test when a MembershipExtender alternative is developing.
         //[TestMethod]
         //public void User_sensenet393_BugReproduction()
         //{
