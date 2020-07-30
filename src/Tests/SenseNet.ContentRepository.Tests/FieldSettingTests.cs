@@ -439,11 +439,10 @@ namespace SenseNet.ContentRepository.Tests.Schema
         }
         private void GetReadOnlyAndCompulsory(string contentTypeName, out bool readOnly, out bool compulsory)
         {
-            ContentType contentType = ContentTypeManager.Current.GetContentTypeByName(contentTypeName);
+            var contentType = ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
             var obj = new ObjectAccessor(contentType);
-            object o = obj.GetProperty("FieldSettings");
-            //UNDONE: check conversion: PrivateObject -> ObjectAccessor
-            var setting = new ObjectAccessor(((IList)o)[0]);
+            var value = obj.GetProperty("FieldSettings");
+            var setting = new ObjectAccessor(((IList)value)[0]);
             readOnly = (bool)setting.GetProperty("ReadOnly");
             compulsory = (bool)setting.GetProperty("Compulsory");
         }

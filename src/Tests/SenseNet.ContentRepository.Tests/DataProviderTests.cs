@@ -2631,9 +2631,7 @@ namespace SenseNet.ContentRepository.Tests
                 var testNode = new SystemFolder(Repository.Root) { Name = "TestNode" };
 
                 // Prepare for this test
-                //UNDONE: check conversion: PrivateObject -> ObjectAccessor
-                //var flags = BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Instance;
-                var nodeAcc = new ObjectAccessor((Node)testNode);
+                var nodeAcc = new ObjectAccessor(testNode, typeof(Node));
                 nodeAcc.SetField("_data", new NodeDataForDeadlockTest(testNode.Data));
 
                 var countsBefore = (await GetDbObjectCountsAsync(null, DP, TDP)).AllCounts;
