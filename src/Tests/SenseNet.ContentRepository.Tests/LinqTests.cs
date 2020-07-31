@@ -872,12 +872,8 @@ Id:<42 .QUICK";
                 var expectedNonSystemCount = CreateSafeContentQuery(
                     "InTree:/Root .COUNTONLY .AUTOFILTERS:ON", QuerySettings.Default).Execute().Count;
 
-                // WORKAROUND: we filter ClientApplication type here because the content handler
-                // is not available in the content repository layer and it would compromise the
-                // query result: Content.All loads nodes and the nodes with unknown content handler
-                // are not added to the result set, so the counts would not be equal.
                 var expectedAllCount = CreateSafeContentQuery(
-                    "+InTree:/Root -TypeIs:ClientApplication .COUNTONLY .AUTOFILTERS:OFF", QuerySettings.Default).Execute().Count;
+                    "+InTree:/Root .COUNTONLY .AUTOFILTERS:OFF", QuerySettings.Default).Execute().Count;
 
                 // ---------------- TEST CASE 1: All non-system contents in ad-hoc order
                 var contentArray = Content.All.ToArray();
