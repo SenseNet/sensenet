@@ -1,4 +1,4 @@
-﻿//UNDONE: Commented out because of missing reference to SenseNet.Services.Sharing
+﻿//TODO: Commented out because the MembershipExtender is missing feature in the .NET Core platform.
 //using System;
 //using System.Collections.Generic;
 //using System.Collections.Specialized;
