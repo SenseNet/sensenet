@@ -43,7 +43,7 @@ namespace SenseNet.ContentRepository
 
         public InitialData InitialData { get; set; }
 
-        internal static void WriteLog(string name, object provider)
+        public static void WriteLog(string name, object provider)
         {
             var message = $"{name} configured: {provider?.GetType().FullName ?? "null"}";
 

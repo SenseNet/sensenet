@@ -317,6 +317,7 @@
     <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="ServiceExtensions.cs" />
+    <Compile Include="ServicesExtensions.cs" />
     <Compile Include="ServiceTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryBuilder.cs" />
