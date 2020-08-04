@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Steps;
 using File = System.IO.File;
 

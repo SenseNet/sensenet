@@ -352,6 +352,22 @@ namespace SenseNet.ContentRepository
             return ContentType.GetContentTypes().Select(ct => Content.Create(ct));
         }
 
+        [ODataFunction(operationName: "ProtectedPaths")]
+        [ContentTypes(N.CT.PortalRoot)]
+        [AllowedRoles(N.R.Everyone)]
+        public static string[] GetProtectedPaths(Content content)
+        {
+            var permitted = ContentProtector.GetProtectedPaths()
+                .Where(x =>
+                {
+                    var head = NodeHead.Get(x);
+                    return head != null && SecurityHandler.HasPermission(
+                               User.Current, head.Id, PermissionType.See);
+                })
+                .ToArray();
+            return permitted;
+        }
+
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<Content> GetAllowedChildTypesFromCTD(Content content)

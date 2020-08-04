@@ -15,7 +15,7 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class ContentOperations
     {
-        [ODataAction(Icon = "copy", Description = "$Action,CopyBatch")]
+        [ODataAction(Icon = "copy", Description = "$Action,CopyBatch", DisplayName = "$Action,CopyBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -89,7 +89,7 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
-        [ODataAction(Icon = "move", Description = "$Action,MoveBatch")]
+        [ODataAction(Icon = "move", Description = "$Action,MoveBatch", DisplayName = "$Action,MoveBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -163,7 +163,7 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
-        [ODataAction(Icon = "delete", Description = "$Action,Delete")]
+        [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
         [ContentTypes(N.CT.GenericContent)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.ListItem, N.S.ContextMenu)]
@@ -174,7 +174,7 @@ namespace SenseNet.Services.Core.Operations
             return null;
         }
 
-        [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch")]
+        [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch", DisplayName = "$Action,DeleteBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.GridToolbar, N.S.BatchActions)]
@@ -258,7 +258,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
 
-        [ODataFunction(Description = "$Action,GetPermissions")]
+        [ODataFunction(Description = "$Action,GetPermissions", DisplayName = "$Action,GetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         public static object GetPermissions(Content content, string identity = null)
@@ -352,7 +352,7 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
-        [ODataFunction(Description = "$Action,HasPermission")]
+        [ODataFunction(Description = "$Action,HasPermission", DisplayName = "$Action,HasPermission-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.SeePermissions)]
@@ -385,7 +385,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
 
-        [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
+        [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
@@ -411,7 +411,7 @@ namespace SenseNet.Services.Core.Operations
             return null;
         }
 
-        [ODataAction(Icon = "security", Description = "$Action,SetPermissions")]
+        [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
@@ -589,7 +589,7 @@ namespace SenseNet.Services.Core.Operations
             public string Custom32;
         }
 
-        [ODataAction(Icon = "restore", Description = "$Action,Restore")]
+        [ODataAction(Icon = "restore", Description = "$Action,Restore", DisplayName = "$Action,Restore-DisplayName")]
         [ContentTypes(N.CT.TrashBag)]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]

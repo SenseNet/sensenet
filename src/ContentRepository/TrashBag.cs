@@ -196,6 +196,7 @@ namespace SenseNet.ContentRepository
 
             // creating a bag has nothing to do with user permissions: Move will handle that
             TrashBag bag = null;
+            var currentUserId = User.Current.Id;
             var wsId = 0;
             var wsRelativePath = string.Empty;
             var ws = SystemAccount.Execute(() => node.Workspace);
@@ -221,15 +222,31 @@ namespace SenseNet.ContentRepository
 
                 CopyPermissions(node, bag);
 
-                // add delete permission for the owner
+                // Add Delete permission for the owner to let them remove it later and also
+                // AddNew permission to let the move operation below actually move
+                // the content into the TrashBag.
                 SecurityHandler.CreateAclEditor()
-                    .Allow(bag.Id, node.OwnerId, false, PermissionType.Delete)
+                    .Allow(bag.Id, node.OwnerId, false, PermissionType.Delete, PermissionType.AddNew)
+                    .Allow(bag.Id, currentUserId, true, PermissionType.Delete, PermissionType.AddNew)
                     .Apply();
             }
 
             try
             {
                 Node.Move(node.Path, bag.Path);
+            }
+            catch (SenseNetSecurityException ex)
+            {
+                SnLog.WriteException(ex);
+
+                bag.Destroy();
+                
+                if (ex.Data.Contains("PermissionType") && (string)ex.Data["PermissionType"] == "Delete")
+                {
+                    throw new InvalidOperationException("You do not have enough permissions to delete this content to the Trash.", ex);
+                }
+
+                throw new InvalidOperationException("Error moving item to the trash", ex);
             }
             catch(Exception ex)
             {

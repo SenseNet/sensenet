@@ -321,7 +321,7 @@
           <value>Enabled</value>
         </data>
         <data name="Enabled-Description" xml:space="preserve">
-          <value>User account is enabled.</value>
+          <value>Adjusts whether the user can login to the system or not.</value>
         </data>
         <data name="Domain-DisplayName" xml:space="preserve">
           <value>Domain</value>
@@ -520,6 +520,18 @@
         </data>
         <data name="LastLoggedOut-Description" xml:space="preserve">
           <value>Date and time of when the user logged out from all devices.</value>
+        </data>
+        <data name="AllRoles-DisplayName" xml:space="preserve">
+          <value>All Roles</value>
+        </data>
+        <data name="AllRoles-Description" xml:space="preserve">
+          <value>Roles that this user is a member of directly or indirectly.</value>
+        </data>
+        <data name="DirectRoles-DisplayName" xml:space="preserve">
+          <value>Direct Roles</value>
+        </data>
+        <data name="DirectRoles-Description" xml:space="preserve">
+          <value>Roles that this user is a member of directly.</value>
         </data>
       </Language>
       <Language cultureName="hu">
@@ -745,6 +757,18 @@
         <data name="LastLoggedOut-Description" xml:space="preserve">
           <value>Az az időpont, amikor a felhasználó utoljára kilépett az összes kliensről.</value>
         </data>
+        <data name="AllRoles-DisplayName" xml:space="preserve">
+          <value>Az összes szerepkör</value>
+        </data>
+        <data name="AllRoles-Description" xml:space="preserve">
+          <value>Azon szerepkörök listája, amelyekben a felhasználó közvetlenül vagy közvetve tag.</value>
+        </data>
+        <data name="DirectRoles-DisplayName" xml:space="preserve">
+          <value>Közvetlen szerepkörök</value>
+        </data>
+        <data name="DirectRoles-Description" xml:space="preserve">
+          <value>Azon szerepkörök listája, amelyekben a felhasználó közvetlenül tag.</value>
+        </data>
       </Language>
     </Languages>
   </ResourceClass>
@@ -854,6 +878,9 @@
         <data name="WorkspaceInheritableApprovingMode-Description" xml:space="preserve">
           <value>Specify whether new or changed content under this workspace should remain draft until approved.</value>
         </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Path</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -893,13 +920,16 @@
           <value>Fal engedélyezése</value>
         </data>
         <data name="IsWallContainer-Description" xml:space="preserve">
-          <value>A fal engedélyeze ezen a munkaterületen. Ha bekapcsolja, fal üzenetek (posztok) fognak létrejönni, amennyiben ezen a munkaterületen belül valaki tartalmakat oszt meg.</value>
+          <value>A fal engedélyezése ezen a munkaterületen. Ha bekapcsolja, fal üzenetek (posztok) fognak létrejönni, amennyiben ezen a munkaterületen belül valaki tartalmakat oszt meg.</value>
         </data>
         <data name="WorkspaceInheritableVersioningMode-Description" xml:space="preserve">
           <value>Adja meg, hogy rendszer hozzon-e létre új verziót minden egyes alkalommal, ha valaki módosít egy tartalmat a munkaterület alatt.</value>
         </data>
         <data name="WorkspaceInheritableApprovingMode-Description" xml:space="preserve">
           <value>Adja meg, hogy az új vagy módosított tartalmakat a munkaterület alatt jóvá kell-e hagyni, mielőtt megjelennek publikusan.</value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Elérési útvonal</value>
         </data>
       </Language>
     </Languages>

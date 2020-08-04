@@ -27,6 +27,7 @@
     </Field>
     <Field name="Version" type="Version">
       <Configuration>
+      <FieldIndex>50</FieldIndex>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
@@ -83,10 +84,27 @@
     </Field>
     <Field name="Description" type="LongText">
       <Configuration>
-        <VisibleBrowse>Advanced</VisibleBrowse>
-        <VisibleEdit>Advanced</VisibleEdit>
-        <VisibleNew>Advanced</VisibleNew>
+        <FieldIndex>10</FieldIndex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
+    </Field>
+    <Field name="AllRoles" type="AllRoles">
+      <DisplayName>$Ctd-Group,AllRoles-DisplayName</DisplayName>
+      <Description>$Ctd-Group,AllRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
+    </Field>
+    <Field name="DirectRoles" type="DirectRoles">
+      <DisplayName>$Ctd-Group,DirectRoles-DisplayName</DisplayName>
+      <Description>$Ctd-Group,DirectRoles-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+        <Store>No</Store>
+      </Indexing>
     </Field>
   </Fields>
 </ContentType>

@@ -117,6 +117,22 @@ namespace SenseNet.OData
     /// </summary>
     public class ODataActionItem
     {
+        internal static readonly string Ctd = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""Action"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Name"" type=""ShortText"" />
+    <Field name=""DisplayName"" type=""ShortText"" />
+    <Field name=""Index"" type=""Integer"" />
+    <Field name=""Icon"" type=""ShortText"" />
+    <Field name=""Url"" type=""ShortText"" />
+    <Field name=""IsODataAction"" type=""Boolean"" />
+    <Field name=""ActionParameters"" type=""LongText"" />
+    <Field name=""Scenario"" type=""ShortText"" />
+    <Field name=""Forbidden"" type=""Boolean"" />
+  </Fields>
+</ContentType>
+";
+
         /// <summary>
         /// Gets or sets the name of the Action.
         /// </summary>

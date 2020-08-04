@@ -42,10 +42,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Packaging_PopulateIndex_HardReindexWorksOnAllVersions()
         {
-            Test(builder =>
-            {
-                builder.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider());
-            }, () =>
+            Test(() =>
             {
                 // arrange
                 InstallCarContentType();

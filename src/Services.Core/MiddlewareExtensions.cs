@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using System;
 
-namespace SenseNet.Services.Core
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class MiddlewareExtensions
     {

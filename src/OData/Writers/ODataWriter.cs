@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
@@ -21,6 +22,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using SenseNet.OData.Metadata.Model;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Operations;
 using Task = System.Threading.Tasks.Task;
 using Utility = SenseNet.Tools.Utility;
@@ -228,38 +230,41 @@ namespace SenseNet.OData.Writers
             {
                 if (references is IEnumerable enumerable)
                 {
-                    var skipped = 0;
-                    var allcount = 0;
-                    var count = 0;
-                    var realcount = 0;
-                    var contents = new List<ODataEntity>();
-                    if (req.HasFilter)
-                    {
-                        var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
-                        foreach (Node item in filtered)
-                            contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
-                        allcount = filtered.AllCount;
-                        realcount = contents.Count;
-                    }
-                    else
-                    {
-                        foreach (Node item in enumerable)
-                        {
-                            allcount++;
-                            if (skipped++ < req.Skip)
-                                continue;
-                            if (req.Top == 0 || count++ < req.Top)
-                            {
-                                contents.Add(CreateFieldDictionary(Content.Create(item), projector, httpContext));
-                                realcount++;
-                            }
-                        }
-                    }
-                    await WriteMultipleContentAsync(httpContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount)
-                        .ConfigureAwait(false);
+                    var filteredEnumerable = new FilteredContentEnumerable(enumerable, 
+                        (LambdaExpression)req.Filter, req.Sort, req.Top, req.Skip);
+
+                    var contents = filteredEnumerable
+                        .Select(x => CreateFieldDictionary(x, projector, httpContext))
+                        .ToArray();
+
+                    var count = req.InlineCount == InlineCount.AllPages ? filteredEnumerable.AllCount : contents.Length;
+
+                    await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
                 }
             }
         }
+
+        private async Task WriteActionsAsync(ODataActionItem[] actionItems, HttpContext httpContext, ODataRequest req)
+        {
+            if (actionItems == null)
+                return;
+
+            var projector = Projector.Create(req, true);
+
+            var enumerable = Content.CreateCollection(actionItems, ODataActionItem.Ctd);
+
+            var filteredEnumerable = new FilteredContentEnumerable(enumerable,
+                (LambdaExpression)req.Filter, req.Sort, req.Top, req.Skip);
+
+            var contents = filteredEnumerable
+                .Select(x => CreateFieldDictionary(x, projector, httpContext))
+                .ToArray();
+
+            var count = req.InlineCount == InlineCount.AllPages ? filteredEnumerable.AllCount : contents.Length;
+
+            await WriteMultipleContentAsync(httpContext, contents, count).ConfigureAwait(false);
+        }
+
         private async Task WriteSingleRefContentAsync(object references, HttpContext httpContext)
         {
             if (references != null)
@@ -298,7 +303,7 @@ namespace SenseNet.OData.Writers
         /// <param name="count"></param>
         protected abstract Task WriteCountAsync(HttpContext httpContext, int count);
 
-        internal async Task WriteContentPropertyAsync(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req)
+        internal async Task WriteContentPropertyAsync(string path, string propertyName, bool rawValue, HttpContext httpContext, ODataRequest req, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(path, httpContext);
             if (content == null)
@@ -309,9 +314,8 @@ namespace SenseNet.OData.Writers
 
             if (propertyName == ODataMiddleware.ActionsPropertyName)
             {
-                await WriteActionsPropertyAsync(httpContext, 
-                    ODataTools.GetActionItems(content, req, httpContext).ToArray(), rawValue)
-                    .ConfigureAwait(false);
+                var actionItems = ODataTools.GetActionItems(content, req, httpContext).ToArray();
+                await WriteActionsAsync(actionItems, httpContext, req);
                 return;
             }
             if (propertyName == ODataMiddleware.ChildrenPropertyName)
@@ -357,7 +361,7 @@ namespace SenseNet.OData.Writers
             }
             else
             {
-                await WriteGetOperationResultAsync(httpContext, req)
+                await WriteGetOperationResultAsync(httpContext, req, appConfig)
                     .ConfigureAwait(false);
             }
         }
@@ -408,13 +412,13 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles GET operations. Parameters come from the URL or the request stream.
         /// </summary>
-        internal async Task WriteGetOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WriteGetOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -452,14 +456,14 @@ namespace SenseNet.OData.Writers
         /// <summary>
         /// Handles POST operations. Parameters come from request stream.
         /// </summary>
-        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq)
+        internal async Task WritePostOperationResultAsync(HttpContext httpContext, ODataRequest odataReq, IConfiguration appConfig)
         {
             var content = ODataMiddleware.LoadContentByVersionRequest(odataReq.RepositoryPath, httpContext);
 
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
 
-            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext);
+            var action = ODataMiddleware.ActionResolver.GetAction(content, odataReq.Scenario, odataReq.PropertyName, null, null, httpContext, appConfig);
             if (action == null)
             {
                 // check if this is a versioning action (e.g. a checkout)
@@ -977,13 +981,16 @@ namespace SenseNet.OData.Writers
         }
 
         /// <summary>
-        /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
+        /// Writes an object to the webresponse.
         /// </summary>
         /// <param name="response">The object that will be written.</param>
         /// <param name="httpContext">The current <see cref="HttpContext"/> instance containing the current web-response.</param>
         protected virtual async Task WriteRawAsync(object response, HttpContext httpContext)
         {
-            await httpContext.Response.WriteAsync(response.ToString()).ConfigureAwait(false);
+            var text = response.ToString();
+            ResponseLimiter.AssertResponseLength(httpContext.Response, text.Length);
+            await httpContext.Response.WriteAsync(text, httpContext.RequestAborted)
+                .ConfigureAwait(false);
         }
 
     }

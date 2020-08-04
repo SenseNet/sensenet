@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="UserProfile.settings" />
     <GlobalOnly>true</GlobalOnly>
+    <Index>200</Index>
   </Fields>
   <Permissions>
     <Clear />

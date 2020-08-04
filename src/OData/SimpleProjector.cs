@@ -53,7 +53,7 @@ namespace SenseNet.OData
                         throw new ODataException("Bad item in $select: " + selectItem, ODataExceptionCode.InvalidSelectParameter);
             }
 
-            if (!Request.HasSelect)
+            if (!Request.HasSelect && !(content.ContentHandler is Content.RuntimeContentHandler))
                 fieldNames = fieldNames.Concat(new[] { ACTIONSPROPERTY, ISFILEPROPERTY, ODataMiddleware.ChildrenPropertyName });
 
             foreach (var fieldName in fieldNames)

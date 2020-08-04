@@ -420,6 +420,15 @@
         <data name="DisplayName-Description" xml:space="preserve">
           <value>Display name of the content. You can set any name you prefer without any restrictions.</value>
         </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Path</value>
+        </data>
+        <data name="Index-DisplayName" xml:space="preserve">
+          <value>Index</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -433,6 +442,15 @@
         </data>
         <data name="DisplayName-Description" xml:space="preserve">
           <value></value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Path</value>
+        </data>
+        <data name="Index-DisplayName" xml:space="preserve">
+          <value>Index</value>
         </data>
       </Language>
     </Languages>

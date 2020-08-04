@@ -4,6 +4,7 @@
   <ContentName>MailProcessor.settings</ContentName>
   <Fields>
     <Binary attachment="MailProcessor.settings" />
+    <Index>200</Index>
   </Fields>
   <Permissions>
     <Clear />

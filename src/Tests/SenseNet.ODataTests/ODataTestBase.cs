@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,19 +15,17 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
 using SenseNet.ODataTests.Responses;
-using SenseNet.Packaging.Steps;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Tests;
 using SenseNet.Tests.Accessors;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable StringLiteralTypo
@@ -397,36 +396,36 @@ namespace SenseNet.ODataTests
             }
         }
 
-        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString)
+        internal static Task<ODataResponse> ODataGetAsync(string resource, string queryString, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, null, "GET");
+            return ODataProcessRequestAsync(resource, queryString, null, "GET", config);
         }
-        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString)
+        internal static Task<ODataResponse> ODataDeleteAsync(string resource, string queryString, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, null, "DELETE");
+            return ODataProcessRequestAsync(resource, queryString, null, "DELETE", config);
         }
-        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPutAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PUT", config);
         }
-        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPatchAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "PATCH", config);
         }
-        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataMergeAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "MERGE", config);
         }
-        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson)
+        internal static Task<ODataResponse> ODataPostAsync(string resource, string queryString, string requestBodyJson, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST");
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, "POST", config);
         }
-        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod)
+        internal static Task<ODataResponse> ODataCallAsync(string resource, string queryString, string requestBodyJson, string httpMethod, IConfiguration config = null)
         {
-            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod);
+            return ODataProcessRequestAsync(resource, queryString, requestBodyJson, httpMethod, config);
         }
         private static async Task<ODataResponse> ODataProcessRequestAsync(string resource, string queryString,
-            string requestBodyJson, string httpMethod)
+            string requestBodyJson, string httpMethod, IConfiguration config)
         {
             var httpContext = CreateHttpContext(resource, queryString);
             var request = httpContext.Request;
@@ -438,7 +437,7 @@ namespace SenseNet.ODataTests
 
             httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null);
+            var odata = new ODataMiddleware(null, config);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
@@ -593,6 +592,28 @@ namespace SenseNet.ODataTests
             for (int i = 0; i < jarray.Count; i++)
                 result.Add(ODataEntityResponse.Create((JObject)jarray[i]));
             return new ODataEntitiesResponse(result.ToList(), count);
+        }
+
+        protected static ODataActionItem[] GetActions(ODataEntitiesResponse response)
+        {
+            return response.Select(ConvertToAction).ToArray();
+        }
+
+        private static ODataActionItem ConvertToAction(ODataEntityResponse entity)
+        {
+            var operation = entity.AllProperties;
+            return new ODataActionItem
+            {
+                Name = ((JValue)operation["Name"]).Value<string>(),
+                DisplayName = ((JValue)operation["DisplayName"]).Value<string>(),
+                Icon = ((JValue)operation["Icon"]).Value<string>(),
+                Index = ((JValue)operation["Index"]).Value<int>(),
+                Scenario = ((JValue)operation["Scenario"]).Value<string>(),
+                Forbidden = ((JValue)operation["Forbidden"]).Value<bool>(),
+                Url = ((JValue)operation["Url"]).Value<string>(),
+                IsODataAction = ((JValue)operation["IsODataAction"]).Value<bool>(),
+                ActionParameters = ((JArray)operation["ActionParameters"]).Select(p => p.ToString()).ToArray()
+            };
         }
 
         protected static ODataErrorResponse GetError(ODataResponse response, bool throwOnError = true)

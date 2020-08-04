@@ -4,7 +4,8 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
-namespace SenseNet.ContentRepository.Storage
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class BlobStorageExtensions
     {

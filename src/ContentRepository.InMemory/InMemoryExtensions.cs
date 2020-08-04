@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tools;
@@ -23,7 +24,6 @@ namespace SenseNet.ContentRepository.InMemory
             //TODO:~ missing repo start pieces
             // - configuration
             // - user access provider
-            // - packaging provider (in-memory implementation is not accessible here yet)
             
             var repositoryBuilder = new RepositoryBuilder()
                     .UseLogger(new DebugWriteLoggerAdapter())
@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.InMemory
                     .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                     .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                     .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                    //.UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                    .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
                     .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
                     .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                     .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

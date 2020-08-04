@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="Indexing.settings" />
     <GlobalOnly>true</GlobalOnly>
+    <Index>50</Index>
   </Fields>
   <Permissions>
     <Clear />

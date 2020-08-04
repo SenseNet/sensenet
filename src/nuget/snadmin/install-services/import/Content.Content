@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Workspace</ContentType>
+  <ContentName>Content</ContentName>
+  <Fields>
+    <AllowedChildTypes>Folder, DocumentLibrary, ImageLibrary, EventList, MemoList, LinkList, TaskList, CustomList, Workspace, SystemFolder</AllowedChildTypes>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Break />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Administrators">
+      <See>Allow</See>
+      <Open>Allow</Open>
+      <OpenMinor>Allow</OpenMinor>
+      <Save>Allow</Save>
+      <Publish>Allow</Publish>
+      <ForceCheckin>Allow</ForceCheckin>
+      <AddNew>Allow</AddNew>
+      <Approve>Allow</Approve>
+      <Delete>Allow</Delete>
+      <RecallOldVersion>Allow</RecallOldVersion>
+      <DeleteOldVersion>Allow</DeleteOldVersion>
+      <SeePermissions>Allow</SeePermissions>
+      <SetPermissions>Allow</SetPermissions>
+      <RunApplication>Allow</RunApplication>
+      <ManageListsAndWorkspaces>Allow</ManageListsAndWorkspaces>
+      <TakeOwnership>Allow</TakeOwnership>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone" propagation="LocalOnly">
+      <Open>Allow</Open>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

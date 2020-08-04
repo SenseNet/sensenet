@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="Logging.settings" />
     <GlobalOnly>true</GlobalOnly>
+    <Index>100</Index>
   </Fields>
   <Permissions>
     <Clear />

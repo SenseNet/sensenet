@@ -52,7 +52,7 @@ namespace SenseNet.Services.Wopi
             };
         }
 
-        [ODataFunction(Icon = "office")]
+        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenView-DisplayName")]
         [RequiredPermissions(N.P.Open)]
         [RequiredPolicies("WopiOpenView")]
         [Scenario(N.S.ContextMenu)]
@@ -61,7 +61,7 @@ namespace SenseNet.Services.Wopi
             // This method serves only action listing and will not actually execute.
             return null;
         }
-        [ODataFunction(Icon = "office")]
+        [ODataFunction(Icon = "office", DisplayName = "$Action,WopiOpenEdit-DisplayName")]
         [RequiredPermissions(N.P.Save)]
         [RequiredPolicies("WopiOpenEdit")]
         [Scenario(N.S.ContextMenu)]

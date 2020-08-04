@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Action">
+    <Languages>
+      <Language cultureName="en">
+        <data name="UserEdit">
+          <value>Settings</value>
+        </data>
+         <data name="ShareContent">
+          <value>Share content</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+      <data name="UserEdit">
+          <value>Beállítások</value>
+        </data>
+         <data name="ShareContent">
+          <value>Megosztás</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

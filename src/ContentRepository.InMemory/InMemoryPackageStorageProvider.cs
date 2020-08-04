@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
-using Tasks = System.Threading.Tasks;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.InMemory;
-using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Packaging.Tests.Implementations
+namespace SenseNet.ContentRepository.InMemory
 {
     /// <summary> 
     /// This is an in-memory implementation of the <see cref="IPackagingDataProviderExtension"/> interface.
@@ -24,7 +21,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         /* ================================================================================================= IPackageStorageProvider */
 
-        public Tasks.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
             var nullVersion = new Version(0, 0);
             var componentInfos = new Dictionary<string, ComponentInfo>();
@@ -62,12 +59,12 @@ namespace SenseNet.Packaging.Tests.Implementations
                         component.Version = package.ComponentVersion;
                 }
             }
-            return Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
+            return System.Threading.Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 
-        public Tasks.Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {
-            return Tasks.Task.FromResult(GetPackages()
+            return System.Threading.Tasks.Task.FromResult(GetPackages()
                 //.Where(p => p.ExecutionResult != ExecutionResult.Unfinished)
                 .Select(p => new Package
                 {
@@ -85,7 +82,7 @@ namespace SenseNet.Packaging.Tests.Implementations
                 .ToArray().AsEnumerable());
         }
 
-        public Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task SavePackageAsync(Package package, CancellationToken cancellationToken)
         {
             if (package.Id > 0)
                 throw new InvalidOperationException("Only new package can be saved.");
@@ -111,10 +108,10 @@ namespace SenseNet.Packaging.Tests.Implementations
 
             RepositoryVersionInfo.Reset();
 
-            return Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public Tasks.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task UpdatePackageAsync(Package package, CancellationToken cancellationToken)
         {
             var existingDoc = GetPackages().FirstOrDefault(p => p.Id == package.Id);
             if (existingDoc == null)
@@ -130,16 +127,16 @@ namespace SenseNet.Packaging.Tests.Implementations
             existingDoc.ExecutionError = package.ExecutionError;
             // Manifest is not updated
 
-            return Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public Tasks.Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version, 
+        public System.Threading.Tasks.Task<bool> IsPackageExistAsync(string componentId, PackageType packageType, Version version,
             CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Tasks.Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task DeletePackageAsync(Package package, CancellationToken cancellationToken)
         {
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
@@ -147,19 +144,19 @@ namespace SenseNet.Packaging.Tests.Implementations
             if (storedPackage != null)
                 GetPackages().Remove(storedPackage);
 
-            return Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task DeleteAllPackagesAsync(CancellationToken cancellationToken)
         {
             GetPackages().Clear();
-            return Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        public Tasks.Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task LoadManifestAsync(Package package, CancellationToken cancellationToken)
         {
             package.Manifest = GetPackages().FirstOrDefault(p => p.Id == package.Id)?.Manifest;
-            return Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
         }
     }
 }

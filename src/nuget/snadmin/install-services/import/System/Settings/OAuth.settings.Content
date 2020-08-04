@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="OAuth.settings" />
     <GlobalOnly>true</GlobalOnly>
+    <Index>20</Index>
   </Fields>
   <Permissions>
     <Clear />
