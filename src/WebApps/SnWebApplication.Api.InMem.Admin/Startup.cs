@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,8 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
+using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Sharing;
+using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -35,6 +41,12 @@ namespace SnWebApplication.Api.InMem.Admin
 
             // [sensenet]: add allowed client SPA urls
             services.AddSenseNetCors();
+
+            services.AddMembershipExtender(
+                new TestMembershipExtenderAdmin(),
+                new TestMembershipExtenderOperator());
+            services.AddMembershipExtender(
+                new SharingMembershipExtenderCore());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +77,9 @@ namespace SnWebApplication.Api.InMem.Admin
                 if (next != null)
                     await next();
             });
+
+            // [sensenet]: MembershipExtender middleware
+            app.UseMembershipExtenders();
 
             app.UseAuthorization();
 
