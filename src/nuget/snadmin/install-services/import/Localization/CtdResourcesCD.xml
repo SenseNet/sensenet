@@ -845,6 +845,9 @@
   <ResourceClass name="Ctd-DocumentLibrary">
     <Languages>
       <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Document Library</value>
+        </data>
        <data name="Description" xml:space="preserve">
           <value>A container type for storing and organizing documents.</value>
         </data>
@@ -856,7 +859,10 @@
         </data>
       </Language>
       <Language cultureName="hu">
-      <data name="Description" xml:space="preserve">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Dokumentumtár</value>
+        </data>
+        <data name="Description" xml:space="preserve">
           <value>Tároló dokumentumok tárolására és rendszerezésére.</value>
         </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
