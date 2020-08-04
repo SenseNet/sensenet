@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Services.Core.Authentication;
 
 namespace SenseNet.Services.Core.Operations
@@ -33,6 +34,8 @@ namespace SenseNet.Services.Core.Operations
             using (new SystemAccount())
             {
                 var user = User.Load(userName);
+                if (user == null)
+                    SnTrace.Security.Write($"Could not find a user with the name: {userName}");
 
                 if (user?.CheckPasswordMatch(password) ?? false)
                 {
@@ -45,6 +48,8 @@ namespace SenseNet.Services.Core.Operations
                         loginName = user.LoginName
                     };
                 }
+
+                SnTrace.Security.Write($"Password match failed for user: {userName}");
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");
