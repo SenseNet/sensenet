@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ApplicationModel;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
@@ -20,7 +21,10 @@ namespace SenseNet.Services.Core.Operations
                     new PermissionTypeBase[] { PermissionType.SeePermissions });
 
             var acl = SnAccessControlList.GetAcl(content.Id);
-            var entries = acl.Entries.Select(CreateAce).ToList();
+            var entries = acl.Entries
+                .Where(e=>e.Identity.NodeId!=Identifiers.SomebodyUserId)
+                .Select(CreateAce)
+                .ToList();
 
             var result = new Dictionary<string, object>(){
                 {"id", content.Id},
