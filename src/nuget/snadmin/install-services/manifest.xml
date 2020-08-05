@@ -86,8 +86,5 @@
       <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
       <PopulateIndex />
     </Phase>
-    <Phase>
-      <EditAllowedChildTypes path="/Root/IMS/Public" add="Image" />
-    </Phase>
   </Steps>
 </Package>
