@@ -4,6 +4,7 @@ using System.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 
@@ -44,7 +45,7 @@ namespace SenseNet.Services.Core.Operations
             {
                 if (perm.Allow || perm.Deny)
                 {
-                    var from = perm.AllowFrom ?? perm.DenyFrom;
+                    var from = GetSafeAncestorPath(perm.AllowFrom ?? perm.DenyFrom);
                     if (from != null && from.Length > (ancestor?.Length ?? 0))
                         ancestor = from;
                     if (from == null)
@@ -72,6 +73,16 @@ namespace SenseNet.Services.Core.Operations
             };
 
             return ace;
+        }
+
+        private static string GetSafeAncestorPath(string path)
+        {
+            if (path == null)
+                return null;
+
+            var id = NodeHead.Get(path).Id;
+            return SecurityHandler.HasPermission(User.Current, id, PermissionType.See)
+                ? path: "Somewhere";
         }
     }
 }
