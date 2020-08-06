@@ -52,6 +52,9 @@
     <Field name="IsActive" type="Boolean">
       <DisplayName>$Ctd-TrashBin,IsActive-DisplayName</DisplayName>
       <Description>$Ctd-TrashBin,IsActive-Description</Description>
+      <Configuration>
+        <VisibleEdit>Show</VisibleEdit>
+      </Configuration>
     </Field>
     <Field name="MinRetentionTime" type="Integer">
       <DisplayName>$Ctd-TrashBin,MinRetentionTime-DisplayName</DisplayName>
