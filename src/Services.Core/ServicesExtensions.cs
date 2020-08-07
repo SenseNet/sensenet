@@ -21,7 +21,7 @@ namespace SenseNet.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The IServiceCollection instance.</param>
         /// <param name="membershipExtender">One or more <see cref="IMembershipExtender"/> instance.</param>
-        public static IServiceCollection AddMembershipExtender(this IServiceCollection services, params IMembershipExtender[] membershipExtender)
+        public static IServiceCollection AddSenseNetMembershipExtender(this IServiceCollection services, params IMembershipExtender[] membershipExtender)
         {
             if(membershipExtender == null)
                 throw new ArgumentNullException(nameof(membershipExtender));
@@ -45,18 +45,18 @@ namespace SenseNet.Extensions.DependencyInjection
             return services;
         }
 
-        public static IApplicationBuilder UseMembershipExtenders(this IApplicationBuilder builder)
+        public static IApplicationBuilder UseSenseNetMembershipExtenders(this IApplicationBuilder builder)
         {
             builder.Use(async (context, next) =>
             {
                 var user = User.Current;
-                var extenders = builder.ApplicationServices.GetService<List<IMembershipExtender>>();
+                var extenders = context.RequestServices.GetService<List<IMembershipExtender>>();
                 var extensions = extenders
                     .SelectMany(e => e.GetExtension(user, context).ExtensionIds)
                     .Distinct()
                     .ToArray();
 
-                user.MembershipExtension = new MembershipExtension(extensions);
+                user.AddMembershipIdentities(extensions);
 
                 /* -------------- */
                 if (next != null)

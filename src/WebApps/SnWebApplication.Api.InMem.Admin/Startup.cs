@@ -41,12 +41,6 @@ namespace SnWebApplication.Api.InMem.Admin
 
             // [sensenet]: add allowed client SPA urls
             services.AddSenseNetCors();
-
-            services.AddMembershipExtender(
-                new TestMembershipExtenderAdmin(),
-                new TestMembershipExtenderOperator());
-            services.AddMembershipExtender(
-                new SharingMembershipExtenderCore());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -79,7 +73,7 @@ namespace SnWebApplication.Api.InMem.Admin
             });
 
             // [sensenet]: MembershipExtender middleware
-            app.UseMembershipExtenders();
+            app.UseSenseNetMembershipExtenders();
 
             app.UseAuthorization();
 
