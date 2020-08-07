@@ -8,22 +8,4 @@ namespace SenseNet.Services.Core
     {
         MembershipExtension GetExtension(IUser user, HttpContext httpContext);
     }
-
-    //UNDONE: Delete this class after demonstration.
-    public class TestMembershipExtenderAdmin : IMembershipExtender
-    {
-        public MembershipExtension GetExtension(IUser user, HttpContext httpContext)
-        {
-            return new MembershipExtension(new[] { Group.Administrators });
-        }
-    }
-    //UNDONE: Delete this class after demonstration.
-    public class TestMembershipExtenderOperator : IMembershipExtender
-    {
-        public MembershipExtension GetExtension(IUser user, HttpContext httpContext)
-        {
-            return new MembershipExtension(new[] { Group.Operators });
-        }
-    }
-
 }
