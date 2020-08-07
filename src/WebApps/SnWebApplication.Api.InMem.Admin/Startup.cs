@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,12 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
-using SenseNet.Services.Core.Sharing;
-using SenseNet.Storage.Security;
 
 namespace SnWebApplication.Api.InMem.Admin
 {

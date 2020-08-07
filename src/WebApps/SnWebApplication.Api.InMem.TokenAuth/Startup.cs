@@ -65,6 +65,9 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 options.AddJwtCookie = true;
             });
 
+            // [sensenet]: MembershipExtender middleware
+            app.UseSenseNetMembershipExtenders();
+
             app.UseAuthorization();
 
             // [sensenet] Add the sensenet binary handler
