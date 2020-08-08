@@ -47,7 +47,7 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
-                    services.AddSenseNetMembershipExtender(
+                    services.AddSenseNetMembershipExtenders(
                         new TestMembershipExtenderAdmin(),
                         new TestMembershipExtenderOperator());
                 }, app =>
@@ -97,5 +97,57 @@ namespace SenseNet.MiddlewareTests
                 });
         }
 
+        [TestMethod]
+        public async Task MW_MembershipExtender_MultipleRegistrations()
+        {
+            string[] extenderTypes = null;
+
+            await MiddlewareTestAsync(
+                // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
+                services =>
+                {
+                    // register 2 + 1 extenders
+                    services.AddSenseNetMembershipExtenders(
+                        new TestMembershipExtenderAdmin(),
+                        new TestMembershipExtenderOperator())
+                        .AddSenseNetMembershipExtenders(new TestMembershipExtenderAdmin());
+                }, app =>
+                // Equivalent to the Startup.Configure(IApplicationBuilder) method
+                {
+                    // Required authentication
+                    app.Use(async (context, next) =>
+                    {
+                        User.Current = User.Administrator;
+                        if (next != null)
+                            await next();
+                    });
+                    
+                    // SUB ACTION
+                    app.UseSenseNetMembershipExtenders();
+
+                    // Copy the test result to check the assertions
+                    app.Use(async (context, next) =>
+                    {
+                        // collect registered extenders
+                        extenderTypes = context.RequestServices.GetServices<IMembershipExtender>()
+                            .Select(me => me.GetType().FullName).ToArray();
+
+                        if (next != null)
+                            await next();
+                    });
+                }, async client =>
+                {
+                    // MAIN ACTION
+                    var response = await client.GetAsync("/");
+
+                    // ASSERTIONS
+                    Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+                    Assert.IsNotNull(extenderTypes);
+                    Assert.AreEqual(3, extenderTypes.Length);
+                    Assert.AreEqual(typeof(TestMembershipExtenderAdmin).FullName, extenderTypes[0]);
+                    Assert.AreEqual(typeof(TestMembershipExtenderOperator).FullName, extenderTypes[1]);
+                    Assert.AreEqual(typeof(TestMembershipExtenderAdmin).FullName, extenderTypes[2]);
+                });
+        }
     }
 }

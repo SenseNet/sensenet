@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,30 +15,23 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class ServicesExtensions
     {
         /// <summary>
-        /// Sets the membership extender used for extending user membership on-the-fly.
+        /// Registers one or more membership extenders used for extending user membership on-the-fly.
         /// </summary>
         /// <param name="services">The IServiceCollection instance.</param>
-        /// <param name="membershipExtender">One or more <see cref="IMembershipExtender"/> instance.</param>
-        public static IServiceCollection AddSenseNetMembershipExtender(this IServiceCollection services, params IMembershipExtender[] membershipExtender)
+        /// <param name="membershipExtender">One or more <see cref="IMembershipExtender"/> instances.</param>
+        public static IServiceCollection AddSenseNetMembershipExtenders(this IServiceCollection services, params IMembershipExtender[] membershipExtender)
         {
             if(membershipExtender == null)
                 throw new ArgumentNullException(nameof(membershipExtender));
             if (membershipExtender.Length == 0)
                 throw new ArgumentException($"The {nameof(membershipExtender)} cannot be empty.");
 
-            var service = services.FirstOrDefault(x => x.ServiceType == typeof(List<IMembershipExtender>));
-            if (service == null)
-            {
-                services.AddSingleton(typeof(List<IMembershipExtender>), membershipExtender.ToList());
-            }
-            else
-            {
-                var extenders = (List<IMembershipExtender>)service.ImplementationInstance;
-                extenders.AddRange(membershipExtender);
-            }
-
+            // register instances with the interface
             foreach (var item in membershipExtender)
+            {
+                services.AddSingleton(item);
                 RepositoryBuilder.WriteLog("MembershipExtender", item);
+            }
 
             return services;
         }
@@ -49,7 +41,9 @@ namespace SenseNet.Extensions.DependencyInjection
             builder.Use(async (context, next) =>
             {
                 var user = User.Current;
-                var extenders = context.RequestServices.GetService<List<IMembershipExtender>>();
+
+                // get all extenders registered with the interface
+                var extenders = context.RequestServices.GetServices<IMembershipExtender>();
                 if (extenders != null)
                 {
                     var extensions = extenders
