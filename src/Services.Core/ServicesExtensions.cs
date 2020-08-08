@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
-using SenseNet.Storage.Security;
 using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
@@ -51,12 +50,28 @@ namespace SenseNet.Extensions.DependencyInjection
             {
                 var user = User.Current;
                 var extenders = context.RequestServices.GetService<List<IMembershipExtender>>();
-                var extensions = extenders
-                    .SelectMany(e => e.GetExtension(user, context).ExtensionIds)
-                    .Distinct()
-                    .ToArray();
+                if (extenders != null)
+                {
+                    var extensions = extenders
+                        .SelectMany(e =>
+                        {
+                            try
+                            {
+                                return e.GetExtension(user, context).ExtensionIds;
+                            }
+                            catch (Exception ex)
+                            {
+                                SnTrace.System.WriteError($"Error executing membership extender {e.GetType().FullName} " +
+                                                          $"for user {User.Current.Username}. {ex.Message}");
+                            }
 
-                user.AddMembershipIdentities(extensions);
+                            return Array.Empty<int>();
+                        })
+                        .Distinct()
+                        .ToArray();
+
+                    user.AddMembershipIdentities(extensions);
+                }
 
                 /* -------------- */
                 if (next != null)

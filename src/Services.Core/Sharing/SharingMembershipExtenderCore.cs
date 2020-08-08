@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Storage.Security;
 
 namespace SenseNet.Services.Core.Sharing
 {
@@ -36,7 +33,9 @@ namespace SenseNet.Services.Core.Sharing
 
                         httpContext.Response.Cookies.Append(Constants.SharingTokenKey, currentValue, new CookieOptions
                         {
-                            Expires = DateTime.UtcNow.AddDays(1)
+                            Expires = DateTime.UtcNow.AddDays(1),
+                            HttpOnly = true,
+                            Secure = true
                         });
                     }
                 }
