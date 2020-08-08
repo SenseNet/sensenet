@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         private static Timer _maintenanceTimer;
         private static int _currentCycle;
         private const string TRACE_PREFIX = "#SnMaintenance> ";
-        private static IEnumerable<IMaintenanceTask> _maintenanceTasks = new IMaintenanceTask[0];
+        private static IMaintenanceTask[] _maintenanceTasks = new IMaintenanceTask[0];
         private static CancellationTokenSource _cancellation;
 
         // ========================================================================================= ISnService implementation
@@ -35,13 +34,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             _maintenanceTasks = DiscoverMaintenanceTasks();
             return true;
         }
-        private IEnumerable<IMaintenanceTask> DiscoverMaintenanceTasks()
+        private IMaintenanceTask[] DiscoverMaintenanceTasks()
         {
             return TypeResolver.GetTypesByInterface(typeof(IMaintenanceTask)).Select(t =>
                 {
                     SnTrace.System.Write("MaintenanceTask found: {0}", t.FullName);
                     return (IMaintenanceTask)Activator.CreateInstance(t);
-                });
+                }).ToArray();
         }
 
         public void Shutdown()
@@ -81,9 +80,9 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (_currentCycle > 100000)
                 _currentCycle = 0;
 
-            // start maintenance tasks asychronously
-            Task.Run(() => CleanupFiles());
-            Task.Run(() => StartADSync());
+            // start maintenance tasks asynchronously
+            Task.Run(CleanupFiles);
+            Task.Run(StartADSync);
 
             foreach(var maintenanceTask in _maintenanceTasks)
                 if(IsTaskExecutable(maintenanceTask.WaitingMinutes))
