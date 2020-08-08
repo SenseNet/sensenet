@@ -110,7 +110,7 @@ namespace SenseNet.MiddlewareTests
                     services.AddSenseNetMembershipExtenders(
                         new TestMembershipExtenderAdmin(),
                         new TestMembershipExtenderOperator())
-                        .AddSenseNetMembershipExtenders(new TestMembershipExtenderAdmin());
+                        .AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>();
                 }, app =>
                 // Equivalent to the Startup.Configure(IApplicationBuilder) method
                 {

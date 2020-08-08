@@ -15,6 +15,19 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class ServicesExtensions
     {
         /// <summary>
+        /// Registers a membership extender singleton instance.
+        /// </summary>
+        /// <typeparam name="T">An <see cref="IMembershipExtender"/> implementation.</typeparam>
+        /// <param name="services">The IServiceCollection instance.</param>
+        public static IServiceCollection AddSenseNetMembershipExtender<T>(this IServiceCollection services) where T : class, IMembershipExtender
+        {
+            services.AddSingleton<IMembershipExtender, T>();
+            RepositoryBuilder.WriteLog("MembershipExtender", typeof(T).FullName);
+
+            return services;
+        }
+
+        /// <summary>
         /// Registers one or more membership extenders used for extending user membership on-the-fly.
         /// </summary>
         /// <param name="services">The IServiceCollection instance.</param>
