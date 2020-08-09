@@ -15,40 +15,25 @@ namespace SenseNet.Extensions.DependencyInjection
     public static class ServicesExtensions
     {
         /// <summary>
-        /// Registers a membership extender singleton instance.
+        /// Registers a membership extender type as a scoped service. To execute extenders at runtime,
+        /// please call the <see cref="UseSenseNetMembershipExtenders"/> method in Startup.Configure.
         /// </summary>
         /// <typeparam name="T">An <see cref="IMembershipExtender"/> implementation.</typeparam>
         /// <param name="services">The IServiceCollection instance.</param>
         public static IServiceCollection AddSenseNetMembershipExtender<T>(this IServiceCollection services) where T : class, IMembershipExtender
         {
-            services.AddSingleton<IMembershipExtender, T>();
+            services.AddScoped<IMembershipExtender, T>();
             RepositoryBuilder.WriteLog("MembershipExtender", typeof(T).FullName);
 
             return services;
         }
 
         /// <summary>
-        /// Registers one or more membership extenders used for extending user membership on-the-fly.
+        /// Registers a middleware in the pipeline to execute previously configured membership extenders.
+        /// To register an extender, please call <see cref="AddSenseNetMembershipExtender{T}"/> in the
+        /// ConfigureServices method of your Startup class.
         /// </summary>
-        /// <param name="services">The IServiceCollection instance.</param>
-        /// <param name="membershipExtender">One or more <see cref="IMembershipExtender"/> instances.</param>
-        public static IServiceCollection AddSenseNetMembershipExtenders(this IServiceCollection services, params IMembershipExtender[] membershipExtender)
-        {
-            if(membershipExtender == null)
-                throw new ArgumentNullException(nameof(membershipExtender));
-            if (membershipExtender.Length == 0)
-                throw new ArgumentException($"The {nameof(membershipExtender)} cannot be empty.");
-
-            // register instances with the interface
-            foreach (var item in membershipExtender)
-            {
-                services.AddSingleton(item);
-                RepositoryBuilder.WriteLog("MembershipExtender", item);
-            }
-
-            return services;
-        }
-
+        /// <param name="builder">The IApplicationBuilder instance.</param>
         public static IApplicationBuilder UseSenseNetMembershipExtenders(this IApplicationBuilder builder)
         {
             builder.Use(async (context, next) =>
@@ -64,7 +49,7 @@ namespace SenseNet.Extensions.DependencyInjection
                         {
                             try
                             {
-                                return e.GetExtension(user, context).ExtensionIds;
+                                return e.GetExtension(user).ExtensionIds;
                             }
                             catch (Exception ex)
                             {

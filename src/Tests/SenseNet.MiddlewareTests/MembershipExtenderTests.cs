@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.InMemory;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core;
@@ -22,16 +15,23 @@ namespace SenseNet.MiddlewareTests
 {
     internal class TestMembershipExtenderAdmin : IMembershipExtender
     {
-        public MembershipExtension GetExtension(IUser user, HttpContext httpContext)
+        public MembershipExtension GetExtension(IUser user)
         {
             return new MembershipExtension(new[] { Group.Administrators });
         }
     }
     internal class TestMembershipExtenderOperator : IMembershipExtender
     {
-        public MembershipExtension GetExtension(IUser user, HttpContext httpContext)
+        public MembershipExtension GetExtension(IUser user)
         {
             return new MembershipExtension(new[] { Group.Operators });
+        }
+    }
+    internal class TestMembershipExtenderFail : IMembershipExtender
+    {
+        public MembershipExtension GetExtension(IUser user)
+        {
+            throw new InvalidOperationException("Error");
         }
     }
 
@@ -47,9 +47,8 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
-                    services.AddSenseNetMembershipExtenders(
-                        new TestMembershipExtenderAdmin(),
-                        new TestMembershipExtenderOperator());
+                    services.AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>()
+                        .AddSenseNetMembershipExtender<TestMembershipExtenderOperator>();
                 }, app =>
                 // Equivalent to the Startup.Configure(IApplicationBuilder) method
                 {
@@ -106,10 +105,9 @@ namespace SenseNet.MiddlewareTests
                 // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
                 services =>
                 {
-                    // register 2 + 1 extenders
-                    services.AddSenseNetMembershipExtenders(
-                        new TestMembershipExtenderAdmin(),
-                        new TestMembershipExtenderOperator())
+                    // register 3 extenders
+                    services.AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>()
+                        .AddSenseNetMembershipExtender<TestMembershipExtenderOperator>()
                         .AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>();
                 }, app =>
                 // Equivalent to the Startup.Configure(IApplicationBuilder) method
@@ -147,6 +145,54 @@ namespace SenseNet.MiddlewareTests
                     Assert.AreEqual(typeof(TestMembershipExtenderAdmin).FullName, extenderTypes[0]);
                     Assert.AreEqual(typeof(TestMembershipExtenderOperator).FullName, extenderTypes[1]);
                     Assert.AreEqual(typeof(TestMembershipExtenderAdmin).FullName, extenderTypes[2]);
+                });
+        }
+
+        [TestMethod]
+        public async Task MW_MembershipExtender_FailedExtender()
+        {
+            int[] extensionIds = null;
+
+            await MiddlewareTestAsync(
+                // Equivalent to the Startup.ConfigureServices(IServiceCollection) method
+                services =>
+                {
+                    // the first extender will throw and exception
+                    services.AddSenseNetMembershipExtender<TestMembershipExtenderFail>()
+                        .AddSenseNetMembershipExtender<TestMembershipExtenderAdmin>();
+                }, app =>
+                // Equivalent to the Startup.Configure(IApplicationBuilder) method
+                {
+                    // Required authentication
+                    app.Use(async (context, next) =>
+                    {
+                        User.Current = User.Administrator;
+                        if (next != null)
+                            await next();
+                    });
+                    
+                    // SUB ACTION
+                    app.UseSenseNetMembershipExtenders();
+
+                    // Copy the test result to check the assertions
+                    app.Use(async (context, next) =>
+                    {
+                        extensionIds = User.Current.MembershipExtension.ExtensionIds.ToArray();
+                        if (next != null)
+                            await next();
+                    });
+                }, async client =>
+                {
+                    // MAIN ACTION
+                    var response = await client.GetAsync("/");
+
+                    // ASSERTIONS
+                    Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+                    Assert.IsNotNull(extensionIds);
+                    
+                    // The list should still contain the group id from the second extender,
+                    // despite the exception in the first.
+                    Assert.IsTrue(extensionIds.Contains(Identifiers.AdministratorsGroupId));
                 });
         }
     }
