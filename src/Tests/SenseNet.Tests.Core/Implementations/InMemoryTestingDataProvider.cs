@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -125,12 +125,12 @@ namespace SenseNet.Tests.Core.Implementations
             blobProvider2.AllocateAsync(ctx2, CancellationToken.None).GetAwaiter().GetResult();
 
             using (var xmlWriterStream = blobProvider2.GetStreamForWrite(ctx2))
-            using (var writer = new StreamWriter(xmlWriterStream))
             {
-                writer.Write(ctdString);
-                writer.Flush();
+                xmlWriterStream.Write(Encoding.UTF8.GetBytes(ctdString));
+                xmlWriterStream.Flush();
                 fileRecord.Size = xmlWriterStream.Length;
             }
+
             fileRecord.BlobProvider = blobProvider2.GetType().FullName;
             fileRecord.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx2.BlobProviderData);
         }
