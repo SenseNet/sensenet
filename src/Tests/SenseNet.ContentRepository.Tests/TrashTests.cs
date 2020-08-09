@@ -94,7 +94,11 @@ namespace SenseNet.ContentRepository.Tests
 
         protected GenericContent CreateTestRoot(bool save = true)
         {
-            var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+            var node = new SystemFolder(Repository.Root)
+            {
+                Name = Guid.NewGuid().ToString(),
+                TrashDisabled = false
+            };
             if (save)
                 node.Save();
             return node;
