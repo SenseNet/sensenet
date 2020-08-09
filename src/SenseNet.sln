@@ -88,9 +88,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.InMem.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.InMem.TokenAuth", "WebApps\SnWebApplication.Api.InMem.TokenAuth\SnWebApplication.Api.InMem.TokenAuth.csproj", "{BDC6A01A-8AE2-40BC-BAD1-E0CF06E7F084}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnWebApplication.Api.Sql.Admin", "WebApps\SnWebApplication.Api.Sql.Admin\SnWebApplication.Api.Sql.Admin.csproj", "{FFFAE7E4-FF2A-4061-86C6-C4AA8B62B702}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.Sql.Admin", "WebApps\SnWebApplication.Api.Sql.Admin\SnWebApplication.Api.Sql.Admin.csproj", "{FFFAE7E4-FF2A-4061-86C6-C4AA8B62B702}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnWebApplication.Api.Sql.TokenAuth", "WebApps\SnWebApplication.Api.Sql.TokenAuth\SnWebApplication.Api.Sql.TokenAuth.csproj", "{5277839B-309F-4EC4-B164-A2D860BA413C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnWebApplication.Api.Sql.TokenAuth", "WebApps\SnWebApplication.Api.Sql.TokenAuth\SnWebApplication.Api.Sql.TokenAuth.csproj", "{5277839B-309F-4EC4-B164-A2D860BA413C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.MiddlewareTests", "Tests\SenseNet.MiddlewareTests\SenseNet.MiddlewareTests.csproj", "{7FDD4077-1372-401C-A698-96395DF0C8DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -664,6 +666,22 @@ Global
 		{5277839B-309F-4EC4-B164-A2D860BA413C}.Release|x64.Build.0 = Release|Any CPU
 		{5277839B-309F-4EC4-B164-A2D860BA413C}.Release|x86.ActiveCfg = Release|Any CPU
 		{5277839B-309F-4EC4-B164-A2D860BA413C}.Release|x86.Build.0 = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|x64.Build.0 = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Debug|x86.Build.0 = Debug|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|x64.ActiveCfg = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|x64.Build.0 = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{7FDD4077-1372-401C-A698-96395DF0C8DB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -705,6 +723,7 @@ Global
 		{BDC6A01A-8AE2-40BC-BAD1-E0CF06E7F084} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 		{FFFAE7E4-FF2A-4061-86C6-C4AA8B62B702} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
 		{5277839B-309F-4EC4-B164-A2D860BA413C} = {61F11B98-137D-402E-AAF9-DA329D109B4B}
+		{7FDD4077-1372-401C-A698-96395DF0C8DB} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}

@@ -197,19 +197,6 @@ namespace SenseNet.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Sets the membership extender used for extending user membership on-the-fly.
-        /// </summary>
-        /// <param name="repositoryBuilder"></param>
-        /// <param name="membershipExtender">MembershipExtender instance.</param>
-        public static IRepositoryBuilder UseMembershipExtender(this IRepositoryBuilder repositoryBuilder, MembershipExtenderBase membershipExtender)
-        {
-            Configuration.Providers.Instance.MembershipExtender = membershipExtender;
-            WriteLog("MembershipExtender", membershipExtender);
-
-            return repositoryBuilder;
-        }
-
-        /// <summary>
         /// Sets trace categories that should be enabled when the repository starts. This will
         /// override both startup and runtime categories, but will not switch any category off.
         /// </summary> 

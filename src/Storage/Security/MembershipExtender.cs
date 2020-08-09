@@ -143,7 +143,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
     }
 
-    internal static class MembershipUserExtensions
+    public static class MembershipUserExtensions
     {
         /// <summary>
         /// Adds identities to the extended membership list of the user. If the current

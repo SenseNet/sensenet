@@ -43,9 +43,10 @@ namespace SenseNet.ContentRepository
 
         public InitialData InitialData { get; set; }
 
-        internal static void WriteLog(string name, object provider)
+        public static void WriteLog(string name, object provider)
         {
-            var message = $"{name} configured: {provider?.GetType().FullName ?? "null"}";
+            var providerName = provider is string pName ? pName : provider?.GetType().FullName ?? "null";
+            var message = $"{name} configured: {providerName}";
 
             SnTrace.Repository.Write(message);
             SnLog.WriteInformation(message);
