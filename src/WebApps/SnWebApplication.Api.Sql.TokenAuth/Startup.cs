@@ -14,7 +14,6 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Search.Lucene29;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
@@ -77,6 +76,9 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             {
                 options.AddJwtCookie = true;
             });
+
+            // [sensenet]: MembershipExtender middleware
+            app.UseSenseNetMembershipExtenders();
 
             app.UseAuthorization();
 

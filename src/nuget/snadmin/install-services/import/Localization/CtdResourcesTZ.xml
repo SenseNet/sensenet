@@ -321,7 +321,7 @@
           <value>Enabled</value>
         </data>
         <data name="Enabled-Description" xml:space="preserve">
-          <value>User account is enabled.</value>
+          <value>Adjusts whether the user can login to the system or not.</value>
         </data>
         <data name="Domain-DisplayName" xml:space="preserve">
           <value>Domain</value>

@@ -6,9 +6,12 @@ using SenseNet.Services.Core.Operations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.Portal.Handlers;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Authentication
 {
@@ -53,10 +56,27 @@ namespace SenseNet.Services.Core.Authentication
             var external = $"{{ \"{provider}\": {{ \"Id\": \"{userId}\", \"Completed\": false }} }}";
 
             // content name: email
-            return await CreateUser(email, email, email, fullName, user =>
+            var user = await CreateUser(email, email, email, fullName, u =>
             {
-                user["ExternalUserProviders"] = external;
+                u["ExternalUserProviders"] = external;
             }, cancellationToken);
+
+            // save user avatar
+            var image = claims.FirstOrDefault(c => c.Type == "image")?.Value ?? string.Empty;
+            if (string.IsNullOrEmpty(image)) 
+                return user;
+
+            try
+            {
+                await SaveImageAsync(user, image).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Could not save the user's avatar during registration. {ex.Message} User: {userId}, provider: {provider}, image: {image}";
+                SnTrace.ContentOperation.WriteError(msg);
+            }
+
+            return user;
         }
 
         protected async Task<User> CreateUser(string nameCandidate, string loginName, string email, string fullName,
@@ -90,7 +110,7 @@ namespace SenseNet.Services.Core.Authentication
             return user.ContentHandler as User;
         }
 
-        protected async System.Threading.Tasks.Task AddUserToDefaultGroupsAsync(User user, CancellationToken cancellationToken)
+        protected async Task AddUserToDefaultGroupsAsync(User user, CancellationToken cancellationToken)
         {
             if (DefaultGroups == null)            
                 return;
@@ -123,6 +143,30 @@ namespace SenseNet.Services.Core.Authentication
                                 { "Groups", string.Join(", ", errorGroups) }
                         });
             }
+        }
+
+        private async Task SaveImageAsync(User user, string imageUrl)
+        {
+            using var httpClient = new HttpClient();
+            using var response = await httpClient.GetAsync(imageUrl).ConfigureAwait(false);
+
+            // Determine the image type based on the response header. The url
+            // is not enough because in many cases it does not contain an extension.
+            // An alternative is to determine the type based on the binary, but that
+            // would mean loading the image and converting it in memory using
+            // legacy .net APIs.
+            var contentTypeHeader = response.Content.Headers.GetValues("Content-Type").FirstOrDefault() ?? string.Empty;
+            var contentType = "png";
+            if (contentTypeHeader.Contains("jpg") || contentTypeHeader.Contains("jpeg"))
+                contentType = "jpg";
+            else if (contentTypeHeader.Contains("gif"))
+                contentType = "gif";
+
+            using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            var bd = UploadHelper.CreateBinaryData("avatar." + contentType, stream);
+            user.SetBinary("ImageData", bd);
+            user.Save(SavingMode.KeepVersion);
         }
     }
 }

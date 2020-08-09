@@ -66,6 +66,9 @@ namespace SnWebApplication.Api.InMem.Admin
                     await next();
             });
 
+            // [sensenet]: MembershipExtender middleware
+            app.UseSenseNetMembershipExtenders();
+
             app.UseAuthorization();
 
             // [sensenet] Add the sensenet binary handler

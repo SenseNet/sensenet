@@ -1,7 +1,7 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using System;
-using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Services
@@ -23,7 +23,7 @@ namespace SenseNet.Services
                 node = Node.LoadNode(nodeId);
 
             if (node == null || !SecurityHandler.HasPermission(node, PermissionType.See))
-                node = Node.LoadNode(Identifiers.SomebodyUserId);
+                node = User.Somebody;
 
             string name = node.Name;
             SnIdentityKind kind;

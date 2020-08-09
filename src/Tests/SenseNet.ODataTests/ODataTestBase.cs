@@ -594,6 +594,28 @@ namespace SenseNet.ODataTests
             return new ODataEntitiesResponse(result.ToList(), count);
         }
 
+        protected static ODataActionItem[] GetActions(ODataEntitiesResponse response)
+        {
+            return response.Select(ConvertToAction).ToArray();
+        }
+
+        private static ODataActionItem ConvertToAction(ODataEntityResponse entity)
+        {
+            var operation = entity.AllProperties;
+            return new ODataActionItem
+            {
+                Name = ((JValue)operation["Name"]).Value<string>(),
+                DisplayName = ((JValue)operation["DisplayName"]).Value<string>(),
+                Icon = ((JValue)operation["Icon"]).Value<string>(),
+                Index = ((JValue)operation["Index"]).Value<int>(),
+                Scenario = ((JValue)operation["Scenario"]).Value<string>(),
+                Forbidden = ((JValue)operation["Forbidden"]).Value<bool>(),
+                Url = ((JValue)operation["Url"]).Value<string>(),
+                IsODataAction = ((JValue)operation["IsODataAction"]).Value<bool>(),
+                ActionParameters = ((JArray)operation["ActionParameters"]).Select(p => p.ToString()).ToArray()
+            };
+        }
+
         protected static ODataErrorResponse GetError(ODataResponse response, bool throwOnError = true)
         {
             var text = response.Result;

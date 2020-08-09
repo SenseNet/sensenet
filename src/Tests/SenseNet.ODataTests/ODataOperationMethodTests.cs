@@ -20,6 +20,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.OData;
+using SenseNet.ODataTests.Responses;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedVariable
 // ReSharper disable NotAccessedVariable
@@ -2473,19 +2474,19 @@ namespace SenseNet.ODataTests
                     response = ODataGetAsync("/OData.svc/Root('IMS')/Actions", "")
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                     // ASSERT-3
-                    entity = GetEntity(response);
-                    var operations3 = entity.Actions.Where(x => x.Name == "op").ToArray();
+                    var entities = GetEntities(response);
+                    var operations3 = entities.Where(x => x.Name == "op").ToArray();
                     Assert.AreEqual(1, operations3.Length);
                     var op3 = operations3[0];
 
                     // ASSERT-4 Operation properties
-                    Assert.AreEqual("Op title", op3.DisplayName);
-                    Assert.AreEqual("Op icon", op3.Icon);
+                    Assert.AreEqual("Op title", op3.AllProperties["DisplayName"].ToString());
+                    Assert.AreEqual("Op icon", op3.AllProperties["Icon"].ToString());
 
                     Assert.AreEqual(op1.Title, op2.DisplayName);
-                    Assert.AreEqual(op1.Title, op3.DisplayName);
+                    Assert.AreEqual(op1.Title, op3.AllProperties["DisplayName"].ToString());
 
-                    Assert.AreEqual(op2.Icon, op3.Icon);
+                    Assert.AreEqual(op2.Icon, op3.AllProperties["Icon"].ToString());
                 }
             });
         }
@@ -2498,7 +2499,7 @@ namespace SenseNet.ODataTests
                 using (new CleanOperationCenterBlock())
                 {
                     AddMethod(new TestMethodInfo("op0", "Content content", null),
-                        new Attribute[] { new ODataAction(), new RequiredPoliciesAttribute("AllowEverything"),  });
+                        new Attribute[] { new ODataAction(), new RequiredPoliciesAttribute("AllowEverything"), });
                     AddMethod(new TestMethodInfo("op1", "Content content, string a", null),
                         new Attribute[] { new ODataAction(), });
                     AddMethod(new TestMethodInfo("op2", "Content content, string b, int c", null),
@@ -2509,9 +2510,10 @@ namespace SenseNet.ODataTests
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     // ASSERT
-                    var entity = GetEntity(response);
-                    var operations = entity.Actions
-                        .Where(x=>x.Name.StartsWith("op"))
+                    var entities = GetEntities(response);
+                    var actions = GetActions(entities);
+                    var operations = actions
+                        .Where(x => x.Name.StartsWith("op"))
                         .OrderBy(x => x.Name)
                         .ToArray();
 
@@ -2607,8 +2609,8 @@ namespace SenseNet.ODataTests
                         .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     // ASSERT
-                    var entity = GetEntity(response);
-                    var operationNames = entity.Actions
+                    var entities = GetEntities(response);
+                    var operationNames = entities
                         .Select(x => x.Name)
                         .OrderBy(x => x)
                         .ToArray();
@@ -2645,8 +2647,8 @@ namespace SenseNet.ODataTests
                         // ASSERT
                         AssertNoError(response);
 
-                        var entity = GetEntity(response);
-                        var operationNames = entity.Actions
+                        var entities = GetEntities(response);
+                        var operationNames = entities
                             .Select(x => x.Name)
                             .OrderBy(x => x)
                             .ToArray();
@@ -2670,8 +2672,9 @@ namespace SenseNet.ODataTests
                 if (response.StatusCode == 404)
                     return "";
 
-                var entity = GetEntity(response);
-                var operationNames = string.Join(", ", entity.Actions.Select(x => $"{x.Name}:{!x.Forbidden}").ToArray());
+                var entities = GetEntities(response);
+                var actions = GetActions(entities);
+                var operationNames = string.Join(", ", actions.Select(x => $"{x.Name}:{!x.Forbidden}").ToArray());
                 return operationNames;
             }
 
@@ -2719,7 +2722,7 @@ namespace SenseNet.ODataTests
         {
             string GetResult(ODataResponse response)
             {
-                return string.Join(",", GetEntity(response).Actions
+                return string.Join(",", GetEntities(response)
                     .Where(x=>x.Name.StartsWith("fv"))
                     .Select(x => x.Name)
                     .OrderBy(x => x)
