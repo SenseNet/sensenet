@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Xml.XPath;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -117,15 +118,17 @@ namespace SenseNet.Services.Core.Operations
         protected internal string FileName { get; set; }
         protected internal string ChunkToken { get; set; }        
         protected internal bool UseChunkRequestValue { get; set; }        
-        protected internal bool? Create { get; set; }        
+        protected internal bool? Create { get; set; }      
+        
+        private IFormFile FormFile { get; set; }
 
         // ======================================================================== POTENTIAL Virtual methods
 
         protected async Task<Content> GetContentAsync(Content parent, string fileName, string contentTypeName, bool overwrite,
             CancellationToken cancellationToken)
         {
-            var contentname = ContentNamingProvider.GetNameFromDisplayName(fileName);
-            var path = RepositoryPath.Combine(Content.Path, contentname);
+            var contentName = ContentNamingProvider.GetNameFromDisplayName(fileName);
+            var path = RepositoryPath.Combine(parent.Path, contentName);
 
             Content content;
 
@@ -142,7 +145,7 @@ namespace SenseNet.Services.Core.Operations
             }
 
             // create new content
-            content = Content.CreateNew(contentTypeName, parent.ContentHandler, contentname);
+            content = Content.CreateNew(contentTypeName, parent.ContentHandler, contentName);
 
             // prevent autonaming feature in case of preview images
             if (string.Compare(contentTypeName, DocumentPreviewProvider.PREVIEWIMAGE_CONTENTTYPE, StringComparison.InvariantCultureIgnoreCase) != 0)
@@ -270,25 +273,28 @@ namespace SenseNet.Services.Core.Operations
             else
             {
                 // handle uploaded chunks/stream/text
-                IFormFile file = null;
                 if(string.IsNullOrEmpty(FileText))
-                    file = _httpContext.Request.Form.Files.Count > 0 ? _httpContext.Request.Form.Files[0] : null;
+                    FormFile = _httpContext.Request.Form.Files.Count > 0 ? _httpContext.Request.Form.Files[0] : null;
 
-                if (file != null && file.Length == 0)
+                // The request has arrived to the parent represented by the Content property,
+                // but in some cases (for example content types) the parent may be different.
+                var parent = GetRealParent();
+
+                if (FormFile != null && FormFile.Length == 0)
                 {
                     // create content for an empty file if necessary
-                    var emptyFile = await GetContentAsync(Content, cancellationToken).ConfigureAwait(false);
+                    var emptyFile = await GetContentAsync(parent, cancellationToken).ConfigureAwait(false);
                     if (emptyFile != null && emptyFile.IsNew)
                     {
                         emptyFile.Save();
 
-                        return GetJsonFromContent(emptyFile, file);
+                        return GetJsonFromContent(emptyFile, FormFile);
                     }
 
                     return null;
                 }
 
-                if (file == null && string.IsNullOrEmpty(FileText))
+                if (FormFile == null && string.IsNullOrEmpty(FileText))
                     return null;
 
                 var contentId = 0;
@@ -297,29 +303,29 @@ namespace SenseNet.Services.Core.Operations
                 var mustCheckIn = false;
 
                 // collect data only if this is a real file, not a text
-                if (file != null)
+                if (FormFile != null)
                     CollectUploadData(out contentId, out chunkToken, out mustFinalize, out mustCheckIn);
 
                 // load the content using the posted chunk token or create a new one
                 // (in case of a small file, when no chunk upload is used)
                 var uploadedContent = UseChunk 
                     ? await Content.LoadAsync(contentId, cancellationToken).ConfigureAwait(false) 
-                    : await GetContentAsync(Content, cancellationToken).ConfigureAwait(false);
+                    : await GetContentAsync(parent, cancellationToken).ConfigureAwait(false);
 
                 // in case we just loaded this content
                 SetPreviewGenerationPriority(uploadedContent);
 
-                if (file != null)
+                if (FormFile != null)
                 {
                     await SaveFileToRepositoryAsync(uploadedContent, Content, chunkToken, 
-                        mustFinalize, mustCheckIn, file, cancellationToken);
+                        mustFinalize, mustCheckIn, FormFile, cancellationToken);
                 }
                 else
                 {
                     // handle text data
                     var binData = new BinaryData { FileName = new BinaryFileName(uploadedContent.Name) };
 
-                    // set content type only if we were unable to recognise it
+                    // set content type only if we were unable to recognize it
                     if (string.IsNullOrEmpty(binData.ContentType))
                         binData.ContentType = "text/plain";
 
@@ -329,7 +335,7 @@ namespace SenseNet.Services.Core.Operations
                     uploadedContent.Save();
                 }
 
-                return GetJsonFromContent(uploadedContent, file);
+                return GetJsonFromContent(uploadedContent, FormFile);
             }
         }
 
@@ -485,7 +491,7 @@ namespace SenseNet.Services.Core.Operations
                 return fileName;
             }
         }
-
+        
         protected bool TryParseRangeHeader(out long chunkStart, out int chunkLength, out long fullLength)
         {
             // parse chunk information
@@ -531,6 +537,45 @@ namespace SenseNet.Services.Core.Operations
             var fileName = UseChunk ? GetFileName(file) : file?.FileName;
 
             return UploadHelper.CreateBinaryData(fileName, setStream ? file?.OpenReadStream() : null, file?.ContentType);
+        }
+
+        protected bool IsContentType()
+        {
+            return string.Equals(ContentTypeName, "ContentType", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        private Content GetRealParent()
+        {
+            if (!string.Equals(ContentTypeName, "ContentType", StringComparison.InvariantCultureIgnoreCase))
+                return Content;
+
+            // Workaround for content types. The client does not know where to put
+            // the new type in the hierarchy. The real parent is determined by
+            // looking into the content type xml.
+            string ctd;
+            if (FormFile != null)
+            {
+                using var stream = FormFile.OpenReadStream();
+                ctd = RepositoryTools.GetStreamString(stream);
+
+                // request stream can be loaded only once, we have to save the value
+                FileText = ctd;
+                FormFile = null;
+            }
+            else
+            {
+                ctd = FileText;
+            }
+
+            var (parentName, name) = GetContentTypeInfo(ctd);
+            var parentType = ContentType.GetByName(parentName);
+            if (parentType != null)
+            {
+                FileName = name;
+                return Content.Load(parentType.Id);
+            }
+
+            return Content;
         }
 
         protected static bool AllowCreationForEmptyAllowedContentTypes(Node node)
@@ -583,6 +628,18 @@ namespace SenseNet.Services.Core.Operations
         {
             if (content?.ContentHandler is ContentRepository.File file)
                 file.PreviewGenerationPriority = TaskManagement.Core.TaskPriority.Important;
+        }
+
+        private static (string ParentName, string Name) GetContentTypeInfo(string ctdXml)
+        {
+            // load and parse a CTD xml
+            var ctd = new XPathDocument(new StringReader(ctdXml));
+            var nav = ctd.CreateNavigator().SelectSingleNode("/*[1]");
+
+            var name = nav.GetAttribute("name", "");
+            var parentName = nav.GetAttribute("parentType", "");
+
+            return (parentName, name);
         }
     }
 }
