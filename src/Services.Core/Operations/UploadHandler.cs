@@ -539,11 +539,6 @@ namespace SenseNet.Services.Core.Operations
             return UploadHelper.CreateBinaryData(fileName, setStream ? file?.OpenReadStream() : null, file?.ContentType);
         }
 
-        protected bool IsContentType()
-        {
-            return string.Equals(ContentTypeName, "ContentType", StringComparison.InvariantCultureIgnoreCase);
-        }
-
         private Content GetRealParent()
         {
             if (!string.Equals(ContentTypeName, "ContentType", StringComparison.InvariantCultureIgnoreCase))
