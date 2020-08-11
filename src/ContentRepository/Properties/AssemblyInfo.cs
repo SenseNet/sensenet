@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Tests.Core")]
+[assembly: InternalsVisibleTo("SenseNet.Tests.Core.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ODataTests")]
 [assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.IntegrationTests.Common")]
@@ -16,5 +18,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.Wopi.Tests")]
 
 [assembly: AssemblyTrademark("Sense/Net Inc.")]

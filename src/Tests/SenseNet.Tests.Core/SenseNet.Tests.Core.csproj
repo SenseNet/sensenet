@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Implementations\ResourceXmls.tt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Implementations\ResourceXmls.tt">
+      <LastGenOutput>ResourceXmls.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
+    <PackageReference Include="coverlet.collector" Version="1.2.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.2.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj" />
+    <ProjectReference Include="..\..\Common\SenseNet.Common.csproj" />
+    <ProjectReference Include="..\..\ContentRepository.InMemory\SenseNet.ContentRepository.InMemory.csproj" />
+    <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj" />
+    <ProjectReference Include="..\..\Search\SenseNet.Search.csproj" />
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Implementations\ContentTypeDefinitions.cs">
+      <DependentUpon>ContentTypeDefinitions.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Implementations\ResourceXmls.cs">
+      <DependentUpon>ResourceXmls.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Implementations\ContentTypeDefinitions.tt">
+      <LastGenOutput>ContentTypeDefinitions.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

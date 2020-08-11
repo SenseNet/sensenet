@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,13 +17,13 @@ using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Portal.OData;
+using SenseNet.OData;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
-using SenseNet.Services.Sharing;
-using SenseNet.Tests;
+using SenseNet.Services.Core.Sharing;
+using SenseNet.Tests.Core;
 using Formatting = Newtonsoft.Json.Formatting;
 using Retrier = SenseNet.Tools.Retrier;
 
@@ -213,7 +213,7 @@ namespace SenseNet.ContentRepository.Tests
                     SnQuery.Parse("+SharingMode:Private", qctx),
                     SnQuery.Parse("+SharingLevel:Edit", qctx),
                 };
-                var expected = new []
+                var expected = new[]
                 {
                     "+SharedWith:Tuser1@example.com",
                     $"+SharedWith:{SharingDataTokenizer.TokenizeIdentity(user.Id)}",
@@ -399,7 +399,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Save();
 
                 var user = CreateUser("abc1@example.com");
-                
+
                 var originalFlags = RepositoryEnvironment.WorkingMode;
 
                 // switch to Exporting mode
@@ -609,7 +609,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 items = content.Sharing.Items.ToArray();
                 sd1 = items[0];
-                
+
                 Assert.AreEqual(user.Id, sd1.Identity);
 
                 permEntries = content.Sharing.GetExplicitSharingEntries();
@@ -672,7 +672,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[0]}"));
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[1]}"));
-                
+
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]} +SharingLevel:{levels[0]}"));
 
                 Assert.AreEqual($"{id1}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharedWith:{sd[0].Identity}"));
@@ -808,11 +808,11 @@ namespace SenseNet.ContentRepository.Tests
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
                 var root = CreateTestRoot();
-                
+
                 // external users
-                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false); 
-                root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated, false); 
-                root.Sharing.Share("user3@example.com", SharingLevel.Open, SharingMode.Private, false); 
+                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated, false);
+                root.Sharing.Share("user3@example.com", SharingLevel.Open, SharingMode.Private, false);
 
                 var items = root.Sharing.Items.ToArray();
 
@@ -1064,7 +1064,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
                 var sd2 = gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Public, false);
-                
+
                 // look for the new sharing groups in the global container
                 var groups = LoadSharingGroups(content.ContentHandler);
 
@@ -1114,7 +1114,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(g2.Id, groups[1].Id);
 
                 // make sure the group has been updated with the new id
-                var ids = (string) groups[1][Constants.SharingIdsFieldName];
+                var ids = (string)groups[1][Constants.SharingIdsFieldName];
                 Assert.IsTrue(ids.Contains(sd3.Id.Replace("-", string.Empty)));
             });
         }
@@ -1167,7 +1167,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // wait for the background task
                 Thread.Sleep(100);
-                
+
                 Retrier.Retry(10, 200, typeof(AssertFailedException), () =>
                 {
                     AssertSharingGroup(group, gc, false);
@@ -1205,7 +1205,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 content.Save();
@@ -1214,19 +1213,22 @@ namespace SenseNet.ContentRepository.Tests
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
                 var group = Content.All.DisableAutofilters().FirstOrDefault(c =>
                     c.TypeIs(Constants.SharingGroupTypeName) &&
-                    (Node) c[Constants.SharedContentFieldName] == content.ContentHandler);
+                    (Node)c[Constants.SharedContentFieldName] == content.ContentHandler);
 
                 Assert.AreEqual(sd1.Id.Replace("-", string.Empty), (string)group[Constants.SharingIdsFieldName]);
 
                 // provide the new sharing guid as a parameter
-                var parameters = new NameValueCollection {{Constants.SharingUrlParameterName, sd1.Id}};
-
-                var extension = SharingMembershipExtender.GetSharingExtension(parameters);
+                var context = new DefaultHttpContext();
+                context.Request.QueryString = new QueryString($"?{Constants.SharingUrlParameterName}={sd1.Id}");
+                var extender = new SharingMembershipExtenderCore(context);
+                var extension = extender.GetExtension(User.Current);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
 
-                // repeat with filled context
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
+                // repeat with cookie
+                context.Request.QueryString = new QueryString();
+                context.Request.Headers["Cookie"] = new[] { $"{Constants.SharingTokenKey}={sd1.Id}" };
+                extension = extender.GetExtension(User.Current);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
             });
@@ -1236,7 +1238,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 content.Save();
@@ -1250,9 +1251,10 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(sd1.Id.Replace("-", string.Empty), (string)group[Constants.SharingIdsFieldName]);
 
                 // provide the new sharing guid as a parameter
-                var parameters = new NameValueCollection { { Constants.SharingUrlParameterName, sd1.Id } };
-
-                var extension = SharingMembershipExtender.GetSharingExtension(parameters);
+                var context = new DefaultHttpContext();
+                context.Request.QueryString = new QueryString($"?{Constants.SharingUrlParameterName}={sd1.Id}");
+                var extender = new SharingMembershipExtenderCore(context);
+                var extension = extender.GetExtension(User.Current);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
 
@@ -1268,7 +1270,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Delete(false);
                 content = Content.Load(content.Id);
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
+                extension = extender.GetExtension(User.Current);
 
                 Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
 
@@ -1277,13 +1279,13 @@ namespace SenseNet.ContentRepository.Tests
                 TrashBin.Restore(bag);
                 content = Content.Load(content.Id);
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters);
+                extension = extender.GetExtension(User.Current);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
 
                 content.ForceDelete();
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
+                extension = extender.GetExtension(User.Current);
 
                 Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
             });
@@ -1322,7 +1324,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 var entry = entries1[0];
                 var group = Content.Load(entry.IdentityId);
-                var relatedContent = ((IEnumerable<Node>) group["SharedContent"]).Single();
+                var relatedContent = ((IEnumerable<Node>)group["SharedContent"]).Single();
                 Assert.AreEqual(EntryType.Sharing, entry.EntryType);
                 Assert.IsTrue(group.ContentType.IsInstaceOfOrDerivedFrom("SharingGroup"));
                 Assert.AreEqual(gc.Id, relatedContent.Id);
@@ -1334,7 +1336,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(Group.Everyone.Id, entry.IdentityId);
                 Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
                 Assert.AreEqual(0ul, entry.DenyBits);
-                
+
                 entry = entries3[1]; // user entry is in the middle
                 Assert.AreEqual(EntryType.Sharing, entry.EntryType);
                 Assert.AreEqual(user1.Id, entry.IdentityId);
@@ -1456,7 +1458,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Sharing_Permissions_Explicit()
         {
-            Test(() => {
+            Test(() =>
+            {
                 PrepareForPermissionTest(out var gc, out var user1);
 
                 // set some security entries on focused document
@@ -1474,7 +1477,7 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 // ACTION
-                var securityEntries = gc.Security.GetExplicitEntries(EntryType.Normal).OrderBy(e=>e.IdentityId).Select(e => e.ToString());
+                var securityEntries = gc.Security.GetExplicitEntries(EntryType.Normal).OrderBy(e => e.IdentityId).Select(e => e.ToString());
                 var sharingEntries = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
 
                 // ASSERT
@@ -1512,7 +1515,7 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 // ACTION
-                var securityEntries = gc.Security.GetEffectiveEntries(EntryType.Normal).OrderBy(e => e.IdentityId).Select(e=>e.ToString());
+                var securityEntries = gc.Security.GetEffectiveEntries(EntryType.Normal).OrderBy(e => e.IdentityId).Select(e => e.ToString());
                 var sharingEntries = gc.Sharing.GetEffectiveSharingEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
 
                 // ASSERT
@@ -1549,7 +1552,7 @@ namespace SenseNet.ContentRepository.Tests
                 SnSecurityContext.Create().CreateAclEditor()
                     .Allow(user1.Id, userCaller.Id, false, PermissionType.Open)
                     .Apply();
-                
+
                 var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
                 var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Private);
 
@@ -1565,13 +1568,13 @@ namespace SenseNet.ContentRepository.Tests
                     // set the caller user temporarily
                     AccessProvider.Current.SetCurrentUser(userCaller);
 
-                    var items = ((IEnumerable<ODataObject>) SharingActions.GetSharing(content))
+                    var items = ((IEnumerable<ODataObject>)SharingActions.GetSharing(content))
                         .Select(occ => occ.Data as SharingData).ToArray();
 
                     // The result should contain the Somebody user id when the caller
                     // does not have enough permissions for the identity.
                     var usd1 = items.Single(sd =>
-                        sd.Token == "abc1@example.com" && 
+                        sd.Token == "abc1@example.com" &&
                         sd.Identity == user1.Id &&
                         sd.CreatorId == Identifiers.SomebodyUserId);
                     var usd2 = items.Single(sd =>
@@ -1582,7 +1585,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsNotNull(usd1);
                     Assert.IsNotNull(usd2);
                 }
-                finally 
+                finally
                 {
                     AccessProvider.Current.SetCurrentUser(original);
                 }
@@ -1597,8 +1600,7 @@ namespace SenseNet.ContentRepository.Tests
                 var settings = new JsonSerializerSettings
                 {
                     DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                    Formatting = Formatting.Indented,
-                    Converters = ODataHandler.JsonConverters
+                    Formatting = Formatting.Indented
                 };
                 var serializer = JsonSerializer.Create(settings);
                 var sb = new StringBuilder();
@@ -1725,10 +1727,14 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(e2, "Sharing group permission should NOT exist.");
             }
         }
-        
+
         private GenericContent CreateTestRoot()
         {
-            var node = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+            var node = new SystemFolder(Repository.Root)
+            {
+                Name = "TestRoot",
+                TrashDisabled = false
+            };
             node.Save();
             return node;
         }

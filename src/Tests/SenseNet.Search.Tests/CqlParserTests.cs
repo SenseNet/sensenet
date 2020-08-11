@@ -9,7 +9,8 @@ using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.Search.Tests
 {

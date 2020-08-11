@@ -2,7 +2,7 @@
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using STT = System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Tests

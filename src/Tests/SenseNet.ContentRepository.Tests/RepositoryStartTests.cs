@@ -19,8 +19,8 @@ using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Search;
 using SenseNet.Security.Data;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Versioning;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {

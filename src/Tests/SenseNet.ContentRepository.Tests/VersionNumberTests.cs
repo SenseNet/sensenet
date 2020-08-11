@@ -3,7 +3,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {

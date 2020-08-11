@@ -2,7 +2,7 @@
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Scripting;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {

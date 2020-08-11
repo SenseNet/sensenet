@@ -167,7 +167,7 @@ namespace SenseNet.ODataTests
             // ARRANGE
             var testRoot = CreateTestRoot("ODataTestRoot");
             var name = "Content1";
-            var content = Content.CreateNew("Folder", testRoot, name);
+            var content = Content.CreateNew("File", testRoot, name);
             content.Save();
             var repoPath = $"{testRoot.Path}/{name}";
             var resource = $"/OData.svc/{testRoot.Path}('{name}')/Delete";

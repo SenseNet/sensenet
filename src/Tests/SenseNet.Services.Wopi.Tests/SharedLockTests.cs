@@ -5,17 +5,20 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Services.Wopi;
-using SenseNet.Tests.Implementations;
+using SenseNet.Testing;
+using SenseNet.Tests.Core.Implementations;
 // ReSharper disable CoVariantArrayConversion
 
-namespace SenseNet.ContentRepository.Tests
+namespace SenseNet.Services.Wopi.Tests
 {
     [TestClass]
     public class SharedLockTests : TestBase
@@ -492,7 +495,7 @@ namespace SenseNet.ContentRepository.Tests
                 if (_testFileId == 0)
                 {
                     var folder = CreateFolder();
-                    var file = new File(folder) {Name = Guid.NewGuid().ToString()};
+                    var file = new File(folder) { Name = Guid.NewGuid().ToString() };
                     file.Binary.SetStream(RepositoryTools.GetStreamFromString(OriginalFileContent));
                     file.Save();
                     _testFileId = file.Id;
@@ -567,7 +570,10 @@ namespace SenseNet.ContentRepository.Tests
             }
             public OperationContext WopiSave(string lockValue, string newContent)
             {
-                WopiHandler.ProcessPutFileRequest(LoadTestFile(), lockValue, RepositoryTools.GetStreamFromString(newContent));
+                //WopiHandler.ProcessPutFileRequest(LoadTestFile(), lockValue, RepositoryTools.GetStreamFromString(newContent));
+                WopiMiddleware.ProcessPutFileRequestAsync(LoadTestFile(), lockValue,
+                    RepositoryTools.GetStreamFromString(newContent), CancellationToken.None)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 return this;
             }
 
@@ -655,8 +661,8 @@ namespace SenseNet.ContentRepository.Tests
         {
             Cache.Reset();
             ContentTypeManager.Reset();
-            var portalContextAcc = new PrivateType(typeof(PortalContext));
-            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+            //var portalContextAcc = new TypeAccessor(typeof(PortalContext));
+            //portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
 
@@ -676,7 +682,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-    
+
 
         [ClassCleanup]
         public static void ShutDownRepository()
@@ -715,13 +721,13 @@ namespace SenseNet.ContentRepository.Tests
         private DateTime GetSharedLockCreationDate(int nodeId)
         {
             var provider = DataStore.GetDataProviderExtension<ITestingDataProviderExtension>();
-            if(!(provider is InMemoryTestingDataProvider))
+            if (!(provider is InMemoryTestingDataProvider))
                 throw new PlatformNotSupportedException();
 
             return provider.GetSharedLockCreationDate(nodeId);
         }
 
-        private readonly PrivateType _wopiHandlerAcc = new PrivateType(typeof(WopiHandler));
+        private readonly TypeAccessor _wopiHandlerAcc = new TypeAccessor(typeof(WopiMiddleware));
         private void WopiHandler_SaveFile(File file, string lockValue)
         {
             _wopiHandlerAcc.InvokeStatic("SaveFile", file, lockValue);

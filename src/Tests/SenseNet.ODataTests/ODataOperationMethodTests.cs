@@ -2904,6 +2904,11 @@ namespace SenseNet.ODataTests
                 const string parentPath = "/Root/MyFiles";
                 var parent = RepositoryTools.CreateStructure(parentPath, "SystemFolder")
                              ?? Content.Load(parentPath);
+                
+                // workaround for trash disabled default value (true for Folders)
+                parent["TrashDisabled"] = false;
+                parent.SaveSameVersion();
+
                 var file = new File(parent.ContentHandler) { Name = Guid.NewGuid() + ".docx" };
                 file.Save();
 

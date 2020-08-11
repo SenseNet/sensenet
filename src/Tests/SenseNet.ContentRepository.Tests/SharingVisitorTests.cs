@@ -4,12 +4,14 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Search.Querying.Parser.Predicates;
+using SenseNet.Testing;
+
 // ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
@@ -227,10 +229,10 @@ namespace SenseNet.ContentRepository.Tests
         private void RewritingTest(string inputQuery, bool isValid, string expected)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            using (SenseNet.Tests.Core.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Parse(inputQuery, context);
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                var snQueryAcc = new TypeAccessor(typeof(SnQuery));
                 snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
 
                 var hasError = false;
@@ -259,10 +261,10 @@ namespace SenseNet.ContentRepository.Tests
             string actualQuery;
 
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            using (SenseNet.Tests.Core.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Parse(inputQuery, context);
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                var snQueryAcc = new TypeAccessor(typeof(SnQuery));
                 snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
 
                 var visitor = new SharingVisitor();
@@ -324,7 +326,7 @@ namespace SenseNet.ContentRepository.Tests
         private void NormalizerVisitorTest(string inputQuery, string expectedQuery)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory",
+            using (SenseNet.Tests.Core.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory",
                 new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Parse(inputQuery, context);
@@ -334,7 +336,7 @@ namespace SenseNet.ContentRepository.Tests
         private void NormalizerVisitorTest(SnQueryPredicate inputPredicate, string expectedQuery)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            using (SenseNet.Tests.Core.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Create(inputPredicate);
                 NormalizerVisitorTest(queryIn, context, expectedQuery);
@@ -345,7 +347,7 @@ namespace SenseNet.ContentRepository.Tests
             query.EnableAutofilters = FilterStatus.Disabled;
             query.EnableLifespanFilter = FilterStatus.Disabled;
 
-            var snQueryAcc = new PrivateType(typeof(SnQuery));
+            var snQueryAcc = new TypeAccessor(typeof(SnQuery));
             snQueryAcc.InvokeStatic("PrepareQuery", query, context);
 
             var normalizer = new SharingNormalizerVisitor();
@@ -371,7 +373,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var visitorAcc = new TypeAccessor(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
@@ -394,7 +396,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var visitorAcc = new TypeAccessor(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
@@ -417,7 +419,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var visitorAcc = new TypeAccessor(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT

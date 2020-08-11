@@ -562,9 +562,13 @@ namespace SenseNet.ODataTests
         {
             return CreateTestRoot(null, name);
         }
-        protected static SystemFolder CreateTestRoot(Node parent, string name = null)
+        protected static SystemFolder CreateTestRoot(Node parent, string name = null, bool trashDisabled = false)
         {
-            var systemFolder = new SystemFolder(parent ?? Repository.Root) { Name = name ?? Guid.NewGuid().ToString() };
+            var systemFolder = new SystemFolder(parent ?? Repository.Root)
+            {
+                Name = name ?? Guid.NewGuid().ToString(),
+                TrashDisabled = trashDisabled
+            };
             systemFolder.Save();
             return systemFolder;
         }

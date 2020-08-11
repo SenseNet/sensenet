@@ -7,8 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
-using SenseNet.Services.Metadata;
-using SenseNet.Tests;
+using SenseNet.OData.Metadata;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {

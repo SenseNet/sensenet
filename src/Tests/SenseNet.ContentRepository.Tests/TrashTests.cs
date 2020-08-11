@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -94,7 +94,11 @@ namespace SenseNet.ContentRepository.Tests
 
         protected GenericContent CreateTestRoot(bool save = true)
         {
-            var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+            var node = new SystemFolder(Repository.Root)
+            {
+                Name = Guid.NewGuid().ToString(),
+                TrashDisabled = false
+            };
             if (save)
                 node.Save();
             return node;

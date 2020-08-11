@@ -7,10 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging.Tests
@@ -22,7 +22,7 @@ namespace SenseNet.Packaging.Tests
         public static void InitializeAssembly(TestContext context)
         {
             //TODO: Find a correct solution to avoid assembly duplications and remove this line
-            var dummy = typeof(SenseNet.Portal.OData.ODataHandler).Name;
+            var dummy = typeof(SenseNet.Portal.PortalSettings).Name;
         }
 
         protected static StringBuilder _log;
@@ -32,7 +32,7 @@ namespace SenseNet.Packaging.Tests
             // preparing logger
             _log = new StringBuilder();
             var loggers = new[] { new PackagingTestLogger(_log) };
-            var loggerAcc = new PrivateType(typeof(Logger));
+            var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
             var builder = CreateRepositoryBuilderForTest();

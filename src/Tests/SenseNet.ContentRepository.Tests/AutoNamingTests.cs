@@ -1,12 +1,13 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Testing;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -39,7 +40,7 @@ namespace SenseNet.ContentRepository.Tests
                 (ContentNamingProvider)new Underscore5FContentNamingProvider()
             };
 
-            var contentNamingProviderAcc = new PrivateType(typeof(ContentNamingProvider));
+            var contentNamingProviderAcc = new TypeAccessor(typeof(ContentNamingProvider));
             var originalProvider = contentNamingProviderAcc.GetStaticField("__instance");
             try
             {

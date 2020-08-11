@@ -5,7 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.Packaging.Tests.StepTests
 {
@@ -20,7 +21,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             // preparing logger
             _log = new StringBuilder();
             var loggers = new[] { new PackagingTestLogger(_log) };
-            var loggerAcc = new PrivateType(typeof(Logger));
+            var loggerAcc = new TypeAccessor(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
         }
 
@@ -247,7 +248,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("DeleteUnnecessareUnityElements", configXml);
+                new ObjectAccessor(step).Invoke("DeleteUnnecessareUnityElements", configXml);
             });
         }
         [TestMethod]
@@ -297,7 +298,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("TransformProviderElements", configXml);
+                new ObjectAccessor(step).Invoke("TransformProviderElements", configXml);
             });
         }
         [TestMethod]
@@ -357,7 +358,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("TransformProviderElements", configXml);
+                new ObjectAccessor(step).Invoke("TransformProviderElements", configXml);
             });
         }
         [TestMethod]
@@ -411,7 +412,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("Execute", configXml);
+                new ObjectAccessor(step).Invoke("Execute", configXml);
             });
 
             Assert.IsTrue(_log.ToString().Contains("Unity section is totally removed."));
@@ -486,7 +487,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("Execute", configXml);
+                new ObjectAccessor(step).Invoke("Execute", configXml);
             });
 
             Assert.IsTrue(_log.ToString().Contains("Providers container is not removed."));
@@ -559,7 +560,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("Execute", configXml);
+                new ObjectAccessor(step).Invoke("Execute", configXml);
             });
 
             Assert.IsTrue(_log.ToString().Contains("Providers container is removed."));
@@ -748,7 +749,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             StepTest(config, expected, (step, configXml) =>
             {
-                new PrivateObject(step).Invoke("Execute", configXml);
+                new ObjectAccessor(step).Invoke("Execute", configXml);
             });
         }
 

@@ -7,7 +7,8 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using System.Reflection;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests.Schema
 {
@@ -30,8 +31,8 @@ namespace SenseNet.ContentRepository.Tests.Schema
 
             public static SqlSchemaWriterAccessor Create()
             {
-                PrivateType pt = new PrivateType("SenseNet.Storage", "SenseNet.ContentRepository.Storage.Data.SqlClient.SqlSchemaWriter");
-                object target = Activator.CreateInstance(pt.ReferencedType);
+                var pt = new TypeAccessor("SenseNet.Storage", "SenseNet.ContentRepository.Storage.Data.SqlClient.SqlSchemaWriter");
+                object target = Activator.CreateInstance(pt.TargetType);
                 return new SqlSchemaWriterAccessor(target);
             }
             public string GetSqlScript()

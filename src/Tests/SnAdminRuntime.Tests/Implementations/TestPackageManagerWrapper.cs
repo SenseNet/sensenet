@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Packaging;
+using SenseNet.Testing;
 using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SnAdminRuntime.Tests.Implementations
@@ -15,7 +16,7 @@ namespace SnAdminRuntime.Tests.Implementations
         {
             Log.AppendLine($"CALL: PackageManager({packagePath}, {targetDirectory}, {phase}, parameters:string[{parameters.Length}])");
             var result = new PackagingResult();
-            var resultAcc = new PrivateObject(result);
+            var resultAcc = new ObjectAccessor(result);
             resultAcc.SetProperty("Successful", false);
             return result;
         }

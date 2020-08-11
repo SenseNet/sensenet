@@ -8,8 +8,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 using SenseNet.Tools.Diagnostics;
 
 namespace SenseNet.ContentRepository.Tests

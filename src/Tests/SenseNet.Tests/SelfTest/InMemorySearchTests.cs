@@ -26,7 +26,7 @@ namespace SenseNet.Tests.SelfTest
     public class InMemorySearchTests : TestBase
     {
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_Create()
+        public void InMemSearch_FW_Indexing_Create()
         {
             Node node;
             Test(() =>
@@ -88,7 +88,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_Update()
+        public void InMemSearch_FW_Indexing_Update()
         {
             Node node;
             Test(() =>
@@ -162,7 +162,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_Delete()
+        public void InMemSearch_FW_Indexing_Delete()
         {
             Node node1, node2;
 
@@ -243,7 +243,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_Rename()
+        public void InMemSearch_FW_Indexing_Rename()
         {
             Node node1; // /Root/Node1
             Node node2; // /Root/Node1/Node2
@@ -378,7 +378,7 @@ namespace SenseNet.Tests.SelfTest
 
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Indexing_AddTextEctract()
+        public void InMemSearch_FW_Indexing_AddTextEctract()
         {
             Node node;
             var additionalText = "additionaltext";
@@ -433,7 +433,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public async Task InMemSearch_Indexing_ClearAndPopulateAll()
+        public async Task InMemSearch_FW_Indexing_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
             IIndexingActivity[] activities;
@@ -481,7 +481,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================ */
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_1Term1Hit()
+        public void InMemSearch_FW_Query_1Term1Hit()
         {
             Node node;
             Test(() =>
@@ -515,7 +515,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_1TermMoreHit1Order()
+        public void InMemSearch_FW_Query_1TermMoreHit1Order()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
@@ -563,7 +563,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_1TermMoreHit2Order()
+        public void InMemSearch_FW_Query_1TermMoreHit2Order()
         {
             var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
             {
@@ -601,7 +601,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_PrefixOrSuffix()
+        public void InMemSearch_FW_Query_PrefixOrSuffix()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
@@ -639,7 +639,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_PrefixAndSuffixOrMiddle()
+        public void InMemSearch_FW_Query_PrefixAndSuffixOrMiddle()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
@@ -678,7 +678,7 @@ namespace SenseNet.Tests.SelfTest
 
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_Range()
+        public void InMemSearch_FW_Query_Range()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
@@ -722,7 +722,7 @@ namespace SenseNet.Tests.SelfTest
             });
         }
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_Range_Int()
+        public void InMemSearch_FW_Query_Range_Int()
         {
             var createNode = new Func<Node, int, Node>((parent, index) =>
             {
@@ -759,7 +759,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod]
-        public void InMemSearch_Converter_IntToString()
+        public void InMemSearch_FW_Converter_IntToString()
         {
             var input = new[] { int.MinValue, int.MinValue + 1, -124, -123, -12, -2, -1, 0, 1, 2, 12, 123, 124, int.MaxValue - 1, int.MaxValue };
             var output = input.Select(InMemoryIndex.IntToString).ToArray();
@@ -769,7 +769,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod]
-        public void InMemSearch_Converter_LongToString()
+        public void InMemSearch_FW_Converter_LongToString()
         {
             var input = new[] { long.MinValue, long.MinValue + 1L, -124L, -123L, -12L, -2L, -1L, 0L, 1L, 2L, 12L, 123L, 124L, long.MaxValue - 1L, long.MaxValue };
             var output = input.Select(InMemoryIndex.LongToString).ToArray();
@@ -779,7 +779,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_2TermsBool()
+        public void InMemSearch_FW_Query_2TermsBool()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
@@ -819,7 +819,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_MultiLevelBool()
+        public void InMemSearch_FW_Query_MultiLevelBool()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
@@ -859,7 +859,7 @@ namespace SenseNet.Tests.SelfTest
 
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_Recursive_One()
+        public void InMemSearch_FW_Query_Recursive_One()
         {
             var mock = new Dictionary<string, string[]>
             {
@@ -886,7 +886,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_Recursive_Three()
+        public void InMemSearch_FW_Query_Recursive_Three()
         {
             var qtext = "+F4:{{F2:{{F1:v1 .SELECT:P1}} F3:v4 .SELECT:P2}} +F5:{{F6:v6 .SELECT:P6}}";
             var mock = new Dictionary<string, string[]>
@@ -931,7 +931,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public void InMemSearch_Query_Recursive_Resolve()
+        public void InMemSearch_FW_Query_Recursive_Resolve()
         {
             var qtext = "+F4:{{F2:{{F1:v1 .SELECT:P1}} F3:v4 .SELECT:P2}} +F5:{{F6:v6 .SELECT:P6}}";
             var expected = "+F4:(v2a v2b v2c) +F5:(v3a v3b v3c)";
@@ -972,7 +972,7 @@ namespace SenseNet.Tests.SelfTest
         /* ============================================================================ */
 
         [TestMethod, TestCategory("IR")]
-        public async Task InMemSearch_ActivityStatus_WithoutRepository()
+        public async Task InMemSearch_FW_ActivityStatus_WithoutRepository()
         {
             var newStatus = new IndexingActivityStatus
             {
@@ -998,7 +998,7 @@ namespace SenseNet.Tests.SelfTest
         }
 
         [TestMethod, TestCategory("IR")]
-        public async Task InMemSearch_ActivityStatus_WithRepository()
+        public async Task InMemSearch_FW_ActivityStatus_WithRepository()
         {
             var newStatus = new IndexingActivityStatus
             {

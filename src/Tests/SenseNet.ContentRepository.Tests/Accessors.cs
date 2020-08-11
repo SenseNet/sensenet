@@ -8,7 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using SenseNet.Tests;
+using SenseNet.Testing;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -136,14 +137,14 @@ namespace SenseNet.ContentRepository.Tests
 
         public static TypeCollectionAccessor<T> Create(SchemaEditor schemaEditor)
         {
-            PrivateType prt = new PrivateType("SenseNet.Storage", "SenseNet.ContentRepository.Storage.Schema.ISchemaRoot");
-            Type argType = prt.ReferencedType;
-            PrivateObject pro = new PrivateObject(typeof(TypeCollection<T>), new Type[] { argType }, new object[] { schemaEditor });
+            var prt = new TypeAccessor("SenseNet.Storage", "SenseNet.ContentRepository.Storage.Schema.ISchemaRoot");
+            Type argType = prt.TargetType;
+            var pro = new ObjectAccessor(typeof(TypeCollection<T>), new Type[] { argType }, new object[] { schemaEditor });
             return new TypeCollectionAccessor<T>(pro.Target);
         }
         public static TypeCollectionAccessor<T> Create(TypeCollection<T> initialList)
         {
-            PrivateObject pro = new PrivateObject(typeof(TypeCollection<T>), new Type[] { typeof(TypeCollection<T>) }, new object[] { initialList });
+            var pro = new ObjectAccessor(typeof(TypeCollection<T>), new Type[] { typeof(TypeCollection<T>) }, new object[] { initialList });
             return new TypeCollectionAccessor<T>(pro.Target);
         }
 

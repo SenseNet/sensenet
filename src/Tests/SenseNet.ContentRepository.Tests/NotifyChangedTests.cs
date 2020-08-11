@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 // ReSharper disable UnusedMember.Local
 
 namespace SenseNet.ContentRepository.Tests

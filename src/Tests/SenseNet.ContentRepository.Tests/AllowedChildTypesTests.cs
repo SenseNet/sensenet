@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
-using SenseNet.Tests;
+using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -448,10 +448,6 @@ namespace SenseNet.ContentRepository.Tests
         private static TestStructure CreateTestStructure()
         {
             InstallCarContentType();
-
-            // need to reset the pinned site list
-            var action = new PortalContext.ReloadSiteListDistributedAction();
-            action.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             var sites = new Folder(Repository.Root) { Name = "Sites" };
             sites.Save();

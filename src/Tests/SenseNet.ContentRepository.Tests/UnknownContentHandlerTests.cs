@@ -8,8 +8,8 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Storage;
-using SenseNet.Tests;
-using SenseNet.Tests.Implementations;
+using SenseNet.Tests.Core;
+using SenseNet.Tests.Core.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -59,20 +59,20 @@ namespace SenseNet.ContentRepository.Tests
                 ResetAndFailToCreateContent();
 
                 parent = Node.Load<GenericContent>("/Root");
-                
+
                 // check if all related types are marked as unknown
                 AssertFolderTypeValidity(false);
 
                 // load a previously created system folder and iterate through its fields
                 sysFolder = Content.Load(sysFolder.Id);
                 var afterFieldNames = string.Join(",", sysFolder.Fields.Keys);
-                
+
                 Assert.AreEqual(originalFieldNames, afterFieldNames);
 
                 foreach (var field in sysFolder.Fields)
                 {
                     // check if field values can be loaded
-                    var val = field.Value;
+                    var _ = field.Value;
                 }
 
                 // This should be allowed because the handler is known
@@ -91,7 +91,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     // This should not throw an exception. The returned type is irrelevant: 
                     // it will be one of the descendants of the Folder content type.
-                    var typeName = ContentTypeManager.GetContentTypeNameByType(typeof(Folder));
+                    var _ = ContentTypeManager.GetContentTypeNameByType(typeof(Folder));
                 });
             });
         }
@@ -288,7 +288,7 @@ namespace SenseNet.ContentRepository.Tests
     [ContentHandler]
     public class TestSystemFolder : SystemFolder
     {
-        public TestSystemFolder(Node parent) : this(parent, null) {  }
+        public TestSystemFolder(Node parent) : this(parent, null) { }
         public TestSystemFolder(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected TestSystemFolder(NodeToken nt) : base(nt) { }
     }

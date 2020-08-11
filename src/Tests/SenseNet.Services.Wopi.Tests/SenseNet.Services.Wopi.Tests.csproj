@@ -16,7 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\OData\SenseNet.OData.csproj" />
     <ProjectReference Include="..\..\Services.Wopi\SenseNet.Services.Wopi.csproj" />
-    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj" />
+    <ProjectReference Include="..\SenseNet.Tests.Core\SenseNet.Tests.Core.csproj" />
   </ItemGroup>
 
 </Project>
