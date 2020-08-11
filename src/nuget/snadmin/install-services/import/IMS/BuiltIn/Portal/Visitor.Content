@@ -7,4 +7,9 @@
     <FullName>Visitor</FullName>
     <LoginName>Visitor</LoginName>
   </Fields>
+   <Permissions>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Visitor">
+      <See>Allow</See>
+    </Identity>
+  </Permissions>
 </ContentMetaData>
