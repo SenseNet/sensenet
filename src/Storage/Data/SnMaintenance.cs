@@ -195,8 +195,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                 Type = "SyncAD2Portal",
                 Title = "SyncAD2Portal",
                 Priority = TaskPriority.Immediately,
-                AppId = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPID, null, "SenseNet"),
-                TaskData = JsonConvert.SerializeObject(new { SiteUrl = Settings.GetValue<string>(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL) }),
+
+                //UNDONE: get taskman values using the new options from DI
+                AppId = SnTaskManager.Settings.AppId,
+                TaskData = JsonConvert.SerializeObject(new { SiteUrl = SnTaskManager.Settings.AppUrl }),
                 Tag = string.Empty,
                 FinalizeUrl = "/odata.svc/('Root')/Ad2PortalSyncFinalizer"
             };

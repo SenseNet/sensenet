@@ -1312,6 +1312,7 @@ namespace SenseNet.Preview
 
         protected virtual string GetTaskApplicationId(Content content)
         {
+            //UNDONE: get taskman values using the new options from DI
             return Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPID, content.Path, "SenseNet");
         }
 
@@ -1363,6 +1364,8 @@ namespace SenseNet.Preview
             var content = Content.Create(relatedContent);
             var maxPreviewCount = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, MAXPREVIEWCOUNT, relatedContent.Path, 10);
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
+
+            //UNDONE: get taskman values using the new options from DI
             var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
                 relatedContent.Path,
                 CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
@@ -1671,7 +1674,9 @@ namespace SenseNet.Preview
         [AllowedRoles(N.R.Everyone)]
         public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)
         {
-            SnTaskManager.OnTaskFinished(result);
+#pragma warning disable CS0618 // Type or member is obsolete
+            SnTaskManager.Instance.OnTaskFinished(result);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // not enough information
             if (result.Task == null || string.IsNullOrEmpty(result.Task.TaskData))
