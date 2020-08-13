@@ -4,9 +4,9 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using IO = System.IO;
 using System.Linq;
-using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
@@ -132,6 +132,16 @@ namespace SenseNet.Preview
         // class that we are in now. The setter extension methods in the Preview package
         // will make sure this is true.
         public static DocumentPreviewProvider Current => (DocumentPreviewProvider)Providers.Instance.PreviewProvider;
+
+        protected TaskManagementOptions TaskManagementOptions { get; }
+        protected ITaskManager TaskManager { get; }
+
+        protected DocumentPreviewProvider(IOptions<TaskManagementOptions> taskManagementOptions, ITaskManager taskManager)
+        {
+            TaskManagementOptions = taskManagementOptions?.Value ?? new TaskManagementOptions();
+            TaskManager = taskManager;
+        }
+
 
         // ===================================================================================================== Helper methods
 
@@ -1312,8 +1322,14 @@ namespace SenseNet.Preview
 
         protected virtual string GetTaskApplicationId(Content content)
         {
-            //UNDONE: get taskman values using the new options from DI
-            return Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPID, content.Path, "SenseNet");
+            return TaskManagementOptions.ApplicationId;
+        }
+        /// <summary>
+        /// Legacy providers may customize this to determine where to send task requests.
+        /// </summary>
+        protected virtual string GetTaskApplicationUrl(Content content)
+        {
+            return TaskManagementOptions.ApplicationUrl;
         }
 
         // ===================================================================================================== Static access
@@ -1336,7 +1352,7 @@ namespace SenseNet.Preview
 
         public static void StartPreviewGeneration(Node node, TaskPriority priority = TaskPriority.Normal)
         {
-            var previewProvider = DocumentPreviewProvider.Current;
+            var previewProvider = Current;
             if (previewProvider == null)
                 return;
 
@@ -1349,14 +1365,19 @@ namespace SenseNet.Preview
             if (!previewProvider.IsContentSupported(node) || previewProvider.IsPreviewOrThumbnailImage(NodeHead.Get(node.Id)))
                 return;
 
-            DocumentPreviewProvider.StartPreviewGenerationInternal(node, priority: priority);
+            previewProvider.StartPreviewGenerationInternal(node, priority: priority);
         }
 
-        private static void StartPreviewGenerationInternal(Node relatedContent, int startIndex = 0, TaskPriority priority = TaskPriority.Normal)
+        private void StartPreviewGenerationInternal(Node relatedContent, int startIndex = 0, TaskPriority priority = TaskPriority.Normal)
         {
-            if (DocumentPreviewProvider.Current == null || DocumentPreviewProvider.Current is DefaultDocumentPreviewProvider)
+            if (this is DefaultDocumentPreviewProvider)
             {
-                SnTrace.System.Write("Preview image generation is available only in the enterprise edition. No document preview provider is present.");
+                SnTrace.System.Write("Preview image generation is not available in this edition. No document preview provider is present.");
+                return;
+            }
+            if (TaskManager == null)
+            {
+                SnTrace.System.Write("Preview image generation is not available: no task manager is present.");
                 return;
             }
 
@@ -1364,9 +1385,11 @@ namespace SenseNet.Preview
             var content = Content.Create(relatedContent);
             var maxPreviewCount = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, MAXPREVIEWCOUNT, relatedContent.Path, 10);
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
+            var communicationUrl = GetTaskApplicationUrl(content);
 
-            //UNDONE: get taskman values using the new options from DI
-            var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
+            // fallback to the legacy behavior that relies on settings
+            if (string.IsNullOrEmpty(communicationUrl))
+                communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
                 relatedContent.Path,
                 CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
 
@@ -1393,17 +1416,17 @@ namespace SenseNet.Preview
                 previewData = sw.GetStringBuilder().ToString();
             }
             
-            var taskName = DocumentPreviewProvider.Current.GetPreviewGeneratorTaskName(relatedContent.Path);
+            var taskName = GetPreviewGeneratorTaskName(relatedContent.Path);
 
             var requestData = new RegisterTaskRequest
             {
                 Type = taskName,
-                Title = DocumentPreviewProvider.Current.GetPreviewGeneratorTaskTitle(relatedContent.Path),
+                Title = GetPreviewGeneratorTaskTitle(relatedContent.Path),
                 Priority = priority,
-                Tag = DocumentPreviewProvider.Current.GetTaskTag(content),
-                AppId = DocumentPreviewProvider.Current.GetTaskApplicationId(content),
+                Tag = GetTaskTag(content),
+                AppId = GetTaskApplicationId(content),
                 TaskData = previewData,
-                FinalizeUrl = DocumentPreviewProvider.Current.GetTaskFinalizeUrl(content)
+                FinalizeUrl = GetTaskFinalizeUrl(content)
             };
 
             // start generating previews only if there is a task type defined
@@ -1412,7 +1435,7 @@ namespace SenseNet.Preview
                 // Fire and forget: we do not need the result of the register operation.
                 // (we have to start a task here instead of calling RegisterTaskAsync 
                 // directly because the asp.net sync context callback would fail)
-                System.Threading.Tasks.Task.Run(() => SnTaskManager.RegisterTaskAsync(requestData));
+                System.Threading.Tasks.Task.Run(() => TaskManager.RegisterTaskAsync(requestData));
             }
         }
 
@@ -1704,8 +1727,14 @@ namespace SenseNet.Preview
         }        
     }
 
+    /// <summary>
+    /// Built-in preview provider that does not do anything. You cannot inherit from this class,
+    /// inherit from <see cref="DocumentPreviewProvider"/> instead.
+    /// </summary>
     public sealed class DefaultDocumentPreviewProvider : DocumentPreviewProvider
     {
+        public DefaultDocumentPreviewProvider() : base(null, null) { }
+
         public override string GetPreviewGeneratorTaskName(string contentPath)
         {
             return string.Empty;
