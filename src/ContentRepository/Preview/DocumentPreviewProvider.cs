@@ -1399,12 +1399,6 @@ namespace SenseNet.Preview
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
             var communicationUrl = GetTaskApplicationUrl(content);
 
-            // fallback to the legacy behavior that relies on settings
-            if (string.IsNullOrEmpty(communicationUrl))
-                communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
-                relatedContent.Path,
-                CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
-
             // serialize data for preview generator task (json format)
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new JavaScriptDateTimeConverter());
