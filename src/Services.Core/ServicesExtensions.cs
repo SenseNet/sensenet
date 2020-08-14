@@ -1,19 +1,98 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Preview;
 using SenseNet.Services.Core;
+using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
+using Task = System.Threading.Tasks.Task;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
     public static class ServicesExtensions
     {
+        /// <summary>
+        /// Registers well-known sensenet-related configuration objects based on the app configuration.
+        /// Call this before adding sensenet services.
+        /// </summary>
+        /// <param name="services">The IServiceCollection instance.</param>
+        /// <param name="configuration">The main app configuration instance.</param>
+        internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds sensenet-related services to the service collection. Registers
+        /// a background service that will start the content repository when
+        /// the application starts.
+        /// </summary>
+        /// <param name="services">The IServiceCollection instance.</param>
+        /// <param name="configuration">The main app configuration instance.</param>
+        /// <param name="buildRepository">Optional builder method for adding repository-related providers.</param>
+        /// <param name="onRepositoryStartedAsync">Optional steps to take after the repository has started.</param>
+        public static IServiceCollection AddSenseNet(this IServiceCollection services, IConfiguration configuration, 
+            Action<RepositoryBuilder, IServiceProvider> buildRepository,
+            Func<RepositoryInstance, IServiceProvider, Task> onRepositoryStartedAsync = null)
+        {
+            services.ConfigureSenseNet(configuration)
+                .AddSenseNetTaskManager()
+                .AddSenseNetDocumentPreviewProvider()
+                .AddSenseNetCors()
+                .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the default document provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDocumentPreviewProvider(this IServiceCollection services)
+        {
+            // add the default, empty implementation
+            return services.AddSenseNetDocumentPreviewProvider<DefaultDocumentPreviewProvider>();
+        }
+        /// <summary>
+        /// Adds the provided document provider to the service collection.
+        /// </summary>
+        public static IServiceCollection AddSenseNetDocumentPreviewProvider<T>(this IServiceCollection services) where T : DocumentPreviewProvider
+        {
+            return services.AddSingleton<IPreviewProvider, T>();
+        }
+
+        /// <summary>
+        /// Sets well-known singleton provider instances that are used by legacy code.
+        /// </summary>
+        internal static IServiceProvider AddSenseNetProviderInstances(this IServiceProvider provider)
+        {
+#pragma warning disable 618
+
+            var previewProvider = provider.GetService<IPreviewProvider>();
+            if (previewProvider != null)
+                Providers.Instance.PreviewProvider = previewProvider;
+
+            var taskManager = provider.GetService<ITaskManager>();
+            if (taskManager != null)
+                SnTaskManager.Instance = taskManager;
+
+            Providers.Instance.PropertyCollector = new EventPropertyCollector();
+
+#pragma warning restore 618
+
+            return provider;
+        }
+        
         /// <summary>
         /// Registers a membership extender type as a scoped service. To execute extenders at runtime,
         /// please call the <see cref="UseSenseNetMembershipExtenders"/> method in Startup.Configure.
