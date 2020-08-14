@@ -146,7 +146,7 @@ namespace SenseNet.BackgroundOperations
 
         public virtual async Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData)
         {
-            var taskManagementUrl = _options.Url;
+            var taskManagementUrl = _options.UrlOrSetting;
             if (string.IsNullOrEmpty(taskManagementUrl) || requestData == null)
                 return null;
 
@@ -190,7 +190,7 @@ namespace SenseNet.BackgroundOperations
 
         public virtual async Task<bool> RegisterApplicationAsync()
         {
-            var taskManagementUrl = _options.Url;
+            var taskManagementUrl = _options.UrlOrSetting;
             if (string.IsNullOrEmpty(taskManagementUrl))
             {
                 SnTrace.TaskManagement.Write("Task management url is empty, application is not registered.");
@@ -199,8 +199,8 @@ namespace SenseNet.BackgroundOperations
 
             var requestData = new RegisterApplicationRequest
             {
-                AppId = _options.ApplicationId,
-                ApplicationUrl = _options.ApplicationUrl
+                AppId = _options.ApplicationIdOrSetting,
+                ApplicationUrl = _options.ApplicationUrlOrSetting
             };
 
             try

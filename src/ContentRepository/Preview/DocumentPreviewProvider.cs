@@ -1322,14 +1322,26 @@ namespace SenseNet.Preview
 
         protected virtual string GetTaskApplicationId(Content content)
         {
-            return TaskManagementOptions.ApplicationId;
+            var appId = TaskManagementOptions.ApplicationId;
+
+            //fallback to settings
+            if (string.IsNullOrEmpty(appId))
+                appId = SnTaskManager.Settings.AppId;
+
+            return appId;
         }
         /// <summary>
         /// Legacy providers may customize this to determine where to send task requests.
         /// </summary>
         protected virtual string GetTaskApplicationUrl(Content content)
         {
-            return TaskManagementOptions.ApplicationUrl;
+            var appUrl = TaskManagementOptions.ApplicationUrl;
+            
+            //fallback to settings
+            if (string.IsNullOrEmpty(appUrl))
+                appUrl = SnTaskManager.Settings.AppUrl;
+
+            return appUrl;
         }
 
         // ===================================================================================================== Static access
