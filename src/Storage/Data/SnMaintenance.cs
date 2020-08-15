@@ -36,6 +36,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         private IMaintenanceTask[] DiscoverMaintenanceTasks()
         {
+            //UNDONE: move this type discovery to the old Services project
             return TypeResolver.GetTypesByInterface(typeof(IMaintenanceTask)).Select(t =>
                 {
                     SnTrace.System.Write("MaintenanceTask found: {0}", t.FullName);
@@ -85,8 +86,8 @@ namespace SenseNet.ContentRepository.Storage.Data
             Task.Run(StartADSync);
 
             foreach(var maintenanceTask in _maintenanceTasks)
-                if(IsTaskExecutable(maintenanceTask.WaitingMinutes))
-                    Task.Run(() => maintenanceTask.Execute());
+                if(IsTaskExecutableByTime(maintenanceTask.WaitingSeconds))
+                    Task.Run(() => maintenanceTask.ExecuteAsync(CancellationToken.None)); //UNDONE: modernize execute call
         }
 
         // ========================================================================================= Maintenance operations
@@ -228,11 +229,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ========================================================================================= Helper methods
 
-        private static bool IsTaskExecutable(double waitingMinutes)
+        private static bool IsTaskExecutableByTime(int waitingSeconds)
         {
-            return IsTaskExecutable(Convert.ToInt32(
-                (waitingMinutes < 0 ? 0 : waitingMinutes)
-                * 60 / TIMER_INTERVAL));
+            return IsTaskExecutable(Convert.ToInt32(Math.Max(0, waitingSeconds) / TIMER_INTERVAL));
         }
         private static bool IsTaskExecutable(int cycleLength)
         {

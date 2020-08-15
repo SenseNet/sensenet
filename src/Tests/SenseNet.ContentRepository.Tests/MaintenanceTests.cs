@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -15,14 +13,16 @@ namespace SenseNet.ContentRepository.Tests
     {
         public static int Calls { get; set; }
         public static bool Enabled { get; set; }
-        public static double WaitingMinutesForTests { get; set; }
+        public static int WaitingSecondsForTests { get; set; }
 
-        public double WaitingMinutes => WaitingMinutesForTests;
+        public int WaitingSeconds => WaitingSecondsForTests;
 
-        public void Execute()
+        public System.Threading.Tasks.Task ExecuteAsync(CancellationToken cancellationToken)
         {
             if (Enabled)
                 ++Calls;
+
+            return System.Threading.Tasks.Task.CompletedTask;
         }
     }
 
@@ -50,8 +50,8 @@ namespace SenseNet.ContentRepository.Tests
         public void Maintenance_Frequent_RunningTime31sec()
         {
             // A 10-second-delay task is called two or three times
-            // in a half minute length active period (the delay 0.0 means 10 second).
-            var calls = MaintenanceTest(0.0, 31 * 1000);
+            // in a half minute length active period.
+            var calls = MaintenanceTest(10, 31 * 1000);
             Assert.IsTrue(calls >= 2);
             Assert.IsTrue(calls <= 3);
         }
@@ -60,11 +60,11 @@ namespace SenseNet.ContentRepository.Tests
         {
             // A half-minute-delay task is called one or two times
             // in more than 30 second length active period.
-            var calls = MaintenanceTest(3.01 / 6, 32 * 1000);
+            var calls = MaintenanceTest(31, 32 * 1000);
             Assert.IsTrue(calls >= 1);
             Assert.IsTrue(calls <= 2);
         }
-        private int MaintenanceTest(double taskDelayMinutes, int sleep)
+        private int MaintenanceTest(int taskDelaySeconds, int sleep)
         {
             // activate the service if needed
             var running = SnMaintenance.Running();
@@ -75,7 +75,7 @@ namespace SenseNet.ContentRepository.Tests
             // activate the test task
             TestMaintenanceTask.Enabled = false;
             TestMaintenanceTask.Calls = 0;
-            TestMaintenanceTask.WaitingMinutesForTests = taskDelayMinutes;
+            TestMaintenanceTask.WaitingSecondsForTests = taskDelaySeconds;
             TestMaintenanceTask.Enabled = true;
 
             Thread.Sleep(sleep);
