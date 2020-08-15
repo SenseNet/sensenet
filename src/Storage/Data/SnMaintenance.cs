@@ -1,101 +1,79 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SenseNet.Diagnostics;
-using SenseNet.Tools;
+using Microsoft.Extensions.Logging;
+using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.ContentRepository.Storage.Data
+// ReSharper disable once CheckNamespace
+namespace SenseNet.BackgroundOperations
 {
     /// <summary>
     /// Internal service for periodically executing maintenance operations (e.g. cleaning up orphaned binary rows in the database).
     /// All operations are executed when the timer ticks, but they can opt out (skip an iteration) by using a dedicated flag
     /// to avoid parallel execution.
     /// </summary>
-    internal class SnMaintenance : ISnService
+    public class SnMaintenance : SnBackgroundService
     {
-        private static readonly int TIMER_INTERVAL = 10; // in seconds
-        private static Timer _maintenanceTimer;
-        private static int _currentCycle;
+        public int TimerInterval { get; set; } = 10; // in seconds
+
+        private int _currentCycle;
         internal const string TracePrefix = "#SnMaintenance> ";
-        private static IMaintenanceTask[] _maintenanceTasks = new IMaintenanceTask[0];
-        private static CancellationTokenSource _cancellation;
+        private readonly IMaintenanceTask[] _maintenanceTasks;
+        private readonly ILogger<SnMaintenance> _logger;
 
-        // ========================================================================================= ISnService implementation
-
-        public bool Start()
+        public SnMaintenance(IEnumerable<IMaintenanceTask> tasks, ILogger<SnMaintenance> logger)
         {
-            _cancellation = new CancellationTokenSource();
-
-            _maintenanceTimer = new Timer(MaintenanceTimerElapsed, null, TIMER_INTERVAL * 1000, TIMER_INTERVAL * 1000);
-            _maintenanceTasks = DiscoverMaintenanceTasks();
-            return true;
-        }
-        private IMaintenanceTask[] DiscoverMaintenanceTasks()
-        {
-            //UNDONE: move this type discovery to the old Services project
-            return TypeResolver.GetTypesByInterface(typeof(IMaintenanceTask)).Select(t =>
-                {
-                    SnTrace.System.Write("MaintenanceTask found: {0}", t.FullName);
-                    return (IMaintenanceTask)Activator.CreateInstance(t);
-                }).ToArray();
+            _maintenanceTasks = tasks.ToArray();
+            _logger = logger;
         }
 
-        public void Shutdown()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (_maintenanceTimer == null)
-                return;
+            _logger?.LogInformation("SnMaintenance Service is starting. Tasks: " +
+                                    string.Join(", ", _maintenanceTasks.Select(mt => mt.GetType().FullName)));
 
-            _maintenanceTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _maintenanceTimer.Dispose();
-            _maintenanceTimer = null;
+            stoppingToken.Register(() => _logger?.LogDebug(" SnMaintenance background task is stopping."));
 
-            try
+            // Wait one cycle at the beginning. This will allow the Start service method to finish quickly.
+            await Task.Delay(TimerInterval * 1000, stoppingToken);
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _cancellation.Cancel();
+                // start tasks, but do not wait for them to finish
+                var _ = _maintenanceTasks
+                    .Where(mt => IsTaskExecutable(mt.WaitingSeconds))
+                    .Select(mt => mt.ExecuteAsync(stoppingToken)).ToArray();
+
+                // Increment the global cycle counter.
+                Interlocked.Increment(ref _currentCycle);
+
+                // Protecting the counter from overflow.
+                if (_currentCycle > 100000)
+                    _currentCycle = 0;
+
+                // wait one cycle
+                await Task.Delay(TimerInterval * 1000, stoppingToken);
             }
-            catch
-            {
-                SnLog.WriteInformation("One or more maintenance tasks are canceled.");
-            }
-        }
 
-        internal static bool Running()
-        {
-            return _maintenanceTimer != null;
-        }
-
-        // ========================================================================================= Timer event handler
-
-        private static void MaintenanceTimerElapsed(object state)
-        {
-            // Increment the global cycle counter. Different maintenance tasks may
-            // rely on this to decide whether they should be executed in the
-            // current cycle.
-            Interlocked.Increment(ref _currentCycle);
-            
-            // preventing the counter from overflow
-            if (_currentCycle > 100000)
-                _currentCycle = 0;
-            
-            foreach(var maintenanceTask in _maintenanceTasks)
-                if(IsTaskExecutableByTime(maintenanceTask.WaitingSeconds))
-                    Task.Run(() => maintenanceTask.ExecuteAsync(CancellationToken.None)); //UNDONE: modernize execute call
+            _logger?.LogDebug("SnMaintenance background task is stopping.");
         }
         
         // ========================================================================================= Helper methods
 
-        private static bool IsTaskExecutableByTime(int waitingSeconds)
+        private bool IsTaskExecutable(int waitingSeconds)
         {
-            return IsTaskExecutable(Convert.ToInt32(Math.Max(0, waitingSeconds) / TIMER_INTERVAL));
-        }
-        private static bool IsTaskExecutable(int cycleLength)
-        {
+            // the defined waiting time is too short
+            if (waitingSeconds < TimerInterval)
+                return true;
+
+            // count of cycles to wait for this task to execute
+            var cycleLength = Convert.ToInt32(Math.Max(0, waitingSeconds) / TimerInterval);
+
             // We are in the correct cycle if the current timer cycle is divisible
             // by the cycle length defined by the particular task.
-            if (cycleLength < 1)
-                return true;
-            return _currentCycle%cycleLength == 0;
+            return _currentCycle % cycleLength == 0;
         }
     }
 }

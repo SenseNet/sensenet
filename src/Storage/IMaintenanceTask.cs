@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    //UNDONE: register all builtin maintenance tasks in AddSenseNet
-
     /// <summary>
     /// Defines a periodically called task
     /// </summary>

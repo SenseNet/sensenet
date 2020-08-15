@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Storage
 {
-    internal class SharedLockCleanupTask : IMaintenanceTask
+    public class SharedLockCleanupTask : IMaintenanceTask
     {
         public int WaitingSeconds => 4200; // 1:10:00
 

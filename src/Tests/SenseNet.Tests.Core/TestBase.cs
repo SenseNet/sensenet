@@ -357,9 +357,6 @@ namespace SenseNet.Tests.Core
 
         protected void PrepareRepository()
         {
-            // Improve Debug experience
-            new SnMaintenance().Shutdown();
-
             // Index
             if (Providers.Instance.SearchEngine is InMemorySearchEngine searchEngine)
                 if(searchEngine.Index == null)
