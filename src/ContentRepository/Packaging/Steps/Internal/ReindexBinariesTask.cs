@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.BackgroundOperations;
 using SenseNet.Packaging.Steps.Internal;
 
 namespace SenseNet.ContentRepository.Packaging.Steps.Internal

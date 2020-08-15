@@ -1,7 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace SenseNet.ContentRepository.Storage
+// ReSharper disable once CheckNamespace
+namespace SenseNet.BackgroundOperations
 {
     /// <summary>
     /// Defines a periodically called task

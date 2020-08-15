@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.BackgroundOperations;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Storage
