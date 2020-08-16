@@ -36,9 +36,25 @@ namespace SenseNet.BackgroundOperations
         {
             return TypeResolver.GetTypesByInterface(typeof(IMaintenanceTask)).Select(t =>
                 {
+                    // skip types that do not have a parameterless constructor
+                    if (t.GetConstructor(Type.EmptyTypes) == null)
+                    {
+                        SnTrace.System.Write("MaintenanceTask found: {0}, but cannot activate it without a default constructor.", t.FullName);
+                        return null;
+                    }
+
                     SnTrace.System.Write("MaintenanceTask found: {0}", t.FullName);
-                    return (IMaintenanceTask)Activator.CreateInstance(t);
-                }).ToArray();
+                    try
+                    {
+                        return (IMaintenanceTask)Activator.CreateInstance(t);
+                    }
+                    catch (Exception ex)
+                    {
+                        SnTrace.System.WriteError("MaintenanceTask {0} couldn't be instantiated. {1}", t.FullName, ex.Message);
+                    }
+
+                    return null;
+                }).Where(mt => mt != null).ToArray();
         }
 
         public void Shutdown()
