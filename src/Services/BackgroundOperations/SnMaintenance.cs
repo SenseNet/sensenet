@@ -9,8 +9,6 @@ using SenseNet.Tools;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
 {
-    //UNDONE: ensure that maintenance still works in the framework environment!
-
     /// <summary>
     /// Internal service for periodically executing maintenance operations (e.g. cleaning up orphaned binary rows in the database).
     /// All operations are executed when the timer ticks, but they can opt out (skip an iteration) by using a dedicated flag
@@ -21,7 +19,6 @@ namespace SenseNet.BackgroundOperations
         private static readonly int TIMER_INTERVAL = 10; // in seconds
         private static Timer _maintenanceTimer;
         private static int _currentCycle;
-        private const string TracePrefix = "#SnMaintenance> ";
         private static IMaintenanceTask[] _maintenanceTasks = new IMaintenanceTask[0];
         private static CancellationTokenSource _cancellation;
 

@@ -26,16 +26,16 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Maintenance_Frequent_RunningTime()
         {
-            // A 10-second-delay task is called two or three times
-            // in a half minute length active period.
+            // A 5-second-delay task is called two or three times
+            // in an 11 second length active period.
             var calls = MaintenanceTest(5, 11);
             Assert.IsTrue(calls >= 2 && calls <= 3);
         }
         [TestMethod]
         public void Maintenance_Rare_RunningTime()
         {
-            // A half-minute-delay task is called one or two times
-            // in more than 30 second length active period.
+            // An 11-second-delay task is called one or two times
+            // in a 12 second length active period.
             var calls = MaintenanceTest(11, 12);
             Assert.IsTrue(calls >= 1 && calls <= 2);
         }

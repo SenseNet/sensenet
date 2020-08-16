@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
 {
-    // This class will be available in the .Net Core framework 2.1 and above.
+    // This class will be available in .Net Core 2.1 and above.
 
     public abstract class SnBackgroundService : IHostedService, IDisposable
     {
