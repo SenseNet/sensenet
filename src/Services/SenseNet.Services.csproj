@@ -175,6 +175,7 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="BackgroundOperations\SnMaintenance.cs" />
     <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />

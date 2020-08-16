@@ -11,6 +11,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Preview;
 using SenseNet.Services.Core;
+using SenseNet.Storage;
+using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using Task = System.Threading.Tasks.Task;
@@ -50,7 +52,16 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
-                .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync));
+
+                // add maintenance tasks
+                .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
+                .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
+                .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()
+                .AddSingleton<IMaintenanceTask, SharedLockCleanupTask>()
+                //.AddSingleton<IMaintenanceTask, ReindexBinariesTask>()
+
+                .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))
+                .AddHostedService<SnMaintenance>();
 
             return services;
         }
