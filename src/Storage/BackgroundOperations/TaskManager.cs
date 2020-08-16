@@ -23,22 +23,29 @@ namespace SenseNet.BackgroundOperations
 
             public static readonly string TASKMANAGEMENTDEFAULTAPPID = "SenseNet1";
 
-            //UNDONE: use the new taskman option api instead of these temp properties
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
             public static string AppId =>
                 ContentRepository.Storage.Settings.GetValue(SETTINGSNAME, TASKMANAGEMENTAPPID, null, "SenseNet");
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
             public static string AppUrl =>
                 ContentRepository.Storage.Settings.GetValue<string>(SETTINGSNAME, TASKMANAGEMENTAPPLICATIONURL);
 
             /// <summary>
             /// Url of the Task management web application, directly from the TaskManagement setting.
+            /// New applications should rely on the TaskManagementOptions configuration object
+            /// available from the services collection.
             /// </summary>
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
             public static string TaskManagementUrl =>
                 ContentRepository.Storage.Settings.GetValue<string>(SETTINGSNAME, TASKMANAGEMENTURL);
         }
 
         /// <summary>
         /// Url of the Task management web application, directly from the TaskManagement setting.
+        /// New applications should rely on the TaskManagementOptions configuration object
+        /// available from the services collection.
         /// </summary>
+        [Obsolete("Use TaskManagementOptions from the services collection instead.")]
         public static string Url => Settings.TaskManagementUrl;
 
         // ================================================================================== Static API

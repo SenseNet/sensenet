@@ -1326,7 +1326,9 @@ namespace SenseNet.Preview
 
             //fallback to settings
             if (string.IsNullOrEmpty(appId))
+#pragma warning disable 618
                 appId = SnTaskManager.Settings.AppId;
+#pragma warning restore 618
 
             return appId;
         }
@@ -1339,7 +1341,9 @@ namespace SenseNet.Preview
             
             //fallback to settings
             if (string.IsNullOrEmpty(appUrl))
+#pragma warning disable 618
                 appUrl = SnTaskManager.Settings.AppUrl;
+#pragma warning restore 618
 
             return appUrl;
         }
