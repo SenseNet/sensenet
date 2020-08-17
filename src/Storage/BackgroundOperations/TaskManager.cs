@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
@@ -57,7 +58,7 @@ namespace SenseNet.BackgroundOperations
         [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static RegisterTaskResult RegisterTask(RegisterTaskRequest requestData)
         {
-            return Instance.RegisterTaskAsync(requestData).GetAwaiter().GetResult();
+            return Instance.RegisterTaskAsync(requestData, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Registers a task through the task management API asynchronously.
@@ -66,7 +67,7 @@ namespace SenseNet.BackgroundOperations
         [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData)
         {
-            return Instance.RegisterTaskAsync(requestData);
+            return Instance.RegisterTaskAsync(requestData, CancellationToken.None);
         }
 
         /// <summary>
@@ -76,7 +77,7 @@ namespace SenseNet.BackgroundOperations
         [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static bool RegisterApplication()
         {
-            return Instance.RegisterApplicationAsync().GetAwaiter().GetResult();
+            return Instance.RegisterApplicationAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace SenseNet.BackgroundOperations
         [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static void OnTaskFinished(SnTaskResult result)
         {
-            Instance.OnTaskFinished(result);
+            Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // ================================================================================== Instance
@@ -151,7 +152,7 @@ namespace SenseNet.BackgroundOperations
             _options = options?.Value ?? new TaskManagementOptions();
         }
 
-        public virtual async Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData)
+        public virtual async Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData, CancellationToken cancellationToken)
         {
             var taskManagementUrl = _options.UrlOrSetting;
             if (string.IsNullOrEmpty(taskManagementUrl) || requestData == null)
@@ -169,7 +170,7 @@ namespace SenseNet.BackgroundOperations
                     if (ex is TaskManagementException && string.CompareOrdinal(ex.Message, RegisterTaskRequest.ERROR_UNKNOWN_APPID) == 0)
                     {
                         // try to re-register the app
-                        if (await RegisterApplicationAsync())
+                        if (await RegisterApplicationAsync(cancellationToken))
                         {
                             // skip error logging and try to register the task again
                             continue;
@@ -195,7 +196,7 @@ namespace SenseNet.BackgroundOperations
             return null;
         }
 
-        public virtual async Task<bool> RegisterApplicationAsync()
+        public virtual async Task<bool> RegisterApplicationAsync(CancellationToken cancellationToken)
         {
             var taskManagementUrl = _options.UrlOrSetting;
             if (string.IsNullOrEmpty(taskManagementUrl))
@@ -237,11 +238,11 @@ namespace SenseNet.BackgroundOperations
             return false;
         }
 
-        public virtual void OnTaskFinished(SnTaskResult result)
+        public virtual Task OnTaskFinishedAsync(SnTaskResult result, CancellationToken cancellationToken)
         {
             // the task was executed successfully without an error message
             if (result.Successful && result.Error == null)
-                return;
+                return Task.CompletedTask;
 
             try
             {
@@ -266,6 +267,8 @@ namespace SenseNet.BackgroundOperations
             {
                 SnLog.WriteException(ex);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

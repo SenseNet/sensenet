@@ -807,7 +807,7 @@ namespace SenseNet.ContentRepository
         public static void Ad2PortalSyncFinalizer(Content content, SnTaskResult result)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            SnTaskManager.Instance.OnTaskFinished(result);
+            SnTaskManager.Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
 #pragma warning restore CS0618 // Type or member is obsolete
 
             // not enough information

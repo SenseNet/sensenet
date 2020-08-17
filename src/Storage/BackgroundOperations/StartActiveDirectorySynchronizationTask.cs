@@ -61,7 +61,7 @@ namespace SenseNet.BackgroundOperations
             // Fire and forget: we do not need the result of the register operation.
             // (we have to start a task here instead of calling RegisterTaskAsync 
             // directly because the asp.net sync context callback would fail)
-            Task.Run(() => _taskManager.RegisterTaskAsync(requestData), cancellationToken);
+            Task.Run(() => _taskManager.RegisterTaskAsync(requestData, cancellationToken), cancellationToken);
 
             return Task.CompletedTask;
         }

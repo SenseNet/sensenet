@@ -1445,7 +1445,7 @@ namespace SenseNet.Preview
                 // Fire and forget: we do not need the result of the register operation.
                 // (we have to start a task here instead of calling RegisterTaskAsync 
                 // directly because the asp.net sync context callback would fail)
-                System.Threading.Tasks.Task.Run(() => TaskManager.RegisterTaskAsync(requestData));
+                System.Threading.Tasks.Task.Run(() => TaskManager.RegisterTaskAsync(requestData, CancellationToken.None));
             }
         }
 
@@ -1708,7 +1708,7 @@ namespace SenseNet.Preview
         public static void DocumentPreviewFinalizer(Content content, SnTaskResult result)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            SnTaskManager.Instance.OnTaskFinished(result);
+            SnTaskManager.Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
 #pragma warning restore CS0618 // Type or member is obsolete
 
             // not enough information
