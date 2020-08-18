@@ -386,6 +386,11 @@
         <Mode>No</Mode>
         <Store>No</Store>
       </Indexing>
+       <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
     <Field name="DirectRoles" type="DirectRoles">
       <DisplayName>$Ctd-User,DirectRoles-DisplayName</DisplayName>
@@ -393,7 +398,12 @@
       <Indexing>
         <Mode>No</Mode>
         <Store>No</Store>
-      </Indexing>
+      </Indexing> 
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
   </Fields>
 </ContentType>

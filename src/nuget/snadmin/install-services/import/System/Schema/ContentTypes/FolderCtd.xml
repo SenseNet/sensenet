@@ -24,7 +24,6 @@
     </Field>
     <Field name="TrashDisabled" type="Boolean">
       <Configuration>
-        <DefaultValue>true</DefaultValue>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
