@@ -68,6 +68,12 @@
     <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=3.1.7.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.3.1.7\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=3.1.7.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.3.1.7\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Extensions.Primitives, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Primitives.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
@@ -77,11 +83,11 @@
     <Reference Include="SenseNet.Security, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Security.4.1.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.TaskManagement.Core, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.TaskManagement.Core.2.1.0\lib\netstandard2.0\SenseNet.TaskManagement.Core.dll</HintPath>
+    <Reference Include="SenseNet.TaskManagement.Core, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.TaskManagement.Core.2.2.0\lib\netstandard2.0\SenseNet.TaskManagement.Core.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Tools, Version=3.2.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.3.2.4\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
+    <Reference Include="SenseNet.Tools, Version=3.2.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.3.2.5\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -175,6 +181,8 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="BackgroundOperations\SnMaintenance.cs" />
+    <Compile Include="BackgroundOperations\StartActiveDirectorySynchronizationTask.cs" />
     <Compile Include="CompatibilitySupport.cs" />
     <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />

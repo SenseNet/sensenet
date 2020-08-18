@@ -9,10 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
-using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security.EFCSecurityStore;
 using SenseNet.Services.Core.Authentication;
@@ -53,8 +49,14 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     options.Groups.Add("/Root/IMS/Public/Administrators");
                 });
 
-            // [sensenet]: add allowed client SPA urls
-            services.AddSenseNetCors();
+            // [sensenet]: add sensenet services
+            services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
+            {
+                repositoryBuilder
+                    .UseSecurityDataProvider(
+                        new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
+                    .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -100,26 +102,6 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                                                       "more information on how to call the REST API.");
                 });
             });
-        }
-
-        internal static RepositoryBuilder GetRepositoryBuilder(IConfiguration configuration, IHostEnvironment environment)
-        {
-            // assemble a SQL-specific repository
-
-            var repositoryBuilder = new RepositoryBuilder()
-                .UseConfiguration(configuration)
-                .UseLogger(new SnFileSystemEventLogger())
-                .UseTracer(new SnFileSystemTracer())
-                .UseAccessProvider(new UserAccessProvider())
-                .UseDataProvider(new MsSqlDataProvider())
-                .UseSecurityDataProvider(new EFCSecurityDataProvider(connectionString: ConnectionStrings.ConnectionString))
-                .UseLucene29LocalSearchEngine(Path.Combine(Environment.CurrentDirectory, "App_Data", "LocalIndex"))
-                .StartWorkflowEngine(false)
-                .UseTraceCategories("Event", "Custom", "System") as RepositoryBuilder;
-
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
-
-            return repositoryBuilder;
         }
     }
 }

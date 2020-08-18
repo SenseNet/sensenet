@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Configuration;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.BackgroundOperations
 {
     public static class SnTaskManager
@@ -20,93 +23,87 @@ namespace SenseNet.BackgroundOperations
             public static readonly string TASKMANAGEMENTAPPID = "TaskManagementAppId";
 
             public static readonly string TASKMANAGEMENTDEFAULTAPPID = "SenseNet1";
+
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
+            public static string AppId =>
+                ContentRepository.Storage.Settings.GetValue(SETTINGSNAME, TASKMANAGEMENTAPPID, null, "SenseNet");
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
+            public static string AppUrl =>
+                ContentRepository.Storage.Settings.GetValue<string>(SETTINGSNAME, TASKMANAGEMENTAPPLICATIONURL);
+
+            /// <summary>
+            /// Url of the Task management web application, directly from the TaskManagement setting.
+            /// New applications should rely on the TaskManagementOptions configuration object
+            /// available from the services collection.
+            /// </summary>
+            [Obsolete("Use TaskManagementOptions from the services collection instead.")]
+            public static string TaskManagementUrl =>
+                ContentRepository.Storage.Settings.GetValue<string>(SETTINGSNAME, TASKMANAGEMENTURL);
         }
 
         /// <summary>
         /// Url of the Task management web application, directly from the TaskManagement setting.
+        /// New applications should rely on the TaskManagementOptions configuration object
+        /// available from the services collection.
         /// </summary>
-        public static string Url =>
-            ContentRepository.Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTURL);
+        [Obsolete("Use TaskManagementOptions from the services collection instead.")]
+        public static string Url => Settings.TaskManagementUrl;
 
         // ================================================================================== Static API
 
         /// <summary>
-        /// Registers a task through the task management API.
-        /// If possible, use the asynchronous version of this method.
+        /// Registers a task through the task management API. 
         /// </summary>
         /// <returns>Returns a RegisterTaskResult object containing information about the registered task.</returns>
+        [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static RegisterTaskResult RegisterTask(RegisterTaskRequest requestData)
         {
-            // start the task registration process only if a url is provided
-            var taskManUrl = Url;
-            if (string.IsNullOrEmpty(taskManUrl))
-                return null;
-
-            // make this a synchron call
-            return Instance.RegisterTaskAsync(taskManUrl, requestData).GetAwaiter().GetResult();
+            return Instance.RegisterTaskAsync(requestData, CancellationToken.None).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Registers a task through the task management API asynchronously.
         /// </summary>
         /// <returns>Returns a RegisterTaskResult object containing information about the registered task.</returns>
+        [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData)
         {
-            // start the task registration process only if a url is provided
-            var taskManUrl = Url;
-
-            return string.IsNullOrEmpty(taskManUrl)
-                ? Task.FromResult<RegisterTaskResult>(null)
-                : Instance.RegisterTaskAsync(taskManUrl, requestData);
+            return Instance.RegisterTaskAsync(requestData, CancellationToken.None);
         }
 
         /// <summary>
         /// Registers an application through the task management API.
         /// </summary>
         /// <returns>Returns true if the registration was successful.</returns>
+        [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static bool RegisterApplication()
         {
-            var taskManUrl = Url;
-            if (string.IsNullOrEmpty(taskManUrl))
-                return false;
-
-            var requestData = new RegisterApplicationRequest
-            {
-                AppId = ContentRepository.Storage.Settings.GetValue(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPID, null, Settings.TASKMANAGEMENTDEFAULTAPPID),
-                ApplicationUrl = ContentRepository.Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPLICATIONURL)
-            };
-
-            // make this a synchron call
-            var registered = Instance.RegisterApplicationAsync(taskManUrl, requestData).GetAwaiter().GetResult();
-
-            if (registered)
-            {
-                SnLog.WriteInformation("Task management app registration was successful.", EventId.TaskManagement.General, properties: new Dictionary<string, object>
-                {
-                    { "TaskManagementUrl", taskManUrl },
-                    { "AppId", requestData.AppId }
-                });
-            }
-
-            return registered;
+            return Instance.RegisterApplicationAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         /// <summary>
         /// Built-in helper method for logging task execution results. Call this from every custom task finalizer.
         /// </summary>
         /// <param name="result"></param>
+        [Obsolete("Use the ITaskManager service registered in the dependency injection container instead.")]
         public static void OnTaskFinished(SnTaskResult result)
         {
-            Instance.OnTaskFinished(result);
+            Instance.OnTaskFinishedAsync(result, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         // ================================================================================== Instance
 
         private static readonly object InitializationLock = new object();
         private static ITaskManager _instance;
-        private static ITaskManager Instance
+
+        /// <summary>
+        /// Gets the Task manager instance, a singleton used by legacy code.
+        /// </summary>
+        [Obsolete("Use the service through the dependency injection framework instead.")]
+        public static ITaskManager Instance
         {
             get
             {
+                // Legacy behavior: loads the task management type that is configured by name.
                 if (_instance == null)
                 {
                     lock (InitializationLock)
@@ -117,7 +114,7 @@ namespace SenseNet.BackgroundOperations
 
                             if (string.IsNullOrEmpty(Providers.TaskManagerClassName))
                             {
-                                instance = new TaskManagerBase();
+                                instance = new TaskManagerBase(null);
                             }
                             else
                             {
@@ -130,7 +127,7 @@ namespace SenseNet.BackgroundOperations
                                     SnLog.WriteWarning("Error loading task manager type " + Providers.TaskManagerClassName,
                                         EventId.RepositoryLifecycle);
 
-                                    instance = new TaskManagerBase();
+                                    instance = new TaskManagerBase(null);
                                 }
                             }
 
@@ -142,13 +139,25 @@ namespace SenseNet.BackgroundOperations
                 }
                 return _instance;
             }
+            set => _instance = value;
         }
     }
 
     public class TaskManagerBase : ITaskManager
     {
-        public virtual async Task<RegisterTaskResult> RegisterTaskAsync(string taskManagementUrl, RegisterTaskRequest requestData)
+        private readonly TaskManagementOptions _options;
+        
+        public TaskManagerBase(IOptions<TaskManagementOptions> options)
         {
+            _options = options?.Value ?? new TaskManagementOptions();
+        }
+
+        public virtual async Task<RegisterTaskResult> RegisterTaskAsync(RegisterTaskRequest requestData, CancellationToken cancellationToken)
+        {
+            var taskManagementUrl = _options.UrlOrSetting;
+            if (string.IsNullOrEmpty(taskManagementUrl) || requestData == null)
+                return null;
+
             while (true)
             {
                 try
@@ -161,7 +170,7 @@ namespace SenseNet.BackgroundOperations
                     if (ex is TaskManagementException && string.CompareOrdinal(ex.Message, RegisterTaskRequest.ERROR_UNKNOWN_APPID) == 0)
                     {
                         // try to re-register the app
-                        if (SnTaskManager.RegisterApplication())
+                        if (await RegisterApplicationAsync(cancellationToken))
                         {
                             // skip error logging and try to register the task again
                             continue;
@@ -187,11 +196,30 @@ namespace SenseNet.BackgroundOperations
             return null;
         }
 
-        public virtual async Task<bool> RegisterApplicationAsync(string taskManagementUrl, RegisterApplicationRequest requestData)
+        public virtual async Task<bool> RegisterApplicationAsync(CancellationToken cancellationToken)
         {
+            var taskManagementUrl = _options.UrlOrSetting;
+            if (string.IsNullOrEmpty(taskManagementUrl))
+            {
+                SnTrace.TaskManagement.Write("Task management url is empty, application is not registered.");
+                return false;
+            }
+
+            var requestData = new RegisterApplicationRequest
+            {
+                AppId = _options.ApplicationIdOrSetting,
+                ApplicationUrl = _options.ApplicationUrlOrSetting
+            };
+
             try
             {
                 await RepositoryClient.RegisterApplicationAsync(taskManagementUrl, requestData).ConfigureAwait(false);
+
+                SnLog.WriteInformation("Task management app registration was successful.", EventId.TaskManagement.General, properties: new Dictionary<string, object>
+                {
+                    { "TaskManagementUrl", taskManagementUrl },
+                    { "AppId", requestData.AppId }
+                });
 
                 return true;
             }
@@ -210,11 +238,11 @@ namespace SenseNet.BackgroundOperations
             return false;
         }
 
-        public virtual void OnTaskFinished(SnTaskResult result)
+        public virtual Task OnTaskFinishedAsync(SnTaskResult result, CancellationToken cancellationToken)
         {
             // the task was executed successfully without an error message
             if (result.Successful && result.Error == null)
-                return;
+                return Task.CompletedTask;
 
             try
             {
@@ -239,6 +267,8 @@ namespace SenseNet.BackgroundOperations
             {
                 SnLog.WriteException(ex);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

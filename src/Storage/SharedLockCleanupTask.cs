@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using SenseNet.BackgroundOperations;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Storage
 {
-    internal class SharedLockCleanupTask : IMaintenanceTask
+    public class SharedLockCleanupTask : IMaintenanceTask
     {
-        public double WaitingMinutes { get; internal set; } = 70.0d; // 1:10:00
+        public int WaitingSeconds => 4200; // 1:10:00
 
-        public void Execute()
+        public Task ExecuteAsync(CancellationToken cancellationToken)
         {
             SharedLock.Cleanup(CancellationToken.None);
+            return Task.CompletedTask;
         }
     }
 }

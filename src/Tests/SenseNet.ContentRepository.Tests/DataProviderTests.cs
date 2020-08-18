@@ -2708,6 +2708,17 @@ namespace SenseNet.ContentRepository.Tests
                 }
                 return 0;
             }
+            public override STT.Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    if (_cancelled)
+                        return STT.Task.FromResult(-1);
+
+                    Thread.Sleep(100);
+                }
+                return STT.Task.FromResult(0);
+            }
 
             public override object ExecuteScalar()
             {
@@ -2781,7 +2792,7 @@ namespace SenseNet.ContentRepository.Tests
                         transactionWrapper = ctx.Transaction;
                         try
                         {
-                            await ctx.ExecuteNonQueryAsync(" :) ");
+                            await ctx.ExecuteNonQueryAsync(" :) ").ConfigureAwait(false);
                             transaction.Commit();
                         }
                         catch

@@ -227,9 +227,7 @@ namespace SenseNet.Tests.Core.Tests
                                 PermissionType.BuiltInPermissionTypes)
                             .Apply();
                     }
-
-                    new SnMaintenance().Shutdown();
-
+                    
                     callback();
                 }
             }
