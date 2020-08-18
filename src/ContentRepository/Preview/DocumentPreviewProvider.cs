@@ -1637,7 +1637,7 @@ namespace SenseNet.Preview
         [ODataAction(Description = "Regenerate preview images")]
         [ContentTypes(N.CT.File)]
         [AllowedRoles(N.R.Everyone)]
-        public static void RegeneratePreviews(Content content)
+        public static object RegeneratePreviews(Content content)
         {
             if (content == null)
                 throw new ArgumentNullException("content");
@@ -1646,6 +1646,11 @@ namespace SenseNet.Preview
             // (e.g. because previously there was an error).
             SetPreviewStatus(content.ContentHandler as File, PreviewStatus.InProgress);
             StartPreviewGeneration(content.ContentHandler, TaskPriority.Immediately);
+
+            // reload to make sure we have the latest value
+            var file = Node.Load<File>(content.Id);
+
+            return new { file.PageCount, PreviewCount = 0 };
         }
 
         [ODataAction(Description = "Check preview images")]

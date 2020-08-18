@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.OData;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Services.Core.Operations
 {
@@ -594,13 +596,16 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
         [Scenario(N.S.ListItem, N.S.ExploreToolbar, N.S.ContextMenu)]
-        public static object Restore(Content content, string destination = null, bool? newname = null)
+        public static Task Restore(Content content, string destination = null, bool? newname = null)
         {
             if (!(content?.ContentHandler is TrashBag tb))
                 throw new InvalidContentActionException("The resource content must be a TrashBag.");
 
             if (string.IsNullOrEmpty(destination))
                 destination = tb.OriginalPath;
+
+            // remember the id to load the content later
+            var originalId = tb.DeletedContent.Id;
 
             try
             {
@@ -635,7 +640,7 @@ namespace SenseNet.Services.Core.Operations
                 throw new Exception(msg);
             }
 
-            return null;
+            return Content.LoadAsync(originalId, CancellationToken.None);
         }
     }
 }
