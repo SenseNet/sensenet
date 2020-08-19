@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SenseNet.BackgroundOperations;
 using SenseNet.TaskManagement.Core;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.BackgroundOperations
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class TaskManagerExtensions
     {

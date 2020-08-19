@@ -9,7 +9,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Preview;
 using SenseNet.Services.Core;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
@@ -65,23 +64,7 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
-
-        /// <summary>
-        /// Adds the default document provider to the service collection.
-        /// </summary>
-        public static IServiceCollection AddSenseNetDocumentPreviewProvider(this IServiceCollection services)
-        {
-            // add the default, empty implementation
-            return services.AddSenseNetDocumentPreviewProvider<DefaultDocumentPreviewProvider>();
-        }
-        /// <summary>
-        /// Adds the provided document provider to the service collection.
-        /// </summary>
-        public static IServiceCollection AddSenseNetDocumentPreviewProvider<T>(this IServiceCollection services) where T : DocumentPreviewProvider
-        {
-            return services.AddSingleton<IPreviewProvider, T>();
-        }
-
+        
         /// <summary>
         /// Sets well-known singleton provider instances that are used by legacy code.
         /// </summary>
