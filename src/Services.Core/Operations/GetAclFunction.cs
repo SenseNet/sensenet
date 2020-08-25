@@ -21,6 +21,8 @@ namespace SenseNet.Services.Core.Operations
                 throw new AccessDeniedException("Access denied.", content.Path, content.Id, User.Current,
                     new PermissionTypeBase[] { PermissionType.SeePermissions });
 
+            var isPublic = content.Security.HasPermission(User.Visitor, PermissionType.Open);
+
             var acl = SnAccessControlList.GetAcl(content.Id);
             var entries = acl.Entries
                 .Where(e=>e.Identity.NodeId!=Identifiers.SomebodyUserId)
@@ -31,6 +33,7 @@ namespace SenseNet.Services.Core.Operations
                 {"id", content.Id},
                 {"path", content.Path},
                 {"inherits", acl.Inherits},
+                {"isPublic", isPublic},
                 {"entries", entries}
             };
             return result;
