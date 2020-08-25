@@ -30,6 +30,7 @@ namespace SenseNet.Extensions.DependencyInjection
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
+            services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
 
             return services;
         }
