@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Authentication;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -30,6 +31,7 @@ namespace SenseNet.Extensions.DependencyInjection
         internal static IServiceCollection ConfigureSenseNet(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
+            services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
 
             return services;
         }

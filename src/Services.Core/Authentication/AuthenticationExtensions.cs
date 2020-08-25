@@ -7,11 +7,10 @@ namespace SenseNet.Services.Core.Authentication
     public class SenseNetRegistrationBuilder
     {
         internal AuthenticationBuilder AuthenticationBuilder { get; }
-        internal RegistrationProviderStore Store { get; }
-        internal SenseNetRegistrationBuilder(AuthenticationBuilder builder, RegistrationProviderStore store) 
+
+        internal SenseNetRegistrationBuilder(AuthenticationBuilder builder) 
         {
             AuthenticationBuilder = builder;
-            Store = store;
         }
     }
 
@@ -37,29 +36,23 @@ namespace SenseNet.Services.Core.Authentication
         public static SenseNetRegistrationBuilder AddSenseNetRegistration(this AuthenticationBuilder appBuilder, 
             Action<RegistrationOptions> configure)
         {
-            var options = new RegistrationOptions();
-            configure?.Invoke(options);
+            appBuilder.Services.Configure<RegistrationOptions>(options => { configure?.Invoke(options); });
+            appBuilder.Services.AddSingleton<DefaultRegistrationProvider>();
+            appBuilder.Services.AddSingleton<RegistrationProviderStore>();
 
-            var store = new RegistrationProviderStore(options);
-
-            appBuilder.Services.AddSingleton(store);
-
-            // return a feature-specific builder that contains the registered singleton provider store
-            return new SenseNetRegistrationBuilder(appBuilder, store);
+            // return a feature-specific builder to simplify provider registration
+            return new SenseNetRegistrationBuilder(appBuilder);
         }
         /// <summary>
-        /// Adds a custom registration provider to the service collection.
+        /// Adds a custom registration provider singleton to the service collection.
         /// </summary>
         /// <param name="builder">The <see cref="SenseNetRegistrationBuilder"/> instance.</param>
-        /// <param name="name">Name of the provider that this provider will be 
-        /// responsible for (e.g. Google, GitHub).</param>
-        /// <param name="provider">Registration provider instance.</param>
         /// <returns>A <see cref="SenseNetRegistrationBuilder"/> instance that lets developers
         /// add custom features to the registration process.</returns>
-        public static SenseNetRegistrationBuilder AddProvider(this SenseNetRegistrationBuilder builder, 
-            string name, IRegistrationProvider provider)
+        public static SenseNetRegistrationBuilder AddProvider<T>(this SenseNetRegistrationBuilder builder) where T : class, IRegistrationProvider
         {
-            builder.Store.Add(name, provider);
+            // The RegistrationProviderStore singleton will later resolve these instances when it is requested.
+            builder.AuthenticationBuilder.Services.AddSingleton<IRegistrationProvider, T>();
 
             return builder;
         }

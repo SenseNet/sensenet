@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using SenseNet.Portal.Handlers;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,9 +30,13 @@ namespace SenseNet.Services.Core.Authentication
     /// </remarks>
     public class DefaultRegistrationProvider : IRegistrationProvider
     {
-        public string DefaultParentPath { get; protected internal set; }
-        public string DefaultUserType { get; protected internal set; }
-        public ICollection<string> DefaultGroups { get; protected internal set; }
+        public string Name => "default";
+        private readonly RegistrationOptions _options;
+
+        public DefaultRegistrationProvider(IOptions<RegistrationOptions> options)
+        {
+            _options = options?.Value ?? new RegistrationOptions();
+        }
 
         public async Task<User> CreateLocalUserAsync(Content content, HttpContext context, string loginName, string password, 
             string email, CancellationToken cancellationToken)
@@ -82,8 +87,8 @@ namespace SenseNet.Services.Core.Authentication
         protected async Task<User> CreateUser(string nameCandidate, string loginName, string email, string fullName,
             Action<Content> setProperties, CancellationToken cancellationToken)
         {
-            var parentPath = string.IsNullOrEmpty(DefaultParentPath) ? "/Root/IMS/Public" : DefaultParentPath;
-            var userType = string.IsNullOrEmpty(DefaultUserType) ? "User" : DefaultUserType;
+            var parentPath = string.IsNullOrEmpty(_options.ParentPath) ? "/Root/IMS/Public" : _options.ParentPath;
+            var userType = string.IsNullOrEmpty(_options.UserType) ? "User" : _options.UserType;
 
             var parent = RepositoryTools.CreateStructure(parentPath, "Domain") ??
                          await Content.LoadAsync(parentPath, cancellationToken).ConfigureAwait(false);
@@ -112,18 +117,18 @@ namespace SenseNet.Services.Core.Authentication
 
         protected async Task AddUserToDefaultGroupsAsync(User user, CancellationToken cancellationToken)
         {
-            if (DefaultGroups == null)            
+            if (_options.Groups == null || _options.Groups.Count == 0)
                 return;
             
             var errorGroups = new List<string>();
             Exception firstException = null;
 
-            foreach (var groupIdOrPath in DefaultGroups.Where(gr => !string.IsNullOrEmpty(gr)))
+            foreach (var groupIdOrPath in _options.Groups.Where(gr => !string.IsNullOrEmpty(gr)))
             {
                 try
                 {
                     var group = await Node.LoadNodeByIdOrPathAsync(groupIdOrPath, cancellationToken).ConfigureAwait(false) as Group;
-                    group?.AddMember(user as User);
+                    group?.AddMember(user);
                 }
                 catch (Exception ex)
                 {

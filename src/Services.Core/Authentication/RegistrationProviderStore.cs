@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SenseNet.Services.Core.Authentication
 {
@@ -10,30 +11,27 @@ namespace SenseNet.Services.Core.Authentication
     /// </summary>
     internal class RegistrationProviderStore
     {
-        private readonly IDictionary<string, IRegistrationProvider> Providers = new Dictionary<string, IRegistrationProvider>();
-        private readonly DefaultRegistrationProvider DefaultProvider = new DefaultRegistrationProvider();
+        private readonly IDictionary<string, IRegistrationProvider> _providers = new Dictionary<string, IRegistrationProvider>();
+        private readonly DefaultRegistrationProvider _defaultProvider;
 
-        public RegistrationProviderStore(RegistrationOptions options)
+        public RegistrationProviderStore(DefaultRegistrationProvider defaultProvider, IEnumerable<IRegistrationProvider> registeredProviders)
         {
-            DefaultProvider.DefaultGroups = options.Groups;
-            DefaultProvider.DefaultUserType = options.UserType;            
+            _defaultProvider = defaultProvider;
+
+            foreach (var provider in registeredProviders.Where(p => !string.IsNullOrEmpty(p?.Name)))
+            {
+                _providers[provider.Name] = provider;
+            }
         }
 
-        public void Add(string name, IRegistrationProvider provider)
-        {
-            if (string.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
-
-            Providers[name] = provider ?? throw new ArgumentNullException(nameof(provider));
-        }
         public IRegistrationProvider Get(string name)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
 
-            return Providers.TryGetValue(name, out var provider)
+            return _providers.TryGetValue(name, out var provider)
                 ? provider
-                : DefaultProvider;
+                : _defaultProvider;
         }
     }
 }
