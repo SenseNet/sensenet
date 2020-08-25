@@ -164,19 +164,21 @@ namespace SenseNet.Services.Core
             if (node == null)
                 throw new ArgumentException("Identity not found");
 
+            var seeOnly = !node.Security.HasPermission(PermissionType.Open);
+
             string domain = null;
             string avatar = null;
             SnIdentityKind kind;
             if (node is User userNode)
             {
                 kind = SnIdentityKind.User;
-                domain = userNode.Domain;
-                avatar = userNode.AvatarUrl;
+                domain = seeOnly ? null : userNode.Domain;
+                avatar = seeOnly ? null : userNode.AvatarUrl;
             }
             else if (node is Group groupNode)
             {
                 kind = SnIdentityKind.Group;
-                domain = groupNode.Domain?.Name;
+                domain = seeOnly ? null : groupNode.Domain?.Name;
             }
             else
             {
@@ -188,7 +190,7 @@ namespace SenseNet.Services.Core
                 { "id", node.Id },
                 { "path", node.Path },
                 { "name", node.Name },
-                { "displayName", SNSR.GetString(node.DisplayName) },
+                { "displayName", seeOnly ? node.Name : SNSR.GetString(node.DisplayName) },
                 { "domain", domain },
                 { "kind", kind.ToString().ToLower() },
                 { "avatar", avatar }

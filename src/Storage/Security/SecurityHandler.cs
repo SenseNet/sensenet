@@ -1757,8 +1757,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             // "+E1|Normal|+U1:____++++,Normal|+G1:____++++"
             var a = permissionData.Split('|');
-            var isInherited = a[0][0] == '+';
-            var b = a[0].Substring(1);
+            var trimmed = a[0].Trim();
+            var isInherited = trimmed[0] == '+';
+            var b = trimmed.Substring(1);
             var entityId = int.Parse(b);
 
             return new SecurityHandler.PermissionAction()
