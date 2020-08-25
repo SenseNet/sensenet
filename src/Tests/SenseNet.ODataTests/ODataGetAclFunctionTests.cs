@@ -208,7 +208,7 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("allow", entry.SelectToken("permissions.See.value").Value<string>());
                 Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.See.from").Value<string>());
                 Assert.AreEqual("allow", entry.SelectToken("permissions.Open.value").Value<string>());
-                Assert.AreEqual("/Root", entry.SelectToken("permissions.Open.from").Value<string>());
+                Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.Open.from").Value<string>());
                 Assert.AreEqual("allow", entry.SelectToken("permissions.TakeOwnership.value").Value<string>());
                 Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.TakeOwnership.from").Value<string>());
 
@@ -220,9 +220,85 @@ namespace SenseNet.ODataTests
                 Assert.AreEqual("allow", entry.SelectToken("permissions.See.value").Value<string>());
                 Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.See.from").Value<string>());
                 Assert.AreEqual("allow", entry.SelectToken("permissions.Open.value").Value<string>());
-                Assert.AreEqual("/Root", entry.SelectToken("permissions.Open.from").Value<string>());
+                Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.Open.from").Value<string>());
                 Assert.AreEqual("allow", entry.SelectToken("permissions.TakeOwnership.value").Value<string>());
                 Assert.AreEqual("/Root/Content", entry.SelectToken("permissions.TakeOwnership.from").Value<string>());
+
+            }).ConfigureAwait(false);
+        }
+        [TestMethod]
+        public async Task OD_Security_GetAcl_SeeOnlyIdentities()
+        {
+            await IsolatedODataTestAsync(async () =>
+            {
+                // ARRANGE
+                var contentNode = Node.LoadNode("/Root/Content");
+                //var itNode = new SystemFolder(contentNode) { Name = "IT" };
+                //itNode.Save();
+                var user = new User(User.Administrator.Parent) { Name = "U1", Email = "u1@example.com", Enabled = true };
+                user.Save();
+
+                var permissionData = new List<string>
+                {
+                    " +               2|Normal|+        1:_____________________________________________+++++++++++++++++++",
+                    " +               2|Normal|+        7:_____________________________________________+++++++++++++++++++",
+                    $"+               2|Normal|+{user.Id}:_________________________________________________+_____________+",
+                    $"+{contentNode.Id}|Normal|+{user.Id}:_____________________________________________+__________________",
+                };
+                var categoriesToNormalize = new[] { EntryType.Normal };
+                using (new SystemAccount())
+                {
+                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    aclEditor
+                        .UnbreakInheritance(2, categoriesToNormalize)
+                        .UnbreakInheritance(contentNode.Id, categoriesToNormalize)
+                        .Apply();
+                    aclEditor
+                        .RemoveExplicitEntries(2)
+                        .RemoveExplicitEntries(contentNode.Id)
+                        .Apply(SecurityHandler.ParseInitialPermissions(aclEditor.Context, permissionData));
+                }
+                Assert.IsTrue(SecurityHandler.HasPermission(user, contentNode, PermissionType.SeePermissions));
+
+
+                // ACTION
+                ODataResponse response;
+                using (new CurrentUserBlock(user))
+                    response = await ODataGetAsync(
+                            $"/OData.svc/Root('Content')/GetAcl", null)
+                        .ConfigureAwait(false);
+
+                // ASSERT
+                AssertNoError(response);
+                var result = ODataTestBase.GetObject(response);
+
+                Assert.AreEqual(contentNode.Id, result.SelectToken("id").Value<int>());
+                Assert.AreEqual(contentNode.Path, result.SelectToken("path").Value<string>());
+                Assert.IsTrue(result.SelectToken("inherits").Value<bool>());
+                Assert.IsFalse(result.SelectToken("isPublic").Value<bool>());
+
+                Assert.AreEqual(3, ((JArray)result["entries"]).Count);
+
+                var admin = result.SelectToken("entries[?(@identity.id == 1)].identity");
+                Assert.AreEqual(Identifiers.AdministratorUserId, admin.SelectToken("id").Value<int>());
+                Assert.AreEqual("Admin", admin.SelectToken("name").Value<string>());
+                Assert.AreEqual("user", admin.SelectToken("kind").Value<string>());
+                Assert.AreEqual(null, admin.SelectToken("domain").Value<string>());
+                Assert.AreEqual(null, admin.SelectToken("avatar").Value<string>());
+
+                var admins = result.SelectToken("entries[?(@identity.id == 7)].identity");
+                Assert.AreEqual(Identifiers.AdministratorsGroupId, admins.SelectToken("id").Value<int>());
+                Assert.AreEqual("Administrators", admins.SelectToken("name").Value<string>());
+                Assert.AreEqual("group", admins.SelectToken("kind").Value<string>());
+                Assert.AreEqual(null, admins.SelectToken("domain").Value<string>());
+                Assert.AreEqual(null, admins.SelectToken("avatar").Value<string>());
+
+                var u1 = result.SelectToken($"entries[?(@identity.id == {user.Id})].identity");
+                Assert.AreEqual(user.Id, u1.SelectToken("id").Value<int>());
+                Assert.AreEqual("U1", u1.SelectToken("name").Value<string>());
+                Assert.AreEqual("user", u1.SelectToken("kind").Value<string>());
+                Assert.AreEqual("BuiltIn", u1.SelectToken("domain").Value<string>());
+                Assert.AreEqual("", u1.SelectToken("avatar").Value<string>());
 
             }).ConfigureAwait(false);
         }
