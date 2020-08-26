@@ -1,10 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Operations;
@@ -14,6 +14,7 @@ namespace SenseNet.Services.Core.Tests
     [TestClass]
     public class RegistrationTests : TestBase
     {
+        #region Test classes
         internal class TestRegistrationProvider1 : IRegistrationProvider
         {
             public string Name => "p1";
@@ -46,18 +47,18 @@ namespace SenseNet.Services.Core.Tests
                 throw new System.NotImplementedException();
             }
         }
+        #endregion
 
         [TestMethod]
         public void Registration_AddProvider()
         {
-            var serviceCollection = new ServiceCollection();
-            var builder = new AuthenticationBuilder(serviceCollection);
+            var services = new ServiceCollection();
 
-            builder.AddSenseNetRegistration()
+            services.AddSenseNetRegistration()
                 .AddProvider<TestRegistrationProvider1>()
                 .AddProvider<TestRegistrationProvider2>();
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider();
             var store = serviceProvider.GetRequiredService<RegistrationProviderStore>();
 
             var p1 = store.Get("p1");
@@ -67,6 +68,7 @@ namespace SenseNet.Services.Core.Tests
             Assert.AreEqual("p1", p1.Name);
             Assert.AreEqual("p2", p2.Name);
             Assert.AreEqual("default", pDefault.Name);
+            Assert.IsTrue(pDefault is DefaultRegistrationProvider);
         }
     }
 }

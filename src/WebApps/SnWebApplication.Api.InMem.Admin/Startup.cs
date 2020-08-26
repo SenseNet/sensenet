@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -26,12 +25,13 @@ namespace SnWebApplication.Api.InMem.Admin
             services.AddRazorPages();
 
             // [sensenet]: Authentication: switched off below
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddSenseNetRegistration(options =>
-                {
-                    // add newly registered users to this group
-                    options.Groups.Add("/Root/IMS/Public/Administrators");
-                });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+            
+            services.AddSenseNetRegistration(options =>
+            {
+                // add newly registered users to this group
+                options.Groups.Add("/Root/IMS/Public/Administrators");
+            });
 
             // [sensenet]: add allowed client SPA urls
             services.AddSenseNetCors();

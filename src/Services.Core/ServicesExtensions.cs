@@ -53,8 +53,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
+                .AddSenseNetRegistration();
 
-                // add maintenance tasks
+            // add maintenance tasks
+            services
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()

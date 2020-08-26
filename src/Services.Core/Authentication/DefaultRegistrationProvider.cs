@@ -24,7 +24,7 @@ namespace SenseNet.Services.Core.Authentication
     /// <remarks>
     /// Developers may inherit from this class and provide their own implementation
     /// using the helper methods of this built-in implementation.
-    /// Use the <see cref="AuthenticationExtensions.AddProvider"/> method during
+    /// Use the AddSenseNetRegistration and AddProvider methods during
     /// application start to register a custom instance for a particular 
     /// authentication provider (e.g. Google or Facebook).
     /// </remarks>
