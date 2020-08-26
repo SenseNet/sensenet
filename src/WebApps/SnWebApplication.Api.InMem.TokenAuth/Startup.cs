@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
@@ -38,8 +37,10 @@ namespace SnWebApplication.Api.InMem.TokenAuth
 
                     options.Audience = "sensenet";
                 })
-                .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"])
-                .AddSenseNetRegistration();
+                .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"]);
+
+            // [sensenet]: Registration
+            services.AddSenseNetRegistration();
 
             // [sensenet]: add allowed client SPA urls
             services.AddSenseNetCors();

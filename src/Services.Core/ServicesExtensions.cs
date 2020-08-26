@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
+using SenseNet.Services.Core.Authentication;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -31,6 +32,7 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
+            services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
 
             return services;
         }
@@ -52,8 +54,10 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
+                .AddSenseNetRegistration();
 
-                // add maintenance tasks
+            // add maintenance tasks
+            services
                 .AddSingleton<IMaintenanceTask, CleanupFilesTask>()
                 .AddSingleton<IMaintenanceTask, StartActiveDirectorySynchronizationTask>()
                 .AddSingleton<IMaintenanceTask, AccessTokenCleanupTask>()

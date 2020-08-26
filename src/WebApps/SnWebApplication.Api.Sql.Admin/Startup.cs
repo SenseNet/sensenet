@@ -12,7 +12,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security.EFCSecurityStore;
-using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.Sql.Admin
 {
@@ -33,12 +32,7 @@ namespace SnWebApplication.Api.Sql.Admin
             JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
             // [sensenet]: Authentication: switched off below
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddSenseNetRegistration(options =>
-                {
-                    // add newly registered users to this group
-                    options.Groups.Add("/Root/IMS/Public/Administrators");
-                });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
