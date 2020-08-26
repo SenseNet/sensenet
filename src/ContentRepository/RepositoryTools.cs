@@ -313,7 +313,8 @@ namespace SenseNet.ContentRepository
         /// Checks all IFolder objects in the repository and returns all paths where AllowedChildTypes is empty. Paths are categorized by content type names.
         /// This method is allowed to call as Generic OData Application.
         /// </summary>
-        /// <param name="root">Subtree to check. Null means /Root content</param>
+        /// <snCategory>Content-types</snCategory>
+        /// <param name="root">Subtree to check.</param>
         /// <returns>Paths where AllowedChildTypes is empty categorized by content type names.</returns>
         [ODataFunction]
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
@@ -344,6 +345,12 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
+        /// <summary>
+        /// Returns all content-types.
+        /// </summary>
+        /// <snCategory>Content-types</snCategory>
+        /// <param name="content"></param>
+        /// <returns>Content list of all content-types.</returns>
         [ODataFunction("GetAllContentTypes")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
@@ -352,6 +359,12 @@ namespace SenseNet.ContentRepository
             return ContentType.GetContentTypes().Select(ct => Content.Create(ct));
         }
 
+        /// <summary>
+        /// Returns a path list of the non-deletable Contents.
+        /// </summary>
+        /// <snCategory>Security</snCategory>
+        /// <param name="content"></param>
+        /// <returns>Path list.</returns>
         [ODataFunction(operationName: "ProtectedPaths")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
@@ -368,19 +381,30 @@ namespace SenseNet.ContentRepository
             return permitted;
         }
 
+        /// <summary>
+        /// Returns the list of content-types that are allowed in the content-type of the requested content.
+        /// </summary>
+        /// <snCategory>Content-types</snCategory>
+        /// <param name="content">The requested content.</param>
+        /// <returns>Content list of content-types.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
+        // ReSharper disable once InconsistentNaming
         public static IEnumerable<Content> GetAllowedChildTypesFromCTD(Content content)
         {
-            return content.ContentType.AllowedChildTypes.Select(ct => Content.Create(ct));
+            return content.ContentType.AllowedChildTypes.Select(Content.Create);
         }
 
         /// <summary>
-        /// Returns a path list containing items that have explicit security entry for Everyone group but does not have explicit security entry for Visitor user.
+        /// Returns a path list in the subtree of the requested content
+        /// containing items that have explicit security entry for Everyone group but
+        /// does not have explicit security entry for Visitor user.
         /// </summary>
+        /// <snCategory>Security</snCategory>
         /// <param name="root">Examination scope.</param>
-        /// <returns></returns>
+        /// <returns>Path list.</returns>
         [ODataFunction]
+        [AllowedRoles(N.R.Everyone)]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
             var result = new List<string>();
@@ -401,6 +425,13 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
+        /// <summary>
+        /// Returns the requested content's ancestor chain. The first element is the parent,
+        /// the last is the Root or closest permitted content to the Root.
+        /// </summary>
+        /// <snCategory>Tools</snCategory>
+        /// <param name="content">The requested Content.</param>
+        /// <returns>Content list of the ancestors.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone, N.R.Visitor)]
@@ -422,7 +453,17 @@ namespace SenseNet.ContentRepository
             return ancestors;
         }
 
+        /// <summary>
+        /// Copies all explicit permission entries of the Everyone group to the Visitor user.
+        /// The copy operation is executed on all content in the subtree of the requested content
+        /// that are not in the <paramref name="exceptList"/>.
+        /// </summary>
+        /// <snCategory>Security</snCategory>
+        /// <param name="root">The scope content.</param>
+        /// <param name="exceptList">White list of the untouched Contents.</param>
+        /// <returns>"Ok" if the operation is successfully executed.</returns>
         [ODataAction]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static string CopyExplicitEntriesOfEveryoneToVisitor(Content root, string[] exceptList)
         {
             var visitorId = User.Visitor.Id;
@@ -477,6 +518,15 @@ namespace SenseNet.ContentRepository
 
         // Index backup =========================================================================
 
+        /// <summary>
+        /// Takes a snapshot of the index and copies it to the given target.
+        /// Target is typically a directory in the filesystem.
+        /// The backup is exclusive operation, can be started only once.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <param name="content"></param>
+        /// <param name="target">Target of the copied files.</param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -488,6 +538,12 @@ namespace SenseNet.ContentRepository
             return response;
         }
 
+        /// <summary>
+        /// Queries the index backup state in the system.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <param name="content"></param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -499,6 +555,12 @@ namespace SenseNet.ContentRepository
             return response;
         }
 
+        /// <summary>
+        /// Requests the stopping the currently running backup operation.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <param name="content"></param>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -512,6 +574,16 @@ namespace SenseNet.ContentRepository
 
         // ======================================================================================
 
+        /// <summary>
+        /// Sets the passed <paramref name="userOrGroup"/> as the owner of the requested content.
+        /// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
+        /// The operation requires <c>TakeOwnership</c> permission.
+        /// </summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content">The requested content.</param>
+        /// <param name="userOrGroup">Path or id of the desired owner.</param>
+        /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
+        /// as a path or id. Also thrown this exception if the identified content is not a User or Group.</exception>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
@@ -549,6 +621,18 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Current user transfers the lock ownership to the target <paramref name="user"/>.
+        /// If target <paramref name="user"/> is null, it will be the current user.
+        /// Current user must have <c>ForceCheckin</c> permission.
+        /// </summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content">The requested content.</param>
+        /// <param name="user">Path or id of the desired lock owner User.</param>
+        /// <returns>"Ok" if the operation is executed successfully.</returns>
+        /// <exception cref="ArgumentException">Thrown if the content is not checked out (unlocked).
+        /// Also thrown if the <paramref name="user"/> cannot be recognized as a path or id of an existing
+        /// <c>User</c>.</exception>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.ForceCheckin)]
@@ -569,7 +653,7 @@ namespace SenseNet.ContentRepository
                     targetUser = Node.LoadNode(userId) as User;
                 else
                     if (RepositoryPath.IsValidPath(user) == RepositoryPath.PathResult.Correct)
-                    targetUser = Node.LoadNode(user) as User;
+                        targetUser = Node.LoadNode(user) as User;
                 else
                     throw new ArgumentException("The 'user' parameter cannot be recognized as a path or an Id: " + user);
                 if (targetUser == null)
@@ -589,6 +673,13 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// A developer tool that returns an object that contains information about the execution of the last
+        /// few security activities.
+        /// </summary>
+        /// <snCategory>Security</snCategory>
+        /// <param name="content"></param>
+        /// <returns>A <see cref="SenseNet.Security.Messaging.SecurityActivityHistory"/> instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -596,6 +687,14 @@ namespace SenseNet.ContentRepository
         {
             return SecurityHandler.SecurityContext.GetRecentActivities();
         }
+
+        /// <summary>
+        /// A developer tool that returns an object that contains information about the execution of the last
+        /// few indexing activities.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <param name="content"></param>
+        /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -603,6 +702,14 @@ namespace SenseNet.ContentRepository
         {
             return IndexingActivityHistory.GetHistory();
         }
+
+        /// <summary>
+        /// A developer tool that resets the indexing activity history.
+        /// WARNING: Do not use in production environment.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
+        /// <param name="content"></param>
+        /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -611,12 +718,28 @@ namespace SenseNet.ContentRepository
             return IndexingActivityHistory.Reset();
         }
 
+        /// <summary>
+        /// DEPRECATED. Checking index integrity online is not supported anymore. Use an offline solution of this problem.
+        /// </summary>
+        /// <snCategory>Indexing</snCategory>
         [Obsolete("Use an offline solution of this problem.")]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
             throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
         }
+
+        /// <summary>
+        /// Checks the security consistency in the subtree of the requested content.
+        /// WARNING! The operation can be slow so use only in justified cases and as small as possible scope.
+        /// </summary>
+        /// <snCategory>Security</snCategory>
+        /// <para>Compares the security cache and the main database. the investigation covers the
+        /// parallelism of the entity vs content structure, membership vs content-references,
+        /// and entity-identity existence in the security entries.
+        /// </para>
+        /// <param name="content">The scope content.</param>
+        /// <returns>The SecurityConsistencyResult instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
