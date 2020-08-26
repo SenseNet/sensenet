@@ -4,7 +4,6 @@
   <ContentName>Add</ContentName>
   <Fields>
     <DisplayName><![CDATA[$Action,Add]]></DisplayName>
-    <Scenario>ContextMenu</Scenario>
     <Icon><![CDATA[add]]></Icon>
     <RequiredPermissions>AddNew</RequiredPermissions>
   </Fields>
