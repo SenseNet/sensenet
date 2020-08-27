@@ -310,13 +310,28 @@ namespace SenseNet.ContentRepository
 
 
         /// <summary>
-        /// Checks all IFolder objects in the repository and returns all paths where AllowedChildTypes is empty. Paths are categorized by content type names.
-        /// This method is allowed to call as Generic OData Application.
+        /// Checks all IFolder objects in the repository and returns all paths where AllowedChildTypes is empty.
         /// </summary>
         /// <snCategory>Content-types</snCategory>
+        /// <remarks>
+        /// The response is the content-paths where AllowedChildTypes is empty categorized by content type names.
+        /// Here is an annotated example:
+        /// <code>
+        /// {
+        ///   "Domain": [              // ContentType name
+        ///     "/Root/...",           // Path1
+        ///     "/Root/...",           // Path2
+        ///   ],
+        ///   "OrganizationalUnit": [  // ContentType name
+        ///     "/Root/..."            // Path1
+        ///   ]
+        /// }
+        /// </code>
+        /// </remarks>
         /// <param name="root">Subtree to check.</param>
-        /// <returns>Paths where AllowedChildTypes is empty categorized by content type names.</returns>
+        /// <returns>A dictionary where the ContentType name is the key and a path lists is the value.</returns>
         [ODataFunction]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
         {
             var result = new Dictionary<string, List<string>>();
@@ -363,8 +378,32 @@ namespace SenseNet.ContentRepository
         /// Returns a path list of the non-deletable Contents.
         /// </summary>
         /// <snCategory>Security</snCategory>
+        /// <remarks>
+        /// The default is the following:
+        /// <code>
+        /// [
+        ///   "/Root",
+        ///   "/Root/IMS",
+        ///   "/Root/IMS/BuiltIn",
+        ///   "/Root/IMS/BuiltIn/Portal",
+        ///   "/Root/IMS/BuiltIn/Portal/Admin",
+        ///   "/Root/IMS/BuiltIn/Portal/Administrators",
+        ///   "/Root/IMS/BuiltIn/Portal/Visitor",
+        ///   "/Root/IMS/BuiltIn/Portal/Everyone",
+        ///   "/Root/IMS/Public",
+        ///   "/Root/System",
+        ///   "/Root/System/Schema",
+        ///   "/Root/System/Schema/ContentTypes",
+        ///   "/Root/System/Schema/ContentTypes/GenericContent",
+        ///   "/Root/System/Schema/ContentTypes/GenericContent/Folder",
+        ///   "/Root/System/Schema/ContentTypes/GenericContent/File",
+        ///   "/Root/System/Schema/ContentTypes/GenericContent/User",
+        ///   "/Root/System/Schema/ContentTypes/GenericContent/Group"
+        /// ]
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
-        /// <returns>Path list.</returns>
+        /// <returns>A string array as a path list.</returns>
         [ODataFunction(operationName: "ProtectedPaths")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
@@ -401,6 +440,17 @@ namespace SenseNet.ContentRepository
         /// does not have explicit security entry for Visitor user.
         /// </summary>
         /// <snCategory>Security</snCategory>
+        /// <remarks>
+        /// The result example:
+        /// <code>
+        /// [
+        ///   "/Root/(apps)/GenericContent/Versions",
+        ///   "/Root/(apps)/User/Logout",
+        ///   "/Root/Content",
+        ///   "/Root/Trash"
+        /// ]
+        /// </code>
+        /// </remarks>
         /// <param name="root">Examination scope.</param>
         /// <returns>Path list.</returns>
         [ODataFunction]
@@ -461,7 +511,7 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Security</snCategory>
         /// <param name="root">The scope content.</param>
         /// <param name="exceptList">White list of the untouched Contents.</param>
-        /// <returns>"Ok" if the operation is successfully executed.</returns>
+        /// <returns><c>Ok</c> if the operation is successfully executed.</returns>
         [ODataAction]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static string CopyExplicitEntriesOfEveryoneToVisitor(Content root, string[] exceptList)
@@ -524,9 +574,47 @@ namespace SenseNet.ContentRepository
         /// The backup is exclusive operation, can be started only once.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// The response contains a state and the current backup descriptor. The history is always null.
+        /// - If the backup is started successfully:
+        /// <code>
+        /// {
+        ///   "State": "Started",
+        ///   "Current": {
+        ///     "StartedAt": "0001-01-01T00:00:00",
+        ///     "FinishedAt": "0001-01-01T00:00:00",
+        ///     "TotalBytes": 0,
+        ///     "CopiedBytes": 0,
+        ///     "CountOfFiles": 0,
+        ///     "CopiedFiles": 0,
+        ///     "CurrentlyCopiedFile": null,
+        ///     "Message": null
+        ///   },
+        ///   "History": null
+        /// }
+        /// </code>
+        /// - If the backup is already executing:
+        /// <code>
+        /// {
+        ///   "State": "Executing",
+        ///   "Current": {
+        ///     "StartedAt": "2020-08-26T22:46:29.4516539Z",
+        ///     "FinishedAt": "0001-01-01T00:00:00",
+        ///     "TotalBytes": 126,
+        ///     "CopiedBytes": 42,
+        ///     "CountOfFiles": 3,
+        ///     "CopiedFiles": 1,
+        ///     "CurrentlyCopiedFile": "File2",
+        ///     "Message": null
+        ///   },
+        ///   "History": null
+        /// }
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
         /// <param name="target">Target of the copied files.</param>
-        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
+        /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.
+        /// </returns>
         [ODataAction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -542,6 +630,36 @@ namespace SenseNet.ContentRepository
         /// Queries the index backup state in the system.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
+        /// backup descriptors as a backup history if there is any finished backup since the application start.
+        /// For example:
+        /// <code>
+        /// {
+        ///   "State": "Executing",
+        ///   "Current": {
+        ///     "StartedAt": "2020-08-26T22:46:29.4516539Z",
+        ///     "FinishedAt": "0001-01-01T00:00:00",
+        ///     "TotalBytes": 126,
+        ///     "CopiedBytes": 42,
+        ///     "CountOfFiles": 3,
+        ///     "CopiedFiles": 1,
+        ///     "CurrentlyCopiedFile": "File2",
+        ///     "Message": null
+        ///   },
+        ///   "History": []
+        /// }
+        /// </code>
+        /// The available states:
+        /// 
+        /// | State     | Description                                                 |
+        /// | --------- | ----------------------------------------------------------- |
+        /// | Initial   | there has been no backup since the application was launched |
+        /// | Executing | the backup is currently running.                            |
+        /// | Canceled  | the last backup operation is broken without any error.      |
+        /// | Faulted   | an error occured during the last backup operation.          |
+        /// | Finished  | the last backup is successfully finished.                   |
+        /// </remarks>
         /// <param name="content"></param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
         [ODataFunction]
@@ -559,6 +677,27 @@ namespace SenseNet.ContentRepository
         /// Requests the stopping the currently running backup operation.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
+        /// backup descriptors as a backup history if there is any finished backup since the application start.
+        /// For example:
+        /// <code>
+        /// {
+        ///   "State": "CancelRequested",
+        ///   "Current": {
+        ///     "StartedAt": "2020-08-26T22:46:29.4516539Z",
+        ///     "FinishedAt": "0001-01-01T00:00:00",
+        ///     "TotalBytes": 126,
+        ///     "CopiedBytes": 42,
+        ///     "CountOfFiles": 3,
+        ///     "CopiedFiles": 1,
+        ///     "CurrentlyCopiedFile": "File2",
+        ///     "Message": null
+        ///   },
+        ///   "History": []
+        /// }
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
         [ODataAction]
@@ -629,7 +768,7 @@ namespace SenseNet.ContentRepository
         /// <snCategory>Permissions</snCategory>
         /// <param name="content">The requested content.</param>
         /// <param name="user">Path or id of the desired lock owner User.</param>
-        /// <returns>"Ok" if the operation is executed successfully.</returns>
+        /// <returns><c>Ok</c> if the operation is executed successfully.</returns>
         /// <exception cref="ArgumentException">Thrown if the content is not checked out (unlocked).
         /// Also thrown if the <paramref name="user"/> cannot be recognized as a path or id of an existing
         /// <c>User</c>.</exception>
@@ -678,6 +817,64 @@ namespace SenseNet.ContentRepository
         /// few security activities.
         /// </summary>
         /// <snCategory>Security</snCategory>
+        /// <remarks>
+        /// Example response (truncated):
+        /// <code>
+        /// {
+        ///   "State": {
+        ///     "Serializer": {
+        ///       "LastQueued": 154,
+        ///       "QueueLength": 0,
+        ///       "Queue": []
+        ///     },
+        ///     "DependencyManager": {
+        ///       "WaitingSetLength": 0,
+        ///       "WaitingSet": []
+        ///     },
+        ///     "Termination": {
+        ///       "LastActivityId": 154,
+        ///       "GapsLength": 0,
+        ///       "Gaps": []
+        ///     }
+        ///   },
+        ///   "Message": null,
+        ///   "RecentLength": 154,
+        ///   "Recent": [
+        ///     {
+        ///       "Id": 1,
+        ///       "TypeName": "CreateSecurityEntityActivity",
+        ///       "FromReceiver": false,
+        ///       "FromDb": false,
+        ///       "IsStartup": false,
+        ///       "Error": null,
+        ///       "WaitedFor": null,
+        ///       "ArrivedAt": "2020-08-27T08:46:16.0132362Z",
+        ///       "StartedAt": "2020-08-27T08:46:16.0150841Z",
+        ///       "FinishedAt": "2020-08-27T08:46:16.0294322Z",
+        ///       "WaitTime": "00:00:00.0018479",
+        ///       "ExecTime": "00:00:00.0143481",
+        ///       "FullTime": "00:00:00.0161960"
+        ///     },
+        ///     {
+        ///       "Id": 2,
+        ///       "TypeName": "CreateSecurityEntityActivity",
+        ///       "FromReceiver": false,
+        ///       "FromDb": false,
+        ///       "IsStartup": false,
+        ///       "Error": null,
+        ///       "WaitedFor": [
+        ///         1
+        ///       ],
+        ///       "ArrivedAt": "2020-08-27T08:46:16.019736Z",
+        ///       "StartedAt": "2020-08-27T08:46:16.0300987Z",
+        ///       "FinishedAt": "2020-08-27T08:46:16.031381Z",
+        ///       "WaitTime": "00:00:00.0103627",
+        ///       "ExecTime": "00:00:00.0012823",
+        ///       "FullTime": "00:00:00.0116450"
+        ///     }
+        ///     ...
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
         /// <returns>A <see cref="SenseNet.Security.Messaging.SecurityActivityHistory"/> instance.</returns>
         [ODataFunction]
@@ -693,6 +890,47 @@ namespace SenseNet.ContentRepository
         /// few indexing activities.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// A possible response:
+        /// <code>
+        /// {
+        ///   "State": {
+        ///     "Serializer": {
+        ///       "LastQueued": 1,
+        ///       "QueueLength": 0,
+        ///       "Queue": []
+        ///     },
+        ///     "DependencyManager": {
+        ///       "WaitingSetLength": 0,
+        ///       "WaitingSet": []
+        ///     },
+        ///     "Termination": {
+        ///       "LastActivityId": 1,
+        ///       "Gaps": []
+        ///     }
+        ///   },
+        ///   "Message": null,
+        ///   "RecentLength": 1,
+        ///   "Recent": [
+        ///     {
+        ///       "Id": 1,
+        ///       "TypeName": "AddDocument",
+        ///       "FromReceiver": false,
+        ///       "FromDb": false,
+        ///       "IsStartup": false,
+        ///       "Error": null,
+        ///       "WaitedFor": null,
+        ///       "ArrivedAt": "2020-08-27T08:46:16.3838978Z",
+        ///       "StartedAt": "2020-08-27T08:46:16.3855456Z",
+        ///       "FinishedAt": "2020-08-27T08:46:16.3969588Z",
+        ///       "WaitTime": "00:00:00.0016478",
+        ///       "ExecTime": "00:00:00.0114132",
+        ///       "FullTime": "00:00:00.0130610"
+        ///     }
+        ///   ]
+        /// }
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
         /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
         [ODataFunction]
@@ -708,6 +946,31 @@ namespace SenseNet.ContentRepository
         /// WARNING: Do not use in production environment.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
+        /// <remarks>
+        /// A possible response:
+        /// <code>
+        /// {
+        ///   "State": {
+        ///     "Serializer": {
+        ///       "LastQueued": 0,
+        ///       "QueueLength": 0,
+        ///       "Queue": []
+        ///     },
+        ///     "DependencyManager": {
+        ///       "WaitingSetLength": 0,
+        ///       "WaitingSet": []
+        ///     },
+        ///     "Termination": {
+        ///       "LastActivityId": 0,
+        ///       "Gaps": []
+        ///     }
+        ///   },
+        ///   "Message": null,
+        ///   "RecentLength": 0,
+        ///   "Recent": []
+        /// }
+        /// </code>
+        /// </remarks>
         /// <param name="content"></param>
         /// <returns>An <see cref="IndexingActivityHistory"/> instance.</returns>
         [ODataAction]
@@ -734,10 +997,68 @@ namespace SenseNet.ContentRepository
         /// WARNING! The operation can be slow so use only in justified cases and as small as possible scope.
         /// </summary>
         /// <snCategory>Security</snCategory>
-        /// <para>Compares the security cache and the main database. the investigation covers the
+        /// <remarks>Compares the security cache and the main database. the investigation covers the
         /// parallelism of the entity vs content structure, membership vs content-references,
-        /// and entity-identity existence in the security entries.
+        /// and entity-identity existence in the security entries. If the security data is consistent,
+        /// the response is the following (the comments are not part of the response):
+        /// <code>
+        /// {
+        ///   "IsConsistent": true,                    // aggregated all categories validity
+        ///   "IsMembershipConsistent": true,          // aggregated membership category validity
+        ///   "IsEntityStructureConsistent": true,     // aggregated entity structure category validity
+        ///   "IsAcesConsistent": true,                // aggregated ACE category validity
+        ///   "ElapsedTime": "00:00:00.0087222",       // time of investigation
+        ///   "MissingEntitiesFromRepository": [],     // entity structure category (SecurityEntityInfo[])
+        ///   "MissingEntitiesFromSecurityDb": [],     // entity structure category (SecurityEntityInfo[])
+        ///   "MissingEntitiesFromSecurityCache": [],  // entity structure category (SecurityEntityInfo[])
+        ///   "MissingMembershipsFromCache": [],       // membership category (SecurityMembershipInfo[])
+        ///   "UnknownMembershipInSecurityDb": [],     // membership category (SecurityMembershipInfo[])
+        ///   "MissingMembershipsFromSecurityDb": [],  // membership category (SecurityMembershipInfo[])
+        ///   "UnknownMembershipInCache": [],          // membership category (SecurityMembershipInfo[])
+        ///   "MissingRelationFromFlattenedUsers": [], // membership category (SecurityMembershipInfo[])
+        ///   "UnknownRelationInFlattenedUsers": [],   // membership category (SecurityMembershipInfo[])
+        ///   "InvalidACE_MissingEntity": [],          // ACE category (StoredAceDebugInfo[])
+        ///   "InvalidACE_MissingIdentity": []         // ACE category (StoredAceDebugInfo[])
+        /// }
+        /// </code>
+        /// In case of invalid data, any category item contains one or more sub-items.
+        /// Here is an example for every item type.
+        /// <para>
+        /// <c>SecurityEntityInfo</c> example (an item in MissingEntitiesFromRepository, MissingEntitiesFromSecurityDb, MissingEntitiesFromSecurityCache)
+        /// <code>
+        /// {
+        ///   "Id": 1,
+        ///   "ParentId": 5,
+        ///   "OwnerId": 1,
+        ///   "Path": "/Root/IMS/BuiltIn/Portal/Admin"
+        /// }
+        /// </code>
         /// </para>
+        /// <para>
+        /// <c>SecurityMembershipInfo</c> example (an item in MissingMembershipsFromCache, UnknownMembershipInSecurityDb, MissingMembershipsFromSecurityDb, UnknownMembershipInCache, MissingRelationFromFlattenedUsers, UnknownRelationInFlattenedUsers)
+        /// <code>
+        /// {
+        ///   "GroupId": 5,
+        ///   "MemberId": 9,
+        ///   "GroupPath": "/Root/IMS/BuiltIn/Portal",
+        ///   "MemberPath": "/Root/IMS/BuiltIn/Portal/Owners"
+        /// }
+        /// </code>
+        /// </para>
+        /// <para>
+        /// <c>StoredAceDebugInfo</c> example (an item in InvalidACE_MissingEntity, InvalidACE_MissingIdentity)
+        /// <code>
+        /// {
+        ///   "EntityId": 2,
+        ///   "IdentityId": 7,
+        ///   "LocalOnly": false,
+        ///   "AllowBits": 524287,
+        ///   "DenyBits": 0,
+        ///   "StringView": "(2)|Normal|+(7):_____________________________________________+++++++++++++++++++"
+        /// }
+        /// </code>
+        /// </para>
+        /// </remarks>
         /// <param name="content">The scope content.</param>
         /// <returns>The SecurityConsistencyResult instance.</returns>
         [ODataFunction]
