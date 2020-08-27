@@ -166,7 +166,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
         [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
-        [ContentTypes(N.CT.GenericContent)]
+        [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
         [Scenario(N.S.ListItem, N.S.ContextMenu)]
         [RequiredPermissions(N.P.Delete)]
