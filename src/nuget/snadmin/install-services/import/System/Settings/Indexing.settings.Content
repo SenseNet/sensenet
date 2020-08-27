@@ -6,6 +6,7 @@
     <Binary attachment="Indexing.settings" />
     <GlobalOnly>true</GlobalOnly>
     <Index>50</Index>
+    <Description><![CDATA[In this Settings file you can customize the indexing behavior (for example the text extractor used in case of different file types) of the system.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="MailProcessor.settings" />
     <Index>200</Index>
+    <Description><![CDATA[The content list Inbox feature requires an Exchange or POP3 server configuration and other settings related to connecting libraries to a mailbox.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

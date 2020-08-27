@@ -6,6 +6,7 @@
     <Binary attachment="TaskManagement.settings" />
     <GlobalOnly>true</GlobalOnly>
     <Index>400</Index>
+    <Description><![CDATA[When the Task Management module is installed, this is the place where you can configure the connection to the central task management service.]]></Description>
   </Fields>
   <Permissions>
     <Clear />
