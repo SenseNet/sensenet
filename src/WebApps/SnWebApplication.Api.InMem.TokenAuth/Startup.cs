@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
 
@@ -39,11 +40,13 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                 })
                 .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"]);
 
-            // [sensenet]: Registration
-            services.AddSenseNetRegistration();
-
-            // [sensenet]: add allowed client SPA urls
-            services.AddSenseNetCors();
+            // [sensenet]: add sensenet services
+            services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
+            {
+                repositoryBuilder
+                    .BuildInMemoryRepository()
+                    .UseAccessProvider(new UserAccessProvider());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

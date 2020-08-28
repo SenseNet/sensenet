@@ -4,50 +4,56 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.Diagnostics;
-using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Tools;
 
-namespace SenseNet.ContentRepository.InMemory
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class InMemoryExtensions
     {
         public static RepositoryInstance StartInMemoryRepository(Action<IRepositoryBuilder> buildRepository = null)
         {
-            var dataProvider = new InMemoryDataProvider();
-
             //TODO:~ missing repo start pieces
-            // - configuration
             // - user access provider
             
             var repositoryBuilder = new RepositoryBuilder()
-                    .UseLogger(new DebugWriteLoggerAdapter())
-                    //.UseAccessProvider(new UserAccessProvider())
-                    .UseDataProvider(dataProvider)
-                    .UseInitialData(InitialData.Load(SenseNetServicesData.Instance))
-                    .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
-                    .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
-                    .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                    .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
-                    .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
-                    .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
-                    .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
-                    .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                    .StartWorkflowEngine(false)
-                    as RepositoryBuilder;
-
-            Providers.Instance.PropertyCollector = new EventPropertyCollector();
+                .BuildInMemoryRepository();
 
             buildRepository?.Invoke(repositoryBuilder);
 
-            var repository = Repository.Start(repositoryBuilder);
+            return Repository.Start(repositoryBuilder);
+        }
 
-            return repository;
+        public static IRepositoryBuilder BuildInMemoryRepository(this IRepositoryBuilder repositoryBuilder)
+        {
+            var dataProvider = new InMemoryDataProvider();
+
+            repositoryBuilder
+                .UseLogger(new DebugWriteLoggerAdapter())
+                .UseTracer(new SnDebugViewTracer())
+                .UseDataProvider(dataProvider)
+                .UseInitialData(InitialData.Load(SenseNetServicesData.Instance))
+                .UseSharedLockDataProviderExtension(new InMemorySharedLockDataProvider())
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
+                .UsePackagingDataProviderExtension(new InMemoryPackageStorageProvider())
+                .UseSearchEngine(new InMemorySearchEngine(GetInitialIndex()))
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .StartWorkflowEngine(false);
+
+            Providers.Instance.PropertyCollector = new EventPropertyCollector();
+            
+            return repositoryBuilder;
         }
 
         private static ISecurityDataProvider GetSecurityDataProvider(DataProvider repo)
