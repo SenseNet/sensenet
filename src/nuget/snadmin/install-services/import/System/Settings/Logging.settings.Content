@@ -6,6 +6,7 @@
     <Binary attachment="Logging.settings" />
     <GlobalOnly>true</GlobalOnly>
     <Index>100</Index>
+    <Description><![CDATA[Contains logging-related settings, for example which events are sent to the trace. You can control tracing by category: switch on or off writing messages in certain categories to the trace channel.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

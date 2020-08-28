@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="OfficeOnline.settings" />
     <Index>40</Index>
+    <Description><![CDATA[To open or edit Office documents in the browser, the system needs to know the address of the Office Online Server that provides the user interface for the feature. In this section you can configure that and other OOS-related settings.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

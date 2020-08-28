@@ -6,6 +6,7 @@
     <Binary attachment="UserProfile.settings" />
     <GlobalOnly>true</GlobalOnly>
     <Index>200</Index>
+    <Description><![CDATA[When a user is created, and the profile feature is enabled (in the app configuration), they automatically get a profile – a workspace dedicated to the user’s personal documents and tasks. In this setting section you can customize the content type and the place of this profile.]]></Description>
   </Fields>
   <Permissions>
     <Clear />
