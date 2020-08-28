@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
 
 namespace SnWebApplication.Api.InMem.Admin
@@ -26,15 +27,14 @@ namespace SnWebApplication.Api.InMem.Admin
 
             // [sensenet]: Authentication: switched off below
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
-            
-            services.AddSenseNetRegistration(options =>
-            {
-                // add newly registered users to this group
-                options.Groups.Add("/Root/IMS/Public/Administrators");
-            });
 
-            // [sensenet]: add allowed client SPA urls
-            services.AddSenseNetCors();
+            // [sensenet]: add sensenet services
+            services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
+            {
+                repositoryBuilder
+                    .BuildInMemoryRepository()
+                    .UseAccessProvider(new UserAccessProvider());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
