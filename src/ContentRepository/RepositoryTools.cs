@@ -310,7 +310,7 @@ namespace SenseNet.ContentRepository
 
 
         /// <summary>
-        /// Checks all IFolder objects in the repository and returns all paths where AllowedChildTypes is empty.
+        /// Checks all IFolder objects in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
         /// <snCategory>Content-types</snCategory>
         /// <remarks>
@@ -328,7 +328,7 @@ namespace SenseNet.ContentRepository
         /// }
         /// </code>
         /// </remarks>
-        /// <param name="root">Subtree to check.</param>
+        /// <param name="root"></param>
         /// <returns>A dictionary where the ContentType name is the key and a path lists is the value.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -424,7 +424,7 @@ namespace SenseNet.ContentRepository
         /// Returns the list of content-types that are allowed in the content-type of the requested content.
         /// </summary>
         /// <snCategory>Content-types</snCategory>
-        /// <param name="content">The requested content.</param>
+        /// <param name="content"></param>
         /// <returns>Content list of content-types.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
@@ -451,7 +451,7 @@ namespace SenseNet.ContentRepository
         /// ]
         /// </code>
         /// </remarks>
-        /// <param name="root">Examination scope.</param>
+        /// <param name="root"></param>
         /// <returns>Path list.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
@@ -480,7 +480,7 @@ namespace SenseNet.ContentRepository
         /// the last is the Root or closest permitted content to the Root.
         /// </summary>
         /// <snCategory>Tools</snCategory>
-        /// <param name="content">The requested Content.</param>
+        /// <param name="content"></param>
         /// <returns>Content list of the ancestors.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
@@ -509,7 +509,7 @@ namespace SenseNet.ContentRepository
         /// that are not in the <paramref name="exceptList"/>.
         /// </summary>
         /// <snCategory>Security</snCategory>
-        /// <param name="root">The scope content.</param>
+        /// <param name="root"></param>
         /// <param name="exceptList">White list of the untouched Contents.</param>
         /// <returns><c>Ok</c> if the operation is successfully executed.</returns>
         [ODataAction]
@@ -719,7 +719,7 @@ namespace SenseNet.ContentRepository
         /// The operation requires <c>TakeOwnership</c> permission.
         /// </summary>
         /// <snCategory>Permissions</snCategory>
-        /// <param name="content">The requested content.</param>
+        /// <param name="content"></param>
         /// <param name="userOrGroup">Path or id of the desired owner.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
         /// as a path or id. Also thrown this exception if the identified content is not a User or Group.</exception>
@@ -766,7 +766,7 @@ namespace SenseNet.ContentRepository
         /// Current user must have <c>ForceCheckin</c> permission.
         /// </summary>
         /// <snCategory>Permissions</snCategory>
-        /// <param name="content">The requested content.</param>
+        /// <param name="content"></param>
         /// <param name="user">Path or id of the desired lock owner User.</param>
         /// <returns><c>Ok</c> if the operation is executed successfully.</returns>
         /// <exception cref="ArgumentException">Thrown if the content is not checked out (unlocked).
@@ -1059,7 +1059,7 @@ namespace SenseNet.ContentRepository
         /// </code>
         /// </para>
         /// </remarks>
-        /// <param name="content">The scope content.</param>
+        /// <param name="content"></param>
         /// <returns>The SecurityConsistencyResult instance.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
