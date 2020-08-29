@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using SenseNet.Services.Core.Authentication.IdentityServer4;
 
-namespace SenseNet.Services.Core.Authentication.IdentityServer4
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Extensions.DependencyInjection
 {
     public static class IdentityServerExtensions
     {
@@ -17,9 +19,9 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="configure">Configure method.</param>
         public static IServiceCollection AddSenseNetIdentityServerClients(this IServiceCollection services, 
-            Action<SnClientRequestOptions> configure = null)
+            Action<ClientRequestOptions> configure = null)
         {
-            services.Configure<SnClientRequestOptions>(options =>
+            services.Configure<ClientRequestOptions>(options =>
             {
                 // add default clients
                 options.Clients.Add(new SnIdentityServerClient

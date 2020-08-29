@@ -35,7 +35,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
-            services.Configure<SnClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
+            services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
             
             return services;
         }
