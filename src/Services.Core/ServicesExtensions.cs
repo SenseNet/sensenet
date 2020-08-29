@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
+using SenseNet.Services.Core.Authentication.IdentityServer4;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -33,6 +34,14 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
+            services.Configure<SnClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
+
+            //TODO: set authority using strongly typed options
+            services.Configure<SnClientRequestOptions>(options =>
+            {
+                // get authority from the authentication configuration class to avoid duplication
+                options.Authority = configuration["sensenet:authentication:authority"];
+            });
 
             return services;
         }
@@ -54,6 +63,7 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddSenseNetTaskManager()
                 .AddSenseNetDocumentPreviewProvider()
                 .AddSenseNetCors()
+                .AddSenseNetIdentityServerClients()
                 .AddSenseNetRegistration();
 
             // add maintenance tasks

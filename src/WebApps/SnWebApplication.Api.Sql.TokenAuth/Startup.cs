@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using SenseNet.Configuration;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Security.EFCSecurityStore;
-using SenseNet.Services.Core.Authentication.IdentityServer4;
 
 namespace SnWebApplication.Api.Sql.TokenAuth
 {
@@ -40,8 +39,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
-                })
-                .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"]);
+                });
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
