@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
@@ -19,10 +20,11 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 
             try
             {
-                if (!(context.RequestServices.GetService(typeof(ISnClientRequestParametersProvider)) is ISnClientRequestParametersProvider provider))
-                    return new Dictionary<string, string>();
+                var provider = context.RequestServices.GetRequiredService<ISnClientRequestParametersProvider>();
 
-                return provider.GetClientParameters(context, clientType);
+                return provider == null 
+                    ? new Dictionary<string, string>() 
+                    : provider.GetClientParameters(context, clientType);
             }
             catch (Exception ex)
             {

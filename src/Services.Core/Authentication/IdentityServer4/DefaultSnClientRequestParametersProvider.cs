@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace SenseNet.Services.Core.Authentication.IdentityServer4
 {
@@ -10,13 +11,17 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         private readonly IDictionary<string, IDictionary<string, string>> _parameters =
             new Dictionary<string, IDictionary<string, string>>();
 
-        public DefaultSnClientRequestParametersProvider(SnClientRequestOptions options)
+        public DefaultSnClientRequestParametersProvider(IOptions<ClientRequestOptions> clientOptions, 
+            IOptions<AuthenticationOptions> authOptions)
         {
-            foreach (var client in options.Clients)
+            var crOptions = clientOptions?.Value ?? new ClientRequestOptions();
+            var authority = authOptions?.Value?.Authority ?? string.Empty;
+
+            foreach (var client in crOptions.Clients)
             {
                 _parameters.Add(client.ClientType, new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
                 {
-                    { "authority", options.Authority },
+                    { "authority", authority },
                     { "client_id", client.ClientId }
                 }));
             }

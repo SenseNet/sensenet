@@ -2,6 +2,7 @@
 using System;
 using SenseNet.Services.Core.Authentication;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
     /// <summary>
