@@ -10,8 +10,6 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 
     public class SnClientRequestOptions
     {
-        public string Authority { get; set; }
-
         public ICollection<SnIdentityServerClient> Clients { get; } = new List<SnIdentityServerClient>();
     }
 }

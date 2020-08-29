@@ -11,14 +11,17 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
         private readonly IDictionary<string, IDictionary<string, string>> _parameters =
             new Dictionary<string, IDictionary<string, string>>();
 
-        public DefaultSnClientRequestParametersProvider(IOptions<SnClientRequestOptions> options)
+        public DefaultSnClientRequestParametersProvider(IOptions<SnClientRequestOptions> clientOptions, 
+            IOptions<AuthenticationOptions> authOptions)
         {
-            var crOptions = options?.Value ?? new SnClientRequestOptions();
+            var crOptions = clientOptions?.Value ?? new SnClientRequestOptions();
+            var authority = authOptions?.Value?.Authority ?? string.Empty;
+
             foreach (var client in crOptions.Clients)
             {
                 _parameters.Add(client.ClientType, new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
                 {
-                    { "authority", crOptions.Authority },
+                    { "authority", authority },
                     { "client_id", client.ClientId }
                 }));
             }

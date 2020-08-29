@@ -34,15 +34,9 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<TaskManagementOptions>(configuration.GetSection("sensenet:TaskManagement"));
             services.Configure<EmailOptions>(configuration.GetSection("sensenet:Email"));
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
+            services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<SnClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
-
-            //TODO: set authority using strongly typed options
-            services.Configure<SnClientRequestOptions>(options =>
-            {
-                // get authority from the authentication configuration class to avoid duplication
-                options.Authority = configuration["sensenet:authentication:authority"];
-            });
-
+            
             return services;
         }
 
