@@ -66,10 +66,7 @@ namespace SnWebApplication.Api.Sql.TokenAuth
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
-            app.UseSenseNetAuthentication(options =>
-            {
-                options.AddJwtCookie = true;
-            });
+            app.UseSenseNetAuthentication();
 
             // [sensenet]: MembershipExtender middleware
             app.UseSenseNetMembershipExtenders();

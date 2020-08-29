@@ -1,32 +1,17 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
+using SenseNet.Services.Core.Authentication;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Extensions.DependencyInjection
 {
-    public class SenseNetAuthenticationOptions
-    {
-        /// <summary>
-        /// Add a cookie containing the JWT bearer token if it was sent in the
-        /// request header. If this cookie is sent by the client later and
-        /// there is no authorization header, the system will set the value
-        /// in the header.
-        /// Use this setting only if you need to authenticate requests (e.g file
-        /// download) where it is not possible to send the JWT token in the header.
-        /// Default is false.
-        /// </summary>
-        public bool AddJwtCookie { get; set; }
-        public Func<ClaimsPrincipal, Task<User>> FindUserAsync { get; set; }
-    }
-
     internal static class IdentityConstants
     {
         /// <summary>
@@ -41,41 +26,43 @@ namespace SenseNet.Extensions.DependencyInjection
         internal const string HeaderAuthorization = "Authorization";
         internal const string HeaderBearerPrefix = "Bearer ";
 
-        internal static readonly string[] ClaimIdentifiers = new string[] { "sub", "client_sub" };
+        internal static readonly string[] ClaimIdentifiers = { "sub", "client_sub" };
     }
 
     public static class IdentityExtensions
     {
         /// <summary>
-        /// Adds the Authentication middleware and a middleware for setting the sensenet current user.
+        /// Configures sensenet Authentication. Calling this service method is optional if
+        /// you do not want to add custom configuration.
         /// </summary>
-        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
-        /// <returns>A reference to this instance after the operation has completed.</returns>
-        public static IApplicationBuilder UseSenseNetAuthentication(this IApplicationBuilder app)
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="configure">Configuration method for authentication options.</param>
+        public static IServiceCollection AddSenseNetAuthentication(this IServiceCollection services, Action<AuthenticationOptions> configure)
         {
-            return app.UseSenseNetAuthentication(null);
+            if (configure != null)
+                services.Configure(configure);
+
+            return services;
         }
 
         /// <summary>
-        /// Adds the Authentication middleware and a middleware for setting the sensenet current user.
+        /// Adds the Asp.Net Authentication middleware and a middleware for setting the sensenet current user.
         /// </summary>
-        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
-        /// <param name="configure">Configure sensenet authentication.</param>
+        /// <param name="app">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
         /// <returns>A reference to this instance after the operation has completed.</returns>
-        public static IApplicationBuilder UseSenseNetAuthentication(this IApplicationBuilder app, Action<SenseNetAuthenticationOptions> configure)
+        public static IApplicationBuilder UseSenseNetAuthentication(this IApplicationBuilder app)
         {
-            var options = new SenseNetAuthenticationOptions();
-            configure?.Invoke(options);
+            var options = app.ApplicationServices.GetService<IOptions<AuthenticationOptions>>()?.Value;
 
             // add the optional cookie reader middleware - default is false
-            if (options.AddJwtCookie)
+            if (options?.AddJwtCookie ?? false)
                 app.UseSenseNetJwtCookieReader();
 
             app.UseAuthentication();
-            app.UseSenseNetUser(options, null);
+            app.UseSenseNetUser();
 
             // add the optional cookie writer middleware - default is false
-            if (options.AddJwtCookie)
+            if (options?.AddJwtCookie ?? false)
                 app.UseSenseNetJwtCookieWriter();
 
             return app;
@@ -84,23 +71,10 @@ namespace SenseNet.Extensions.DependencyInjection
         /// <summary>
         /// Adds a middleware for setting the sensenet current user.
         /// </summary>
-        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
+        /// <param name="app">The <see cref="IApplicationBuilder"/> to add the middleware to.</param>
         /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IApplicationBuilder UseSenseNetUser(this IApplicationBuilder app)
         {
-            return UseSenseNetUser(app, new SenseNetAuthenticationOptions(), null);
-        }
-
-        /// <summary>
-        /// Adds a middleware for setting the sensenet current user.
-        /// </summary>
-        /// <param name="app">The Microsoft.AspNetCore.Builder.IApplicationBuilder to add the middleware to.</param>
-        /// <returns>A reference to this instance after the operation has completed.</returns>
-        private static IApplicationBuilder UseSenseNetUser(this IApplicationBuilder app, SenseNetAuthenticationOptions options, 
-            Action<SenseNetAuthenticationOptions> configure)
-        {
-            configure?.Invoke(options);
-
             app.Use(async (context, next) =>
             {
                 var identity = context?.User?.Identity;
@@ -111,10 +85,12 @@ namespace SenseNet.Extensions.DependencyInjection
                 // user in elevated mode (using system account).
                 if (identity?.IsAuthenticated ?? false)
                 {
+                    var options = context.RequestServices.GetService<IOptions<AuthenticationOptions>>()?.Value;
+
                     // if the caller provided a custom user loader method
-                    if (options.FindUserAsync != null)
+                    if (options?.FindUserAsync != null)
                     {
-                        user = await options.FindUserAsync(context.User);
+                        user = await options.FindUserAsync(context.User).ConfigureAwait(false);
                     }
                     else
                     { 

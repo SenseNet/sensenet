@@ -59,10 +59,7 @@ namespace SnWebApplication.Api.Sql.Admin
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
-            app.UseSenseNetAuthentication(options =>
-            {
-                options.AddJwtCookie = true;
-            });
+            app.UseSenseNetAuthentication();
 
             // [sensenet]: Authentication: in this test project everybody
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
