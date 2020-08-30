@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
-        /// <param name="checkInComments">The modifier's comments.</param>
+        /// <param name="checkInComments" example="Very good.">The modifier's comments.</param>
         /// <exception cref="Exception">An exception will be thrown if the <paramref name="checkInComments"/> is
         /// missing and the value of the requested content's <c>CheckInCommentsMode</c> is <c>Compulsory</c>.</exception>
         /// <returns>The modified content.</returns>
@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
-        /// <param name="rejectReason">The reviewer's comments.</param>
+        /// <param name="rejectReason" example="Rewrite please.">The reviewer's comments.</param>
         /// <returns>The modified content.</returns>
         [ODataAction(Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
