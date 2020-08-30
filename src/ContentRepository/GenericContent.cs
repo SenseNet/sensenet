@@ -1336,12 +1336,13 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Extends the Content's AllowedChildTypes collection with the provided Content types.
-        /// The Content will be saved after the operation.
-        /// This is an <see cref="ODataAction"/>. 
+        /// Extends the requested content's AllowedChildTypes collection with the provided Content types.
+        /// <nodoc>The Content will be saved after the operation.
+        /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <param name="content">The <see cref="SenseNet.ContentRepository.Content"/> that will be modified.</param>
-        /// <param name="contentTypes">The extension.</param>
+        /// <snCategory>Content types</snCategory>
+        /// <param name="content"></param>
+        /// <param name="contentTypes" example='["Task", "Event"]'>The extension.</param>
         /// <returns>Empty string.</returns>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
@@ -1355,11 +1356,12 @@ namespace SenseNet.ContentRepository
             return string.Empty;
         }
         /// <summary>
-        /// Removes the specified Content types from the given Content's AllowedChildTypes collection.
-        /// The Content will be saved after the operation.
-        /// This is an <see cref="ODataAction"/>. 
+        /// Removes the specified Content types from the requested content's AllowedChildTypes collection.
+        /// <nodoc>The Content will be saved after the operation.
+        /// This is an <see cref="ODataAction"/>.</nodoc>
         /// </summary>
-        /// <param name="content">The <see cref="SenseNet.ContentRepository.Content"/> that will be modified.</param>
+        /// <snCategory>Content types</snCategory>
+        /// <param name="content"></param>
         /// <param name="contentTypes">The items that will be removed.</param>
         /// <returns>Empty string.</returns>
         [ODataAction]
