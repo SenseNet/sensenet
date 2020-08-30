@@ -114,6 +114,64 @@ namespace SenseNet.ContentRepository
             RepositoryInstance.Shutdown();
         }
 
+        /// <summary>
+        /// Provides version information about all components / packages / assemblies of the running sensenet system.
+        /// </summary>
+        /// <snCategory>Other</snCategory>
+        /// <remarks>
+        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
+        /// backup descriptors as a backup history if there is any finished backup since the application start.
+        /// For example:
+        /// <code>
+        /// {
+        ///   "Components": [
+        ///     {
+        ///       "ComponentId": "SenseNet.Services",
+        ///       "Version": "7.7.13.4",
+        ///       "AcceptableVersion": "7.7.13.4",
+        ///       "Description": "sensenet Services"
+        ///     }
+        ///   ],
+        ///   "Assemblies": {
+        ///     "SenseNet": [
+        ///       {
+        ///         "Name": "SenseNet.BlobStorage, Version=7.5.0.0, Culture=neutral, PublicKeyToken=null",
+        ///         "IsDynamic": false,
+        ///         "Version": "7.5.0.0 Debug"
+        ///       },
+        ///       {
+        ///         "Name": "SenseNet.Security, Version=4.1.0.0, Culture=neutral, PublicKeyToken=null",
+        ///         "IsDynamic": false,
+        ///         "Version": "4.1.0.0 Release"
+        ///       },
+        ///       ...
+        ///     ],
+        ///     "Plugins": [ ... ],
+        ///     "GAC": [...],
+        ///     "Other": [...],
+        ///     "Dynamic": [...]
+        ///   },
+        ///   "InstalledPackages": [
+        ///     {
+        ///       "Id": 1,
+        ///       "Description": "sensenet Services",
+        ///       "ComponentId": "SenseNet.Services",
+        ///       "PackageType": 2,
+        ///       "ReleaseDate": "2020-08-30T08:38:38.0209081Z",
+        ///       "ExecutionDate": "2020-08-30T08:38:38.021009Z",
+        ///       "ExecutionResult": 0,
+        ///       "ComponentVersion": "7.7.13.4",
+        ///       "ExecutionError": null,
+        ///       "Manifest": null
+        ///     }
+        ///   ],
+        ///   "DatabaseAvailable": true
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <returns>A <see cref="RepositoryVersionInfo"/> instance containing package, component, assembly
+        /// versions.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
