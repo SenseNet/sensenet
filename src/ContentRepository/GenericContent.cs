@@ -522,14 +522,15 @@ namespace SenseNet.ContentRepository
                 var value = this.GetProperty<string>(ALLOWEDCHILDTYPES);
                 if (string.IsNullOrEmpty(value))
                     return ContentType.EmptyAllowedChildTypes;
-                var names = value.Split(ContentType.XmlListSeparators, StringSplitOptions.RemoveEmptyEntries);
+                var names = value.Split(ContentType.XmlListSeparators, StringSplitOptions.RemoveEmptyEntries)
+                    .Distinct().ToArray();
                 var result = new List<ContentType>(names.Length);
                 result.AddRange(names.Select(ContentType.GetByName).Where(t => t != null));
                 return result;
             }
             set
             {
-                var names = value == null ? null : string.Join(" ", value.Select(x => x.Name));
+                var names = value == null ? null : string.Join(" ", value.Select(x => x.Name).Distinct());
                 this[ALLOWEDCHILDTYPES] = names;
             }
         }

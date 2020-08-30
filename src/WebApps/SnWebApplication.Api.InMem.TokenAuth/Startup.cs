@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Services.Core.Authentication;
-using SenseNet.Services.Core.Authentication.IdentityServer4;
 
 namespace SnWebApplication.Api.InMem.TokenAuth
 {
@@ -37,12 +36,15 @@ namespace SnWebApplication.Api.InMem.TokenAuth
                     options.SaveToken = true;
 
                     options.Audience = "sensenet";
-                })
-                .AddDefaultSenseNetIdentityServerClients(Configuration["sensenet:authentication:authority"])
-                .AddSenseNetRegistration();
+                });
 
-            // [sensenet]: add allowed client SPA urls
-            services.AddSenseNetCors();
+            // [sensenet]: add sensenet services
+            services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
+            {
+                repositoryBuilder
+                    .BuildInMemoryRepository()
+                    .UseAccessProvider(new UserAccessProvider());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -60,10 +62,7 @@ namespace SnWebApplication.Api.InMem.TokenAuth
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
-            app.UseSenseNetAuthentication(options =>
-            {
-                options.AddJwtCookie = true;
-            });
+            app.UseSenseNetAuthentication();
 
             // [sensenet]: MembershipExtender middleware
             app.UseSenseNetMembershipExtenders();

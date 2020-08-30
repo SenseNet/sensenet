@@ -5,6 +5,7 @@
   <Fields>
     <Binary attachment="Sharing.settings" />
     <Index>60</Index>
+    <Description><![CDATA[Content sharing related options.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

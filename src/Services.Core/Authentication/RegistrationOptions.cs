@@ -12,5 +12,9 @@ namespace SenseNet.Services.Core.Authentication
         /// Content type of newly created users. Default: User.
         /// </summary>
         public string UserType { get; set; }
+        /// <summary>
+        /// Container of newly created users. Default: /Root/IMS/Public
+        /// </summary>
+        public string ParentPath { get; set; }
     }
 }

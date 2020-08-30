@@ -6,6 +6,7 @@
     <Binary attachment="OAuth.settings" />
     <GlobalOnly>true</GlobalOnly>
     <Index>20</Index>
+    <Description><![CDATA[When users log in using one of the configured OAuth providers (like Google or Facebook), these settings control the type and place of the newly created users.]]></Description>
   </Fields>
   <Permissions>
     <Clear />

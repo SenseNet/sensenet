@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using SenseNet.ContentRepository.InMemory;
-using SenseNet.ContentRepository.Security;
-using SenseNet.Extensions.DependencyInjection;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -10,18 +7,7 @@ namespace SnWebApplication.Api.InMem.Admin
     {
         public static void Main(string[] args)
         {
-            var builder = CreateHostBuilder(args);
-            var host = builder.Build();
-
-            using (InMemoryExtensions.StartInMemoryRepository(repositoryBuilder =>
-            {
-                repositoryBuilder.UseAccessProvider(new UserAccessProvider());
-            }))
-            {
-                // put repository initialization here (e.g. import)
-
-                host.Run();
-            }
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

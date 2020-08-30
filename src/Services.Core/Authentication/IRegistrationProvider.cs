@@ -23,6 +23,11 @@ namespace SenseNet.Services.Core.Authentication
     public interface IRegistrationProvider
     {
         /// <summary>
+        /// Defines the service handled by the provider.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Create users based on the auth provider that they used for signing in
         /// - e.g. Google or GitHub.
         /// </summary>

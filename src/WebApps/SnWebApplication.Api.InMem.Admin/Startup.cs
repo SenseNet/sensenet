@@ -6,8 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security;
 using SenseNet.Extensions.DependencyInjection;
-using SenseNet.Services.Core.Authentication;
 
 namespace SnWebApplication.Api.InMem.Admin
 {
@@ -26,15 +26,15 @@ namespace SnWebApplication.Api.InMem.Admin
             services.AddRazorPages();
 
             // [sensenet]: Authentication: switched off below
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddSenseNetRegistration(options =>
-                {
-                    // add newly registered users to this group
-                    options.Groups.Add("/Root/IMS/Public/Administrators");
-                });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
-            // [sensenet]: add allowed client SPA urls
-            services.AddSenseNetCors();
+            // [sensenet]: add sensenet services
+            services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
+            {
+                repositoryBuilder
+                    .BuildInMemoryRepository()
+                    .UseAccessProvider(new UserAccessProvider());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,10 +52,7 @@ namespace SnWebApplication.Api.InMem.Admin
             // [sensenet]: custom CORS policy
             app.UseSenseNetCors();
             // [sensenet]: use Authentication and set User.Current
-            app.UseSenseNetAuthentication(options =>
-            {
-                options.AddJwtCookie = true;
-            });
+            app.UseSenseNetAuthentication();
 
             // [sensenet]: Authentication: in this test project everybody
             // is an administrator!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
