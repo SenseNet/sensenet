@@ -310,11 +310,11 @@ namespace SenseNet.ContentRepository
 
 
         /// <summary>
-        /// Checks all IFolder objects in the requested subtree and returns all paths where AllowedChildTypes is empty.
+        /// Checks all containers in the requested subtree and returns all paths where AllowedChildTypes is empty.
         /// </summary>
         /// <snCategory>ContentTypes</snCategory>
         /// <remarks>
-        /// The response is the content-paths where AllowedChildTypes is empty categorized by content type names.
+        /// The response is a list of content paths where AllowedChildTypes is empty categorized by content type names.
         /// Here is an annotated example:
         /// <code>
         /// {
@@ -329,7 +329,7 @@ namespace SenseNet.ContentRepository
         /// </code>
         /// </remarks>
         /// <param name="root"></param>
-        /// <returns>A dictionary where the ContentType name is the key and a path lists is the value.</returns>
+        /// <returns>A dictionary where the ContentType name is the key and a path list is the value.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
@@ -361,11 +361,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns all content-types.
+        /// Returns all content types.
         /// </summary>
         /// <snCategory>ContentTypes</snCategory>
         /// <param name="content"></param>
-        /// <returns>Content list of all content-types.</returns>
+        /// <returns>Content list of all content types.</returns>
         [ODataFunction("GetAllContentTypes")]
         [ContentTypes(N.CT.PortalRoot)]
         [AllowedRoles(N.R.Everyone)]
@@ -375,7 +375,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a path list of the non-deletable Contents.
+        /// Returns a path list of Contents that cannot be deleted.
         /// </summary>
         /// <snCategory>Security</snCategory>
         /// <remarks>
@@ -421,11 +421,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns the list of content-types that are allowed in the content-type of the requested content.
+        /// Returns the list of content types that are allowed in the content type of the requested content.
         /// </summary>
         /// <snCategory>ContentTypes</snCategory>
         /// <param name="content"></param>
-        /// <returns>Content list of content-types.</returns>
+        /// <returns>Content list of content types.</returns>
         [ODataFunction]
         [AllowedRoles(N.R.Everyone)]
         // ReSharper disable once InconsistentNaming
@@ -436,12 +436,12 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Returns a path list in the subtree of the requested content
-        /// containing items that have explicit security entry for Everyone group but
-        /// does not have explicit security entry for Visitor user.
+        /// containing items that have explicit security entry for the Everyone group but
+        /// do not have an explicit security entry for the Visitor user.
         /// </summary>
         /// <snCategory>Security</snCategory>
         /// <remarks>
-        /// The result example:
+        /// Result example:
         /// <code>
         /// [
         ///   "/Root/(apps)/GenericContent/Versions",
@@ -454,7 +454,7 @@ namespace SenseNet.ContentRepository
         /// <param name="root"></param>
         /// <returns>Path list.</returns>
         [ODataFunction]
-        [AllowedRoles(N.R.Everyone)]
+        [AllowedRoles(N.R.Administrators, N.R.Developers)]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
             var result = new List<string>();
@@ -477,11 +477,11 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Returns the requested content's ancestor chain. The first element is the parent,
-        /// the last is the Root or closest permitted content to the Root.
+        /// the last is the Root or the closest permitted content towards the Root.
         /// </summary>
         /// <snCategory>Tools</snCategory>
         /// <param name="content"></param>
-        /// <returns>Content list of the ancestors.</returns>
+        /// <returns>Content list of the ancestors of the requested content.</returns>
         [ODataFunction]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone, N.R.Visitor)]
@@ -504,13 +504,13 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Copies all explicit permission entries of the Everyone group to the Visitor user.
+        /// Copies all explicit permission entries of the Everyone group for the Visitor user.
         /// The copy operation is executed on all content in the subtree of the requested content
         /// that are not in the <paramref name="exceptList"/>.
         /// </summary>
         /// <snCategory>Security</snCategory>
         /// <param name="root"></param>
-        /// <param name="exceptList">White list of the untouched Contents.</param>
+        /// <param name="exceptList">White list of untouched Contents.</param>
         /// <returns><c>Ok</c> if the operation is successfully executed.</returns>
         [ODataAction]
         [AllowedRoles(N.R.Administrators, N.R.Developers)]
@@ -570,8 +570,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Takes a snapshot of the index and copies it to the given target.
-        /// Target is typically a directory in the filesystem.
-        /// The backup is exclusive operation, can be started only once.
+        /// The target is typically a directory in the filesystem.
+        /// The backup is an exclusive operation that can be started only once.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
@@ -612,7 +612,7 @@ namespace SenseNet.ContentRepository
         /// </code>
         /// </remarks>
         /// <param name="content"></param>
-        /// <param name="target">Target of the copied files.</param>
+        /// <param name="target">Target of the copy operation.</param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.
         /// </returns>
         [ODataAction]
@@ -631,8 +631,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
-        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
-        /// backup descriptors as a backup history if there is any finished backup since the application start.
+        /// The response contains a state, the current backup descriptor (if the backup is running) and a history of
+        /// backup operations that happened since the application has started.
         /// For example:
         /// <code>
         /// {
@@ -655,10 +655,10 @@ namespace SenseNet.ContentRepository
         /// | State     | Description                                                 |
         /// | --------- | ----------------------------------------------------------- |
         /// | Initial   | there has been no backup since the application was launched |
-        /// | Executing | the backup is currently running.                            |
-        /// | Canceled  | the last backup operation is broken without any error.      |
-        /// | Faulted   | an error occured during the last backup operation.          |
-        /// | Finished  | the last backup is successfully finished.                   |
+        /// | Executing | the backup is currently running                             |
+        /// | Canceled  | the last backup operation was canceled without error        |
+        /// | Faulted   | an error occured during the last backup operation           |
+        /// | Finished  | the last backup is successfully finished                    |
         /// </remarks>
         /// <param name="content"></param>
         /// <returns>A Task that represents the asynchronous operation and wraps the <see cref="BackupResponse"/>.</returns>
@@ -674,12 +674,12 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Requests the stopping the currently running backup operation.
+        /// Requests the termination of the currently running backup operation.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
-        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
-        /// backup descriptors as a backup history if there is any finished backup since the application start.
+        /// The response contains a state, the current backup descriptor (if the backup is running) and a history of
+        /// backup operations that happened since the application has started.
         /// For example:
         /// <code>
         /// {
@@ -714,7 +714,7 @@ namespace SenseNet.ContentRepository
         // ======================================================================================
 
         /// <summary>
-        /// Sets the passed <paramref name="userOrGroup"/> as the owner of the requested content.
+        /// Sets the provided <paramref name="userOrGroup"/> as the owner of the requested content.
         /// If the <paramref name="userOrGroup"/> is null, the current user will be the owner.
         /// The operation requires <c>TakeOwnership</c> permission.
         /// </summary>
@@ -722,7 +722,7 @@ namespace SenseNet.ContentRepository
         /// <param name="content"></param>
         /// <param name="userOrGroup">Path or id of the desired owner.</param>
         /// <exception cref="ArgumentException">Thrown if the <paramref name="userOrGroup"/> parameter cannot be recognized
-        /// as a path or id. Also thrown this exception if the identified content is not a User or Group.</exception>
+        /// as a path or id. The method also throws this exception if the identified content is not a User or a Group.</exception>
         [ODataAction]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.TakeOwnership)]
@@ -761,9 +761,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Current user transfers the lock ownership to the target <paramref name="user"/>.
-        /// If target <paramref name="user"/> is null, it will be the current user.
-        /// Current user must have <c>ForceCheckin</c> permission.
+        /// Transfers the lock on the requested content to the target <paramref name="user"/>.
+        /// If the target <paramref name="user"/> is null, the target will be the current user.
+        /// Current user must have <c>ForceCheckin</c> permission on the requested content.
         /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
@@ -943,7 +943,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// A developer tool that resets the indexing activity history.
-        /// WARNING: Do not use in production environment.
+        /// WARNING: Do not use it in a production environment.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
         /// <remarks>
@@ -982,10 +982,10 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// DEPRECATED. Checking index integrity online is not supported anymore. Use an offline solution of this problem.
+        /// DEPRECATED. Checking index integrity online is not supported anymore. Use an offline solution instead.
         /// </summary>
         /// <snCategory>Indexing</snCategory>
-        [Obsolete("Use an offline solution of this problem.")]
+        [Obsolete("Use an offline solution instead.")]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
@@ -994,12 +994,12 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Checks the security consistency in the subtree of the requested content.
-        /// WARNING! The operation can be slow so use only in justified cases and as small as possible scope.
+        /// WARNING! The operation can be slow so use it only in justified cases and with a scope as small as possible.
         /// </summary>
         /// <snCategory>Security</snCategory>
         /// <remarks>Compares the security cache and the main database. the investigation covers the
         /// parallelism of the entity vs content structure, membership vs content-references,
-        /// and entity-identity existence in the security entries. If the security data is consistent,
+        /// and entity-identity existence in security entries. If the security data is consistent,
         /// the response is the following (the comments are not part of the response):
         /// <code>
         /// {
@@ -1021,7 +1021,7 @@ namespace SenseNet.ContentRepository
         ///   "InvalidACE_MissingIdentity": []         // ACE category (StoredAceDebugInfo[])
         /// }
         /// </code>
-        /// In case of invalid data, any category item contains one or more sub-items.
+        /// In case of invalid state, at least one of the categories contains one or more sub-items.
         /// Here is an example for every item type.
         /// <para>
         /// <c>SecurityEntityInfo</c> example (an item in MissingEntitiesFromRepository, MissingEntitiesFromSecurityDb, MissingEntitiesFromSecurityCache)

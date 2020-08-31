@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Creates a new version of the requested content and locks exclusively for the current user.
+        /// Creates a new version of the requested content and locks it exclusively for the current user.
         /// The version number is changed according to the content's versioning mode.
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Refuses the modifications of the requested content and persists the <paramref name="rejectReason"/>
+        /// Rejects the modifications of the requested content and persists the <paramref name="rejectReason"/>
         /// if there is.
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
@@ -139,8 +139,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Drops the last draft version of the requested content if there is. This operation is allowed to the
-        /// exclusive locker user (who 'checked out' this content). 
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for the user who locked the content or an administrator with <c>ForceCheckin</c> permissions.
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
@@ -161,8 +161,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Drops the last draft version of the requested content if there is. This operation is allowed to any
-        /// user who has <c>ForceCheckin</c> permission on this content. 
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for users who have <c>ForceCheckin</c> permission on this content. 
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>
@@ -184,13 +184,13 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Restores an old existing version as the last version according to the content's versioning mode.
-        /// The old version is identified by the <paramref name="version"/> parameter that
-        /// can be one of the following form:
+        /// The old version is identified by the <paramref name="version"/> parameter that can be in
+        /// one of the following forms:
         /// - [major].[minor] e.g. "1.2"
         /// - V[major].[minor] e.g. "V1.2"
         /// - [major].[minor].[status] e.g. "1.2.D"
         /// - V[major].[minor].[status] e.g. "V1.2.D"
-        /// <para>Note that the [status] is not required but the incorrect value causes an exception.</para>
+        /// <para>Note that [status] is not required but an incorrect value causes an exception.</para>
         /// </summary>
         /// <snCategory>Collaboration</snCategory>
         /// <param name="content"></param>

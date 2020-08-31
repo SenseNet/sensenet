@@ -18,14 +18,14 @@ namespace SenseNet.Services.Core.Operations
     public static class ContentOperations
     {
         /// <summary>
-        /// Copies one or more existing items recursive to the given target.
+        /// Copies one or more items recursively to the given target.
         /// The source items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// <para>Always check the allowed child types set on the chosen target container, because it can result in
         /// an unsuccessful copy if the target does not allow the types you want to copy.</para>
         /// <para>Another limitation is that a children of a content list cannot be copied to another content list
-        /// since there could be custom local fields added to the source list that are not available on the target list and
+        /// since there could be custom local fields on the source list that are not available on the target list and
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first copy the
-        /// content to a temporary folder outside of the source list than move it to the target location.</para>
+        /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
         /// <snCategory>ContentManagement</snCategory>
         /// <remarks>
@@ -59,7 +59,7 @@ namespace SenseNet.Services.Core.Operations
         /// <param name="content">The requested resource is irrelevant in this case.</param>
         /// <param name="targetPath" example="/Root/Target">Path of the existing destination content.</param>
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
-        /// Array of the id or full path of the source items.</param>
+        /// Array of the id or full path of source items.</param>
         /// <returns></returns>
         [ODataAction(Icon = "copy", Description = "$Action,CopyBatch", DisplayName = "$Action,CopyBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
@@ -136,14 +136,14 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-        /// Moves one or more existing items recursive to the given target.
+        /// Moves one or more items recursively to the given target.
         /// The source items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// <para>Always check the allowed child types set on the chosen target container, because it can result in
         /// an unsuccessful move if the target does not allow the types you want to move.</para>
         /// <para>Another limitation is that a children of a content list cannot be moved to another content list
-        /// since there could be custom local fields added to the source list that are not available on the target list and
+        /// since there could be custom local fields on the source list that are not available on the target list and
         /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first move the
-        /// content to a temporary folder outside of the source list than move it to the target location.</para>
+        /// content to a temporary folder outside of the source list than move them to the target location.</para>
         /// </summary>
         /// <snCategory>ContentManagement</snCategory>
         /// <remarks>
@@ -254,12 +254,11 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-        /// According to the <paramref name="permanent"/> moves the requested content to the Trash or
-        /// deletes it permanently. 
+        /// Deletes the requested content permanently or moves it to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// </summary>
         /// <snCategory>ContentManagement</snCategory>
         /// <param name="content"></param>
-        /// <param name="permanent" example="true">True if the content will be deleted permanently.</param>
+        /// <param name="permanent" example="true">True if the content must be deleted permanently.</param>
         /// <returns>This method returns nothing.</returns>
         [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
@@ -273,8 +272,7 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-        /// According to the <paramref name="permanent"/> moves one or more content to the Trash or
-        /// deletes them permanently.
+        /// Deletes one or more content permanently or moves them to the Trash, depending on the <paramref name="permanent"/> parameter.
         /// The deletable items can be identified by their Id or Path. Ids and paths can also be mixed.
         /// </summary>
         /// <snCategory>ContentManagement</snCategory>
@@ -307,7 +305,7 @@ namespace SenseNet.Services.Core.Operations
         /// </code>
         /// </remarks>
         /// <param name="content">The requested resource is irrelevant in this case.</param>
-        /// <param name="permanent" example="false">True if the content will be deleted permanently.</param>
+        /// <param name="permanent" example="false">True if the content must be deleted permanently.</param>
         /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
         /// Array of the id or full path of the deletable items.</param>
         /// <returns></returns>
@@ -400,7 +398,9 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <remarks>
-        /// Here is a possible answer
+        /// If the current user does not have <c>SeePermissions</c> right, the provided identity must be the current user
+        /// in which case they will get only their own permission entries.
+        /// This is a possible response:
         /// <code>
         /// {
         ///   "id": 1347,
@@ -551,8 +551,8 @@ namespace SenseNet.Services.Core.Operations
         }
 
         /// <summary>
-        /// Returns aggregated permission of the current or given user on the requested content as a boolean value.
-        /// The value is <c>true</c> if the all permission value is <c>allow</c>.
+        /// Returns whether the current or given user has the provided permissions on the requested content.
+        /// The value is <c>true</c> if all requested permissions are allowed.
         /// </summary>
         /// <snCategory>Permissions</snCategory>
         /// <param name="content"></param>
@@ -802,9 +802,9 @@ namespace SenseNet.Services.Core.Operations
         /// </summary>
         /// <snCategory>ContentManagement</snCategory>
         /// <param name="content"></param>
-        /// <param name="destination" example="/Root/DifferentTarget">The path to the container that contains the
-        /// restored item, if it is not the same one from which it was deleted.</param>
-        /// <param name="newname" example="true">If true, allows rename automatically the restored content
+        /// <param name="destination" example="/Root/DifferentTarget">The path where the content should be restored,
+        /// if it is not the same one from which it was deleted.</param>
+        /// <param name="newname" example="true">If true, allows renaming the restored content automatically
         /// if the name already exists in the destination folder.</param>
         /// <returns></returns>
         [ODataAction(Icon = "restore", Description = "$Action,Restore", DisplayName = "$Action,Restore-DisplayName")]

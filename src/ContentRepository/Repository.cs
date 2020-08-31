@@ -119,8 +119,6 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <snCategory>Other</snCategory>
         /// <remarks>
-        /// The response contains a state, the current backup descriptor (if the backup is running), and a list of
-        /// backup descriptors as a backup history if there is any finished backup since the application start.
         /// For example:
         /// <code>
         /// {
