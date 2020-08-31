@@ -5,6 +5,7 @@ using SenseNet.Security;
 using SenseNet.Security.Messaging;
 using SenseNet.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage.Security
 {
     /// <summary>
@@ -437,10 +438,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="parentGroups">Collection of parent group identifiers. Can be null or empty.</param>
         public new void RemoveMembersFromSecurityGroup(int groupId, IEnumerable<int> userMembers, IEnumerable<int> groupMembers, IEnumerable<int> parentGroups = null)
         {
+            var users = userMembers as int[] ?? userMembers.ToArray();
             using (var op = SnTrace.Security.StartOperation("RemoveMembersFromSecurityGroup: groupId:{0}, userMembers:[{1}], groupMembers:[{2}], parentGroups:[{3}]",
-                groupId, string.Join(",", userMembers), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
+                groupId, string.Join(",", users), string.Join(",", groupMembers ?? new int[0]), string.Join(",", parentGroups ?? new int[0])))
             {
-                base.RemoveMembersFromSecurityGroup(groupId, userMembers, groupMembers, parentGroups);
+                base.RemoveMembersFromSecurityGroup(groupId, users, groupMembers, parentGroups);
                 op.Successful = true;
             }
         }
@@ -618,7 +620,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /***************** Debug info ***************/
 
         /// <summary>
-        /// Returns an object that conains information about the execution of the last few SecurityActivities.
+        /// Returns an object that contains information about the execution of the last few SecurityActivities.
         /// </summary>
         public new SecurityActivityHistory GetRecentActivities()
         {

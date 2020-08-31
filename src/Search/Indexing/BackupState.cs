@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SenseNet.Search.Indexing
+﻿namespace SenseNet.Search.Indexing
 {
     /// <summary>
     /// Represents a state of the backup operation.
@@ -22,7 +18,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         Executing,
         /// <summary>
-        /// Indicates that the last backup is finished immediately.
+        /// Indicates that the last backup is successfully finished.
         /// </summary>
         Finished,
         /// <summary>

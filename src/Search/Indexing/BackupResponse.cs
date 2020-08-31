@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace SenseNet.Search.Indexing
 {
@@ -12,6 +11,7 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// Gets or sets the backup state of the current request.
         /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
         public BackupState State { get; set; }
         /// <summary>
         /// Gets or sets the progress of the currently running backup operation or null.

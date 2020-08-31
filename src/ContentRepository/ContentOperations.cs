@@ -12,6 +12,13 @@ namespace SenseNet.ContentRepository
     /// </summary>
     public static class ContentOperations
     {
+        /// <summary>
+        /// Approves the requested content. The content's version number will be the next major version according to
+        /// the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "approve", Description = "$Action,Approve", DisplayName = "$Action,Approve-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Approve)]
@@ -27,6 +34,16 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Removes the exclusive lock from the requested content and persists the <paramref name="checkInComments"/>
+        /// if there is. The version number is changed according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="checkInComments" example="Very good.">The modifier's comments.</param>
+        /// <exception cref="Exception">An exception will be thrown if the <paramref name="checkInComments"/> is
+        /// missing and the value of the requested content's <c>CheckInCommentsMode</c> is <c>Compulsory</c>.</exception>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "checkin", Description = "$Action,CheckIn", DisplayName = "$Action,CheckIn-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
@@ -50,6 +67,13 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Creates a new version of the requested content and locks it exclusively for the current user.
+        /// The version number is changed according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "checkout", Description = "$Action,CheckOut", DisplayName = "$Action,CheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
@@ -65,6 +89,13 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Publishes the requested content. The version number is changed to the next major version
+        /// according to the content's versioning mode.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "publish", Description = "$Action,Publish", DisplayName = "$Action,Publish-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.Publish)]
@@ -80,6 +111,14 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Rejects the modifications of the requested content and persists the <paramref name="rejectReason"/>
+        /// if there is.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="rejectReason" example="Rewrite please.">The reviewer's comments.</param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Description = "$Action,Reject", DisplayName = "$Action,Reject-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
@@ -99,6 +138,13 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for the user who locked the content or an administrator with <c>ForceCheckin</c> permissions.
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "undocheckout", Description = "$Action,UndoCheckOut", DisplayName = "$Action,UndoCheckOut-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save)]
@@ -114,6 +160,13 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Drops the last draft version of the requested content if there is. This operation is allowed only
+        /// for users who have <c>ForceCheckin</c> permission on this content. 
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <returns>The modified content.</returns>
         [ODataAction(Icon = "undocheckout", Description = "$Action,ForceUndoCheckOut", DisplayName = "$Action,ForceUndoCheckout-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.ForceCheckin)]
@@ -129,6 +182,21 @@ namespace SenseNet.ContentRepository
             return content;
         }
 
+        /// <summary>
+        /// Restores an old existing version as the last version according to the content's versioning mode.
+        /// The old version is identified by the <paramref name="version"/> parameter that can be in
+        /// one of the following forms:
+        /// - [major].[minor] e.g. "1.2"
+        /// - V[major].[minor] e.g. "V1.2"
+        /// - [major].[minor].[status] e.g. "1.2.D"
+        /// - V[major].[minor].[status] e.g. "V1.2.D"
+        /// <para>Note that [status] is not required but an incorrect value causes an exception.</para>
+        /// </summary>
+        /// <snCategory>Collaboration</snCategory>
+        /// <param name="content"></param>
+        /// <param name="version">The old version number.</param>
+        /// <returns>The modified content.</returns>
+        /// <exception cref="Exception">Throws if the requested content version is not found.</exception>
         [ODataAction(Icon = "restoreversion", Description = "$Action,RestoreVersion", DisplayName = "$Action,RestoreVersion-DisplayName")]
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Save, N.P.RecallOldVersion)]
