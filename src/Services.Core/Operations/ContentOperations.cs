@@ -550,6 +550,16 @@ namespace SenseNet.Services.Core.Operations
             };
         }
 
+        /// <summary>
+        /// Returns aggregated permission of the current or given user on the requested content as a boolean value.
+        /// The value is <c>true</c> if the all permission value is <c>allow</c>.
+        /// </summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permissions" example='["Open", "RunApplication"]'>Permission name array.</param>
+        /// <param name="user" example="/Root/IMS/BuiltIn/Portal/Visitor">Path of an existing user. If not specified,
+        /// the current user's permission value will be returned.</param>
+        /// <returns></returns>
         [ODataFunction(Description = "$Action,HasPermission", DisplayName = "$Action,HasPermission-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
