@@ -253,6 +253,14 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
+        /// <summary>
+        /// According to the <paramref name="permanent"/> moves the requested content to the Trash or
+        /// deletes it permanently. 
+        /// </summary>
+        /// <snCategory>ContentManagement</snCategory>
+        /// <param name="content"></param>
+        /// <param name="permanent" example="true">True if the content will be deleted permanently.</param>
+        /// <returns>This method returns nothing.</returns>
         [ODataAction(Icon = "delete", Description = "$Action,Delete", DisplayName = "$Action,Delete-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
@@ -264,6 +272,45 @@ namespace SenseNet.Services.Core.Operations
             return null;
         }
 
+        /// <summary>
+        /// According to the <paramref name="permanent"/> moves one or more content to the Trash or
+        /// deletes them permanently.
+        /// The deletable items can be identified by their Id or Path. Ids and paths can also be mixed.
+        /// </summary>
+        /// <snCategory>ContentManagement</snCategory>
+        /// <remarks>
+        /// The response contains information about all deleted items (subtree roots) and all errors if there is any.
+        /// <code>
+        /// {
+        ///   "d": {
+        ///     "__count": 3,
+        ///     "results": [
+        ///       {
+        ///         "Id": 78944,
+        ///         "Path": "/Root/Target/MyDoc1.docx",
+        ///         "Name": "MyDoc1.docx"
+        ///       }
+        ///       {
+        ///         "Id": 78945,
+        ///         "Path": "/Root/Target/MyDoc2.docx",
+        ///         "Name": "MyDoc2.docx"
+        ///       },
+        ///       {
+        ///         "Id": 78946,
+        ///         "Path": "/Root/Target/MyDoc3.docx",
+        ///         "Name": "MyDoc3.docx"
+        ///       }
+        ///     ],
+        ///     "errors": []
+        ///   }
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content">The requested resource is irrelevant in this case.</param>
+        /// <param name="permanent" example="false">True if the content will be deleted permanently.</param>
+        /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
+        /// Array of the id or full path of the deletable items.</param>
+        /// <returns></returns>
         [ODataAction(Icon = "delete", Description = "$Action,DeleteBatch", DisplayName = "$Action,DeleteBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
@@ -347,7 +394,68 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
-
+        /// <summary>
+        /// Returns the effective permission information of the requested content grouped by identities.
+        /// The output can be filtered by the <paramref name="identity"/> parameter.
+        /// </summary>
+        /// <snCategory>Permissions</snCategory>
+        /// <remarks>
+        /// Here is a possible answer
+        /// <code>
+        /// {
+        ///   "id": 1347,
+        ///   "path": "/Root/Content",
+        ///   "inherits": false,
+        ///   "entries": [
+        ///     {
+        ///       "identity": {
+        ///         "id": 7,
+        ///         "path": "/Root/IMS/BuiltIn/Portal/Administrators",
+        ///         "name": "Administrators",
+        ///         "displayName": "\"\"",
+        ///         "domain": "BuiltIn",
+        ///         "kind": "group",
+        ///         "avatar": null
+        ///       },
+        ///       "propagates": true,
+        ///       "permissions": {
+        ///         "See": {
+        ///           "value": "allow",
+        ///           "from": null,
+        ///           "identity": "/Root/IMS/BuiltIn/Portal/Administrators"
+        ///         },
+        ///         "Preview": {
+        ///           "value": "allow",
+        ///           "from": null,
+        ///           "identity": "/Root/IMS/BuiltIn/Portal/Administrators"
+        ///         },
+        ///         ...
+        ///         "Custom30": null,
+        ///         "Custom31": null,
+        ///         "Custom32": null
+        ///       }
+        ///     },
+        ///     {
+        ///       "identity": {
+        ///         "id": 8,
+        ///         "path": "/Root/IMS/BuiltIn/Portal/Everyone",
+        ///         ...
+        ///       },
+        ///       "propagates": false,
+        ///       "permissions": {
+        ///         ...
+        ///       }
+        ///     }
+        ///   ]
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content"></param>
+        /// <param name="identity" example="/Root/IMS/BuiltIn/Portal/Everyone">Full path of an identity (group or user).
+        /// </param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Throws if the user doesn't have <c>SeePermissions</c> right
+        /// and <paramref name="identity"/> is not the current user.</exception>
         [ODataFunction(Description = "$Action,GetPermissions", DisplayName = "$Action,GetPermissions-DisplayName")]
         [ContentTypes(N.CT.GenericContent, N.CT.ContentType)]
         [AllowedRoles(N.R.Everyone)]
