@@ -17,6 +17,50 @@ namespace SenseNet.Services.Core.Operations
 {
     public static class ContentOperations
     {
+        /// <summary>
+        /// Copies one or more existing items recursive to the given target.
+        /// The source items can be identified by their Id or Path. Ids and paths can also be mixed.
+        /// <para>Always check the allowed child types set on the chosen target container, because it can result in
+        /// an unsuccessful copy if the target does not allow the types you want to copy.</para>
+        /// <para>Another limitation is that a children of a content list cannot be copied to another content list
+        /// since there could be custom local fields added to the source list that are not available on the target list and
+        /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first copy the
+        /// content to a temporary folder outside of the source list than move it to the target location.</para>
+        /// </summary>
+        /// <snCategory>ContentManagement</snCategory>
+        /// <remarks>
+        /// The response contains information about all copied items (subtree roots) and all errors if there is any.
+        /// <code>
+        /// {
+        ///   "d": {
+        ///     "__count": 3,
+        ///     "results": [
+        ///       {
+        ///         "Id": 78944,
+        ///         "Path": "/Root/Target/MyDoc1.docx",
+        ///         "Name": "MyDoc1.docx"
+        ///       }
+        ///       {
+        ///         "Id": 78945,
+        ///         "Path": "/Root/Target/MyDoc2.docx",
+        ///         "Name": "MyDoc2.docx"
+        ///       },
+        ///       {
+        ///         "Id": 78946,
+        ///         "Path": "/Root/Target/MyDoc3.docx",
+        ///         "Name": "MyDoc3.docx"
+        ///       }
+        ///     ],
+        ///     "errors": []
+        ///   }
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content">The requested resource is irrelevant in this case.</param>
+        /// <param name="targetPath" example="/Root/Target">Path of the existing destination content.</param>
+        /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
+        /// Array of the id or full path of the source items.</param>
+        /// <returns></returns>
         [ODataAction(Icon = "copy", Description = "$Action,CopyBatch", DisplayName = "$Action,CopyBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
@@ -91,6 +135,50 @@ namespace SenseNet.Services.Core.Operations
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
+        /// <summary>
+        /// Moves one or more existing items recursive to the given target.
+        /// The source items can be identified by their Id or Path. Ids and paths can also be mixed.
+        /// <para>Always check the allowed child types set on the chosen target container, because it can result in
+        /// an unsuccessful move if the target does not allow the types you want to move.</para>
+        /// <para>Another limitation is that a children of a content list cannot be moved to another content list
+        /// since there could be custom local fields added to the source list that are not available on the target list and
+        /// could cause data loss. A workaround for this (if you do not mind losing list field data) is to first move the
+        /// content to a temporary folder outside of the source list than move it to the target location.</para>
+        /// </summary>
+        /// <snCategory>ContentManagement</snCategory>
+        /// <remarks>
+        /// The response contains information about all moved items (subtree roots) and all errors if there is any.
+        /// <code>
+        /// {
+        ///   "d": {
+        ///     "__count": 3,
+        ///     "results": [
+        ///       {
+        ///         "Id": 78944,
+        ///         "Path": "/Root/Target/MyDoc1.docx",
+        ///         "Name": "MyDoc1.docx"
+        ///       }
+        ///       {
+        ///         "Id": 78945,
+        ///         "Path": "/Root/Target/MyDoc2.docx",
+        ///         "Name": "MyDoc2.docx"
+        ///       },
+        ///       {
+        ///         "Id": 78946,
+        ///         "Path": "/Root/Target/MyDoc3.docx",
+        ///         "Name": "MyDoc3.docx"
+        ///       }
+        ///     ],
+        ///     "errors": []
+        ///   }
+        /// }
+        /// </code>
+        /// </remarks>
+        /// <param name="content">The requested resource is irrelevant in this case.</param>
+        /// <param name="targetPath" example="/Root/Target">Path of the existing destination content.</param>
+        /// <param name="paths" example='["/Root/Content/IT/MyDocs/MyDoc1", "78945", "78946"]'>
+        /// Array of the id or full path of the source items.</param>
+        /// <returns></returns>
         [ODataAction(Icon = "move", Description = "$Action,MoveBatch", DisplayName = "$Action,MoveBatch-DisplayName")]
         [ContentTypes(N.CT.Folder)]
         [AllowedRoles(N.R.Everyone)]
@@ -591,6 +679,16 @@ namespace SenseNet.Services.Core.Operations
             public string Custom32;
         }
 
+        /// <summary>
+        /// Restores the Content from the Trash.
+        /// </summary>
+        /// <snCategory>ContentManagement</snCategory>
+        /// <param name="content"></param>
+        /// <param name="destination" example="/Root/DifferentTarget">The path to the container that contains the
+        /// restored item, if it is not the same one from which it was deleted.</param>
+        /// <param name="newname" example="true">If true, allows rename automatically the restored content
+        /// if the name already exists in the destination folder.</param>
+        /// <returns></returns>
         [ODataAction(Icon = "restore", Description = "$Action,Restore", DisplayName = "$Action,Restore-DisplayName")]
         [ContentTypes(N.CT.TrashBag)]
         [AllowedRoles(N.R.Everyone)]
