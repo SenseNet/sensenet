@@ -17,6 +17,8 @@ using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Sharing;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema
@@ -810,7 +812,11 @@ namespace  SenseNet.ContentRepository.Schema
                     ContentTypeManager.Instance.RemoveContentType(contentTypeToDelete.Name);
                 }
             }
+
+            DisableObserver(typeof(SharingNodeObserver));
+            DisableObserver(typeof(GroupMembershipObserver));
             base.Delete();
+            ContentTypeManager.Reset(); // necessary (Delete)
         }
         private static bool IsDeletable(ContentType contentType)
         {
