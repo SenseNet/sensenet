@@ -302,6 +302,20 @@ namespace SenseNet.Tests.Core
             }
         }
 
+        protected sealed class CurrentUserBlock : IDisposable
+        {
+            private readonly IUser _backup;
+            public CurrentUserBlock(IUser user)
+            {
+                _backup = User.Current;
+                User.Current = user;
+            }
+            public void Dispose()
+            {
+                User.Current = _backup;
+            }
+        }
+
         protected static ContentQuery CreateSafeContentQuery(string qtext, QuerySettings settings = null)
         {
             var cquery = ContentQuery.CreateQuery(qtext, settings ?? QuerySettings.AdminSettings);

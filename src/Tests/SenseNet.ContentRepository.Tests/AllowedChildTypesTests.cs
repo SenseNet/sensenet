@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Workspaces;
-using SenseNet.Portal;
-using SenseNet.Portal.Virtualization;
 using SenseNet.Tests.Core;
 
 namespace SenseNet.ContentRepository.Tests
@@ -436,6 +434,34 @@ namespace SenseNet.ContentRepository.Tests
         }
 
 
+        [TestMethod]
+        public void AllowedChildTypes_Security_NoPermissionForCtd()
+        {
+            const string parentPath = "/Root/System/Settings";
+
+            Test(() =>
+            {
+                var parent = Node.Load<SystemFolder>(parentPath);
+                var typesAdmin = parent.EffectiveAllowedChildTypes.ToArray();
+
+                // create a user that does not see the Settings type
+                var user = CreateTestUser();
+
+                using (new CurrentUserBlock(user))
+                {
+                    parent = Node.Load<SystemFolder>(parentPath);
+                    var typesUser = parent.EffectiveAllowedChildTypes.ToArray();
+
+                    // the allowed list for the user must be shorter than the admin list
+                    // and it must NOT contain the Settings type
+                    Assert.IsTrue(typesUser.Length < typesAdmin.Length);
+                    Assert.IsTrue(typesAdmin.Any(t => t.Name == "Settings"));
+                    Assert.IsFalse(typesUser.Any(t => t.Name == "Settings"));
+                }
+            });
+        }
+
+
         /* ================================================================================== */
 
         private class TestStructure
@@ -464,5 +490,29 @@ namespace SenseNet.ContentRepository.Tests
             return new TestStructure {Site1 = site, Workspace1 = workspace, Folder1 = folder};
         }
 
+        private static User CreateTestUser()
+        {
+            using (new SystemAccount())
+            {
+                var user = new User(Node.LoadNode(Identifiers.PortalOrgUnitId))
+                {
+                    Name = "testusr123",
+                    LoginName = "testusr123",
+                    Email = "testusr123@example.com"
+                };
+                user.Save();
+
+                Group.Administrators.AddMember(user);
+
+                // deny permissions for the Settings CTD
+                var settingsCtd = Node.LoadNode("/Root/System/Schema/ContentTypes/GenericContent/File/Settings");
+
+                SecurityHandler.SecurityContext.CreateAclEditor()
+                    .Deny(settingsCtd.Id, user.Id, false, PermissionType.See)
+                    .Apply();
+
+                return user;
+            }
+        }
     }
 }
