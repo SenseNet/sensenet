@@ -167,6 +167,14 @@ namespace SenseNet.Tests.SelfTest
 
             InitialSecurityDataTest(() =>
             {
+                var mask = PermissionType.GetPermissionMask(PermissionType.BuiltInPermissionTypes);
+                SecurityHandler.CreateAclEditor()
+                    .RemoveExplicitEntries(2)
+                    .RemoveExplicitEntries(6)
+                    .RemoveExplicitEntries(1000)
+                    .Set(2, 7, false, mask, 0UL)
+                    .Apply();
+
                 // PRECHECKS
                 // Administrators group has 1 entry on the Root.
                 Assert.AreEqual(1, SecurityHandler.GetExplicitEntries(2, new[] { 7 }).Count);

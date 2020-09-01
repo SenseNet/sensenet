@@ -476,7 +476,7 @@ namespace SenseNet.ODataTests
                     AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     var result = GetObject(response);
-                    Assert.AreEqual((int)BackupState.Started, result["State"].Value<int>());
+                    Assert.AreEqual(BackupState.Started.ToString(), result["State"].Value<string>());
                     Assert.AreEqual(42, result["Current"]["CountOfFiles"].Value<int>());
                 }
             });
@@ -497,7 +497,7 @@ namespace SenseNet.ODataTests
                     AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     var result = GetObject(response);
-                    Assert.AreEqual((int)BackupState.Executing, result["State"].Value<int>());
+                    Assert.AreEqual(BackupState.Executing.ToString(), result["State"].Value<string>());
                     Assert.AreEqual(4, result["Current"]["CopiedFiles"].Value<int>());
                 }
             });
@@ -518,7 +518,7 @@ namespace SenseNet.ODataTests
                     AssertNoError(response);
                     Assert.AreEqual(200, response.StatusCode);
                     var result = GetObject(response);
-                    Assert.AreEqual((int)BackupState.CancelRequested, result["State"].Value<int>());
+                    Assert.AreEqual(BackupState.CancelRequested.ToString(), result["State"].Value<string>());
                     Assert.AreEqual("Canceled", result["Current"]["Message"].Value<string>());
                 }
             });
