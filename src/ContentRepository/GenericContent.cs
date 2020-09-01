@@ -1008,13 +1008,18 @@ namespace SenseNet.ContentRepository
 
             // collect types set on local instance
             var types = new List<ContentType>();
+            var hiddenLocalItems = false;
             foreach (var ct in this.AllowedChildTypes)
+            {
                 if (ct.Security.HasPermission(PermissionType.See))
                     types.Add(ct);
+                else
+                    hiddenLocalItems = true;
+            }
 
             // Indicates that the local list has items. The length of list is not enough because the permission filters
             // the list and if the filter skips all elements, the user gets the list that declared on the Content type.
-            var hasLocalItems = types.Count > 0;
+            var hasLocalItems = types.Count > 0 || hiddenLocalItems;
 
             // SystemFolder or TrashBag allows every type if there is no setting on local instance
             var systemFolderName = "SystemFolder";
