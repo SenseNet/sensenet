@@ -251,9 +251,6 @@ namespace SenseNet.ContentRepository.Schema
                     editor.Load();
                     RemoveContentType(contentType, editor);
                     editor.Register();
-
-                    // The ContentTypeManager distributes its reset, no custom DistributedAction call needed
-                    ContentTypeManager.Reset();
                 }
             }
         }
@@ -354,7 +351,7 @@ namespace SenseNet.ContentRepository.Schema
             editor.Register();
 
             // The ContentTypeManager distributes its reset, no custom DistributedAction call needed
-            ContentTypeManager.Reset();
+            ContentTypeManager.Reset(); // necessary (ApplyChanges) calls ContentType.Save
         }
         internal static void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
         {

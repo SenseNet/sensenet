@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Schema
             _editor.Register();
 
             // The ContentTypeManager distributes its reset, no custom DistributedAction call needed
-            ContentTypeManager.Reset();
+            ContentTypeManager.Reset(); // necessary (ExecuteBatch)
         }
 
         private void Install(Ctd ctd)
@@ -157,8 +157,6 @@ namespace SenseNet.ContentRepository.Schema
         public static void RemoveContentType(ContentType contentType)
         {
             contentType.Delete();
-            // The ContentTypeManager distributes its reset, no custom DistributedAction call needed
-            ContentTypeManager.Reset();
         }
     }
 }
