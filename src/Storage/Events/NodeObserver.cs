@@ -116,11 +116,12 @@ namespace SenseNet.ContentRepository.Storage.Events
                 return;
             foreach (NodeObserver observer in observers)
             {
-                using (var op = SnTrace.Repository.StartOperation("NodeObserver OnStart " + observer.GetType().Name))
-                {
+                //// Remove comment if you need to see the NodeObserver method calls in the detailed log.
+                //using (var op = SnTrace.Repository.StartOperation("NodeObserver OnStart " + observer.GetType().Name))
+                //{
                     observer.OnStart(null, EventArgs.Empty);
-                    op.Successful = true;
-                }
+                //    op.Successful = true;
+                //}
             }
         }
 
@@ -132,11 +133,12 @@ namespace SenseNet.ContentRepository.Storage.Events
                 return;
             foreach (NodeObserver observer in observers)
             {
-                using (var op = SnTrace.Repository.StartOperation("NodeObserver OnReset " + observer.GetType().Name))
-                {
+                //// Remove comment if you need to see the NodeObserver method calls in the detailed log.
+                //using (var op = SnTrace.Repository.StartOperation("NodeObserver OnReset " + observer.GetType().Name))
+                //{
                     observer.OnReset(null, EventArgs.Empty);
-                    op.Successful = true;
-                }
+                //    op.Successful = true;
+                //}
             }
         }
         internal static void FireOnNodeCreating(CancellableNodeEventHandler Creating, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
