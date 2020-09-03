@@ -784,7 +784,6 @@ namespace  SenseNet.ContentRepository.Schema
             ContentTypeManager.ApplyChanges(this, false);
             base.Save();
             ContentTypeManager.Reset();
-            //ContentTypeManager.Instance.AddContentType(this);
         }
         /// <summary>
         /// Persist this Content's changes by the given settings.
