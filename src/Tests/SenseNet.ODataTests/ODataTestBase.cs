@@ -437,7 +437,7 @@ namespace SenseNet.ODataTests
 
             httpContext.Response.Body = new MemoryStream();
 
-            var odata = new ODataMiddleware(null, config);
+            var odata = new ODataMiddleware(null, config, null);
             var odataRequest = ODataRequest.Parse(httpContext);
             await odata.ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
 
