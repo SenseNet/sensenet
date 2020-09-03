@@ -17,6 +17,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
@@ -82,11 +83,17 @@ namespace SenseNet.OData
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            // Create OData-response strategy
-            var odataRequest = ODataRequest.Parse(httpContext);
+            var req = httpContext.Request;
+            using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
+            {
+                // Create OData-response strategy
+                var odataRequest = ODataRequest.Parse(httpContext);
 
-            // Write headers and body of the HttpResponse
-            await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+                // Write headers and body of the HttpResponse
+                await ProcessRequestAsync(httpContext, odataRequest).ConfigureAwait(false);
+
+                op.Successful = true;
+            }
 
             // Call next in the chain if exists
             if (_next != null)

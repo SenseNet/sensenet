@@ -781,9 +781,10 @@ namespace  SenseNet.ContentRepository.Schema
                 if (name != this.Name)
                     throw new ContentRegistrationException(SR.Exceptions.Registration.Msg_InconsistentContentTypeName, this.Name);
             }
-            ContentTypeManager.ApplyChanges(this);
+            ContentTypeManager.ApplyChanges(this, false);
             base.Save();
-            ContentTypeManager.Instance.AddContentType(this);
+            ContentTypeManager.Reset();
+            //ContentTypeManager.Instance.AddContentType(this);
         }
         /// <summary>
         /// Persist this Content's changes by the given settings.

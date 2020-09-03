@@ -343,7 +343,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
-        internal static void ApplyChanges(ContentType settings)
+        internal static void ApplyChanges(ContentType settings, bool reset)
         {
             SchemaEditor editor = new SchemaEditor();
             editor.Load();
@@ -351,7 +351,8 @@ namespace SenseNet.ContentRepository.Schema
             editor.Register();
 
             // The ContentTypeManager distributes its reset, no custom DistributedAction call needed
-            ContentTypeManager.Reset(); // necessary (ApplyChanges) calls ContentType.Save
+            if (reset)
+                ContentTypeManager.Reset(); // necessary (ApplyChanges) calls ContentType.Save
         }
         internal static void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
         {
