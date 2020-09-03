@@ -18,10 +18,13 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using SenseNet.ContentRepository;
 using SenseNet.OData.Writers;
 using SenseNet.Security;
+using SenseNet.Services.Core.Configuration;
 using Task = System.Threading.Tasks.Task;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
@@ -73,19 +76,26 @@ namespace SenseNet.OData
 
         private readonly RequestDelegate _next;
         private readonly IConfiguration _appConfig;
+        private readonly HttpRequestOptions _requestOptions;
+
         // Must have constructor with this signature, otherwise exception at run time
-        public ODataMiddleware(RequestDelegate next, IConfiguration config)
+        public ODataMiddleware(RequestDelegate next, IConfiguration config, IOptions<HttpRequestOptions> requestOptions)
         {
             _next = next;
             _appConfig = config;
+            _requestOptions = requestOptions?.Value ?? new HttpRequestOptions();
         }
-
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
             var req = httpContext.Request;
             using (var op = SnTrace.Web.StartOperation($"{req.Method} {req.GetDisplayUrl()}"))
             {
+                // set request size limit if configured
+                if (_requestOptions?.MaxRequestBodySize > 0)
+                    httpContext.Features.Get<IHttpMaxRequestBodySizeFeature>().MaxRequestBodySize = 
+                        _requestOptions.MaxRequestBodySize;
+
                 // Create OData-response strategy
                 var odataRequest = ODataRequest.Parse(httpContext);
 
