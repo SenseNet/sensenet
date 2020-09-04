@@ -8,8 +8,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.Storage.Scripting;
 using SenseNet.Diagnostics;
-using SenseNet.OData.Writers;
 using SenseNet.OData.Typescript;
 
 namespace SenseNet.OData.Metadata
@@ -92,14 +92,33 @@ namespace SenseNet.OData.Metadata
             if (schemaClass == null)
                 throw new ArgumentNullException(nameof(schemaClass));
 
-            if (_contentTypes.TryGetValue(schemaClass.Name, out var serializedContentType))
-                return serializedContentType;
+            if (!_contentTypes.TryGetValue(schemaClass.Name, out var serializedContentType))
+            {
 
-            var ctData = ConvertMetaClass(schemaClass);
+                serializedContentType = ConvertMetaClass(schemaClass);
 
-            // We cache JObjects instead of strings because this way the OData
-            // layer sets the response content type correctly (application/json).
-            return _contentTypes[schemaClass.Name] = ctData;
+                //UNDONE: check this, because the current type is 'document'
+                // We cache JObjects instead of strings because this way the OData
+                // layer sets the response content type correctly (application/json).
+                _contentTypes[schemaClass.Name] = serializedContentType;
+            }
+            
+            // We have to clone the cached value, because of default value evaluation
+            // that needs to be on-the-fly and user-specific.
+            var clone = (JObject)serializedContentType.DeepClone();
+
+            foreach (var fs in clone["FieldSettings"].Values<JToken>())
+            {
+                // set evaluated default value only if there is a default value
+                var defaultValue = fs.Value<string>("DefaultValue");
+                if (string.IsNullOrEmpty(defaultValue)) 
+                    continue;
+
+                var evaluated = Evaluator.Evaluate(defaultValue);
+                fs["EvaluatedDefaultValue"] = evaluated;
+            }
+
+            return clone;
         }
 
         //======================================================================================= Instance API
