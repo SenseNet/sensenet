@@ -80,17 +80,43 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Check_BoundaryOverlapped_OnePatch()
         {
-            throw new NotImplementedException();
-            // Patch                       Error
-            // --------------------------- ---------------------
-            // (C1: 1.0 <= v <= 1.0, v1.2) ok
-            // (C1: 1.0 <= v <  1.0, v1.2) Invalid interval
-            // (C1: 1.0 <  v <= 1.0, v1.2) Invalid interval
-            // (C1: 1.0 <  v <  1.0, v1.2) Invalid interval
-            // (C1: 1.1 <= v <= 1.0, v1.2) Max is less than min
-            // (C1: 1.1 <= v <  1.0, v1.2) Max is less than min
-            // (C1: 1.1 <  v <= 1.0, v1.2) Max is less than min
-            // (C1: 1.1 <  v <  1.0, v1.2) Max is less than min
+            #region void CheckError(string boundary, PackagingExceptionType expectedErrorType)...
+            void CheckError(string boundary, PackagingExceptionType expectedErrorType)
+            {
+                try
+                {
+                    ValidatePatch(Patch("C1", boundary, "v1.2", null));
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (InvalidPackageException e)
+                {
+                    // There is no case that satisfies the conditions
+                    Assert.AreEqual(e.ErrorType, expectedErrorType);
+                }
+            }
+            #endregion
+
+            // Id Patch                       Error
+            // -- --------------------------- ---------------------
+            //  1 (C1: 1.0 <= v <= 1.0, v1.2) ok
+            //  2 (C1: 1.0 <= v <  1.0, v1.2) Invalid interval
+            //  3 (C1: 1.0 <  v <= 1.0, v1.2) Invalid interval
+            //  4 (C1: 1.0 <  v <  1.0, v1.2) Invalid interval
+            //  5 (C1: 1.1 <= v <= 1.0, v1.2) Max is less than min
+            //  6 (C1: 1.1 <= v <  1.0, v1.2) Max is less than min
+            //  7 (C1: 1.1 <  v <= 1.0, v1.2) Max is less than min
+            //  8 (C1: 1.1 <  v <  1.0, v1.2) Max is less than min
+
+            // Case 1: no error
+            ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v1.2", null));
+            // Case 2-8: throw InvalidPackageException
+            CheckError("1.0 <= v <  1.0", PackagingExceptionType.InvalidInterval);
+            CheckError("1.0 <  v <= 1.0", PackagingExceptionType.InvalidInterval);
+            CheckError("1.0 <  v <  1.0", PackagingExceptionType.InvalidInterval);
+            CheckError("1.1 <= v <= 1.0", PackagingExceptionType.MaxLessThanMin);
+            CheckError("1.1 <= v <  1.0", PackagingExceptionType.MaxLessThanMin);
+            CheckError("1.1 <  v <= 1.0", PackagingExceptionType.MaxLessThanMin);
+            CheckError("1.1 <  v <  1.0", PackagingExceptionType.MaxLessThanMin);
         }
         [TestMethod]
         public void Patching_Version_Check_BoundaryOverlapped_MorePatches()

@@ -94,6 +94,21 @@ namespace SenseNet.Packaging.Tests
             if (!boundary.MaxVersionIsExclusive && patch.Version <= boundary.MaxVersion)
                 throw new InvalidPackageException("Version too small.",
                     PackagingExceptionType.TargetVersionTooSmall);
+
+            if (boundary.MaxVersion < boundary.MinVersion)
+                throw new InvalidPackageException("Maximum version is less than minimum version.",
+                    PackagingExceptionType.MaxLessThanMin);
+
+            if (boundary.MinVersion == boundary.MaxVersion &&
+                boundary.MinVersionIsExclusive && boundary.MaxVersionIsExclusive)
+                throw new InvalidPackageException("Maximum and minimum versions are equal but both versions are exclusive.",
+                    PackagingExceptionType.InvalidInterval);
+            if (boundary.MinVersion == boundary.MaxVersion && boundary.MinVersionIsExclusive)
+                throw new InvalidPackageException("Maximum and minimum versions are equal but the minimum version is exclusive.",
+                    PackagingExceptionType.InvalidInterval);
+            if (boundary.MinVersion == boundary.MaxVersion && boundary.MaxVersionIsExclusive)
+                throw new InvalidPackageException("Maximum and minimum versions are equal but the maximum version is exclusive.",
+                    PackagingExceptionType.InvalidInterval);
         }
 
 
