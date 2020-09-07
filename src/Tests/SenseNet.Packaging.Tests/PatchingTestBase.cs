@@ -65,6 +65,28 @@ namespace SenseNet.Packaging.Tests
         //    Assert.AreEqual("C2", ordered[1].Id);
         //}
 
+        /* ================================================================= Steps of Packaging logic algorithms */
+
+        protected void ValidatePatch(SnPatch patch)
+        {
+            if (patch.Id == null)
+                throw new InvalidPackageException("The Id cannot be null.",
+                    PackagingExceptionType.MissingComponentId);
+            if (patch.Id.Length == 0)
+                throw new InvalidPackageException("The Id cannot be empty.",
+                    PackagingExceptionType.MissingComponentId);
+            if (patch.Version == null)
+                throw new InvalidPackageException("Missing Version.",
+                    PackagingExceptionType.MissingVersion);
+            if (patch.Boundary.MaxVersionIsExclusive && patch.Version < patch.Boundary.MaxVersion)
+                throw new InvalidPackageException("Version too small.",
+                    PackagingExceptionType.TargetVersionTooSmall);
+            if (!patch.Boundary.MaxVersionIsExclusive && patch.Version <= patch.Boundary.MaxVersion)
+                throw new InvalidPackageException("Version too small.",
+                    PackagingExceptionType.TargetVersionTooSmall);
+        }
+
+
         private async Task<SnPatch[]> GetOrderedPatches(SnPatch[] patches, CancellationToken cancellationToken)
         {
             var packages = (await PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
@@ -129,7 +151,7 @@ namespace SenseNet.Packaging.Tests
             return new SnPatch
             {
                 Id = id,
-                Version = Version.Parse(version.Substring(1)),
+                Version = version == null ? null : Version.Parse(version.Substring(1)),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
             };
@@ -194,5 +216,6 @@ namespace SenseNet.Packaging.Tests
 
             return boundary;
         }
+
     }
 }

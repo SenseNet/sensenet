@@ -11,13 +11,54 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Check_WrongIdOrTarget()
         {
-            throw new NotImplementedException();
             // Input                       Error
             // --------------------------- ---------------------
             // (??: 1.0 <= v <= 1.0, v1.2) Missing id
+            // ("": 1.0 <= v <= 1.0, v1.2) Missing id
             // (C1: 1.0 <= v <= 1.0, ????) Missing target version
             // (C1: 1.0 <= v <= 1.0, v0.9) Downgrade
+
+            try
+            {
+                ValidatePatch(Patch(null, "1.0 <= v <= 1.0", "v1.2", null));
+                Assert.Fail();
+            }
+            catch (InvalidPackageException e)
+            {
+                Assert.AreEqual(e.ErrorType, PackagingExceptionType.MissingComponentId);
+            }
+
+            try
+            {
+                ValidatePatch(Patch(string.Empty, "1.0 <= v <= 1.0", "v1.2", null));
+                Assert.Fail();
+            }
+            catch (InvalidPackageException e)
+            {
+                Assert.AreEqual(e.ErrorType, PackagingExceptionType.MissingComponentId);
+            }
+
+            try
+            {
+                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", null, null));
+                Assert.Fail();
+            }
+            catch (InvalidPackageException e)
+            {
+                Assert.AreEqual(e.ErrorType, PackagingExceptionType.MissingVersion);
+            }
+
+            try
+            {
+                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v0.9", null));
+                Assert.Fail();
+            }
+            catch (InvalidPackageException e)
+            {
+                Assert.AreEqual(e.ErrorType, PackagingExceptionType.TargetVersionTooSmall);
+            }
         }
+
         [TestMethod]
         public void Patching_Version_Check_BoundaryAutoFill()
         {
