@@ -18,14 +18,14 @@ namespace SenseNet.Packaging
         public Version MaxVersion { get; set; }
         /// <summary>
         /// Gets or sets the value that specifies whether the <c>MinVersion</c> is in the interval or not.
-        /// If false, the <c>MinVersion</c> is not in the interval.
-        /// If true, the <c>MinVersion</c> is in the interval.
+        /// If false, the <c>MinVersion</c> is in the interval.
+        /// If true, the <c>MinVersion</c> is not in the interval.
         /// </summary>
         public bool MinVersionIsExclusive { get; set; }
         /// <summary>
         /// Gets or sets the value that specifies whether the <c>MaxVersion</c> is in the interval or not.
-        /// If false, the <c>MaxVersion</c> is not in the interval.
-        /// If true, the <c>MaxVersion</c> is in the interval.
+        /// If false, the <c>MaxVersion</c> is in the interval.
+        /// If true, the <c>MaxVersion</c> is not in the interval.
         /// </summary>
         public bool MaxVersionIsExclusive { get; set; }
     }
