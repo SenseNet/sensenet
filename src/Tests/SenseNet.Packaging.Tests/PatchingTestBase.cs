@@ -129,7 +129,7 @@ namespace SenseNet.Packaging.Tests
             return new SnPatch
             {
                 Id = id,
-                Version = Version.Parse(version),
+                Version = Version.Parse(version.Substring(1)),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
             };

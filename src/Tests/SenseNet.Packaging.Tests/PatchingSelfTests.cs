@@ -55,7 +55,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(Version.Parse("1.0"), dependency.Boundary.MinVersion);
             Assert.AreEqual(Version.Parse("1.0"), dependency.Boundary.MaxVersion);
             Assert.AreEqual(false, dependency.Boundary.MinVersionIsExclusive);
-            Assert.AreEqual(true, dependency.Boundary.MaxVersionIsExclusive);
+            Assert.AreEqual(false, dependency.Boundary.MaxVersionIsExclusive);
         }
         [TestMethod]
         public void Patching_SelfTest_CreatePatch()
