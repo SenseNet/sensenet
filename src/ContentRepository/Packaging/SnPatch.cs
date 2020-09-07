@@ -27,15 +27,15 @@ namespace SenseNet.Packaging
         /// </summary>
         Version Version { get; set; }
         /// <summary>
-        /// Gets or sets a value that specifies that the execution of this patch needs to pause the system start or not.
+        /// Gets or sets a dependency array if there is any. Otherwise null.
         /// </summary>
-        bool IsBlocker { get; set; }
+        IEnumerable<Dependency> Dependencies { get; set; }
         /// <summary>
         /// Gets or sets the function that will be executed if allowed.
         /// </summary>
         Func<PatchContext, ExecutionResult> Execute { get; set; }
     }
-    public class StartupTool : ISnPatch
+    public class ComponentInstaller : ISnPatch
     {
         /// <inheritdoc/>
         public string Id { get; set; }
@@ -44,18 +44,10 @@ namespace SenseNet.Packaging
         /// <inheritdoc/>
         public Version Version { get; set; }
         /// <inheritdoc/>
-        public bool IsBlocker { get; set; }
+        public IEnumerable<Dependency> Dependencies { get; set; }
         /// <inheritdoc/>
         public Func<PatchContext, ExecutionResult> Execute { get; set; }
     }
-    public class ComponentInstaller : StartupTool
-    {
-        /// <summary>
-        /// Gets or sets a dependency array if there is any. Otherwise null.
-        /// </summary>
-        public IEnumerable<Dependency> Dependencies { get; set; }
-    }
-
 
     /// <summary>
     /// Represents a patch that will be executed only if the current component version
