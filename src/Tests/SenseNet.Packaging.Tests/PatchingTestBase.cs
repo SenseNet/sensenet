@@ -83,31 +83,31 @@ namespace SenseNet.Packaging.Tests
         }
         private bool IsVersionRelevant(SnPatch patch, Version packageVersion)
         {
-            if(patch.Version>packageVersion)
+            if (patch.Version < packageVersion)
+                return false;
 
-
-            if (patch.MinVersionIsExclusive)
+            if (patch.Boundary.MinVersionIsExclusive)
             {
-                if (patch.MinVersion >= packageVersion)
+                if (patch.Boundary.MinVersion >= packageVersion)
                     return false;
             }
             else
             {
-                if (patch.MinVersion > packageVersion)
+                if (patch.Boundary.MinVersion > packageVersion)
                     return false;
             }
 
-            if (patch.MaxVersion == null)
+            if (patch.Boundary.MaxVersion == null)
                 return true;
 
-            if (patch.MaxVersionIsExclusive)
+            if (patch.Boundary.MaxVersionIsExclusive)
             {
-                if (patch.MaxVersion <= packageVersion)
+                if (patch.Boundary.MaxVersion <= packageVersion)
                     return false;
             }
             else
             {
-                if (patch.MaxVersion < packageVersion)
+                if (patch.Boundary.MaxVersion < packageVersion)
                     return false;
             }
 
@@ -131,10 +131,13 @@ namespace SenseNet.Packaging.Tests
             {
                 Id = id,
                 Version = Version.Parse(version),
-                MinVersion = boundary.min,
-                MinVersionIsExclusive = boundary.minEx,
-                MaxVersion = boundary.max,
-                MaxVersionIsExclusive = boundary.maxEx,
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = boundary.min,
+                    MinVersionIsExclusive = boundary.minEx,
+                    MaxVersion = boundary.max,
+                    MaxVersionIsExclusive = boundary.maxEx
+                },
                 Dependencies = dependencies
             };
         }
@@ -150,10 +153,13 @@ namespace SenseNet.Packaging.Tests
             return new Dependency
             {
                 Id = id,
-                MinVersion = boundary.min,
-                MinVersionIsExclusive = boundary.minEx,
-                MaxVersion = boundary.max,
-                MaxVersionIsExclusive = boundary.maxEx
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = boundary.min,
+                    MinVersionIsExclusive = boundary.minEx,
+                    MaxVersion = boundary.max,
+                    MaxVersionIsExclusive = boundary.maxEx
+                }
             };
         }
 
