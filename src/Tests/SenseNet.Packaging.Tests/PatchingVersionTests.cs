@@ -62,12 +62,20 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Check_BoundaryAutoFill()
         {
-            throw new NotImplementedException();
-            // PRE CHECK: Patching_Version_Check_BoundaryAutoFill
             // Input                       Output
             // --------------------------- ---------------------
             // (C1:        v <= 1.0, v1.2) (C1: 0.0.0.0 <= v <= 1.0, v1.2)
-            // (C1: 1.0 <= v       , v1.2) (C1: 0.0.0.0 <= v <  1.2, v1.2)
+            // (C1: 1.0 <= v       , v1.2) (C1: 1.0     <= v <  1.2, v1.2)
+
+            var patch = Patch("C1", "       v <= 1.0", "v1.2", null);
+            ValidatePatch(patch);
+            Assert.AreEqual(Version.Parse("0.0"), patch.Boundary.MinVersion);
+            Assert.IsFalse(patch.Boundary.MinVersionIsExclusive);
+
+            patch = Patch("C1", "1.0 <= v       ", "v1.2", null);
+            ValidatePatch(patch);
+            Assert.AreEqual(patch.Version, patch.Boundary.MaxVersion);
+            Assert.IsTrue(patch.Boundary.MaxVersionIsExclusive);
         }
         [TestMethod]
         public void Patching_Version_Check_BoundaryOverlapped_OnePatch()

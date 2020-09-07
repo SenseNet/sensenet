@@ -78,10 +78,20 @@ namespace SenseNet.Packaging.Tests
             if (patch.Version == null)
                 throw new InvalidPackageException("Missing Version.",
                     PackagingExceptionType.MissingVersion);
-            if (patch.Boundary.MaxVersionIsExclusive && patch.Version < patch.Boundary.MaxVersion)
+
+            // If MaxVersion is not defined, it need to be less than the target version
+            var boundary = patch.Boundary;
+            var maxVer = boundary.MaxVersion;
+            if (maxVer.Major == int.MaxValue && maxVer.Minor == int.MaxValue)
+            {
+                boundary.MaxVersion = patch.Version;
+                boundary.MaxVersionIsExclusive = true;
+            }
+
+            if (boundary.MaxVersionIsExclusive && patch.Version < boundary.MaxVersion)
                 throw new InvalidPackageException("Version too small.",
                     PackagingExceptionType.TargetVersionTooSmall);
-            if (!patch.Boundary.MaxVersionIsExclusive && patch.Version <= patch.Boundary.MaxVersion)
+            if (!boundary.MaxVersionIsExclusive && patch.Version <= boundary.MaxVersion)
                 throw new InvalidPackageException("Version too small.",
                     PackagingExceptionType.TargetVersionTooSmall);
         }
