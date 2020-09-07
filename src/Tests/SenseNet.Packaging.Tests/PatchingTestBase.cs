@@ -121,23 +121,16 @@ namespace SenseNet.Packaging.Tests
         /// </summary>
         /// <param name="id">ComponentId</param>
         /// <param name="version">Target version</param>
-        /// <param name="fromTo">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
+        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
         /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
         /// <returns></returns>
-        protected SnPatch Patch(string id, string fromTo, string version, Dependency[] dependencies)
+        protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies)
         {
-            var boundary = ParseBoundary(fromTo);
             return new SnPatch
             {
                 Id = id,
                 Version = Version.Parse(version),
-                Boundary = new VersionBoundary
-                {
-                    MinVersion = boundary.min,
-                    MinVersionIsExclusive = boundary.minEx,
-                    MaxVersion = boundary.max,
-                    MaxVersionIsExclusive = boundary.maxEx
-                },
+                Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
             };
         }
@@ -145,38 +138,61 @@ namespace SenseNet.Packaging.Tests
         /// Creates a Dependency
         /// </summary>
         /// <param name="id">ComponentId</param>
-        /// <param name="fromTo">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
+        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
         /// <returns></returns>
-        protected Dependency Dep(string id, string fromTo)
+        protected Dependency Dep(string id, string boundary)
         {
-            var boundary = ParseBoundary(fromTo);
             return new Dependency
             {
                 Id = id,
-                Boundary = new VersionBoundary
-                {
-                    MinVersion = boundary.min,
-                    MinVersionIsExclusive = boundary.minEx,
-                    MaxVersion = boundary.max,
-                    MaxVersionIsExclusive = boundary.maxEx
-                }
+                Boundary = ParseBoundary(boundary)
             };
         }
 
-        protected (Version min, bool minEx, Version max,  bool maxEx) ParseBoundary(string src)
+        protected VersionBoundary ParseBoundary(string src)
         {
-            var a = src.Split('v').Select(x => x.Trim()).ToArray();
+            // "1.0 <= v <  2.0"
 
-            var minEx = a[0][0] != '=';
-            var min = Version.Parse(a[0].Substring(1));
-            var maxEx = false;
-            var max = default(Version);
-            if (a.Length > 1)
+            var a = src.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            var boundary = new VersionBoundary();
+
+            if (a.Length == 3)
             {
-                maxEx = a[1][0] != '=';
-                max = Version.Parse(a[1].Substring(1));
+                if (a[0] == "v")
+                {
+                    boundary.MaxVersion = Version.Parse(a[2]);
+                    boundary.MaxVersionIsExclusive = a[1] == "<";
+
+                    boundary.MinVersion = Version.Parse("0.0");
+                    boundary.MinVersionIsExclusive = false;
+                }
+                else if (a[2] == "v")
+                {
+                    boundary.MinVersion = Version.Parse(a[0]);
+                    boundary.MinVersionIsExclusive = a[1] == "<";
+
+                    boundary.MaxVersion = new Version(int.MaxValue, int.MaxValue);
+                    boundary.MaxVersionIsExclusive = false;
+                }
+                else
+                {
+                    throw new FormatException($"Invalid Boundary: {src}");
+                }
             }
-            return (min, minEx, max, maxEx);
+            else if (a.Length == 5 && a[2] == "v")
+            {
+                boundary.MinVersion = Version.Parse(a[0]);
+                boundary.MinVersionIsExclusive = a[1] == "<";
+
+                boundary.MaxVersion = Version.Parse(a[4]);
+                boundary.MaxVersionIsExclusive = a[3] == "<";
+            }
+            else
+            {
+                throw new FormatException($"Invalid Boundary: {src}");
+            }
+
+            return boundary;
         }
     }
 }
