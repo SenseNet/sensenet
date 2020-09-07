@@ -1,20 +1,62 @@
 ﻿using System;
 using System.Xml;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
+    /// <summary>
+    /// Defines a component / package dependency
+    /// </summary>
     public class Dependency
     {
-        public string Id { get; private set; }
-        public Version MinVersion { get; private set; }
-        public Version MaxVersion { get; private set; }
-        public bool MinVersionIsExclusive { get; private set; }
-        public bool MaxVersionIsExclusive { get; private set; }
+        /// <summary>
+        /// Gets or sets the Id of the target component / package
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the scope of the dependency
+        /// </summary>
+        public VersionBoundary Boundary { get; set; } = new VersionBoundary();
+
+        /// <summary>
+        /// Gets or sets the Boundary.MinVersion.
+        /// This property is deprecated use the Boundary.MinVersion instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MinVersion { get => Boundary.MinVersion; set => Boundary.MinVersion = value; }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MaxVersion.
+        /// This property is deprecated use the Boundary.MaxVersion instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MaxVersion { get => Boundary.MaxVersion; set => Boundary.MaxVersion = value; }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MinVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MinVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public bool MinVersionIsExclusive
+        {
+            get => Boundary.MinVersionIsExclusive;
+            set => Boundary.MinVersionIsExclusive = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MaxVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MaxVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MaxVersionIsExclusive instead.")]
+        public bool MaxVersionIsExclusive
+        {
+            get => Boundary.MaxVersionIsExclusive;
+            set => Boundary.MaxVersionIsExclusive = value;
+        }
 
         public static Dependency Parse(XmlElement element)
         {
-            var dependency = new Dependency();
-
             var id = (element.Attributes["id"] ?? element.Attributes["Id"])?.Value;
             var version = GetVersion(element, "version");
             var minVersion = GetVersion(element, "minVersion");
@@ -40,13 +82,17 @@ namespace SenseNet.Packaging
             if (version != null)
                 minVersion = maxVersion = version;
 
-            dependency.Id = id;
-            dependency.MinVersion = minVersion ?? minVersionExclusive;
-            dependency.MaxVersion = maxVersion ?? maxVersionExclusive;
-            dependency.MinVersionIsExclusive = minVersionExclusive != null;
-            dependency.MaxVersionIsExclusive = maxVersionExclusive != null;
-
-            return dependency;
+            return new Dependency
+            {
+                Id = id,
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = minVersion ?? minVersionExclusive,
+                    MaxVersion = maxVersion ?? maxVersionExclusive,
+                    MinVersionIsExclusive = minVersionExclusive != null,
+                    MaxVersionIsExclusive = maxVersionExclusive != null,
+                }
+            };
         }
 
         private static Version GetVersion(XmlElement element, string name)

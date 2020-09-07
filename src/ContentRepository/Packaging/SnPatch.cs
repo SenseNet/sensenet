@@ -1,52 +1,117 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
+    public class PatchContext
+    {
+        public RepositoryStartSettings Settings { get; set; }
+    }
+
+    public interface ISnPatch
+    {
+        /// <summary>
+        /// Gets or sets the Id of the package / component.
+        /// </summary>
+        string Id { get; set; }
+        /// <summary>
+        /// Gets or sets the release date of the patch.
+        /// </summary>
+        DateTime ReleaseDate { get; set; }
+        /// <summary>
+        /// Gets or sets the version of the patch.
+        /// </summary>
+        Version Version { get; set; }
+        /// <summary>
+        /// Gets or sets a value that specifies that the execution of this patch needs to pause the system start or not.
+        /// </summary>
+        bool IsBlocker { get; set; }
+        /// <summary>
+        /// Gets or sets the function that will be executed if allowed.
+        /// </summary>
+        Func<PatchContext, ExecutionResult> Execute { get; set; }
+    }
+    public class StartupTool : ISnPatch
+    {
+        /// <inheritdoc/>
+        public string Id { get; set; }
+        /// <inheritdoc/>
+        public DateTime ReleaseDate { get; set; }
+        /// <inheritdoc/>
+        public Version Version { get; set; }
+        /// <inheritdoc/>
+        public bool IsBlocker { get; set; }
+        /// <inheritdoc/>
+        public Func<PatchContext, ExecutionResult> Execute { get; set; }
+    }
+    public class ComponentInstaller : StartupTool
+    {
+        /// <summary>
+        /// Gets or sets a dependency array if there is any. Otherwise null.
+        /// </summary>
+        public IEnumerable<Dependency> Dependencies { get; set; }
+    }
+
+
     /// <summary>
     /// Represents a patch that will be executed only if the current component version
     /// is lower than the supported version of the component and it is between the defined 
     /// minimum and maximum version numbers in this patch. The component version after 
     /// this patch will be the one defined in the Version property.
     /// </summary>
-    public class SnPatch
+    [DebuggerDisplay("{Id} {Version}")]
+    public class SnPatch : ComponentInstaller
     {
         /// <summary>
-        /// Patch target version.
+        /// Gets or sets a version interval that specifies the patch's relevance.
         /// </summary>
-        public Version Version { get; set; }
-        public Version MinVersion { get; set; }
-        public Version MaxVersion { get; set; }
+        public VersionBoundary Boundary { get; set; } = new VersionBoundary();
 
         /// <summary>
-        /// If set to true, the patch will not be executed if the current
-        /// component version is the same as the minimum version defined
-        /// in this patch.
+        /// Gets or sets the Boundary.MinVersion.
+        /// This property is deprecated use the Boundary.MinVersion instead.
         /// </summary>
-        public bool MinVersionIsExclusive { get; set; }
-        /// <summary>
-        /// If set to true, the patch will not be executed if the current
-        /// component version is the same as the maximum version defined
-        /// in this patch.
-        /// </summary>
-        public bool MaxVersionIsExclusive { get; set; }
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MinVersion { get => Boundary.MinVersion; set => Boundary.MinVersion = value; }
 
-        //TODO: add more patch definition options (resource, code, Manifest object)
+        /// <summary>
+        /// Gets or sets the Boundary.MaxVersion.
+        /// This property is deprecated use the Boundary.MaxVersion instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MaxVersion { get => Boundary.MaxVersion; set => Boundary.MaxVersion = value; }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MinVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MinVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public bool MinVersionIsExclusive
+        {
+            get => Boundary.MinVersionIsExclusive;
+            set => Boundary.MinVersionIsExclusive = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MaxVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MaxVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MaxVersionIsExclusive instead.")]
+        public bool MaxVersionIsExclusive
+        {
+            get => Boundary.MaxVersionIsExclusive;
+            set => Boundary.MaxVersionIsExclusive = value;
+        }
 
         /// <summary>
         /// Patch definition in a manifest xml format.
         /// </summary>
+        [Obsolete("Delete this functionality.")]
         public string Contents { get; set; }
-
-        /// <summary>
-        /// Patch definition in the form of code.
-        /// </summary>
-        public Func<PatchContext, ExecutionResult> Execute;
     }
 
-    public class PatchContext
-    {
-        public RepositoryStartSettings Settings { get; set; }
-    }
 }
