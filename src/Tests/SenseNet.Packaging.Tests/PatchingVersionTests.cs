@@ -90,7 +90,6 @@ namespace SenseNet.Packaging.Tests
                 }
                 catch (InvalidPackageException e)
                 {
-                    // There is no case that satisfies the conditions
                     Assert.AreEqual(e.ErrorType, expectedErrorType);
                 }
             }
@@ -121,14 +120,58 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Check_BoundaryOverlapped_MorePatches()
         {
-            throw new NotImplementedException();
+            void CheckError(SnPatch patch1, SnPatch patch2, PackagingExceptionType expectedErrorType)
+            {
+                try
+                {
+                    ValidatePatches(patch1, patch2);
+                    Assert.Fail("The expected exception was not thrown.");
+                }
+                catch (InvalidPackageException e)
+                {
+                    Assert.AreEqual(e.ErrorType, expectedErrorType);
+                }
+            }
+
             // Patch1                      Patch2                      Error
             // --------------------------- --------------------------- ---------------------
             // (C1: 1.1 <= v <= 1.1, v1.3) (C1: 1.2 <= v <= 1.2, v1.3) Targets are the same
             // (C1: 1.1 <= v <= 1.1, v1.3) (C1: 1.1 <= v <= 1.1, v1.4) Sources are the same
-            // 
+
+            CheckError(
+                Patch("C1", "1.1 <= v <= 1.1", "v1.3", null),
+                Patch("C1", "1.2 <= v <= 1.2", "v1.3", null),
+                PackagingExceptionType.TargetVersionsAreTheSame);
+            CheckError(
+                Patch("C1", "1.1 <= v <= 1.1", "v1.3", null),
+                Patch("C1", "1.1 <= v <= 1.1", "v1.4", null),
+                PackagingExceptionType.SourceVersionsAreTheSame);
+
+            // Patch1                      Patch2                      Error
+            // --------------------------- --------------------------- ---------------------
+            // (C1: 1.0 <= v <  2.0, v2.0) (C1: 2.0 <  v <  3.0, v3.0) ok
+            // (C1: 1.0 <= v <= 2.0, v2.0) (C1: 2.0 <  v <  3.0, v3.0) ok
             // (C1: 1.0 <= v <  2.0, v2.0) (C1: 2.0 <= v <  3.0, v3.0) ok
+            // (C1: 1.0 <= v <= 2.0, v2.0) (C1: 2.0 <= v <  3.0, v3.0) Overlapped
             // (C1: 1.0 <= v <  2.0, v2.0) (C1: 1.9 <= v <  3.0, v3.0) Overlapped
+
+            ValidatePatches(
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
+                Patch("C1", "2.0 <  v <  3.0", "v3.0", null));
+            ValidatePatches(
+                Patch("C1", "1.0 <= v <= 2.0", "v2.0", null),
+                Patch("C1", "2.0 <  v <  3.0", "v3.0", null));
+            ValidatePatches(
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null));
+            CheckError(
+                Patch("C1", "1.0 <= v <= 2.0", "v2.0", null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null),
+                PackagingExceptionType.OverlappedIntervals);
+            CheckError(
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
+                Patch("C1", "1.9 <= v <  3.0", "v3.0", null),
+                PackagingExceptionType.OverlappedIntervals);
         }
         [TestMethod]
         public void Patching_Version_Check_WrongDependency()

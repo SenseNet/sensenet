@@ -20,7 +20,7 @@ namespace SenseNet.Packaging
         // parameters
         MissingParameterName, InvalidParameterName, DuplicatedParameter,
         // others
-        InvalidInterval, MaxLessThanMin
+        InvalidInterval, MaxLessThanMin, SourceVersionsAreTheSame, TargetVersionsAreTheSame, OverlappedIntervals
     }
 
     [Serializable]

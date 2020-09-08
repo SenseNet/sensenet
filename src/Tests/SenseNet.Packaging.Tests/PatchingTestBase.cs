@@ -110,6 +110,40 @@ namespace SenseNet.Packaging.Tests
                 throw new InvalidPackageException("Maximum and minimum versions are equal but the maximum version is exclusive.",
                     PackagingExceptionType.InvalidInterval);
         }
+        protected void ValidatePatches(SnPatch patch1, SnPatch patch2)
+        {
+            if (patch1.Version == patch2.Version)
+                throw new InvalidPackageException(
+                    $"Target versions are the same. Id: {patch1.Id}, version: {patch1.Version}",
+                    PackagingExceptionType.TargetVersionsAreTheSame);
+
+            if (patch1.Boundary.MinVersion == patch1.Boundary.MaxVersion &&
+                patch2.Boundary.MinVersion == patch2.Boundary.MaxVersion &&
+                patch1.Boundary.MinVersion == patch2.Boundary.MinVersion)
+                throw new InvalidPackageException(
+                    $"Target versions are the same. Id: {patch1.Id}, version: {patch1.Boundary.MinVersion}",
+                    PackagingExceptionType.SourceVersionsAreTheSame);
+
+            // Ordering: the patch2 need to be higher
+            if (patch1.Version > patch2.Version)
+            {
+                var temp = patch1;
+                patch1 = patch2;
+                patch2 = temp;
+            }
+
+            // (C1: 1.0 <= v <  2.0, v2.0) (C1: 1.9 <= v <  3.0, v3.0) Overlapped
+            if (patch1.Boundary.MaxVersion > patch2.Boundary.MinVersion)
+                throw new InvalidPackageException(
+                    $"Overlapped intervals. Id: {patch1.Id}, versions: {patch1.Version}, {patch2.Version}",
+                    PackagingExceptionType.OverlappedIntervals);
+            // (C1: v <= 2.0, v2.0) (C1: 2.0 <= v, v3.0) Overlapped
+            if (patch1.Boundary.MaxVersion == patch2.Boundary.MinVersion &&
+                !patch1.Boundary.MaxVersionIsExclusive && !patch2.Boundary.MinVersionIsExclusive)
+                throw new InvalidPackageException(
+                    $"Overlapped intervals. Id: {patch1.Id}, versions: {patch1.Version}, {patch2.Version}",
+                    PackagingExceptionType.OverlappedIntervals);
+        }
 
 
         private async Task<SnPatch[]> GetOrderedPatches(SnPatch[] patches, CancellationToken cancellationToken)
