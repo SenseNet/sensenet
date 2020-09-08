@@ -267,13 +267,13 @@ namespace SenseNet.Packaging.Tests
             // [C1:  v1.0] (C1: v <= 1.0, v1.1) yes
             // [C1:  v1.0] (C1: v <= 1.1, v1.2) yes
             // [C1:  v1.1] (C1: v <  1.1, v1.2) no
-            // [C1:  v1.2] (C1: v <  1.1, v1.2) yes
+            // [C1:  v1.1] (C1: v <= 1.1, v1.2) yes
             // [C1:  v1.2] (C1: v <= 1.1, v1.2) no
 
-            //Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.0, v1.1)"));
-            //Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.1, v1.2)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.0, v1.1)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.1, v1.2)"));
             Assert.IsFalse(IsRelevant("[C1:  v1.1]", "(C1: v <  1.1, v1.2)"));
-            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: v <  1.1, v1.2)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.1]", "(C1: v <= 1.1, v1.2)"));
             Assert.IsFalse(IsRelevant("[C1:  v1.2]", "(C1: v <= 1.1, v1.2)"));
         }
         [TestMethod]
