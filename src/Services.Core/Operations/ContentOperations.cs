@@ -598,7 +598,7 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
         [Scenario( N.S.WorkspaceActions, N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
-        public static object SetPermissions(Content content, string inheritance)
+        public static Content SetPermissions(Content content, string inheritance)
         {
             var editor = SecurityHandler.CreateAclEditor();
 
@@ -616,7 +616,7 @@ namespace SenseNet.Services.Core.Operations
 
             editor.Apply();
 
-            return null;
+            return content;
         }
 
         [ODataAction(Icon = "security", Description = "$Action,SetPermissions", DisplayName = "$Action,SetPermissions-DisplayName")]
@@ -624,13 +624,13 @@ namespace SenseNet.Services.Core.Operations
         [AllowedRoles(N.R.Everyone)]
         [RequiredPermissions(N.P.Open, N.P.SeePermissions, N.P.SetPermissions)]
         [Scenario( N.S.WorkspaceActions, N.S.ListItem, N.S.ExploreActions, N.S.ContextMenu)]
-        public static object SetPermissions(Content content, SetPermissionsRequest r)
+        public static Content SetPermissions(Content content, SetPermissionsRequest r)
         {
             var request = r;
             var editor = SecurityHandler.CreateAclEditor();
             SetPermissions(content, request, editor);
             editor.Apply();
-            return null;
+            return content;
         }
         private static void SetPermissions(Content content, SetPermissionsRequest request, SnAclEditor editor)
         {
