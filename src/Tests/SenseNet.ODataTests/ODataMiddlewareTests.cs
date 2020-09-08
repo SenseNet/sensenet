@@ -44,7 +44,7 @@ namespace SenseNet.ODataTests
 
                 // ACTION: Simulate the aspnet framework
                 // instantiate the OData with the next chain member
-                var odata = new ODataMiddleware(new TestMiddleware(null).InvokeAsync, null);
+                var odata = new ODataMiddleware(new TestMiddleware(null).InvokeAsync, null, null);
                 // call the first of the chain
                 await odata.InvokeAsync(httpContext);
 
@@ -78,7 +78,7 @@ namespace SenseNet.ODataTests
                 var responseStream = httpContext.Response.Body = new MemoryStream();
 
                 // ACTION: Simulate the aspnet framework
-                var odata = new ODataMiddleware(null, null);
+                var odata = new ODataMiddleware(null, null, null);
                 // call the first of the chain
                 await odata.InvokeAsync(httpContext);
 

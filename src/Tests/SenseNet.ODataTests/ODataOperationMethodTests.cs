@@ -2949,7 +2949,7 @@ namespace SenseNet.ODataTests
         {
             public CleanOperationCenterBlock()
             {
-                var _ = new ODataMiddleware(null, null); // Ensure running the first-touch discover
+                var _ = new ODataMiddleware(null, null, null); // Ensure running the first-touch discover
                 OperationCenter.Operations.Clear();
             }
             public void Dispose()

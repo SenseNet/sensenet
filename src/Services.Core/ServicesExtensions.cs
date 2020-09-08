@@ -12,6 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Services.Core;
 using SenseNet.Services.Core.Authentication;
 using SenseNet.Services.Core.Authentication.IdentityServer4;
+using SenseNet.Services.Core.Configuration;
 using SenseNet.Storage;
 using SenseNet.Storage.Security;
 using SenseNet.TaskManagement.Core;
@@ -36,6 +37,7 @@ namespace SenseNet.Extensions.DependencyInjection
             services.Configure<RegistrationOptions>(configuration.GetSection("sensenet:Registration"));
             services.Configure<AuthenticationOptions>(configuration.GetSection("sensenet:Authentication"));
             services.Configure<ClientRequestOptions>(configuration.GetSection("sensenet:ClientRequest"));
+            services.Configure<HttpRequestOptions>(configuration.GetSection("sensenet:HttpRequest"));
             
             return services;
         }
