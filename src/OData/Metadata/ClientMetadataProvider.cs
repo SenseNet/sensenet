@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SenseNet.ContentRepository.Storage.Scripting;
 using SenseNet.Diagnostics;
 using SenseNet.OData.Typescript;
 
@@ -114,7 +113,7 @@ namespace SenseNet.OData.Metadata
                 if (string.IsNullOrEmpty(defaultValue)) 
                     continue;
 
-                var evaluated = Evaluator.Evaluate(defaultValue);
+                var evaluated = FieldSetting.EvaluateDefaultValue(defaultValue);
                 fs["EvaluatedDefaultValue"] = evaluated;
             }
 
