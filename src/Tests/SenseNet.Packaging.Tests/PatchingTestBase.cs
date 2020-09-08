@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,6 +110,13 @@ namespace SenseNet.Packaging.Tests
             if (boundary.MinVersion == boundary.MaxVersion && boundary.MaxVersionIsExclusive)
                 throw new InvalidPackageException("Maximum and minimum versions are equal but the maximum version is exclusive.",
                     PackagingExceptionType.InvalidInterval);
+
+            if (patch.Dependencies != null)
+            {
+                if (patch.Dependencies.Any(x => x.Id == patch.Id))
+                    throw new InvalidPackageException("Patch and dependency id are the same.",
+                        PackagingExceptionType.PatchIdAndDependencyIdAreTheSame);
+            }
         }
         protected void ValidatePatches(SnPatch patch1, SnPatch patch2)
         {
@@ -145,7 +153,21 @@ namespace SenseNet.Packaging.Tests
                     PackagingExceptionType.OverlappedIntervals);
         }
 
+        protected SnPatch[] GetRelevantPatches(IEnumerable<Package> installedPackages, IEnumerable<SnPatch> patches)
+        {
+            var lastVersions = installedPackages.GroupBy(x => x.ComponentId)
+                .Select(y => new { Id = y.Key, Version = y.Max(row => row.ComponentVersion) })
+                .ToArray();
 
+            var relevantPatches = patches.Where(patch =>
+                lastVersions.Any(pkg => pkg.Id == patch.Id &&
+                                        patch.Version > pkg.Version &&
+                                        patch.Boundary.IsInInterval(pkg.Version)));
+
+            return relevantPatches.ToArray();
+        }
+
+        /*
         private async Task<SnPatch[]> GetOrderedPatches(SnPatch[] patches, CancellationToken cancellationToken)
         {
             var packages = (await PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
@@ -162,6 +184,7 @@ namespace SenseNet.Packaging.Tests
 
             return relevantPatches.ToArray();
         }
+        
         private bool IsVersionRelevant(SnPatch patch, Version packageVersion)
         {
             if (patch.Version < packageVersion)
@@ -194,11 +217,33 @@ namespace SenseNet.Packaging.Tests
 
             return true;
         }
+        */
 
         /* ========================================================================================== */
 
         /// <summary>
-        /// Creates a patch
+        /// Creates a successfully executed package for test purposes. PackageType = PackageType.Patch.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Version after successful execution</param>
+        /// <returns></returns>
+        protected Package Package(string id, string version)
+        {
+            return new Package
+            {
+                ComponentId = id,
+                ComponentVersion = Version.Parse(version.TrimStart('v')),
+                Description = $"{id}-Description",
+                ExecutionDate = DateTime.Now.AddDays(-1),
+                ReleaseDate = DateTime.Now.AddDays(-2),
+                ExecutionError = null,
+                ExecutionResult = ExecutionResult.Successful,
+                PackageType = PackageType.Patch,
+            };
+        }
+
+        /// <summary>
+        /// Creates a patch for test purposes.
         /// </summary>
         /// <param name="id">ComponentId</param>
         /// <param name="version">Target version</param>
@@ -216,7 +261,7 @@ namespace SenseNet.Packaging.Tests
             };
         }
         /// <summary>
-        /// Creates a Dependency
+        /// Creates a Dependency for test purposes.
         /// </summary>
         /// <param name="id">ComponentId</param>
         /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>

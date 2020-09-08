@@ -28,5 +28,21 @@ namespace SenseNet.Packaging
         /// If true, the <c>MaxVersion</c> is not in the interval.
         /// </summary>
         public bool MaxVersionIsExclusive { get; set; }
+
+        /// <summary>
+        /// Returns true if the defined interval contains the given <paramref name="version"/>.
+        /// </summary>
+        /// <param name="version">The tested version.</param>
+        /// <returns></returns>
+        public bool IsInInterval(Version version)
+        {
+            if (version < MinVersion || version > MaxVersion)
+                return false;
+            if (MinVersionIsExclusive && version == MinVersion)
+                return false;
+            if (MaxVersionIsExclusive && version == MaxVersion)
+                return false;
+            return true;
+        }
     }
 }

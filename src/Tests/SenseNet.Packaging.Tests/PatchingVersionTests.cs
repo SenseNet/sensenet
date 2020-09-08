@@ -1,11 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Packaging.Tests
 {
     [TestClass]
     public class PatchingVersionTests : PatchingTestBase
     {
+        [TestMethod]
+        public void Patching_Version_Check_IsInInterval()
+        {
+            bool IsInInterval(string boundary, string version)
+            {
+                return ParseBoundary(boundary).IsInInterval(Version.Parse(version.TrimStart('v')));
+            }
+
+            // Interval         Version  IsInInterval
+            // ---------------- -------- ------------
+            // 2.0 <= v <= 2.0  v1.9     no
+            // 2.0 <= v <= 2.0  v2.0     yes
+            // 2.0 <= v <= 2.0  v2.0.0   no
+            // 2.0 <= v <= 3.0  v1.9     no
+            // 2.0 <= v <= 3.0  v2.5     yes
+            // 2.0 <= v <= 3.0  v3.0.0   no
+            // 2.0 <= v <= 3.0  v2.0     yes
+            // 2.0 <  v <= 3.0  v2.0     no
+            // 2.0 <= v <  3.0  v3.0     no
+            // 2.0 <= v <= 3.0  v3.0     yes
+
+            Assert.IsFalse(IsInInterval("2.0 <= v <= 2.0", "v1.9"));
+            Assert.IsTrue(IsInInterval("2.0 <= v <= 2.0", "v2.0"));
+            Assert.IsFalse(IsInInterval("2.0 <= v <= 2.0", "v2.0.0"));
+            Assert.IsFalse(IsInInterval("2.0 <= v <= 3.0", "v1.9"));
+            Assert.IsTrue(IsInInterval("2.0 <= v <= 3.0", "v2.5"));
+            Assert.IsFalse(IsInInterval("2.0 <= v <= 3.0", "v3.0.0"));
+            Assert.IsTrue(IsInInterval("2.0 <= v <= 3.0", "v2.0"));
+            Assert.IsFalse(IsInInterval("2.0 <  v <= 3.0", "v2.0"));
+            Assert.IsFalse(IsInInterval("2.0 <= v <  3.0", "v3.0"));
+            Assert.IsTrue(IsInInterval("2.0 <= v <= 3.0", "v3.0"));
+        }
+
         /* =================================================================== PATCH VALIDITY TESTS */
 
         [TestMethod]
@@ -176,10 +212,21 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Check_WrongDependency()
         {
-            throw new NotImplementedException();
             // Patch                                                  Error
             // ------------------------------------------------------ ---------------------
             // (C1: 1.0 <= v <= 1.0, v1.2, {DEP C1: 1.0 <= v <= 1.0}) Patch and dependency id are the same
+
+            var patch = Patch("C1", "1.0 <= v <= 1.0", "v1.2",
+                new[] {Dep("C1", "1.0 <= v <= 1.0")});
+            try
+            {
+                ValidatePatch(patch);
+                Assert.Fail("The expected exception was not thrown.");
+            }
+            catch (InvalidPackageException e)
+            {
+                Assert.AreEqual(e.ErrorType, PackagingExceptionType.PatchIdAndDependencyIdAreTheSame);
+            }
         }
 
         /* =================================================================== PATCH RELEVANCE TESTS */
@@ -189,15 +236,15 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void Patching_Version_Relevance_NotInstalledComponent()
         {
-            throw new NotImplementedException();
-            // Package    Patch                       IsRelevant (will be executed or not)
+            // Package    Patch                       IsRelevant
             // ---------- --------------------------- ----------
             // [C1: v1.0] (C2: 1.0 <= v <= 1.0, v1.1) no
+
+            Assert.IsFalse(IsRelevant("[C1: v1.0]", "(C2: 1.0 <= v <= 1.0, v1.1)"));
         }
         [TestMethod]
         public void Patching_Version_Relevance_MaxVersionNotDefined()
         {
-            throw new NotImplementedException();
             // Package     Patch                IsRelevant
             // ----------- -------------------- ----------
             // [C1:  v1.0] (C1: 1.0 <= v, v1.1) yes
@@ -205,11 +252,16 @@ namespace SenseNet.Packaging.Tests
             // [C1:  v1.1] (C1: 1.0 <= v, v1.1) no
             // [C1:  v1.1] (C1: 1.0 <= v, v1.2) yes
             // [C1:  v1.1] (C1: 1.0 <  v, v1.2) yes
+
+            Assert.IsTrue(IsRelevant("[C1: v1.0]", "(C1: 1.0 <= v, v1.1)"));
+            Assert.IsFalse(IsRelevant("[C1: v1.0]", "(C1: 1.0 <  v, v1.1)"));
+            Assert.IsFalse(IsRelevant("[C1: v1.1]", "(C1: 1.0 <= v, v1.1)"));
+            Assert.IsTrue(IsRelevant("[C1: v1.1]", "(C1: 1.0 <= v, v1.2)"));
+            Assert.IsTrue(IsRelevant("[C1: v1.1]", "(C1: 1.0 <  v, v1.2)"));
         }
         [TestMethod]
         public void Patching_Version_Relevance_MinVersionNotDefined()
         {
-            throw new NotImplementedException();
             // Package     Patch                IsRelevant
             // ----------- -------------------- ----------
             // [C1:  v1.0] (C1: v <= 1.0, v1.1) yes
@@ -217,40 +269,102 @@ namespace SenseNet.Packaging.Tests
             // [C1:  v1.1] (C1: v <  1.1, v1.2) no
             // [C1:  v1.2] (C1: v <  1.1, v1.2) yes
             // [C1:  v1.2] (C1: v <= 1.1, v1.2) no
+
+            //Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.0, v1.1)"));
+            //Assert.IsTrue(IsRelevant("[C1:  v1.0]", "(C1: v <= 1.1, v1.2)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.1]", "(C1: v <  1.1, v1.2)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: v <  1.1, v1.2)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.2]", "(C1: v <= 1.1, v1.2)"));
         }
         [TestMethod]
         public void Patching_Version_Relevance_BothVersionsDefined()
         {
-            throw new NotImplementedException();
             // Package     Patch                        IsRelevant
             // ----------- ---------------------------- ----------
             // [C1:  v1.0] (C1: 1.1 <= v <= 1.1, v1.3)  no         // v = 1.1
             // [C1:  v1.1] (C1: 1.1 <= v <= 1.1, v1.3)  yes        // v = 1.1
             // [C1:  v1.2] (C1: 1.1 <= v <= 1.1, v1.3)  no         // v = 1.1
+            Assert.IsFalse(IsRelevant("[C1:  v1.0]", "(C1: 1.1 <= v <= 1.1, v1.3)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.1]", "(C1: 1.1 <= v <= 1.1, v1.3)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.2]", "(C1: 1.1 <= v <= 1.1, v1.3)"));
 
+            // Package     Patch                        IsRelevant
+            // ----------- ---------------------------- ----------
             // [C1:  v1.0] (C1: 1.1 <= v <= 1.3, v1.4)  no
             // [C1:  v1.1] (C1: 1.1 <= v <= 1.3, v1.4)  yes
             // [C1:  v1.2] (C1: 1.1 <= v <= 1.3, v1.4)  yes
             // [C1:  v1.3] (C1: 1.1 <= v <= 1.3, v1.4)  yes
             // [C1:  v1.4] (C1: 1.1 <= v <= 1.3, v1.4)  no
+            Assert.IsFalse(IsRelevant("[C1:  v1.0]", "(C1: 1.1 <= v <= 1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.1]", "(C1: 1.1 <= v <= 1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: 1.1 <= v <= 1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.3]", "(C1: 1.1 <= v <= 1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.4]", "(C1: 1.1 <= v <= 1.3, v1.4)"));
 
+            // Package     Patch                        IsRelevant
+            // ----------- ---------------------------- ----------
             // [C1:  v1.0] (C1: 1.1 <  v <= 1.3, v1.4)  no
             // [C1:  v1.1] (C1: 1.1 <  v <= 1.3, v1.4)  no
             // [C1:  v1.2] (C1: 1.1 <  v <= 1.3, v1.4)  yes
             // [C1:  v1.3] (C1: 1.1 <  v <= 1.3, v1.4)  yes
             // [C1:  v1.4] (C1: 1.1 <  v <= 1.3, v1.4)  no
+            Assert.IsFalse(IsRelevant("[C1:  v1.0]", "(C1: 1.1 <  v <= 1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.1]", "(C1: 1.1 <  v <= 1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: 1.1 <  v <= 1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.3]", "(C1: 1.1 <  v <= 1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.4]", "(C1: 1.1 <  v <= 1.3, v1.4)"));
 
+            // Package     Patch                        IsRelevant
+            // ----------- ---------------------------- ----------
             // [C1:  v1.0] (C1: 1.1 <= v <  1.3, v1.4)  no
             // [C1:  v1.1] (C1: 1.1 <= v <  1.3, v1.4)  yes
             // [C1:  v1.2] (C1: 1.1 <= v <  1.3, v1.4)  yes
             // [C1:  v1.3] (C1: 1.1 <= v <  1.3, v1.4)  no
             // [C1:  v1.4] (C1: 1.1 <= v <  1.3, v1.4)  no
+            Assert.IsFalse(IsRelevant("[C1:  v1.0]", "(C1: 1.1 <= v <  1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.1]", "(C1: 1.1 <= v <  1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: 1.1 <= v <  1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.3]", "(C1: 1.1 <= v <  1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.4]", "(C1: 1.1 <= v <  1.3, v1.4)"));
 
+            // Package     Patch                        IsRelevant
+            // ----------- ---------------------------- ----------
             // [C1:  v1.0] (C1: 1.1 <  v <  1.3, v1.4)  no
             // [C1:  v1.1] (C1: 1.1 <  v <  1.3, v1.4)  no
             // [C1:  v1.2] (C1: 1.1 <  v <  1.3, v1.4)  yes
             // [C1:  v1.3] (C1: 1.1 <  v <  1.3, v1.4)  no
             // [C1:  v1.4] (C1: 1.1 <  v <  1.3, v1.4)  no
+            Assert.IsFalse(IsRelevant("[C1:  v1.0]", "(C1: 1.1 <  v <  1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.1]", "(C1: 1.1 <  v <  1.3, v1.4)"));
+            Assert.IsTrue(IsRelevant("[C1:  v1.2]", "(C1: 1.1 <  v <  1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.3]", "(C1: 1.1 <  v <  1.3, v1.4)"));
+            Assert.IsFalse(IsRelevant("[C1:  v1.4]", "(C1: 1.1 <  v <  1.3, v1.4)"));
         }
+        private bool IsRelevant(string package, string patch)
+        {
+            var packages = Packages(package).ToArray();
+            var patches = Patches(patch).ToArray();
+            var relevantPatches = GetRelevantPatches(packages, patches);
+            return relevantPatches.Any(x => x.Id == patches.First().Id);
+        }
+        private IEnumerable<Package> Packages(params string[] src)
+        {
+            return src.Select(x =>
+            {
+                var segments = x.TrimStart('[').TrimEnd(']').Split(':');
+                return Package(segments[0].Trim(), segments[1].Trim());
+            });
+        }
+        private IEnumerable<SnPatch> Patches(params string[] src)
+        {
+            return src.Select(x =>
+            {
+                var segments = x.TrimStart('(').TrimEnd(')').Split(':');
+                var id = segments[0].Trim();
+                segments = segments[1].Trim().Split(',');
+                return Patch(id, segments[0].Trim(), segments[1].Trim(), null);
+            });
+        }
+
     }
 }
