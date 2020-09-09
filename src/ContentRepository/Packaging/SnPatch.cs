@@ -19,6 +19,14 @@ namespace SenseNet.Packaging
         /// </summary>
         string Id { get; set; }
         /// <summary>
+        /// Gets the type of the patch (Install, Patch, Tool)
+        /// </summary>
+        PackageType Type { get; }
+        /// <summary>
+        /// Gets or sets the description of the patch.
+        /// </summary>
+        string Description { get; set; }
+        /// <summary>
         /// Gets or sets the release date of the patch.
         /// </summary>
         DateTime ReleaseDate { get; set; }
@@ -39,6 +47,12 @@ namespace SenseNet.Packaging
     {
         /// <inheritdoc/>
         public string Id { get; set; }
+        /// <summary>
+        /// Gets the type of the patch. In this case PackageType.Install
+        /// </summary>
+        public virtual PackageType Type => PackageType.Install;
+        /// <inheritdoc/>
+        public string Description { get; set; }
         /// <inheritdoc/>
         public DateTime ReleaseDate { get; set; }
         /// <inheritdoc/>
@@ -58,6 +72,11 @@ namespace SenseNet.Packaging
     [DebuggerDisplay("{Id} {Version}")]
     public class SnPatch : ComponentInstaller
     {
+        /// <summary>
+        /// Gets the type of the patch. In this case PackageType.Patch
+        /// </summary>
+        public override PackageType Type => PackageType.Patch;
+
         /// <summary>
         /// Gets or sets a version interval that specifies the patch's relevance.
         /// </summary>

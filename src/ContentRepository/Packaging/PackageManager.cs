@@ -550,5 +550,43 @@ namespace SenseNet.Packaging
 
             return result;
         }
+
+        /* ================================================================================= PATCHING FUNCTIONALITY */
+
+        public static Package CreatePackage(ISnPatch patch)
+        {
+            var package = new Package
+            {
+                ComponentId = patch.Id,
+                ComponentVersion = patch.Version,
+                Description = patch.Description,
+                ReleaseDate = patch.ReleaseDate,
+                PackageType = patch.Type, 
+            };
+
+            Dependency[] dependencies;
+            if (patch is SnPatch snPatch)
+            {
+                var selfDependency = new Dependency {Id = snPatch.Id, Boundary = snPatch.Boundary};
+                if (patch.Dependencies == null)
+                {
+                    dependencies = new[] {selfDependency};
+                }
+                else
+                {
+                    var list = patch.Dependencies.ToList();
+                    list.Insert(0, selfDependency);
+                    dependencies = list.ToArray();
+                }
+            }
+            else
+            {
+                dependencies = patch.Dependencies.ToArray();
+            }
+
+            package.Manifest = Manifest.Create(package, dependencies, false).ToXmlString();
+
+            return package;
+        }
     }
 }

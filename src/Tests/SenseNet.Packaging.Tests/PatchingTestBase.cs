@@ -226,10 +226,11 @@ namespace SenseNet.Packaging.Tests
         /// </summary>
         /// <param name="id">ComponentId</param>
         /// <param name="version">Version after successful execution</param>
+        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
         /// <returns></returns>
-        protected Package Package(string id, string version)
+        protected Package Package(string id, string version, Dependency[] dependencies)
         {
-            return new Package
+            var package = new Package
             {
                 ComponentId = id,
                 ComponentVersion = Version.Parse(version.TrimStart('v')),
@@ -240,6 +241,10 @@ namespace SenseNet.Packaging.Tests
                 ExecutionResult = ExecutionResult.Successful,
                 PackageType = PackageType.Patch,
             };
+
+            package.Manifest = Manifest.Create(package, dependencies, false).ToXmlString();
+
+            return package;
         }
 
         /// <summary>

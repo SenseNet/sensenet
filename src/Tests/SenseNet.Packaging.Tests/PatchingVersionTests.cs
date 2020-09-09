@@ -352,7 +352,7 @@ namespace SenseNet.Packaging.Tests
             return src.Select(x =>
             {
                 var segments = x.TrimStart('[').TrimEnd(']').Split(':');
-                return Package(segments[0].Trim(), segments[1].Trim());
+                return Package(segments[0].Trim(), segments[1].Trim(), null);
             });
         }
         private IEnumerable<SnPatch> Patches(params string[] src)
