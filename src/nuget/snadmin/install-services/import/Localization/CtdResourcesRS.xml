@@ -157,178 +157,6 @@
       </Language>
     </Languages>
   </ResourceClass> 
-  <ResourceClass name="Ctd-Site">
-    <Languages>
-      <Language cultureName="en">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Site</value>
-        </data>
-        <data name="Description" xml:space="preserve">
-          <value>The Site provides a primary entry point to your Portal.</value>
-        </data>
-        <data name="DisplayName-DisplayName" xml:space="preserve">
-          <value>Display name of the Site</value>
-        </data>
-        <data name="DisplayName-Description" xml:space="preserve">
-          <value>This name will appear when the site is presented somewhere.</value>
-        </data>
-        <data name="Language-DisplayName" xml:space="preserve">
-          <value>Language</value>
-        </data>
-        <data name="Language-Description" xml:space="preserve">
-          <value>Please define the default language of this site.</value>
-        </data>
-        <data name="Language-Hu" xml:space="preserve">
-          <value>Hungarian</value>
-        </data>
-        <data name="Language-En" xml:space="preserve">
-          <value>English</value>
-        </data>
-        <data name="EnableClientBasedCulture-DisplayName" xml:space="preserve">
-          <value>Enable client-based culture</value>
-        </data>
-        <data name="EnableClientBasedCulture-Description" xml:space="preserve">
-          <value>Enable this to allow user browser settings override default site language settings.</value>
-        </data>
-        <data name="EnableUserBasedCulture-DisplayName" xml:space="preserve">
-          <value>Enable user-based culture</value>
-        </data>
-        <data name="EnableUserBasedCulture-Description" xml:space="preserve">
-          <value>Enable this to allow user language settings override default site language settings.</value>
-        </data>
-        <data name="UrlList-DisplayName" xml:space="preserve">
-          <value>URL list</value>
-        </data>
-        <data name="UrlList-Description" xml:space="preserve">
-          <value>Select the URLs to associate with this Site.</value>
-        </data>
-        <data name="StartPage-DisplayName" xml:space="preserve">
-          <value>Alternative start page</value>
-        </data>
-        <data name="StartPage-Description" xml:space="preserve">
-          <value>If set, the site will use this start page instead of the default.</value>
-        </data>
-        <data name="LoginPage-DisplayName" xml:space="preserve">
-          <value>Login page</value>
-        </data>
-        <data name="LoginPage-Description" xml:space="preserve">
-          <value>The login page to display when a user tries to access restricted Content (Forms authentication only).</value>
-        </data>
-        <data name="SiteSkin-DisplayName" xml:space="preserve">
-          <value>Skin</value>
-        </data>
-        <data name="SiteSkin-Description" xml:space="preserve">
-          <value></value>
-        </data>
-        <data name="DenyCrossSiteAccess-DisplayName" xml:space="preserve">
-          <value>Deny cross-site access</value>
-        </data>
-        <data name="DenyCrossSiteAccess-Description" xml:space="preserve">
-          <value>If set, content under this site can only be accessed via this site and not via other sites using a Root relative path.</value>
-        </data>
-        <data name="SiteInheritableVersioningMode-Description" xml:space="preserve">
-          <value>Specify whether the system should create a new version whenever you create or modify a content under this site.</value>
-        </data>
-        <data name="SiteInheritableApprovingMode-Description" xml:space="preserve">
-          <value>Specify whether new or changed content under this site should remain draft until approved.</value>
-        </data>
-      </Language>
-      <Language cultureName="hu">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Site</value>
-        </data>
-        <data name="Description" xml:space="preserve">
-          <value>A site jelenti a fő belépési pontot a portálra.</value>
-        </data>
-        <data name="DisplayName-DisplayName" xml:space="preserve">
-          <value>Felhasználóbarát név</value>
-        </data>
-        <data name="DisplayName-Description" xml:space="preserve">
-          <value>Ez a név fog megjelenni, amikor a site-okat listázzuk, vagy megjelenítjük valahol.</value>
-        </data>
-        <data name="Language-DisplayName" xml:space="preserve">
-          <value>Nyelv</value>
-        </data>
-        <data name="Language-Description" xml:space="preserve">
-          <value>Adja meg a szájt alapértelmezett nyelvét.</value>
-        </data>
-        <data name="Language-Hu" xml:space="preserve">
-          <value>magyar</value>
-        </data>
-        <data name="Language-En" xml:space="preserve">
-          <value>angol</value>
-        </data>
-        <data name="EnableClientBasedCulture-DisplayName" xml:space="preserve">
-          <value>Kliens oldali nyelvek engedélyezése</value>
-        </data>
-        <data name="EnableClientBasedCulture-Description" xml:space="preserve">
-          <value>Ha engedélyezi, a böngészők nyelvi beállítása felülírja a szájton beállított alapértelmezett nyelvet.</value>
-        </data>
-        <data name="EnableUserBasedCulture-DisplayName" xml:space="preserve">
-          <value>Felhasználói nyelvválasztás engedélyezése</value>
-        </data>
-        <data name="EnableUserBasedCulture-Description" xml:space="preserve">
-          <value>Ha engedélyezi, a felhasználó nyelvi beállítása felülírja a szájton beállított alapértelmezett nyelvet.</value>
-        </data>
-        <data name="UrlList-DisplayName" xml:space="preserve">
-          <value>URL lista</value>
-        </data>
-        <data name="UrlList-Description" xml:space="preserve">
-          <value>Adja meg az ehhez a site-hoz társított URL címeket.</value>
-        </data>
-        <data name="StartPage-DisplayName" xml:space="preserve">
-          <value>Alternatív kezdőoldal</value>
-        </data>
-        <data name="StartPage-Description" xml:space="preserve">
-          <value>Ha kitölti, a site ezt a tartalmat jeleníti meg az alapértelmezetett (például This/Browse oldal) helyett.</value>
-        </data>
-        <data name="LoginPage-DisplayName" xml:space="preserve">
-          <value>Belépés oldal</value>
-        </data>
-        <data name="LoginPage-Description" xml:space="preserve">
-          <value>Ezt a belépés oldalt jelenítjük meg, ha a felhasználó belépést igénylő tartalomhoz szeretne hozzáférni (Forms autentikáció esetén).</value>
-        </data>
-        <data name="SiteSkin-DisplayName" xml:space="preserve">
-          <value>Téma</value>
-        </data>
-        <data name="SiteSkin-Description" xml:space="preserve">
-          <value>Meghatározza a site kinézetét, a használt stílusfájlokat és képeket.</value>
-        </data>
-        <data name="DenyCrossSiteAccess-DisplayName" xml:space="preserve">
-          <value>Más site-okról történő elérés tiltása</value>
-        </data>
-        <data name="DenyCrossSiteAccess-Description" xml:space="preserve">
-          <value>Ha beállítja, ezen site alatti tartalmak csak ezen a site-on át lesznek elérhetőek, más site-okon át A '/Root/...' címzést használva sem.</value>
-        </data>
-        <data name="SiteInheritableVersioningMode-Description" xml:space="preserve">
-          <value>Adja meg, hogy rendszer hozzon-e létre új verziót minden egyes alkalommal, ha valaki módosít egy tartalmat a site alatt.</value>
-        </data>
-        <data name="SiteInheritableApprovingMode-Description" xml:space="preserve">
-          <value>Adja meg, hogy az új vagy módosított tartalmakat a site alatt jóvá kell-e hagyni, mielőtt megjelennek publikusan.</value>
-        </data>
-      </Language>
-    </Languages>
-  </ResourceClass>
-  <ResourceClass name="Ctd-Sites">
-    <Languages>
-      <Language cultureName="en">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Sites</value>
-        </data>
-        <data name="Description" xml:space="preserve">
-          <value>This is the container type for sites. Only a single instance is allowed at /Root/Sites.</value>
-        </data>
-      </Language>
-      <Language cultureName="hu">
-        <data name="DisplayName" xml:space="preserve">
-          <value>Sites</value>
-        </data>
-        <data name="Description" xml:space="preserve">
-          <value>Site-ok gyűjtője. Egy lehet belőle, a /Root/Sites.</value>
-        </data>
-      </Language>
-    </Languages>
-  </ResourceClass>
   <ResourceClass name="Ctd-SmartFolder">
     <Languages>
       <Language cultureName="en">
@@ -451,6 +279,34 @@
         </data>
         <data name="Index-DisplayName" xml:space="preserve">
           <value>Index</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+   <ResourceClass name="Ctd-ReferenceFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Reference field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Referencia mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-ShortTextFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>ShortText field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Rövid szöveges mező</value>
         </data>
       </Language>
     </Languages>
