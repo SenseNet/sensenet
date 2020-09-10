@@ -111,6 +111,10 @@ namespace SenseNet.Extensions.DependencyInjection
                                 int.TryParse(sub, out var subId) ? Node.Load<User>(subId) : User.Load(sub));
                         }
                     }
+
+                    // make sure we do not set the user if it is not enabled
+                    if (user != null && !user.Enabled)
+                        user = null;
                 }
 
                 User.Current = user ?? User.DefaultUser;
