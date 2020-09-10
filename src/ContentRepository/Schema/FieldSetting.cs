@@ -1428,12 +1428,12 @@ namespace SenseNet.ContentRepository.Schema
         }
         public static string EvaluateDefaultValue(string defaultValue)
         {
-            if (defaultValue == null)
-                return null;
+            if (string.IsNullOrEmpty(defaultValue))
+                return defaultValue;
 
             // This is a workaround for enhancing the default value evaluation process with
             // the template replacer feature: the latter is not available in the Storage layer.
-            var replaced = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), defaultValue);
+            var replaced = TemplateManager.Replace(typeof(DefaultValueTemplateReplacer), defaultValue);
 
             return Evaluator.Evaluate(replaced);
         }
