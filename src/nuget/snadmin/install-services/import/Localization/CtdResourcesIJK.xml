@@ -3,6 +3,9 @@
   <ResourceClass name="Ctd-Image">
     <Languages>
       <Language cultureName="en">
+      <data name="DisplayName" xml:space="preserve">
+          <value>Image</value>
+        </data>
         <data name="Description" xml:space="preserve">
           <value>A special file type for images.</value>
         </data>
@@ -546,6 +549,20 @@
         </data>
         <data name="ItemListInheritableApprovingMode-Description" xml:space="preserve">
           <value>Adja meg, hogy az új vagy módosított tartalmakat a lista alatt jóvá kell-e hagyni, mielőtt megjelennek publikusan.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-IntegerFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Integer field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Egész szám mező</value>
         </data>
       </Language>
     </Languages>

@@ -1135,4 +1135,18 @@
       </Language>
     </Languages>
   </ResourceClass>
+    <ResourceClass name="Ctd-HyperLinkFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Hyperlink field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Hivatkozás mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
 </Resources>
