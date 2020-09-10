@@ -96,7 +96,6 @@ namespace SenseNet.OData.Metadata
 
                 serializedContentType = ConvertMetaClass(schemaClass);
 
-                //UNDONE: check this, because the current type is 'document'
                 // We cache JObjects instead of strings because this way the OData
                 // layer sets the response content type correctly (application/json).
                 _contentTypes[schemaClass.Name] = serializedContentType;
