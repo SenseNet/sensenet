@@ -109,5 +109,13 @@ namespace SenseNet.Packaging
                 return v;
             throw new InvalidPackageException(string.Format(SR.Errors.Manifest.InvalidVersion1, value), PackagingExceptionType.InvalidVersion);
         }
+
+        /// <summary>
+        /// String representation of this Dependency instance.
+        /// </summary>
+        public override string ToString()
+        {
+            return $"{Id}: {Boundary}";
+        }
     }
 }

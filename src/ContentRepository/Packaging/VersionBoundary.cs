@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -43,6 +44,30 @@ namespace SenseNet.Packaging
             if (MaxVersionIsExclusive && version == MaxVersion)
                 return false;
             return true;
+        }
+
+        /// <summary>
+        /// String representation of this VersionBoundary instance.
+        /// </summary>
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+
+            if ((MinVersion.Major > 0 || MinVersion.Minor > 0) && !MinVersionIsExclusive)
+            {
+                sb.Append(MinVersion);
+                sb.Append(MinVersionIsExclusive ? " < " : " <= ");
+            }
+
+            sb.Append("v");
+            
+            if ((MaxVersion.Major < int.MaxValue || MaxVersion.Minor < int.MaxValue) && !MaxVersionIsExclusive)
+            {
+                sb.Append(MaxVersionIsExclusive ? " < " : " <= ");
+                sb.Append(MaxVersion);
+            }
+
+            return sb.ToString();
         }
     }
 }
