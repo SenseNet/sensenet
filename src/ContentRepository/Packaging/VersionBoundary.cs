@@ -53,7 +53,7 @@ namespace SenseNet.Packaging
         {
             var sb = new StringBuilder();
 
-            if ((MinVersion.Major > 0 || MinVersion.Minor > 0) && !MinVersionIsExclusive)
+            if (MinVersion != null && (MinVersion.Major > 0 || MinVersion.Minor > 0))
             {
                 sb.Append(MinVersion);
                 sb.Append(MinVersionIsExclusive ? " < " : " <= ");
@@ -61,7 +61,7 @@ namespace SenseNet.Packaging
 
             sb.Append("v");
             
-            if ((MaxVersion.Major < int.MaxValue || MaxVersion.Minor < int.MaxValue) && !MaxVersionIsExclusive)
+            if (MaxVersion != null && (MaxVersion.Major < int.MaxValue || MaxVersion.Minor < int.MaxValue))
             {
                 sb.Append(MaxVersionIsExclusive ? " < " : " <= ");
                 sb.Append(MaxVersion);

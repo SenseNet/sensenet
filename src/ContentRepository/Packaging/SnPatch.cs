@@ -15,9 +15,13 @@ namespace SenseNet.Packaging
     public interface ISnPatch
     {
         /// <summary>
+        /// Gets os sets the database id of the related package.
+        /// </summary>
+        int Id { get; set; }
+        /// <summary>
         /// Gets or sets the Id of the package / component.
         /// </summary>
-        string Id { get; set; }
+        string ComponentId { get; set; }
         /// <summary>
         /// Gets the type of the patch (Install, Patch, Tool)
         /// </summary>
@@ -46,7 +50,9 @@ namespace SenseNet.Packaging
     public class ComponentInstaller : ISnPatch
     {
         /// <inheritdoc/>
-        public string Id { get; set; }
+        public int Id { get; set; }
+        /// <inheritdoc/>
+        public string ComponentId { get; set; }
         /// <summary>
         /// Gets the type of the patch. In this case PackageType.Install
         /// </summary>

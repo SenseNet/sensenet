@@ -416,7 +416,7 @@ namespace SenseNet.Packaging
             var cr = Environment.NewLine;
 
             var src = string.Empty;
-            if (Dependencies.Any())
+            if (Dependencies != null && Dependencies.Any())
             {
                 var depSrc = Dependencies.Select(d => $"    <Dependency id='{d.Id}'{GenerateVersionAttrs(d)} />");
                 src =

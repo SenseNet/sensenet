@@ -70,10 +70,10 @@ namespace SenseNet.Packaging.Tests
 
         protected void ValidatePatch(SnPatch patch)
         {
-            if (patch.Id == null)
+            if (patch.ComponentId == null)
                 throw new InvalidPackageException("The Id cannot be null.",
                     PackagingExceptionType.MissingComponentId);
-            if (patch.Id.Length == 0)
+            if (patch.ComponentId.Length == 0)
                 throw new InvalidPackageException("The Id cannot be empty.",
                     PackagingExceptionType.MissingComponentId);
             if (patch.Version == null)
@@ -113,7 +113,7 @@ namespace SenseNet.Packaging.Tests
 
             if (patch.Dependencies != null)
             {
-                if (patch.Dependencies.Any(x => x.Id == patch.Id))
+                if (patch.Dependencies.Any(x => x.Id == patch.ComponentId))
                     throw new InvalidPackageException("Patch and dependency id are the same.",
                         PackagingExceptionType.PatchIdAndDependencyIdAreTheSame);
             }
@@ -122,14 +122,14 @@ namespace SenseNet.Packaging.Tests
         {
             if (patch1.Version == patch2.Version)
                 throw new InvalidPackageException(
-                    $"Target versions are the same. Id: {patch1.Id}, version: {patch1.Version}",
+                    $"Target versions are the same. ComponentId: {patch1.ComponentId}, version: {patch1.Version}",
                     PackagingExceptionType.TargetVersionsAreTheSame);
 
             if (patch1.Boundary.MinVersion == patch1.Boundary.MaxVersion &&
                 patch2.Boundary.MinVersion == patch2.Boundary.MaxVersion &&
                 patch1.Boundary.MinVersion == patch2.Boundary.MinVersion)
                 throw new InvalidPackageException(
-                    $"Target versions are the same. Id: {patch1.Id}, version: {patch1.Boundary.MinVersion}",
+                    $"Target versions are the same. ComponentId: {patch1.ComponentId}, version: {patch1.Boundary.MinVersion}",
                     PackagingExceptionType.SourceVersionsAreTheSame);
 
             // Ordering: the patch2 need to be higher
@@ -143,24 +143,24 @@ namespace SenseNet.Packaging.Tests
             // (C1: 1.0 <= v <  2.0, v2.0) (C1: 1.9 <= v <  3.0, v3.0) Overlapped
             if (patch1.Boundary.MaxVersion > patch2.Boundary.MinVersion)
                 throw new InvalidPackageException(
-                    $"Overlapped intervals. Id: {patch1.Id}, versions: {patch1.Version}, {patch2.Version}",
+                    $"Overlapped intervals. Id: {patch1.ComponentId}, versions: {patch1.Version}, {patch2.Version}",
                     PackagingExceptionType.OverlappedIntervals);
             // (C1: v <= 2.0, v2.0) (C1: 2.0 <= v, v3.0) Overlapped
             if (patch1.Boundary.MaxVersion == patch2.Boundary.MinVersion &&
                 !patch1.Boundary.MaxVersionIsExclusive && !patch2.Boundary.MinVersionIsExclusive)
                 throw new InvalidPackageException(
-                    $"Overlapped intervals. Id: {patch1.Id}, versions: {patch1.Version}, {patch2.Version}",
+                    $"Overlapped intervals. Id: {patch1.ComponentId}, versions: {patch1.Version}, {patch2.Version}",
                     PackagingExceptionType.OverlappedIntervals);
         }
 
         protected SnPatch[] GetRelevantPatches(IEnumerable<Package> installedPackages, IEnumerable<SnPatch> patches)
         {
             var lastVersions = installedPackages.GroupBy(x => x.ComponentId)
-                .Select(y => new { Id = y.Key, Version = y.Max(row => row.ComponentVersion) })
+                .Select(y => new { ComponentId = y.Key, Version = y.Max(row => row.ComponentVersion) })
                 .ToArray();
 
             var relevantPatches = patches.Where(patch =>
-                lastVersions.Any(pkg => pkg.Id == patch.Id &&
+                lastVersions.Any(pkg => pkg.ComponentId == patch.ComponentId &&
                                         patch.Version > pkg.Version &&
                                         patch.Boundary.IsInInterval(pkg.Version)));
 
@@ -259,7 +259,7 @@ namespace SenseNet.Packaging.Tests
         {
             return new SnPatch
             {
-                Id = id,
+                ComponentId = id,
                 Version = version == null ? null : Version.Parse(version.Substring(1)),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
