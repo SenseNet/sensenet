@@ -167,7 +167,8 @@ namespace SenseNet.OData
 
             candidates = candidates.Where(x => FilterByRolesAndPermissions(inspector, x.Roles, x.Permissions, content)).ToArray();
             if (candidates.Length == 0)
-                throw new AccessDeniedException(null, null, 0, null, null);
+                throw new AccessDeniedException("Operation not accessible: " + GetRequestSignature(methodName, requestParameterNames),
+                    null, 0, null, null);
 
             // Search candidates by parameter types
             // Phase-1: search complete type match (strict)
