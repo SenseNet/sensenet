@@ -553,6 +553,11 @@ namespace SenseNet.Packaging
 
         /* ================================================================================= PATCHING FUNCTIONALITY */
 
+        public static void SavePatch(ISnPatch patch, bool successful, Exception execError)
+        {
+            SavePackage(Manifest.Create(patch), null, successful, execError);
+        }
+
         public static Package CreatePackage(ISnPatch patch)
         {
             var package = new Package
@@ -561,7 +566,10 @@ namespace SenseNet.Packaging
                 ComponentVersion = patch.Version,
                 Description = patch.Description,
                 ReleaseDate = patch.ReleaseDate,
-                PackageType = patch.Type, 
+                PackageType = patch.Type,
+                ExecutionDate = patch.ExecutionDate,
+                ExecutionResult = patch.ExecutionResult,
+                ExecutionError = patch.ExecutionError
             };
 
             Dependency[] dependencies;
@@ -615,6 +623,9 @@ namespace SenseNet.Packaging
                 ReleaseDate = package.ReleaseDate,
                 Version = package.ComponentVersion,
                 Dependencies = dependencies,
+                ExecutionDate = package.ExecutionDate,
+                ExecutionResult = package.ExecutionResult,
+                ExecutionError = package.ExecutionError
             };
         }
         private static SnPatch CreateSnPatch(Package package)
@@ -636,6 +647,9 @@ namespace SenseNet.Packaging
                 Version = package.ComponentVersion,
                 Boundary = selfDependency.Boundary,
                 Dependencies = dependencies,
+                ExecutionDate = package.ExecutionDate,
+                ExecutionResult = package.ExecutionResult,
+                ExecutionError = package.ExecutionError
             };
         }
     }

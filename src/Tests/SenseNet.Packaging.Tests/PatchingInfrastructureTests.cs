@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -172,10 +174,11 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C7 description", installer.Description);
             Assert.AreEqual(new DateTime(2020, 07, 31), installer.ReleaseDate);
             var dep = string.Join(",", installer.Dependencies).Replace(" ", "");
-            Assert.AreEqual(dep, "C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0");
-            //UNDONE: Assert ExecutionDate = ,
-            //UNDONE: Assert ExecutionResult = ,
-            //UNDONE: Assert ExecutionError = ,
+            Assert.AreEqual("C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0", dep);
+            Assert.AreEqual(new DateTime(2020, 08, 12), installer.ExecutionDate);
+            Assert.AreEqual(ExecutionResult.Faulty, installer.ExecutionResult);
+            Assert.IsNotNull(installer.ExecutionError);
+            Assert.AreEqual("Very informative error message.", installer.ExecutionError.Message);
         }
         [TestMethod]
         public void PatchingSystem_CreatePatchFromPackage()
@@ -222,11 +225,160 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(new DateTime(2020, 07, 31), snPatch.ReleaseDate);
             Assert.AreEqual("1.0 <= v < 2.0", snPatch.Boundary.ToString());
             var dep = string.Join(",", snPatch.Dependencies).Replace(" ", "");
-            Assert.AreEqual(dep, "C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0");
-            //UNDONE: Assert ExecutionDate = ,
-            //UNDONE: Assert ExecutionResult = ,
-            //UNDONE: Assert ExecutionError = ,
+            Assert.AreEqual("C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0", dep);
+            Assert.AreEqual(new DateTime(2020, 08, 12), snPatch.ExecutionDate);
+            Assert.AreEqual(ExecutionResult.Faulty, snPatch.ExecutionResult);
+            Assert.IsNotNull(snPatch.ExecutionError);
+            Assert.AreEqual("Very informative error message.", snPatch.ExecutionError.Message);
         }
 
+        [TestMethod]
+        public void PatchingSystem_SaveAndReloadFaultyInstaller()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C7",
+                Version = new Version(1, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Dependencies = new[]
+                {
+                    Dep("C1", "1.0 <= v <= 1.0"),
+                    Dep("C2", "1.0 <= v       "),
+                    Dep("C3", "1.0 <  v       "),
+                    Dep("C4", "       v <= 2.0"),
+                    Dep("C5", "       v <  2.0"),
+                    Dep("C6", "1.0 <= v <  2.0"),
+                }
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePatch(installer, false,
+                new PackagingException(PackagingExceptionType.DependencyNotFound));
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patches[0].Id > 0);
+            Assert.AreEqual("C7", patches[0].ComponentId);
+            Assert.AreEqual(new Version(1, 0), patches[0].Version);
+            Assert.AreEqual("C7 description", patches[0].Description);
+            Assert.AreEqual(new DateTime(2020, 07, 31), patches[0].ReleaseDate);
+            var dep = string.Join(",", patches[0].Dependencies).Replace(" ", "");
+            Assert.AreEqual("C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0", dep);
+            Assert.IsTrue(patches[0].ExecutionDate > DateTime.UtcNow.AddMinutes(-1));
+            Assert.IsTrue(patches[0].ExecutionDate <= DateTime.UtcNow);
+            Assert.AreEqual(ExecutionResult.Faulty, patches[0].ExecutionResult);
+            Assert.IsNotNull(patches[0].ExecutionError);
+            Assert.AreEqual(PackagingExceptionType.DependencyNotFound, ((PackagingException)patches[0].ExecutionError).ErrorType);
+        }
+        [TestMethod]
+        public void PatchingSystem_ReSaveAndReloadInstaller()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C7",
+                Version = new Version(1, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Dependencies = new[]
+                {
+                    Dep("C1", "1.0 <= v <= 1.0"),
+                    Dep("C2", "1.0 <= v       "),
+                    Dep("C3", "1.0 <  v       "),
+                    Dep("C4", "       v <= 2.0"),
+                    Dep("C5", "       v <  2.0"),
+                    Dep("C6", "1.0 <= v <  2.0"),
+                }
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE-1
+            PackageManager.SavePatch(installer, false,
+                new PackagingException(PackagingExceptionType.DependencyNotFound));
+
+            // SAVE-2
+            PackageManager.SavePatch(installer, true, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patches[0].Id > 0);
+            Assert.AreEqual("C7", patches[0].ComponentId);
+            Assert.AreEqual(new Version(1, 0), patches[0].Version);
+            Assert.AreEqual("C7 description", patches[0].Description);
+            Assert.AreEqual(new DateTime(2020, 07, 31), patches[0].ReleaseDate);
+            var dep = string.Join(",", patches[0].Dependencies).Replace(" ", "");
+            Assert.AreEqual("C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0", dep);
+            Assert.IsTrue(patches[0].ExecutionDate > DateTime.UtcNow.AddMinutes(-1));
+            Assert.IsTrue(patches[0].ExecutionDate <= DateTime.UtcNow);
+            Assert.AreEqual(ExecutionResult.Successful, patches[0].ExecutionResult);
+            Assert.IsNull(patches[0].ExecutionError);
+        }
+        [TestMethod]
+        public void PatchingSystem_SaveAndReloadSnPatch()
+        {
+            var snPatch = new SnPatch
+            {
+                ComponentId = "C7",
+                Version = new Version(2, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Boundary = ParseBoundary("1.0 <= v <  2.0"),
+                Dependencies = new[]
+                {
+                    Dep("C1", "1.0 <= v <= 1.0"),
+                    Dep("C2", "1.0 <= v       "),
+                    Dep("C3", "1.0 <  v       "),
+                    Dep("C4", "       v <= 2.0"),
+                    Dep("C5", "       v <  2.0"),
+                    Dep("C6", "1.0 <= v <  2.0"),
+                }
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePatch(snPatch, true, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            var patch = (SnPatch)patches[0];
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patch.Id > 0);
+            Assert.AreEqual(PackageType.Patch, patch.Type);
+            Assert.AreEqual("C7", patch.ComponentId);
+            Assert.AreEqual(new Version(2, 0), patch.Version);
+            Assert.AreEqual("1.0 <= v < 2.0", patch.Boundary.ToString());
+            Assert.AreEqual("C7 description", patch.Description);
+            Assert.AreEqual(new DateTime(2020, 07, 31), patch.ReleaseDate);
+            var dep = string.Join(",", patch.Dependencies).Replace(" ", "");
+            Assert.AreEqual("C1:1.0<=v<=1.0,C2:1.0<=v,C3:1.0<v,C4:v<=2.0,C5:v<2.0,C6:1.0<=v<2.0", dep);
+            Assert.IsTrue(patch.ExecutionDate > DateTime.UtcNow.AddMinutes(-1));
+            Assert.IsTrue(patch.ExecutionDate <= DateTime.UtcNow);
+            Assert.AreEqual(ExecutionResult.Successful, patch.ExecutionResult);
+            Assert.IsNull(patch.ExecutionError);
+        }
     }
 }

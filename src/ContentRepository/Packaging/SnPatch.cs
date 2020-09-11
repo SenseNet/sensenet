@@ -46,6 +46,19 @@ namespace SenseNet.Packaging
         /// Gets or sets the function that will be executed if allowed.
         /// </summary>
         Func<PatchContext, ExecutionResult> Execute { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time of the execution.
+        /// </summary>
+        DateTime ExecutionDate { get; set; }
+        /// <summary>
+        /// Gets or sets the final state of the execution.
+        /// </summary>
+        ExecutionResult ExecutionResult { get; set; }
+        /// <summary>
+        /// Gets or sets the exception that was thrown when executing the package.
+        /// </summary>
+        Exception ExecutionError { get; set; }
     }
     public class ComponentInstaller : ISnPatch
     {
@@ -67,6 +80,13 @@ namespace SenseNet.Packaging
         public IEnumerable<Dependency> Dependencies { get; set; }
         /// <inheritdoc/>
         public Func<PatchContext, ExecutionResult> Execute { get; set; }
+
+        /// <inheritdoc/>
+        public DateTime ExecutionDate { get; set; }
+        /// <inheritdoc/>
+        public ExecutionResult ExecutionResult { get; set; }
+        /// <inheritdoc/>
+        public Exception ExecutionError { get; set; }
     }
 
     /// <summary>

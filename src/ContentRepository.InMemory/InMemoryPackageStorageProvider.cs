@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository.InMemory
                     ExecutionResult = p.ExecutionResult,
                     ComponentVersion = p.ComponentVersion,
                     ExecutionError = p.ExecutionError,
-                    //Manifest = p.Manifest, // Not loaded to increase performance.
+                    Manifest = p.Manifest,
                 })
                 .ToArray().AsEnumerable());
         }

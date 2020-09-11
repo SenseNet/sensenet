@@ -484,5 +484,51 @@ namespace SenseNet.Packaging
 
             return manifest;
         }
+
+        /// <summary>
+        /// Creates a <c>Manifest</c> instance from the given <paramref name="package"/>
+        /// </summary>
+        /// <param name="patch">Source <c>ISnPatch</c>.</param>
+        /// <returns></returns>
+        public static Manifest Create(ISnPatch patch)
+        {
+            Dependency[] dependencies;
+            if (patch is SnPatch snPatch)
+            {
+                var selfDependency = new Dependency { Id = snPatch.ComponentId, Boundary = snPatch.Boundary };
+                if (patch.Dependencies == null)
+                {
+                    dependencies = new[] { selfDependency };
+                }
+                else
+                {
+                    var list = patch.Dependencies.ToList();
+                    list.Insert(0, selfDependency);
+                    dependencies = list.ToArray();
+                }
+            }
+            else
+            {
+                dependencies = patch.Dependencies.ToArray();
+            }
+
+            var manifest = new Manifest
+            {
+                PackageType = patch.Type,
+                ComponentId = patch.ComponentId,
+                Description = patch.Description,
+                ReleaseDate = patch.ReleaseDate,
+                Dependencies = dependencies,
+                Version = patch.Version,
+                Parameters = new Dictionary<string, string>()
+            };
+
+            manifest.SystemInstall = manifest.ComponentId == SystemComponentId &&
+                                     manifest.PackageType == PackageType.Install;
+
+            manifest.ManifestXml = manifest.ToXml();
+
+            return manifest;
+        }
     }
 }
