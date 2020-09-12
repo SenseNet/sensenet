@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SenseNet.ContentRepository.i18n;
 using SenseNet.Diagnostics;
 using SenseNet.OData.Typescript;
 
@@ -59,10 +60,12 @@ namespace SenseNet.OData.Metadata
         {
             // per-instance event subscription
             ContentType.TypeSystemRestarted += OnTypeSystemRestarted;
+            SenseNetResourceManager.ResourceManagerRestarted += OnResourceManagerRestarted;
         }
         ~ClientMetadataProvider()
         {
             ContentType.TypeSystemRestarted -= OnTypeSystemRestarted;
+            SenseNetResourceManager.ResourceManagerRestarted -= OnResourceManagerRestarted;
         }
 
         //======================================================================================= Event handlers
@@ -71,6 +74,18 @@ namespace SenseNet.OData.Metadata
         /// Instance-level event handler that is called when the content type system restarts.
         /// </summary>
         protected virtual void OnTypeSystemRestarted(object o, EventArgs eventArgs)
+        {
+            Reset();
+        }
+        /// <summary>
+        /// Instance-level event handler that is called when the resource manager restarts.
+        /// </summary>
+        protected virtual void OnResourceManagerRestarted(object o, EventArgs eventArgs)
+        {
+            Reset();
+        }
+
+        internal void Reset()
         {
             _contentTypes.Clear();
             SnTrace.Repository.Write("ClientMetadataProvider Reset");
