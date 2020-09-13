@@ -24,6 +24,9 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public string Description { get; set; }
 
+        /// <summary>
+        /// Represents a not installed component.
+        /// </summary>
         public static readonly ComponentInfo Empty = new ComponentInfo
         {
             ComponentId = string.Empty,
