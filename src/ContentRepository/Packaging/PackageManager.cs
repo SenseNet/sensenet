@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data.MsSqlClient;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
     public class PackageManager
@@ -212,12 +213,12 @@ namespace SenseNet.Packaging
             Logger.LogMessage(message);
         }
 
-        private static void SaveInitialPackage(Manifest manifest)
+        internal static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
             Storage.SavePackageAsync(newPack, CancellationToken.None).GetAwaiter().GetResult();
         }
-        private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
+        internal static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
             var executionResult = successful ? ExecutionResult.Successful : ExecutionResult.Faulty;
 
@@ -439,7 +440,7 @@ namespace SenseNet.Packaging
                     else if (patch.Execute != null)
                     {
                         // execute code patch
-                        patch.Execute(new PatchContext
+                        patch.Execute(new PatchExecutionContext
                         {
                             Settings = settings
                         });
@@ -549,108 +550,6 @@ namespace SenseNet.Packaging
             RepositoryVersionInfo.Reset();
 
             return result;
-        }
-
-        /* ================================================================================= PATCHING FUNCTIONALITY */
-
-        public static void SavePatch(ISnPatch patch, bool successful, Exception execError)
-        {
-            SavePackage(Manifest.Create(patch), null, successful, execError);
-        }
-
-        public static Package CreatePackage(ISnPatch patch)
-        {
-            var package = new Package
-            {
-                ComponentId = patch.ComponentId,
-                ComponentVersion = patch.Version,
-                Description = patch.Description,
-                ReleaseDate = patch.ReleaseDate,
-                PackageType = patch.Type,
-                ExecutionDate = patch.ExecutionDate,
-                ExecutionResult = patch.ExecutionResult,
-                ExecutionError = patch.ExecutionError
-            };
-
-            Dependency[] dependencies;
-            if (patch is SnPatch snPatch)
-            {
-                var selfDependency = new Dependency {Id = snPatch.ComponentId, Boundary = snPatch.Boundary};
-                if (patch.Dependencies == null)
-                {
-                    dependencies = new[] {selfDependency};
-                }
-                else
-                {
-                    var list = patch.Dependencies.ToList();
-                    list.Insert(0, selfDependency);
-                    dependencies = list.ToArray();
-                }
-            }
-            else
-            {
-                dependencies = patch.Dependencies.ToArray();
-            }
-
-            package.Manifest = Manifest.Create(package, dependencies, false).ToXmlString();
-
-            return package;
-        }
-
-        public static ISnPatch CreatePatch(Package package)
-        {
-            if (package.PackageType == PackageType.Tool)
-                return null;
-            if (package.PackageType == PackageType.Install)
-                return CreateInstaller(package);
-            if (package.PackageType == PackageType.Patch)
-                return CreateSnPatch(package);
-            throw new ArgumentOutOfRangeException("Unknown PackageType: " + package.PackageType);
-        }
-        private static ComponentInstaller CreateInstaller(Package package)
-        {
-            var xml = new XmlDocument();
-            xml.LoadXml(package.Manifest);
-            var manifest = Manifest.Parse(xml);
-
-            var dependencies = manifest.Dependencies.ToList();
-
-            return new ComponentInstaller
-            {
-                Id = package.Id,
-                ComponentId = package.ComponentId,
-                Description = package.Description,
-                ReleaseDate = package.ReleaseDate,
-                Version = package.ComponentVersion,
-                Dependencies = dependencies,
-                ExecutionDate = package.ExecutionDate,
-                ExecutionResult = package.ExecutionResult,
-                ExecutionError = package.ExecutionError
-            };
-        }
-        private static SnPatch CreateSnPatch(Package package)
-        {
-            var xml = new XmlDocument();
-            xml.LoadXml(package.Manifest);
-            var manifest = Manifest.Parse(xml);
-
-            var dependencies = manifest.Dependencies.ToList();
-            var selfDependency = dependencies.First(x => x.Id == package.ComponentId);
-            dependencies.Remove(selfDependency);
-
-            return new SnPatch
-            {
-                Id = package.Id,
-                ComponentId = package.ComponentId,
-                Description = package.Description,
-                ReleaseDate = package.ReleaseDate,
-                Version = package.ComponentVersion,
-                Boundary = selfDependency.Boundary,
-                Dependencies = dependencies,
-                ExecutionDate = package.ExecutionDate,
-                ExecutionResult = package.ExecutionResult,
-                ExecutionError = package.ExecutionError
-            };
         }
     }
 }

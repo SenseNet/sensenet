@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
-    public class PatchContext
+    public class PatchExecutionContext
     {
         public RepositoryStartSettings Settings { get; set; }
     }
@@ -45,7 +45,7 @@ namespace SenseNet.Packaging
         /// <summary>
         /// Gets or sets the function that will be executed if allowed.
         /// </summary>
-        Func<PatchContext, ExecutionResult> Execute { get; set; }
+        Func<PatchExecutionContext, ExecutionResult> Execute { get; set; }
 
         /// <summary>
         /// Gets or sets the time of the execution.
@@ -79,7 +79,7 @@ namespace SenseNet.Packaging
         /// <inheritdoc/>
         public IEnumerable<Dependency> Dependencies { get; set; }
         /// <inheritdoc/>
-        public Func<PatchContext, ExecutionResult> Execute { get; set; }
+        public Func<PatchExecutionContext, ExecutionResult> Execute { get; set; }
 
         /// <inheritdoc/>
         public DateTime ExecutionDate { get; set; }

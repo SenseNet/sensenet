@@ -74,7 +74,7 @@ namespace SenseNet.Packaging.Tests
 </Package>".Replace('\'', '"');
 
             // ACTION
-            var pkg = PackageManager.CreatePackage(installer);
+            var pkg = PatchManager.CreatePackage(installer);
 
             // ASSERT
             Assert.AreEqual("C7", pkg.ComponentId);
@@ -121,7 +121,7 @@ namespace SenseNet.Packaging.Tests
 </Package>".Replace('\'', '"');
 
             // ACTION
-            var pkg = PackageManager.CreatePackage(patch);
+            var pkg = PatchManager.CreatePackage(patch);
 
             // ASSERT
             Assert.AreEqual("C7", pkg.ComponentId);
@@ -163,7 +163,7 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var patch = PackageManager.CreatePatch(package);
+            var patch = PatchManager.CreatePatch(package);
 
             // ASSERT
             var installer = patch as ComponentInstaller;
@@ -213,7 +213,7 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var patch = PackageManager.CreatePatch(package);
+            var patch = PatchManager.CreatePatch(package);
 
             // ASSERT
             var snPatch = patch as SnPatch;
@@ -257,7 +257,7 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(packages.Any());
 
             // SAVE
-            PackageManager.SavePatch(installer, false,
+            PackageManager.SavePackage(Manifest.Create(installer), null, false,
                 new PackagingException(PackagingExceptionType.DependencyNotFound));
 
             // RELOAD
@@ -265,7 +265,7 @@ namespace SenseNet.Packaging.Tests
                 .ConfigureAwait(false).GetAwaiter().GetResult();
 
             // ASSERT
-            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
             Assert.AreEqual(1, patches.Length);
             Assert.IsTrue(patches[0].Id > 0);
             Assert.AreEqual("C7", patches[0].ComponentId);
@@ -305,18 +305,18 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(packages.Any());
 
             // SAVE-1
-            PackageManager.SavePatch(installer, false,
+            PackageManager.SavePackage(Manifest.Create(installer), null, false,
                 new PackagingException(PackagingExceptionType.DependencyNotFound));
 
             // SAVE-2
-            PackageManager.SavePatch(installer, true, null);
+            PackageManager.SavePackage(Manifest.Create(installer), null, true, null);
 
             // RELOAD
             packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
 
             // ASSERT
-            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
             Assert.AreEqual(1, patches.Length);
             Assert.IsTrue(patches[0].Id > 0);
             Assert.AreEqual("C7", patches[0].ComponentId);
@@ -356,14 +356,14 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(packages.Any());
 
             // SAVE
-            PackageManager.SavePatch(snPatch, true, null);
+            PackageManager.SavePackage(Manifest.Create(snPatch), null, true, null);
 
             // RELOAD
             packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
 
             // ASSERT
-            var patches = packages.Select(PackageManager.CreatePatch).ToArray();
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
             var patch = (SnPatch)patches[0];
             Assert.AreEqual(1, patches.Length);
             Assert.IsTrue(patch.Id > 0);
