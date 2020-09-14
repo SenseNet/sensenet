@@ -76,6 +76,8 @@ namespace SenseNet.ContentRepository.i18n
             {
                 _current = null;
             }
+
+            ResourceManagerRestarted?.Invoke(null, EventArgs.Empty);
         }
 
         // ================================================================ Static part
@@ -114,6 +116,11 @@ namespace SenseNet.ContentRepository.i18n
 
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.FallbackCulture instead.")]
         public static string FallbackCulture => RepositoryEnvironment.FallbackCulture;
+
+        /// <summary>
+        /// Defines an event that occurs when the resource manager is restarted.
+        /// </summary>
+        public static event EventHandler ResourceManagerRestarted;
 
         public static bool Running
         {
