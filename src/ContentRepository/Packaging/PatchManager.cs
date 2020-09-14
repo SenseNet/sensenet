@@ -159,19 +159,70 @@ namespace SenseNet.Packaging
                 return new ISnPatch[0];
             }
 
-            //UNDONE: Sort installers by dependencies. Be carefully with circular references
-
-            componentsAfter = installedComponents.Union(installers.Select(x => new ComponentInfo
+            // ------------------------------------------------------------ sorting by dependencies
+            var toInstall = new List<ISnPatch>(installers); // to-do list
+            var sortedInstallers = new List<ISnPatch>(); // installers in right order
+            var installed = new List<ComponentInfo>(installedComponents); // all installed and simulated items.
+            var currentlyInstalled = new List<ISnPatch>(); // temporary list.
+            while (true)
             {
-                ComponentId = x.ComponentId,
-                Version = x.Version,
-                AcceptableVersion = x.Version,
-                Description = x.Description
-            })).ToArray();
+                foreach (var installer in toInstall)
+                {
+                    if (AreInstallerDependenciesValid(installer.Dependencies, installed))
+                    {
+                        currentlyInstalled.Add(installer);
+                        sortedInstallers.Add(installer);
+                        installed.Add(new ComponentInfo
+                        {
+                            ComponentId = installer.ComponentId,
+                            Version = installer.Version,
+                            AcceptableVersion = installer.Version,
+                            Description = installer.Description
+                        });
+                    }
+                }
 
-            return installers;
+                // Remove currently installed items from the to-do list.
+                toInstall = toInstall.Except(currentlyInstalled).ToList();
+
+                // Exit if all installers are in the sortedInstallers.
+                if (toInstall.Count == 0)
+                    break;
+                
+                // Exit if there is no changes, avoid the infinite loop.
+                if (currentlyInstalled.Count == 0)
+                    break;
+                currentlyInstalled.Clear();
+            }
+
+            // If exited but there is any remaining item, generate error(s).
+            if (toInstall.Count > 0)
+            {
+                //UNDONE: Recognize circular dependencies.
+                context.Errors = toInstall
+                    .Select(x => new PatchExecutionError(PatchExecutionErrorType.CannotInstall,
+                        "Cannot execute the installer " + x))
+                    .ToArray();
+
+                componentsAfter = installedComponents.ToArray();
+                return new ISnPatch[0];
+            }
+
+            componentsAfter = installed.ToArray();
+
+            return sortedInstallers;
 
             //UNDONE: Don't skip' SnPatches.
+        }
+
+        private bool AreInstallerDependenciesValid(IEnumerable<Dependency> dependencies, List<ComponentInfo> installed)
+        {
+            if (dependencies == null)
+                return true;
+            if (installed.Count == 0)
+                return false;
+            return dependencies.All(dep =>
+                installed.Any(i => i.ComponentId == dep.Id && dep.Boundary.IsInInterval(i.Version)));
         }
 
         private void ExecutePatches(IEnumerable<ISnPatch> patches, PatchExecutionContext context)
