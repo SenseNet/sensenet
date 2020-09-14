@@ -14,6 +14,8 @@ namespace SenseNet.Packaging
 {
     public class PatchManager
     {
+        private static Version NullVersion = new Version(0, 0);
+
         internal static Package CreatePackage(ISnPatch patch)
         {
             var package = new Package
@@ -132,10 +134,44 @@ namespace SenseNet.Packaging
         }
 
         public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates,
-            ComponentInfo[] installedComponents, PatchExecutionContext context,
-            out ComponentInfo[] componentsAfter)
+            ComponentInfo[] installedComponents, PatchExecutionContext context, out ComponentInfo[] componentsAfter)
         {
-            throw new NotImplementedException();
+            var patches = candidates.ToArray();
+
+            var installedIds = installedComponents
+                .Where(x => x.AcceptableVersion != null && x.AcceptableVersion > NullVersion)
+                .Select(x=>x.ComponentId)
+                .ToArray();
+
+            var installers = patches
+                .Where(x => x.Type == PackageType.Install && !installedIds.Contains(x.ComponentId))
+                .ToArray();
+            var installerGroups = installers.GroupBy(x => x.ComponentId);
+            var duplicates = installerGroups.Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
+            if (duplicates.Length > 0)
+            {
+                context.Errors = duplicates
+                    .Select(x => new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller,
+                        "There is a duplicated installer for the component " + x))
+                    .ToArray();
+
+                componentsAfter = installedComponents.ToArray();
+                return new ISnPatch[0];
+            }
+
+            //UNDONE: Sort installers by dependencies. Be carefully with circular references
+
+            componentsAfter = installedComponents.Union(installers.Select(x => new ComponentInfo
+            {
+                ComponentId = x.ComponentId,
+                Version = x.Version,
+                AcceptableVersion = x.Version,
+                Description = x.Description
+            })).ToArray();
+
+            return installers;
+
+            //UNDONE: Don't skip' SnPatches.
         }
 
         private void ExecutePatches(IEnumerable<ISnPatch> patches, PatchExecutionContext context)

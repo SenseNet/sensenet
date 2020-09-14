@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Storage
 {
     /// <summary>
     /// Represents a software element in the sensenet ecosystem that can be installed and patched automatically.
     /// </summary>
+    [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public class ComponentInfo
     {
         /// <summary>
@@ -34,5 +37,14 @@ namespace SenseNet.ContentRepository.Storage
             AcceptableVersion = null,
             Description = string.Empty
         };
+
+        /// <summary>
+        /// String representation of this ComponentInfo instance.
+        /// </summary>
+        public override string ToString()
+        {
+            var faulted = AcceptableVersion == Version ? "" : $" ({Version} faulted)";
+            return $"{ComponentId} v{AcceptableVersion}{faulted}";
+        }
     }
 }

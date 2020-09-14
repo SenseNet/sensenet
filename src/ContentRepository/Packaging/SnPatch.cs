@@ -7,11 +7,6 @@ using SenseNet.ContentRepository.Storage;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
-    public class PatchExecutionContext
-    {
-        public RepositoryStartSettings Settings { get; set; }
-    }
-
     public interface ISnPatch
     {
         /// <summary>

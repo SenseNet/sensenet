@@ -248,6 +248,73 @@ namespace SenseNet.Packaging.Tests
         }
 
         /// <summary>
+        /// Creates a ComponentInfo for test purposes.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="acceptableVersion">Target version and last successfully installed version.</param>
+        /// <returns></returns>
+        protected ComponentInfo Comp(string id, string acceptableVersion)
+        {
+            var version = Version.Parse(acceptableVersion.TrimStart('v'));
+            return new ComponentInfo
+            {
+                ComponentId = id,
+                Version = version,
+                AcceptableVersion = version
+            };
+        }
+        /// <summary>
+        /// Creates a ComponentInfo for test purposes.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="acceptableVersion">Last successfully installed version.</param>
+        /// <param name="version">Last saved version.</param>
+        /// <returns></returns>
+        protected ComponentInfo Comp(string id, string acceptableVersion, string version)
+        {
+            return new ComponentInfo
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                AcceptableVersion = Version.Parse(acceptableVersion.TrimStart('v'))
+            };
+        }
+        /// <summary>
+        /// Creates a ComponentInstaller for test purposes
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Target version</param>
+        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
+        /// <returns></returns>
+        protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = dependencies,
+            };
+        }
+        /// <summary>
+        /// Creates a ComponentInstaller for test purposes
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Target version</param>
+        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
+        /// <param name="execute">Function of execution</param>
+        /// <returns></returns>
+        protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies,
+            Func<PatchExecutionContext, ExecutionResult> execute)
+        {
+            return new ComponentInstaller
+            {
+                ComponentId = id,
+                Version = Version.Parse(version.TrimStart('v')),
+                Dependencies = dependencies,
+                Execute = execute
+            };
+        }
+        /// <summary>
         /// Creates a patch for test purposes.
         /// </summary>
         /// <param name="id">ComponentId</param>
@@ -260,9 +327,30 @@ namespace SenseNet.Packaging.Tests
             return new SnPatch
             {
                 ComponentId = id,
-                Version = version == null ? null : Version.Parse(version.Substring(1)),
+                Version = version == null ? null : Version.Parse(version.TrimStart('v')),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
+            };
+        }
+        /// <summary>
+        /// Creates a patch for test purposes.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Target version</param>
+        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
+        /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
+        /// <param name="execute">Function of execution</param>
+        /// <returns></returns>
+        protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies,
+            Func<PatchExecutionContext, ExecutionResult> execute)
+        {
+            return new SnPatch
+            {
+                ComponentId = id,
+                Version = version == null ? null : Version.Parse(version.TrimStart('v')),
+                Boundary = ParseBoundary(boundary),
+                Dependencies = dependencies,
+                Execute = execute
             };
         }
         /// <summary>
