@@ -47,8 +47,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                                 Version = DecodePackageVersion(
                                     reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
                                 Description = reader.GetSafeString(reader.GetOrdinal("Description")),
-                                //UNDONE: Load ComponentInfo.Manifest
-                                //Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest"))
+                                Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest"))
                             };
                             components[component.ComponentId] = component;
                         }
