@@ -21,10 +21,10 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         #region SQL InstalledComponentsScript
-        private static readonly string InstalledComponentsScript = @"SELECT ComponentId, ComponentVersion, Description, Manifest
+        private static readonly string InstalledComponentsScript = $@"SELECT ComponentId, ComponentVersion, Description, Manifest
 FROM Packages WHERE
-	(PackageType = '" + PackageType.Install.ToString() + @"' OR PackageType = '" + PackageType.Patch.ToString() + @"') AND
-	ExecutionResult = '" + ExecutionResult.Successful.ToString() + @"' 
+	(PackageType = '{PackageType.Install}' OR PackageType = '{PackageType.Patch}') AND
+	ExecutionResult = '{ExecutionResult.Successful}' 
 ORDER BY ComponentId, ComponentVersion, ExecutionDate
 ";
         #endregion
