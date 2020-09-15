@@ -10,7 +10,7 @@
           <value>A special file type for images.</value>
         </data>
         <data name="Name-DisplayName" xml:space="preserve">
-          <value>Image name</value>
+          <value>Name</value>
         </data>
          <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Filename</value>
@@ -42,7 +42,7 @@
           <value>Speciális fájl típus képek tárolásához.</value>
         </data>
         <data name="Name-DisplayName" xml:space="preserve">
-          <value>Kép neve</value>
+          <value>Név</value>
         </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Filenév</value>
