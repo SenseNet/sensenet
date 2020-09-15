@@ -7,6 +7,7 @@ using Microsoft.Net.Http.Headers;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Preview;
 using File = SenseNet.ContentRepository.File;
@@ -186,7 +187,7 @@ namespace SenseNet.Services.Core.Virtualization
                 ? NodeHead.Get(RequestedNodeId.Value)
                 : !string.IsNullOrEmpty(RequestedNodePath)
                     ? NodeHead.Get(RequestedNodePath)
-                    : NodeHead.Get(_context.Request.Path);
+                    : _context.Request.GetNodeHead();
 
             var propertyName = _context.Request.Query["propertyname"].FirstOrDefault();
             PropertyName = string.IsNullOrEmpty(propertyName) ? null : propertyName.Replace("$", "#");

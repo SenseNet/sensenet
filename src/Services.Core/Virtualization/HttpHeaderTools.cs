@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Web;
 using SenseNet.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Mime;
 using Microsoft.Net.Http.Headers;
 using SenseNet.Portal;
 
@@ -148,16 +148,10 @@ namespace SenseNet.Services.Core.Virtualization
             var cdHeader = HEADER_CONTENTDISPOSITION_VALUE;
             if (!string.IsNullOrEmpty(fileName))
             {
-                cdHeader += "; filename=\"" + fileName;
+                // let .net core handle encoding
+                var cdh = new ContentDisposition { FileName = fileName };
 
-                // According to MSDN UrlPathEncode should not be used, so we need to replace '+' signs manually to 
-                // let browsers interpret the file name correctly. Otherwise 'foo bar.docx' would become 'foo+bar.docx'.
-                var encoded = HttpUtility.UrlEncode(fileName).Replace("+", "%20");
-
-                // If the encoded name is different, add the UTF-8 version too. Note that this will be executed
-                // even if the only difference is that the space characters were encoded.
-                if (string.CompareOrdinal(fileName, encoded) != 0)
-                    cdHeader += "\"; filename*=UTF-8''" + encoded;
+                cdHeader = cdh.ToString();
             }
 
             // there must be only one header entry with this name
