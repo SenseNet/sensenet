@@ -3,11 +3,14 @@
   <ResourceClass name="Ctd-Image">
     <Languages>
       <Language cultureName="en">
-      <data name="DisplayName" xml:space="preserve">
+        <data name="DisplayName" xml:space="preserve">
           <value>Image</value>
         </data>
         <data name="Description" xml:space="preserve">
           <value>A special file type for images.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Image name</value>
         </data>
          <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Filename</value>
@@ -32,8 +35,14 @@
         </data>
       </Language>
       <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Kép</value>
+        </data>
         <data name="Description" xml:space="preserve">
           <value>Speciális fájl típus képek tárolásához.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Kép neve</value>
         </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Filenév</value>

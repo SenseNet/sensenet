@@ -839,6 +839,9 @@
         <data name="Description" xml:space="preserve">
           <value>Collaborative workspace root.</value>
         </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Display name</value>
         </data>
@@ -888,6 +891,9 @@
         </data>
         <data name="Description" xml:space="preserve">
           <value>Munkaterület - egy adott téma (projekt) köré szerveződő tartalmak tárolására és közös munkára.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Név</value>
         </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Olvasható név</value>
