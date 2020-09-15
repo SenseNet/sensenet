@@ -951,12 +951,26 @@ namespace SenseNet.OData.Writers
             {
                 return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
             }
-            else if (field is BinaryField)
+            else if (field is BinaryField binaryField)
             {
-                var binaryField = (BinaryField)field;
-                var binaryData = (BinaryData)binaryField.GetData();
+                try
+                {
+                    // load binary fields only if the content is finalized
+                    var binaryData = field.Content.ContentHandler.SavingState == ContentSavingState.Finalized
+                        ? (BinaryData) binaryField.GetData()
+                        : null;
 
-                return ODataBinary.Create(BinaryField.GetBinaryUrl(field.Content.Id, field.Name, binaryData.Timestamp), null, binaryData.ContentType, null);
+                    return ODataBinary.Create(BinaryField.GetBinaryUrl(binaryField.Content.Id, binaryField.Name, binaryData?.Timestamp ?? default),
+                        null, binaryData?.ContentType, null);
+                }
+                catch (Exception ex)
+                {
+                    SnTrace.System.WriteError(
+                        $"Error accessing field {field.Name} of {field.Content.Path} with user {User.Current.Username}: " +
+                        ex.Message);
+
+                    return null;
+                }
             }
             else if (ODataMiddleware.DeferredFieldNames.Contains(field.Name))
             {
