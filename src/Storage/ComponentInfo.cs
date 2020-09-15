@@ -11,19 +11,22 @@ namespace SenseNet.ContentRepository.Storage
     public class ComponentInfo
     {
         /// <summary>
-        /// Gets or sets the unique identifier of the component.
+        /// Gets or sets the unique identifier.
         /// </summary>
         public string ComponentId { get; set; }
         /// <summary>
-        /// Gets or sets the last successfully installed version.
+        /// Gets or sets the last version after successful execution of the installer or patch.
         /// </summary>
         public Version Version { get; set; }
         /// <summary>
-        /// Gets or sets the description of the component.
+        /// Gets or sets the description after successful execution of the installer.
+        /// The descriptions of patches do not appear here.
         /// </summary>
         public string Description { get; set; }
-
-        //UNDONE: Missing property ComponentInfo.Dependencies
+        /// <summary>
+        /// Gets or sets the last manifest after successful execution of the installer or patch.
+        /// </summary>
+        public string Manifest { get; set; }
 
         /// <summary>
         /// Represents a not installed component.
