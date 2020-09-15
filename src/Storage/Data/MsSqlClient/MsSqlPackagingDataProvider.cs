@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -20,20 +21,16 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
         #region SQL InstalledComponentsScript
-        private static readonly string InstalledComponentsScript = @"SELECT P2.Description, P1.ComponentId, P1.ComponentVersion, P1a.ComponentVersion AcceptableVersion
-FROM (SELECT ComponentId, MAX(ComponentVersion) ComponentVersion FROM Packages WHERE ComponentId IS NOT NULL GROUP BY ComponentId) P1
-JOIN (SELECT ComponentId, MAX(ComponentVersion) ComponentVersion FROM Packages WHERE ComponentId IS NOT NULL 
-    AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
-    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY ComponentId, ExecutionResult) P1a
-ON P1.ComponentId = P1a.ComponentId
-JOIN (SELECT Description, ComponentId FROM Packages WHERE PackageType = '" + PackageType.Install.ToString() + @"'
-    AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
-    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
-ON P1.ComponentId = P2.ComponentId";
+        private static readonly string InstalledComponentsScript = @"SELECT ComponentId, ComponentVersion, Description, Manifest
+FROM Packages WHERE
+	(PackageType = '" + PackageType.Install.ToString() + @"' OR PackageType = '" + PackageType.Patch.ToString() + @"') AND
+	ExecutionResult = '" + ExecutionResult.Successful.ToString() + @"' 
+ORDER BY ComponentId, ComponentVersion, ExecutionDate
+";
         #endregion
         public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
-            var components = new List<ComponentInfo>();
+            var components = new Dictionary<string, ComponentInfo>();
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -44,22 +41,23 @@ ON P1.ComponentId = P2.ComponentId";
                         while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
-                            components.Add(new ComponentInfo
+                            var component = new ComponentInfo
                             {
                                 ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
                                 Version = DecodePackageVersion(
                                     reader.GetSafeString(reader.GetOrdinal("ComponentVersion"))),
-                                AcceptableVersion =
-                                    DecodePackageVersion(reader.GetSafeString(reader.GetOrdinal("AcceptableVersion"))),
-                                Description = reader.GetSafeString(reader.GetOrdinal("Description"))
-                            });
+                                Description = reader.GetSafeString(reader.GetOrdinal("Description")),
+                                //UNDONE: Load ComponentInfo.Manifest
+                                //Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest"))
+                            };
+                            components[component.ComponentId] = component;
                         }
 
                         return true;
                     }).ConfigureAwait(false);
             }
 
-            return components;
+            return components.Values.ToArray();
         }
         public async Task<IEnumerable<Package>> LoadInstalledPackagesAsync(CancellationToken cancellationToken)
         {

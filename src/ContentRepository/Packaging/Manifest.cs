@@ -245,7 +245,7 @@ namespace SenseNet.Packaging
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
-            var existingComponentInfo = versionInfo.Components.FirstOrDefault(a => a.ComponentId == ComponentId && a.AcceptableVersion != null);
+            var existingComponentInfo = versionInfo.Components.FirstOrDefault(a => a.ComponentId == ComponentId);
 
             if (PackageType == PackageType.Install)
             {
@@ -254,10 +254,11 @@ namespace SenseNet.Packaging
                     // Install packages can be executed multiple times only if it is 
                     // allowed in the package AND the version in the manifest is the
                     // same as in the db.
-                    if (!this.MultipleExecutionAllowed || existingComponentInfo.AcceptableVersion != this.Version)
-                        throw new PackagePreconditionException(
-                            string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
-                            PackagingExceptionType.CannotInstallExistingComponent);
+                    //UNDONE: Check this case by installed packages (that are unfinished or faulty)
+                    //if (!this.MultipleExecutionAllowed || existingComponentInfo.AcceptableVersion != this.Version)
+                    //    throw new PackagePreconditionException(
+                    //        string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
+                    //        PackagingExceptionType.CannotInstallExistingComponent);
                 }
             }
             else if (PackageType != PackageType.Tool)
@@ -265,7 +266,7 @@ namespace SenseNet.Packaging
                 if (existingComponentInfo == null)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotUpdateMissingComponent);
-                if (existingComponentInfo.AcceptableVersion >= this.Version)
+                if (existingComponentInfo.Version >= this.Version)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
                         PackagingExceptionType.TargetVersionTooSmall);
             }
@@ -365,7 +366,7 @@ namespace SenseNet.Packaging
                 throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
                     PackagingExceptionType.DependencyNotFound);
 
-            var current = existingComponent.AcceptableVersion;
+            var current = existingComponent.Version;
             var min = dependency.MinVersion;
             var max = dependency.MaxVersion;
             var minEx = dependency.MinVersionIsExclusive;

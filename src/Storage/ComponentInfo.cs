@@ -15,17 +15,15 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public string ComponentId { get; set; }
         /// <summary>
-        /// Gets or sets the last saved version. This value is independent of the success of the installation.
-        /// </summary>
-        public Version Version { get; set; }
-        /// <summary>
         /// Gets or sets the last successfully installed version.
         /// </summary>
-        public Version AcceptableVersion { get; set; }
+        public Version Version { get; set; }
         /// <summary>
         /// Gets or sets the description of the component.
         /// </summary>
         public string Description { get; set; }
+
+        //UNDONE: Missing property ComponentInfo.Dependencies
 
         /// <summary>
         /// Represents a not installed component.
@@ -33,8 +31,7 @@ namespace SenseNet.ContentRepository.Storage
         public static readonly ComponentInfo Empty = new ComponentInfo
         {
             ComponentId = string.Empty,
-            Version = new Version(0, 0),
-            AcceptableVersion = null,
+            Version = null,
             Description = string.Empty
         };
 
@@ -43,8 +40,7 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public override string ToString()
         {
-            var faulted = AcceptableVersion == Version ? "" : $" ({Version} faulted)";
-            return $"{ComponentId} v{AcceptableVersion}{faulted}";
+            return $"{ComponentId} v{Version}";
         }
     }
 }

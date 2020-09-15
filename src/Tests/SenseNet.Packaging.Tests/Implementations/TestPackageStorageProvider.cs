@@ -54,14 +54,10 @@ namespace SenseNet.Packaging.Tests.Implementations
                     {
                         ComponentId = package.ComponentId,
                         Version = package.ComponentVersion,
-                        AcceptableVersion = package.ComponentVersion,
                         Description = package.Description
                     };
                     componentInfos.Add(componentId, component);
                 }
-
-                if (package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
-                    component.AcceptableVersion = package.ComponentVersion;
             }
 
             foreach (var package in Storage
@@ -70,9 +66,6 @@ namespace SenseNet.Packaging.Tests.Implementations
                 var componentId = package.ComponentId;
                 if (componentInfos.TryGetValue(componentId, out var component))
                 {
-                    if ((package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
-                        && package.ExecutionResult == ExecutionResult.Successful)
-                        component.AcceptableVersion = package.ComponentVersion;
                     if (package.ComponentVersion > (component.Version ?? nullVersion))
                         component.Version = package.ComponentVersion;
                 }

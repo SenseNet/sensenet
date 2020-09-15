@@ -126,7 +126,6 @@ namespace SenseNet.ContentRepository
         ///     {
         ///       "ComponentId": "SenseNet.Services",
         ///       "Version": "7.7.13.4",
-        ///       "AcceptableVersion": "7.7.13.4",
         ///       "Description": "sensenet Services"
         ///     }
         ///   ],

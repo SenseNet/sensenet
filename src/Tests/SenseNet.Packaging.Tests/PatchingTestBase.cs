@@ -251,32 +251,14 @@ namespace SenseNet.Packaging.Tests
         /// Creates a ComponentInfo for test purposes.
         /// </summary>
         /// <param name="id">ComponentId</param>
-        /// <param name="acceptableVersion">Target version and last successfully installed version.</param>
-        /// <returns></returns>
-        protected ComponentInfo Comp(string id, string acceptableVersion)
-        {
-            var version = Version.Parse(acceptableVersion.TrimStart('v'));
-            return new ComponentInfo
-            {
-                ComponentId = id,
-                Version = version,
-                AcceptableVersion = version
-            };
-        }
-        /// <summary>
-        /// Creates a ComponentInfo for test purposes.
-        /// </summary>
-        /// <param name="id">ComponentId</param>
-        /// <param name="acceptableVersion">Last successfully installed version.</param>
         /// <param name="version">Last saved version.</param>
         /// <returns></returns>
-        protected ComponentInfo Comp(string id, string acceptableVersion, string version)
+        protected ComponentInfo Comp(string id, string version)
         {
             return new ComponentInfo
             {
                 ComponentId = id,
                 Version = Version.Parse(version.TrimStart('v')),
-                AcceptableVersion = Version.Parse(acceptableVersion.TrimStart('v'))
             };
         }
         /// <summary>

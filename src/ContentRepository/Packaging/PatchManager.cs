@@ -139,7 +139,7 @@ namespace SenseNet.Packaging
             var patches = candidates.ToArray();
 
             var installedIds = installedComponents
-                .Where(x => x.AcceptableVersion != null && x.AcceptableVersion > NullVersion)
+                .Where(x => x.Version != null && x.Version > NullVersion)
                 .Select(x=>x.ComponentId)
                 .ToArray();
 
@@ -176,7 +176,6 @@ namespace SenseNet.Packaging
                         {
                             ComponentId = installer.ComponentId,
                             Version = installer.Version,
-                            AcceptableVersion = installer.Version,
                             Description = installer.Description
                         });
                     }
