@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
@@ -228,6 +229,29 @@ namespace SenseNet.Extensions.DependencyInjection
         {
             // store tracers in the provider collection temporarily
             Configuration.Providers.Instance.SetProvider(typeof(ISnTracer[]), tracer);
+            return repositoryBuilder;
+        }
+
+        /// <summary>
+        /// Adds the registered IEventLogger instance to the repository builder.
+        /// </summary>
+        public static IRepositoryBuilder UseLogger(this IRepositoryBuilder repositoryBuilder, IServiceProvider provider)
+        {
+            var logger = provider.GetService<IEventLogger>();
+            if (logger != null)
+                repositoryBuilder.UseLogger(logger);
+
+            return repositoryBuilder;
+        }
+        /// <summary>
+        /// Adds the registered ISnTracer instance to the repository builder.
+        /// </summary>
+        public static IRepositoryBuilder UseTracer(this IRepositoryBuilder repositoryBuilder, IServiceProvider provider)
+        {
+            var tracer = provider.GetService<ISnTracer>();
+            if (tracer != null)
+                repositoryBuilder.UseTracer(tracer);
+
             return repositoryBuilder;
         }
 
