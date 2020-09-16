@@ -4,7 +4,7 @@
   <Description>$Ctd-DocumentLibrary,Description</Description>
   <Icon>ContentList</Icon>
   <AllowedChildTypes>
-    Folder,File
+    Folder,File,Image
   </AllowedChildTypes>
   <Fields>
   <Field name="DisplayName" type="ShortText">
