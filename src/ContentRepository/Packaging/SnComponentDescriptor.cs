@@ -32,15 +32,9 @@ namespace SenseNet.Packaging
         public string Description => _data?.Description;
 
         /// <summary>
-        /// Gets the component's dependencies for display
-        /// </summary>
-        public string[] Dependencies => _dependencies ?? (_dependencies = DependenciesToString(DependencyObjects));
-
-        /// <summary>
         /// Gets the component's dependencies.
         /// </summary>
-        [JsonIgnore]
-        public Dependency[] DependencyObjects => _dependencyObjects ?? (_dependencyObjects = ExtractDependencies(_data?.Manifest));
+        public Dependency[] Dependencies => _dependencies ?? (_dependencies = ExtractDependencies(_data?.Manifest));
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnComponentDescriptor"/> class.
@@ -52,20 +46,15 @@ namespace SenseNet.Packaging
             _data = componentInfo;
         }
 
-        private Dependency[] _dependencyObjects;
+        private Dependency[] _dependencies;
         private Dependency[] ExtractDependencies(string manifest)
         {
             if (string.IsNullOrEmpty(manifest))
                 return null;
             var xml = new XmlDocument();
             xml.LoadXml(manifest);
-            return Manifest.ParseDependencies(xml);
+            return Manifest.ParseDependencies(xml).Where(x => x.Id != ComponentId).ToArray();
         }
 
-        private string[] _dependencies;
-        private string[] DependenciesToString(Dependency[] dependencies)
-        {
-            return dependencies?.Select(x => x.ToString()).ToArray();
-        }
     }
 }

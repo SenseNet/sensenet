@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -20,6 +21,7 @@ namespace SenseNet.ContentRepository.Storage
         public ExecutionResult ExecutionResult { get; set; }  // [ExecutionResult] [varchar](50) NOT NULL,
         public Version ComponentVersion { get; set; }         // [ComponentVersion] [varchar](50) NULL,
         public Exception ExecutionError { get; set; }         // [ExecutionError] [nvarchar](max) NULL,
+        [JsonIgnore]
         public string Manifest { get; set; }                  // [Manifest] [nvarchar](max) NULL
     }
 }

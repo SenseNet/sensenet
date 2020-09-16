@@ -455,15 +455,18 @@ namespace SenseNet.Packaging
         {
             var b = dep.Boundary;
 
-            if (b.MinVersion == b.MaxVersion && !b.MinVersionIsExclusive && !b.MaxVersionIsExclusive)
-                return $" version='{b.MinVersion}'";
+            var minVersion = b.MinVersion ?? VersionBoundary.DefaultMinVersion;
+            var maxVersion = b.MaxVersion ?? VersionBoundary.DefaultMaxVersion;
+
+            if (minVersion == maxVersion && !b.MinVersionIsExclusive && !b.MaxVersionIsExclusive)
+                return $" version='{minVersion}'";
 
             var sb = new  StringBuilder();
 
-            if (b.MinVersion > Version.Parse("0.0") || b.MinVersionIsExclusive)
-                sb.Append($" {(b.MinVersionIsExclusive ? "minVersionExclusive" : "minVersion")} ='{b.MinVersion}'");
-            if (!(b.MaxVersion.Major == int.MaxValue && b.MaxVersion.Minor == int.MaxValue) || b.MaxVersionIsExclusive)
-                sb.Append($" {(b.MaxVersionIsExclusive ? "maxVersionExclusive" : "maxVersion")} ='{b.MaxVersion}'");
+            if (minVersion > VersionBoundary.DefaultMinVersion || b.MinVersionIsExclusive)
+                sb.Append($" {(b.MinVersionIsExclusive ? "minVersionExclusive" : "minVersion")} ='{minVersion}'");
+            if (maxVersion < VersionBoundary.DefaultMaxVersion || b.MaxVersionIsExclusive)
+                sb.Append($" {(b.MaxVersionIsExclusive ? "maxVersionExclusive" : "maxVersion")} ='{maxVersion}'");
 
             return sb.ToString();
         }

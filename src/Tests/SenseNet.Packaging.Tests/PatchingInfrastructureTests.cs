@@ -425,6 +425,50 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, components[1].Dependencies.Length);
             Assert.AreEqual("C1: 1.0 <= v <= 1.0", components[1].Dependencies[0].ToString());
         }
+        [TestMethod]
+        public void PatchingSystem_InstalledComponents_Descriptions()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C1",
+                Version = new Version(1, 0),
+                Description = "C1 component",
+                ReleaseDate = new DateTime(2020, 07, 30),
+                Dependencies = null
+            };
+            var patch = new SnPatch
+            {
+                ComponentId = "C1",
+                Version = new Version(2, 0),
+                Description = "C1 patch",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = new Version(1, 0)
+                },
+                Dependencies = new[]
+                {
+                    Dep("C2", "1.0 <= v <= 1.0"),
+                }
+            };
+
+            PackageManager.SavePackage(Manifest.Create(installer), null, true, null);
+            PackageManager.SavePackage(Manifest.Create(patch), null, true, null);
+
+            var verInfo = RepositoryVersionInfo.Create(CancellationToken.None);
+
+            var components = verInfo.Components.ToArray();
+            Assert.AreEqual(1, components.Length);
+
+            Assert.AreEqual("C1", components[0].ComponentId);
+
+            Assert.AreEqual("2.0", components[0].Version.ToString());
+
+            Assert.AreEqual("C1 component", components[0].Description);
+
+            Assert.AreEqual(1, components[0].Dependencies.Length);
+            Assert.AreEqual("C2: 1.0 <= v <= 1.0", components[0].Dependencies[0].ToString());
+        }
 
     }
 }

@@ -9,6 +9,9 @@ namespace SenseNet.Packaging
     /// </summary>
     public class VersionBoundary
     {
+        public static readonly Version DefaultMinVersion = new Version(0, 0);
+        public static readonly Version DefaultMaxVersion = new Version(int.MaxValue, int.MaxValue);
+
         /// <summary>
         /// The lower limit of the interval.
         /// </summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml;
+using Newtonsoft.Json;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -24,6 +25,7 @@ namespace SenseNet.Packaging
         /// This property is deprecated use the Boundary.MinVersion instead.
         /// </summary>
         [Obsolete("Use Boundary.MinVersion instead.")]
+        [JsonIgnore]
         public Version MinVersion { get => Boundary.MinVersion; set => Boundary.MinVersion = value; }
 
         /// <summary>
@@ -31,6 +33,7 @@ namespace SenseNet.Packaging
         /// This property is deprecated use the Boundary.MaxVersion instead.
         /// </summary>
         [Obsolete("Use Boundary.MinVersion instead.")]
+        [JsonIgnore]
         public Version MaxVersion { get => Boundary.MaxVersion; set => Boundary.MaxVersion = value; }
 
         /// <summary>
@@ -38,6 +41,7 @@ namespace SenseNet.Packaging
         /// This property is deprecated use the Boundary.MinVersionIsExclusive instead.
         /// </summary>
         [Obsolete("Use Boundary.MinVersion instead.")]
+        [JsonIgnore]
         public bool MinVersionIsExclusive
         {
             get => Boundary.MinVersionIsExclusive;
@@ -49,6 +53,7 @@ namespace SenseNet.Packaging
         /// This property is deprecated use the Boundary.MaxVersionIsExclusive instead.
         /// </summary>
         [Obsolete("Use Boundary.MaxVersionIsExclusive instead.")]
+        [JsonIgnore]
         public bool MaxVersionIsExclusive
         {
             get => Boundary.MaxVersionIsExclusive;

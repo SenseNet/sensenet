@@ -98,6 +98,11 @@ namespace SenseNet.ContentRepository
 
             var components = componentVersions.Select(c => new SnComponentDescriptor(c)).ToArray();
 
+            var pkgArray = packages?.ToArray();
+            if(pkgArray != null)
+                foreach (var package in pkgArray)
+                    package.Manifest = null;
+
             return new RepositoryVersionInfo
             {
                 Components = components,
@@ -109,7 +114,7 @@ namespace SenseNet.ContentRepository
                     Other = asms,
                     Dynamic = asmDyn,
                 },
-                InstalledPackages = packages,
+                InstalledPackages = pkgArray,
                 DatabaseAvailable = databaseAvailable
             };
         }

@@ -1634,28 +1634,26 @@ namespace SenseNet.ContentRepository.InMemory
                 ComponentVersion = version,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Successful,
-                Manifest = ""
             };
             var manifest = Manifest.Create(package, null, true);
             package.Manifest =  manifest.ToXmlString();
 
 var package2 = new Package
 {
-    ComponentId = "asdf",
-    Description = "asd f",
+    ComponentId = "Asdf",
+    Description = "Asd f",
     PackageType = PackageType.Install,
     ReleaseDate = DateTime.UtcNow,
-    ComponentVersion = version,
+    ComponentVersion = new Version(2, 3, 4),
     ExecutionDate = DateTime.UtcNow,
     ExecutionResult = ExecutionResult.Successful,
-    Manifest = ""
 };
 manifest = Manifest.Create(package2, new []
 {
     new Dependency
     {
         Id = "SenseNet.Services",
-        Boundary = new VersionBoundary { MinVersion=new Version(7, 6), MaxVersion = new Version(int.MaxValue, int.MaxValue)}
+        Boundary = new VersionBoundary { MinVersion=new Version(7, 6) }
     }, 
 }, true);
 package2.Manifest = manifest.ToXmlString();
