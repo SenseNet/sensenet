@@ -254,7 +254,7 @@ namespace SenseNet.Packaging
                     // Install packages can be executed multiple times only if it is 
                     // allowed in the package AND the version in the manifest is the
                     // same as in the db.
-                    //UNDONE: Check this case by installed packages (that are unfinished or faulty)
+                    //UNDONE: PACKAGING Check this case by installed packages (that are unfinished or faulty)
                     //if (!this.MultipleExecutionAllowed || existingComponentInfo.AcceptableVersion != this.Version)
                     //    throw new PackagePreconditionException(
                     //        string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),

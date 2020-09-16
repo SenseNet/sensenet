@@ -197,7 +197,7 @@ namespace SenseNet.Packaging
             // If exited but there is any remaining item, generate error(s).
             if (toInstall.Count > 0)
             {
-                //UNDONE: Recognize circular dependencies.
+                //UNDONE: PACKAGING Recognize circular dependencies.
                 context.Errors = toInstall
                     .Select(x => new PatchExecutionError(PatchExecutionErrorType.CannotInstall,
                         "Cannot execute the installer " + x))
@@ -211,7 +211,7 @@ namespace SenseNet.Packaging
 
             return sortedInstallers;
 
-            //UNDONE: Don't skip' SnPatches.
+            //UNDONE: PACKAGING Don't skip' SnPatches.
         }
 
         private bool AreInstallerDependenciesValid(IEnumerable<Dependency> dependencies, List<ComponentInfo> installed)
