@@ -20,8 +20,9 @@ namespace SenseNet.ContentRepository.Storage.Data.MsSqlClient
         private RelationalDataProviderBase _dataProvider;
         private RelationalDataProviderBase MainProvider => _dataProvider ?? (_dataProvider = (RelationalDataProviderBase)DataStore.DataProvider);
 
-        #region SQL InstalledComponentsScript
-        private static readonly string InstalledComponentsScript = $@"SELECT ComponentId, ComponentVersion, Description, Manifest
+        #region SQL LoadInstalledComponentsScript
+        private static readonly string InstalledComponentsScript = $@"-- MsSqlPackagingDataProvider.LoadInstalledComponents
+SELECT ComponentId, PackageType, ComponentVersion, Description, Manifest
 FROM Packages WHERE
 	(PackageType = '{PackageType.Install}' OR PackageType = '{PackageType.Patch}') AND
 	ExecutionResult = '{ExecutionResult.Successful}' 
@@ -31,6 +32,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
         public async Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
             var components = new Dictionary<string, ComponentInfo>();
+            var descriptions = new Dictionary<string, string>();
 
             using (var ctx = MainProvider.CreateDataContext(cancellationToken))
             {
@@ -41,6 +43,7 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                         while (await reader.ReadAsync(cancel).ConfigureAwait(false))
                         {
                             cancel.ThrowIfCancellationRequested();
+
                             var component = new ComponentInfo
                             {
                                 ComponentId = reader.GetSafeString(reader.GetOrdinal("ComponentId")),
@@ -49,12 +52,19 @@ ORDER BY ComponentId, ComponentVersion, ExecutionDate
                                 Description = reader.GetSafeString(reader.GetOrdinal("Description")),
                                 Manifest = reader.GetSafeString(reader.GetOrdinal("Manifest"))
                             };
+
                             components[component.ComponentId] = component;
+                            if (reader.GetSafeString(reader.GetOrdinal("PackageType"))
+                                == nameof(PackageType.Install))
+                                descriptions[component.ComponentId] = component.Description;
                         }
 
                         return true;
                     }).ConfigureAwait(false);
             }
+
+            foreach (var item in descriptions)
+                components[item.Key].Description = item.Value;
 
             return components.Values.ToArray();
         }

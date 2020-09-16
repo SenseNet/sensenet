@@ -459,13 +459,9 @@ namespace SenseNet.Packaging.Tests
 
             var components = verInfo.Components.ToArray();
             Assert.AreEqual(1, components.Length);
-
             Assert.AreEqual("C1", components[0].ComponentId);
-
             Assert.AreEqual("2.0", components[0].Version.ToString());
-
             Assert.AreEqual("C1 component", components[0].Description);
-
             Assert.AreEqual(1, components[0].Dependencies.Length);
             Assert.AreEqual("C2: 1.0 <= v <= 1.0", components[0].Dependencies[0].ToString());
         }
