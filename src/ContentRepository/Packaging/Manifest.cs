@@ -155,6 +155,17 @@ namespace SenseNet.Packaging
                     dependencies.Add(Dependency.Parse(dependencyElement));
             manifest.Dependencies = dependencies.ToArray();
         }
+
+        internal static Dependency[] ParseDependencies(XmlDocument xml)
+        {
+            var dependencies = new List<Dependency>();
+            var e = (XmlElement)xml.DocumentElement.SelectSingleNode("Dependencies");
+            if (e != null)
+                foreach (XmlElement dependencyElement in e.SelectNodes("Dependency"))
+                    dependencies.Add(Dependency.Parse(dependencyElement));
+            return dependencies.ToArray();
+        }
+
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
         {
             var parameters = new Dictionary<string, string>();
@@ -255,10 +266,10 @@ namespace SenseNet.Packaging
                     // allowed in the package AND the version in the manifest is the
                     // same as in the db.
                     //UNDONE: PACKAGING Check this case by installed packages (that are unfinished or faulty)
-                    //if (!this.MultipleExecutionAllowed || existingComponentInfo.AcceptableVersion != this.Version)
-                    //    throw new PackagePreconditionException(
-                    //        string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
-                    //        PackagingExceptionType.CannotInstallExistingComponent);
+                    if (!this.MultipleExecutionAllowed || existingComponentInfo.Version != this.Version)
+                        throw new PackagePreconditionException(
+                            string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
+                            PackagingExceptionType.CannotInstallExistingComponent);
                 }
             }
             else if (PackageType != PackageType.Tool)

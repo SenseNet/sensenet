@@ -6,6 +6,7 @@ namespace SenseNet.ContentRepository.Storage
 {
     /// <summary>
     /// Represents a software element in the sensenet ecosystem that can be installed and patched automatically.
+    /// This is a storage level class.
     /// </summary>
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public class ComponentInfo

@@ -396,7 +396,7 @@ namespace SenseNet.Packaging.Tests
             var installer2 = new ComponentInstaller
             {
                 ComponentId = "C2",
-                Version = new Version(1, 0),
+                Version = new Version(2, 0),
                 Description = "C2 description",
                 ReleaseDate = new DateTime(2020, 07, 31),
                 Dependencies = new[]
@@ -409,7 +409,21 @@ namespace SenseNet.Packaging.Tests
 
             var verInfo = RepositoryVersionInfo.Create(CancellationToken.None);
 
-            Assert.Inconclusive();
+            var components = verInfo.Components.ToArray();
+            Assert.AreEqual(2, components.Length);
+
+            Assert.AreEqual("C1", components[0].ComponentId);
+            Assert.AreEqual("C2", components[1].ComponentId);
+
+            Assert.AreEqual("1.0", components[0].Version.ToString());
+            Assert.AreEqual("2.0", components[1].Version.ToString());
+
+            Assert.AreEqual("C1 description", components[0].Description);
+            Assert.AreEqual("C2 description", components[1].Description);
+
+            Assert.AreEqual(0, components[0].Dependencies.Length);
+            Assert.AreEqual(1, components[1].Dependencies.Length);
+            Assert.AreEqual("C1: 1.0 <= v <= 1.0", components[1].Dependencies[0].ToString());
         }
 
     }
