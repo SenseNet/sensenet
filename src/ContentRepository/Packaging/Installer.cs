@@ -16,6 +16,7 @@ namespace SenseNet.Packaging
     public class Installer
     {
         public RepositoryBuilder RepositoryBuilder { get; }
+        private string WorkingDirectory { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Installer"/> class.
@@ -24,9 +25,10 @@ namespace SenseNet.Packaging
         /// to install or import anything.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
-        public Installer(RepositoryBuilder repositoryBuilder = null)
+        public Installer(RepositoryBuilder repositoryBuilder = null, string workingDirectory = null)
         {
             RepositoryBuilder = repositoryBuilder;
+            WorkingDirectory = workingDirectory;
         }
 
         /// <summary>
@@ -159,6 +161,29 @@ namespace SenseNet.Packaging
             return this;
         }
 
+        public Installer Import(Assembly assembly, string packageName, string targetPath = null)
+        {
+            var unpackTarget = Path.Combine(WorkingDirectory ?? string.Empty, "import");
+
+            // prepare package: extract it to the file system
+            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, unpackTarget);
+
+            Import(packageFolder, targetPath);
+            
+            try
+            {
+                // cleanup
+                //UNDONE: the files used by another process
+                Directory.Delete(packageFolder, true);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogException(ex);
+            }
+
+            return this;
+        }
+
         private void ExecutePackage(string packageFolder, params PackageParameter[] parameters)
         {
             Logger.LogMessage($"Executing package {Path.GetFileName(packageFolder)}...");
@@ -211,12 +236,14 @@ namespace SenseNet.Packaging
 
             return zipTarget;
         }
-        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName)
+        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName, string baseDirectory = null)
         {
             if (string.IsNullOrEmpty(packageName))
                 throw new ArgumentNullException(nameof(packageName));
             
             var zipTarget = Path.GetFileNameWithoutExtension(packageName);
+            if (!string.IsNullOrEmpty(baseDirectory))
+                zipTarget = Path.Combine(baseDirectory, zipTarget);
 
             // probing: try the resource name with and without the assembly name prefix
             var packageNameWithPrefix = $"{assembly.GetName().Name}.{packageName}";
@@ -236,12 +263,8 @@ namespace SenseNet.Packaging
                 Directory.Delete(zipTarget, true);
                 Logger.LogMessage("Old files and directories are deleted.");
             }
-            else
-            {
-                Directory.CreateDirectory(zipTarget);
-                Logger.LogMessage("Package directory created.");
-            }
-
+            
+            Directory.CreateDirectory(zipTarget);
             Logger.LogMessage("Extracting ...");
 
             using (var resourceStream = assembly.GetManifestResourceStream(resourceName))
@@ -252,7 +275,7 @@ namespace SenseNet.Packaging
                 Unpacker.Unpack(resourceStream, zipTarget);
             }
 
-            Logger.LogMessage("Ok.");
+            Logger.LogMessage("Unpacking finished.");
 
             return zipTarget;
         }
