@@ -23,35 +23,30 @@ namespace SenseNet.ContentRepository.InMemory
 
         public System.Threading.Tasks.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
-            var nullVersion = new Version(0, 0);
             var componentInfos = new Dictionary<string, ComponentInfo>();
+            var descriptions = new Dictionary<string, string>();
             foreach (var package in GetPackages()
-                .Where(p => p.PackageType == PackageType.Install
-                    && p.ExecutionResult == ExecutionResult.Successful))
+                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch) 
+                            && p.ExecutionResult == ExecutionResult.Successful)
+                .OrderBy(x=>x.ComponentId).ThenBy(x=>x.ComponentVersion).ThenBy(x=>x.ExecutionDate))
             {
                 var componentId = package.ComponentId;
-                if (!componentInfos.TryGetValue(componentId, out var component))
+
+                if (package.PackageType == PackageType.Install)
+                    descriptions[componentId] = package.Description;
+
+                componentInfos[componentId] = new ComponentInfo
                 {
-                    component = new ComponentInfo
-                    {
-                        ComponentId = package.ComponentId,
-                        Version = package.ComponentVersion,
-                        Description = package.Description
-                    };
-                    componentInfos.Add(componentId, component);
-                }
+                    ComponentId = package.ComponentId,
+                    Version = package.ComponentVersion,
+                    Description = package.Description,
+                    Manifest = package.Manifest
+                };
             }
 
-            foreach (var package in GetPackages()
-                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)))
-            {
-                var componentId = package.ComponentId;
-                if (componentInfos.TryGetValue(componentId, out var component))
-                {
-                    if (package.ComponentVersion > (component.Version ?? nullVersion))
-                        component.Version = package.ComponentVersion;
-                }
-            }
+            foreach (var item in descriptions)
+                componentInfos[item.Key].Description = item.Value;
+
             return System.Threading.Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 

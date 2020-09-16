@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(CancellationToken cancellationToken)
+        internal static RepositoryVersionInfo Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
             try
@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> componentVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
+        internal static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> componentVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
         {
             var asms = TypeHandler.GetAssemblyInfo();
 

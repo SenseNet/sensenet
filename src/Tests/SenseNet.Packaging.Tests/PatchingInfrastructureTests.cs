@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Packaging.Tests
@@ -380,5 +381,36 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(ExecutionResult.Successful, patch.ExecutionResult);
             Assert.IsNull(patch.ExecutionError);
         }
+
+        [TestMethod]
+        public void PatchingSystem_InstalledComponents()
+        {
+            var installer1 = new ComponentInstaller
+            {
+                ComponentId = "C1",
+                Version = new Version(1, 0),
+                Description = "C1 description",
+                ReleaseDate = new DateTime(2020, 07, 30),
+                Dependencies = null
+            };
+            var installer2 = new ComponentInstaller
+            {
+                ComponentId = "C2",
+                Version = new Version(1, 0),
+                Description = "C2 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Dependencies = new[]
+                {
+                    Dep("C1", "1.0 <= v <= 1.0"),
+                }
+            };
+            PackageManager.SavePackage(Manifest.Create(installer1), null, true, null);
+            PackageManager.SavePackage(Manifest.Create(installer2), null, true, null);
+
+            var verInfo = RepositoryVersionInfo.Create(CancellationToken.None);
+
+            Assert.Inconclusive();
+        }
+
     }
 }

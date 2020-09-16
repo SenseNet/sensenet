@@ -510,7 +510,7 @@ namespace SenseNet.Packaging
             }
             else
             {
-                dependencies = patch.Dependencies.ToArray();
+                dependencies = patch.Dependencies?.ToArray();
             }
 
             var manifest = new Manifest
