@@ -7,9 +7,12 @@ using System.Reflection;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Steps;
+using SenseNet.Tools;
 using File = System.IO.File;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging
 {
@@ -169,18 +172,28 @@ namespace SenseNet.Packaging
             var packageFolder = UnpackEmbeddedPackage(assembly, packageName, unpackTarget);
 
             Import(packageFolder, targetPath);
-            
-            try
-            {
-                // cleanup
-                //UNDONE: the files used by another process
-                Directory.Delete(packageFolder, true);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogException(ex);
-            }
 
+            // cleanup, but do not wait for the result
+            Task.Run(() =>
+                Retrier.RetryAsync(5, 3000, () =>
+                {
+                    Directory.Delete(packageFolder, true);
+                    return Task.CompletedTask;
+                }, (i, exception) =>
+                {
+                    if (exception == null)
+                    {
+                        SnTrace.System.Write($"Package {packageFolder} has been deleted successfully.");
+                        return true;
+                    }
+
+                    // last iteration
+                    if (i == 1)
+                        SnTrace.System.WriteError($"Package {packageFolder} could not be deleted after several retries.");
+
+                    return false;
+                }));
+            
             return this;
         }
 
