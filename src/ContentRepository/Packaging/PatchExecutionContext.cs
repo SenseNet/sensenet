@@ -26,7 +26,7 @@ namespace SenseNet.Packaging
     public class PatchExecutionContext
     {
         public RepositoryStartSettings Settings { get; set; }
-        public PatchExecutionError[] Errors { get; internal set; }
+        public PatchExecutionError[] Errors { get; internal set; } = new PatchExecutionError[0];
         public Action<string> LogMessage { get; set; } = DefaultLogMessage;
 
         private static void DefaultLogMessage(string msg)

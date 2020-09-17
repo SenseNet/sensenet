@@ -56,7 +56,7 @@ namespace SenseNet.Packaging
         Exception ExecutionError { get; set; }
     }
 
-    [DebuggerDisplay("{ComponentId}: {Version}")]
+    [DebuggerDisplay("{ToString()}")]
     public class ComponentInstaller : ISnPatch
     {
         /// <inheritdoc/>
@@ -84,6 +84,11 @@ namespace SenseNet.Packaging
         public ExecutionResult ExecutionResult { get; set; }
         /// <inheritdoc/>
         public Exception ExecutionError { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ComponentId}: {Version}";
+        }
     }
 
     /// <summary>
@@ -92,7 +97,7 @@ namespace SenseNet.Packaging
     /// minimum and maximum version numbers in this patch. The component version after 
     /// this patch will be the one defined in the Version property.
     /// </summary>
-    [DebuggerDisplay("{ComponentId}: {Boundary} --> {Version}")]
+    [DebuggerDisplay("{ToString()}")]
     public class SnPatch : ComponentInstaller
     {
         /// <summary>
@@ -146,6 +151,11 @@ namespace SenseNet.Packaging
         /// </summary>
         [Obsolete("Delete this functionality.")]
         public string Contents { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ComponentId}: {Boundary} --> {Version}";
+        }
     }
 
 }

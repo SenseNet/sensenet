@@ -227,7 +227,7 @@ namespace SenseNet.Packaging
                 //UNDONE: PACKAGING Recognize circular dependencies.
                 context.Errors = toInstall
                     .Select(x => new PatchExecutionError(PatchExecutionErrorType.CannotInstall,
-                        "Cannot execute the installer " + x))
+                        "Cannot execute the patch " + x))
                     .ToArray();
 
                 componentsAfter = installedComponents.ToArray();

@@ -169,16 +169,33 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(3, context.Errors.Length);
         }
 
+        /* ================================================================= COMPLEX INSTALL & PATCHING TESTS */
+
+        #region TOOLS for COMPLEX INSTALL & PATCHING TESTS
+        private string InstalledComponentsToString(SnComponentDescriptor[] components)
+        {
+            return string.Join(" ", components.Select(x => $"{x.ComponentId}v{x.Version}"));
+        }
+        private string SortedExecutablesToString(ISnPatch[] executables)
+        {
+            return string.Join(" ", executables.Select(x =>
+                $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));
+        }
+        #endregion
+
+        // Install C1v1.0 and patch it to v3.0 with different pre-installation states 
         [TestMethod]
-        public void PatchingExec_Patch_()
+        public void PatchingExec_Patch_C1()
         {
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null,
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
                     ctx => ExecutionResult.Successful),
                 Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
-                    ctx => ExecutionResult.Successful)
+                    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null,
+                    ctx => ExecutionResult.Successful),
             };
 
             // ACTION
@@ -187,8 +204,90 @@ namespace SenseNet.Packaging.Tests
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
-            Assert.AreEqual(1, after.Length);
-            Assert.AreEqual(2, executables.Length);
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
+            Assert.AreEqual("C1i1.0 C1p2.0 C1p3.0", SortedExecutablesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExec_Patch_C1a()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v1.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
+                    ctx => ExecutionResult.Successful),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
+                    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null,
+                    ctx => ExecutionResult.Successful),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
+            Assert.AreEqual("C1p2.0 C1p3.0", SortedExecutablesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExec_Patch_C1b()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v2.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
+                    ctx => ExecutionResult.Successful),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
+                    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null,
+                    ctx => ExecutionResult.Successful),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
+            Assert.AreEqual("C1p3.0", SortedExecutablesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExec_Patch_C1c()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v3.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
+                    ctx => ExecutionResult.Successful),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
+                    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null,
+                    ctx => ExecutionResult.Successful),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
+            Assert.AreEqual("", SortedExecutablesToString(executables));
         }
     }
 }
