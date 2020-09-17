@@ -112,29 +112,31 @@ namespace SenseNet.Packaging
 
         /* =========================================================================================== */
 
-        public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates,
-            PatchExecutionContext context)
+        public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates, PatchExecutionContext context)
         {
-            var installedComponents = PackageManager.Storage.LoadInstalledComponentsAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
-            ExecuteRelevantPatches(candidates, installedComponents, context);
+            ExecuteRelevantPatches(candidates, LoadInstalledComponents(), context);
         }
 
         public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates,
-            ComponentInfo[] installedComponents, PatchExecutionContext context)
+            SnComponentDescriptor[] installedComponents, PatchExecutionContext context)
         {
             ExecutePatches(GetExecutablePatches(candidates, installedComponents, context, out var after), context);
         }
 
         public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates, PatchExecutionContext context)
         {
-            var installedComponents = PackageManager.Storage.LoadInstalledComponentsAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
-            return GetExecutablePatches(candidates, installedComponents, context, out var after);
+            return GetExecutablePatches(candidates, LoadInstalledComponents(), context, out var after);
+        }
+
+        private SnComponentDescriptor[] LoadInstalledComponents()
+        {
+            return PackageManager.Storage.LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult()
+                .Select(x => new SnComponentDescriptor(x)).ToArray();
         }
 
         public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates,
-            ComponentInfo[] installedComponents, PatchExecutionContext context, out ComponentInfo[] componentsAfter)
+            SnComponentDescriptor[] installedComponents, PatchExecutionContext context, out SnComponentDescriptor[] componentsAfter)
         {
             var patches = candidates.ToArray();
 
@@ -150,34 +152,59 @@ namespace SenseNet.Packaging
             var duplicates = installerGroups.Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
             if (duplicates.Length > 0)
             {
+                // Duplicates are not allowed
                 context.Errors = duplicates
                     .Select(x => new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller,
                         "There is a duplicated installer for the component " + x))
                     .ToArray();
 
+                // Set unchanged list as output
                 componentsAfter = installedComponents.ToArray();
                 return new ISnPatch[0];
             }
 
+            // Order patches by componentId and versions
+            var orderedSnPatches = patches
+                .Where(x => x.Type == PackageType.Patch)
+                .OrderBy(x => x.ComponentId).ThenBy(x => x.Version)
+                .ToArray();
+
             // ------------------------------------------------------------ sorting by dependencies
-            var toInstall = new List<ISnPatch>(installers); // to-do list
-            var sortedInstallers = new List<ISnPatch>(); // installers in right order
-            var installed = new List<ComponentInfo>(installedComponents); // all installed and simulated items.
+            var toInstall = installers.Union(orderedSnPatches).ToList(); // to-do list
+            var sortedPatches = new List<ISnPatch>(); // patches in right order (output)
+            var installed = new List<SnComponentDescriptor>(installedComponents); // all installed and simulated items.
             var currentlyInstalled = new List<ISnPatch>(); // temporary list.
             while (true)
             {
-                foreach (var installer in toInstall)
+                foreach (var item in toInstall)
                 {
-                    if (AreInstallerDependenciesValid(installer.Dependencies, installed))
+                    if (item.Type == PackageType.Install)
                     {
-                        currentlyInstalled.Add(installer);
-                        sortedInstallers.Add(installer);
-                        installed.Add(new ComponentInfo
+                        var installer = (ComponentInstaller) item;
+                        if (CheckPrerequisites(installer, installed))
                         {
-                            ComponentId = installer.ComponentId,
-                            Version = installer.Version,
-                            Description = installer.Description
-                        });
+                            currentlyInstalled.Add(installer);
+                            sortedPatches.Add(installer);
+                            installed.Add(new SnComponentDescriptor(installer.ComponentId, installer.Version,
+                                installer.Description, installer.Dependencies?.ToArray()));
+                        }
+                    }
+                    else if (item.Type == PackageType.Patch)
+                    {
+                        var snPatch = (SnPatch) item;
+                        if (CheckPrerequisites(snPatch, installed))
+                        {
+                            currentlyInstalled.Add(snPatch);
+                            sortedPatches.Add(snPatch);
+                            var patchedComponent = installed.First(x => x.ComponentId == snPatch.ComponentId);
+                            patchedComponent.Version = (Version) snPatch.Version.Clone();
+                            patchedComponent.Dependencies = snPatch.Dependencies?.ToArray();
+                        }
+                    }
+                    else
+                    {
+                        // Do nothing
+                        context.LogMessage($"Patch is skipped: {item.ComponentId} ({item.Type})");
                     }
                 }
 
@@ -209,18 +236,51 @@ namespace SenseNet.Packaging
 
             componentsAfter = installed.ToArray();
 
-            return sortedInstallers;
-
-            //UNDONE: PACKAGING Don't skip' SnPatches.
+            return sortedPatches;
         }
 
-        private bool AreInstallerDependenciesValid(IEnumerable<Dependency> dependencies, List<ComponentInfo> installed)
+        /// <summary>
+        /// Returns true if the given <see cref="ComponentInstaller"/> is installable.
+        /// </summary>
+        private bool CheckPrerequisites(ComponentInstaller installer, List<SnComponentDescriptor> installed)
         {
+            // Installable if the dependent components exist.
+            return CheckDependencies(installer.Dependencies, installed);
+        }
+        /// <summary>
+        /// Returns true if the given <see cref="SnPatch"/> is installable.
+        /// </summary>
+        private bool CheckPrerequisites(SnPatch snPatch, List<SnComponentDescriptor> installed)
+        {
+            // Search the installed component.
+            var target = installed.FirstOrDefault(x => x.ComponentId == snPatch.ComponentId);
+
+            // Not executable if not installed.
+            if (target == null)
+                return false;
+
+            // Not executable if the installed component version is not in the expected boundary.
+            if(!snPatch.Boundary.IsInInterval(target.Version))
+                return false;
+
+            // Executable if the dependent components exist.
+            return CheckDependencies(snPatch.Dependencies, installed);
+        }
+        private bool CheckDependencies(IEnumerable<Dependency> dependencies, List<SnComponentDescriptor> installed)
+        {
+            // All right if there is no any dependency.
             if (dependencies == null)
                 return true;
+            var deps = dependencies.ToArray();
+            if (deps.Length == 0)
+                return true;
+
+            // Not installable if there is any dependency but installed nothing.
             if (installed.Count == 0)
                 return false;
-            return dependencies.All(dep =>
+
+            // Installable if all dependencies exist.
+            return deps.All(dep =>
                 installed.Any(i => i.ComponentId == dep.Id && dep.Boundary.IsInInterval(i.Version)));
         }
 

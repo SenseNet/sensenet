@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using Newtonsoft.Json;
@@ -13,28 +14,26 @@ namespace SenseNet.Packaging
     /// </summary>
     public class SnComponentDescriptor
     {
-        private ComponentInfo _data;
-
         /// <summary>
         /// Gets the unique identifier.
         /// </summary>
-        public string ComponentId => _data?.ComponentId;
+        public string ComponentId { get; }
 
         /// <summary>
         /// Gets the last version after successful execution of the installer or patch.
         /// </summary>
-        public Version Version => _data?.Version;
+        public Version Version { get; internal set; }
 
         /// <summary>
         /// Gets the description after successful execution of the installer.
         /// The descriptions of patches do not appear here.
         /// </summary>
-        public string Description => _data?.Description;
+        public string Description { get; }
 
         /// <summary>
         /// Gets the component's dependencies.
         /// </summary>
-        public Dependency[] Dependencies => _dependencies ?? (_dependencies = ExtractDependencies(_data?.Manifest));
+        public Dependency[] Dependencies { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnComponentDescriptor"/> class.
@@ -43,10 +42,19 @@ namespace SenseNet.Packaging
         /// <param name="componentInfo">Contains base data of he component.</param>
         public SnComponentDescriptor(ComponentInfo componentInfo)
         {
-            _data = componentInfo;
+            ComponentId = componentInfo.ComponentId;
+            Version = componentInfo.Version;
+            Description = componentInfo.Description;
+            Dependencies = ExtractDependencies(componentInfo.Manifest);
+        }
+        internal SnComponentDescriptor(string componentId, Version version, string description, Dependency[] dependencies)
+        {
+            ComponentId = componentId;
+            Version = version;
+            Description = description;
+            Dependencies = dependencies;
         }
 
-        private Dependency[] _dependencies;
         private Dependency[] ExtractDependencies(string manifest)
         {
             if (string.IsNullOrEmpty(manifest))
@@ -55,6 +63,5 @@ namespace SenseNet.Packaging
             xml.LoadXml(manifest);
             return Manifest.ParseDependencies(xml).Where(x => x.Id != ComponentId).ToArray();
         }
-
     }
 }

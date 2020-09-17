@@ -167,58 +167,6 @@ namespace SenseNet.Packaging.Tests
             return relevantPatches.ToArray();
         }
 
-        /*
-        private async Task<SnPatch[]> GetOrderedPatches(SnPatch[] patches, CancellationToken cancellationToken)
-        {
-            var packages = (await PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
-                .ConfigureAwait(false));
-
-            var lastVersions = packages.GroupBy(x => x.ComponentId)
-                .Select(y => new {Id = y.Key, Version = y.Max(row => row.ComponentVersion)})
-                .ToArray();
-
-            var relevantPatches = patches.Where(patch =>
-                lastVersions.Any(pkg => pkg.Id == patch.Id && patch.Version > pkg.Version));
-
-            //UNDONE: dependency ?!
-
-            return relevantPatches.ToArray();
-        }
-        
-        private bool IsVersionRelevant(SnPatch patch, Version packageVersion)
-        {
-            if (patch.Version < packageVersion)
-                return false;
-
-            if (patch.Boundary.MinVersionIsExclusive)
-            {
-                if (patch.Boundary.MinVersion >= packageVersion)
-                    return false;
-            }
-            else
-            {
-                if (patch.Boundary.MinVersion > packageVersion)
-                    return false;
-            }
-
-            if (patch.Boundary.MaxVersion == null)
-                return true;
-
-            if (patch.Boundary.MaxVersionIsExclusive)
-            {
-                if (patch.Boundary.MaxVersion <= packageVersion)
-                    return false;
-            }
-            else
-            {
-                if (patch.Boundary.MaxVersion < packageVersion)
-                    return false;
-            }
-
-            return true;
-        }
-        */
-
         /* ========================================================================================== */
 
         /// <summary>
@@ -248,18 +196,14 @@ namespace SenseNet.Packaging.Tests
         }
 
         /// <summary>
-        /// Creates a ComponentInfo for test purposes.
+        /// Creates a SnComponentDescriptor for test purposes.
         /// </summary>
         /// <param name="id">ComponentId</param>
         /// <param name="version">Last saved version.</param>
         /// <returns></returns>
-        protected ComponentInfo Comp(string id, string version)
+        protected SnComponentDescriptor Comp(string id, string version)
         {
-            return new ComponentInfo
-            {
-                ComponentId = id,
-                Version = Version.Parse(version.TrimStart('v')),
-            };
+            return new SnComponentDescriptor(id, Version.Parse(version.TrimStart('v')), "", null);
         }
         /// <summary>
         /// Creates a ComponentInstaller for test purposes

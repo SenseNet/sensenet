@@ -12,12 +12,12 @@ namespace SenseNet.Packaging.Tests
         [TestMethod]
         public void PatchingExec_Install_1New()
         {
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
-                (ISnPatch)Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
             };
 
-            var installed = new ComponentInfo[0];
+            var installed = new SnComponentDescriptor[0];
             var context = new PatchExecutionContext();
             var pm = new PatchManager();
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
@@ -32,11 +32,11 @@ namespace SenseNet.Packaging.Tests
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
                 // Will be skipped. The different version does not cause any error because this patch is irrelevant.
-                (ISnPatch)Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C2", "v2.3", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
+                Inst("C2", "v2.3", null, ctx => ExecutionResult.Successful),
             };
 
             // ACTION
@@ -62,18 +62,18 @@ namespace SenseNet.Packaging.Tests
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
                 // Will be skipped. The same id does not cause any error because this patch is irrelevant.
-                (ISnPatch)Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
                 // Would be executable but the same id causes an error.
-                (ISnPatch)Inst("C2", "v1.0", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C3", "v1.0", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C3", "v2.3", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C4", "v2.3", null, ctx => ExecutionResult.Successful),
-                (ISnPatch)Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C2", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C3", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C3", "v2.3", null, ctx => ExecutionResult.Successful),
+                Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C4", "v2.3", null, ctx => ExecutionResult.Successful),
+                Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
             };
 
             // ACTION
@@ -92,12 +92,12 @@ namespace SenseNet.Packaging.Tests
         public void PatchingExec_Install_Dependency()
         {
             // Test the right installer execution order if there is a dependency among the installers.
-            var installed = new ComponentInfo[0];
+            var installed = new SnComponentDescriptor[0];
             var exec = new Func<PatchExecutionContext, ExecutionResult>(ctx => ExecutionResult.Successful);
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
-                (ISnPatch) Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
-                (ISnPatch) Inst("C1", "v1.0", null, exec),
+                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
+                Inst("C1", "v1.0", null, exec),
             };
 
             // ACTION
@@ -121,11 +121,11 @@ namespace SenseNet.Packaging.Tests
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
-                (ISnPatch) Inst("C3", "v1.0", new[] {Dep("C1", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
-                (ISnPatch) Inst("C4", "v1.0", new[] {Dep("C3", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
-                (ISnPatch) Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
+                Inst("C3", "v1.0", new[] {Dep("C1", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
+                Inst("C4", "v1.0", new[] {Dep("C3", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
+                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
             };
 
             // ACTION
@@ -149,11 +149,11 @@ namespace SenseNet.Packaging.Tests
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new[]
+            var patches = new ISnPatch[]
             {
-                (ISnPatch) Inst("C2", "v1.0", new[] {Dep("C3", "1.0 <= v")}, exec),
-                (ISnPatch) Inst("C3", "v1.0", new[] {Dep("C4", "1.0 <= v")}, exec),
-                (ISnPatch) Inst("C4", "v1.0", new[] {Dep("C2", "1.0 <= v")}, exec),
+                Inst("C2", "v1.0", new[] {Dep("C3", "1.0 <= v")}, exec),
+                Inst("C3", "v1.0", new[] {Dep("C4", "1.0 <= v")}, exec),
+                Inst("C4", "v1.0", new[] {Dep("C2", "1.0 <= v")}, exec),
             };
 
             // ACTION
@@ -169,32 +169,24 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(3, context.Errors.Length);
         }
 
-
-
-
-
         [TestMethod]
         public void PatchingExec_Patch_()
         {
-            Assert.Inconclusive();
-
-            var patches = new[]
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
             {
-                (ISnPatch)Inst("C1", "v1.0", null, ctx =>
-                {
-                    return ExecutionResult.Successful;
-                }),
-                Patch("c1", "1.0 <= v <  2.0", "v2.0", null, ctx =>
-                {
-                    return ExecutionResult.Successful;
-                })
+                Inst("C1", "v1.0", null,
+                    ctx => ExecutionResult.Successful),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
+                    ctx => ExecutionResult.Successful)
             };
 
-            var installed = new ComponentInfo[0];
+            // ACTION
             var context = new PatchExecutionContext();
             var pm = new PatchManager();
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
+            // ASSERT
             Assert.AreEqual(1, after.Length);
             Assert.AreEqual(2, executables.Length);
         }

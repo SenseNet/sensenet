@@ -55,6 +55,8 @@ namespace SenseNet.Packaging
         /// </summary>
         Exception ExecutionError { get; set; }
     }
+
+    [DebuggerDisplay("{ComponentId}: {Version}")]
     public class ComponentInstaller : ISnPatch
     {
         /// <inheritdoc/>
@@ -90,7 +92,7 @@ namespace SenseNet.Packaging
     /// minimum and maximum version numbers in this patch. The component version after 
     /// this patch will be the one defined in the Version property.
     /// </summary>
-    [DebuggerDisplay("{Id} {Version}")]
+    [DebuggerDisplay("{ComponentId}: {Boundary} --> {Version}")]
     public class SnPatch : ComponentInstaller
     {
         /// <summary>
