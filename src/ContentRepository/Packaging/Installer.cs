@@ -7,15 +7,19 @@ using System.Reflection;
 using System.Threading;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Steps;
+using SenseNet.Tools;
 using File = System.IO.File;
+using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Packaging
 {
     public class Installer
     {
         public RepositoryBuilder RepositoryBuilder { get; }
+        private string WorkingDirectory { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Installer"/> class.
@@ -24,9 +28,10 @@ namespace SenseNet.Packaging
         /// to install or import anything.
         /// </summary>
         /// <param name="repositoryBuilder"></param>
-        public Installer(RepositoryBuilder repositoryBuilder = null)
+        public Installer(RepositoryBuilder repositoryBuilder = null, string workingDirectory = null)
         {
             RepositoryBuilder = repositoryBuilder;
+            WorkingDirectory = workingDirectory;
         }
 
         /// <summary>
@@ -159,6 +164,39 @@ namespace SenseNet.Packaging
             return this;
         }
 
+        public Installer Import(Assembly assembly, string packageName, string targetPath = null)
+        {
+            var unpackTarget = Path.Combine(WorkingDirectory ?? string.Empty, "import");
+
+            // prepare package: extract it to the file system
+            var packageFolder = UnpackEmbeddedPackage(assembly, packageName, unpackTarget);
+
+            Import(packageFolder, targetPath);
+
+            // cleanup, but do not wait for the result
+            Task.Run(() =>
+                Retrier.RetryAsync(5, 3000, () =>
+                {
+                    Directory.Delete(packageFolder, true);
+                    return Task.CompletedTask;
+                }, (i, exception) =>
+                {
+                    if (exception == null)
+                    {
+                        SnTrace.System.Write($"Package {packageFolder} has been deleted successfully.");
+                        return true;
+                    }
+
+                    // last iteration
+                    if (i == 1)
+                        SnTrace.System.WriteError($"Package {packageFolder} could not be deleted after several retries.");
+
+                    return false;
+                }));
+            
+            return this;
+        }
+
         private void ExecutePackage(string packageFolder, params PackageParameter[] parameters)
         {
             Logger.LogMessage($"Executing package {Path.GetFileName(packageFolder)}...");
@@ -211,12 +249,14 @@ namespace SenseNet.Packaging
 
             return zipTarget;
         }
-        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName)
+        private static string UnpackEmbeddedPackage(Assembly assembly, string packageName, string baseDirectory = null)
         {
             if (string.IsNullOrEmpty(packageName))
                 throw new ArgumentNullException(nameof(packageName));
             
             var zipTarget = Path.GetFileNameWithoutExtension(packageName);
+            if (!string.IsNullOrEmpty(baseDirectory))
+                zipTarget = Path.Combine(baseDirectory, zipTarget);
 
             // probing: try the resource name with and without the assembly name prefix
             var packageNameWithPrefix = $"{assembly.GetName().Name}.{packageName}";
@@ -236,12 +276,8 @@ namespace SenseNet.Packaging
                 Directory.Delete(zipTarget, true);
                 Logger.LogMessage("Old files and directories are deleted.");
             }
-            else
-            {
-                Directory.CreateDirectory(zipTarget);
-                Logger.LogMessage("Package directory created.");
-            }
-
+            
+            Directory.CreateDirectory(zipTarget);
             Logger.LogMessage("Extracting ...");
 
             using (var resourceStream = assembly.GetManifestResourceStream(resourceName))
@@ -252,7 +288,7 @@ namespace SenseNet.Packaging
                 Unpacker.Unpack(resourceStream, zipTarget);
             }
 
-            Logger.LogMessage("Ok.");
+            Logger.LogMessage("Unpacking finished.");
 
             return zipTarget;
         }
