@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository;
 
@@ -14,11 +15,22 @@ namespace SenseNet.Packaging
     public class PatchExecutionError
     {
         public PatchExecutionErrorType ErrorType { get; }
+        public ISnPatch FaultyPatch { get; }
+        public ISnPatch[] FaultyPatches { get; }
         public string Message { get; }
 
-        public PatchExecutionError(PatchExecutionErrorType errorType, string message)
+        public PatchExecutionError(PatchExecutionErrorType errorType, ISnPatch faultyPatch, string message)
         {
             ErrorType = errorType;
+            FaultyPatch = faultyPatch;
+            FaultyPatches = faultyPatch == null ? new ISnPatch[0] : new[] {faultyPatch};
+            Message = message;
+        }
+        public PatchExecutionError(PatchExecutionErrorType errorType, ISnPatch[] faultyPatches, string message)
+        {
+            ErrorType = errorType;
+            FaultyPatches = faultyPatches;
+            FaultyPatch = faultyPatches?.FirstOrDefault();
             Message = message;
         }
     }

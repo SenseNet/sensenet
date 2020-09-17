@@ -154,8 +154,9 @@ namespace SenseNet.Packaging
             {
                 // Duplicates are not allowed
                 context.Errors = duplicates
-                    .Select(x => new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller,
-                        "There is a duplicated installer for the component " + x))
+                    .Select(id => new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller,
+                        installers.Where(inst => inst.ComponentId == id).ToArray(),
+                        "There is a duplicated installer for the component " + id))
                     .ToArray();
 
                 // Set unchanged list as output
@@ -170,64 +171,66 @@ namespace SenseNet.Packaging
                 .ToArray();
 
             // ------------------------------------------------------------ sorting by dependencies
-            var toInstall = installers.Union(orderedSnPatches).ToList(); // to-do list
-            var sortedPatches = new List<ISnPatch>(); // patches in right order (output)
-            var installed = new List<SnComponentDescriptor>(installedComponents); // all installed and simulated items.
-            var currentlyInstalled = new List<ISnPatch>(); // temporary list.
+            var inputList = installers.Union(orderedSnPatches).ToList();
+            var outputList = new List<ISnPatch>(); // patches in right order to execute
+            var installed = new List<SnComponentDescriptor>(installedComponents); // all simulated components.
+            var currentlyManaged = new List<ISnPatch>(); // temporary list in one iteration.
             while (true)
             {
-                foreach (var item in toInstall)
+                foreach (var item in inputList)
                 {
-                    if (item.Type == PackageType.Install)
+                    if (CheckPrerequisites(item, installed, out var skipExecution))
                     {
-                        var installer = (ComponentInstaller) item;
-                        if (CheckPrerequisites(installer, installed))
+                        currentlyManaged.Add(item);
+                        outputList.Add(item);
+
+                        // The check SnPatch needs to precede the ComponentInstaller
+                        // because the SnPatch IS A ComponentInstaller
+                        if (item is SnPatch snPatch)
                         {
-                            currentlyInstalled.Add(installer);
-                            sortedPatches.Add(installer);
+                            // Modify version and dependencies of the installed components.
+                            var patchedComponent = installed.Single(x => x.ComponentId == snPatch.ComponentId);
+                            patchedComponent.Version = (Version)snPatch.Version.Clone();
+                            patchedComponent.Dependencies = snPatch.Dependencies?.ToArray();
+                        }
+                        else if (item is ComponentInstaller installer)
+                        {
+                            // Add to installed components.
                             installed.Add(new SnComponentDescriptor(installer.ComponentId, installer.Version,
                                 installer.Description, installer.Dependencies?.ToArray()));
                         }
-                    }
-                    else if (item.Type == PackageType.Patch)
-                    {
-                        var snPatch = (SnPatch) item;
-                        if (CheckPrerequisites(snPatch, installed))
+                        else
                         {
-                            currentlyInstalled.Add(snPatch);
-                            sortedPatches.Add(snPatch);
-                            var patchedComponent = installed.First(x => x.ComponentId == snPatch.ComponentId);
-                            patchedComponent.Version = (Version) snPatch.Version.Clone();
-                            patchedComponent.Dependencies = snPatch.Dependencies?.ToArray();
+                            throw new SnNotSupportedException();
                         }
                     }
                     else
                     {
-                        // Do nothing
-                        context.LogMessage($"Patch is skipped: {item.ComponentId} ({item.Type})");
+                        if (skipExecution)
+                            currentlyManaged.Add(item);
                     }
                 }
 
-                // Remove currently installed items from the to-do list.
-                toInstall = toInstall.Except(currentlyInstalled).ToList();
+                // Remove currently managed items from the to-do list.
+                inputList = inputList.Except(currentlyManaged).ToList();
 
-                // Exit if all installers are in the sortedInstallers.
-                if (toInstall.Count == 0)
+                // Exit if all items are managed.
+                if (inputList.Count == 0)
                     break;
-                
+
                 // Exit if there is no changes, avoid the infinite loop.
-                if (currentlyInstalled.Count == 0)
+                if (currentlyManaged.Count == 0)
                     break;
-                currentlyInstalled.Clear();
+                currentlyManaged.Clear();
             }
 
             // If exited but there is any remaining item, generate error(s).
-            if (toInstall.Count > 0)
+            if (inputList.Count > 0)
             {
                 //UNDONE: PACKAGING Recognize circular dependencies.
-                context.Errors = toInstall
-                    .Select(x => new PatchExecutionError(PatchExecutionErrorType.CannotInstall,
-                        "Cannot execute the patch " + x))
+                context.Errors = inputList
+                    .Select(patch => new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
+                        "Cannot execute the patch " + patch))
                     .ToArray();
 
                 componentsAfter = installedComponents.ToArray();
@@ -236,22 +239,37 @@ namespace SenseNet.Packaging
 
             componentsAfter = installed.ToArray();
 
-            return sortedPatches;
+            return outputList;
         }
-
+        /// <summary>
+        /// Returns true if the given <see cref="ISnPatch"/> is installable.
+        /// </summary>
+        private bool CheckPrerequisites(ISnPatch patch, List<SnComponentDescriptor> installed, out bool skipExecution)
+        {
+            if (patch is SnPatch snPatch)
+                return CheckPrerequisites(snPatch, installed, out skipExecution);
+            if (patch is ComponentInstaller installer)
+                return CheckPrerequisites(installer, installed, out skipExecution);
+            throw new SnNotSupportedException();
+        }
         /// <summary>
         /// Returns true if the given <see cref="ComponentInstaller"/> is installable.
         /// </summary>
-        private bool CheckPrerequisites(ComponentInstaller installer, List<SnComponentDescriptor> installed)
+        private bool CheckPrerequisites(ComponentInstaller installer, List<SnComponentDescriptor> installed,
+            out bool skipExecution)
         {
+            skipExecution = false;
             // Installable if the dependent components exist.
             return CheckDependencies(installer.Dependencies, installed);
         }
         /// <summary>
         /// Returns true if the given <see cref="SnPatch"/> is installable.
         /// </summary>
-        private bool CheckPrerequisites(SnPatch snPatch, List<SnComponentDescriptor> installed)
+        private bool CheckPrerequisites(SnPatch snPatch, List<SnComponentDescriptor> installed,
+            out bool skipExecution)
         {
+            skipExecution = false;
+
             // Search the installed component.
             var target = installed.FirstOrDefault(x => x.ComponentId == snPatch.ComponentId);
 
@@ -259,8 +277,15 @@ namespace SenseNet.Packaging
             if (target == null)
                 return false;
 
+            // Not executable but skipped if the target version is greater than the patch's version.
+            if (target.Version >= snPatch.Version)
+            {
+                skipExecution = true;
+                return false;
+            }
+
             // Not executable if the installed component version is not in the expected boundary.
-            if(!snPatch.Boundary.IsInInterval(target.Version))
+            if (!snPatch.Boundary.IsInInterval(target.Version))
                 return false;
 
             // Executable if the dependent components exist.
@@ -288,6 +313,8 @@ namespace SenseNet.Packaging
         {
             throw new NotImplementedException();
         }
+
+        /* ================================================================================= TOOLS */
 
     }
 }
