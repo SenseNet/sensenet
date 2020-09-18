@@ -37,7 +37,7 @@ namespace SenseNet.Packaging
 
     public enum PatchExecutionErrorType
     {
-        DuplicatedInstaller, CannotInstall
+        DuplicatedInstaller, CannotInstall, MissingVersion
     }
     public class PatchExecutionError
     {

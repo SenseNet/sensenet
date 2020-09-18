@@ -228,10 +228,8 @@ namespace SenseNet.Packaging
             // If exited but there is any remaining item, generate error(s).
             if (inputList.Count > 0)
             {
-                //UNDONE: PACKAGING Recognize circular dependencies.
                 context.Errors = inputList
-                    .Select(patch => new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
-                        "Cannot execute the patch " + patch))
+                    .Select(patch => RecognizeDiscoveryProblem(patch, installedComponents))
                     .ToArray();
 
                 componentsAfter = installedComponents.ToArray();
@@ -242,6 +240,24 @@ namespace SenseNet.Packaging
 
             return outputList;
         }
+
+        private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch, SnComponentDescriptor[] installedComponents)
+        {
+            //UNDONE: PACKAGING Recognize circular dependencies.
+
+            if (patch is SnPatch snPatch)
+            {
+                if (!installedComponents.Any(comp => comp.ComponentId == snPatch.ComponentId &&
+                                                     comp.Version < patch.Version &&
+                                                     snPatch.Boundary.IsInInterval(comp.Version)))
+                    return new PatchExecutionError(PatchExecutionErrorType.MissingVersion, patch,
+                        "Cannot execute the patch " + patch);
+            }
+
+            return new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
+                "Cannot execute the patch " + patch);
+        }
+
         /// <summary>
         /// Returns true if the given <see cref="ISnPatch"/> is installable.
         /// </summary>

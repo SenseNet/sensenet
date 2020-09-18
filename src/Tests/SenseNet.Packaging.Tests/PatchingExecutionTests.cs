@@ -177,15 +177,19 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== COMPLEX INSTALL & PATCHING SIMULATION TESTS */
 
         #region TOOLS for COMPLEX INSTALL & PATCHING TESTS
-        private string InstalledComponentsToString(SnComponentDescriptor[] components)
+        private string ComponentsToString(SnComponentDescriptor[] components)
         {
             return string.Join(" ", components.OrderBy(x=>x.ComponentId)
                 .Select(x => $"{x.ComponentId}v{x.Version}"));
         }
-        private string SortedExecutablesToString(ISnPatch[] executables)
+        private string PatchesToString(ISnPatch[] executables)
         {
             return string.Join(" ", executables.Select(x =>
                 $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));
+        }
+        private string PackagesToString(Package[] packages)
+        {
+            return string.Join("|", packages.Select(p => p.ToString()));
         }
         #endregion
 
@@ -208,8 +212,8 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
-            Assert.AreEqual("C1i1.0 C1p2.0 C1p3.0", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v3.0", ComponentsToString(after));
+            Assert.AreEqual("C1i1.0 C1p2.0 C1p3.0", PatchesToString(executables));
         }
         [TestMethod]
         public void PatchingExecSim_Patch_C1_b()
@@ -232,8 +236,8 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
-            Assert.AreEqual("C1p2.0 C1p3.0", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v3.0", ComponentsToString(after));
+            Assert.AreEqual("C1p2.0 C1p3.0", PatchesToString(executables));
         }
         [TestMethod]
         public void PatchingExecSim_Patch_C1b_c()
@@ -256,8 +260,8 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
-            Assert.AreEqual("C1p3.0", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v3.0", ComponentsToString(after));
+            Assert.AreEqual("C1p3.0", PatchesToString(executables));
         }
         [TestMethod]
         public void PatchingExecSim_Patch_C1_d()
@@ -280,8 +284,8 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v3.0", InstalledComponentsToString(after));
-            Assert.AreEqual("", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v3.0", ComponentsToString(after));
+            Assert.AreEqual("", PatchesToString(executables));
         }
 
         // SIMULATION: Install and patch C2 that depends C1
@@ -325,12 +329,11 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v2.0 C2v1.0", InstalledComponentsToString(after));
-            Assert.AreEqual("C1i1.0 C1p2.0 C2i1.0", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v2.0 C2v1.0", ComponentsToString(after));
+            Assert.AreEqual("C1i1.0 C1p2.0 C2i1.0", PatchesToString(executables));
         }
 
         // SIMULATION: Install and patch C2 that depends C1. Dependency comes with the patch.
-
         [TestMethod]
         public void PatchingExecSim_Patch_DependencyInPatch()
         {
@@ -350,8 +353,112 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v2.0 C2v2.0", InstalledComponentsToString(after));
-            Assert.AreEqual("C1i1.0 C2i1.0 C2p2.0 C1p2.0", SortedExecutablesToString(executables));
+            Assert.AreEqual("C1v2.0 C2v2.0", ComponentsToString(after));
+            Assert.AreEqual("C1i1.0 C2i1.0 C2p2.0 C1p2.0", PatchesToString(executables));
+        }
+
+        // SIMULATION: Install and patch C1 but there is a missing item in the patch chain.
+        [TestMethod]
+        public void PatchingExecSim_Patch_MissingItemInTheChain_a()
+        {
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(1, context.Errors.Length);
+            var error = context.Errors[0];
+            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
+            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("", ComponentsToString(after));
+            Assert.AreEqual("", PatchesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExecSim_Patch_MissingItemInTheChain_b()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v1.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(1, context.Errors.Length);
+            var error = context.Errors[0];
+            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
+            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("C1v2.0", ComponentsToString(after));
+            Assert.AreEqual("", PatchesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExecSim_Patch_MissingItemInTheChain_c()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v2.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(1, context.Errors.Length);
+            var error = context.Errors[0];
+            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
+            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("C1v2.0", ComponentsToString(after));
+            Assert.AreEqual("", PatchesToString(executables));
+        }
+        [TestMethod]
+        public void PatchingExecSim_Patch_MissingItemInTheChain_d()
+        {
+            var installed = new[]
+            {
+                Comp("C1", "v3.0")
+            };
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v4.0", ComponentsToString(after));
+            Assert.AreEqual("C1p4.0", PatchesToString(executables));
         }
 
         /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */
@@ -367,12 +474,9 @@ namespace SenseNet.Packaging.Tests
                 log.Add(record);
             }
 
-            //var packagesIn = new List<Package>();
             var executed = new List<ISnPatch>();
             void Execute(ISnPatch patch)
             {
-                //var package = LoadPackages().FirstOrDefault(x => x.ComponentId == patch.ComponentId);
-                //packagesIn.Add(package);
                 executed.Add(patch);
             }
 
@@ -382,10 +486,7 @@ namespace SenseNet.Packaging.Tests
                 //Patch("C1", "1.0 <= v < 2.0", "v2.0", null, 
                 //    ctx => ExecutionResult.Successful),
                 Inst("C1", "v1.0", null, 
-                    ctx =>
-                    {
-                        Execute(ctx.CurrentPatch);
-                    }),
+                    ctx => { Execute(ctx.CurrentPatch); }),
             };
 
             // ACTION
@@ -397,12 +498,242 @@ namespace SenseNet.Packaging.Tests
             // ASSERT
             Assert.AreEqual(0, context.Errors.Length);
             Assert.AreEqual(2, log.Count);
-            Assert.AreEqual("C1i1.0", SortedExecutablesToString(executed.ToArray()));
+            Assert.AreEqual("C1i1.0", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
             Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
-            Assert.AreEqual("1, C1: Install Unfinished, 1.0", string.Join(", ", packages[0].Select(p => p.ToString())));
-            Assert.AreEqual("1, C1: Install Successful, 1.0", string.Join(", ", packages[1].Select(p => p.ToString())));
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
 
         }
+        [TestMethod]
+        public void PatchingExec_InstallOne_Faulty()
+        {
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                //Patch("C1", "1.0 <= v < 2.0", "v2.0", null, 
+                //    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null,
+                    ctx => { throw new Exception("Error inda patch."); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual("", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[1]));
+        }
+        [TestMethod]
+        public void PatchingExec_PatchOne_Success()
+        {
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+                Inst("C1", "v1.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(4, log.Count);
+            Assert.AreEqual("C1i1.0 C1p2.0", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
+        }
+        [TestMethod]
+        public void PatchingExec_PatchOne_Faulty()
+        {
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
+                    ctx => { throw new Exception("Error inda patch."); }),
+                Inst("C1", "v1.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(4, log.Count);
+            Assert.AreEqual("C1i1.0", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[3]));
+        }
+        [TestMethod]
+        public void PatchingExec_SkipPatch_FaultyInstaller()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+                Inst("C1", "v1.0", null,
+                    ctx => { throw new Exception("Error inda patch."); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual("", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
+        }
+        [TestMethod]
+        public void PatchingExec_SkipPatch_FaultySnPatch()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
+                    ctx => { throw new Exception("Error inda patch."); }),
+                Inst("C1", "v1.0", null,
+                    ctx => { Execute(ctx.CurrentPatch); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual("", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
+        }
+
     }
 }
