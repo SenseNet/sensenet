@@ -147,6 +147,7 @@ namespace SenseNet.Packaging
 
             var installers = patches
                 .Where(x => x.Type == PackageType.Install && !installedIds.Contains(x.ComponentId))
+                .OrderBy(x => x.ComponentId)
                 .ToArray();
             var installerGroups = installers.GroupBy(x => x.ComponentId);
             var duplicates = installerGroups.Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
@@ -311,7 +312,39 @@ namespace SenseNet.Packaging
 
         private void ExecutePatches(IEnumerable<ISnPatch> patches, PatchExecutionContext context)
         {
-            throw new NotImplementedException();
+            foreach (var patch in patches)
+            {
+                var manifest = Manifest.Create(patch);
+
+                // Write an "unfinished" record
+                PackageManager.SaveInitialPackage(manifest);
+
+                // Log after save: the execution is in started state when the callback called
+                // so the callback can see the real state in the database.
+                context.LogMessage(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
+
+                // PATCH EXECUTION
+                context.CurrentPatch = patch;
+                var successful = false;
+                Exception executionError = null;
+                try
+                {
+                    patch.Execute(context);
+                    successful = true;
+                }
+                catch (Exception e)
+                {
+                    executionError = e;
+                }
+
+                // Save the execution result
+                PackageManager.SavePackage(manifest, null,
+                    successful, executionError);
+                // Log after save: the execution is in completed database state when the callback called.
+                context.LogMessage(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished, patch,
+                    $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
+
+            }
         }
 
         /* ================================================================================= TOOLS */

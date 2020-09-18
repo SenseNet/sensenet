@@ -1,5 +1,7 @@
-﻿using System;
+﻿//UNDONE: separate classes to different files
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository;
@@ -7,11 +9,36 @@ using SenseNet.ContentRepository;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
+    public enum PatchExecutionEventType
+    {
+        ExecutionStart, ExecutionFinished
+    }
+    [DebuggerDisplay("{ToString()}")]
+    public struct PatchExecutionLogRecord
+    {
+        public PatchExecutionEventType EventType { get; }
+        public ISnPatch Patch { get; }
+        public string Message { get; }
+
+        public PatchExecutionLogRecord(PatchExecutionEventType eventType, ISnPatch patch, string message = null)
+        {
+            EventType = eventType;
+            Patch = patch;
+            Message = message;
+        }
+
+        public override string ToString()
+        {
+            return Message == null
+                ? $"[{Patch}] {EventType}."
+                : $"[{Patch}] {EventType}. {Message}";
+        }
+    }
+
     public enum PatchExecutionErrorType
     {
         DuplicatedInstaller, CannotInstall
     }
-
     public class PatchExecutionError
     {
         public PatchExecutionErrorType ErrorType { get; }
@@ -39,9 +66,10 @@ namespace SenseNet.Packaging
     {
         public RepositoryStartSettings Settings { get; set; }
         public PatchExecutionError[] Errors { get; internal set; } = new PatchExecutionError[0];
-        public Action<string> LogMessage { get; set; } = DefaultLogMessage;
+        public Action<PatchExecutionLogRecord> LogMessage { get; set; } = DefaultLogMessage;
+        public ISnPatch CurrentPatch { get; internal set; }
 
-        private static void DefaultLogMessage(string msg)
+        private static void DefaultLogMessage(PatchExecutionLogRecord msg)
         {
             // do nothing
         }

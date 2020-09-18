@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage
     public enum ExecutionResult { Successful, Faulty, Unfinished }
 
     [Serializable]
-    [DebuggerDisplay("{Id}, {ComponentId}: {PackageType} {ExecutionResult}, {ComponentVersion}")]
+    [DebuggerDisplay("{ToString()}")]
     public class Package
     {
         public int Id { get; set; }                           // [Id] [int] IDENTITY(1,1) NOT NULL,
@@ -23,5 +23,10 @@ namespace SenseNet.ContentRepository.Storage
         public Exception ExecutionError { get; set; }         // [ExecutionError] [nvarchar](max) NULL,
         [JsonIgnore]
         public string Manifest { get; set; }                  // [Manifest] [nvarchar](max) NULL
+
+        public override string ToString()
+        {
+            return $"{Id}, {ComponentId}: {PackageType} {ExecutionResult}, {ComponentVersion}";
+        }
     }
 }

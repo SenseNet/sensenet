@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -10,7 +13,7 @@ namespace SenseNet.Packaging.Tests
     public class PatchingExecutionTests : PatchingTestBase
     {
         [TestMethod]
-        public void PatchingExec_Install_1New()
+        public void PatchingExecSim_Install_1New()
         {
             var patches = new ISnPatch[]
             {
@@ -26,7 +29,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, executables.Length);
         }
         [TestMethod]
-        public void PatchingExec_Install_1New1Skip()
+        public void PatchingExecSim_Install_1New1Skip()
         {
             var installed = new[]
             {
@@ -56,7 +59,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(new Version(2, 3), executables[0].Version);
         }
         [TestMethod]
-        public void PatchingExec_Install_Duplicates()
+        public void PatchingExecSim_Install_Duplicates()
         {
             var installed = new[]
             {
@@ -94,7 +97,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(3, errors[1].FaultyPatches.Length);
         }
         [TestMethod]
-        public void PatchingExec_Install_Dependency()
+        public void PatchingExecSim_Install_Dependency()
         {
             // Test the right installer execution order if there is a dependency among the installers.
             var installed = new SnComponentDescriptor[0];
@@ -117,7 +120,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1,C2", string.Join(",", executables.Select(x => x.ComponentId)));
         }
         [TestMethod]
-        public void PatchingExec_Install_Dependency2()
+        public void PatchingExecSim_Install_Dependency2()
         {
             // Test the right installer execution order if there is a dependency among the installers.
             // One dependency is exist, 2 will be installed.
@@ -145,7 +148,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C2,C3,C4", string.Join(",", executables.Select(x => x.ComponentId)));
         }
         [TestMethod]
-        public void PatchingExec_Install_Dependencies_Circular()
+        public void PatchingExecSim_Install_Dependencies_Circular()
         {
             // Test the right installer execution order if there is a dependency among the installers.
             // One dependency is exist, 2 will be installed.
@@ -174,12 +177,13 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(3, context.Errors.Length);
         }
 
-        /* ================================================================= COMPLEX INSTALL & PATCHING TESTS */
+        /* ======================================================== COMPLEX INSTALL & PATCHING SIMULATION TESTS */
 
         #region TOOLS for COMPLEX INSTALL & PATCHING TESTS
         private string InstalledComponentsToString(SnComponentDescriptor[] components)
         {
-            return string.Join(" ", components.Select(x => $"{x.ComponentId}v{x.Version}"));
+            return string.Join(" ", components.OrderBy(x=>x.ComponentId)
+                .Select(x => $"{x.ComponentId}v{x.Version}"));
         }
         private string SortedExecutablesToString(ISnPatch[] executables)
         {
@@ -188,9 +192,9 @@ namespace SenseNet.Packaging.Tests
         }
         #endregion
 
-        // Install C1v1.0 and patch it to v3.0 with different pre-installation states 
+        // SIMULATION: Install C1v1.0 and patch it to v3.0 with different pre-installation states 
         [TestMethod]
-        public void PatchingExec_Patch_C1_a()
+        public void PatchingExecSim_Patch_C1_a()
         {
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
@@ -214,7 +218,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1i1.0 C1p2.0 C1p3.0", SortedExecutablesToString(executables));
         }
         [TestMethod]
-        public void PatchingExec_Patch_C1_b()
+        public void PatchingExecSim_Patch_C1_b()
         {
             var installed = new[]
             {
@@ -241,7 +245,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1p2.0 C1p3.0", SortedExecutablesToString(executables));
         }
         [TestMethod]
-        public void PatchingExec_Patch_C1b_c()
+        public void PatchingExecSim_Patch_C1b_c()
         {
             var installed = new[]
             {
@@ -268,7 +272,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1p3.0", SortedExecutablesToString(executables));
         }
         [TestMethod]
-        public void PatchingExec_Patch_C1_d()
+        public void PatchingExecSim_Patch_C1_d()
         {
             var installed = new[]
             {
@@ -295,9 +299,9 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", SortedExecutablesToString(executables));
         }
 
-        // Install and patch C2 that depends C1
+        // SIMULATION: Install and patch C2 that depends C1
         [TestMethod]
-        public void PatchingExec_Patch_C2toC1v2_a()
+        public void PatchingExecSim_Patch_C2toC1v2_a()
         {
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
@@ -319,7 +323,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(0, executables.Length);
         }
         [TestMethod]
-        public void PatchingExec_Patch_C2toC1v2_b()
+        public void PatchingExecSim_Patch_C2toC1v2_b()
         {
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
@@ -340,5 +344,78 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1i1.0 C1p2.0 C2i1.0", SortedExecutablesToString(executables));
         }
 
+        // SIMULATION: Install and patch C2 that depends C1. Dependency comes with the patch.
+
+        [TestMethod]
+        public void PatchingExecSim_Patch_DependencyInPatch()
+        {
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                Patch("C2", "1.0 <= v < 2.0", "v2.0", null, null),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", new[] {Dep("C2", "2.0 <= v <= 2.0")}, null),
+                Inst("C2", "v1.0", null, null),
+                Inst("C1", "v1.0", null, null),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            var pm = new PatchManager();
+            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual("C1v2.0 C2v2.0", InstalledComponentsToString(after));
+            Assert.AreEqual("C1i1.0 C2i1.0 C2p2.0 C1p2.0", SortedExecutablesToString(executables));
+        }
+
+        /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */
+
+        [TestMethod]
+        public void PatchingExec_InstallOne_Success()
+        {
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            //var packagesIn = new List<Package>();
+            var executed = new List<ISnPatch>();
+            ExecutionResult Execute(ISnPatch patch, ExecutionResult expectedResult)
+            {
+                //var package = LoadPackages().FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+                //packagesIn.Add(package);
+                executed.Add(patch);
+                return expectedResult;
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                //Patch("C1", "1.0 <= v < 2.0", "v2.0", null, 
+                //    ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null, 
+                    ctx => Execute(ctx.CurrentPatch, ExecutionResult.Successful)),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext();
+            context.LogMessage = LogMessage;
+            var pm = new PatchManager();
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual("C1i1.0", SortedExecutablesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", string.Join(", ", packages[0].Select(p => p.ToString())));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", string.Join(", ", packages[1].Select(p => p.ToString())));
+
+        }
     }
 }
