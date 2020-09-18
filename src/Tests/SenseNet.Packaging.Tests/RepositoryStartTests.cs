@@ -220,8 +220,6 @@ namespace SenseNet.Packaging.Tests
                 {
                     // restore the original handler
                     RepositoryStartTests.SetContentHandler("GenericContent", "SenseNet.ContentRepository.GenericContent");
-
-                    return ExecutionResult.Successful;
                 }
             }
         };
@@ -273,8 +271,6 @@ namespace SenseNet.Packaging.Tests
                 {
                     // this patch does not do anything special
                     SnLog.WriteInformation("Patch executed.");
-
-                    return ExecutionResult.Successful;
                 }
             }
         };
@@ -303,7 +299,7 @@ namespace SenseNet.Packaging.Tests
                                 <Dependency id='" + nameof(TestComponentPatchInvalidAmbigous) + @"' minVersion='1.0' maxVersion='1.0' />
                             </Dependencies>
                         </Package>",
-                Execute = pc => ExecutionResult.Successful
+                Execute = pc => { }
             }
         };
     }

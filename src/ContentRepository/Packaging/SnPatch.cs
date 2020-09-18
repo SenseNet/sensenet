@@ -40,7 +40,7 @@ namespace SenseNet.Packaging
         /// <summary>
         /// Gets or sets the function that will be executed if allowed.
         /// </summary>
-        Func<PatchExecutionContext, ExecutionResult> Execute { get; set; }
+        Action<PatchExecutionContext> Execute { get; set; }
 
         /// <summary>
         /// Gets or sets the time of the execution.
@@ -76,7 +76,7 @@ namespace SenseNet.Packaging
         /// <inheritdoc/>
         public IEnumerable<Dependency> Dependencies { get; set; }
         /// <inheritdoc/>
-        public Func<PatchExecutionContext, ExecutionResult> Execute { get; set; }
+        public Action<PatchExecutionContext> Execute { get; set; }
 
         /// <inheritdoc/>
         public DateTime ExecutionDate { get; set; }

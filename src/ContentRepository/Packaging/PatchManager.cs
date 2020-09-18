@@ -338,8 +338,7 @@ namespace SenseNet.Packaging
                 }
 
                 // Save the execution result
-                PackageManager.SavePackage(manifest, null,
-                    successful, executionError);
+                PackageManager.SavePackage(manifest, null, successful, executionError);
                 // Log after save: the execution is in completed database state when the callback called.
                 context.LogMessage(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished, patch,
                     $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));

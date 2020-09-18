@@ -17,7 +17,7 @@ namespace SenseNet.Packaging.Tests
         {
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null, null),
             };
 
             var installed = new SnComponentDescriptor[0];
@@ -38,8 +38,8 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 // Will be skipped. The different version does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
-                Inst("C2", "v2.3", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.1", null, null),
+                Inst("C2", "v2.3", null, null),
             };
 
             // ACTION
@@ -68,15 +68,15 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 // Will be skipped. The same id does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.0", null, ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.1", null, ctx => ExecutionResult.Successful),
+                Inst("C1", "v1.0", null, null),
+                Inst("C1", "v1.1", null, null),
                 // Would be executable but the same id causes an error.
-                Inst("C2", "v1.0", null, ctx => ExecutionResult.Successful),
-                Inst("C3", "v1.0", null, ctx => ExecutionResult.Successful),
-                Inst("C3", "v2.3", null, ctx => ExecutionResult.Successful),
-                Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
-                Inst("C4", "v2.3", null, ctx => ExecutionResult.Successful),
-                Inst("C4", "v1.0", null, ctx => ExecutionResult.Successful),
+                Inst("C2", "v1.0", null, null),
+                Inst("C3", "v1.0", null, null),
+                Inst("C3", "v2.3", null, null),
+                Inst("C4", "v1.0", null, null),
+                Inst("C4", "v2.3", null, null),
+                Inst("C4", "v1.0", null, null),
             };
 
             // ACTION
@@ -101,11 +101,10 @@ namespace SenseNet.Packaging.Tests
         {
             // Test the right installer execution order if there is a dependency among the installers.
             var installed = new SnComponentDescriptor[0];
-            var exec = new Func<PatchExecutionContext, ExecutionResult>(ctx => ExecutionResult.Successful);
             var patches = new ISnPatch[]
             {
-                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
-                Inst("C1", "v1.0", null, exec),
+                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, null),
+                Inst("C1", "v1.0", null, null),
             };
 
             // ACTION
@@ -124,16 +123,15 @@ namespace SenseNet.Packaging.Tests
         {
             // Test the right installer execution order if there is a dependency among the installers.
             // One dependency is exist, 2 will be installed.
-            var exec = new Func<PatchExecutionContext, ExecutionResult>(ctx => ExecutionResult.Successful);
             var installed = new[]
             {
                 Comp("C1", "v1.0")
             };
             var patches = new ISnPatch[]
             {
-                Inst("C3", "v1.0", new[] {Dep("C1", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
-                Inst("C4", "v1.0", new[] {Dep("C3", "1.0 <= v"), Dep("C2", "1.0 <= v")}, exec),
-                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, exec),
+                Inst("C3", "v1.0", new[] {Dep("C1", "1.0 <= v"), Dep("C2", "1.0 <= v")}, null),
+                Inst("C4", "v1.0", new[] {Dep("C3", "1.0 <= v"), Dep("C2", "1.0 <= v")}, null),
+                Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, null),
             };
 
             // ACTION
@@ -152,16 +150,15 @@ namespace SenseNet.Packaging.Tests
         {
             // Test the right installer execution order if there is a dependency among the installers.
             // One dependency is exist, 2 will be installed.
-            var exec = new Func<PatchExecutionContext, ExecutionResult>(ctx => ExecutionResult.Successful);
             var installed = new[]
             {
                 Comp("C1", "v1.0")
             };
             var patches = new ISnPatch[]
             {
-                Inst("C2", "v1.0", new[] {Dep("C3", "1.0 <= v")}, exec),
-                Inst("C3", "v1.0", new[] {Dep("C4", "1.0 <= v")}, exec),
-                Inst("C4", "v1.0", new[] {Dep("C2", "1.0 <= v")}, exec),
+                Inst("C2", "v1.0", new[] {Dep("C3", "1.0 <= v")}, null),
+                Inst("C3", "v1.0", new[] {Dep("C4", "1.0 <= v")}, null),
+                Inst("C4", "v1.0", new[] {Dep("C2", "1.0 <= v")}, null),
             };
 
             // ACTION
@@ -199,12 +196,9 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
-                    ctx => ExecutionResult.Successful),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
-                    ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.0", null,
-                    ctx => ExecutionResult.Successful),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
             };
 
             // ACTION
@@ -226,12 +220,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
-                    ctx => ExecutionResult.Successful),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
-                    ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.0", null,
-                    ctx => ExecutionResult.Successful),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
             };
 
             // ACTION
@@ -253,12 +244,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
-                    ctx => ExecutionResult.Successful),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
-                    ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.0", null,
-                    ctx => ExecutionResult.Successful),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
             };
 
             // ACTION
@@ -280,12 +268,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null,
-                    ctx => ExecutionResult.Successful),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null,
-                    ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.0", null,
-                    ctx => ExecutionResult.Successful),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
+                Inst("C1", "v1.0", null, null),
             };
 
             // ACTION
@@ -384,12 +369,11 @@ namespace SenseNet.Packaging.Tests
 
             //var packagesIn = new List<Package>();
             var executed = new List<ISnPatch>();
-            ExecutionResult Execute(ISnPatch patch, ExecutionResult expectedResult)
+            void Execute(ISnPatch patch)
             {
                 //var package = LoadPackages().FirstOrDefault(x => x.ComponentId == patch.ComponentId);
                 //packagesIn.Add(package);
                 executed.Add(patch);
-                return expectedResult;
             }
 
             var installed = new SnComponentDescriptor[0];
@@ -398,7 +382,10 @@ namespace SenseNet.Packaging.Tests
                 //Patch("C1", "1.0 <= v < 2.0", "v2.0", null, 
                 //    ctx => ExecutionResult.Successful),
                 Inst("C1", "v1.0", null, 
-                    ctx => Execute(ctx.CurrentPatch, ExecutionResult.Successful)),
+                    ctx =>
+                    {
+                        Execute(ctx.CurrentPatch);
+                    }),
             };
 
             // ACTION

@@ -230,7 +230,7 @@ namespace SenseNet.Packaging.Tests
         /// <param name="execute">Function of execution</param>
         /// <returns></returns>
         protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies,
-            Func<PatchExecutionContext, ExecutionResult> execute)
+            Action<PatchExecutionContext> execute)
         {
             return new ComponentInstaller
             {
@@ -268,7 +268,7 @@ namespace SenseNet.Packaging.Tests
         /// <param name="execute">Function of execution</param>
         /// <returns></returns>
         protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies,
-            Func<PatchExecutionContext, ExecutionResult> execute)
+            Action<PatchExecutionContext> execute)
         {
             return new SnPatch
             {
