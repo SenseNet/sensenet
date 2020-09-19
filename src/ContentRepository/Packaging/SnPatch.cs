@@ -10,10 +10,6 @@ namespace SenseNet.Packaging
     public interface ISnPatch
     {
         /// <summary>
-        /// Gets os sets the database id of the related package.
-        /// </summary>
-        int Id { get; set; }
-        /// <summary>
         /// Gets or sets the Id of the package / component.
         /// </summary>
         string ComponentId { get; set; }
@@ -38,29 +34,32 @@ namespace SenseNet.Packaging
         /// </summary>
         IEnumerable<Dependency> Dependencies { get; set; }
         /// <summary>
-        /// Gets or sets the function that will be executed if allowed.
+        /// Gets or sets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed if allowed.
         /// </summary>
         Action<PatchExecutionContext> Execute { get; set; }
 
+        /* ======================================================== INTERNALS FOR STORAGE */
+        /// <summary>
+        /// Gets os sets the database id of the related package.
+        /// </summary>
+        int Id { get; }
         /// <summary>
         /// Gets or sets the time of the execution.
         /// </summary>
-        DateTime ExecutionDate { get; set; }
+        DateTime ExecutionDate { get; }
         /// <summary>
         /// Gets or sets the final state of the execution.
         /// </summary>
-        ExecutionResult ExecutionResult { get; set; }
+        ExecutionResult ExecutionResult { get; }
         /// <summary>
         /// Gets or sets the exception that was thrown when executing the package.
         /// </summary>
-        Exception ExecutionError { get; set; }
+        Exception ExecutionError { get; }
     }
 
     [DebuggerDisplay("{ToString()}")]
     public class ComponentInstaller : ISnPatch
     {
-        /// <inheritdoc/>
-        public int Id { get; set; }
         /// <inheritdoc/>
         public string ComponentId { get; set; }
         /// <summary>
@@ -79,11 +78,13 @@ namespace SenseNet.Packaging
         public Action<PatchExecutionContext> Execute { get; set; }
 
         /// <inheritdoc/>
-        public DateTime ExecutionDate { get; set; }
+        public int Id { get; internal set; }
         /// <inheritdoc/>
-        public ExecutionResult ExecutionResult { get; set; }
+        public DateTime ExecutionDate { get; internal set; }
         /// <inheritdoc/>
-        public Exception ExecutionError { get; set; }
+        public ExecutionResult ExecutionResult { get; internal set; }
+        /// <inheritdoc/>
+        public Exception ExecutionError { get; internal set; }
 
         public override string ToString()
         {
