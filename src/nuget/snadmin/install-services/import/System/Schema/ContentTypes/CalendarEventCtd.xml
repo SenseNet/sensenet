@@ -23,7 +23,7 @@
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <Compulsory>true</Compulsory>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="EndDate" type="DateTime">
@@ -31,7 +31,7 @@
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <Compulsory>true</Compulsory>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="Lead" type="LongText">

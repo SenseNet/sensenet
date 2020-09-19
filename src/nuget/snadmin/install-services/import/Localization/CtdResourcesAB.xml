@@ -525,4 +525,18 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-BinaryFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Binary field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Bináris mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
 </Resources>

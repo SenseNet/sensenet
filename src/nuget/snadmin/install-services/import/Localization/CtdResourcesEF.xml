@@ -329,4 +329,45 @@
       </Language>
     </Languages>
   </ResourceClass>
+  
+  <ResourceClass name="Ctd-FieldControlTemplate">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>FieldControlTemplate</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A type for FieldControl templates.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Mező vezérlő sablon</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Mező vezérlő sablont tároló fájl</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-FieldControlTemplates">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>FieldControlTemplates</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>This is the container type for ContentViews. Instances are allowed only at /Root/Global/fieldcontroltemplates.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Mező vezérlő sablonok</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Mező vezérlő sablonokat tároló mappa. Csak egy lehet, itt: /Root/Global/fieldcontroltemplates.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
 </Resources>

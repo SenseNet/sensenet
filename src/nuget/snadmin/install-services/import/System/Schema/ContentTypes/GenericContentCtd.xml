@@ -281,7 +281,7 @@
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.Now; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="ValidTill" type="DateTime">
@@ -292,7 +292,7 @@
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.Now; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="AllowedChildTypes" type="AllowedChildTypes">

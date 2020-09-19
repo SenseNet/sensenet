@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Services.Core.Authentication.IdentityServer4
 {
@@ -19,11 +20,16 @@ namespace SenseNet.Services.Core.Authentication.IdentityServer4
 
             foreach (var client in crOptions.Clients)
             {
-                _parameters.Add(client.ClientType, new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
+                // duplicate client types will overwrite older values silently
+                if (_parameters.ContainsKey(client.ClientType))
+                    SnTrace.System.Write($"DefaultSnClientRequestParametersProvider: client type {client.ClientType} is " +
+                                         $"already registered, the new value ({client.ClientId} will overwrite it.)");
+
+                _parameters[client.ClientType] = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>
                 {
-                    { "authority", authority },
-                    { "client_id", client.ClientId }
-                }));
+                    {"authority", authority},
+                    {"client_id", client.ClientId}
+                });
             }
         }
         public IDictionary<string, string> GetClientParameters(HttpContext context, string clientId)

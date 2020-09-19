@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -56,7 +57,7 @@ namespace SenseNet.Extensions.DependencyInjection
             
             //TODO: check case sensitivity
             // try to load it as a content
-            var head = NodeHead.Get(context.Request.Path);
+            var head = context.Request.GetNodeHead();
 
             // we are able to handle file types
             return head != null && head.GetNodeType().IsInstaceOfOrDerivedFrom("File");
@@ -72,6 +73,14 @@ namespace SenseNet.Extensions.DependencyInjection
                 documentBinaryProvider);
 
             return repositoryBuilder;
+        }
+
+        internal static NodeHead GetNodeHead(this HttpRequest request)
+        {
+            // This is necessary so we can recognize special characters like space or UTF characters 
+            // that were encoded by the client.
+            var decoded = WebUtility.UrlDecode(request.Path);
+            return NodeHead.Get(decoded);
         }
     }
 }

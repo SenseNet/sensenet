@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using SC = SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
 
 namespace SenseNet.OData
@@ -40,19 +41,27 @@ namespace SenseNet.OData
         internal static object ProjectBinaryField(BinaryField field, string[] selection, HttpContext httpContext)
         {
             var allSelected = selection == null || selection.Length == 0 || selection[0] == "*";
+            var contentIsFinalized = field?.Content?.ContentHandler.SavingState == ContentSavingState.Finalized;
+            var contentType = string.Empty;
 
-            var stream = DocumentBinaryProvider.Instance.GetStream(field.Content.ContentHandler,
-                field.Name, httpContext, out var contentType, out var binaryFileName);
+            var stream = contentIsFinalized
+                ? DocumentBinaryProvider.Instance.GetStream(field.Content.ContentHandler, field.Name, httpContext,
+                    out contentType, out var binaryFileName)
+                : null;
 
             var message = string.Empty;
-            var contentName = field.Content.Name;
+            var contentName = field?.Content?.Name;
             var extension = Path.GetExtension(contentName)?.Trim('.');
             var maxSize = SC.Settings.GetValue(Settings.SettingsName, Settings.MaxExpandableSize, 
                 null, 1024 * 1024);
 
-            if (stream.Length > maxSize)
+            if (stream?.Length > maxSize)
             {
                 message = $"Size limit exceed. Limit: {maxSize}, size: {stream.Length}";
+            }
+            else if (!contentIsFinalized)
+            {
+                message = "Content is not finalized.";
             }
             else
             {
@@ -61,7 +70,7 @@ namespace SenseNet.OData
                     message = $"Not a text file. The *.{extension} is restricted by the file extension list.";
             }
 
-            var text = string.IsNullOrEmpty(message)
+            var text = string.IsNullOrEmpty(message) && contentIsFinalized
                 ? ReadBinaryContent(stream, out message)
                 : null;
 
@@ -71,7 +80,7 @@ namespace SenseNet.OData
             if (allSelected || selection.Contains(Expansion.ContentType))
                 result.Add(Expansion.ContentType, contentType);
             if (allSelected || selection.Contains(Expansion.Length))
-                result.Add(Expansion.Length, stream.Length);
+                result.Add(Expansion.Length, stream?.Length);
             if (allSelected || selection.Contains(Expansion.Message))
                 result.Add(Expansion.Message, message);
             if (allSelected || selection.Contains(Expansion.Text))

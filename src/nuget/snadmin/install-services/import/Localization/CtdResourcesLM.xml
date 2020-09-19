@@ -266,4 +266,18 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-LongTextFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Longtext field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Hosszú szöveges mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
 </Resources>

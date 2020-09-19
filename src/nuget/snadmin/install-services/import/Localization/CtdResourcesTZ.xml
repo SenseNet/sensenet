@@ -839,6 +839,9 @@
         <data name="Description" xml:space="preserve">
           <value>Collaborative workspace root.</value>
         </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Display name</value>
         </data>
@@ -889,6 +892,9 @@
         <data name="Description" xml:space="preserve">
           <value>Munkaterület - egy adott téma (projekt) köré szerveződő tartalmak tárolására és közös munkára.</value>
         </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
         <data name="DisplayName-DisplayName" xml:space="preserve">
           <value>Olvasható név</value>
         </data>
@@ -930,6 +936,423 @@
         </data>
         <data name="Path-DisplayName" xml:space="preserve">
           <value>Elérési útvonal</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-TextFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Text field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Szöveges mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-UserControl">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>User control</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A type for storing ASP.NET user controls.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Egyéni vezérlőelem</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>ASP.NET user control tárolására.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-ViewBase">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>View base</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>An abstract type for ContentList views.</value>
+        </data>
+        <data name="IsDefault-DisplayName" xml:space="preserve">
+          <value>Default</value>
+        </data>
+        <data name="IsDefault-Description" xml:space="preserve">
+          <value>Whether this is the default view on the parent ContentList.</value>
+        </data>
+        <data name="Template-DisplayName" xml:space="preserve">
+          <value>Markup template</value>
+        </data>
+        <data name="Template-Description" xml:space="preserve">
+          <value>The Xslt template used to generate the view.</value>
+        </data>
+        <data name="FilterXml-DisplayName" xml:space="preserve">
+          <value>Filtering</value>
+        </data>
+        <data name="FilterXml-Description" xml:space="preserve">
+          <value>Define filtering rules for the view.</value>
+        </data>
+        <data name="EnableAutofilters-DisplayName" xml:space="preserve">
+          <value>Enable autofilters</value>
+        </data>
+        <data name="EnableAutofilters-Description" xml:space="preserve">
+          <value>If autofilters are enabled system content will be filtered from the query.</value>
+        </data>
+        <data name="EnableLifespanFilter-DisplayName" xml:space="preserve">
+          <value>Enable lifespan filter</value>
+        </data>
+        <data name="EnableLifespanFilter-Description" xml:space="preserve">
+          <value>If lifespan filter is enabled only valid content will be in the result.</value>
+        </data>
+        <data name="Hidden-Description" xml:space="preserve">
+          <value>The view won't show in the selector menu if checked. (If unsure, leave unchecked).</value>
+        </data>
+        <data name="QueryTop-DisplayName" xml:space="preserve">
+          <value>Top</value>
+        </data>
+        <data name="QueryTop-Description" xml:space="preserve">
+          <value>If you do not want to display all content please specify here a value greater than 0.</value>
+        </data>
+        <data name="QuerySkip-DisplayName" xml:space="preserve">
+          <value>Skip</value>
+        </data>
+        <data name="QuerySkip-Description" xml:space="preserve">
+          <value>If you do not want to display the first several content please specify here a value greater than 0.</value>
+        </data>
+        <data name="Icon-DisplayName" xml:space="preserve">
+          <value>Icon identifier</value>
+        </data>
+        <data name="Icon-Description" xml:space="preserve">
+          <value>The string identifier of the View's icon.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>View base</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Minden view (listanézet) őse.</value>
+        </data>
+        <data name="IsDefault-DisplayName" xml:space="preserve">
+          <value>Alapértelmezett</value>
+        </data>
+        <data name="IsDefault-Description" xml:space="preserve">
+          <value>Legyen ez az alapértelmezett listanézet..</value>
+        </data>
+        <data name="Template-DisplayName" xml:space="preserve">
+          <value>Sablon</value>
+        </data>
+        <data name="Template-Description" xml:space="preserve">
+          <value>A listát generáló xslt sablon.</value>
+        </data>
+        <data name="FilterXml-DisplayName" xml:space="preserve">
+          <value>Szűrés</value>
+        </data>
+        <data name="FilterXml-Description" xml:space="preserve">
+          <value>A listanézet szűrési feltételei.</value>
+        </data>
+        <data name="EnableAutofilters-DisplayName" xml:space="preserve">
+          <value>Automata szűrések bekapcsolása</value>
+        </data>
+        <data name="EnableAutofilters-Description" xml:space="preserve">
+          <value>Ha be van kapcsolva, a rendszer fájlok kiszűrésre kerülnek.</value>
+        </data>
+        <data name="EnableLifespanFilter-DisplayName" xml:space="preserve">
+          <value>Élettartam szűrés</value>
+        </data>
+        <data name="EnableLifespanFilter-Description" xml:space="preserve">
+          <value>Ha be van kapcsolva, akkor csak az időben aktuális elemek jelennek meg.</value>
+        </data>
+        <data name="Hidden-Description" xml:space="preserve">
+          <value>Ha be van pipálva, akkor a listanézet nem jelenik meg a választhatók között a felületen.</value>
+        </data>
+        <data name="QueryTop-DisplayName" xml:space="preserve">
+          <value>Elemszám</value>
+        </data>
+        <data name="QueryTop-Description" xml:space="preserve">
+          <value>Ha nem akarja az összes elemet megjeleníteni, írjon be egy nullánál nagyobb számot.</value>
+        </data>
+        <data name="QuerySkip-DisplayName" xml:space="preserve">
+          <value>Kihagyott elemek</value>
+        </data>
+        <data name="QuerySkip-Description" xml:space="preserve">
+          <value>Ha a lista első valahány elemét ki szeretné hagyni a megjelenítésből, írja be az elhagyni kívánt elemek számát.</value>
+        </data>
+        <data name="Icon-DisplayName" xml:space="preserve">
+          <value>Ikon azonosító</value>
+        </data>
+        <data name="Icon-Description" xml:space="preserve">
+          <value>Név amely a listanézet ikonját azonosítja.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-WebContent">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Web Content (structured web content)</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Web Content is the base type for structured web content.</value>
+        </data>
+        <data name="ReviewDate-DisplayName" xml:space="preserve">
+          <value>Review date</value>
+        </data>
+        <data name="ReviewDate-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="ArchiveDate-DisplayName" xml:space="preserve">
+          <value>Archive date</value>
+        </data>
+        <data name="ArchiveDate-Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Webes tartalom</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="ReviewDate-DisplayName" xml:space="preserve">
+          <value>Ellenőrzés dátuma</value>
+        </data>
+        <data name="ReviewDate-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="ArchiveDate-DisplayName" xml:space="preserve">
+          <value>Archiválás dátuma</value>
+        </data>
+        <data name="ArchiveDate-Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-XmlFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Xml field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Xml mező</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-XsltApplication">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Xslt application</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Xslt rendering application.</value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>Xslt template</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value>Upload or enter the Xslt template to be used in rendering.</value>
+        </data>
+        <data name="MimeType-DisplayName" xml:space="preserve">
+          <value>MIME type</value>
+        </data>
+        <data name="MimeType-Description" xml:space="preserve">
+          <value>Sets HTTP MIME type of the output stream. Default value: application/xml.</value>
+        </data>
+        <data name="OmitXmlDeclaration-DisplayName" xml:space="preserve">
+          <value>OmitXmlDeclaration</value>
+        </data>
+        <data name="OmitXmlDeclaration-Description" xml:space="preserve">
+          <value>Sets a value indicating whether to write XML declaration.</value>
+        </data>
+        <data name="ResponseEncoding-DisplayName" xml:space="preserve">
+          <value>Response encoding</value>
+        </data>
+        <data name="ResponseEncoding-Description" xml:space="preserve">
+          <value>Sets the text encoding to use. Default value: UTF-8.</value>
+        </data>
+        <data name="WithChildren-DisplayName" xml:space="preserve">
+          <value>With children</value>
+        </data>
+        <data name="WithChildren-Description" xml:space="preserve">
+          <value>Sets a value indicating whether to render content with all children Default value: true.</value>
+        </data>
+        <data name="Cacheable-DisplayName" xml:space="preserve">
+          <value>Application is cached</value>
+        </data>
+        <data name="Cacheable-Description" xml:space="preserve">
+          <value>If set the output of the application will be cached. <div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>Switching off application cache may cause performance issues!</i></div></value>
+        </data>
+        <data name="CacheableForLoggedInUser-DisplayName" xml:space="preserve">
+          <value>Application is cached for logged in users</value>
+        </data>
+        <data name="CacheableForLoggedInUser-Description" xml:space="preserve">
+          <value>If set the output of the application will be cached for logged in users. <div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>Switching off application cache may cause performance issues!</i></div></value>
+        </data>
+        <data name="CacheByPath-DisplayName" xml:space="preserve">
+          <value>Request path influences caching</value>
+        </data>
+        <data name="CacheByPath-Description" xml:space="preserve">
+          <value>Defines whether the requested content path is included in the cache key. When unchecked application output is preserved regardless of the page's current context content or request path. Check it if you want to cache application output depending on the requested context content.</value>
+        </data>
+        <data name="CacheByParams-DisplayName" xml:space="preserve">
+          <value>Url query params influence caching</value>
+        </data>
+        <data name="CacheByParams-Description" xml:space="preserve">
+          <value>Defines whether the url query params are also included in the cache key. When unchecked application output is preserved regardless of changing url params.</value>
+        </data>
+        <data name="CacheByLanguage-DisplayName" xml:space="preserve">
+          <value>Language influences caching</value>
+        </data>
+        <data name="CacheByLanguage-Description" xml:space="preserve">
+          <value>Defines whether the language code is also included in the cache key. When unchecked application output is preserved regardless of the language that the users use to browse the site.</value>
+        </data>
+        <data name="CacheByHost-DisplayName" xml:space="preserve">
+          <value>Host influences caching</value>
+        </data>
+        <data name="CacheByHost-Description" xml:space="preserve">
+          <value>Defines whether the URL-host (e.g. 'example.com') is also included in the cache key. When unchecked application output is preserved regardless of the host that the users use to browse the site.</value>
+        </data>
+        <data name="AbsoluteExpiration-DisplayName" xml:space="preserve">
+          <value>Absolute expiration</value>
+        </data>
+        <data name="AbsoluteExpiration-Description" xml:space="preserve">
+          <value>Given in seconds. The application will be refreshed periodically with the given time period. -1 means that the value is defined by 'AbsoluteExpirationSeconds' setting in the web.config.</value>
+        </data>
+        <data name="SlidingExpirationMinutes-DisplayName" xml:space="preserve">
+          <value>Sliding expiration</value>
+        </data>
+        <data name="SlidingExpirationMinutes-Description" xml:space="preserve">
+          <value>Given in seconds. The application is refreshed when it has not been accessed for the given seconds. -1 means that the value is defined by 'SlidingExpirationSeconds' setting in the web.config.</value>
+        </data>
+        <data name="CustomCacheKey-DisplayName" xml:space="preserve">
+          <value>Custom cache key</value>
+        </data>
+        <data name="CustomCacheKey-Description" xml:space="preserve">
+          <value>
+        Defines a custom cache key independent of requested path and query params. Useful when the same static output is rendered at various pages. <div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>For experts only! Leave empty if unsure.</i></div></value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Xslt alkalmazás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Alkalmazás, amely XSLT segítségével jeleníti meg az aktuális tartalmat.</value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>Xslt sablon</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value>Adja meg az xslt sablont a megjelenítéshez.</value>
+        </data>
+        <data name="MimeType-DisplayName" xml:space="preserve">
+          <value>MIME type</value>
+        </data>
+        <data name="MimeType-Description" xml:space="preserve">
+          <value>Beállítja a kimeneti stream HTTP MIME type-ját. Alapértelmezett érték: <i>alkalmazás/xml</i>.</value>
+        </data>
+        <data name="OmitXmlDeclaration-DisplayName" xml:space="preserve">
+          <value>Xml deklaráció kihagyása</value>
+        </data>
+        <data name="OmitXmlDeclaration-Description" xml:space="preserve">
+          <value>Megadhatja, hogy kihagyjuk-e az xml deklarációt.</value>
+        </data>
+        <data name="ResponseEncoding-DisplayName" xml:space="preserve">
+          <value>Kimeneti stream kódolás</value>
+        </data>
+        <data name="ResponseEncoding-Description" xml:space="preserve">
+          <value>Beállítja a szöveg kódolását. Alapértelmezett érték: <i>UTF-8</i>.</value>
+        </data>
+        <data name="WithChildren-DisplayName" xml:space="preserve">
+          <value>Gyermek tartalmak</value>
+        </data>
+        <data name="WithChildren-Description" xml:space="preserve">
+          <value>Ha be van állítva, a gyermek elemek is szerepelni fognak az oldalon.</value>
+        </data>
+        <data name="Cacheable-DisplayName" xml:space="preserve">
+          <value>Az oldal kerüljön be a gyorsítótárba</value>
+        </data>
+        <data name="Cacheable-Description" xml:space="preserve">
+          <value>Ha be van állítva, az oldal kimenete bekerül a gyorsítótárba<div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>Ennek kikapcsolása nagy terhelés alatt sebesség-problémákat okozhat!</i></div></value>
+        </data>
+        <data name="CacheableForLoggedInUser-DisplayName" xml:space="preserve">
+          <value>Az oldal kerüljön be a gyorsítótárba belépett felhasználók számára.</value>
+        </data>
+        <data name="CacheableForLoggedInUser-Description" xml:space="preserve">
+          <value>Ha be van állítva, az oldal kimenete bekerül a gyorsítótárba belépett felhasználók számára. <div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>Ennek kikapcsolása nagy terhelés alatt sebesség-problémákat okozhat!</i></div></value>
+        </data>
+        <data name="CacheByPath-DisplayName" xml:space="preserve">
+          <value>Az aktuális tartalom befolyásolja a cache-elést</value>
+        </data>
+        <data name="CacheByPath-Description" xml:space="preserve">
+          <value>Ha be van állítva, a kért tartalom útvonala (Path) befolyásolja a gyorsítótárat. Ha nincs, az oldal kimenete ugyanaz lesz, függetlenül az aktuális tartalomtól.</value>
+        </data>
+        <data name="CacheByParams-DisplayName" xml:space="preserve">
+          <value>URL paraméterek befolyásolják a gyorsítótárat</value>
+        </data>
+        <data name="CacheByParams-Description" xml:space="preserve">
+          <value>Ha nincs bekapcsolva, az oldal kimenete ugyanaz lesz, függetlenül az URL paraméterektől.</value>
+        </data>
+        <data name="CacheByLanguage-DisplayName" xml:space="preserve">
+          <value>A nyelv befolyásolja a gyorsítótárat</value>
+        </data>
+        <data name="CacheByLanguage-Description" xml:space="preserve">
+          <value>Ha nincs bekapcsolva, az oldal kimenete ugyanaz lesz, függetlenül attól, hogy a felhasználó milyen nyelven nézi az oldalt.</value>
+        </data>
+        <data name="CacheByHost-DisplayName" xml:space="preserve">
+          <value>A host befolyásolja a gyorsítótárat</value>
+        </data>
+        <data name="CacheByHost-Description" xml:space="preserve">
+          <value>Ha nincs bekapcsolva, az oldal kimenete ugyanaz lesz, függetlenül attól, hogy a felhasználó milyen url-host-ról nézi az oldalt.</value>
+        </data>
+        <data name="AbsoluteExpiration-DisplayName" xml:space="preserve">
+          <value>Abszolút gyorsítótár lejárat</value>
+        </data>
+        <data name="AbsoluteExpiration-Description" xml:space="preserve">
+          <value>Másodpercben megadott lejárat. Az oldal rendszeresen frissülni fog a megadott idő után. <br/>-1 azt jelenti, hogy az értéket az <i>AbsoluteExpirationSeconds</i> web.config beállítás határozza meg.</value>
+        </data>
+        <data name="SlidingExpirationMinutes-DisplayName" xml:space="preserve">
+          <value>Csúszó gyorsítótár lejárat</value>
+        </data>
+        <data name="SlidingExpirationMinutes-Description" xml:space="preserve">
+          <value>Másodpercben megadott lejárat. Az oldal frissülni fog, ha nem érkezett rá kérés a megadott időn belül. <br/>-1 azt jelenti, hogy az értéket az <i>SlidingExpirationSeconds</i> web.config beállítás határozza meg.</value>
+        </data>
+        <data name="CustomCacheKey-DisplayName" xml:space="preserve">
+          <value>Egyedi gyorsítótár (cache) kulcs</value>
+        </data>
+        <data name="CustomCacheKey-Description" xml:space="preserve">
+          <value>Megadhat egyedi gyorsítótár kulcsot, függetlenül az aktuális tartalomtól és URL paraméterektől. Akkor érdemes használni, ha ugyanazt a statikus tartalmat szeretné megjeleníteni több különböző oldalon. <div class='ui-helper-clearfix sn-dialog-editportlet-warning'><img class='sn-icon sn-icon16 sn-floatleft' src='/Root/Global/images/icons/16/warning.png' /><i>Csak adminisztrátoroknak. Hagyja üresen, ha nem biztos a dologban.</i></div></value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-YesNoFieldSetting">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Yes/No field</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Igen/nem mező</value>
         </data>
       </Language>
     </Languages>

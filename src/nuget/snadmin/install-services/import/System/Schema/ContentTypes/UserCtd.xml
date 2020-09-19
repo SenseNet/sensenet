@@ -282,7 +282,7 @@
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Show</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+        <DefaultValue>@@currenttime@@</DefaultValue>
       </Configuration>
     </Field>
     <Field name="Education" type="LongText">

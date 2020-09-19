@@ -35,21 +35,31 @@ namespace SenseNet.Services.Core.Operations
             {
                 var user = User.Load(userName);
                 if (user == null)
-                    SnTrace.Security.Write($"Could not find a user with the name: {userName}");
-
-                if (user?.CheckPasswordMatch(password) ?? false)
                 {
-                    return new
-                    {
-                        id = user.Id,
-                        email = user.Email,
-                        username = user.Username,
-                        name = user.Name,
-                        loginName = user.LoginName
-                    };
+                    SnTrace.Security.Write($"Could not find a user with the name: {userName}");
+                }
+                else if (!user.Enabled)
+                {
+                    SnTrace.Security.Write($"User {userName} is disabled, not allowed to log in.");
+                    user = null;
                 }
 
-                SnTrace.Security.Write($"Password match failed for user: {userName}");
+                if (user != null)
+                {
+                    if (user.CheckPasswordMatch(password))
+                    {
+                        return new
+                        {
+                            id = user.Id,
+                            email = user.Email,
+                            username = user.Username,
+                            name = user.Name,
+                            loginName = user.LoginName
+                        };
+                    }
+
+                    SnTrace.Security.Write($"Password match failed for user: {userName}");
+                }
             }
 
             throw new SenseNetSecurityException("Invalid username or password.");

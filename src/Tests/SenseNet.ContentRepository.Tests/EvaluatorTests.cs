@@ -1,5 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Tests.Core;
@@ -56,6 +58,28 @@ namespace SenseNet.ContentRepository.Tests
             repo.UseScriptEvaluator(original);
             
             Assert.AreEqual("success", Evaluator.Evaluate(script));
+        }
+
+        [TestMethod]
+        public void Evaluate_DefaultValue()
+        {
+            Test(() =>
+            {
+                Assert.AreEqual(null, FieldSetting.EvaluateDefaultValue(null));
+                Assert.AreEqual(string.Empty, FieldSetting.EvaluateDefaultValue(""));
+                Assert.AreEqual("@currentdate@", FieldSetting.EvaluateDefaultValue("@currentdate@")); // not a template syntax
+                Assert.AreEqual("@@NOTEMPLATE@@", FieldSetting.EvaluateDefaultValue("@@NOTEMPLATE@@")); // unknown template
+
+                using (new CurrentUserBlock(User.Administrator))
+                {
+                    Assert.AreEqual("1", FieldSetting.EvaluateDefaultValue("@@currentuser@@"));
+                }
+
+                var date1 = FieldSetting.EvaluateDefaultValue("@@currenttime@@");
+
+                // the two dates can be a little bit different, because the main algorithm rounds the date to seconds
+                Assert.IsTrue( DateTime.UtcNow - DateTime.Parse(date1) < TimeSpan.FromSeconds(1));
+            });
         }
     }
 }
