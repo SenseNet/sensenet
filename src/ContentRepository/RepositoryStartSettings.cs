@@ -67,8 +67,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        internal static readonly RepositoryStartSettings Default = new RepositoryStartSettings();
-
         public virtual bool IsWebContext { get; set; } = false;
         public virtual bool ExecutingPatches { get; set; } = false;
 
