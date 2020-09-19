@@ -13,26 +13,6 @@ namespace SenseNet.ContentRepository
     public static class Repository
     {
         /// <summary>
-        /// Executes the default boot sequence of the Repository.
-        /// </summary>
-        /// <example>
-        /// Use the following code in your tool or other outer application:
-        /// <code>
-        /// using (Repository.Start())
-        /// {
-        ///     // your code
-        /// }
-        /// </code>
-        /// </example>
-        /// <remarks>
-        /// Repository will be stopped if the returned <see cref="RepositoryStartSettings"/> instance is disposed.
-        /// </remarks>
-        /// <returns>A new IDisposable <see cref="RepositoryInstance"/> instance.</returns>
-        public static RepositoryInstance Start()
-        {
-            return Start(RepositoryStartSettings.Default);
-        }
-        /// <summary>
         /// Executes the boot sequence of the Repository by the passed <see cref="RepositoryStartSettings"/>.
         /// </summary>
         /// <example>
@@ -72,9 +52,6 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            if (builder == null)
-                return Start();
-
             // Required early configuration
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
