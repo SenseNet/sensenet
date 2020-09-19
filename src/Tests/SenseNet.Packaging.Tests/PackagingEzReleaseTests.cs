@@ -174,7 +174,7 @@ namespace SenseNet.Packaging.Tests
 
             // ReSharper disable once UnassignedGetOnlyAutoProperty
             // ReSharper disable once UnusedMember.Local
-            public SnPatch[] Patches { get; }
+            public ISnPatch[] Patches { get; }
         }
     }
 }

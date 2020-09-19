@@ -20,6 +20,6 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        public SnPatch[] Patches { get; } = new SnPatch[0];
+        public ISnPatch[] Patches { get; } = new ISnPatch[0];
     }
 }
