@@ -64,12 +64,18 @@ namespace SenseNet.Packaging
 
     public class PatchExecutionContext
     {
-        public RepositoryStartSettings Settings { get; set; }
+        public RepositoryStartSettings Settings { get; }
         public PatchExecutionError[] Errors { get; internal set; } = new PatchExecutionError[0];
-        public Action<PatchExecutionLogRecord> LogMessage { get; set; } = DefaultLogMessage;
+        public Action<PatchExecutionLogRecord> LogCallback { get; } = DefaultLogCallback;
         public ISnPatch CurrentPatch { get; internal set; }
 
-        private static void DefaultLogMessage(PatchExecutionLogRecord msg)
+        public PatchExecutionContext(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
+        {
+            Settings = settings;
+            LogCallback = logCallback;
+        }
+
+        private static void DefaultLogCallback(PatchExecutionLogRecord msg)
         {
             // do nothing
         }

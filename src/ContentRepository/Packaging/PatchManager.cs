@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
@@ -15,6 +16,18 @@ namespace SenseNet.Packaging
     public class PatchManager
     {
         private static Version NullVersion = new Version(0, 0);
+
+        /* =========================================================================================== */
+
+        private PatchExecutionContext _context;
+        
+        public PatchManager(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
+        {
+            _context = new PatchExecutionContext(settings, logCallback);
+        }
+
+        /* =========================================================================================== */
+
 
         internal static Package CreatePackage(ISnPatch patch)
         {
@@ -243,7 +256,7 @@ namespace SenseNet.Packaging
 
         private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch, SnComponentDescriptor[] installedComponents)
         {
-            //UNDONE: PACKAGING Recognize circular dependencies.
+            //UNDONE:PATCH: Recognize circular dependencies.
 
             if (patch is SnPatch snPatch)
             {
@@ -337,7 +350,7 @@ namespace SenseNet.Packaging
 
                 // Log after save: the execution is in started state when the callback called
                 // so the callback can see the real state in the database.
-                context.LogMessage(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
+                context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
 
                 // PATCH EXECUTION
                 context.CurrentPatch = patch;
@@ -356,13 +369,34 @@ namespace SenseNet.Packaging
                 // Save the execution result
                 PackageManager.SavePackage(manifest, null, successful, executionError);
                 // Log after save: the execution is in completed database state when the callback called.
-                context.LogMessage(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished, patch,
+                context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished, patch,
                     $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
 
             }
         }
 
-        /* ================================================================================= TOOLS */
+        /* ================================================================================= EXPERIMENTAL */
 
+        private IEnumerable<ISnPatch> _executablePatches;
+
+        public void ExecutePatchesBeforeStart()
+        {
+            var candidates = Providers.Instance
+                .Components
+                .Cast<ISnComponent>()
+                .SelectMany(x => x.Patches)
+                .ToArray();
+
+            var executables = GetExecutablePatches(candidates, _context);
+
+            //UNDONE: Execute patches onBefore is not implemented
+            //ExecutePatchesOnBefore(executables, _context);
+
+            _executablePatches = executables;
+        }
+        public void ExecutePatchesAfterStart()
+        {
+            ExecutePatches(_executablePatches, _context);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
@@ -52,7 +53,12 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
+            var patchingLog = new List<PatchExecutionLogRecord>();
+            void WritePatchingLog(PatchExecutionLogRecord record) { patchingLog.Add(record); }
+
+
             // Required early configuration
+            //UNDONE:PATCH: ?? BlobStorage maybe cannot be patched. It is a design error
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 
@@ -61,11 +67,16 @@ namespace SenseNet.ContentRepository
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
+            var patchManager = new PatchManager(builder, WritePatchingLog);
+            patchManager.ExecutePatchesBeforeStart();
+
             var repositoryInstance = Start((RepositoryStartSettings) builder);
 
             var permissions = initialData?.Permissions;
             if (permissions != null && permissions.Count > 0)
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+
+            patchManager.ExecutePatchesAfterStart();
 
             return repositoryInstance;
         }

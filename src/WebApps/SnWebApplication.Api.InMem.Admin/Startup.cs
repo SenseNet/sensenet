@@ -33,7 +33,8 @@ namespace SnWebApplication.Api.InMem.Admin
             {
                 repositoryBuilder
                     .BuildInMemoryRepository()
-                    .UseAccessProvider(new UserAccessProvider());
+                    .UseAccessProvider(new UserAccessProvider())
+                    .UseFeature1(new Gyebi.TheCustomizer.Feature1());
             });
         }
 
