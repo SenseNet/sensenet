@@ -12,7 +12,7 @@ namespace SenseNet.Packaging
         /// <summary>
         /// Gets or sets the Id of the package / component.
         /// </summary>
-        string ComponentId { get; set; }
+        string ComponentId { get; set; } //UNDONE:PATCH:!!! internal set
         /// <summary>
         /// Gets the type of the patch (Install, Patch, Tool)
         /// </summary>

@@ -384,7 +384,7 @@ namespace SenseNet.Packaging
             var candidates = Providers.Instance
                 .Components
                 .Cast<ISnComponent>()
-                .SelectMany(x => x.Patches)
+                .SelectMany(x => x.GetPatches())//UNDONE:PATCH:!! Write ComponentId of every patch.
                 .ToArray();
 
             var executables = GetExecutablePatches(candidates, _context);
