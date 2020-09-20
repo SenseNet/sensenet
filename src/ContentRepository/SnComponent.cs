@@ -20,6 +20,10 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        public ISnPatch[] Patches { get; } = new ISnPatch[0];
+        /// <inheritdoc />
+        public virtual ISnPatch[] GetPatches()
+        {
+            return default;
+        }
     }
 }
