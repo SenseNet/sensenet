@@ -21,8 +21,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             var installed = new SnComponentDescriptor[0];
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             Assert.AreEqual(1, after.Length);
@@ -43,8 +43,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -80,8 +80,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -108,8 +108,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -135,8 +135,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -162,8 +162,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -206,8 +206,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -230,8 +230,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -254,8 +254,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -278,8 +278,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -300,8 +300,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -323,8 +323,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -347,8 +347,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -370,8 +370,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -397,8 +397,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -424,8 +424,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -451,8 +451,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, null);
+            var pm = new PatchManager(context);
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
@@ -490,9 +490,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
@@ -532,9 +531,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
@@ -573,9 +571,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
@@ -619,9 +616,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
@@ -666,9 +662,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
@@ -715,9 +710,8 @@ namespace SenseNet.Packaging.Tests
             };
 
             // ACTION
-            var context = new PatchExecutionContext();
-            context.LogMessage = LogMessage;
-            var pm = new PatchManager();
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT

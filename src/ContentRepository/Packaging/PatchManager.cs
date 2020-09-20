@@ -26,6 +26,11 @@ namespace SenseNet.Packaging
             _context = new PatchExecutionContext(settings, logCallback);
         }
 
+        internal PatchManager(PatchExecutionContext context)
+        {
+            _context = context;
+        }
+
         /* =========================================================================================== */
 
 
