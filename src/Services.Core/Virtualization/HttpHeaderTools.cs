@@ -6,7 +6,9 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Mime;
+using System.Text;
 using Microsoft.Net.Http.Headers;
 using SenseNet.Portal;
 
@@ -145,17 +147,58 @@ namespace SenseNet.Services.Core.Virtualization
             if (_context == null)
                 return;
 
-            var cdHeader = HEADER_CONTENTDISPOSITION_VALUE;
-            if (!string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(fileName))
+                fileName = "unknown";
+
+            // the default .net core conversion should work in most cases
+            if (TrySetHeader(fileName))
+                return;
+
+            //fallback 1
+            if (TrySetHeader(ConvertByUrlEncode()))
+                return;
+
+            // fallback to ascii
+            TrySetHeader(ConvertToAscii());
+
+            bool TrySetHeader(string fn)
             {
-                // let .net core handle encoding
-                var cdh = new ContentDisposition { FileName = fileName };
+                var cdh = new ContentDisposition { FileName = fn };
+                try
+                {
+                    // We have to remove new line characters so that the generated value is a single
+                    // line of text, otherwise setting the header would lead to an
+                    // "Invalid non-ASCII or control character in header" exception.
+                    var headerValue = cdh.ToString().Replace("\r\n", string.Empty);
 
-                cdHeader = cdh.ToString();
+                    // There must be only one header entry with this name
+                    _context.Response.Headers[HeaderNames.ContentDisposition] = headerValue;
+                }
+                catch
+                {
+                    // this may happen if the header cannot handle certain special characters
+                    return false;
+                }
+                return true;
             }
+            string ConvertByUrlEncode() => WebUtility.UrlEncode(fileName)?.Replace("+", "%20");
 
-            // there must be only one header entry with this name
-            _context.Response.Headers[HeaderNames.ContentDisposition] = cdHeader;
+            string ConvertToAscii()
+            {
+                // This method will ruin unicode characters in the file name, but at least
+                // it will be possible to download it.
+
+                var ascii = Encoding.ASCII;
+                var unicode = Encoding.UTF8;
+                var unicodeBytes = unicode.GetBytes(fileName);
+
+                var asciiBytes = Encoding.Convert(unicode, ascii, unicodeBytes);
+                var asciiChars = new char[ascii.GetCharCount(asciiBytes, 0, asciiBytes.Length)];
+                ascii.GetChars(asciiBytes, 0, asciiBytes.Length, asciiChars, 0);
+                var asciiString = new string(asciiChars);
+
+                return asciiString;
+            }
         }
 
         /// <summary>
