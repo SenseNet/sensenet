@@ -30,12 +30,12 @@ namespace SnWebApplication.Api.InMem.Admin
 
             // [sensenet]: add sensenet services
             services.AddSenseNet(Configuration, (repositoryBuilder, provider) =>
-            {
-                repositoryBuilder
-                    .BuildInMemoryRepository()
-                    .UseAccessProvider(new UserAccessProvider())
-                    .UseFeature1(new Gyebi.TheCustomizer.Feature1());
-            });
+                {
+                    repositoryBuilder
+                        .BuildInMemoryRepository()
+                        .UseAccessProvider(new UserAccessProvider());
+                })
+                .AddFeature1();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,11 +40,13 @@ namespace SenseNet.Services.Core
             Services.AddSenseNetProviderInstances();
 
             var configuration = Services.GetService<IConfiguration>();
+            var components = Services.GetServices<ISnComponent>().ToArray();
 
             var repositoryBuilder = new RepositoryBuilder()
                 .UseConfiguration(configuration)
                 .UseLogger(new SnFileSystemEventLogger())
                 .UseTracer(new SnFileSystemTracer())
+                .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
                 .UseDataProvider(new MsSqlDataProvider())
                 .StartWorkflowEngine(false)
