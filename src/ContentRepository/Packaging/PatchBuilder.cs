@@ -12,7 +12,7 @@ namespace SenseNet.Packaging
             return Version.Parse(src.TrimStart('v', 'V'));
         }
     }
-    public class PatchBuilder
+    public class PatchBuilder //UNDONE:PATCH: Need to be tested.
     {
         private readonly ISnComponent _component;
         internal List<ISnPatch> Patches { get; } = new List<ISnPatch>();

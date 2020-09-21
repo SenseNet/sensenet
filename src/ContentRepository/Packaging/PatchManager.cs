@@ -409,25 +409,7 @@ namespace SenseNet.Packaging
 
         private ISnPatch[] CollectPatches()
         {
-            //// Old version (missing ComponentId)
-            //return Providers.Instance
-            //    .Components
-            //    .Cast<ISnComponent>()
-            //    .SelectMany(x => x.GetPatches())
-            //    .ToArray();
-
-            // Version #1
-            var candidates1 = new List<ISnPatch>();
-            foreach (var component in Providers.Instance.Components.Cast<ISnComponent>())
-            {
-                var patches = component.GetPatches();
-                foreach (var patch in patches)
-                    ((ComponentInstaller)patch).ComponentId = component.ComponentId; // WTF?!
-                candidates1.AddRange(patches);
-            }
-
-            // Version #2
-            var candidates2 = Providers.Instance //UNDONE:PATCH:?? GetPatches or AddPatches ??
+            var candidates2 = Providers.Instance
                 .Components
                 .Cast<ISnComponent>()
                 .SelectMany(component =>
@@ -438,7 +420,6 @@ namespace SenseNet.Packaging
                 })
                 .ToArray();
 
-            //return candidates1.ToArray();
             return candidates2;
         }
     }

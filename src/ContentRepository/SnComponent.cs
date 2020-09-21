@@ -21,11 +21,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        public virtual ISnPatch[] GetPatches()
-        {
-            return default;
-        }
-        public virtual void AddPatches(PatchBuilder builder) //UNDONE:PATCH:?? GetPatches or AddPatches ??
+        public virtual void AddPatches(PatchBuilder builder)
         {
             // do nothing
         }

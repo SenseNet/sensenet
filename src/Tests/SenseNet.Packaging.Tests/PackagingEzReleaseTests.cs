@@ -172,12 +172,7 @@ namespace SenseNet.Packaging.Tests
                 return _allowed;
             }
 
-            public ISnPatch[] GetPatches()
-            {
-                return default;
-            }
-
-            public virtual void AddPatches(PatchBuilder builder) //UNDONE:PATCH:?? GetPatches or AddPatches ??
+            public virtual void AddPatches(PatchBuilder builder)
             {
                 // do nothing
             }
