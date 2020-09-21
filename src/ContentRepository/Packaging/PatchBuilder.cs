@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Bson;
 using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
@@ -60,21 +61,52 @@ namespace SenseNet.Packaging
         }
 
         public PatchBuilder Patch(string version, string released, string description, VersionBoundary boundary,
+            Action<PatchExecutionContext> execute)
+        {
+            return Patch(version, released, description, boundary, null, execute);
+        }
+        public PatchBuilder Patch(string version, string released, string description, VersionBoundary boundary,
             DependencyBuilder dependencies,
             Action<PatchExecutionContext> execute)
         {
+            var targetVersion = ParseVersion(version);
+
             Patches.Add(new SnPatch
             {
                 ComponentId = _component.ComponentId,
-                ReleaseDate = DateTime.Parse(released),
-                Boundary = boundary,
+                ReleaseDate = ParseDate(released),
+                Boundary = BuildBoundary(boundary, targetVersion),
                 Dependencies = dependencies?.Dependencies.ToArray(),
-                Version = System.Version.Parse(version.TrimStart('v', 'V')),
-                Description = description,
-                Execute = execute
+                Version = targetVersion,
+                Description = CheckDescription(description),
+                Execute = CheckExecuteAction(execute)
             });
 
             return this;
+        }
+
+        private VersionBoundary BuildBoundary(VersionBoundary boundary, Version targetVersion)
+        {
+            if (boundary.MinVersion != null)
+            {
+                if (targetVersion <= boundary.MinVersion)
+                    throw new InvalidPatchException(PatchErrorCode.TooSmallTargetVersion,
+                        "The 'Version' need to be higher than minimal version.");
+            }
+
+            if (boundary.MaxVersion == null)
+            {
+                boundary.MaxVersion = targetVersion;
+                boundary.MaxVersionIsExclusive = true;
+            }
+
+            return boundary;
+        }
+
+        public PatchBuilder Install(string version, string released, string description,
+            Action<PatchExecutionContext> execute)
+        {
+            return Install(version, released, description, null, execute);
         }
         public PatchBuilder Install(string version, string released, string description,
             DependencyBuilder dependencies,
@@ -83,14 +115,51 @@ namespace SenseNet.Packaging
             Patches.Add(new ComponentInstaller
             {
                 ComponentId = _component.ComponentId,
-                ReleaseDate = DateTime.Parse(released),
+                ReleaseDate = ParseDate(released),
                 Dependencies = dependencies?.Dependencies.ToArray(),
-                Version = System.Version.Parse(version.TrimStart('v', 'V')),
-                Description = description,
-                Execute = execute
+                Version = ParseVersion(version),
+                Description = CheckDescription(description),
+                Execute = CheckExecuteAction(execute)
             });
 
             return this;
+        }
+
+        private Version ParseVersion(string version)
+        {
+            try
+            {
+                return System.Version.Parse(version.TrimStart('v', 'V'));
+            }
+            catch (Exception e)
+            {
+                throw new InvalidPatchException(PatchErrorCode.InvalidVersion, e.Message, e);
+            }
+        }
+        private DateTime ParseDate(string date)
+        {
+            try
+            {
+                return DateTime.Parse(date);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidPatchException(PatchErrorCode.InvalidDate, e.Message, e);
+            }
+        }
+        private string CheckDescription(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                throw new InvalidPatchException(PatchErrorCode.MissingDescription,
+                    "The description cannot be null or empty.");
+            return text;
+        }
+        private Action<PatchExecutionContext> CheckExecuteAction(Action<PatchExecutionContext> action)
+        {
+            if (action == null)
+                throw new InvalidPatchException(PatchErrorCode.MissingExecuteAction,
+                    "The 'Execute' action cannot be null.");
+            return action;
         }
     }
     public class DependencyBuilder
