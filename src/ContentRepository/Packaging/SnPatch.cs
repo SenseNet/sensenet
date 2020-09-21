@@ -147,12 +147,6 @@ namespace SenseNet.Packaging
             set => Boundary.MaxVersionIsExclusive = value;
         }
 
-        /// <summary>
-        /// Patch definition in a manifest xml format.
-        /// </summary>
-        [Obsolete("Delete this functionality.")]
-        public string Contents { get; set; }
-
         public override string ToString()
         {
             return $"{ComponentId}: {Boundary} --> {Version}";
