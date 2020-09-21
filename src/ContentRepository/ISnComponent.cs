@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository
         /// an exception will be thrown.
         /// Null value means: supports only its own version.
         /// </summary>
-        [Obsolete("Do not use this feature anymore.")] //UNDONE:PATCH: should throw.
+        [Obsolete("Do not use this feature anymore.")]
         Version SupportedVersion { get; }
 
         /// <summary>
