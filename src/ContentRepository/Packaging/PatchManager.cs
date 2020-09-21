@@ -247,6 +247,7 @@ namespace SenseNet.Packaging
                     .Select(patch => RecognizeDiscoveryProblem(patch, installedComponents))
                     .ToArray();
 
+                // Any installation is skipped.
                 componentsAfter = installedComponents.ToArray();
                 return new ISnPatch[0];
             }
@@ -259,6 +260,12 @@ namespace SenseNet.Packaging
         private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch, SnComponentDescriptor[] installedComponents)
         {
             //UNDONE:PATCH: Recognize circular dependencies.
+
+            var deps = patch.Dependencies;
+            if (deps != null && deps.Any(dep => dep.Id == patch.ComponentId))
+                return new PatchExecutionError(PatchExecutionErrorType.SelfDependency, patch,
+                    "Self dependency is forbidden " + patch);
+
 
             if (patch is SnPatch snPatch)
             {
@@ -292,7 +299,7 @@ namespace SenseNet.Packaging
         {
             skipExecution = false;
             // Installable if the dependent components exist.
-            return CheckDependencies(installer.Dependencies, installed);
+            return CheckDependencies(installer, installed);
         }
         /// <summary>
         /// Returns true if the given <see cref="SnPatch"/> is installable.
@@ -321,16 +328,20 @@ namespace SenseNet.Packaging
                 return false;
 
             // Executable if the dependent components exist.
-            return CheckDependencies(snPatch.Dependencies, installed);
+            return CheckDependencies(snPatch, installed);
         }
-        private bool CheckDependencies(IEnumerable<Dependency> dependencies, List<SnComponentDescriptor> installed)
+        private bool CheckDependencies(ISnPatch patch, List<SnComponentDescriptor> installed)
         {
             // All right if there is no any dependency.
-            if (dependencies == null)
+            if (patch.Dependencies == null)
                 return true;
-            var deps = dependencies.ToArray();
+            var deps = patch.Dependencies.ToArray();
             if (deps.Length == 0)
                 return true;
+
+            // Self-dependency is forbidden
+            if (deps.Any(dep => dep.Id == patch.ComponentId))
+                return false;
 
             // Not installable if there is any dependency but installed nothing.
             if (installed.Count == 0)
