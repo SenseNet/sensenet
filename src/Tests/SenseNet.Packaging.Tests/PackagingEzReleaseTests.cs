@@ -176,6 +176,11 @@ namespace SenseNet.Packaging.Tests
             {
                 return default;
             }
+
+            public virtual void AddPatches(PatchBuilder builder) //UNDONE:PATCH:?? GetPatches or AddPatches ??
+            {
+                // do nothing
+            }
         }
     }
 }

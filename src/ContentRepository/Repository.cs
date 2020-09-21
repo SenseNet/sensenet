@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository
 
 
             // Required early configuration
-            //UNDONE:PATCH: ?? BlobStorage maybe cannot be patched. It is a design error
+            //UNDONE:PATCH:?? BlobStorage maybe cannot be patched. It is a design error
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
 

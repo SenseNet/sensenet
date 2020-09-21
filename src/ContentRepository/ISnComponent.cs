@@ -38,5 +38,6 @@ namespace SenseNet.ContentRepository
         bool IsComponentAllowed(Version componentVersion);
 
         ISnPatch[] GetPatches();
+        void AddPatches(PatchBuilder builder); //UNDONE:PATCH:?? GetPatches or AddPatches ??
     }
 }

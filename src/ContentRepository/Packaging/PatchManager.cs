@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Packaging;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -138,12 +135,12 @@ namespace SenseNet.Packaging
         public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates,
             SnComponentDescriptor[] installedComponents, PatchExecutionContext context)
         {
-            ExecutePatches(GetExecutablePatches(candidates, installedComponents, context, out var after), context);
+            ExecutePatches(GetExecutablePatches(candidates, installedComponents, context, out _), context);
         }
 
         public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates, PatchExecutionContext context)
         {
-            return GetExecutablePatches(candidates, LoadInstalledComponents(), context, out var after);
+            return GetExecutablePatches(candidates, LoadInstalledComponents(), context, out _);
         }
 
         private SnComponentDescriptor[] LoadInstalledComponents()
@@ -386,12 +383,7 @@ namespace SenseNet.Packaging
 
         public void ExecutePatchesBeforeStart()
         {
-            var candidates = Providers.Instance
-                .Components
-                .Cast<ISnComponent>()
-                .SelectMany(x => x.GetPatches())//UNDONE:PATCH:!! Write ComponentId of every patch.
-                .ToArray();
-
+            var candidates = CollectPatches();
             var executables = GetExecutablePatches(candidates, _context);
 
             //UNDONE: Execute patches onBefore is not implemented
@@ -402,6 +394,41 @@ namespace SenseNet.Packaging
         public void ExecutePatchesAfterStart()
         {
             ExecutePatches(_executablePatches, _context);
+        }
+
+        private ISnPatch[] CollectPatches()
+        {
+            //// Old version (missing ComponentId)
+            //return Providers.Instance
+            //    .Components
+            //    .Cast<ISnComponent>()
+            //    .SelectMany(x => x.GetPatches())
+            //    .ToArray();
+
+            // Version #1
+            var candidates1 = new List<ISnPatch>();
+            foreach (var component in Providers.Instance.Components.Cast<ISnComponent>())
+            {
+                var patches = component.GetPatches();
+                foreach (var patch in patches)
+                    ((ComponentInstaller)patch).ComponentId = component.ComponentId; // WTF?!
+                candidates1.AddRange(patches);
+            }
+
+            // Version #2
+            var candidates2 = Providers.Instance //UNDONE:PATCH:?? GetPatches or AddPatches ??
+                .Components
+                .Cast<ISnComponent>()
+                .SelectMany(component =>
+                {
+                    var builder = new PatchBuilder(component);
+                    component.AddPatches(builder);
+                    return builder.Patches;
+                })
+                .ToArray();
+
+            //return candidates1.ToArray();
+            return candidates2;
         }
     }
 }

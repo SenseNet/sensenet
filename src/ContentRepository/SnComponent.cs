@@ -25,5 +25,9 @@ namespace SenseNet.ContentRepository
         {
             return default;
         }
+        public virtual void AddPatches(PatchBuilder builder) //UNDONE:PATCH:?? GetPatches or AddPatches ??
+        {
+            // do nothing
+        }
     }
 }

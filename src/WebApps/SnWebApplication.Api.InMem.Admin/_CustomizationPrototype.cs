@@ -4,7 +4,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Packaging;
-using SenseNet.Security;
 using SenseNet.Tools;
 
 namespace SenseNet.Extensions.DependencyInjection
@@ -22,23 +21,22 @@ namespace SenseNet.Extensions.DependencyInjection
 
 namespace Gyebi.TheCustomizer
 {
-    public class Feature1 : ISnComponent
+    public class Feature1 : SnComponent
     {
-        public string ComponentId => typeof(Feature1).FullName;
-        public Version SupportedVersion => null;
+        public override string ComponentId => typeof(Feature1).FullName;
+        public override Version SupportedVersion => null;
 
-        public bool IsComponentAllowed(Version componentVersion)
+        public override bool IsComponentAllowed(Version componentVersion)
         {
             return true;
         }
 
-        public ISnPatch[] GetPatches()
+        public override ISnPatch[] GetPatches()
         {
             return new ISnPatch[]
             {
                 new ComponentInstaller
                 {
-                    ComponentId = this.ComponentId,
                     Version = new Version(1, 0),
                     ReleaseDate = new DateTime(2020, 09, 18),
                     Description = "My feature Feature1 description",
@@ -67,7 +65,6 @@ namespace Gyebi.TheCustomizer
                 },
                 new SnPatch
                 {
-                    ComponentId = this.ComponentId,
                     Version = new Version(1, 1),
                     ReleaseDate = new DateTime(2020, 09, 19),
                     Description = "Feature1's PATCH to v1.1 description",
@@ -106,6 +103,127 @@ namespace Gyebi.TheCustomizer
                 }
             };
         }
+        public ISnPatch[] GetPatches2()
+        {
+            var dependencies = new[]
+            {
+                new Dependency
+                {
+                    Id = "SenseNet.Services",
+                    Boundary = new VersionBoundary {MinVersion = new Version(7, 7, 9)}
+                }
+            };
 
+            return new ISnPatch[]
+            {
+                new ComponentInstaller
+                {
+                    Version = new Version(1, 0),
+                    ReleaseDate = new DateTime(2020, 09, 18),
+                    Description = "My feature Feature1 description",
+                    Dependencies = dependencies,
+                    Execute = (context) =>
+                    {
+                        using (new SystemAccount())
+                        {
+                            var folderName = "GyebiTesztel_v1.0";
+                            var content = Content.Load($"/Root/{folderName}");
+                            if (content == null)
+                            {
+                                var parent = Node.LoadNode("/Root");
+                                content = Content.CreateNew("SystemFolder", parent, folderName);
+                                content.Save();
+                            }
+                        }
+                    }
+                },
+                new SnPatch
+                {
+                    Version = new Version(1, 1),
+                    ReleaseDate = new DateTime(2020, 09, 19),
+                    Description = "Feature1's PATCH to v1.1 description",
+                    Boundary = new VersionBoundary {MinVersion = new Version(1, 0)},
+                    Dependencies = dependencies,
+                    Execute = (context) =>
+                    {
+                        using (new SystemAccount())
+                        {
+                            var oldFolderName = "GyebiTesztel_v1.0";
+                            var newFolderName = "GyebiTesztel_v1.1";
+                            var newContent = Content.Load($"/Root/{newFolderName}");
+                            if (newContent != null)
+                                return;
+                            var oldContent = Content.Load($"/Root/{oldFolderName}");
+                            if (oldContent != null)
+                            {
+                                oldContent.ContentHandler.Name = newFolderName;
+                                oldContent.Save();
+                            }
+                            else
+                            {
+                                var parent = Node.LoadNode("/Root");
+                                newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
+                                newContent.Save();
+                            }
+                        }
+                    }
+                }
+            };
+        }
+        public override void AddPatches(PatchBuilder builder) //UNDONE:PATCH:?? GetPatches or AddPatches ??
+        {
+            DependencyBuilder Dependencies()
+            {
+                return builder
+                    //.Dependency("SenseNet.Services", builder.Version("7.7.9.2"))
+                    //.Dependency("SenseNet.Services", "7.7.9")
+                    .Dependency("SenseNet.Services", builder.MinVersion("7.7.9"))
+                    //.Dependency("SenseNet.Services", builder.MinMaxExVersion("7.7.9", "7.7.10"))
+                    ;
+            }
+
+            builder.Patch("1.1", "2020-02-10", "My feature Feature1 description",
+                    builder.MinVersion("1.0"),
+                    Dependencies(),
+                    (context) =>
+                    {
+                        using (new SystemAccount())
+                        {
+                            var oldFolderName = "GyebiTesztel_v1.0";
+                            var newFolderName = "GyebiTesztel_v1.1";
+                            var newContent = Content.Load($"/Root/{newFolderName}");
+                            if (newContent != null)
+                                return;
+                            var oldContent = Content.Load($"/Root/{oldFolderName}");
+                            if (oldContent != null)
+                            {
+                                oldContent.ContentHandler.Name = newFolderName;
+                                oldContent.Save();
+                            }
+                            else
+                            {
+                                var parent = Node.LoadNode("/Root");
+                                newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
+                                newContent.Save();
+                            }
+                        }
+                    })
+                .Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description",
+                    Dependencies(),
+                    (context) =>
+                    {
+                        using (new SystemAccount())
+                        {
+                            var folderName = "GyebiTesztel_v1.1";
+                            var content = Content.Load($"/Root/{folderName}");
+                            if (content == null)
+                            {
+                                var parent = Node.LoadNode("/Root");
+                                content = Content.CreateNew("SystemFolder", parent, folderName);
+                                content.Save();
+                            }
+                        }
+                    });
+        }
     }
 }
