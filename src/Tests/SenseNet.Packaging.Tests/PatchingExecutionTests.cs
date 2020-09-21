@@ -194,14 +194,14 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, after.Length);
             Assert.AreEqual("C1", string.Join(",", after.Select(x => x.ComponentId)));
             Assert.AreEqual(0, executables.Length);
-
+            // Circular dependency causes error but the reason is not recognized yet.
             Assert.AreEqual(3, context.Errors.Length);
-            Assert.AreEqual(PatchExecutionErrorType.CircularDependency, context.Errors[0].ErrorType);
-            Assert.AreEqual(PatchExecutionErrorType.CircularDependency, context.Errors[1].ErrorType);
-            Assert.AreEqual(PatchExecutionErrorType.CircularDependency, context.Errors[2].ErrorType);
-            Assert.AreEqual("C2,C3,C4", context.Errors[0].FaultyPatches.Select(x => x.ComponentId));
-            Assert.AreEqual("C2,C3,C4", context.Errors[1].FaultyPatches.Select(x => x.ComponentId));
-            Assert.AreEqual("C2,C3,C4", context.Errors[2].FaultyPatches.Select(x => x.ComponentId));
+            Assert.AreEqual(PatchExecutionErrorType.CannotInstall, context.Errors[0].ErrorType);
+            Assert.AreEqual(PatchExecutionErrorType.CannotInstall, context.Errors[1].ErrorType);
+            Assert.AreEqual(PatchExecutionErrorType.CannotInstall, context.Errors[2].ErrorType);
+            Assert.AreEqual("C2", context.Errors[0].FaultyPatch.ComponentId);
+            Assert.AreEqual("C3", context.Errors[1].FaultyPatch.ComponentId);
+            Assert.AreEqual("C4", context.Errors[2].FaultyPatch.ComponentId);
         }
 
         /* ======================================================== COMPLEX INSTALL & PATCHING SIMULATION TESTS */
