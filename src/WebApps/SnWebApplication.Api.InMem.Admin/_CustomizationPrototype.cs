@@ -1,5 +1,6 @@
 ﻿using System;
 using Gyebi.TheCustomizer;
+using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
@@ -10,11 +11,12 @@ namespace SenseNet.Extensions.DependencyInjection
 {
     public static class Extensions
     {
-        public static IRepositoryBuilder UseFeature1(this IRepositoryBuilder repositoryBuilder, Feature1 instance)
+        public static IServiceCollection AddFeature1(this IServiceCollection services)
         {
-            Configuration.Providers.Instance.SetProvider(typeof(Feature1), instance);
-            Configuration.Providers.Instance.AddComponent(instance);
-            return repositoryBuilder;
+            // add services required by this feature
+            services.AddComponent(provider => new Feature1());
+
+            return services;
         }
     }
 }
