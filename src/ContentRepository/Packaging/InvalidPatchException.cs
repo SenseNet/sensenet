@@ -6,7 +6,7 @@ namespace SenseNet.Packaging
 {
     public enum PatchErrorCode
     {
-        InvalidVersion, InvalidDate, MissingDescription, MissingExecuteAction, TooSmallTargetVersion
+        InvalidVersion, InvalidDate, MissingDescription, TooSmallTargetVersion
     }
 
     [Serializable]

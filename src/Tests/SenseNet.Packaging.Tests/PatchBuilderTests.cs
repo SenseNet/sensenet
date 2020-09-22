@@ -127,24 +127,6 @@ namespace SenseNet.Packaging.Tests
                 Assert.AreEqual(PatchErrorCode.MissingDescription, e.ErrorCode);
             }
         }
-        [TestMethod]
-        public void Patching_Builder_Installer_WrongCallback()
-        {
-            var builder = new PatchBuilder(new TestComponent());
-
-            try
-            {
-                // ACTION
-                builder.Install("1.0", "2020-10-20", "MyComp desc");
-                builder.GetPatches();
-                Assert.Fail();
-            }
-            catch (InvalidPatchException e)
-            {
-                // ASSERT
-                Assert.AreEqual(PatchErrorCode.MissingExecuteAction, e.ErrorCode);
-            }
-        }
 
         /* ================================================================ PATCH TESTS */
 
@@ -282,6 +264,7 @@ namespace SenseNet.Packaging.Tests
                 Assert.AreEqual(PatchErrorCode.TooSmallTargetVersion, e.ErrorCode);
             }
         }
+
         /* ================================================================ COMBINATION TESTS */
         [TestMethod]
         public void Patching_Builder_LowInstallerHigherPatches()

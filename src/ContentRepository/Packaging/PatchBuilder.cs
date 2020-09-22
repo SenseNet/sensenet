@@ -20,9 +20,7 @@ namespace SenseNet.Packaging
 
         internal List<ISnPatch> GetPatches()
         {
-            var wrong = _patches.FirstOrDefault(x => x.Execute == null);
-            if(wrong != null)
-                throw new InvalidPatchException(PatchErrorCode.MissingExecuteAction);
+            //TODO:PATCH: Execute other validation here if needed.
             return _patches;
         }
 
@@ -176,7 +174,8 @@ namespace SenseNet.Packaging
 
         public PatchBuilder Execute(Action<PatchExecutionContext> executeAction = null)
         {
-            _patch.Execute = executeAction ?? (x => { });
+            if (executeAction != null)
+                _patch.Execute = executeAction;
             return _patchBuilder;
         }
     }

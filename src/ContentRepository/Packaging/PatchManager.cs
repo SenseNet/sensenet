@@ -368,7 +368,7 @@ namespace SenseNet.Packaging
                 Exception executionError = null;
                 try
                 {
-                    patch.Execute(context);
+                    patch.Execute?.Invoke(context);
                     successful = true;
                 }
                 catch (Exception e)
