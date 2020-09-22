@@ -33,25 +33,19 @@ namespace SenseNet.Packaging
         {
             return new VersionBoundary { MinVersion = version.ToVersion() };
         }
-        internal VersionBoundary MinMaxExVersion(string min, string maxEx)
-        {
-            return new VersionBoundary
-            {
-                MinVersion = min.ToVersion(),
-                MaxVersion = maxEx.ToVersion(),
-                MaxVersionIsExclusive = true
-            };
-        }
 
         public ItemBuilder Install(string version, string released, string description)
         {
+
             var patch = new ComponentInstaller
             {
                 ComponentId = _component.ComponentId,
-                ReleaseDate = ParseDate(released),
-                Version = ParseVersion(version),
-                Description = CheckDescription(description),
+                Version = new Version(0, 0)
             };
+
+            patch.Version = ParseVersion(version, patch);
+            patch.ReleaseDate = ParseDate(released, patch);
+            patch.Description = CheckDescription(description, patch);
             _patches.Add(patch);
 
             return new ItemBuilder(patch, this);
@@ -59,20 +53,38 @@ namespace SenseNet.Packaging
 
         public ItemBuilder Patch(string from, string to, string released, string description)
         {
-            return Patch(ParseFromVersion(from), to, released, description);
+            return Patch(null, from, to, released, description);
         }
         public ItemBuilder Patch(VersionBoundary from, string to, string released, string description)
         {
-            var targetVersion = ParseVersion(to);
-
+            return Patch(from, null, to, released, description);
+        }
+        private ItemBuilder Patch(VersionBoundary from, string fromSrc, string to, string released, string description)
+        {
             var patch = new SnPatch
             {
                 ComponentId = _component.ComponentId,
-                ReleaseDate = ParseDate(released),
-                Boundary = BuildBoundary(from, targetVersion),
-                Version = targetVersion,
-                Description = CheckDescription(description),
+                Version = new Version(0, 0),
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = new Version(0, 0),
+                    MaxVersion = new Version(0, 0)
+                }
             };
+
+            var targetVersion = ParseVersion(to, patch);
+            patch.Version = targetVersion;
+            patch.Boundary = BuildBoundary(from ?? ParseFromVersion(fromSrc, patch), targetVersion);
+            patch.ReleaseDate = ParseDate(released, patch);
+            patch.Description = CheckDescription(description, patch);
+
+            if (patch.Boundary.MinVersion != null)
+            {
+                if (targetVersion <= patch.Boundary.MinVersion)
+                    throw new InvalidPatchException(PatchErrorCode.TooSmallTargetVersion, patch,
+                        "The 'Version' need to be higher than minimal version.");
+            }
+            
             _patches.Add(patch);
 
             return new ItemBuilder(patch, this);
@@ -80,13 +92,6 @@ namespace SenseNet.Packaging
 
         private VersionBoundary BuildBoundary(VersionBoundary boundary, Version targetVersion)
         {
-            if (boundary.MinVersion != null)
-            {
-                if (targetVersion <= boundary.MinVersion)
-                    throw new InvalidPatchException(PatchErrorCode.TooSmallTargetVersion,
-                        "The 'Version' need to be higher than minimal version.");
-            }
-
             if (boundary.MaxVersion == null)
             {
                 boundary.MaxVersion = targetVersion;
@@ -96,11 +101,11 @@ namespace SenseNet.Packaging
             return boundary;
         }
 
-        private VersionBoundary ParseFromVersion(string src)
+        private VersionBoundary ParseFromVersion(string src, ISnPatch patch)
         {
-            return new VersionBoundary { MinVersion = ParseVersion(src) };
+            return new VersionBoundary { MinVersion = ParseVersion(src, patch) };
         }
-        internal static Version ParseVersion(string version)
+        internal static Version ParseVersion(string version, ISnPatch patch)
         {
             try
             {
@@ -108,10 +113,10 @@ namespace SenseNet.Packaging
             }
             catch (Exception e)
             {
-                throw new InvalidPatchException(PatchErrorCode.InvalidVersion, e.Message, e);
+                throw new InvalidPatchException(PatchErrorCode.InvalidVersion, patch, e.Message, e);
             }
         }
-        private DateTime ParseDate(string date)
+        private DateTime ParseDate(string date, ISnPatch patch)
         {
             try
             {
@@ -119,13 +124,13 @@ namespace SenseNet.Packaging
             }
             catch (Exception e)
             {
-                throw new InvalidPatchException(PatchErrorCode.InvalidDate, e.Message, e);
+                throw new InvalidPatchException(PatchErrorCode.InvalidDate, patch, e.Message, e);
             }
         }
-        private string CheckDescription(string text)
+        private string CheckDescription(string text, ISnPatch patch)
         {
             if (string.IsNullOrEmpty(text))
-                throw new InvalidPatchException(PatchErrorCode.MissingDescription,
+                throw new InvalidPatchException(PatchErrorCode.MissingDescription, patch,
                     "The description cannot be null or empty.");
             return text;
         }
@@ -145,7 +150,7 @@ namespace SenseNet.Packaging
         {
             return DependsFrom(componentId, new VersionBoundary
             {
-                MinVersion = PatchBuilder.ParseVersion(minVersion)
+                MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
         public ItemBuilder DependsFrom(string componentId, VersionBoundary boundary)
@@ -175,10 +180,10 @@ namespace SenseNet.Packaging
         private void AssertDependencyIsValid(Dependency dependencyToAdd, List<Dependency> dependencies)
         {
             if (dependencyToAdd.Id == this._patch.ComponentId)
-                throw new InvalidPatchException(PatchErrorCode.SelfDependency,
+                throw new InvalidPatchException(PatchErrorCode.SelfDependency, _patch,
                     "Self dependency is forbidden: " + _patch);
             if (dependencies.Any(d => d.Id == dependencyToAdd.Id))
-                throw new InvalidPatchException(PatchErrorCode.DuplicatedDependency,
+                throw new InvalidPatchException(PatchErrorCode.DuplicatedDependency, _patch,
                     "Duplicated dependency is forbidden: " + _patch);
         }
 

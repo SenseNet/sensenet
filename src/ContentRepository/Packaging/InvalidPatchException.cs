@@ -14,18 +14,22 @@ namespace SenseNet.Packaging
     public class InvalidPatchException : Exception
     {
         public PatchErrorCode ErrorCode { get; }
+        public ISnPatch Patch { get; }
 
-        public InvalidPatchException(PatchErrorCode code)
+        public InvalidPatchException(PatchErrorCode code, ISnPatch patch)
         {
             ErrorCode = code;
+            Patch = patch;
         }
-        public InvalidPatchException(PatchErrorCode code, string message) : base(message)
+        public InvalidPatchException(PatchErrorCode code, ISnPatch patch, string message) : base(message)
         {
             ErrorCode = code;
+            Patch = patch;
         }
-        public InvalidPatchException(PatchErrorCode code, string message, Exception inner) : base(message, inner)
+        public InvalidPatchException(PatchErrorCode code, ISnPatch patch, string message, Exception inner) : base(message, inner)
         {
             ErrorCode = code;
+            Patch = patch;
         }
         protected InvalidPatchException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }

@@ -57,6 +57,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.InvalidVersion, e.ErrorCode);
+                Assert.AreEqual("MyComp: 0.0", e.Patch.ToString());
             }
 
             try
@@ -69,6 +70,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.InvalidVersion, e.ErrorCode);
+                Assert.AreEqual("MyComp: 0.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -86,6 +88,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.InvalidDate, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0", e.Patch.ToString());
             }
 
             try
@@ -98,6 +101,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.InvalidDate, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -115,6 +119,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.MissingDescription, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0", e.Patch.ToString());
             }
 
             try
@@ -127,6 +132,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.MissingDescription, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0", e.Patch.ToString());
             }
         }
 
@@ -176,6 +182,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.InvalidVersion, e.ErrorCode);
+                Assert.AreEqual("MyComp: v <= 0.0 --> 0.0", e.Patch.ToString());
             }
 
             try
@@ -188,6 +195,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.InvalidVersion, e.ErrorCode);
+                Assert.AreEqual("MyComp: v <= 0.0 --> 0.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -205,6 +213,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.InvalidDate, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
 
             try
@@ -217,6 +226,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.InvalidDate, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -234,6 +244,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-1
                 Assert.AreEqual(PatchErrorCode.MissingDescription, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
 
             try
@@ -246,6 +257,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT-2
                 Assert.AreEqual(PatchErrorCode.MissingDescription, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
         }
 
@@ -264,6 +276,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT
                 Assert.AreEqual(PatchErrorCode.TooSmallTargetVersion, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 1.0 --> 1.0", e.Patch.ToString());
             }
         }
 
@@ -345,6 +358,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT
                 Assert.AreEqual(PatchErrorCode.SelfDependency, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -369,6 +383,7 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT
                 Assert.AreEqual(PatchErrorCode.SelfDependency, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
         }
         [TestMethod]
@@ -393,15 +408,12 @@ namespace SenseNet.Packaging.Tests
             {
                 // ASSERT
                 Assert.AreEqual(PatchErrorCode.DuplicatedDependency, e.ErrorCode);
+                Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", e.Patch.ToString());
             }
         }
 
-        private string DependenciesToString(IEnumerable<Dependency> dependencies)
-        {
-            return string.Join(" | ", dependencies.Select(d => d.ToString()));
-        }
-
         /* ================================================================ COMBINATION TESTS */
+
         [TestMethod]
         public void Patching_Builder_LowInstallerHigherPatches()
         {
@@ -439,6 +451,11 @@ namespace SenseNet.Packaging.Tests
         private string PatchesToString(PatchBuilder builder)
         {
             return string.Join(" | ", builder.GetPatches());
+        }
+
+        private string DependenciesToString(IEnumerable<Dependency> dependencies)
+        {
+            return string.Join(" | ", dependencies.Select(d => d.ToString()));
         }
     }
 }
