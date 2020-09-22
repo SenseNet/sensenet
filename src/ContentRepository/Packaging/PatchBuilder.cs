@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Bson;
+using System.Linq;
 using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
@@ -16,18 +16,26 @@ namespace SenseNet.Packaging
     public class PatchBuilder //UNDONE:PATCH: Need to be tested.
     {
         private readonly ISnComponent _component;
-        internal List<ISnPatch> Patches { get; } = new List<ISnPatch>();
+        private readonly List<ISnPatch> _patches = new List<ISnPatch>();
+
+        internal List<ISnPatch> GetPatches()
+        {
+            var wrong = _patches.FirstOrDefault(x => x.Execute == null);
+            if(wrong != null)
+                throw new InvalidPatchException(PatchErrorCode.MissingExecuteAction);
+            return _patches;
+        }
 
         public PatchBuilder(ISnComponent component)
         {
             _component = component;
         }
 
-        public VersionBoundary MinVersion(string version)
+        internal VersionBoundary MinVersion(string version)
         {
             return new VersionBoundary { MinVersion = version.ToVersion() };
         }
-        public VersionBoundary MinMaxExVersion(string min, string maxEx)
+        internal VersionBoundary MinMaxExVersion(string min, string maxEx)
         {
             return new VersionBoundary
             {
@@ -37,81 +45,39 @@ namespace SenseNet.Packaging
             };
         }
 
-        public DependencyBuilder Dependency(string componentId, string minVersion)
+        public ItemBuilder Install(string version, string released, string description)
         {
-            var builder = new DependencyBuilder(this);
-            builder.Dependency(componentId, this.MinVersion(minVersion));
-            return builder;
-        }
-        public DependencyBuilder Dependency(string componentId, string minVersion, string maxExVersion)
-        {
-            var builder = new DependencyBuilder(this);
-            builder.Dependency(componentId, this.MinMaxExVersion(minVersion, maxExVersion));
-            return builder;
-        }
-        public DependencyBuilder Dependency(string componentId, VersionBoundary boundary)
-        {
-            var builder = new DependencyBuilder(this);
-            builder.Dependency(componentId, boundary);
-            return builder;
-        }
-
-        public PatchBuilder Install(string version, string released, string description,
-            Action<PatchExecutionContext> execute)
-        {
-            return Install(version, released, description, null, execute);
-        }
-        public PatchBuilder Install(string version, string released, string description,
-            DependencyBuilder dependencies,
-            Action<PatchExecutionContext> execute)
-        {
-            Patches.Add(new ComponentInstaller
+            var patch = new ComponentInstaller
             {
                 ComponentId = _component.ComponentId,
                 ReleaseDate = ParseDate(released),
-                Dependencies = dependencies?.Dependencies.ToArray(),
                 Version = ParseVersion(version),
                 Description = CheckDescription(description),
-                Execute = CheckExecuteAction(execute)
-            });
+            };
+            _patches.Add(patch);
 
-            return this;
+            return new ItemBuilder(patch, this);
         }
 
-        public PatchBuilder Patch(string from, string to, string released, string description,
-            Action<PatchExecutionContext> execute)
+        public ItemBuilder Patch(string from, string to, string released, string description)
         {
-            return Patch(from, to, released, description, null, execute);
+            return Patch(ParseFromVersion(from), to, released, description);
         }
-        public PatchBuilder Patch(VersionBoundary from, string to, string released, string description, 
-            Action<PatchExecutionContext> execute)
-        {
-            return Patch(from, to, released, description, null, execute);
-        }
-        public PatchBuilder Patch(string from, string to, string released, string description,
-            DependencyBuilder dependencies,
-            Action<PatchExecutionContext> execute)
-        {
-            return Patch(ParseFromVersion(from), to, released, description, dependencies, execute);
-        }
-        public PatchBuilder Patch(VersionBoundary from, string to, string released, string description, 
-            DependencyBuilder dependencies,
-            Action<PatchExecutionContext> execute)
+        public ItemBuilder Patch(VersionBoundary from, string to, string released, string description)
         {
             var targetVersion = ParseVersion(to);
 
-            Patches.Add(new SnPatch
+            var patch = new SnPatch
             {
                 ComponentId = _component.ComponentId,
                 ReleaseDate = ParseDate(released),
                 Boundary = BuildBoundary(from, targetVersion),
-                Dependencies = dependencies?.Dependencies.ToArray(),
                 Version = targetVersion,
                 Description = CheckDescription(description),
-                Execute = CheckExecuteAction(execute)
-            });
+            };
+            _patches.Add(patch);
 
-            return this;
+            return new ItemBuilder(patch, this);
         }
 
         private VersionBoundary BuildBoundary(VersionBoundary boundary, Version targetVersion)
@@ -136,11 +102,11 @@ namespace SenseNet.Packaging
         {
             return new VersionBoundary { MinVersion = ParseVersion(src) };
         }
-        private Version ParseVersion(string version)
+        internal static Version ParseVersion(string version)
         {
             try
             {
-                return System.Version.Parse(version.TrimStart('v', 'V'));
+                return Version.Parse(version.TrimStart('v', 'V'));
             }
             catch (Exception e)
             {
@@ -165,12 +131,53 @@ namespace SenseNet.Packaging
                     "The description cannot be null or empty.");
             return text;
         }
-        private Action<PatchExecutionContext> CheckExecuteAction(Action<PatchExecutionContext> action)
+    }
+
+    public class ItemBuilder
+    {
+        private readonly ISnPatch _patch;
+        private readonly PatchBuilder _patchBuilder;
+        internal ItemBuilder(ISnPatch patch, PatchBuilder patchBuilder)
         {
-            if (action == null)
-                throw new InvalidPatchException(PatchErrorCode.MissingExecuteAction,
-                    "The 'Execute' action cannot be null.");
-            return action;
+            _patch = patch;
+            _patchBuilder = patchBuilder;
+        }
+
+        public ItemBuilder DependsFrom(string componentId, VersionBoundary boundary)
+        {
+            AddDependency(new Dependency { Id = componentId, Boundary = boundary });
+            return this;
+        }
+        public ItemBuilder DependsFrom(string componentId, string minVersion)
+        {
+            AddDependency(new Dependency
+            {
+                Id = componentId,
+                Boundary = new VersionBoundary
+                {
+                    MinVersion = PatchBuilder.ParseVersion(minVersion)
+                }
+            });
+            return this;
+        }
+        public ItemBuilder DependsFrom(DependencyBuilder builder)
+        {
+            var deps = _patch.Dependencies.ToList();
+            deps.AddRange(builder.Dependencies);
+            _patch.Dependencies = deps;
+            return this;
+        }
+        private void AddDependency(Dependency dependency)
+        {
+            var deps = _patch.Dependencies.ToList();
+            deps.Add(dependency);
+            _patch.Dependencies = deps;
+        }
+
+        public PatchBuilder Execute(Action<PatchExecutionContext> executeAction = null)
+        {
+            _patch.Execute = executeAction ?? (x => { });
+            return _patchBuilder;
         }
     }
     public class DependencyBuilder
@@ -178,7 +185,7 @@ namespace SenseNet.Packaging
         private readonly PatchBuilder _patchBuilder;
         public List<Dependency> Dependencies { get; } = new List<Dependency>();
 
-        internal DependencyBuilder(PatchBuilder patchBuilder)
+        public DependencyBuilder(PatchBuilder patchBuilder)
         {
             _patchBuilder = patchBuilder;
         }

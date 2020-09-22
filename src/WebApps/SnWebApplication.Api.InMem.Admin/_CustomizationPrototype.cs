@@ -35,44 +35,42 @@ namespace Gyebi.TheCustomizer
 
         public override void AddPatches(PatchBuilder builder)
         {
-            DependencyBuilder Dependencies()
-            {
-                return builder
-                    //.Dependency("SenseNet.Services", builder.Version("7.7.9.2"))
-                    //.Dependency("SenseNet.Services", "7.7.9")
-                    .Dependency("SenseNet.Services", builder.MinVersion("7.7.9"))
-                    //.Dependency("SenseNet.Services", builder.MinMaxExVersion("7.7.9", "7.7.10"))
-                    ;
-            }
+            var dependencies = new DependencyBuilder(builder)
+                //.Dependency("SenseNet.Services", builder.Version("7.7.9.2"))
+                .Dependency("SenseNet.Services", "7.7.9")
+                //.Dependency("SenseNet.Services", builder.MinVersion("7.7.9"))
+                //.Dependency("SenseNet.Services", builder.MinMaxExVersion("7.7.9", "7.7.10"))
+                ;
 
-            builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description",
-                    Dependencies(),
-                    (context) =>
+            builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description")
+                .DependsFrom(dependencies)
+                .Execute(context =>
+                {
+                    using (new SystemAccount())
                     {
-                        using (new SystemAccount())
+                        var oldFolderName = "GyebiTesztel_v1.0";
+                        var newFolderName = "GyebiTesztel_v1.1";
+                        var newContent = Content.Load($"/Root/{newFolderName}");
+                        if (newContent != null)
+                            return;
+                        var oldContent = Content.Load($"/Root/{oldFolderName}");
+                        if (oldContent != null)
                         {
-                            var oldFolderName = "GyebiTesztel_v1.0";
-                            var newFolderName = "GyebiTesztel_v1.1";
-                            var newContent = Content.Load($"/Root/{newFolderName}");
-                            if (newContent != null)
-                                return;
-                            var oldContent = Content.Load($"/Root/{oldFolderName}");
-                            if (oldContent != null)
-                            {
-                                oldContent.ContentHandler.Name = newFolderName;
-                                oldContent.Save();
-                            }
-                            else
-                            {
-                                var parent = Node.LoadNode("/Root");
-                                newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
-                                newContent.Save();
-                            }
+                            oldContent.ContentHandler.Name = newFolderName;
+                            oldContent.Save();
                         }
-                    })
-                .Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description",
-                    Dependencies(),
-                    (context) =>
+                        else
+                        {
+                            var parent = Node.LoadNode("/Root");
+                            newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
+                            newContent.Save();
+                        }
+                    }
+                });
+
+            builder.Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
+                .DependsFrom(dependencies)
+                .Execute((context) =>
                     {
                         using (new SystemAccount())
                         {

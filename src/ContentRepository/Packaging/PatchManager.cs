@@ -413,7 +413,7 @@ namespace SenseNet.Packaging
                 {
                     var builder = new PatchBuilder(component);
                     component.AddPatches(builder);
-                    return builder.Patches;
+                    return builder.GetPatches();
                 })
                 .ToArray();
 
