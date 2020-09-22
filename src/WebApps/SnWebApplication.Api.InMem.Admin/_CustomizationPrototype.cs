@@ -45,8 +45,7 @@ namespace Gyebi.TheCustomizer
                     ;
             }
 
-            builder.Patch("1.1", "2020-02-10", "My feature Feature1 description",
-                    builder.MinVersion("1.0"),
+            builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description",
                     Dependencies(),
                     (context) =>
                     {

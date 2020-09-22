@@ -23,10 +23,6 @@ namespace SenseNet.Packaging
             _component = component;
         }
 
-        public VersionBoundary Version(string version)
-        {
-            return new VersionBoundary{MinVersion = version.ToVersion(), MaxVersion = version.ToVersion()};
-        }
         public VersionBoundary MinVersion(string version)
         {
             return new VersionBoundary { MinVersion = version.ToVersion() };
@@ -60,22 +56,55 @@ namespace SenseNet.Packaging
             return builder;
         }
 
-        public PatchBuilder Patch(string version, string released, string description, VersionBoundary boundary,
+        public PatchBuilder Install(string version, string released, string description,
             Action<PatchExecutionContext> execute)
         {
-            return Patch(version, released, description, boundary, null, execute);
+            return Install(version, released, description, null, execute);
         }
-        public PatchBuilder Patch(string version, string released, string description, VersionBoundary boundary,
+        public PatchBuilder Install(string version, string released, string description,
             DependencyBuilder dependencies,
             Action<PatchExecutionContext> execute)
         {
-            var targetVersion = ParseVersion(version);
+            Patches.Add(new ComponentInstaller
+            {
+                ComponentId = _component.ComponentId,
+                ReleaseDate = ParseDate(released),
+                Dependencies = dependencies?.Dependencies.ToArray(),
+                Version = ParseVersion(version),
+                Description = CheckDescription(description),
+                Execute = CheckExecuteAction(execute)
+            });
+
+            return this;
+        }
+
+        public PatchBuilder Patch(string from, string to, string released, string description,
+            Action<PatchExecutionContext> execute)
+        {
+            return Patch(from, to, released, description, null, execute);
+        }
+        public PatchBuilder Patch(VersionBoundary from, string to, string released, string description, 
+            Action<PatchExecutionContext> execute)
+        {
+            return Patch(from, to, released, description, null, execute);
+        }
+        public PatchBuilder Patch(string from, string to, string released, string description,
+            DependencyBuilder dependencies,
+            Action<PatchExecutionContext> execute)
+        {
+            return Patch(ParseFromVersion(from), to, released, description, dependencies, execute);
+        }
+        public PatchBuilder Patch(VersionBoundary from, string to, string released, string description, 
+            DependencyBuilder dependencies,
+            Action<PatchExecutionContext> execute)
+        {
+            var targetVersion = ParseVersion(to);
 
             Patches.Add(new SnPatch
             {
                 ComponentId = _component.ComponentId,
                 ReleaseDate = ParseDate(released),
-                Boundary = BuildBoundary(boundary, targetVersion),
+                Boundary = BuildBoundary(from, targetVersion),
                 Dependencies = dependencies?.Dependencies.ToArray(),
                 Version = targetVersion,
                 Description = CheckDescription(description),
@@ -103,28 +132,10 @@ namespace SenseNet.Packaging
             return boundary;
         }
 
-        public PatchBuilder Install(string version, string released, string description,
-            Action<PatchExecutionContext> execute)
+        private VersionBoundary ParseFromVersion(string src)
         {
-            return Install(version, released, description, null, execute);
+            return new VersionBoundary { MinVersion = ParseVersion(src) };
         }
-        public PatchBuilder Install(string version, string released, string description,
-            DependencyBuilder dependencies,
-            Action<PatchExecutionContext> execute)
-        {
-            Patches.Add(new ComponentInstaller
-            {
-                ComponentId = _component.ComponentId,
-                ReleaseDate = ParseDate(released),
-                Dependencies = dependencies?.Dependencies.ToArray(),
-                Version = ParseVersion(version),
-                Description = CheckDescription(description),
-                Execute = CheckExecuteAction(execute)
-            });
-
-            return this;
-        }
-
         private Version ParseVersion(string version)
         {
             try
