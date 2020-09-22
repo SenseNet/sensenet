@@ -1,4 +1,6 @@
-﻿using System;
+﻿//UNDONE: Delete this file and the line in the Setup.cs,
+
+using System;
 using Gyebi.TheCustomizer;
 using Microsoft.Extensions.DependencyInjection;
 using SenseNet.ContentRepository;
@@ -36,11 +38,7 @@ namespace Gyebi.TheCustomizer
         public override void AddPatches(PatchBuilder builder)
         {
             var dependencies = new DependencyBuilder(builder)
-                //.Dependency("SenseNet.Services", builder.Version("7.7.9.2"))
-                .Dependency("SenseNet.Services", "7.7.9")
-                //.Dependency("SenseNet.Services", builder.MinVersion("7.7.9"))
-                //.Dependency("SenseNet.Services", builder.MinMaxExVersion("7.7.9", "7.7.10"))
-                ;
+                .Dependency("SenseNet.Services", "7.7.9");
 
             builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description")
                 .DependsFrom(dependencies)

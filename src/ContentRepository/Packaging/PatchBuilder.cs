@@ -13,7 +13,7 @@ namespace SenseNet.Packaging
             return Version.Parse(src.TrimStart('v', 'V'));
         }
     }
-    public class PatchBuilder //UNDONE:PATCH: Need to be tested.
+    public class PatchBuilder
     {
         private readonly ISnComponent _component;
         private readonly List<ISnPatch> _patches = new List<ISnPatch>();
@@ -160,14 +160,14 @@ namespace SenseNet.Packaging
         }
         public ItemBuilder DependsFrom(DependencyBuilder builder)
         {
-            var deps = _patch.Dependencies.ToList();
+            var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             deps.AddRange(builder.Dependencies);
             _patch.Dependencies = deps;
             return this;
         }
         private void AddDependency(Dependency dependency)
         {
-            var deps = _patch.Dependencies.ToList();
+            var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             deps.Add(dependency);
             _patch.Dependencies = deps;
         }
@@ -192,15 +192,6 @@ namespace SenseNet.Packaging
         public DependencyBuilder Dependency(string componentId, string minVersion)
         {
             Dependencies.Add(new Dependency { Id = componentId, Boundary = _patchBuilder.MinVersion(minVersion) });
-            return this;
-        }
-        public DependencyBuilder Dependency(string componentId, string minVersion, string maxExVersion)
-        {
-            Dependencies.Add(new Dependency
-            {
-                Id = componentId,
-                Boundary = _patchBuilder.MinMaxExVersion(minVersion, maxExVersion)
-            });
             return this;
         }
         public DependencyBuilder Dependency(string componentId, VersionBoundary boundary)

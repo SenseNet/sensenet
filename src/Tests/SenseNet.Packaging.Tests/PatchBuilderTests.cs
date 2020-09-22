@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.TaskManagement.Core.Configuration;
@@ -28,7 +30,7 @@ namespace SenseNet.Packaging.Tests
             var installer = builder.GetPatches()[0] as ComponentInstaller;
             Assert.IsNotNull(installer);
             Assert.IsNull(installer.Dependencies);
-            Assert.IsNotNull(installer.Execute);
+            Assert.IsNull(installer.Execute);
 
             // MORE TESTS
             // version: "v1.0"
@@ -143,7 +145,7 @@ namespace SenseNet.Packaging.Tests
             var patch = builder.GetPatches()[0] as SnPatch;
             Assert.IsNotNull(patch);
             Assert.IsNull(patch.Dependencies);
-            Assert.IsNotNull(patch.Execute);
+            Assert.IsNull(patch.Execute);
             Assert.AreEqual("1.0", patch.Boundary.MinVersion.ToString());
             Assert.AreEqual("2.0", patch.Boundary.MaxVersion.ToString());
             Assert.IsFalse(patch.Boundary.MinVersionIsExclusive);
@@ -263,6 +265,68 @@ namespace SenseNet.Packaging.Tests
                 // ASSERT
                 Assert.AreEqual(PatchErrorCode.TooSmallTargetVersion, e.ErrorCode);
             }
+        }
+
+        /* ================================================================ DEPENDENCY TESTS */
+
+        [TestMethod]
+        public void Patching_Builder_Dependency_Direct()
+        {
+            var builder = new PatchBuilder(new TestComponent());
+
+            // ACTION
+            builder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                .DependsFrom("C1", "1.0")
+                .DependsFrom("C2", "2.3.0.15")
+                .Execute();
+
+            // ASSERT
+            var patch = builder.GetPatches()[0] as SnPatch;
+            var actual = DependenciesToString(patch?.Dependencies ?? new Dependency[0]);
+            Assert.AreEqual("C1: 1.0 <= v | C2: 2.3.0.15 <= v", actual);
+        }
+        [TestMethod]
+        public void Patching_Builder_Dependency_Shared()
+        {
+            var patchBuilder = new PatchBuilder(new TestComponent());
+            var depBuilder = new DependencyBuilder(patchBuilder)
+                    .Dependency("C3", "3.0")
+                    .Dependency("C4", "4.0");
+
+            // ACTION
+            patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                .DependsFrom(depBuilder)
+                .Execute();
+
+            // ASSERT
+            var patch = patchBuilder.GetPatches()[0] as SnPatch;
+            var actual = DependenciesToString(patch?.Dependencies ?? new Dependency[0]);
+            Assert.AreEqual("C3: 3.0 <= v | C4: 4.0 <= v", actual);
+        }
+        [TestMethod]
+        public void Patching_Builder_Dependency_Mixed()
+        {
+            var patchBuilder = new PatchBuilder(new TestComponent());
+            var depBuilder = new DependencyBuilder(patchBuilder)
+                .Dependency("C3", "3.0")
+                .Dependency("C4", "4.0");
+
+            // ACTION
+            patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                .DependsFrom("C1", "1.0")
+                .DependsFrom("C2", "2.0")
+                .DependsFrom(depBuilder)
+                .Execute();
+
+            // ASSERT
+            var patch = patchBuilder.GetPatches()[0] as SnPatch;
+            var actual = DependenciesToString(patch?.Dependencies ?? new Dependency[0]);
+            Assert.AreEqual("C1: 1.0 <= v | C2: 2.0 <= v | C3: 3.0 <= v | C4: 4.0 <= v", actual);
+        }
+
+        private string DependenciesToString(IEnumerable<Dependency> dependencies)
+        {
+            return string.Join(" | ", dependencies.Select(d => d.ToString()));
         }
 
         /* ================================================================ COMBINATION TESTS */
