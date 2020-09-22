@@ -31,10 +31,7 @@ namespace SenseNet.ContentRepository.Tests
                     .AddResource("DisplayName", "disp lay name")
                     .AddResource("Resource2", "value2");
 
-                using (new SystemAccount())
-                {
-                    rb.Apply();
-                }
+                using (new SystemAccount()) { rb.Apply(); }
 
                 var resourceContent = await Node.LoadAsync<Resource>(contentPath, CancellationToken.None);
 
@@ -68,10 +65,7 @@ namespace SenseNet.ContentRepository.Tests
                     .Culture("en")
                     .AddResource("MyResource123", "mystring");
 
-                using (new SystemAccount())
-                {
-                    rb.Apply();
-                }
+                using (new SystemAccount()) { rb.Apply(); }
 
                 var resourceContent1 = await Node.LoadAsync<Resource>(contentPath1, CancellationToken.None);
                 var resourceContent2 = await Node.LoadAsync<Resource>(contentPath2, CancellationToken.None);
@@ -98,17 +92,12 @@ namespace SenseNet.ContentRepository.Tests
                 rb.Content(contentName)
                     .Class("TestClass1")
                     .Culture("en")
-                    .AddResource("DisplayName", "disp lay name");
-
-                rb.Content(contentName)
+                    .AddResource("DisplayName", "disp lay name")
                     .Class("TestClass2")
                     .Culture("en")
                     .AddResource("DisplayName", "Different value");
 
-                using (new SystemAccount())
-                {
-                    rb.Apply();
-                }
+                using (new SystemAccount()) { rb.Apply(); }
                 
                 // check the actual resource (English culture)
                 Assert.AreEqual("disp lay name", SR.GetString("TestClass1", "DisplayName"));
@@ -116,7 +105,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
-        public void ResourceBuilder_MultiLanguage()
+        public void ResourceBuilder_MultiCulture()
         {
             Test(() =>
             {
@@ -132,10 +121,7 @@ namespace SenseNet.ContentRepository.Tests
                     .Culture("hu")
                     .AddResource("DisplayName", "ugyanez magyarul");
 
-                using (new SystemAccount())
-                {
-                    rb.Apply();
-                }
+                using (new SystemAccount()) { rb.Apply(); }
 
                 // check the actual resource in English
                 Assert.AreEqual("disp lay name", SR.GetString("TestClass1", "DisplayName"));

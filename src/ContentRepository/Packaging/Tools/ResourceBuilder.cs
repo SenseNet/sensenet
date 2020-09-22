@@ -23,8 +23,14 @@ namespace SenseNet.Packaging.Tools
 
     public interface IResourceCultureBuilder
     {
+        IResourceValueBuilder AddResource(string key, string value);
+    }
+
+    public interface IResourceValueBuilder
+    {
+        IResourceClassBuilder Class(string className);
         IResourceCultureBuilder Culture(string cultureName);
-        IResourceCultureBuilder AddResource(string key, string value);
+        IResourceValueBuilder AddResource(string key, string value);
     }
     #endregion
 
@@ -44,7 +50,7 @@ namespace SenseNet.Packaging.Tools
             if (rcb != null)
                 return rcb;
 
-            rcb = new ResourceClassBuilder(className);
+            rcb = new ResourceClassBuilder(this, className);
             Classes.Add(rcb);
 
             return rcb;
@@ -54,7 +60,13 @@ namespace SenseNet.Packaging.Tools
     {
         internal string ClassName { get; }
         internal IList<ResourceCultureBuilder> Cultures { get; } = new List<ResourceCultureBuilder>();
-        internal ResourceClassBuilder(string className) { ClassName = className; }
+        internal ResourceContentBuilder ContentBuilder { get; }
+
+        internal ResourceClassBuilder(ResourceContentBuilder contentBuilder, string className)
+        {
+            ContentBuilder = contentBuilder;
+            ClassName = className;
+        }
         
         public IResourceCultureBuilder Culture(string cultureName)
         {
@@ -74,16 +86,52 @@ namespace SenseNet.Packaging.Tools
     internal class ResourceCultureBuilder : IResourceCultureBuilder
     {
         internal string CultureName { get; }
-        internal IDictionary<string, string> Resources { get; } = new Dictionary<string, string>();
-        private readonly ResourceClassBuilder _classBuilder;
+
+        internal IDictionary<string, string> Resources => ResourceValueBuilder.Resources;
+        internal ResourceClassBuilder ClassBuilder { get; }
+
+        private ResourceValueBuilder _resourceValueBuilder;
+        private ResourceValueBuilder ResourceValueBuilder => _resourceValueBuilder ??= new ResourceValueBuilder(this);
 
         internal ResourceCultureBuilder(ResourceClassBuilder classBuilder, string cultureName)
         {
-            _classBuilder = classBuilder;
+            ClassBuilder = classBuilder;
             CultureName = cultureName;
         }
         
-        public IResourceCultureBuilder AddResource(string key, string value)
+        internal IResourceCultureBuilder Culture(string cultureName)
+        {
+            return ClassBuilder.Culture(cultureName);
+        }
+
+        public IResourceValueBuilder AddResource(string key, string value)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            return ResourceValueBuilder.AddResource(key, value);
+        }
+    }
+
+    internal class ResourceValueBuilder : IResourceValueBuilder
+    {
+        private readonly ResourceCultureBuilder _cultureBuilder;
+        internal IDictionary<string, string> Resources { get; } = new Dictionary<string, string>();
+
+        internal ResourceValueBuilder(ResourceCultureBuilder cultureBuilder)
+        {
+            _cultureBuilder = cultureBuilder;
+        }
+
+        public IResourceClassBuilder Class(string className)
+        {
+            return _cultureBuilder.ClassBuilder.ContentBuilder.Class(className);
+        }
+        public IResourceCultureBuilder Culture(string cultureName)
+        {
+            return _cultureBuilder.Culture(cultureName);
+        }
+        public IResourceValueBuilder AddResource(string key, string value)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
@@ -92,43 +140,43 @@ namespace SenseNet.Packaging.Tools
 
             return this;
         }
-        public IResourceCultureBuilder Culture(string cultureName)
-        {
-            return _classBuilder.Culture(cultureName);
-        }
     }
     #endregion
 
+    /// <summary>
+    /// Resource editor API for adding and editing string resources.
+    /// </summary>
     public class ResourceBuilder
     {
-        private static readonly string EMPTY_RESOURCE = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private const string EmptyResource = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Resources>
 </Resources>";
 
-        internal IList<ResourceContentBuilder> Resources { get; } = new List<ResourceContentBuilder>();
+        internal IList<ResourceContentBuilder> ResourceContentBuilders { get; } = new List<ResourceContentBuilder>();
 
         public IResourceContentBuilder Content(string contentName)
         {
             if (string.IsNullOrEmpty(contentName))
                 throw new ArgumentNullException(nameof(contentName));
 
-            var rcb = Resources.FirstOrDefault(res => res.ContentName == contentName);
+            var rcb = ResourceContentBuilders.FirstOrDefault(res => res.ContentName == contentName);
             if (rcb != null) 
                 return rcb;
 
             rcb = new ResourceContentBuilder(contentName);
-            Resources.Add(rcb);
+            ResourceContentBuilders.Add(rcb);
 
             return rcb;
         }
         public void Apply()
         {
-            foreach (var resourceBuilder in Resources)
+            foreach (var resourceBuilder in ResourceContentBuilders)
             {
                 var resourcePath = RepositoryPath.Combine(RepositoryStructure.ResourceFolderPath, resourceBuilder.ContentName);
                 var resource = Node.Load<Resource>(resourcePath) ??
                                Node.Load<Resource>(resourcePath + ".xml");
 
+                // create resource content if necessary
                 if (resource == null)
                 {
                     resource = new Resource(Node.LoadNode(RepositoryStructure.ResourceFolderPath))
@@ -137,7 +185,7 @@ namespace SenseNet.Packaging.Tools
                     };
 
                     var binData = new BinaryData { FileName = new BinaryFileName(resourceBuilder.ContentName) };
-                    binData.SetStream(RepositoryTools.GetStreamFromString(EMPTY_RESOURCE));
+                    binData.SetStream(RepositoryTools.GetStreamFromString(EmptyResource));
 
                     resource.Binary = binData;
                     resource.Save();
