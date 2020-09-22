@@ -10,13 +10,32 @@ using SenseNet.ContentRepository.Storage;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Tools
 {
-    public class ResourceContentBuilder
+    #region Interfaces
+    public interface IResourceContentBuilder
+    {
+        IResourceClassBuilder Class(string className);
+    }
+
+    public interface IResourceClassBuilder
+    {
+        IResourceCultureBuilder Culture(string cultureName);
+    }
+
+    public interface IResourceCultureBuilder
+    {
+        IResourceCultureBuilder Culture(string cultureName);
+        IResourceCultureBuilder AddResource(string key, string value);
+    }
+    #endregion
+
+    #region Internal helper classes
+    internal class ResourceContentBuilder : IResourceContentBuilder
     {
         internal string ContentName { get; }
         internal  IList<ResourceClassBuilder> Classes { get; } = new List<ResourceClassBuilder>();
         internal ResourceContentBuilder(string contentName) { ContentName = contentName; }
 
-        public ResourceClassBuilder Class(string className)
+        public IResourceClassBuilder Class(string className)
         {
             if (string.IsNullOrEmpty(className))
                 throw new ArgumentNullException(nameof(className));
@@ -31,22 +50,13 @@ namespace SenseNet.Packaging.Tools
             return rcb;
         }
     }
-
-    public class ResourceClassBuilder
+    internal class ResourceClassBuilder : IResourceClassBuilder
     {
         internal string ClassName { get; }
         internal IList<ResourceCultureBuilder> Cultures { get; } = new List<ResourceCultureBuilder>();
         internal ResourceClassBuilder(string className) { ClassName = className; }
-
-        public ResourceCultureBuilder CultureEn()
-        {
-            return Culture("en");
-        }
-        public ResourceCultureBuilder CultureHu()
-        {
-            return Culture("hu");
-        }
-        public ResourceCultureBuilder Culture(string cultureName)
+        
+        public IResourceCultureBuilder Culture(string cultureName)
         {
             if (string.IsNullOrEmpty(cultureName))
                 throw new ArgumentNullException(nameof(cultureName));
@@ -61,13 +71,11 @@ namespace SenseNet.Packaging.Tools
             return rcb;
         }
     }
-
-    public class ResourceCultureBuilder
+    internal class ResourceCultureBuilder : IResourceCultureBuilder
     {
         internal string CultureName { get; }
-        private readonly ResourceClassBuilder _classBuilder;
-
         internal IDictionary<string, string> Resources { get; } = new Dictionary<string, string>();
+        private readonly ResourceClassBuilder _classBuilder;
 
         internal ResourceCultureBuilder(ResourceClassBuilder classBuilder, string cultureName)
         {
@@ -75,7 +83,7 @@ namespace SenseNet.Packaging.Tools
             CultureName = cultureName;
         }
         
-        public ResourceCultureBuilder AddResource(string key, string value)
+        public IResourceCultureBuilder AddResource(string key, string value)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
@@ -84,21 +92,13 @@ namespace SenseNet.Packaging.Tools
 
             return this;
         }
-        
-        public ResourceCultureBuilder CultureEn()
-        {
-            return Culture("en");
-        }
-        public ResourceCultureBuilder CultureHu()
-        {
-            return Culture("hu");
-        }
-        public ResourceCultureBuilder Culture(string cultureName)
+        public IResourceCultureBuilder Culture(string cultureName)
         {
             return _classBuilder.Culture(cultureName);
         }
     }
-    
+    #endregion
+
     public class ResourceBuilder
     {
         private static readonly string EMPTY_RESOURCE = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -107,7 +107,7 @@ namespace SenseNet.Packaging.Tools
 
         internal IList<ResourceContentBuilder> Resources { get; } = new List<ResourceContentBuilder>();
 
-        public ResourceContentBuilder Content(string contentName)
+        public IResourceContentBuilder Content(string contentName)
         {
             if (string.IsNullOrEmpty(contentName))
                 throw new ArgumentNullException(nameof(contentName));
@@ -121,7 +121,6 @@ namespace SenseNet.Packaging.Tools
 
             return rcb;
         }
-        
         public void Apply()
         {
             foreach (var resourceBuilder in Resources)
@@ -174,8 +173,7 @@ namespace SenseNet.Packaging.Tools
                     foreach (var resourceItem in cultureBuilder.Resources)
                     {
                         // main operation: add or modify xml elements for one resource
-                        AddOrEditResource(resClassElement, classBuilder.ClassName, cultureBuilder.CultureName, 
-                            resourceItem.Key, resourceItem.Value);
+                        AddOrEditResource(resClassElement, cultureBuilder.CultureName, resourceItem.Key, resourceItem.Value);
                     }
                 }
             }
@@ -186,12 +184,15 @@ namespace SenseNet.Packaging.Tools
             resource.Save(SavingMode.KeepVersion);
         }
 
+        #region Xml editor methods
         private static XmlElement LoadOrAddElement(XmlNode parentNode, string xPath, string name, IDictionary<string, string> attributes = null, string innerXml = null)
         {
             if (parentNode.SelectSingleNode(xPath) is XmlElement xmlElement)
                 return xmlElement;
 
-            xmlElement = parentNode.OwnerDocument.CreateElement(name);
+            xmlElement = parentNode.OwnerDocument?.CreateElement(name);
+            if (xmlElement == null)
+                return null;
 
             if (attributes != null)
             {
@@ -208,7 +209,7 @@ namespace SenseNet.Packaging.Tools
 
             return xmlElement;
         }
-        private static void AddOrEditResource(XmlElement resClassElement, string className, string languageCode, string resourceKey, string resourceValue)
+        private static void AddOrEditResource(XmlElement resClassElement, string languageCode, string resourceKey, string resourceValue)
         {
             var languagesElement = LoadOrAddElement(resClassElement, "Languages", "Languages");
             var languageElement = LoadOrAddElement(languagesElement, $"Language[@cultureName='{languageCode}']", "Language",
@@ -229,5 +230,6 @@ namespace SenseNet.Packaging.Tools
             // set the value to be sure it has changed
             dataElement.FirstChild.InnerXml = resourceValue;
         }
+        #endregion
     }
 }

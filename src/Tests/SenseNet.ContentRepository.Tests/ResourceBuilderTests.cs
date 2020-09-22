@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing.Text;
 using System.Globalization;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,7 +27,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "disp lay name")
                     .AddResource("Resource2", "value2");
 
@@ -61,12 +60,12 @@ namespace SenseNet.ContentRepository.Tests
 
                 rb.Content(contentName1)
                     .Class("TestClassAbc")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "disp lay name");
 
                 rb.Content(contentName2)
                     .Class("TestClassDef")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("MyResource123", "mystring");
 
                 using (new SystemAccount())
@@ -98,11 +97,12 @@ namespace SenseNet.ContentRepository.Tests
 
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "disp lay name");
+
                 rb.Content(contentName)
                     .Class("TestClass2")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "Different value");
 
                 using (new SystemAccount())
@@ -127,9 +127,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "disp lay name")
-                    .CultureHu()
+                    .Culture("hu")
                     .AddResource("DisplayName", "ugyanez magyarul");
 
                 using (new SystemAccount())
@@ -159,7 +159,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "value1")
                     .AddResource("DisplayName", "value2");
                 
@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository.Tests
                 // continue editing using the same builder
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "value3");
 
                 using (new SystemAccount()) { rb.Apply(); }
@@ -182,7 +182,7 @@ namespace SenseNet.ContentRepository.Tests
                 rb = new ResourceBuilder();
                 rb.Content(contentName)
                     .Class("TestClass1")
-                    .CultureEn()
+                    .Culture("en")
                     .AddResource("DisplayName", "value4");
 
                 using (new SystemAccount()) { rb.Apply(); }
