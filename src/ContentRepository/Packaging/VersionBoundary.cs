@@ -38,7 +38,7 @@ namespace SenseNet.Packaging
         /// </summary>
         /// <param name="version">The tested version.</param>
         /// <returns></returns>
-        public bool IsInInterval(Version version) //UNDONE:PATCH: Need to be tested.
+        public bool IsInInterval(Version version)
         {
             if ((MinVersion != null && version < MinVersion) || (MaxVersion != null && version > MaxVersion))
                 return false;
