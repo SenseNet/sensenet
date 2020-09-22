@@ -323,6 +323,78 @@ namespace SenseNet.Packaging.Tests
             var actual = DependenciesToString(patch?.Dependencies ?? new Dependency[0]);
             Assert.AreEqual("C1: 1.0 <= v | C2: 2.0 <= v | C3: 3.0 <= v | C4: 4.0 <= v", actual);
         }
+        [TestMethod]
+        public void Patching_Builder_Dependency_SelfDirect()
+        {
+            var patchBuilder = new PatchBuilder(new TestComponent());
+            var depBuilder = new DependencyBuilder(patchBuilder)
+                .Dependency("C3", "3.0")
+                .Dependency("C4", "4.0");
+
+            try
+            {
+                // ACTION
+                patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                    .DependsFrom("C1", "1.0")
+                    .DependsFrom("MyComp", "2.0")
+                    .DependsFrom(depBuilder)
+                    .Execute();
+                Assert.Fail();
+            }
+            catch (InvalidPatchException e)
+            {
+                // ASSERT
+                Assert.AreEqual(PatchErrorCode.SelfDependency, e.ErrorCode);
+            }
+        }
+        [TestMethod]
+        public void Patching_Builder_Dependency_SelfShared()
+        {
+            var patchBuilder = new PatchBuilder(new TestComponent());
+            var depBuilder = new DependencyBuilder(patchBuilder)
+                .Dependency("C3", "3.0")
+                .Dependency("MyComp", "4.0");
+
+            try
+            {
+                // ACTION
+                patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                    .DependsFrom("C1", "1.0")
+                    .DependsFrom("C2", "2.0")
+                    .DependsFrom(depBuilder)
+                    .Execute();
+                Assert.Fail();
+            }
+            catch (InvalidPatchException e)
+            {
+                // ASSERT
+                Assert.AreEqual(PatchErrorCode.SelfDependency, e.ErrorCode);
+            }
+        }
+        [TestMethod]
+        public void Patching_Builder_Dependency_Duplicated()
+        {
+            var patchBuilder = new PatchBuilder(new TestComponent());
+            var depBuilder = new DependencyBuilder(patchBuilder)
+                .Dependency("C3", "3.0")
+                .Dependency("C2", "4.0");
+
+            try
+            {
+                // ACTION
+                patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
+                    .DependsFrom("C1", "1.0")
+                    .DependsFrom("C2", "2.0")
+                    .DependsFrom(depBuilder)
+                    .Execute();
+                Assert.Fail();
+            }
+            catch (InvalidPatchException e)
+            {
+                // ASSERT
+                Assert.AreEqual(PatchErrorCode.DuplicatedDependency, e.ErrorCode);
+            }
+        }
 
         private string DependenciesToString(IEnumerable<Dependency> dependencies)
         {

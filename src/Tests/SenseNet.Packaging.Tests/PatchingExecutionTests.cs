@@ -146,30 +146,6 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C2,C3,C4", string.Join(",", executables.Select(x => x.ComponentId)));
         }
         [TestMethod]
-        public void PatchingExecSim_Install_Dependency_Self()
-        {
-            // Test the right installer execution order if there is a dependency among the installers.
-            var installed = new SnComponentDescriptor[0];
-            var patches = new ISnPatch[]
-            {
-                Inst("C2", "v2.0", new[] {Dep("C2", "v < 2.0")}, null),
-                Inst("C1", "v1.0", null, null),
-            };
-
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
-
-            // ASSERT
-            Assert.AreEqual(0, after.Length);
-            Assert.AreEqual(0, executables.Length);
-
-            Assert.AreEqual(1, context.Errors.Length);
-            Assert.AreEqual(PatchExecutionErrorType.SelfDependency, context.Errors[0].ErrorType);
-            Assert.AreEqual("C2", context.Errors[0].FaultyPatch.ComponentId);
-        }
-        [TestMethod]
         public void PatchingExecSim_Install_Dependencies_Circular()
         {
             // Test the right installer execution order if there is a dependency among the installers.
@@ -489,89 +465,6 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(0, context.Errors.Length);
             Assert.AreEqual("C1v4.0", ComponentsToString(after));
             Assert.AreEqual("C1p4.0", PatchesToString(executables));
-        }
-
-        // SIMULATION: Patch with self-dependency is an error if it is executable.
-
-        [TestMethod]
-        public void PatchingExecSim_Patch_Dependency_Self_a()
-        {
-            var installed = new SnComponentDescriptor[0];
-            var patches = new ISnPatch[]
-            {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", new[] {Dep("C1", "1.0 <= v")}, null),
-                Inst("C1", "v1.0", null, null),
-            };
-
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
-
-            // ASSERT
-            Assert.AreEqual("", ComponentsToString(after));
-
-            Assert.AreEqual(2, context.Errors.Length);
-            var error = context.Errors[0];
-            Assert.AreEqual(PatchExecutionErrorType.SelfDependency, error.ErrorType);
-            Assert.AreEqual("C1: 1.0 <= v < 2.0 --> 2.0", error.FaultyPatch.ToString());
-            error = context.Errors[1];
-            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
-            Assert.AreEqual("C1: 2.0 <= v < 3.0 --> 3.0", error.FaultyPatch.ToString());
-        }
-        [TestMethod]
-        public void PatchingExecSim_Patch_Dependency_Self_b()
-        {
-            var installed = new[]
-            {
-                Comp("C1", "v1.0")
-            };
-            var patches = new ISnPatch[]
-            {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", new[] {Dep("C1", "1.0 <= v")}, null),
-                Inst("C1", "v1.0", null, null),
-            };
-
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
-
-            // ASSERT
-            Assert.AreEqual("C1v1.0", ComponentsToString(after));
-
-            Assert.AreEqual(2, context.Errors.Length);
-            var error = context.Errors[0];
-            Assert.AreEqual(PatchExecutionErrorType.SelfDependency, error.ErrorType);
-            Assert.AreEqual("C1: 1.0 <= v < 2.0 --> 2.0", error.FaultyPatch.ToString());
-            error = context.Errors[1];
-            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
-            Assert.AreEqual("C1: 2.0 <= v < 3.0 --> 3.0", error.FaultyPatch.ToString());
-        }
-        [TestMethod]
-        public void PatchingExecSim_Patch_Dependency_Self_c()
-        {
-            var installed = new[]
-            {
-                Comp("C1", "v2.0")
-            };
-            var patches = new ISnPatch[]
-            {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", new[] {Dep("C1", "1.0 <= v")}, null),
-                Inst("C1", "v1.0", null, null),
-            };
-
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
-
-            // ASSERT
-            Assert.AreEqual(0, context.Errors.Length);
-            Assert.AreEqual("C1v3.0", ComponentsToString(after));
         }
 
         /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */

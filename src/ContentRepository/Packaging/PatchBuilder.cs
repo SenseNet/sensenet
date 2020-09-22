@@ -141,35 +141,45 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
+        public ItemBuilder DependsFrom(string componentId, string minVersion)
+        {
+            return DependsFrom(componentId, new VersionBoundary
+            {
+                MinVersion = PatchBuilder.ParseVersion(minVersion)
+            });
+        }
         public ItemBuilder DependsFrom(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
-        public ItemBuilder DependsFrom(string componentId, string minVersion)
-        {
-            AddDependency(new Dependency
-            {
-                Id = componentId,
-                Boundary = new VersionBoundary
-                {
-                    MinVersion = PatchBuilder.ParseVersion(minVersion)
-                }
-            });
-            return this;
-        }
         public ItemBuilder DependsFrom(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
-            deps.AddRange(builder.Dependencies);
+            foreach (var dep in builder.Dependencies)
+            {
+                AssertDependencyIsValid(dep, deps);
+                deps.Add(dep);
+            }
             _patch.Dependencies = deps;
             return this;
         }
         private void AddDependency(Dependency dependency)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
+            AssertDependencyIsValid(dependency, deps);
             deps.Add(dependency);
             _patch.Dependencies = deps;
+        }
+
+        private void AssertDependencyIsValid(Dependency dependencyToAdd, List<Dependency> dependencies)
+        {
+            if (dependencyToAdd.Id == this._patch.ComponentId)
+                throw new InvalidPatchException(PatchErrorCode.SelfDependency,
+                    "Self dependency is forbidden: " + _patch);
+            if (dependencies.Any(d => d.Id == dependencyToAdd.Id))
+                throw new InvalidPatchException(PatchErrorCode.DuplicatedDependency,
+                    "Duplicated dependency is forbidden: " + _patch);
         }
 
         public PatchBuilder Execute(Action<PatchExecutionContext> executeAction = null)

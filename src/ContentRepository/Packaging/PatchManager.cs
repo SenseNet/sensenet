@@ -259,11 +259,6 @@ namespace SenseNet.Packaging
 
         private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch, SnComponentDescriptor[] installedComponents)
         {
-            var deps = patch.Dependencies;
-            if (deps != null && deps.Any(dep => dep.Id == patch.ComponentId))
-                return new PatchExecutionError(PatchExecutionErrorType.SelfDependency, patch,
-                    "Self dependency is forbidden " + patch);
-
             if (patch is SnPatch snPatch)
             {
                 if (!installedComponents.Any(comp => comp.ComponentId == snPatch.ComponentId &&
