@@ -26,7 +26,7 @@
       <Configuration>
         <FieldIndex>220</FieldIndex>
         <VisibleBrowse>Show</VisibleBrowse>
-        <VisibleEdit>Show</VisibleEdit>
+        <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
         <Compulsory>true</Compulsory>
         <MaxLength>100</MaxLength>
@@ -76,6 +76,9 @@
         <FieldIndex>160</FieldIndex>
         <Compulsory>true</Compulsory>
         <Regex>^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$</Regex>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
       </Configuration>
     </Field>
     <Field name="FullName" type="ShortText">
