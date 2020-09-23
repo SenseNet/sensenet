@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
@@ -50,6 +51,20 @@ namespace SenseNet.Packaging
             ParseParameters(xml, manifest);
             manifest.CheckPrerequisits(packageParameters, forcedReinstall, log, editConnectionString);
             ParseSteps(xml, manifest, currentPhase);
+
+            return manifest;
+        }
+        /// <summary>
+        /// For patching.
+        /// </summary>
+        public static Manifest Parse(XmlDocument xml)
+        {
+            var manifest = new Manifest {ManifestXml = xml};
+
+            ParseHead(xml, manifest);
+
+            manifest.Parameters = new Dictionary<string, string>();
+            manifest._phases = new List<List<XmlElement>>();
 
             return manifest;
         }
@@ -140,6 +155,17 @@ namespace SenseNet.Packaging
                     dependencies.Add(Dependency.Parse(dependencyElement));
             manifest.Dependencies = dependencies.ToArray();
         }
+
+        internal static Dependency[] ParseDependencies(XmlDocument xml)
+        {
+            var dependencies = new List<Dependency>();
+            var e = (XmlElement)xml.DocumentElement.SelectSingleNode("Dependencies");
+            if (e != null)
+                foreach (XmlElement dependencyElement in e.SelectNodes("Dependency"))
+                    dependencies.Add(Dependency.Parse(dependencyElement));
+            return dependencies.ToArray();
+        }
+
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
         {
             var parameters = new Dictionary<string, string>();
@@ -230,7 +256,7 @@ namespace SenseNet.Packaging
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
-            var existingComponentInfo = versionInfo.Components.FirstOrDefault(a => a.ComponentId == ComponentId && a.AcceptableVersion != null);
+            var existingComponentInfo = versionInfo.Components.FirstOrDefault(a => a.ComponentId == ComponentId);
 
             if (PackageType == PackageType.Install)
             {
@@ -239,7 +265,7 @@ namespace SenseNet.Packaging
                     // Install packages can be executed multiple times only if it is 
                     // allowed in the package AND the version in the manifest is the
                     // same as in the db.
-                    if (!this.MultipleExecutionAllowed || existingComponentInfo.AcceptableVersion != this.Version)
+                    if (!this.MultipleExecutionAllowed || existingComponentInfo.Version != this.Version)
                         throw new PackagePreconditionException(
                             string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
                             PackagingExceptionType.CannotInstallExistingComponent);
@@ -250,7 +276,7 @@ namespace SenseNet.Packaging
                 if (existingComponentInfo == null)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotUpdateMissingComponent);
-                if (existingComponentInfo.AcceptableVersion >= this.Version)
+                if (existingComponentInfo.Version >= this.Version)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
                         PackagingExceptionType.TargetVersionTooSmall);
             }
@@ -350,7 +376,7 @@ namespace SenseNet.Packaging
                 throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
                     PackagingExceptionType.DependencyNotFound);
 
-            var current = existingComponent.AcceptableVersion;
+            var current = existingComponent.Version;
             var min = dependency.MinVersion;
             var max = dependency.MaxVersion;
             var minEx = dependency.MinVersionIsExclusive;
@@ -387,6 +413,136 @@ namespace SenseNet.Packaging
                         min == max ? PackagingExceptionType.DependencyVersion : PackagingExceptionType.DependencyMaximumVersion);
             }
 
+        }
+
+        public string ToXmlString()
+        {
+            var sb = new StringBuilder();
+            using (var xmlWriter = XmlWriter.Create(sb, new XmlWriterSettings {Indent = true, Async = false}))
+                ManifestXml.WriteTo(xmlWriter);
+            return sb.ToString();
+        }
+        public XmlDocument ToXml()
+        {
+            var cr = Environment.NewLine;
+
+            var src = string.Empty;
+            if (Dependencies != null && Dependencies.Any())
+            {
+                var depSrc = Dependencies.Select(d => $"    <Dependency id='{d.Id}'{GenerateVersionAttrs(d)} />");
+                src =
+                    $"  <Dependencies>" + cr +
+                    string.Join(cr, depSrc) + cr +
+                    $"  </Dependencies>";
+            }
+
+            src =
+                $"<?xml version='1.0' encoding='utf-8'?>" + cr +
+                $"<Package type='{PackageType}'>" + cr +
+                $"  <Id>{ComponentId}</Id>" + cr +
+                $"  <ReleaseDate>{ReleaseDate:yyyy-MM-dd}</ReleaseDate>" + cr +
+                $"  <Version>{Version}</Version>" + cr +
+                (string.IsNullOrEmpty(Description) ? "" : $"  <Description>{Description}</Description>") + cr +
+                src + cr +
+                $"</Package>" + cr;
+
+            var xml = new XmlDocument();
+            xml.LoadXml(src);
+            return xml;
+        }
+        private string GenerateVersionAttrs(Dependency dep)
+        {
+            var b = dep.Boundary;
+
+            var minVersion = b.MinVersion ?? VersionBoundary.DefaultMinVersion;
+            var maxVersion = b.MaxVersion ?? VersionBoundary.DefaultMaxVersion;
+
+            if (minVersion == maxVersion && !b.MinVersionIsExclusive && !b.MaxVersionIsExclusive)
+                return $" version='{minVersion}'";
+
+            var sb = new  StringBuilder();
+
+            if (minVersion > VersionBoundary.DefaultMinVersion || b.MinVersionIsExclusive)
+                sb.Append($" {(b.MinVersionIsExclusive ? "minVersionExclusive" : "minVersion")} ='{minVersion}'");
+            if (maxVersion < VersionBoundary.DefaultMaxVersion || b.MaxVersionIsExclusive)
+                sb.Append($" {(b.MaxVersionIsExclusive ? "maxVersionExclusive" : "maxVersion")} ='{maxVersion}'");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Creates a <c>Manifest</c> instance from the given <paramref name="package"/>
+        /// </summary>
+        /// <param name="package">Source <c>Package</c>.</param>
+        /// <param name="dependencies">Dependency array. Default: null.</param>
+        /// <param name="multipleExecutionAllowed">Dependency array. Default: null.</param>
+        /// <returns></returns>
+        public static Manifest Create(Package package, IEnumerable<Dependency> dependencies, bool multipleExecutionAllowed)
+        {
+            var manifest = new Manifest
+            {
+                PackageType = package.PackageType,
+                MultipleExecutionAllowed = multipleExecutionAllowed,
+                ComponentId = package.ComponentId,
+                Description = package.Description,
+                ReleaseDate = package.ReleaseDate,
+                Dependencies = dependencies,
+                Version = package.ComponentVersion,
+                Parameters = new Dictionary<string, string>()
+            };
+
+            manifest.SystemInstall = manifest.ComponentId == SystemComponentId &&
+                                     manifest.PackageType == PackageType.Install;
+
+            manifest.ManifestXml = manifest.ToXml();
+
+            return manifest;
+        }
+
+        /// <summary>
+        /// Creates a <c>Manifest</c> instance from the given <paramref name="package"/>
+        /// </summary>
+        /// <param name="patch">Source <c>ISnPatch</c>.</param>
+        /// <returns></returns>
+        public static Manifest Create(ISnPatch patch)
+        {
+            Dependency[] dependencies;
+            if (patch is SnPatch snPatch)
+            {
+                var selfDependency = new Dependency { Id = snPatch.ComponentId, Boundary = snPatch.Boundary };
+                if (patch.Dependencies == null)
+                {
+                    dependencies = new[] { selfDependency };
+                }
+                else
+                {
+                    var list = patch.Dependencies.ToList();
+                    list.Insert(0, selfDependency);
+                    dependencies = list.ToArray();
+                }
+            }
+            else
+            {
+                dependencies = patch.Dependencies?.ToArray();
+            }
+
+            var manifest = new Manifest
+            {
+                PackageType = patch.Type,
+                ComponentId = patch.ComponentId,
+                Description = patch.Description,
+                ReleaseDate = patch.ReleaseDate,
+                Dependencies = dependencies,
+                Version = patch.Version,
+                Parameters = new Dictionary<string, string>()
+            };
+
+            manifest.SystemInstall = manifest.ComponentId == SystemComponentId &&
+                                     manifest.PackageType == PackageType.Install;
+
+            manifest.ManifestXml = manifest.ToXml();
+
+            return manifest;
         }
     }
 }

@@ -23,42 +23,30 @@ namespace SenseNet.ContentRepository.InMemory
 
         public System.Threading.Tasks.Task<IEnumerable<ComponentInfo>> LoadInstalledComponentsAsync(CancellationToken cancellationToken)
         {
-            var nullVersion = new Version(0, 0);
             var componentInfos = new Dictionary<string, ComponentInfo>();
+            var descriptions = new Dictionary<string, string>();
             foreach (var package in GetPackages()
-                .Where(p => p.PackageType == PackageType.Install
-                    && p.ExecutionResult == ExecutionResult.Successful))
+                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch) 
+                            && p.ExecutionResult == ExecutionResult.Successful)
+                .OrderBy(x=>x.ComponentId).ThenBy(x=>x.ComponentVersion).ThenBy(x=>x.ExecutionDate))
             {
                 var componentId = package.ComponentId;
-                if (!componentInfos.TryGetValue(componentId, out var component))
-                {
-                    component = new ComponentInfo
-                    {
-                        ComponentId = package.ComponentId,
-                        Version = package.ComponentVersion,
-                        AcceptableVersion = package.ComponentVersion,
-                        Description = package.Description
-                    };
-                    componentInfos.Add(componentId, component);
-                }
 
-                if (package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
-                    component.AcceptableVersion = package.ComponentVersion;
+                if (package.PackageType == PackageType.Install)
+                    descriptions[componentId] = package.Description;
+
+                componentInfos[componentId] = new ComponentInfo
+                {
+                    ComponentId = package.ComponentId,
+                    Version = package.ComponentVersion,
+                    Description = package.Description,
+                    Manifest = package.Manifest
+                };
             }
 
-            foreach (var package in GetPackages()
-                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)))
-            {
-                var componentId = package.ComponentId;
-                if (componentInfos.TryGetValue(componentId, out var component))
-                {
-                    if ((package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
-                        && package.ExecutionResult == ExecutionResult.Successful)
-                        component.AcceptableVersion = package.ComponentVersion;
-                    if (package.ComponentVersion > (component.Version ?? nullVersion))
-                        component.Version = package.ComponentVersion;
-                }
-            }
+            foreach (var item in descriptions)
+                componentInfos[item.Key].Description = item.Value;
+
             return System.Threading.Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
         }
 
@@ -77,7 +65,7 @@ namespace SenseNet.ContentRepository.InMemory
                     ExecutionResult = p.ExecutionResult,
                     ComponentVersion = p.ComponentVersion,
                     ExecutionError = p.ExecutionError,
-                    //Manifest = p.Manifest, // Not loaded to increase performance.
+                    Manifest = p.Manifest,
                 })
                 .ToArray().AsEnumerable());
         }

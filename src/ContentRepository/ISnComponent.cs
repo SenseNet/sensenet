@@ -21,6 +21,7 @@ namespace SenseNet.ContentRepository
         /// an exception will be thrown.
         /// Null value means: supports only its own version.
         /// </summary>
+        [Obsolete("Do not use this feature anymore.")]
         Version SupportedVersion { get; }
 
         /// <summary>
@@ -36,7 +37,6 @@ namespace SenseNet.ContentRepository
         /// <returns>True if the assembly and component versions are compatible.</returns>
         bool IsComponentAllowed(Version componentVersion);
 
-        //TODO: [auto-patch] this feature is not released yet
-        //SnPatch[] Patches { get; }
+        void AddPatches(PatchBuilder builder);
     }
 }

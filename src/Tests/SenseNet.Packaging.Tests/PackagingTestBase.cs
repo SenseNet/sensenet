@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.InMemory;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Extensions.DependencyInjection;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Testing;
@@ -115,6 +117,13 @@ namespace SenseNet.Packaging.Tests
             var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
             RepositoryVersionInfo.Reset();
             return result;
+        }
+
+        protected Package[] LoadPackages()
+        {
+            var dataProvider = DataStore.GetDataProviderExtension<IPackagingDataProviderExtension>();
+            return dataProvider.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
         }
 
     }

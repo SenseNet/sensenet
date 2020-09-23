@@ -36,6 +36,7 @@ namespace SenseNet.ODataTests
                 // Create HttpContext 
                 var httpContext = new DefaultHttpContext();
                 var request = httpContext.Request;
+                request.Host = new HostString("example.com");
                 request.Path = "/OData.svc/Root('IMS')/Name/$value";
                 request.QueryString = QueryString.Empty;
                 request.Method = "GET";
@@ -70,6 +71,7 @@ namespace SenseNet.ODataTests
                 // Create HttpContext 
                 var httpContext = new DefaultHttpContext();
                 var request = httpContext.Request;
+                request.Host = new HostString("example.com");
                 request.Path = "/OData.svc/Root('IMS')/Name/$value";
                 request.QueryString = QueryString.Empty;
                 request.Method = "GET";

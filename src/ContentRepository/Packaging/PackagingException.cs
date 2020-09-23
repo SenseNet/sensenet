@@ -18,7 +18,10 @@ namespace SenseNet.Packaging
         DependencyVersion, DependencyMinimumVersion, DependencyMaximumVersion,
         InvalidPhase,
         // parameters
-        MissingParameterName, InvalidParameterName, DuplicatedParameter
+        MissingParameterName, InvalidParameterName, DuplicatedParameter,
+        // others
+        InvalidInterval, MaxLessThanMin, SourceVersionsAreTheSame, TargetVersionsAreTheSame, OverlappedIntervals,
+        PatchIdAndDependencyIdAreTheSame
     }
 
     [Serializable]
