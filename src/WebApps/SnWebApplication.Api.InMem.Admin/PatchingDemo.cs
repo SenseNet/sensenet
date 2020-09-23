@@ -1,16 +1,12 @@
 ﻿//UNDONE: Delete this file and the line in the Setup.cs,
 
 using System;
-using Gyebi.TheCustomizer;
-using Microsoft.Extensions.DependencyInjection;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Packaging;
-using SenseNet.Tools;
 
 namespace SenseNet.Extensions.DependencyInjection
 {
+    using Gyebi.TheCustomizer;
+    using Microsoft.Extensions.DependencyInjection;
+
     public static class Extensions
     {
         public static IServiceCollection AddFeature1(this IServiceCollection services)
@@ -25,15 +21,14 @@ namespace SenseNet.Extensions.DependencyInjection
 
 namespace Gyebi.TheCustomizer
 {
+    using SenseNet.ContentRepository;
+    using SenseNet.ContentRepository.Storage;
+    using SenseNet.ContentRepository.Storage.Security;
+    using SenseNet.Packaging;
+
     public class Feature1 : SnComponent
     {
         public override string ComponentId => typeof(Feature1).FullName;
-        public override Version SupportedVersion => null;
-
-        public override bool IsComponentAllowed(Version componentVersion)
-        {
-            return true;
-        }
 
         public override void AddPatches(PatchBuilder builder)
         {
@@ -44,25 +39,22 @@ namespace Gyebi.TheCustomizer
                 .DependsOn(dependencies)
                 .Action(context =>
                 {
-                    using (new SystemAccount())
+                    var oldFolderName = "GyebiTesztel_v1.0";
+                    var newFolderName = "GyebiTesztel_v1.1";
+                    var newContent = Content.Load($"/Root/{newFolderName}");
+                    if (newContent != null)
+                        return;
+                    var oldContent = Content.Load($"/Root/{oldFolderName}");
+                    if (oldContent != null)
                     {
-                        var oldFolderName = "GyebiTesztel_v1.0";
-                        var newFolderName = "GyebiTesztel_v1.1";
-                        var newContent = Content.Load($"/Root/{newFolderName}");
-                        if (newContent != null)
-                            return;
-                        var oldContent = Content.Load($"/Root/{oldFolderName}");
-                        if (oldContent != null)
-                        {
-                            oldContent.ContentHandler.Name = newFolderName;
-                            oldContent.Save();
-                        }
-                        else
-                        {
-                            var parent = Node.LoadNode("/Root");
-                            newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
-                            newContent.Save();
-                        }
+                        oldContent.ContentHandler.Name = newFolderName;
+                        oldContent.Save();
+                    }
+                    else
+                    {
+                        var parent = Node.LoadNode("/Root");
+                        newContent = Content.CreateNew("SystemFolder", parent, newFolderName);
+                        newContent.Save();
                     }
                 });
 
