@@ -41,7 +41,7 @@ namespace Gyebi.TheCustomizer
                 .Dependency("SenseNet.Services", "7.7.9");
 
             builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description")
-                .DependsFrom(dependencies)
+                .DependsOn(dependencies)
                 .Execute(context =>
                 {
                     using (new SystemAccount())
@@ -67,7 +67,7 @@ namespace Gyebi.TheCustomizer
                 });
 
             builder.Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
-                .DependsFrom(dependencies)
+                .DependsOn(dependencies)
                 .Execute((context) =>
                     {
                         using (new SystemAccount())

@@ -289,8 +289,8 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             builder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                .DependsFrom("C1", "1.0")
-                .DependsFrom("C2", "2.3.0.15")
+                .DependsOn("C1", "1.0")
+                .DependsOn("C2", "2.3.0.15")
                 .Execute();
 
             // ASSERT
@@ -308,7 +308,7 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                .DependsFrom(depBuilder)
+                .DependsOn(depBuilder)
                 .Execute();
 
             // ASSERT
@@ -326,9 +326,9 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                .DependsFrom("C1", "1.0")
-                .DependsFrom("C2", "2.0")
-                .DependsFrom(depBuilder)
+                .DependsOn("C1", "1.0")
+                .DependsOn("C2", "2.0")
+                .DependsOn(depBuilder)
                 .Execute();
 
             // ASSERT
@@ -348,9 +348,9 @@ namespace SenseNet.Packaging.Tests
             {
                 // ACTION
                 patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                    .DependsFrom("C1", "1.0")
-                    .DependsFrom("MyComp", "2.0")
-                    .DependsFrom(depBuilder)
+                    .DependsOn("C1", "1.0")
+                    .DependsOn("MyComp", "2.0")
+                    .DependsOn(depBuilder)
                     .Execute();
                 Assert.Fail();
             }
@@ -373,9 +373,9 @@ namespace SenseNet.Packaging.Tests
             {
                 // ACTION
                 patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                    .DependsFrom("C1", "1.0")
-                    .DependsFrom("C2", "2.0")
-                    .DependsFrom(depBuilder)
+                    .DependsOn("C1", "1.0")
+                    .DependsOn("C2", "2.0")
+                    .DependsOn(depBuilder)
                     .Execute();
                 Assert.Fail();
             }
@@ -398,9 +398,9 @@ namespace SenseNet.Packaging.Tests
             {
                 // ACTION
                 patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
-                    .DependsFrom("C1", "1.0")
-                    .DependsFrom("C2", "2.0")
-                    .DependsFrom(depBuilder)
+                    .DependsOn("C1", "1.0")
+                    .DependsOn("C2", "2.0")
+                    .DependsOn(depBuilder)
                     .Execute();
                 Assert.Fail();
             }

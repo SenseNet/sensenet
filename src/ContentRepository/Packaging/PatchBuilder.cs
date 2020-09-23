@@ -146,19 +146,19 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
-        public ItemBuilder DependsFrom(string componentId, string minVersion)
+        public ItemBuilder DependsOn(string componentId, string minVersion)
         {
-            return DependsFrom(componentId, new VersionBoundary
+            return DependsOn(componentId, new VersionBoundary
             {
                 MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
-        public ItemBuilder DependsFrom(string componentId, VersionBoundary boundary)
+        public ItemBuilder DependsOn(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
-        public ItemBuilder DependsFrom(DependencyBuilder builder)
+        public ItemBuilder DependsOn(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             foreach (var dep in builder.Dependencies)
