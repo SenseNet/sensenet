@@ -366,8 +366,12 @@ namespace SenseNet.Packaging
                     Exception executionError = null;
                     try
                     {
-                        using(new SystemAccount())
+                        if(Repository.Started())
+                            using(new SystemAccount())
+                                patch.Action?.Invoke(context);
+                        else
                             patch.Action?.Invoke(context);
+
                         successful = true;
                     }
                     catch (Exception e)
