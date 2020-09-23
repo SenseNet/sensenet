@@ -6,6 +6,7 @@ using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -365,7 +366,8 @@ namespace SenseNet.Packaging
                     Exception executionError = null;
                     try
                     {
-                        patch.Execute?.Invoke(context);
+                        using(new SystemAccount())
+                            patch.Execute?.Invoke(context);
                         successful = true;
                     }
                     catch (Exception e)

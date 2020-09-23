@@ -40,7 +40,7 @@ namespace Gyebi.TheCustomizer
             var dependencies = new DependencyBuilder(builder)
                 .Dependency("SenseNet.Services", "7.7.9");
 
-            builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description")
+            builder.Patch("1.0", "1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
                 .DependsOn(dependencies)
                 .Action(context =>
                 {
@@ -66,22 +66,19 @@ namespace Gyebi.TheCustomizer
                     }
                 });
 
-            builder.Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
+            builder.Install("1.1", "2020-02-10", "My feature Feature1 description")
                 .DependsOn(dependencies)
                 .Action((context) =>
+                {
+                    var folderName = "GyebiTesztel_v1.1";
+                    var content = Content.Load($"/Root/{folderName}");
+                    if (content == null)
                     {
-                        using (new SystemAccount())
-                        {
-                            var folderName = "GyebiTesztel_v1.1";
-                            var content = Content.Load($"/Root/{folderName}");
-                            if (content == null)
-                            {
-                                var parent = Node.LoadNode("/Root");
-                                content = Content.CreateNew("SystemFolder", parent, folderName);
-                                content.Save();
-                            }
-                        }
-                    });
+                        var parent = Node.LoadNode("/Root");
+                        content = Content.CreateNew("SystemFolder", parent, folderName);
+                        content.Save();
+                    }
+                });
         }
     }
 }
