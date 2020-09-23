@@ -144,9 +144,9 @@ namespace SenseNet.Packaging
     }
     internal class ItemBuilder : IPatchInstanceBuilder
     {
-        private readonly ISnPatch _patch;
+        private readonly SnPatchBase _patch;
         private readonly PatchBuilder _patchBuilder;
-        internal ItemBuilder(ISnPatch patch, PatchBuilder patchBuilder)
+        internal ItemBuilder(SnPatchBase patch, PatchBuilder patchBuilder)
         {
             _patch = patch;
             _patchBuilder = patchBuilder;

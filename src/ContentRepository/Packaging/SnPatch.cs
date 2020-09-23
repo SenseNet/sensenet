@@ -10,7 +10,7 @@ namespace SenseNet.Packaging
     public interface ISnPatch
     {
         /// <summary>
-        /// Gets or sets the Id of the package / component.
+        /// Gets the Id of the package / component.
         /// </summary>
         string ComponentId { get; }
         /// <summary>
@@ -18,25 +18,25 @@ namespace SenseNet.Packaging
         /// </summary>
         PackageType Type { get; }
         /// <summary>
-        /// Gets or sets the description of the patch.
+        /// Gets the description of the patch.
         /// </summary>
-        string Description { get; set; }
+        string Description { get; }
         /// <summary>
-        /// Gets or sets the release date of the patch.
+        /// Gets the release date of the patch.
         /// </summary>
-        DateTime ReleaseDate { get; set; }
+        DateTime ReleaseDate { get; }
         /// <summary>
-        /// Gets or sets the version of the patch.
+        /// Gets the version of the patch.
         /// </summary>
-        Version Version { get; set; }
+        Version Version { get; }
         /// <summary>
-        /// Gets or sets a dependency array if there is any. Otherwise null.
+        /// Gets a dependency array if there is any. Otherwise null.
         /// </summary>
-        IEnumerable<Dependency> Dependencies { get; set; }
+        IEnumerable<Dependency> Dependencies { get; }
         /// <summary>
-        /// Gets or sets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed if allowed.
+        /// Gets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed if allowed.
         /// </summary>
-        Action<PatchExecutionContext> Action { get; set; }
+        Action<PatchExecutionContext> Action { get;  }
 
         /* ======================================================== INTERNALS FOR STORAGE */
         /// <summary>
@@ -57,26 +57,22 @@ namespace SenseNet.Packaging
         Exception ExecutionError { get; }
     }
 
-    [DebuggerDisplay("{ToString()}")]
-    public class ComponentInstaller : ISnPatch
+    public abstract class SnPatchBase : ISnPatch
     {
         /// <inheritdoc/>
         public string ComponentId { get; internal set; }
-        /// <summary>
-        /// Gets the type of the patch. In this case PackageType.Install
-        /// </summary>
-        public virtual PackageType Type => PackageType.Install;
         /// <inheritdoc/>
-        public string Description { get; set; }
+        public abstract PackageType Type { get; }
         /// <inheritdoc/>
-        public DateTime ReleaseDate { get; set; }
+        public string Description { get; internal set; }
         /// <inheritdoc/>
-        public Version Version { get; set; }
+        public DateTime ReleaseDate { get; internal set; }
         /// <inheritdoc/>
-        public IEnumerable<Dependency> Dependencies { get; set; }
+        public Version Version { get; internal set; }
         /// <inheritdoc/>
-        public Action<PatchExecutionContext> Action { get; set; }
-
+        public IEnumerable<Dependency> Dependencies { get; internal set; }
+        /// <inheritdoc/>
+        public Action<PatchExecutionContext> Action { get; internal set; }
         /// <inheritdoc/>
         public int Id { get; internal set; }
         /// <inheritdoc/>
@@ -85,6 +81,15 @@ namespace SenseNet.Packaging
         public ExecutionResult ExecutionResult { get; internal set; }
         /// <inheritdoc/>
         public Exception ExecutionError { get; internal set; }
+    }
+
+    [DebuggerDisplay("{ToString()}")]
+    public class ComponentInstaller : SnPatchBase
+    {
+        /// <summary>
+        /// Gets the type of the patch. In this case PackageType.Install
+        /// </summary>
+        public override PackageType Type => PackageType.Install;
 
         public override string ToString()
         {
@@ -99,7 +104,7 @@ namespace SenseNet.Packaging
     /// this patch will be the one defined in the Version property.
     /// </summary>
     [DebuggerDisplay("{ToString()}")]
-    public class SnPatch : ComponentInstaller
+    public class SnPatch : SnPatchBase
     {
         /// <summary>
         /// Gets the type of the patch. In this case PackageType.Patch
@@ -109,21 +114,21 @@ namespace SenseNet.Packaging
         /// <summary>
         /// Gets or sets a version interval that specifies the patch's relevance.
         /// </summary>
-        public VersionBoundary Boundary { get; set; } = new VersionBoundary();
+        public VersionBoundary Boundary { get; internal set; } = new VersionBoundary();
 
         /// <summary>
         /// Gets or sets the Boundary.MinVersion.
         /// This property is deprecated use the Boundary.MinVersion instead.
         /// </summary>
         [Obsolete("Use Boundary.MinVersion instead.")]
-        public Version MinVersion { get => Boundary.MinVersion; set => Boundary.MinVersion = value; }
+        public Version MinVersion { get => Boundary.MinVersion; internal set => Boundary.MinVersion = value; }
 
         /// <summary>
         /// Gets or sets the Boundary.MaxVersion.
         /// This property is deprecated use the Boundary.MaxVersion instead.
         /// </summary>
         [Obsolete("Use Boundary.MinVersion instead.")]
-        public Version MaxVersion { get => Boundary.MaxVersion; set => Boundary.MaxVersion = value; }
+        public Version MaxVersion { get => Boundary.MaxVersion; internal set => Boundary.MaxVersion = value; }
 
         /// <summary>
         /// Gets or sets the Boundary.MinVersionIsExclusive.
@@ -133,7 +138,7 @@ namespace SenseNet.Packaging
         public bool MinVersionIsExclusive
         {
             get => Boundary.MinVersionIsExclusive;
-            set => Boundary.MinVersionIsExclusive = value;
+            internal set => Boundary.MinVersionIsExclusive = value;
         }
 
         /// <summary>
@@ -144,7 +149,7 @@ namespace SenseNet.Packaging
         public bool MaxVersionIsExclusive
         {
             get => Boundary.MaxVersionIsExclusive;
-            set => Boundary.MaxVersionIsExclusive = value;
+            internal set => Boundary.MaxVersionIsExclusive = value;
         }
 
         public override string ToString()
