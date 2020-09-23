@@ -346,37 +346,53 @@ namespace SenseNet.Packaging
 
         private void ExecutePatches(IEnumerable<ISnPatch> patches, PatchExecutionContext context)
         {
-            foreach (var patch in patches)
+            try
             {
-                var manifest = Manifest.Create(patch);
-
-                // Write an "unfinished" record
-                PackageManager.SaveInitialPackage(manifest);
-
-                // Log after save: the execution is in started state when the callback called
-                // so the callback can see the real state in the database.
-                context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
-
-                // PATCH EXECUTION
-                context.CurrentPatch = patch;
-                var successful = false;
-                Exception executionError = null;
-                try
+                foreach (var patch in patches)
                 {
-                    patch.Execute?.Invoke(context);
-                    successful = true;
-                }
-                catch (Exception e)
-                {
-                    executionError = e;
-                }
+                    var manifest = Manifest.Create(patch);
 
-                // Save the execution result
-                PackageManager.SavePackage(manifest, null, successful, executionError);
-                // Log after save: the execution is in completed database state when the callback called.
-                context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished, patch,
-                    $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
+                    // Write an "unfinished" record
+                    PackageManager.SaveInitialPackage(manifest);
 
+                    // Log after save: the execution is in started state when the callback called
+                    // so the callback can see the real state in the database.
+                    context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
+
+                    // PATCH EXECUTION
+                    context.CurrentPatch = patch;
+                    var successful = false;
+                    Exception executionError = null;
+                    try
+                    {
+                        patch.Execute?.Invoke(context);
+                        successful = true;
+                    }
+                    catch (Exception e)
+                    {
+                        executionError = e;
+                    }
+
+                    try
+                    {
+                        // Save the execution result
+                        PackageManager.SavePackage(manifest, null, successful, executionError);
+                        // Log after save: the execution is in completed database state when the callback called.
+                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished,
+                            patch,
+                            $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
+                    }
+                    catch (Exception e)
+                    {
+                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.PackageNotSaved,
+                            patch));
+                        throw new PackagingException("Cannot save the package.", e);
+                    }
+                }
+            }
+            finally
+            {
+                RepositoryVersionInfo.Reset();
             }
         }
 

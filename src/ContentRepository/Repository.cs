@@ -56,7 +56,6 @@ namespace SenseNet.ContentRepository
             var patchingLog = new List<PatchExecutionLogRecord>();
             void WritePatchingLog(PatchExecutionLogRecord record) { patchingLog.Add(record); }
 
-
             // Required early configuration
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
             BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
