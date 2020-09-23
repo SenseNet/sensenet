@@ -73,6 +73,9 @@ namespace SenseNet.Extensions.DependencyInjection
                 .AddHostedService(provider => new RepositoryHostedService(provider, buildRepository, onRepositoryStartedAsync))
                 .AddHostedService<SnMaintenance>();
 
+            // add sn components defined in the content repository layer
+            services.AddRepositoryComponents();
+
             return services;
         }
         
