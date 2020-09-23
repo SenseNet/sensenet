@@ -146,9 +146,9 @@ namespace SenseNet.Packaging
 
         private SnComponentDescriptor[] LoadInstalledComponents()
         {
-            return PackageManager.Storage.LoadInstalledComponentsAsync(CancellationToken.None)
+            return PackageManager.Storage?.LoadInstalledComponentsAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult()
-                .Select(x => new SnComponentDescriptor(x)).ToArray();
+                .Select(x => new SnComponentDescriptor(x)).ToArray() ?? Array.Empty<SnComponentDescriptor>();
         }
 
         public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates,
