@@ -34,7 +34,7 @@ namespace SenseNet.Packaging
             return new VersionBoundary { MinVersion = version.ToVersion() };
         }
 
-        public ItemBuilder Install(string version, string released, string description)
+        public IPatchInstanceBuilder Install(string version, string released, string description)
         {
 
             var patch = new ComponentInstaller
@@ -51,11 +51,11 @@ namespace SenseNet.Packaging
             return new ItemBuilder(patch, this);
         }
 
-        public ItemBuilder Patch(string from, string to, string released, string description)
+        public IPatchInstanceBuilder Patch(string from, string to, string released, string description)
         {
             return Patch(null, from, to, released, description);
         }
-        public ItemBuilder Patch(VersionBoundary from, string to, string released, string description)
+        public IPatchInstanceBuilder Patch(VersionBoundary from, string to, string released, string description)
         {
             return Patch(from, null, to, released, description);
         }
@@ -135,8 +135,14 @@ namespace SenseNet.Packaging
             return text;
         }
     }
-
-    public class ItemBuilder
+    public interface IPatchInstanceBuilder
+    {
+        IPatchInstanceBuilder DependsOn(string componentId, string minVersion);
+        IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary);
+        IPatchInstanceBuilder DependsOn(DependencyBuilder builder);
+        PatchBuilder Execute(Action<PatchExecutionContext> executeAction = null);
+    }
+    internal class ItemBuilder : IPatchInstanceBuilder
     {
         private readonly ISnPatch _patch;
         private readonly PatchBuilder _patchBuilder;
@@ -146,19 +152,19 @@ namespace SenseNet.Packaging
             _patchBuilder = patchBuilder;
         }
 
-        public ItemBuilder DependsOn(string componentId, string minVersion)
+        public IPatchInstanceBuilder DependsOn(string componentId, string minVersion)
         {
             return DependsOn(componentId, new VersionBoundary
             {
                 MinVersion = PatchBuilder.ParseVersion(minVersion, _patch)
             });
         }
-        public ItemBuilder DependsOn(string componentId, VersionBoundary boundary)
+        public IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary)
         {
             AddDependency(new Dependency { Id = componentId, Boundary = boundary });
             return this;
         }
-        public ItemBuilder DependsOn(DependencyBuilder builder)
+        public IPatchInstanceBuilder DependsOn(DependencyBuilder builder)
         {
             var deps = _patch.Dependencies?.ToList() ?? new List<Dependency>();
             foreach (var dep in builder.Dependencies)
