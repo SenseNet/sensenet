@@ -227,17 +227,17 @@ namespace SenseNet.Packaging.Tests
         /// <param name="id">ComponentId</param>
         /// <param name="version">Target version</param>
         /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
-        /// <param name="execute">Function of execution</param>
+        /// <param name="action">Function of execution</param>
         /// <returns></returns>
         protected ComponentInstaller Inst(string id, string version, Dependency[] dependencies,
-            Action<PatchExecutionContext> execute)
+            Action<PatchExecutionContext> action)
         {
             return new ComponentInstaller
             {
                 ComponentId = id,
                 Version = Version.Parse(version.TrimStart('v')),
                 Dependencies = dependencies,
-                Execute = execute
+                Action = action
             };
         }
         /// <summary>
@@ -265,10 +265,10 @@ namespace SenseNet.Packaging.Tests
         /// <param name="version">Target version</param>
         /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
         /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
-        /// <param name="execute">Function of execution</param>
+        /// <param name="action">Function of execution</param>
         /// <returns></returns>
         protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies,
-            Action<PatchExecutionContext> execute)
+            Action<PatchExecutionContext> action)
         {
             return new SnPatch
             {
@@ -276,7 +276,7 @@ namespace SenseNet.Packaging.Tests
                 Version = version == null ? null : Version.Parse(version.TrimStart('v')),
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies,
-                Execute = execute
+                Action = action
             };
         }
         /// <summary>

@@ -193,10 +193,10 @@ namespace SenseNet.Packaging
                     "Duplicated dependency is forbidden: " + _patch);
         }
 
-        public PatchBuilder Action(Action<PatchExecutionContext> executeAction = null)
+        public PatchBuilder Action(Action<PatchExecutionContext> action = null)
         {
-            if (executeAction != null)
-                _patch.Execute = executeAction;
+            if (action != null)
+                _patch.Action = action;
             return _patchBuilder;
         }
     }

@@ -36,7 +36,7 @@ namespace SenseNet.Packaging
         /// <summary>
         /// Gets or sets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed if allowed.
         /// </summary>
-        Action<PatchExecutionContext> Execute { get; set; }
+        Action<PatchExecutionContext> Action { get; set; }
 
         /* ======================================================== INTERNALS FOR STORAGE */
         /// <summary>
@@ -75,7 +75,7 @@ namespace SenseNet.Packaging
         /// <inheritdoc/>
         public IEnumerable<Dependency> Dependencies { get; set; }
         /// <inheritdoc/>
-        public Action<PatchExecutionContext> Execute { get; set; }
+        public Action<PatchExecutionContext> Action { get; set; }
 
         /// <inheritdoc/>
         public int Id { get; internal set; }

@@ -367,7 +367,7 @@ namespace SenseNet.Packaging
                     try
                     {
                         using(new SystemAccount())
-                            patch.Execute?.Invoke(context);
+                            patch.Action?.Invoke(context);
                         successful = true;
                     }
                     catch (Exception e)

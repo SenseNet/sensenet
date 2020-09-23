@@ -30,7 +30,7 @@ namespace SenseNet.Packaging.Tests
             var installer = builder.GetPatches()[0] as ComponentInstaller;
             Assert.IsNotNull(installer);
             Assert.IsNull(installer.Dependencies);
-            Assert.IsNull(installer.Execute);
+            Assert.IsNull(installer.Action);
 
             // MORE TESTS
             // version: "v1.0"
@@ -151,7 +151,7 @@ namespace SenseNet.Packaging.Tests
             var patch = builder.GetPatches()[0] as SnPatch;
             Assert.IsNotNull(patch);
             Assert.IsNull(patch.Dependencies);
-            Assert.IsNull(patch.Execute);
+            Assert.IsNull(patch.Action);
             Assert.AreEqual("1.0", patch.Boundary.MinVersion.ToString());
             Assert.AreEqual("2.0", patch.Boundary.MaxVersion.ToString());
             Assert.IsFalse(patch.Boundary.MinVersionIsExclusive);
