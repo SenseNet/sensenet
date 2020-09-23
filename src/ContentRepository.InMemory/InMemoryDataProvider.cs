@@ -1638,27 +1638,7 @@ namespace SenseNet.ContentRepository.InMemory
             var manifest = Manifest.Create(package, null, true);
             package.Manifest =  manifest.ToXmlString();
 
-var package2 = new Package
-{
-    ComponentId = "Asdf",
-    Description = "Asd f",
-    PackageType = PackageType.Install,
-    ReleaseDate = DateTime.UtcNow,
-    ComponentVersion = new Version(2, 3, 4),
-    ExecutionDate = DateTime.UtcNow,
-    ExecutionResult = ExecutionResult.Successful,
-};
-manifest = Manifest.Create(package2, new []
-{
-    new Dependency
-    {
-        Id = "SenseNet.Services",
-        Boundary = new VersionBoundary { MinVersion=new Version(7, 6) }
-    }, 
-}, true);
-package2.Manifest = manifest.ToXmlString();
-
-            return new[] {package, package2};
+            return new[] {package};
         }
 
         public override Task<IEnumerable<EntityTreeNodeData>> LoadEntityTreeAsync(CancellationToken cancellationToken)
