@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Path",
+      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Type",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,7 +20,7 @@
     "SnWebApplication.Api.InMem.TokenAuth": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Path",
+      "launchUrl": "odata.svc/Root?metadata=no&$select=Id,Name,Type",
       "applicationUrl": "https://localhost:44362",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

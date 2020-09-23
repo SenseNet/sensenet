@@ -293,6 +293,21 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return repositoryBuilder;
         }
+        
+        /// <summary>
+        /// Registers one or more features in the system, represented by component instances.
+        /// Do not use this method directly in your code, it is intended to be used by the system.
+        /// Use the AddComponent extension method for the IServiceCollection api instead.
+        /// </summary>
+        public static IRepositoryBuilder UseComponent(this IRepositoryBuilder repositoryBuilder, params ISnComponent[] components)
+        {
+            foreach (var component in components)
+            {
+                Configuration.Providers.Instance.AddComponent(component);
+            }
+
+            return repositoryBuilder;
+        }
 
         /// <summary>
         /// Set this value to false if your tool does not need Content search and modification features 

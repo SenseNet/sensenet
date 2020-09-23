@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
@@ -15,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.DataModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Packaging;
 using SenseNet.Search.Indexing;
 using BlobStorage = SenseNet.ContentRepository.Storage.Data.BlobStorage;
 using STT = System.Threading.Tasks;
@@ -1634,8 +1634,9 @@ namespace SenseNet.ContentRepository.InMemory
                 ComponentVersion = version,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Successful,
-                Manifest = ""
             };
+            var manifest = Manifest.Create(package, null, true);
+            package.Manifest =  manifest.ToXmlString();
 
             return new[] {package};
         }

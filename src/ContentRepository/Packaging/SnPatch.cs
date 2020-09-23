@@ -1,52 +1,68 @@
 ﻿using System;
-using SenseNet.ContentRepository;
+using System.Diagnostics;
 using SenseNet.ContentRepository.Storage;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
     /// <summary>
-    /// Represents a patch that will be executed only if the current component version
+    /// Represents a patch action that will be executed only if the current component version
     /// is lower than the supported version of the component and it is between the defined 
     /// minimum and maximum version numbers in this patch. The component version after 
     /// this patch will be the one defined in the Version property.
     /// </summary>
-    public class SnPatch
+    [DebuggerDisplay("{ToString()}")]
+    public class SnPatch : SnPatchBase
     {
         /// <summary>
-        /// Patch target version.
+        /// Gets the type of the patch. In this case PackageType.Patch
         /// </summary>
-        public Version Version { get; set; }
-        public Version MinVersion { get; set; }
-        public Version MaxVersion { get; set; }
+        public override PackageType Type => PackageType.Patch;
 
         /// <summary>
-        /// If set to true, the patch will not be executed if the current
-        /// component version is the same as the minimum version defined
-        /// in this patch.
+        /// Gets or sets a version interval that specifies the patch's relevance.
         /// </summary>
-        public bool MinVersionIsExclusive { get; set; }
-        /// <summary>
-        /// If set to true, the patch will not be executed if the current
-        /// component version is the same as the maximum version defined
-        /// in this patch.
-        /// </summary>
-        public bool MaxVersionIsExclusive { get; set; }
-
-        //TODO: add more patch definition options (resource, code, Manifest object)
+        public VersionBoundary Boundary { get; internal set; } = new VersionBoundary();
 
         /// <summary>
-        /// Patch definition in a manifest xml format.
+        /// Gets or sets the Boundary.MinVersion.
+        /// This property is deprecated use the Boundary.MinVersion instead.
         /// </summary>
-        public string Contents { get; set; }
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MinVersion { get => Boundary.MinVersion; internal set => Boundary.MinVersion = value; }
 
         /// <summary>
-        /// Patch definition in the form of code.
+        /// Gets or sets the Boundary.MaxVersion.
+        /// This property is deprecated use the Boundary.MaxVersion instead.
         /// </summary>
-        public Func<PatchContext, ExecutionResult> Execute;
-    }
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public Version MaxVersion { get => Boundary.MaxVersion; internal set => Boundary.MaxVersion = value; }
 
-    public class PatchContext
-    {
-        public RepositoryStartSettings Settings { get; set; }
+        /// <summary>
+        /// Gets or sets the Boundary.MinVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MinVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MinVersion instead.")]
+        public bool MinVersionIsExclusive
+        {
+            get => Boundary.MinVersionIsExclusive;
+            internal set => Boundary.MinVersionIsExclusive = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the Boundary.MaxVersionIsExclusive.
+        /// This property is deprecated use the Boundary.MaxVersionIsExclusive instead.
+        /// </summary>
+        [Obsolete("Use Boundary.MaxVersionIsExclusive instead.")]
+        public bool MaxVersionIsExclusive
+        {
+            get => Boundary.MaxVersionIsExclusive;
+            internal set => Boundary.MaxVersionIsExclusive = value;
+        }
+
+        public override string ToString()
+        {
+            return $"{ComponentId}: {Boundary} --> {Version}";
+        }
     }
 }

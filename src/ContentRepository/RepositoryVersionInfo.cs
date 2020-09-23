@@ -5,7 +5,6 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using SenseNet.Communication.Messaging;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging;
@@ -25,7 +24,7 @@ namespace SenseNet.ContentRepository
     }
     public class RepositoryVersionInfo
     {
-        public IEnumerable<ComponentInfo> Components { get; private set; }
+        public IEnumerable<SnComponentDescriptor> Components { get; private set; }
         public AssemblyDetails Assemblies { get; private set; }
         public IEnumerable<Package> InstalledPackages{ get; private set;}
         public bool DatabaseAvailable { get; private set; }
@@ -34,7 +33,7 @@ namespace SenseNet.ContentRepository
 
         private static readonly RepositoryVersionInfo BeforeInstall = new RepositoryVersionInfo
         {
-            Components = new ComponentInfo[0],
+            Components = new SnComponentDescriptor[0],
             InstalledPackages = new Package[0],
             Assemblies = new AssemblyDetails
             {
@@ -62,7 +61,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(CancellationToken cancellationToken)
+        internal static RepositoryVersionInfo Create(CancellationToken cancellationToken)
         {
             var storage = PackageManager.Storage;
             try
@@ -79,7 +78,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> componentVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
+        internal static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> componentVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
         {
             var asms = TypeHandler.GetAssemblyInfo();
 
@@ -97,9 +96,16 @@ namespace SenseNet.ContentRepository
             var asmSn = asmInBin.Where(a => a.Name.StartsWith("SenseNet.")).ToArray();
             var plugins = asmInBin.Except(asmSn).ToArray();
 
+            var components = componentVersions.Select(c => new SnComponentDescriptor(c)).ToArray();
+
+            var pkgArray = packages?.ToArray();
+            if(pkgArray != null)
+                foreach (var package in pkgArray)
+                    package.Manifest = null;
+
             return new RepositoryVersionInfo
             {
-                Components = componentVersions,
+                Components = components,
                 Assemblies = new AssemblyDetails
                 {
                     SenseNet = asmSn,
@@ -108,7 +114,7 @@ namespace SenseNet.ContentRepository
                     Other = asms,
                     Dynamic = asmDyn,
                 },
-                InstalledPackages = packages,
+                InstalledPackages = pkgArray,
                 DatabaseAvailable = databaseAvailable
             };
         }

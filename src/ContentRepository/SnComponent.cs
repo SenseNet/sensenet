@@ -20,6 +20,10 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        public SnPatch[] Patches { get; } = new SnPatch[0];
+        /// <inheritdoc />
+        public virtual void AddPatches(PatchBuilder builder)
+        {
+            // do nothing
+        }
     }
 }

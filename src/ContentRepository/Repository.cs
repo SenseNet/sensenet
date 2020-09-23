@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Storage;
@@ -12,26 +13,6 @@ namespace SenseNet.ContentRepository
 {
     public static class Repository
     {
-        /// <summary>
-        /// Executes the default boot sequence of the Repository.
-        /// </summary>
-        /// <example>
-        /// Use the following code in your tool or other outer application:
-        /// <code>
-        /// using (Repository.Start())
-        /// {
-        ///     // your code
-        /// }
-        /// </code>
-        /// </example>
-        /// <remarks>
-        /// Repository will be stopped if the returned <see cref="RepositoryStartSettings"/> instance is disposed.
-        /// </remarks>
-        /// <returns>A new IDisposable <see cref="RepositoryInstance"/> instance.</returns>
-        public static RepositoryInstance Start()
-        {
-            return Start(RepositoryStartSettings.Default);
-        }
         /// <summary>
         /// Executes the boot sequence of the Repository by the passed <see cref="RepositoryStartSettings"/>.
         /// </summary>
@@ -72,8 +53,8 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            if (builder == null)
-                return Start();
+            var patchingLog = new List<PatchExecutionLogRecord>();
+            void WritePatchingLog(PatchExecutionLogRecord record) { patchingLog.Add(record); }
 
             // Required early configuration
             BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
@@ -84,11 +65,16 @@ namespace SenseNet.ContentRepository
                 DataStore.InstallInitialDataAsync(initialData, CancellationToken.None)
                     .GetAwaiter().GetResult();
 
+            var patchManager = new PatchManager(builder, WritePatchingLog);
+            patchManager.ExecutePatchesBeforeStart();
+
             var repositoryInstance = Start((RepositoryStartSettings) builder);
 
             var permissions = initialData?.Permissions;
             if (permissions != null && permissions.Count > 0)
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
+
+            patchManager.ExecutePatchesAfterStart();
 
             return repositoryInstance;
         }
@@ -126,7 +112,6 @@ namespace SenseNet.ContentRepository
         ///     {
         ///       "ComponentId": "SenseNet.Services",
         ///       "Version": "7.7.13.4",
-        ///       "AcceptableVersion": "7.7.13.4",
         ///       "Description": "sensenet Services"
         ///     }
         ///   ],

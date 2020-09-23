@@ -472,5 +472,14 @@ namespace SenseNet.Configuration
 
             return provider;
         }
+
+        /* =================================================================================== COMPONENTS FOR PATCHES */
+        /* =================================================================================== Experimental feature   */
+
+        public List<object> Components { get; } = new List<object>();
+        public void AddComponent(object instance)
+        {
+            Components.Add(instance);
+        }
     }
 }

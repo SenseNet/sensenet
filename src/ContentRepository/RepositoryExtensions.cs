@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Preview;
 
@@ -21,6 +23,19 @@ namespace SenseNet.Extensions.DependencyInjection
         public static IServiceCollection AddSenseNetDocumentPreviewProvider<T>(this IServiceCollection services) where T : DocumentPreviewProvider
         {
             return services.AddSingleton<IPreviewProvider, T>();
+        }
+
+        /// <summary>
+        /// Adds an <see cref="ISnComponent"/> to the service collection so that the system can
+        /// collect components and their patches during repository start.
+        /// </summary>
+        public static IServiceCollection AddComponent(this IServiceCollection services, 
+            Func<IServiceProvider, ISnComponent> createComponent)
+        {
+            // register this as transient so that no singleton instances remain in memory after creating them once
+            services.AddTransient(createComponent);
+
+            return services;
         }
     }
 }
