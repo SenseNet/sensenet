@@ -29,6 +29,7 @@ namespace SenseNet.Packaging.Tools
         IFieldEditor Compulsory(bool value = true);
         IFieldEditor ControlHint(string value);
         IFieldEditor Configure(string key, string value);
+        IFieldEditor Field(string name);
     }
     #endregion
 
@@ -170,9 +171,17 @@ namespace SenseNet.Packaging.Tools
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
 
+            if (Configuration.FieldSpecific == null)
+                Configuration.FieldSpecific = new Dictionary<string, object>();
+
             Configuration.FieldSpecific[key] = value;
             ConfigurationChanged = true;
             return this;
+        }
+
+        public IFieldEditor Field(string name)
+        {
+            return _ctdBuilder.Field(name);
         }
     }
 
@@ -257,10 +266,43 @@ namespace SenseNet.Packaging.Tools
                 var configNode = LoadOrAddChild(fieldElement, ConfigurationName, false);
 
                 SetProperty(configNode, "DefaultValue", fieldEditor.Configuration.DefaultValue);
-                //SetProperty(configNode, "VisibleBrowse", fieldEditor.Configuration.VisibleBrowse);
+                SetProperty(configNode, "ControlHint", fieldEditor.Configuration.ControlHint);
+                SetIntProperty(configNode, "FieldIndex", fieldEditor.Configuration.FieldIndex);
+                SetBoolProperty(configNode, "ReadOnly", fieldEditor.Configuration.ReadOnly);
+                SetBoolProperty(configNode, "Compulsory", fieldEditor.Configuration.Compulsory);
+
+                SetVisibility(configNode, "VisibleBrowse", fieldEditor.Configuration.VisibleBrowse);
+                SetVisibility(configNode, "VisibleEdit", fieldEditor.Configuration.VisibleEdit);
+                SetVisibility(configNode, "VisibleNew", fieldEditor.Configuration.VisibleNew);
+
+                if (fieldEditor.Configuration.FieldSpecific != null)
+                {
+                    foreach (var kv in fieldEditor.Configuration.FieldSpecific)
+                    {
+                        SetProperty(configNode, kv.Key, kv.Value?.ToString() ?? string.Empty);
+                    }
+                }
             }
 
-            void SetProperty(XmlNode parentNode, string propertyName, string value)
+            static void SetVisibility(XmlNode parentNode, string propertyName, FieldVisibility? visibility)
+            {
+                if (!visibility.HasValue)
+                    return;
+                SetProperty(parentNode, propertyName, visibility.Value.ToString());
+            }
+            static void SetIntProperty(XmlNode parentNode, string propertyName, int? value)
+            {
+                if (!value.HasValue)
+                    return;
+                SetProperty(parentNode, propertyName, value.Value.ToString());
+            }
+            static void SetBoolProperty(XmlNode parentNode, string propertyName, bool? value)
+            {
+                if (!value.HasValue)
+                    return;
+                SetProperty(parentNode, propertyName, value.Value.ToString());
+            }
+            static void SetProperty(XmlNode parentNode, string propertyName, string value)
             {
                 if (value == null)
                     return;
