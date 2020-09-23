@@ -79,7 +79,6 @@
         <VisibleBrowse>Show</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Show</VisibleNew>
-        <Compulsory>true</Compulsory>
       </Configuration>
     </Field>
     <Field name="FullName" type="ShortText">
