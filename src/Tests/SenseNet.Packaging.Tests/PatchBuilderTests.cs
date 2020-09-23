@@ -23,7 +23,7 @@ namespace SenseNet.Packaging.Tests
             var builder = new PatchBuilder(new TestComponent());
 
             // ACTION
-            builder.Install("1.0", "2020-10-20", "MyComp desc").Execute();
+            builder.Install("1.0", "2020-10-20", "MyComp desc").Action();
 
             // ASSERT
             Assert.AreEqual("MyComp: 1.0", PatchesToString(builder));
@@ -35,11 +35,11 @@ namespace SenseNet.Packaging.Tests
             // MORE TESTS
             // version: "v1.0"
             builder = new PatchBuilder(new TestComponent());
-            builder.Install("v1.0", "2020-10-20", "MyComp desc").Execute();
+            builder.Install("v1.0", "2020-10-20", "MyComp desc").Action();
             Assert.AreEqual("MyComp: 1.0", PatchesToString(builder));
             // version: "V1.0"
             builder = new PatchBuilder(new TestComponent());
-            builder.Install("V1.0", "2020-10-20", "MyComp desc").Execute();
+            builder.Install("V1.0", "2020-10-20", "MyComp desc").Action();
             Assert.AreEqual("MyComp: 1.0", PatchesToString(builder));
         }
         [TestMethod]
@@ -144,7 +144,7 @@ namespace SenseNet.Packaging.Tests
             var builder = new PatchBuilder(new TestComponent());
 
             // ACTION
-            builder.Patch("1.0", "2.0", "2020-10-20", "desc").Execute();
+            builder.Patch("1.0", "2.0", "2020-10-20", "desc").Action();
 
             // ASSERT
             Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", PatchesToString(builder));
@@ -160,11 +160,11 @@ namespace SenseNet.Packaging.Tests
             // MORE TESTS
             // versions: "v2.0"
             builder = new PatchBuilder(new TestComponent());
-            builder.Patch("v1.0", "v2.0", "2020-10-20", "desc").Execute();
+            builder.Patch("v1.0", "v2.0", "2020-10-20", "desc").Action();
             Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", PatchesToString(builder));
             // versions: "V2.0"
             builder = new PatchBuilder(new TestComponent());
-            builder.Patch("V1.0", "V2.0", "2020-10-20", "desc").Execute();
+            builder.Patch("V1.0", "V2.0", "2020-10-20", "desc").Action();
             Assert.AreEqual("MyComp: 1.0 <= v < 2.0 --> 2.0", PatchesToString(builder));
         }
         [TestMethod]
@@ -291,7 +291,7 @@ namespace SenseNet.Packaging.Tests
             builder.Patch("1.0", "2.0", "2020-10-20", "desc")
                 .DependsOn("C1", "1.0")
                 .DependsOn("C2", "2.3.0.15")
-                .Execute();
+                .Action();
 
             // ASSERT
             var patch = builder.GetPatches()[0] as SnPatch;
@@ -309,7 +309,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             patchBuilder.Patch("1.0", "2.0", "2020-10-20", "desc")
                 .DependsOn(depBuilder)
-                .Execute();
+                .Action();
 
             // ASSERT
             var patch = patchBuilder.GetPatches()[0] as SnPatch;
@@ -329,7 +329,7 @@ namespace SenseNet.Packaging.Tests
                 .DependsOn("C1", "1.0")
                 .DependsOn("C2", "2.0")
                 .DependsOn(depBuilder)
-                .Execute();
+                .Action();
 
             // ASSERT
             var patch = patchBuilder.GetPatches()[0] as SnPatch;
@@ -351,7 +351,7 @@ namespace SenseNet.Packaging.Tests
                     .DependsOn("C1", "1.0")
                     .DependsOn("MyComp", "2.0")
                     .DependsOn(depBuilder)
-                    .Execute();
+                    .Action();
                 Assert.Fail();
             }
             catch (InvalidPatchException e)
@@ -376,7 +376,7 @@ namespace SenseNet.Packaging.Tests
                     .DependsOn("C1", "1.0")
                     .DependsOn("C2", "2.0")
                     .DependsOn(depBuilder)
-                    .Execute();
+                    .Action();
                 Assert.Fail();
             }
             catch (InvalidPatchException e)
@@ -401,7 +401,7 @@ namespace SenseNet.Packaging.Tests
                     .DependsOn("C1", "1.0")
                     .DependsOn("C2", "2.0")
                     .DependsOn(depBuilder)
-                    .Execute();
+                    .Action();
                 Assert.Fail();
             }
             catch (InvalidPatchException e)
@@ -421,9 +421,9 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             builder
-                .Install("1.0", "2020-10-20", "desc").Execute()
-                .Patch("1.0", "2.0", "2020-10-20", "desc").Execute()
-                .Patch("2.0", "3.0", "2020-10-21", "desc").Execute();
+                .Install("1.0", "2020-10-20", "desc").Action()
+                .Patch("1.0", "2.0", "2020-10-20", "desc").Action()
+                .Patch("2.0", "3.0", "2020-10-21", "desc").Action();
 
             // ASSERT
             Assert.AreEqual("MyComp: 1.0 | MyComp: 1.0 <= v < 2.0 --> 2.0 | MyComp: 2.0 <= v < 3.0 --> 3.0",
@@ -436,9 +436,9 @@ namespace SenseNet.Packaging.Tests
 
             // ACTION
             builder
-                .Patch("1.0", "2.0", "2020-10-20", "desc").Execute()
-                .Patch("2.0", "3.0", "2020-10-21", "desc").Execute()
-                .Install("3.0", "2020-10-20", "desc").Execute();
+                .Patch("1.0", "2.0", "2020-10-20", "desc").Action()
+                .Patch("2.0", "3.0", "2020-10-21", "desc").Action()
+                .Install("3.0", "2020-10-20", "desc").Action();
 
             // ASSERT
             //                       MyComp: 1.0 <= v < 2.0 --> 2.0

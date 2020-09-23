@@ -42,7 +42,7 @@ namespace Gyebi.TheCustomizer
 
             builder.Patch("1.0", "1.1", "2020-02-10", "My feature Feature1 description")
                 .DependsOn(dependencies)
-                .Execute(context =>
+                .Action(context =>
                 {
                     using (new SystemAccount())
                     {
@@ -68,7 +68,7 @@ namespace Gyebi.TheCustomizer
 
             builder.Install("1.1", "2020-02-10", "Feature1's PATCH to v1.1 description")
                 .DependsOn(dependencies)
-                .Execute((context) =>
+                .Action((context) =>
                     {
                         using (new SystemAccount())
                         {
