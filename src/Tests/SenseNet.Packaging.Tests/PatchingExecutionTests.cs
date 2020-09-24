@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -311,9 +308,7 @@ namespace SenseNet.Packaging.Tests
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
-            Assert.AreEqual("CannotInstall C2: 1.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
-            Assert.AreEqual(PatchExecutionErrorType.CannotInstall, context.Errors[0].ErrorType);
+            Assert.AreEqual("CannotInstall C2: 1.0", ErrorsToString(context));
             Assert.AreEqual(patches[0], context.Errors[0].FaultyPatch);
             Assert.AreEqual("C1v1.0", ComponentsToString(after));
             Assert.AreEqual("C1i1.0", PatchesToString(executables));
@@ -382,11 +377,7 @@ namespace SenseNet.Packaging.Tests
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
-            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
-            var error = context.Errors[0];
-            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
-            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
             Assert.AreEqual("C1v2.0", ComponentsToString(after));
             Assert.AreEqual("C1i1.0 C1p2.0", PatchesToString(executables));
         }
@@ -410,11 +401,7 @@ namespace SenseNet.Packaging.Tests
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
-            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
-            var error = context.Errors[0];
-            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
-            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
             Assert.AreEqual("C1v2.0", ComponentsToString(after));
             Assert.AreEqual("C1p2.0", PatchesToString(executables));
         }
@@ -438,11 +425,7 @@ namespace SenseNet.Packaging.Tests
             var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
 
             // ASSERT
-            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
-            var error = context.Errors[0];
-            Assert.AreEqual(PatchExecutionErrorType.MissingVersion, error.ErrorType);
-            Assert.AreEqual("C1: 3.0 <= v < 4.0 --> 4.0", error.FaultyPatch.ToString());
+            Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
             Assert.AreEqual("C1v2.0", ComponentsToString(after));
             Assert.AreEqual("", PatchesToString(executables));
         }
@@ -485,18 +468,12 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                //Patch("C1", "1.0 <= v < 2.0", "v2.0", null, 
-                //    ctx => ExecutionResult.Successful),
-                Inst("C1", "v1.0", null, 
-                    ctx => { Execute(ctx.CurrentPatch); }),
+                Inst("C1", "v1.0", null, Execute),
             };
 
             // ACTION
@@ -525,16 +502,10 @@ namespace SenseNet.Packaging.Tests
                 log.Add(record);
             }
 
-            var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
-
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null, context => { throw new Exception("Err"); }),
+                Inst("C1", "v1.0", null, Error),
             };
 
             // ACTION
@@ -543,10 +514,8 @@ namespace SenseNet.Packaging.Tests
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
-            Assert.AreEqual("ErrorInExecution C1: 1.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
+            Assert.AreEqual("ErrorInExecution C1: 1.0", ErrorsToString(context));
             Assert.AreEqual(2, log.Count);
-            Assert.AreEqual("", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
             Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
@@ -564,18 +533,13 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
-                Inst("C1", "v1.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
+                Inst("C1", "v1.0", null, Execute),
             };
 
             // ACTION
@@ -609,18 +573,13 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
-                    ctx => { throw new Exception("Error inda patch."); }),
-                Inst("C1", "v1.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", null, Error),
+                Inst("C1", "v1.0", null, Execute),
             };
 
             // ACTION
@@ -629,8 +588,7 @@ namespace SenseNet.Packaging.Tests
             pm.ExecuteRelevantPatches(patches, installed, context);
 
             // ASSERT
-            Assert.AreEqual("ErrorInExecution C1: 1.0 <= v < 2.0 --> 2.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
+            Assert.AreEqual("ErrorInExecution C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(context));
             Assert.AreEqual(4, log.Count);
             Assert.AreEqual("C1i1.0", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
@@ -656,15 +614,12 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var patches = new ISnPatch[]
             {
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Inst("C1", "v1.0", null, ctx => { throw new Exception("Err"); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
+                Inst("C1", "v1.0", null, Error),
             };
 
             // ACTION
@@ -674,7 +629,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0, MissingVersion C1: 1.0 <= v < 2.0 --> 2.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
+                ErrorsToString(context));
             Assert.AreEqual(2, log.Count);
             Assert.AreEqual("", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
@@ -696,16 +651,13 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { throw new Exception("Err"); }),
-                Inst("C1", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", Execute),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", Error),
+                Inst("C1", "v1.0", null, Execute),
             };
 
             // ACTION
@@ -741,25 +693,22 @@ namespace SenseNet.Packaging.Tests
             }
 
             var executed = new List<ISnPatch>();
-            void Execute(ISnPatch patch)
-            {
-                executed.Add(patch);
-            }
+            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
 
             var patches = new ISnPatch[]
             {
                 // Problem in the installer
-                Patch("C1", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Inst("C1", "v1.0", null, ctx => { throw new Exception("Err"); }),
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", Execute),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
+                Inst("C1", "v1.0", null, Error),
                 // Problem in a middle patch
-                Patch("C2", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Patch("C2", "1.0 <= v < 2.0", "v2.0", ctx => { throw new Exception("Err"); }),
-                Inst("C2", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C2", "2.0 <= v < 3.0", "v3.0", Execute),
+                Patch("C2", "1.0 <= v < 2.0", "v2.0", Error),
+                Inst("C2", "v1.0", null, Execute),
                 // There is no problem
-                Patch("C3", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Patch("C3", "1.0 <= v < 2.0", "v2.0", ctx => { Execute(ctx.CurrentPatch); }),
-                Inst("C3", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C3", "2.0 <= v < 3.0", "v3.0", Execute),
+                Patch("C3", "1.0 <= v < 2.0", "v2.0", Execute),
+                Inst("C3", "v1.0", null, Execute),
             };
 
             // ACTION
@@ -768,15 +717,13 @@ namespace SenseNet.Packaging.Tests
             pm.ExecuteRelevantPatches(patches, context);
 
             // ASSERT
-            Assert.AreEqual(7, context.Errors.Count);
+            Assert.AreEqual(5, context.Errors.Count);
             Assert.AreEqual("ErrorInExecution C1: 1.0, " +
                             "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0, " +
                             "MissingVersion C1: 2.0 <= v < 3.0 --> 3.0, " +
                             "ErrorInExecution C2: 1.0 <= v < 2.0 --> 2.0, " +
-                            "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0, " +
-                            "MissingVersion C1: 2.0 <= v < 3.0 --> 3.0, " +
                             "MissingVersion C2: 2.0 <= v < 3.0 --> 3.0",
-                string.Join(", ", context.Errors.Select(x => x.ToString())));
+                ErrorsToString(context));
 
             Assert.AreEqual("C2i1.0 C3i1.0 C3p2.0 C3p3.0", PatchesToString(executed.ToArray()));
             Assert.AreEqual(12, log.Count);
@@ -793,36 +740,6 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionStart.", log[10].ToString());
             Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionFinished. Successful", log[11].ToString());
             Assert.AreEqual(12, packages.Count);
-            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[1]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Unfinished, 1.0", PackagesToString(packages[2]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0", PackagesToString(packages[3]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Unfinished, 1.0", PackagesToString(packages[4]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Successful, 1.0", PackagesToString(packages[5]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Successful, 1.0|" +
-                            "4, C2: Patch Unfinished, 2.0", PackagesToString(packages[6]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Successful, 1.0|" +
-                            "4, C2: Patch Faulty, 2.0", PackagesToString(packages[7]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Successful, 1.0|" +
-                            "4, C2: Patch Faulty, 2.0|" +
-                            "5, C3: Patch Unfinished, 2.0", PackagesToString(packages[8]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
-                            "2, C2: Install Successful, 1.0|" +
-                            "3, C3: Install Successful, 1.0|" +
-                            "4, C2: Patch Faulty, 2.0|" +
-                            "5, C3: Patch Successful, 2.0", PackagesToString(packages[9]));
             Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
                             "2, C2: Install Successful, 1.0|" +
                             "3, C3: Install Successful, 1.0|" +
@@ -837,5 +754,13 @@ namespace SenseNet.Packaging.Tests
                             "6, C3: Patch Successful, 3.0", PackagesToString(packages[11]));
         }
 
+        /* ======================================================== Tools */
+
+        private void Error(PatchExecutionContext context) => throw new Exception("Err");
+
+        private string ErrorsToString(PatchExecutionContext context)
+        {
+            return string.Join(", ", context.Errors.Select(x => x.ToString()));
+        }
     }
 }

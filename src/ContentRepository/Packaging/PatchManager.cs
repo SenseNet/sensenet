@@ -142,11 +142,19 @@ namespace SenseNet.Packaging
 
                 if (faulty == null)
                     break;
-                patchesToExec.Remove(faulty);
+
+                RemoveNotExecutables(context, patchesToExec);
                 if (patchesToExec.Count == 0)
                     break;
             }
 
+        }
+
+        private void RemoveNotExecutables(PatchExecutionContext context, List<ISnPatch> patchesToExec)
+        {
+            var patches = context.Errors.SelectMany(x => x.FaultyPatches);
+            foreach (var patch in patches)
+                patchesToExec.Remove(patch);
         }
 
         internal ISnPatch ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates, 
@@ -260,13 +268,8 @@ namespace SenseNet.Packaging
             if (inputList.Count > 0)
             {
                 context.Errors.AddRange(inputList
-                    //.Select(patch => RecognizeDiscoveryProblem(patch, installedComponents))
                     .Select(patch => RecognizeDiscoveryProblem(patch, installed))
                     .ToArray());
-
-                //// Any installation is skipped.
-                //componentsAfter = installedComponents.ToArray();
-                //return new ISnPatch[0];
             }
 
             componentsAfter = installed.ToArray();
