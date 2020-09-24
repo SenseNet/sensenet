@@ -276,7 +276,9 @@ namespace SenseNet.Packaging.Tools
                 $"<value>{resourceValue}</value>");
 
             // set the value to be sure it has changed
-            dataElement.FirstChild.InnerXml = resourceValue;
+            var valueNode = dataElement.SelectSingleNode("value");
+            if (valueNode != null)
+                valueNode.InnerXml = resourceValue;
         }
         #endregion
     }

@@ -37,5 +37,12 @@ namespace SenseNet.Extensions.DependencyInjection
 
             return services;
         }
+
+        public static IServiceCollection AddRepositoryComponents(this IServiceCollection services)
+        {
+            services.AddComponent(provider => new ServicesComponent());
+
+            return services;
+        }
     }
 }
