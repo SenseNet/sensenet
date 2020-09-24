@@ -235,8 +235,9 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 AssertNoError(response);
-                Assert.AreEqual(0, response.Result.Length);
-                Assert.AreEqual(204, response.StatusCode); // 204 No Content
+                var entity = GetEntity(response);
+                Assert.AreEqual(content.Id, entity.Id);
+                Assert.AreEqual(200, response.StatusCode);
             }).ConfigureAwait(false);
         }
 
@@ -251,6 +252,7 @@ namespace SenseNet.ODataTests
                 content.Save();
                 var folderPath = ODataMiddleware.GetEntityUrl(content.Path);
                 var folderRepoPath = content.Path;
+                var folderId = content.Id;
                 content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var carRepoPath = content.Path;
@@ -265,11 +267,12 @@ namespace SenseNet.ODataTests
 
                 // ASSERT
                 AssertNoError(response);
-                Assert.AreEqual(0, response.Result.Length);
-                Assert.AreEqual(204, response.StatusCode);
+                var entity = GetEntity(response);
+                Assert.AreEqual(folderId, entity.Id);
+                Assert.AreEqual(200, response.StatusCode);
+
                 var folder = Node.LoadNode(folderRepoPath);
                 var car = Node.LoadNode(carRepoPath);
-
                 Assert.IsTrue(folder.Security.HasPermission(User.Visitor as IUser, PermissionType.OpenMinor));
                 Assert.IsFalse(car.Security.HasPermission(User.Visitor as IUser, PermissionType.OpenMinor));
             }).ConfigureAwait(false);
@@ -295,8 +298,9 @@ namespace SenseNet.ODataTests
 
                 // ASSERT 1: Not inherited
                 AssertNoError(response);
-                Assert.AreEqual(0, response.Result.Length);
-                Assert.AreEqual(204, response.StatusCode);
+                var entity = GetEntity(response);
+                Assert.AreEqual(content.Id, entity.Id);
+                Assert.AreEqual(200, response.StatusCode);
                 var node = Node.LoadNode(content.Id);
                 Assert.IsFalse(node.Security.IsInherited);
 
@@ -308,8 +312,10 @@ namespace SenseNet.ODataTests
                     .ConfigureAwait(false);
 
                 // ASSERT 2: Inherited
-                Assert.AreEqual(0, response.Result.Length);
-                Assert.AreEqual(204, response.StatusCode);
+                AssertNoError(response);
+                entity = GetEntity(response);
+                Assert.AreEqual(content.Id, entity.Id);
+                Assert.AreEqual(200, response.StatusCode);
                 node = Node.LoadNode(content.Id);
                 Assert.IsTrue(node.Security.IsInherited);
             }).ConfigureAwait(false);
