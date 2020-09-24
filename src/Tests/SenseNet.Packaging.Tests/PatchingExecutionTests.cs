@@ -640,8 +640,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[3]));
         }
-        //UNDONE:PATCH: Activate and fix test: PatchingExec_SkipPatch_FaultyInstaller
-        /*[TestMethod]*/
+        [TestMethod]
         public void PatchingExec_SkipPatch_FaultyInstaller()
         {
             // Faulty execution blocks the following patches on the same component.
@@ -662,10 +661,8 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
-                Inst("C1", "v1.0", null,
-                    ctx => { throw new Exception("Error inda patch."); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Inst("C1", "v1.0", null, ctx => { throw new Exception("Err"); }),
             };
 
             // ACTION
@@ -687,8 +684,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
         }
-        //UNDONE:PATCH: Activate and fix test: PatchingExec_SkipPatch_FaultySnPatch
-        /*[TestMethod]*/
+        [TestMethod]
         public void PatchingExec_SkipPatch_FaultySnPatch()
         {
             // Faulty execution blocks the following patches on the same component.
@@ -709,12 +705,63 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v < 3.0", "v3.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", null,
-                    ctx => { throw new Exception("Error inda patch."); }),
-                Inst("C1", "v1.0", null,
-                    ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { throw new Exception("Err"); }),
+                Inst("C1", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
+            };
+
+            // ACTION
+            var context = new PatchExecutionContext(null, LogMessage);
+            var pm = new PatchManager(context);
+            pm.ExecuteRelevantPatches(patches, installed, context);
+
+            // ASSERT
+            Assert.AreEqual(0, context.Errors.Length);
+            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual("", PatchesToString(executed.ToArray()));
+            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
+        }
+        [TestMethod]
+        public void PatchingExec_SkipPatch_MoreFaultyChains()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void LogMessage(PatchExecutionLogRecord record)
+            {
+                packages.Add(LoadPackages());
+                log.Add(record);
+            }
+
+            var executed = new List<ISnPatch>();
+            void Execute(ISnPatch patch)
+            {
+                executed.Add(patch);
+            }
+
+            var installed = new SnComponentDescriptor[0];
+            var patches = new ISnPatch[]
+            {
+                // Problem in the installer
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Inst("C1", "v1.0", null, ctx => { throw new Exception("Err"); }),
+                // Problem in a middle patch
+                Patch("C2", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C2", "1.0 <= v < 2.0", "v2.0", ctx => { throw new Exception("Err"); }),
+                Inst("C2", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
+                // There is no problem
+                Patch("C3", "2.0 <= v < 3.0", "v3.0", ctx => { Execute(ctx.CurrentPatch); }),
+                Patch("C3", "1.0 <= v < 2.0", "v2.0", ctx => { throw new Exception("Err"); }),
+                Inst("C3", "v1.0", null, ctx => { Execute(ctx.CurrentPatch); }),
             };
 
             // ACTION

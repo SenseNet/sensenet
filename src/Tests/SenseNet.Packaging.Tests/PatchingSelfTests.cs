@@ -61,7 +61,7 @@ namespace SenseNet.Packaging.Tests
         public void Patching_SelfTest_CreatePatch()
         {
             // "C1: 1.0 <= v < 1.0, v1.2"
-            var patch = Patch("C1", "1.0 <= v < 1.0", "v1.2", null);
+            var patch = Patch("C1", "1.0 <= v < 1.0", "v1.2");
 
             Assert.AreEqual("C1", patch.ComponentId);
             Assert.AreEqual(Version.Parse("1.2"), patch.Version);
