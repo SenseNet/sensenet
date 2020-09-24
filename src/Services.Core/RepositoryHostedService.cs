@@ -49,6 +49,7 @@ namespace SenseNet.Services.Core
                 .UseComponent(components)
                 .UseAccessProvider(new UserAccessProvider())
                 .UseDataProvider(new MsSqlDataProvider())
+                .UsePackagingDataProviderExtension(new MsSqlPackagingDataProvider())
                 .StartWorkflowEngine(false)
                 .UseTraceCategories("Event", "Custom", "System", "Security") as RepositoryBuilder;
 
