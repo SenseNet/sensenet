@@ -1,12 +1,14 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
     public enum PatchExecutionErrorType
     {
-        DuplicatedInstaller, CannotInstall, MissingVersion
+        DuplicatedInstaller, CannotInstall, MissingVersion, ErrorInExecution
     }
+    [DebuggerDisplay("{ToString()())}")]
     public class PatchExecutionError
     {
         public PatchExecutionErrorType ErrorType { get; }
@@ -27,6 +29,11 @@ namespace SenseNet.Packaging
             FaultyPatches = faultyPatches;
             FaultyPatch = faultyPatches?.FirstOrDefault();
             Message = message;
+        }
+
+        public override string ToString()
+        {
+            return $"{ErrorType} {FaultyPatch}";
         }
     }
 }
