@@ -515,11 +515,13 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0", ErrorsToString(context));
-            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual(3, log.Count);
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
-            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionError. Err", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[2].ToString());
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[2]));
         }
         [TestMethod]
         public void PatchingExec_PatchOne_Success()
@@ -589,17 +591,19 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(context));
-            Assert.AreEqual(4, log.Count);
+            Assert.AreEqual(5, log.Count);
             Assert.AreEqual("C1i1.0", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
             Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
-            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[3].ToString());
-            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionError. Err", log[3].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[4].ToString());
+            Assert.AreEqual(5, packages.Count);
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
             Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
-            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[3]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[3]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[4]));
         }
         [TestMethod]
         public void PatchingExec_SkipPatch_FaultyInstaller()
@@ -630,13 +634,17 @@ namespace SenseNet.Packaging.Tests
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0, MissingVersion C1: 1.0 <= v < 2.0 --> 2.0",
                 ErrorsToString(context));
-            Assert.AreEqual(2, log.Count);
+            Assert.AreEqual(4, log.Count);
             Assert.AreEqual("", PatchesToString(executed.ToArray()));
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
-            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
-            Assert.AreEqual(2, packages.Count);
+            Assert.AreEqual("[C1: 1.0] ExecutionError. Err", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.", log[3].ToString());
+            Assert.AreEqual(4, packages.Count);
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
-            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[1]));
+            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[2]));
+            Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[3]));
         }
         [TestMethod]
         public void PatchingExec_SkipPatch_FaultySnPatch()
@@ -670,14 +678,20 @@ namespace SenseNet.Packaging.Tests
                             "MissingVersion C1: 2.0 <= v < 3.0 --> 3.0",
                 string.Join(", ", context.Errors.Select(x=>x.ToString())));
             Assert.AreEqual("C1i1.0", PatchesToString(executed.ToArray()));
-            Assert.AreEqual(4, log.Count);
+            Assert.AreEqual(6, log.Count);
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
             Assert.AreEqual("[C1: 1.0] ExecutionFinished. Successful", log[1].ToString());
-            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionError. Err", log[3].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[4].ToString());
+            Assert.AreEqual("[C1: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.", log[5].ToString());
+            Assert.AreEqual(6, packages.Count);
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
             Assert.AreEqual("1, C1: Install Successful, 1.0", PackagesToString(packages[1]));
             Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[2]));
-            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[3]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Unfinished, 2.0", PackagesToString(packages[3]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[4]));
+            Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[5]));
         }
 
         [TestMethod]
@@ -726,32 +740,37 @@ namespace SenseNet.Packaging.Tests
                 ErrorsToString(context));
 
             Assert.AreEqual("C2i1.0 C3i1.0 C3p2.0 C3p3.0", PatchesToString(executed.ToArray()));
-            Assert.AreEqual(12, log.Count);
+            Assert.AreEqual(17, log.Count);
             Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
-            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[1].ToString());
-            Assert.AreEqual("[C2: 1.0] ExecutionStart.", log[2].ToString());
-            Assert.AreEqual("[C2: 1.0] ExecutionFinished. Successful", log[3].ToString());
-            Assert.AreEqual("[C3: 1.0] ExecutionStart.", log[4].ToString());
-            Assert.AreEqual("[C3: 1.0] ExecutionFinished. Successful", log[5].ToString());
-            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[6].ToString());
-            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[7].ToString());
-            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[8].ToString());
-            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[9].ToString());
-            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionStart.", log[10].ToString());
-            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionFinished. Successful", log[11].ToString());
-            Assert.AreEqual(12, packages.Count);
+            Assert.AreEqual("[C1: 1.0] ExecutionError. Err", log[1].ToString());
+            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[2].ToString());
+            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.", log[3].ToString());
+            Assert.AreEqual("[C1: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.", log[4].ToString());
+            Assert.AreEqual("[C2: 1.0] ExecutionStart.", log[5].ToString());
+            Assert.AreEqual("[C2: 1.0] ExecutionFinished. Successful", log[6].ToString());
+            Assert.AreEqual("[C3: 1.0] ExecutionStart.", log[7].ToString());
+            Assert.AreEqual("[C3: 1.0] ExecutionFinished. Successful", log[8].ToString());
+            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[9].ToString());
+            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionError. Err", log[10].ToString());
+            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[11].ToString());
+            Assert.AreEqual("[C2: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.", log[12].ToString());
+            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[13].ToString());
+            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[14].ToString());
+            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionStart.", log[15].ToString());
+            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionFinished. Successful", log[16].ToString());
+            Assert.AreEqual(17, packages.Count);
             Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
                             "2, C2: Install Successful, 1.0|" +
                             "3, C3: Install Successful, 1.0|" +
                             "4, C2: Patch Faulty, 2.0|" +
                             "5, C3: Patch Successful, 2.0|" +
-                            "6, C3: Patch Unfinished, 3.0", PackagesToString(packages[10]));
+                            "6, C3: Patch Unfinished, 3.0", PackagesToString(packages[15]));
             Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
                             "2, C2: Install Successful, 1.0|" +
                             "3, C3: Install Successful, 1.0|" +
                             "4, C2: Patch Faulty, 2.0|" +
                             "5, C3: Patch Successful, 2.0|" +
-                            "6, C3: Patch Successful, 3.0", PackagesToString(packages[11]));
+                            "6, C3: Patch Successful, 3.0", PackagesToString(packages[16]));
         }
 
         /* ======================================================== Tools */

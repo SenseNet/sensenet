@@ -147,7 +147,6 @@ namespace SenseNet.Packaging
                 if (patchesToExec.Count == 0)
                     break;
             }
-
         }
 
         private void RemoveNotExecutables(PatchExecutionContext context, List<ISnPatch> patchesToExec)
@@ -195,11 +194,15 @@ namespace SenseNet.Packaging
             if (duplicates.Length > 0)
             {
                 // Duplicates are not allowed
-                context.Errors.AddRange(duplicates
-                    .Select(id => new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller,
-                        installers.Where(inst => inst.ComponentId == id).ToArray(),
-                        "There is a duplicated installer for the component " + id))
-                    .ToArray());
+                foreach (var id in duplicates)
+                {
+                    var message = "There is a duplicated installer for the component " + id;
+                    var faultyPatches = installers.Where(inst => inst.ComponentId == id).ToArray();
+                    var error = new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller, faultyPatches, message);
+                    var logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.DuplicatedInstaller, faultyPatches.First(), message);
+                    context.Errors.Add(error);
+                    context.LogCallback(logRecord);
+                }
 
                 // Set unchanged list as output
                 componentsAfter = installedComponents.ToArray();
@@ -267,9 +270,12 @@ namespace SenseNet.Packaging
             // If exited but there is any remaining item, generate error(s).
             if (inputList.Count > 0)
             {
-                context.Errors.AddRange(inputList
-                    .Select(patch => RecognizeDiscoveryProblem(patch, installed))
-                    .ToArray());
+                foreach (var patch in inputList)
+                {
+                    var error = RecognizeDiscoveryProblem(patch, installed, out var logRecord);
+                    context.Errors.Add(error);
+                    context.LogCallback(logRecord);
+                }
             }
 
             componentsAfter = installed.ToArray();
@@ -277,17 +283,22 @@ namespace SenseNet.Packaging
             return outputList.ToArray();
         }
 
-        private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch, List<SnComponentDescriptor> installedComponents)
+        private PatchExecutionError RecognizeDiscoveryProblem(ISnPatch patch,
+            List<SnComponentDescriptor> installedComponents, out PatchExecutionLogRecord logRecord)
         {
             if (patch is SnPatch snPatch)
             {
                 if (!installedComponents.Any(comp => comp.ComponentId == snPatch.ComponentId &&
                                                      comp.Version < patch.Version &&
                                                      snPatch.Boundary.IsInInterval(comp.Version)))
+                {
+                    logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteMissingVersion, patch);
                     return new PatchExecutionError(PatchExecutionErrorType.MissingVersion, patch,
                         "Cannot execute the patch " + patch);
+                }
             }
 
+            logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecute, patch);
             return new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
                 "Cannot execute the patch " + patch);
         }
@@ -333,6 +344,7 @@ namespace SenseNet.Packaging
             // Not executable but skipped if the target version is greater than the patch's version.
             if (target.Version >= snPatch.Version)
             {
+                //UNDONE:PATCH:LOG: ? Skipped patch ?
                 skipExecution = true;
                 return false;
             }
@@ -355,6 +367,7 @@ namespace SenseNet.Packaging
 
             // Self-dependency is forbidden
             if (deps.Any(dep => dep.Id == patch.ComponentId))
+                //UNDONE:PATCH:LOG: ? Self-dependency ?
                 return false;
 
             // Not installable if there is any dependency but installed nothing.
@@ -399,6 +412,7 @@ namespace SenseNet.Packaging
                     {
                         executionError = e;
                         context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.ErrorInExecution, patch, e.Message));
+                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionError, patch, e.Message));
                     }
 
                     try

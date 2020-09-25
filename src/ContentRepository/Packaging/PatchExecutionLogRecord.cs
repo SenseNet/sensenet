@@ -5,7 +5,9 @@ namespace SenseNet.Packaging
 {
     public enum PatchExecutionEventType
     {
-        ExecutionStart, ExecutionFinished, PackageNotSaved
+        ExecutionStart, ExecutionFinished, ExecutionError, PackageNotSaved,
+        CannotExecute, CannotExecuteMissingVersion,
+        DuplicatedInstaller
     }
     [DebuggerDisplay("{ToString()}")]
     public struct PatchExecutionLogRecord

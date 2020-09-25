@@ -9,13 +9,13 @@ namespace SenseNet.Packaging
     {
         public RepositoryStartSettings Settings { get; }
         public List<PatchExecutionError> Errors { get; } = new List<PatchExecutionError>();
-        public Action<PatchExecutionLogRecord> LogCallback { get; } = DefaultLogCallback;
+        public Action<PatchExecutionLogRecord> LogCallback { get; }
         public ISnPatch CurrentPatch { get; internal set; }
 
         public PatchExecutionContext(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
         {
             Settings = settings;
-            LogCallback = logCallback;
+            LogCallback = logCallback ?? DefaultLogCallback;
         }
 
         private static void DefaultLogCallback(PatchExecutionLogRecord msg)
