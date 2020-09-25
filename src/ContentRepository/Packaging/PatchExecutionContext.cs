@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SenseNet.ContentRepository;
 
 // ReSharper disable once CheckNamespace
@@ -7,14 +8,14 @@ namespace SenseNet.Packaging
     public class PatchExecutionContext
     {
         public RepositoryStartSettings Settings { get; }
-        public PatchExecutionError[] Errors { get; internal set; } = new PatchExecutionError[0];
-        public Action<PatchExecutionLogRecord> LogCallback { get; } = DefaultLogCallback;
+        public List<PatchExecutionError> Errors { get; } = new List<PatchExecutionError>();
+        public Action<PatchExecutionLogRecord> LogCallback { get; }
         public ISnPatch CurrentPatch { get; internal set; }
 
         public PatchExecutionContext(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
         {
             Settings = settings;
-            LogCallback = logCallback;
+            LogCallback = logCallback ?? DefaultLogCallback;
         }
 
         private static void DefaultLogCallback(PatchExecutionLogRecord msg)

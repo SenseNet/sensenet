@@ -62,7 +62,7 @@ namespace SenseNet.Packaging.Tests
 
             try
             {
-                ValidatePatch(Patch(null, "1.0 <= v <= 1.0", "v1.2", null));
+                ValidatePatch(Patch(null, "1.0 <= v <= 1.0", "v1.2"));
                 Assert.Fail();
             }
             catch (InvalidPackageException e)
@@ -72,7 +72,7 @@ namespace SenseNet.Packaging.Tests
 
             try
             {
-                ValidatePatch(Patch(string.Empty, "1.0 <= v <= 1.0", "v1.2", null));
+                ValidatePatch(Patch(string.Empty, "1.0 <= v <= 1.0", "v1.2"));
                 Assert.Fail();
             }
             catch (InvalidPackageException e)
@@ -82,7 +82,7 @@ namespace SenseNet.Packaging.Tests
 
             try
             {
-                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", null, null));
+                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", null));
                 Assert.Fail();
             }
             catch (InvalidPackageException e)
@@ -92,7 +92,7 @@ namespace SenseNet.Packaging.Tests
 
             try
             {
-                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v0.9", null));
+                ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v0.9"));
                 Assert.Fail();
             }
             catch (InvalidPackageException e)
@@ -109,12 +109,12 @@ namespace SenseNet.Packaging.Tests
             // (C1:        v <= 1.0, v1.2) (C1: 0.0.0.0 <= v <= 1.0, v1.2)
             // (C1: 1.0 <= v       , v1.2) (C1: 1.0     <= v <  1.2, v1.2)
 
-            var patch = Patch("C1", "       v <= 1.0", "v1.2", null);
+            var patch = Patch("C1", "       v <= 1.0", "v1.2");
             ValidatePatch(patch);
             Assert.AreEqual(Version.Parse("0.0"), patch.Boundary.MinVersion);
             Assert.IsFalse(patch.Boundary.MinVersionIsExclusive);
 
-            patch = Patch("C1", "1.0 <= v       ", "v1.2", null);
+            patch = Patch("C1", "1.0 <= v       ", "v1.2");
             ValidatePatch(patch);
             Assert.AreEqual(patch.Version, patch.Boundary.MaxVersion);
             Assert.IsTrue(patch.Boundary.MaxVersionIsExclusive);
@@ -127,7 +127,7 @@ namespace SenseNet.Packaging.Tests
             {
                 try
                 {
-                    ValidatePatch(Patch("C1", boundary, "v1.2", null));
+                    ValidatePatch(Patch("C1", boundary, "v1.2"));
                     Assert.Fail("The expected exception was not thrown.");
                 }
                 catch (InvalidPackageException e)
@@ -149,7 +149,7 @@ namespace SenseNet.Packaging.Tests
             //  8 (C1: 1.1 <  v <  1.0, v1.2) Max is less than min
 
             // Case 1: no error
-            ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v1.2", null));
+            ValidatePatch(Patch("C1", "1.0 <= v <= 1.0", "v1.2"));
             // Case 2-8: throw InvalidPackageException
             CheckError("1.0 <= v <  1.0", PackagingExceptionType.InvalidInterval);
             CheckError("1.0 <  v <= 1.0", PackagingExceptionType.InvalidInterval);
@@ -181,12 +181,12 @@ namespace SenseNet.Packaging.Tests
             // (C1: 1.1 <= v <= 1.1, v1.3) (C1: 1.1 <= v <= 1.1, v1.4) Sources are the same
 
             CheckError(
-                Patch("C1", "1.1 <= v <= 1.1", "v1.3", null),
-                Patch("C1", "1.2 <= v <= 1.2", "v1.3", null),
+                Patch("C1", "1.1 <= v <= 1.1", "v1.3"),
+                Patch("C1", "1.2 <= v <= 1.2", "v1.3"),
                 PackagingExceptionType.TargetVersionsAreTheSame);
             CheckError(
-                Patch("C1", "1.1 <= v <= 1.1", "v1.3", null),
-                Patch("C1", "1.1 <= v <= 1.1", "v1.4", null),
+                Patch("C1", "1.1 <= v <= 1.1", "v1.3"),
+                Patch("C1", "1.1 <= v <= 1.1", "v1.4"),
                 PackagingExceptionType.SourceVersionsAreTheSame);
 
             // Patch1                      Patch2                      Error
@@ -198,21 +198,21 @@ namespace SenseNet.Packaging.Tests
             // (C1: 1.0 <= v <  2.0, v2.0) (C1: 1.9 <= v <  3.0, v3.0) Overlapped
 
             ValidatePatches(
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
-                Patch("C1", "2.0 <  v <  3.0", "v3.0", null));
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Patch("C1", "2.0 <  v <  3.0", "v3.0"));
             ValidatePatches(
-                Patch("C1", "1.0 <= v <= 2.0", "v2.0", null),
-                Patch("C1", "2.0 <  v <  3.0", "v3.0", null));
+                Patch("C1", "1.0 <= v <= 2.0", "v2.0"),
+                Patch("C1", "2.0 <  v <  3.0", "v3.0"));
             ValidatePatches(
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null));
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"));
             CheckError(
-                Patch("C1", "1.0 <= v <= 2.0", "v2.0", null),
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null),
+                Patch("C1", "1.0 <= v <= 2.0", "v2.0"),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"),
                 PackagingExceptionType.OverlappedIntervals);
             CheckError(
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null),
-                Patch("C1", "1.9 <= v <  3.0", "v3.0", null),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Patch("C1", "1.9 <= v <  3.0", "v3.0"),
                 PackagingExceptionType.OverlappedIntervals);
         }
         [TestMethod]
@@ -368,7 +368,7 @@ namespace SenseNet.Packaging.Tests
                 var segments = x.TrimStart('(').TrimEnd(')').Split(':');
                 var id = segments[0].Trim();
                 segments = segments[1].Trim().Split(',');
-                return Patch(id, segments[0].Trim(), segments[1].Trim(), null);
+                return Patch(id, segments[0].Trim(), segments[1].Trim());
             });
         }
 

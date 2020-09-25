@@ -246,6 +246,17 @@ namespace SenseNet.Packaging.Tests
         /// <param name="id">ComponentId</param>
         /// <param name="version">Target version</param>
         /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
+        /// <returns></returns>
+        protected SnPatch Patch(string id, string boundary, string version)
+        {
+            return Patch(id, boundary, version, null, null);
+        }
+        /// <summary>
+        /// Creates a patch for test purposes.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Target version</param>
+        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
         /// <param name="dependencies">Dependency array. Use null if there is no dependencies.</param>
         /// <returns></returns>
         protected SnPatch Patch(string id, string boundary, string version, Dependency[] dependencies)
@@ -257,6 +268,18 @@ namespace SenseNet.Packaging.Tests
                 Boundary = ParseBoundary(boundary),
                 Dependencies = dependencies
             };
+        }
+        /// <summary>
+        /// Creates a patch for test purposes.
+        /// </summary>
+        /// <param name="id">ComponentId</param>
+        /// <param name="version">Target version</param>
+        /// <param name="boundary">Complex source version. Example: "1.1 &lt;= v &lt;= 1.1"</param>
+        /// <param name="action">Function of execution</param>
+        /// <returns></returns>
+        protected SnPatch Patch(string id, string boundary, string version, Action<PatchExecutionContext> action)
+        {
+            return Patch(id, boundary, version, null, action);
         }
         /// <summary>
         /// Creates a patch for test purposes.
