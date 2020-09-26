@@ -9,12 +9,14 @@ namespace SenseNet.Packaging.Tests
     [TestClass]
     public class PatchingExecutionTests : PatchingTestBase
     {
+        /* ======================================================== SIMPLE INSTALLER TESTS */
+
         [TestMethod]
         public void PatchingExecSim_Install_1New()
         {
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null, null),
+                Inst("C1", "v1.0"),
             };
 
             var installed = new SnComponentDescriptor[0];
@@ -35,8 +37,8 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 // Will be skipped. The different version does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.1", null, null),
-                Inst("C2", "v2.3", null, null),
+                Inst("C1", "v1.1"),
+                Inst("C2", "v2.3"),
             };
 
             // ACTION
@@ -65,15 +67,15 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 // Will be skipped. The same id does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.0", null, null),
-                Inst("C1", "v1.1", null, null),
+                Inst("C1", "v1.0"),
+                Inst("C1", "v1.1"),
                 // Would be executable but the same id causes an error.
-                Inst("C2", "v1.0", null, null),
-                Inst("C3", "v1.0", null, null),
-                Inst("C3", "v2.3", null, null),
-                Inst("C4", "v1.0", null, null),
-                Inst("C4", "v2.3", null, null),
-                Inst("C4", "v1.0", null, null),
+                Inst("C2", "v1.0"),
+                Inst("C3", "v1.0"),
+                Inst("C3", "v2.3"),
+                Inst("C4", "v1.0"),
+                Inst("C4", "v2.3"),
+                Inst("C4", "v1.0"),
             };
 
             // ACTION
@@ -101,7 +103,7 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 Inst("C2", "v1.0", new[] {Dep("C1", "1.0 <= v")}, null),
-                Inst("C1", "v1.0", null, null),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -203,9 +205,9 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -227,9 +229,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -251,9 +253,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -275,9 +277,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "2.0 <= v <  3.0", "v3.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -299,7 +301,7 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 Inst("C2", "v1.0", new[] {Dep("C1", "2.0 <= v <= 2.0")}, null),
-                Inst("C1", "v1.0", null, null),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -319,9 +321,9 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", null, null),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0"),
                 Inst("C2", "v1.0", new[] {Dep("C1", "2.0 <= v <= 2.0")}, null),
-                Inst("C1", "v1.0", null, null),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -342,10 +344,10 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C2", "1.0 <= v < 2.0", "v2.0", null, null),
-                Patch("C1", "1.0 <= v < 2.0", "v2.0", new[] {Dep("C2", "2.0 <= v <= 2.0")}, null),
-                Inst("C2", "v1.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C2", "1.0 <= v < 2.0", "v2.0"),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", new[] {Dep("C2", "2.0 <= v <= 2.0")}),
+                Inst("C2", "v1.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -366,9 +368,9 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "3.0 <= v <  4.0", "v4.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -390,9 +392,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "3.0 <= v <  4.0", "v4.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -414,9 +416,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "3.0 <= v <  4.0", "v4.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -438,9 +440,9 @@ namespace SenseNet.Packaging.Tests
             };
             var patches = new ISnPatch[]
             {
-                Patch("C1", "3.0 <= v <  4.0", "v4.0", null, null),
-                Patch("C1", "1.0 <= v <  2.0", "v2.0", null, null),
-                Inst("C1", "v1.0", null, null),
+                Patch("C1", "3.0 <= v <  4.0", "v4.0"),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0"),
+                Inst("C1", "v1.0"),
             };
 
             // ACTION
@@ -473,7 +475,7 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null, Execute),
+                Inst("C1", "v1.0", Execute),
             };
 
             // ACTION
@@ -505,7 +507,7 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var patches = new ISnPatch[]
             {
-                Inst("C1", "v1.0", null, Error),
+                Inst("C1", "v1.0", Error),
             };
 
             // ACTION
@@ -541,7 +543,7 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
-                Inst("C1", "v1.0", null, Execute),
+                Inst("C1", "v1.0", Execute),
             };
 
             // ACTION
@@ -581,7 +583,7 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 Patch("C1", "1.0 <= v < 2.0", "v2.0", null, Error),
-                Inst("C1", "v1.0", null, Execute),
+                Inst("C1", "v1.0", Execute),
             };
 
             // ACTION
@@ -623,7 +625,7 @@ namespace SenseNet.Packaging.Tests
             var patches = new ISnPatch[]
             {
                 Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
-                Inst("C1", "v1.0", null, Error),
+                Inst("C1", "v1.0", Error),
             };
 
             // ACTION
@@ -665,7 +667,7 @@ namespace SenseNet.Packaging.Tests
             {
                 Patch("C1", "2.0 <= v < 3.0", "v3.0", Execute),
                 Patch("C1", "1.0 <= v < 2.0", "v2.0", Error),
-                Inst("C1", "v1.0", null, Execute),
+                Inst("C1", "v1.0", Execute),
             };
 
             // ACTION
@@ -714,15 +716,15 @@ namespace SenseNet.Packaging.Tests
                 // Problem in the installer
                 Patch("C1", "2.0 <= v < 3.0", "v3.0", Execute),
                 Patch("C1", "1.0 <= v < 2.0", "v2.0", Execute),
-                Inst("C1", "v1.0", null, Error),
+                Inst("C1", "v1.0", Error),
                 // Problem in a middle patch
                 Patch("C2", "2.0 <= v < 3.0", "v3.0", Execute),
                 Patch("C2", "1.0 <= v < 2.0", "v2.0", Error),
-                Inst("C2", "v1.0", null, Execute),
+                Inst("C2", "v1.0", Execute),
                 // There is no problem
                 Patch("C3", "2.0 <= v < 3.0", "v3.0", Execute),
                 Patch("C3", "1.0 <= v < 2.0", "v2.0", Execute),
-                Inst("C3", "v1.0", null, Execute),
+                Inst("C3", "v1.0", Execute),
             };
 
             // ACTION
@@ -772,6 +774,81 @@ namespace SenseNet.Packaging.Tests
                             "5, C3: Patch Successful, 2.0|" +
                             "6, C3: Patch Successful, 3.0", PackagesToString(packages[16]));
         }
+
+        /* ======================================================== EXECUTE ON BEFORE TESTS */
+
+//        [TestMethod]
+//        public void PatchingExec_OnBefore()
+//        {
+//            var packages = new List<Package[]>();
+//            var log = new List<PatchExecutionLogRecord>();
+//            void LogMessage(PatchExecutionLogRecord record)
+//            {
+//                packages.Add(LoadPackages());
+//                log.Add(record);
+//            }
+
+//            var executed = new List<ISnPatch>();
+//            void Execute(PatchExecutionContext peContext) => executed.Add(peContext.CurrentPatch);
+
+//            var patches = new ISnPatch[]
+//            {
+//                Inst("C1", "v1.0", Execute),
+//                Inst("C2", "v1.0", Error),
+//                Inst("C3", "v1.0", Execute, Execute),
+//                Inst("C4", "v1.0", Execute, Error),
+//                Inst("C5", "v1.0", Error, Execute),
+//            };
+
+//            // ACTION
+//            var context = new PatchExecutionContext(null, LogMessage);
+//            var pm = new PatchManager(context);
+////pm.ExecutePatchesBeforeStart(patches);
+////pm.ExecutePatchesAfterStart();
+//Assert.Inconclusive();
+
+//            // ASSERT
+//            Assert.AreEqual(5, context.Errors.Count);
+//            Assert.AreEqual("ErrorInExecution C1: 1.0, " +
+//                            "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0, " +
+//                            "MissingVersion C1: 2.0 <= v < 3.0 --> 3.0, " +
+//                            "ErrorInExecution C2: 1.0 <= v < 2.0 --> 2.0, " +
+//                            "MissingVersion C2: 2.0 <= v < 3.0 --> 3.0",
+//                ErrorsToString(context));
+
+//            Assert.AreEqual("C2i1.0 C3i1.0 C3p2.0 C3p3.0", PatchesToString(executed.ToArray()));
+//            Assert.AreEqual(17, log.Count);
+//            Assert.AreEqual("[C1: 1.0] ExecutionStart.", log[0].ToString());
+//            Assert.AreEqual("[C1: 1.0] ExecutionError. Err", log[1].ToString());
+//            Assert.AreEqual("[C1: 1.0] ExecutionFinished. Faulty", log[2].ToString());
+//            Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.", log[3].ToString());
+//            Assert.AreEqual("[C1: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.", log[4].ToString());
+//            Assert.AreEqual("[C2: 1.0] ExecutionStart.", log[5].ToString());
+//            Assert.AreEqual("[C2: 1.0] ExecutionFinished. Successful", log[6].ToString());
+//            Assert.AreEqual("[C3: 1.0] ExecutionStart.", log[7].ToString());
+//            Assert.AreEqual("[C3: 1.0] ExecutionFinished. Successful", log[8].ToString());
+//            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[9].ToString());
+//            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionError. Err", log[10].ToString());
+//            Assert.AreEqual("[C2: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Faulty", log[11].ToString());
+//            Assert.AreEqual("[C2: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.", log[12].ToString());
+//            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionStart.", log[13].ToString());
+//            Assert.AreEqual("[C3: 1.0 <= v < 2.0 --> 2.0] ExecutionFinished. Successful", log[14].ToString());
+//            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionStart.", log[15].ToString());
+//            Assert.AreEqual("[C3: 2.0 <= v < 3.0 --> 3.0] ExecutionFinished. Successful", log[16].ToString());
+//            Assert.AreEqual(17, packages.Count);
+//            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
+//                            "2, C2: Install Successful, 1.0|" +
+//                            "3, C3: Install Successful, 1.0|" +
+//                            "4, C2: Patch Faulty, 2.0|" +
+//                            "5, C3: Patch Successful, 2.0|" +
+//                            "6, C3: Patch Unfinished, 3.0", PackagesToString(packages[15]));
+//            Assert.AreEqual("1, C1: Install Faulty, 1.0|" +
+//                            "2, C2: Install Successful, 1.0|" +
+//                            "3, C3: Install Successful, 1.0|" +
+//                            "4, C2: Patch Faulty, 2.0|" +
+//                            "5, C3: Patch Successful, 2.0|" +
+//                            "6, C3: Patch Successful, 3.0", PackagesToString(packages[16]));
+//        }
 
         /* ======================================================== Tools */
 
