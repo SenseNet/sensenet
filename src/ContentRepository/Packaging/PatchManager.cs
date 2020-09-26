@@ -31,7 +31,6 @@ namespace SenseNet.Packaging
 
         /* =========================================================================================== */
 
-
         internal static Package CreatePackage(ISnPatch patch)
         {
             var package = new Package
@@ -128,7 +127,7 @@ namespace SenseNet.Packaging
 
         /* =========================================================================================== */
 
-        public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates)
+        internal void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates)
         {
             var patchesToExec = candidates.ToList();
             while (true)
@@ -175,7 +174,7 @@ namespace SenseNet.Packaging
                 .Select(x => new SnComponentDescriptor(x)).ToArray() ?? Array.Empty<SnComponentDescriptor>();
         }
 
-        public ISnPatch[] GetExecutablePatches(IEnumerable<ISnPatch> candidates,
+        internal ISnPatch[] GetExecutablePatches(IEnumerable<ISnPatch> candidates,
             SnComponentDescriptor[] installedComponents, out SnComponentDescriptor[] componentsAfter)
         {
             var patches = candidates.ToArray();
@@ -447,21 +446,19 @@ namespace SenseNet.Packaging
 
         /* ================================================================================= EXPERIMENTAL */
 
-        private IEnumerable<ISnPatch> _executablePatches;
-
         public void ExecutePatchesBeforeStart()
         {
             var candidates = CollectPatches();
             var executables = GetExecutablePatches(candidates);
 
             //UNDONE: Execute patches onBefore is not implemented
-            //ExecutePatchesOnBefore(executables, _context);
+            //ExecutePatchesOnBefore(executables);
 
-            _executablePatches = executables;
+            _context.ExecutablePatchesOnAfter = executables;
         }
         public void ExecutePatchesAfterStart()
         {
-            ExecutePatches(_executablePatches);
+            ExecutePatches(_context.ExecutablePatchesOnAfter);
         }
 
         private ISnPatch[] CollectPatches()
