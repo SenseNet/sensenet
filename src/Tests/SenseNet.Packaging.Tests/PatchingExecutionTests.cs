@@ -22,7 +22,7 @@ namespace SenseNet.Packaging.Tests
             var installed = new SnComponentDescriptor[0];
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             Assert.AreEqual(1, after.Length);
             Assert.AreEqual(1, executables.Length);
@@ -44,7 +44,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(2, after.Length);
@@ -81,7 +81,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(1, after.Length);
@@ -109,7 +109,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(2, after.Length);
@@ -136,7 +136,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(4, after.Length);
@@ -163,7 +163,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(1, after.Length);
@@ -213,7 +213,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -237,7 +237,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -261,7 +261,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -285,7 +285,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -307,7 +307,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual("CannotInstall C2: 1.0", ErrorsToString(context));
@@ -329,7 +329,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -353,7 +353,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -376,7 +376,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
@@ -400,7 +400,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
@@ -424,7 +424,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(context));
@@ -448,7 +448,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, null);
             var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, context, out var after).ToArray();
+            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -481,7 +481,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, installed, context);
+            pm.ExecuteRelevantPatches(patches, installed);
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -513,7 +513,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, installed, context);
+            pm.ExecuteRelevantPatches(patches, installed);
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0", ErrorsToString(context));
@@ -549,7 +549,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, installed, context);
+            pm.ExecuteRelevantPatches(patches, installed);
 
             // ASSERT
             Assert.AreEqual(0, context.Errors.Count);
@@ -589,7 +589,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, installed, context);
+            pm.ExecuteRelevantPatches(patches, installed);
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(context));
@@ -631,7 +631,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, context);
+            pm.ExecuteRelevantPatches(patches);
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0, MissingVersion C1: 1.0 <= v < 2.0 --> 2.0",
@@ -673,7 +673,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, context);
+            pm.ExecuteRelevantPatches(patches);
 
             // ASSERT
             Assert.AreEqual("ErrorInExecution C1: 1.0 <= v < 2.0 --> 2.0, " +
@@ -730,7 +730,7 @@ namespace SenseNet.Packaging.Tests
             // ACTION
             var context = new PatchExecutionContext(null, LogMessage);
             var pm = new PatchManager(context);
-            pm.ExecuteRelevantPatches(patches, context);
+            pm.ExecuteRelevantPatches(patches);
 
             // ASSERT
             Assert.AreEqual(5, context.Errors.Count);

@@ -128,44 +128,44 @@ namespace SenseNet.Packaging
 
         /* =========================================================================================== */
 
-        public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates, PatchExecutionContext context)
+        public void ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates)
         {
             var patchesToExec = candidates.ToList();
             while (true)
             {
                 var installedComponents = LoadInstalledComponents();
-                var executables = GetExecutablePatches(patchesToExec, installedComponents, context, out _);
+                var executables = GetExecutablePatches(patchesToExec, installedComponents, out _);
                 if (executables.Length == 0)
                     break;
 
-                var faulty = ExecutePatches(executables, context);
+                var faulty = ExecutePatches(executables);
 
                 if (faulty == null)
                     break;
 
-                RemoveNotExecutables(context, patchesToExec);
+                RemoveNotExecutables(patchesToExec);
                 if (patchesToExec.Count == 0)
                     break;
             }
         }
 
-        private void RemoveNotExecutables(PatchExecutionContext context, List<ISnPatch> patchesToExec)
+        private void RemoveNotExecutables(List<ISnPatch> patchesToExec)
         {
-            var patches = context.Errors.SelectMany(x => x.FaultyPatches);
+            var patches = _context.Errors.SelectMany(x => x.FaultyPatches);
             foreach (var patch in patches)
                 patchesToExec.Remove(patch);
         }
 
         internal ISnPatch ExecuteRelevantPatches(IEnumerable<ISnPatch> candidates, 
-            SnComponentDescriptor[] installedComponents, PatchExecutionContext context)
+            SnComponentDescriptor[] installedComponents)
         {
             return ExecutePatches(
-                GetExecutablePatches(candidates, installedComponents, context, out _), context);
+                GetExecutablePatches(candidates, installedComponents, out _));
         }
 
-        public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates, PatchExecutionContext context)
+        public IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates)
         {
-            return GetExecutablePatches(candidates, LoadInstalledComponents(), context, out _);
+            return GetExecutablePatches(candidates, LoadInstalledComponents(), out _);
         }
 
         private SnComponentDescriptor[] LoadInstalledComponents()
@@ -176,7 +176,7 @@ namespace SenseNet.Packaging
         }
 
         public ISnPatch[] GetExecutablePatches(IEnumerable<ISnPatch> candidates,
-            SnComponentDescriptor[] installedComponents, PatchExecutionContext context, out SnComponentDescriptor[] componentsAfter)
+            SnComponentDescriptor[] installedComponents, out SnComponentDescriptor[] componentsAfter)
         {
             var patches = candidates.ToArray();
 
@@ -200,8 +200,8 @@ namespace SenseNet.Packaging
                     var faultyPatches = installers.Where(inst => inst.ComponentId == id).ToArray();
                     var error = new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller, faultyPatches, message);
                     var logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.DuplicatedInstaller, faultyPatches.First(), message);
-                    context.Errors.Add(error);
-                    context.LogCallback(logRecord);
+                    _context.Errors.Add(error);
+                    _context.LogCallback(logRecord);
                 }
 
                 // Set unchanged list as output
@@ -273,8 +273,8 @@ namespace SenseNet.Packaging
                 foreach (var patch in inputList)
                 {
                     var error = RecognizeDiscoveryProblem(patch, installed, out var logRecord);
-                    context.Errors.Add(error);
-                    context.LogCallback(logRecord);
+                    _context.Errors.Add(error);
+                    _context.LogCallback(logRecord);
                 }
             }
 
@@ -379,7 +379,7 @@ namespace SenseNet.Packaging
                 installed.Any(i => i.ComponentId == dep.Id && dep.Boundary.IsInInterval(i.Version)));
         }
 
-        private ISnPatch ExecutePatches(IEnumerable<ISnPatch> patches, PatchExecutionContext context)
+        private ISnPatch ExecutePatches(IEnumerable<ISnPatch> patches)
         {
             try
             {
@@ -392,27 +392,27 @@ namespace SenseNet.Packaging
 
                     // Log after save: the execution is in started state when the callback called
                     // so the callback can see the real state in the database.
-                    context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
+                    _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionStart, patch));
 
                     // PATCH EXECUTION
-                    context.CurrentPatch = patch;
+                    _context.CurrentPatch = patch;
                     var successful = false;
                     Exception executionError = null;
                     try
                     {
                         if(Repository.Started())
                             using(new SystemAccount())
-                                patch.Action?.Invoke(context);
+                                patch.Action?.Invoke(_context);
                         else
-                            patch.Action?.Invoke(context);
+                            patch.Action?.Invoke(_context);
 
                         successful = true;
                     }
                     catch (Exception e)
                     {
                         executionError = e;
-                        context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.ErrorInExecution, patch, e.Message));
-                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionError, patch, e.Message));
+                        _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.ErrorInExecution, patch, e.Message));
+                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionError, patch, e.Message));
                     }
 
                     try
@@ -420,13 +420,13 @@ namespace SenseNet.Packaging
                         // Save the execution result
                         PackageManager.SavePackage(manifest, null, successful, executionError);
                         // Log after save: the execution is in completed database state when the callback called.
-                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished,
+                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionFinished,
                             patch,
                             $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
                     }
                     catch (Exception e)
                     {
-                        context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.PackageNotSaved,
+                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.PackageNotSaved,
                             patch));
                         throw new PackagingException("Cannot save the package.", e);
                     }
@@ -452,7 +452,7 @@ namespace SenseNet.Packaging
         public void ExecutePatchesBeforeStart()
         {
             var candidates = CollectPatches();
-            var executables = GetExecutablePatches(candidates, _context);
+            var executables = GetExecutablePatches(candidates);
 
             //UNDONE: Execute patches onBefore is not implemented
             //ExecutePatchesOnBefore(executables, _context);
@@ -461,7 +461,7 @@ namespace SenseNet.Packaging
         }
         public void ExecutePatchesAfterStart()
         {
-            ExecutePatches(_executablePatches, _context);
+            ExecutePatches(_executablePatches);
         }
 
         private ISnPatch[] CollectPatches()
