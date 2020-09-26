@@ -36,7 +36,12 @@ namespace SenseNet.Packaging
         /// </summary>
         IEnumerable<Dependency> Dependencies { get; }
         /// <summary>
-        /// Gets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed if allowed.
+        /// Gets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed
+        /// before the repository is started.
+        /// </summary>
+        Action<PatchExecutionContext> ActionBeforeStart { get; }
+        /// <summary>
+        /// Gets an <see cref="Action&lt;PatchExecutionContext&gt;"/> instance that will be executed.
         /// </summary>
         Action<PatchExecutionContext> Action { get; }
 
@@ -76,6 +81,8 @@ namespace SenseNet.Packaging
         public Version Version { get; internal set; }
         /// <inheritdoc/>
         public IEnumerable<Dependency> Dependencies { get; internal set; }
+        /// <inheritdoc/>
+        public Action<PatchExecutionContext> ActionBeforeStart { get; internal set; }
         /// <inheritdoc/>
         public Action<PatchExecutionContext> Action { get; internal set; }
         /// <inheritdoc/>
