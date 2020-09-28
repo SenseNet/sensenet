@@ -14,7 +14,7 @@ namespace SenseNet.Packaging.Tools
         IContentTypeBuilder Description(string value);
         IContentTypeBuilder Icon(string value);
         //IContentTypeBuilder AddAllowedChildTypes(params string[] typeNames);
-        IFieldEditor Field(string name);
+        IFieldEditor Field(string name, string type = null);
     }
     public interface IFieldEditor
     {
@@ -29,7 +29,7 @@ namespace SenseNet.Packaging.Tools
         IFieldEditor Compulsory(bool value = true);
         IFieldEditor ControlHint(string value);
         IFieldEditor Configure(string key, string value);
-        IFieldEditor Field(string name);
+        IFieldEditor Field(string name, string type = null);
     }
     #endregion
 
@@ -70,7 +70,7 @@ namespace SenseNet.Packaging.Tools
         //    AllowedChildTypesToAdd = typeNames;
         //    return this;
         //}
-        public IFieldEditor Field(string name)
+        public IFieldEditor Field(string name, string type = null)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -79,7 +79,7 @@ namespace SenseNet.Packaging.Tools
             if (editor != null)
                 return editor;
 
-            editor = new FieldEditor(this, name);
+            editor = new FieldEditor(this, name, type);
             FieldEditors.Add(editor);
 
             return editor;
@@ -95,11 +95,13 @@ namespace SenseNet.Packaging.Tools
 
         private CtdBuilder _ctdBuilder;
         internal string FieldName { get; }
+        internal string Type { get; }
 
-        internal FieldEditor(CtdBuilder ctdBuilder, string name)
+        internal FieldEditor(CtdBuilder ctdBuilder, string name, string type)
         {
             _ctdBuilder = ctdBuilder;
             FieldName = name;
+            Type = type;
         }
 
         public IFieldEditor DefaultValue(string value)
@@ -179,9 +181,9 @@ namespace SenseNet.Packaging.Tools
             return this;
         }
 
-        public IFieldEditor Field(string name)
+        public IFieldEditor Field(string name, string type = null)
         {
-            return _ctdBuilder.Field(name);
+            return _ctdBuilder.Field(name, type);
         }
     }
 
@@ -256,7 +258,7 @@ namespace SenseNet.Packaging.Tools
 
         private void EditField(XmlDocument xDoc, FieldEditor fieldEditor)
         {
-            var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName);
+            var fieldElement = LoadFieldElement(xDoc, fieldEditor.FieldName, fieldEditor.Type);
 
             SetProperty(fieldElement, "DisplayName", fieldEditor.DisplayNameValue);
             SetProperty(fieldElement, "Description", fieldEditor.DescriptionValue);
@@ -312,10 +314,23 @@ namespace SenseNet.Packaging.Tools
             }
         }
 
-        private static XmlElement LoadFieldElement(XmlDocument xDoc, string fieldName, bool throwOnError = true)
+        private static XmlElement LoadFieldElement(XmlDocument xDoc, string fieldName, string type, bool throwOnError = true)
         {
             var fieldNode = xDoc.SelectSingleNode($"//{NamespacePrefix}:Field[@name='{fieldName}']", 
                     GetNamespaceManager(xDoc)) as XmlElement;
+
+            if (fieldNode == null && !string.IsNullOrEmpty(type))
+            {
+                var parentNode = LoadOrAddChild(xDoc.DocumentElement, "Fields");
+                if (parentNode != null)
+                {
+                    fieldNode = xDoc.CreateElement("Field", xDoc.DocumentElement.NamespaceURI);
+                    parentNode.AppendChild(fieldNode);
+
+                    fieldNode.SetAttribute("name", fieldName);
+                    fieldNode.SetAttribute("type", type);
+                }
+            }
 
             if (fieldNode == null && throwOnError)
                 throw new PackagingException(string.Format(SR.Errors.Content.FieldNotFound_1, fieldName));

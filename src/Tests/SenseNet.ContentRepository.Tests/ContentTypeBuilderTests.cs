@@ -118,6 +118,27 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void ContentType_Simple_AddField()
+        {
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(CtdSimple);
+
+                var cb = new ContentTypeBuilder();
+
+                cb.Type("SimpleTestContent")
+                    .Field("TestText", "ShortText")
+                    .DefaultValue("default text");
+
+                cb.Apply();
+
+                var fs1 = ContentType.GetByName("SimpleTestContent").FieldSettings.First(fs => fs.Name == "TestText");
+
+                Assert.AreEqual("default text", fs1.DefaultValue);
+            });
+        }
+
+        [TestMethod]
         public void ContentType_Complex_FieldConfiguration()
         {
             Test(() =>
