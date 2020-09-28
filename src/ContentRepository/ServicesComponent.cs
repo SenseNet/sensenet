@@ -20,6 +20,83 @@ namespace SenseNet.ContentRepository
 
         public override void AddPatches(PatchBuilder builder)
         {
+            builder.Patch("7.7.11", "7.7.12", "2020-09-7", "Upgrades sensenet content repository.")
+                .Action(context =>
+                {
+                    #region CTD changes
+
+                    var cb = new ContentTypeBuilder();
+
+                    cb.Type("Settings")
+                        .Field("Description", "LongText")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Show)
+                        .VisibleNew(FieldVisibility.Show);
+
+                    cb.Apply();
+
+                    #endregion
+
+                    #region Settings Description field changes
+
+                    SetSettingsDescription("Indexing", "In this Settings file you can customize the indexing behavior (for example the text extractor used in case of different file types) of the system.");
+                    SetSettingsDescription("Logging", "Contains logging-related settings, for example which events are sent to the trace. You can control tracing by category: switch on or off writing messages in certain categories to the trace channel.");
+                    SetSettingsDescription("MailProcessor", "The content list Inbox feature requires an Exchange or POP3 server configuration and other settings related to connecting libraries to a mailbox.");
+                    SetSettingsDescription("OAuth", "When users log in using one of the configured OAuth providers (like Google or Facebook), these settings control the type and place of the newly created users.");
+                    SetSettingsDescription("OfficeOnline", "To open or edit Office documents in the browser, the system needs to know the address of the Office Online Server that provides the user interface for the feature. In this section you can configure that and other OOS-related settings.");
+                    SetSettingsDescription("Sharing", "Content sharing related options.");
+                    SetSettingsDescription("TaskManagement", "When the Task Management module is installed, this is the place where you can configure the connection to the central task management service.");
+                    SetSettingsDescription("UserProfile", "When a user is created, and the profile feature is enabled (in the app configuration), they automatically get a profile – a workspace dedicated to the user’s personal documents and tasks. In this setting section you can customize the content type and the place of this profile.");
+
+                    void SetSettingsDescription(string name, string description)
+                    {
+                        var settings = Content.Load("/Root/System/Settings/" + name + ".settings");
+                        if (settings == null)
+                            return;
+                        settings["Description"] = description;
+                        settings.SaveSameVersion();
+                    }
+
+                    #endregion
+
+                    #region App changes
+
+                    var app1 = Content.Load("/Root/(apps)/Folder/Add");
+                    if (app1 != null)
+                    {
+                        app1["Scenario"] = string.Empty;
+                        app1.SaveSameVersion();
+                    }
+
+                    var app2 = Content.Load("/Root/(apps)/ContentType/Edit");
+                    if (app2 == null)
+                    {
+                        var parent = RepositoryTools.CreateStructure("/Root/(apps)/ContentType") ??
+                                     Content.Load("/Root/(apps)/ContentType");
+
+                        app2 = Content.CreateNew("ClientApplication", parent.ContentHandler, "Edit");
+                        app2["DisplayName"] = "$Action,Edit";
+                        app2["Scenario"] = "ContextMenu";
+                        app2["Icon"] = "edit";
+                        app2["RequiredPermissions"] = "See;Open;OpenMinor;Save";
+                        app2.Save();
+
+                        // set app permissions
+                        var developersGroupId = NodeHead.Get("/Root/IMS/BuiltIn/Portal/Developers")?.Id ?? 0;
+                        var aclEditor = SecurityHandler.SecurityContext.CreateAclEditor();
+                        aclEditor
+                            .Allow(app2.Id, Identifiers.AdministratorsGroupId,
+                                false, PermissionType.RunApplication);
+                        if (developersGroupId > 0)
+                            aclEditor.Allow(app2.Id, developersGroupId,
+                                false, PermissionType.RunApplication);
+
+                        aclEditor.Apply();
+                    }
+
+                    #endregion
+                });
+
             builder.Patch("7.7.12", "7.7.12.2", "2020-09-23", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
