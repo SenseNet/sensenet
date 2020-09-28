@@ -97,7 +97,7 @@ namespace SenseNet.ContentRepository
                     #endregion
                 });
 
-            builder.Patch("7.7.12", "7.7.12.2", "2020-09-23", "Upgrades sensenet content repository.")
+            builder.Patch("7.7.12", "7.7.13", "2020-09-23", "Upgrades sensenet content repository.")
                 .Action(context =>
                 {
                     #region String resources
@@ -427,6 +427,16 @@ namespace SenseNet.ContentRepository
                         .VisibleNew(FieldVisibility.Show)
                         .Field("BirthDate")
                         .DefaultValue("@@currenttime@@");
+
+                    cb.Type("Group")
+                        .Field("AllRoles")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Hide)
+                        .VisibleNew(FieldVisibility.Hide)
+                        .Field("DirectRoles")
+                        .VisibleBrowse(FieldVisibility.Hide)
+                        .VisibleEdit(FieldVisibility.Hide)
+                        .VisibleNew(FieldVisibility.Hide);
 
                     cb.Apply();
 
