@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using System.Xml.Schema;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -28,6 +29,8 @@ namespace SenseNet.Packaging
         {
             _context = context;
         }
+
+        internal List<PatchExecutionError> Errors => _context.Errors;
 
         /* =========================================================================================== */
 
@@ -136,29 +139,221 @@ namespace SenseNet.Packaging
             _context.ExecutablePatchesOnAfter = candidates;
             _context.CurrentlyInstalledComponents = installed;
         }
-        internal void ExecuteOnBefore(ISnPatch[] candidates, List<SnComponentDescriptor> installed, bool isSimulation)
+        internal void ExecuteOnBefore(List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool isSimulation)
         {
-            throw new NotImplementedException();
+            var toExec = candidates.ToList(); // Copy
+            var executed = new List<ISnPatch>();
+            var isActive = true;
+            while (true)
+            {
+                isActive = false;
+                foreach (var patch in toExec)
+                {
+                    if (patch.ActionBeforeStart == null)
+                        continue;
+
+                    if (CheckPrerequisitesBefore(patch, candidates, installed, out var isIrrelevant))
+                    {
+                        if (!isSimulation)
+                            WriteInitialStateToDb(patch); //UNDONE:PATCH: try-catch-rethrow
+                        CreateInitialState(patch, installed);
+
+                        try
+                        {
+                            Log(patch, PatchExecutionEventType.OnBeforeActionStarts);
+                            if (!isSimulation)
+                            {
+                                patch.ActionBeforeStart(_context);
+                                ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore);
+                            }
+                            ModifyState(patch, installed, ExecutionResult.SuccessfulBefore);
+                            Log(patch, PatchExecutionEventType.OnBeforeActionFinished);
+                        }
+                        catch (Exception e)
+                        {
+                            if (!isSimulation)
+                                ModifyStateInDb(patch, ExecutionResult.FaultyBefore);
+                            ModifyState(patch, installed, ExecutionResult.FaultyBefore);
+                            Log(patch, PatchExecutionEventType.ExecutionErrorOnBefore);
+                            Error(patch, PatchExecutionErrorType.ExecutionErrorOnBefore, e.Message);
+                            candidates.Remove(patch);
+                        }
+                        finally
+                        {
+                            isActive = true;
+                            executed.Add(patch);
+                        }
+                    }
+                    else
+                    {
+                        if (isIrrelevant)
+                        {
+                            isActive = true;
+                            executed.Add(patch);
+                        }
+                    }
+                }
+
+                foreach (var item in executed)
+                    toExec.Remove(item);
+                executed.Clear();
+
+                if(toExec.Count == 0)
+                    break;
+                if (!isActive)
+                    break;
+            }
+            if (toExec.Count > 0)
+                RecognizeErrors(toExec, candidates, installed);
         }
+
+        private bool CheckPrerequisitesBefore(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
+        {
+            var component = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+            isIrrelevant = false;
+            if (patch is ComponentInstaller installer)
+            {
+                if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
+                if (HasDuplicates(installer, candidates)) { return false; }
+                if (!HaveCorrectDependencies(installer, installed)) { return false; }
+                if (component == null) { return true; }
+                if (component.Version != null) { isIrrelevant = true; return false; }
+                if (component.FaultyAfterVersion != null) { isIrrelevant = true; return false; }
+                if (component.FaultyBeforeVersion > patch.Version) { isIrrelevant = true; return false; }
+                return true;
+            }
+            if (patch.Type == PackageType.Patch)
+            {
+                throw new NotImplementedException();
+                //# If not Valid(snPatch)                                    Return false, isIrrelevant = true
+                //# If not HaveCorrectDependencies(patch, currentComponents) Return false
+                //# If component is null                                     Return false
+                //# If component's SuccessfulVersion is null                 Return false
+                //# If component's SuccessfulVersion >= patch.Version        Return false, isIrrelevant = true
+                //# If component's FaultyAfterVersion >= patch.Version       Return false, isIrrelevant = true
+                //# If component's FaultyBeforeVersion > patch.Version       Return false, isIrrelevant = true
+                //# Return true
+            }
+            throw new NotSupportedException(
+                $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
+                $"Version: {patch.Version}, PackageType: {patch.Type}");
+        }
+
+        private bool ValidInstaller(ComponentInstaller installer)
+        {
+            return true;
+        }
+
 
         /* ---------------------------------------------------------------------------------- OnAfter */
 
         public void ExecutePatchesOnAfterStart(bool isSimulation = false)
         {
-            var candidates = _context.ExecutablePatchesOnAfter.ToArray();
+            var candidates = _context.ExecutablePatchesOnAfter;
             var installed = _context.CurrentlyInstalledComponents;
-            ExecuteOnBefore(candidates, installed, isSimulation);
+            ExecuteOnAfter(candidates, installed, isSimulation);
             _context.ExecutablePatchesOnAfter = candidates;
             _context.CurrentlyInstalledComponents = installed;
         }
-        internal void ExecuteOnAfter(ISnPatch[] candidates, List<SnComponentDescriptor> installed, bool isSimulation)
+        internal void ExecuteOnAfter(List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool isSimulation)
         {
-            throw new NotImplementedException();
+            var toExec = candidates; //UNDONE:PATCH refactor, remove and rename
+            var executed = new List<ISnPatch>();
+            var isActive = true;
+            while (true)
+            {
+                isActive = false;
+                foreach (var patch in toExec)
+                {
+                    if (CheckPrerequisitesAfter(patch, candidates, installed, out var isIrrelevant))
+                    {
+                        if (patch.ActionBeforeStart == null)
+                        {
+                            if (!isSimulation)
+                                WriteInitialStateToDb(patch);
+                            CreateInitialState(patch, installed);
+                        }
+
+                        try
+                        {
+                            Log(patch, PatchExecutionEventType.OnAfterActionStarts);
+                            if (!isSimulation)
+                            {
+                                patch.Action?.Invoke(_context);
+                                ModifyStateInDb(patch, ExecutionResult.Successful);
+                            }
+                            ModifyState(patch, installed, ExecutionResult.Successful);
+                            Log(patch, PatchExecutionEventType.OnAfterActionFinished);
+                        }
+                        catch (Exception e)
+                        {
+                            if (!isSimulation)
+                                ModifyStateInDb(patch, ExecutionResult.Faulty);
+                            ModifyState(patch, installed, ExecutionResult.Faulty);
+                            Log(patch, PatchExecutionEventType.ExecutionError);
+                            Error(patch, PatchExecutionErrorType.ExecutionErrorOnAfter, e.Message);
+                        }
+                        finally
+                        {
+                            isActive = true;
+                            executed.Add(patch);
+                        }
+                    }
+                    else
+                    {
+                        if (isIrrelevant)
+                        {
+                            isActive = true;
+                            executed.Add(patch);
+                        }
+                    }
+                }
+                foreach (var item in executed)
+                    toExec.Remove(item);
+                executed.Clear();
+
+                if (toExec.Count == 0)
+                    break;
+                if (!isActive)
+                    break;
+            }
+            if (toExec.Count > 0)
+                RecognizeErrors(toExec, candidates, installed);
         }
 
+        private bool CheckPrerequisitesAfter(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
+        {
+            var component = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+            isIrrelevant = false;
+            if (patch is ComponentInstaller installer)
+            {
+                if (HasDuplicates(installer, candidates)) { return false; }
+                if (!HaveCorrectDependencies(installer, installed)) { return false; }
+                if (component == null) { return true; }
+                if (component.Version != null) { isIrrelevant = true; return false; }
+                if (component.FaultyBeforeVersion >= patch.Version) { isIrrelevant = true; return false; }
+                if (component.FaultyAfterVersion > patch.Version) { isIrrelevant = true; return false; }
+                return true;
+            }
+            if (patch.Type == PackageType.Patch)
+            {
+                throw new NotImplementedException();
+                //# If not HaveCorrectDependencies(patch, currentComponents) Return false
+                //# If component is null                                     Return false
+                //# If component's SuccessfulVersion is null                 Return false
+                //# If component's SuccessfulVersion >= patch.Version        Return false, isIrrelevant = true
+                //# If component's FaultyBeforeVersion >= patch.Version      Return false, isIrrelevant = true
+                //# If component's FaultyAfterVersion > patch.Version        Return false, isIrrelevant = true
+                //# Return true
+            }
+            throw new NotSupportedException(
+                $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
+                $"Version: {patch.Version}, PackageType: {patch.Type}");
+        }
+        
         /* ---------------------------------------------------------------------------------- Common */
 
-        private ISnPatch[] CollectCandidates()
+        private List<ISnPatch> CollectCandidates()
         {
             return Providers.Instance
                 .Components
@@ -169,7 +364,7 @@ namespace SenseNet.Packaging
                     component.AddPatches(builder);
                     return builder.GetPatches();
                 })
-                .ToArray();
+                .ToList();
         }
 
         private List<SnComponentDescriptor> LoadComponents()
@@ -181,6 +376,123 @@ namespace SenseNet.Packaging
                 .LoadIncompleteComponentsAsync(CancellationToken.None)
                 .ConfigureAwait(false).GetAwaiter().GetResult();
             return SnComponentDescriptor.CreateComponents(installed, faulty);
+        }
+
+        private bool HasDuplicates(ComponentInstaller installer, List<ISnPatch> candidates)
+        {
+            return candidates.Count(patch => patch.Type == PackageType.Install &&
+                                             patch.ComponentId == installer.ComponentId) > 1;
+        }
+
+        private bool HaveCorrectDependencies(ComponentInstaller patch, List<SnComponentDescriptor> installed)
+        {
+            if (patch.Dependencies == null)
+                return true;
+            throw new NotImplementedException();
+        }
+
+        private void WriteInitialStateToDb(ISnPatch patch)
+        {
+            throw new NotImplementedException();
+        }
+        private void ModifyStateInDb(ISnPatch patch, ExecutionResult result)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CreateInitialState(ISnPatch patch, List<SnComponentDescriptor> installed)
+        {
+            var current = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
+            if (current == null)
+                installed.Add(new SnComponentDescriptor(patch.ComponentId, null, patch.Description,
+                    patch.Dependencies?.ToArray()));
+        }
+        private void ModifyState(ISnPatch patch, List<SnComponentDescriptor> installed, ExecutionResult result)
+        {
+            var current = installed.First(x => x.ComponentId == patch.ComponentId);
+
+            switch (result)
+            {
+                case ExecutionResult.Successful:
+                    current.Version = patch.Version;
+                    current.FaultyBeforeVersion = null;
+                    current.FaultyAfterVersion = null;
+                    break;
+                case ExecutionResult.SuccessfulBefore:
+                case ExecutionResult.Faulty:
+                    current.FaultyBeforeVersion = null;
+                    current.FaultyAfterVersion = patch.Version;
+                    break;
+                case ExecutionResult.Unfinished:
+                case ExecutionResult.FaultyBefore:
+                    current.FaultyBeforeVersion = patch.Version;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+        }
+
+        private void Log(ISnPatch patch, PatchExecutionEventType eventType)
+        {
+            _context.LogCallback?.Invoke(new PatchExecutionLogRecord(eventType, patch));
+        }
+
+        private void Error(ISnPatch patch, PatchExecutionErrorType errorType, string message)
+        {
+            _context.Errors.Add(new PatchExecutionError(errorType, patch, message));
+        }
+
+        private void RecognizeErrors(List<ISnPatch> notExecutables, List<ISnPatch> candidates, List<SnComponentDescriptor> installed)
+        {
+            // Recognize duplicated installers
+            var installers = notExecutables
+                .Where(x => x.Type == PackageType.Install)
+                .OrderBy(x => x.ComponentId)
+                .ToArray();
+            var installerGroups = installers.GroupBy(x => x.ComponentId);
+            var duplicates = installerGroups.Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
+            if (duplicates.Length > 0)
+            {
+                // Duplicates are not allowed
+                foreach (var id in duplicates)
+                {
+                    var message = "There is a duplicated installer for the component " + id;
+                    var faultyPatches = installers.Where(inst => inst.ComponentId == id).ToArray();
+                    var error = new PatchExecutionError(PatchExecutionErrorType.DuplicatedInstaller, faultyPatches, message);
+                    var logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.DuplicatedInstaller, faultyPatches.First(), message);
+                    _context.Errors.Add(error);
+                    _context.LogCallback(logRecord);
+                    notExecutables = notExecutables.Except(faultyPatches).ToList();
+                    foreach (var item in faultyPatches)
+                    {
+                        // notExecutables and candidates maybe the same
+                        notExecutables.Remove(item);
+                        candidates.Remove(item);
+                    }
+                }
+            }
+
+            // Recognize remaining items
+            foreach (var patch in notExecutables)
+            {
+                if (patch is SnPatch snPatch)
+                {
+                    if (!installed.Any(comp => comp.ComponentId == snPatch.ComponentId &&
+                                                         comp.Version < patch.Version &&
+                                                         snPatch.Boundary.IsInInterval(comp.Version)))
+                    {
+                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteMissingVersion, patch));
+                        _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.MissingVersion, patch,
+                            "Cannot execute the patch " + patch));
+                    }
+                }
+
+                _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecute, patch));
+                _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
+                    "Cannot execute the patch " + patch));
+
+            }
         }
 
 
@@ -208,7 +520,7 @@ namespace SenseNet.Packaging
 
             var executables = GetExecutablePatches(candidates);
 
-            _context.ExecutablePatchesOnAfter = ExecuteRelevantPatchesBefore(executables);
+            _context.ExecutablePatchesOnAfter = ExecuteRelevantPatchesBefore(executables).ToList();
         }
         internal IEnumerable<ISnPatch> ExecuteRelevantPatchesBefore(IEnumerable<ISnPatch> candidates)
         {

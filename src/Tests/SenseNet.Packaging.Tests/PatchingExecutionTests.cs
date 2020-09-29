@@ -12,88 +12,108 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== SIMPLE INSTALLER TESTS */
 
         [TestMethod]
-        public void PatchingExecSim_Install_1New()
+        public void Patch_Sim_Install_1New()
         {
-            var patches = new ISnPatch[]
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
             {
-                Inst("C1", "v1.0"),
+                Inst("C1", "v1.0", Exec, Exec),
             };
 
-            var installed = new SnComponentDescriptor[0];
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
+            // ACTION BEFORE
+            var pm = new PatchManager(null, null);
+            pm.ExecuteOnBefore(candidates, installed, true);
 
-            Assert.AreEqual(1, after.Length);
-            Assert.AreEqual(1, executables.Length);
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v(,1.0)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(,)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
-        public void PatchingExecSim_Install_1New1Skip()
+        public void Patch_Sim_Install_1New1Skip()
         {
-            var installed = new[]
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>()
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new ISnPatch[]
+            var candidates = new List<ISnPatch>
             {
-                // Will be skipped. The different version does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.1"),
-                Inst("C2", "v2.3"),
+                Inst("C1", "v1.0", Exec, Exec),
+                Inst("C2", "v2.3", Exec, Exec),
             };
 
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
+            // ACTION BEFORE
+            var pm = new PatchManager(null, null);
+            pm.ExecuteOnBefore(candidates, installed, true);
 
-            // ASSERT
-            Assert.AreEqual(2, after.Length);
-            Assert.AreEqual("C1", after[0].ComponentId);
-            Assert.AreEqual(new Version(1, 0), after[0].Version);
-            Assert.AreEqual("C2", after[1].ComponentId);
-            Assert.AreEqual(new Version(2, 3), after[1].Version);
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C1v1.0(,) C2v(,2.3)", ComponentsToStringWithResult(installed));
 
-            Assert.AreEqual(1, executables.Length);
-            Assert.AreEqual("C2", executables[0].ComponentId);
-            Assert.AreEqual(new Version(2, 3), executables[0].Version);
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(,) C2v2.3(,)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
-        public void PatchingExecSim_Install_Duplicates()
+        public void Patch_Sim_Install_Duplicates()
         {
-            var installed = new[]
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>()
             {
                 Comp("C1", "v1.0")
             };
-            var patches = new ISnPatch[]
+            var candidates = new List<ISnPatch>
             {
                 // Will be skipped. The same id does not cause any error because this patch is irrelevant.
-                Inst("C1", "v1.0"),
-                Inst("C1", "v1.1"),
+                Inst("C1", "v1.0", Exec, Exec),
+                Inst("C1", "v1.1", Exec, Exec),
                 // Would be executable but the same id causes an error.
-                Inst("C2", "v1.0"),
-                Inst("C3", "v1.0"),
-                Inst("C3", "v2.3"),
-                Inst("C4", "v1.0"),
-                Inst("C4", "v2.3"),
-                Inst("C4", "v1.0"),
+                Inst("C2", "v1.0", Exec, Exec),
+                Inst("C3", "v1.0", Exec, Exec),
+                Inst("C3", "v2.3", Exec, Exec),
+                Inst("C4", "v1.0", Exec, Exec),
+                Inst("C4", "v2.3", Exec, Exec),
+                Inst("C4", "v1.0", Exec, Exec),
             };
 
-            // ACTION
-            var context = new PatchExecutionContext(null, null);
-            var pm = new PatchManager(context);
-            var executables = pm.GetExecutablePatches(patches, installed, out var after).ToArray();
+            // ACTION BEFORE
+            var pm = new PatchManager(null, null);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v1.0(,) C2v(,1.0)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(,) C2v1.0(,)", ComponentsToStringWithResult(installed));
 
             // ASSERT
-            Assert.AreEqual(1, after.Length);
-            Assert.AreEqual(0, executables.Length);
-            var errors = context.Errors;
-            Assert.AreEqual(2, errors.Count);
-            Assert.IsTrue(errors[0].Message.Contains("C3"));
-            Assert.AreEqual(PatchExecutionErrorType.DuplicatedInstaller, errors[0].ErrorType);
-            Assert.AreEqual(2, errors[0].FaultyPatches.Length);
-            Assert.IsTrue(errors[1].Message.Contains("C4"));
-            Assert.AreEqual(PatchExecutionErrorType.DuplicatedInstaller, errors[1].ErrorType);
-            Assert.AreEqual(3, errors[1].FaultyPatches.Length);
+            var errors = pm.Errors;
+            Assert.AreEqual(3, errors.Count);
+            Assert.IsTrue(errors[0].Message.Contains("C1"));
+            Assert.IsTrue(errors[1].Message.Contains("C3"));
+            Assert.IsTrue(errors[2].Message.Contains("C4"));
+            Assert.AreEqual("DuplicatedInstaller C1: 1.0; C1: 1.1|" +
+                            "DuplicatedInstaller C3: 1.0; C3: 2.3|" +
+                            "DuplicatedInstaller C4: 1.0; C4: 2.3; C4: 1.0", ErrorsToString(errors));
         }
         [TestMethod]
         public void PatchingExecSim_Install_Dependency()
@@ -852,6 +872,10 @@ namespace SenseNet.Packaging.Tests
         private string ErrorsToString(PatchExecutionContext context)
         {
             return string.Join(", ", context.Errors.Select(x => x.ToString()));
+        }
+        private string ErrorsToString(IEnumerable<PatchExecutionError> errors)
+        {
+            return string.Join("|", errors.Select(x => x.ToString()));
         }
     }
 }

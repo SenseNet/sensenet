@@ -12,7 +12,7 @@ namespace SenseNet.Packaging
         public Action<PatchExecutionLogRecord> LogCallback { get; }
         public ISnPatch CurrentPatch { get; internal set; }
 
-        internal IEnumerable<ISnPatch> ExecutablePatchesOnAfter { get; set; }
+        internal List<ISnPatch> ExecutablePatchesOnAfter { get; set; }
         public List<SnComponentDescriptor> CurrentlyInstalledComponents { get; set; }
 
         public PatchExecutionContext(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
