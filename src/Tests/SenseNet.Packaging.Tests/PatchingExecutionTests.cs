@@ -181,23 +181,6 @@ namespace SenseNet.Packaging.Tests
 
         /* ======================================================== COMPLEX INSTALL & PATCHING SIMULATION TESTS */
 
-        #region TOOLS for COMPLEX INSTALL & PATCHING TESTS
-        private string ComponentsToString(SnComponentDescriptor[] components)
-        {
-            return string.Join(" ", components.OrderBy(x=>x.ComponentId)
-                .Select(x => $"{x.ComponentId}v{x.Version}"));
-        }
-        private string PatchesToString(ISnPatch[] executables)
-        {
-            return string.Join(" ", executables.Select(x =>
-                $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));
-        }
-        private string PackagesToString(Package[] packages)
-        {
-            return string.Join("|", packages.Select(p => p.ToString()));
-        }
-        #endregion
-
         // SIMULATION: Install C1v1.0 and patch it to v3.0 with different pre-installation states 
         [TestMethod]
         public void PatchingExecSim_Patch_C1_a()
@@ -777,7 +760,8 @@ namespace SenseNet.Packaging.Tests
 
         /* ======================================================== EXECUTE ON BEFORE TESTS */
 
-        [TestMethod]
+        //UNDONE:PATCH: Activate this test
+        //[TestMethod]
         public void PatchingExec_OnBefore()
         {
             var packages = new List<Package[]>();

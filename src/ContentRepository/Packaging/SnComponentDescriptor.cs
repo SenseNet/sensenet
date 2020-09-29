@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using Newtonsoft.Json;
@@ -36,6 +36,17 @@ namespace SenseNet.Packaging
         public Dependency[] Dependencies { get; internal set; }
 
         /// <summary>
+        /// Gets or sets temporary version in execution before repository start.
+        /// </summary>
+        [JsonIgnore]
+        internal Version FaultyBeforeVersion { get; set; }
+        /// <summary>
+        /// Gets or sets temporary version in execution after repository start.
+        /// </summary>
+        [JsonIgnore]
+        internal Version FaultyAfterVersion { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SnComponentDescriptor"/> class.
         /// Extracts the dependencies from the manifest of the the given <paramref name="componentInfo"/>.
         /// </summary>
@@ -62,6 +73,40 @@ namespace SenseNet.Packaging
             var xml = new XmlDocument();
             xml.LoadXml(manifest);
             return Manifest.ParseDependencies(xml).Where(x => x.Id != ComponentId).ToArray();
+        }
+
+        internal static SnComponentDescriptor[] CreateComponents(IEnumerable<ComponentInfo> installed, IEnumerable<ComponentInfo> faultyList)
+        {
+            var result = installed.Select(x=>new SnComponentDescriptor(x)).ToList();
+
+            foreach (var faulty in faultyList)
+            {
+                var existing = result.FirstOrDefault(x => x.ComponentId == faulty.ComponentId);
+                if (existing == null)
+                {
+                    existing = new SnComponentDescriptor(faulty);
+                    result.Add(existing);
+                    existing.Version = null;
+                }
+
+                switch (faulty.ExecutionResult)
+                {
+                    case ExecutionResult.Successful:
+                        break;
+                    case ExecutionResult.SuccessfulBefore:
+                    case ExecutionResult.Faulty:
+                        existing.FaultyAfterVersion = faulty.Version;
+                        break;
+                    case ExecutionResult.Unfinished:
+                    case ExecutionResult.FaultyBefore:
+                        existing.FaultyBeforeVersion = faulty.Version;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            return result.ToArray();
         }
     }
 }

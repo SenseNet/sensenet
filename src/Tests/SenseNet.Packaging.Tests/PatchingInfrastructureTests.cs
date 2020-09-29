@@ -383,6 +383,127 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
+        public void Patch_Sys_SaveAndReload_Installer_FaultyBefore()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C7",
+                Version = new Version(1, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePackage(Manifest.Create(installer), ExecutionResult.FaultyBefore, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patches[0].Id > 0);
+            Assert.AreEqual("C7: 1.0", patches[0].ToString());
+            Assert.AreEqual(ExecutionResult.FaultyBefore, patches[0].ExecutionResult);
+        }
+        [TestMethod]
+        public void Patch_Sys_SaveAndReload_Installer_SuccessfulBefore()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C7",
+                Version = new Version(1, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePackage(Manifest.Create(installer), ExecutionResult.FaultyBefore, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patches[0].Id > 0);
+            Assert.AreEqual("C7: 1.0", patches[0].ToString());
+            Assert.AreEqual(ExecutionResult.FaultyBefore, patches[0].ExecutionResult);
+        }
+        [TestMethod]
+        public void Patch_Sys_SaveAndReload_SnPatch_FaultyBefore()
+        {
+            var snPatch = new SnPatch
+            {
+                ComponentId = "C7",
+                Version = new Version(2, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Boundary = ParseBoundary("1.0 <= v <  2.0"),
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePackage(Manifest.Create(snPatch), ExecutionResult.FaultyBefore, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
+            var patch = (SnPatch)patches[0];
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patch.Id > 0);
+            Assert.AreEqual("C7: 1.0 <= v < 2.0 --> 2.0", patch.ToString());
+            Assert.AreEqual(ExecutionResult.FaultyBefore, patch.ExecutionResult);
+        }
+        [TestMethod]
+        public void Patch_Sys_SaveAndReload_SnPatch_SuccessfulBefore()
+        {
+            var snPatch = new SnPatch
+            {
+                ComponentId = "C7",
+                Version = new Version(2, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2020, 07, 31),
+                Boundary = ParseBoundary("1.0 <= v <  2.0"),
+            };
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePackage(Manifest.Create(snPatch), ExecutionResult.SuccessfulBefore, null);
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            // ASSERT
+            var patches = packages.Select(PatchManager.CreatePatch).ToArray();
+            var patch = (SnPatch)patches[0];
+            Assert.AreEqual(1, patches.Length);
+            Assert.IsTrue(patch.Id > 0);
+            Assert.AreEqual("C7: 1.0 <= v < 2.0 --> 2.0", patch.ToString());
+            Assert.AreEqual(ExecutionResult.SuccessfulBefore, patch.ExecutionResult);
+        }
+
+        [TestMethod]
         public void PatchingSystem_InstalledComponents()
         {
             var installer1 = new ComponentInstaller
@@ -466,5 +587,48 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C2: 1.0 <= v <= 1.0", components[0].Dependencies[0].ToString());
         }
 
+        [TestMethod]
+        public void Patch_Sys_LoadInstalledComponents()
+        {
+            // Installers only
+            SavePackage(Inst("C01", "1.0"), ExecutionResult.Unfinished);
+            SavePackage(Inst("C02", "1.0"), ExecutionResult.FaultyBefore);
+            SavePackage(Inst("C03", "1.0"), ExecutionResult.SuccessfulBefore);
+            SavePackage(Inst("C04", "1.0"), ExecutionResult.Faulty);
+            SavePackage(Inst("C05", "1.0"), ExecutionResult.Successful);
+
+            // Installers and patches
+            SavePackage(Inst("C06", "1.0"), ExecutionResult.Successful);
+            SavePackage(Patch("C06", "1.0 <= v < 2.0", "2.0"), ExecutionResult.Unfinished);
+            SavePackage(Inst("C07", "1.0"), ExecutionResult.Successful);
+            SavePackage(Patch("C07", "1.0 <= v < 2.0", "2.0"), ExecutionResult.FaultyBefore);
+            SavePackage(Inst("C08", "1.0"), ExecutionResult.Successful);
+            SavePackage(Patch("C08", "1.0 <= v < 2.0", "2.0"), ExecutionResult.SuccessfulBefore);
+            SavePackage(Inst("C09", "1.0"), ExecutionResult.Successful);
+            SavePackage(Patch("C09", "1.0 <= v < 2.0", "2.0"), ExecutionResult.Faulty);
+            SavePackage(Inst("C10", "1.0"), ExecutionResult.Successful);
+            SavePackage(Patch("C10", "1.0 <= v < 2.0", "2.0"), ExecutionResult.Successful);
+
+            // ACTION
+            var installed = PackageManager.Storage?
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var faulty = PackageManager.Storage?
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var currentComponents = SnComponentDescriptor.CreateComponents(installed, faulty);
+
+            // ASSERT
+            Assert.AreEqual("C01v(1.0,) C02v(1.0,) C03v(,1.0) C04v(,1.0) C05v1.0(,) " +
+                            "C06v1.0(2.0,) C07v1.0(2.0,) C08v1.0(,2.0) C09v1.0(,2.0) C10v2.0(,)",
+                ComponentsToStringWithResult(currentComponents));
+        }
+
+        /* ======================================================================= TOOLS */
+
+        private void SavePackage(ISnPatch patch, ExecutionResult result)
+        {
+            PackageManager.SavePackage(Manifest.Create(patch), result, null);
+        }
     }
 }

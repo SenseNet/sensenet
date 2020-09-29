@@ -399,5 +399,26 @@ namespace SenseNet.Packaging.Tests
             return boundary;
         }
 
+
+        protected string ComponentsToString(SnComponentDescriptor[] components)
+        {
+            return string.Join(" ", components.OrderBy(x => x.ComponentId)
+                .Select(x => $"{x.ComponentId}v{x.Version}"));
+        }
+        protected string ComponentsToStringWithResult(SnComponentDescriptor[] components)
+        {
+            return string.Join(" ", components.OrderBy(x => x.ComponentId)
+                .Select(x => $"{x.ComponentId}v{x.Version}({x.FaultyBeforeVersion},{x.FaultyAfterVersion})"));
+        }
+        protected string PatchesToString(ISnPatch[] executables)
+        {
+            return string.Join(" ", executables.Select(x =>
+                $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));
+        }
+        protected string PackagesToString(Package[] packages)
+        {
+            return string.Join("|", packages.Select(p => p.ToString()));
+        }
+
     }
 }

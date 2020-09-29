@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -40,12 +41,36 @@ namespace SenseNet.ContentRepository.InMemory
                     ComponentId = package.ComponentId,
                     Version = package.ComponentVersion,
                     Description = package.Description,
-                    Manifest = package.Manifest
+                    Manifest = package.Manifest,
+                    ExecutionResult = package.ExecutionResult
                 };
             }
 
             foreach (var item in descriptions)
                 componentInfos[item.Key].Description = item.Value;
+
+            return System.Threading.Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
+        }
+
+        public Task<IEnumerable<ComponentInfo>> LoadIncompleteComponentsAsync(CancellationToken cancellationToken)
+        {
+            var componentInfos = new Dictionary<string, ComponentInfo>();
+            foreach (var package in GetPackages()
+                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)
+                            && p.ExecutionResult != ExecutionResult.Successful)
+                .OrderBy(x => x.ComponentId).ThenBy(x => x.ComponentVersion).ThenBy(x => x.ExecutionDate))
+            {
+                var componentId = package.ComponentId;
+
+                componentInfos[componentId] = new ComponentInfo
+                {
+                    ComponentId = package.ComponentId,
+                    Version = package.ComponentVersion,
+                    Description = package.Description,
+                    Manifest = package.Manifest,
+                    ExecutionResult = package.ExecutionResult
+                };
+            }
 
             return System.Threading.Tasks.Task.FromResult(componentInfos.Values.AsEnumerable());
         }
