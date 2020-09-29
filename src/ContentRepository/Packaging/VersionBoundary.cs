@@ -40,6 +40,8 @@ namespace SenseNet.Packaging
         /// <returns></returns>
         public bool IsInInterval(Version version)
         {
+            if (version == null)
+                return false;
             if ((MinVersion != null && version < MinVersion) || (MaxVersion != null && version > MaxVersion))
                 return false;
             if (MinVersion != null && MinVersionIsExclusive && version == MinVersion)

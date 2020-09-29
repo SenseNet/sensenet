@@ -204,7 +204,7 @@ namespace SenseNet.Packaging
                     break;
             }
             if (toExec.Count > 0)
-                RecognizeErrors(toExec, candidates, installed);
+                RecognizeErrors(toExec, candidates, installed, true);
         }
 
         private bool CheckPrerequisitesBefore(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
@@ -215,7 +215,7 @@ namespace SenseNet.Packaging
             {
                 if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
                 if (HasDuplicates(installer, candidates)) { return false; }
-                if (!HaveCorrectDependencies(installer, installed)) { return false; }
+                if (!HasCorrectDependencies(installer, installed, true)) { return false; }
                 if (component == null) { return true; }
                 if (component.Version != null) { isIrrelevant = true; return false; }
                 if (component.FaultyAfterVersion != null) { isIrrelevant = true; return false; }
@@ -318,7 +318,7 @@ namespace SenseNet.Packaging
                     break;
             }
             if (toExec.Count > 0)
-                RecognizeErrors(toExec, candidates, installed);
+                RecognizeErrors(toExec, candidates, installed, false);
         }
 
         private bool CheckPrerequisitesAfter(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
@@ -328,7 +328,7 @@ namespace SenseNet.Packaging
             if (patch is ComponentInstaller installer)
             {
                 if (HasDuplicates(installer, candidates)) { return false; }
-                if (!HaveCorrectDependencies(installer, installed)) { return false; }
+                if (!HasCorrectDependencies(installer, installed, false)) { return false; }
                 if (component == null) { return true; }
                 if (component.Version != null) { isIrrelevant = true; return false; }
                 if (component.FaultyBeforeVersion >= patch.Version) { isIrrelevant = true; return false; }
@@ -384,12 +384,33 @@ namespace SenseNet.Packaging
                                              patch.ComponentId == installer.ComponentId) > 1;
         }
 
-        private bool HaveCorrectDependencies(ComponentInstaller patch, List<SnComponentDescriptor> installed)
+        private bool HasCorrectDependencies(ISnPatch patch, List<SnComponentDescriptor> installed, bool onBefore)
         {
+            // All right if there is no any dependency.
             if (patch.Dependencies == null)
                 return true;
-            throw new NotImplementedException();
+            var deps = patch.Dependencies.ToArray();
+            if (deps.Length == 0)
+                return true;
+
+            // Self-dependency is forbidden
+            if (deps.Any(dep => dep.Id == patch.ComponentId))
+                //UNDONE:PATCH:LOG: ? Self-dependency ?
+                return false;
+
+            // Not installable if there is any dependency but installed nothing.
+            if (installed.Count == 0)
+                return false;
+
+            // Installable if all dependencies exist.
+            if(onBefore)
+                return deps.All(dep =>
+                    installed.Any(i => i.ComponentId == dep.Id && 
+                                       (dep.Boundary.IsInInterval(i.Version) || dep.Boundary.IsInInterval(i.FaultyAfterVersion))));
+            return deps.All(dep =>
+                installed.Any(i => i.ComponentId == dep.Id && (dep.Boundary.IsInInterval(i.Version))));
         }
+
 
         private void WriteInitialStateToDb(ISnPatch patch)
         {
@@ -443,7 +464,7 @@ namespace SenseNet.Packaging
             _context.Errors.Add(new PatchExecutionError(errorType, patch, message));
         }
 
-        private void RecognizeErrors(List<ISnPatch> notExecutables, List<ISnPatch> candidates, List<SnComponentDescriptor> installed)
+        private void RecognizeErrors(List<ISnPatch> notExecutables, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool onBefore)
         {
             // Recognize duplicated installers
             var installers = notExecutables
@@ -474,8 +495,12 @@ namespace SenseNet.Packaging
             }
 
             // Recognize remaining items
+            var toRemove = new List<ISnPatch>();
             foreach (var patch in notExecutables)
             {
+                if(!onBefore)
+                    toRemove.Add(patch);
+
                 if (patch is SnPatch snPatch)
                 {
                     if (!installed.Any(comp => comp.ComponentId == snPatch.ComponentId &&
@@ -484,15 +509,27 @@ namespace SenseNet.Packaging
                     {
                         _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteMissingVersion, patch));
                         _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.MissingVersion, patch,
-                            "Cannot execute the patch " + patch));
+                            "Cannot execute the patch " + patch)); //UNDONE:PATCH: right message
                     }
                 }
-
-                _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecute, patch));
-                _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
-                    "Cannot execute the patch " + patch));
+                else
+                {
+                    var message = $"Cannot execute the patch {(onBefore ? "before" : "after")} repository start.";
+                    _context.LogCallback(new PatchExecutionLogRecord(
+                        onBefore
+                            ? PatchExecutionEventType.CannotExecuteOnBefore
+                            : PatchExecutionEventType.CannotExecuteOnAfter,
+                        patch, message));
+                    _context.Errors.Add(new PatchExecutionError(
+                        onBefore
+                            ? PatchExecutionErrorType.CannotExecuteOnBefore
+                            : PatchExecutionErrorType.CannotExecuteOnAfter,
+                        patch, message + $" [{patch}]"));
+                }
 
             }
+            foreach (var item in toRemove)
+                candidates.Remove(item);
         }
 
 
@@ -854,8 +891,8 @@ namespace SenseNet.Packaging
                 }
             }
 
-            logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecute, patch);
-            return new PatchExecutionError(PatchExecutionErrorType.CannotInstall, patch,
+            logRecord = new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteOnBefore, patch);
+            return new PatchExecutionError(PatchExecutionErrorType.CannotExecuteOnBefore, patch,
                 "Cannot execute the patch " + patch);
         }
 

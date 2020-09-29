@@ -5,7 +5,7 @@ namespace SenseNet.Packaging
 {
     public enum PatchExecutionEventType
     {
-        DuplicatedInstaller, CannotExecute, CannotExecuteMissingVersion, PackageNotSaved,
+        DuplicatedInstaller, CannotExecuteOnBefore, CannotExecuteOnAfter, CannotExecuteMissingVersion, PackageNotSaved,
         OnBeforeActionStarts, OnBeforeActionFinished, OnAfterActionStarts, OnAfterActionFinished, ExecutionError,
         ExecutionErrorOnBefore
     }

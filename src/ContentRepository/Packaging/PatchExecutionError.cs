@@ -6,7 +6,8 @@ namespace SenseNet.Packaging
 {
     public enum PatchExecutionErrorType
     {
-        DuplicatedInstaller, CannotInstall, MissingVersion, ExecutionErrorOnBefore, ExecutionErrorOnAfter
+        DuplicatedInstaller, CannotExecuteOnBefore, CannotExecuteOnAfter, MissingVersion,
+        ExecutionErrorOnBefore, ExecutionErrorOnAfter
     }
     [DebuggerDisplay("{ToString()}")]
     public class PatchExecutionError
