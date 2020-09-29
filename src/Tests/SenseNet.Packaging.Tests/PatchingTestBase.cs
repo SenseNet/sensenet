@@ -405,7 +405,7 @@ namespace SenseNet.Packaging.Tests
             return string.Join(" ", components.OrderBy(x => x.ComponentId)
                 .Select(x => $"{x.ComponentId}v{x.Version}"));
         }
-        protected string ComponentsToStringWithResult(SnComponentDescriptor[] components)
+        protected string ComponentsToStringWithResult(IEnumerable<SnComponentDescriptor> components)
         {
             return string.Join(" ", components.OrderBy(x => x.ComponentId)
                 .Select(x => $"{x.ComponentId}v{x.Version}({x.FaultyBeforeVersion},{x.FaultyAfterVersion})"));

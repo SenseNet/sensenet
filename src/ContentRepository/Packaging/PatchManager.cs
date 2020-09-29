@@ -125,10 +125,75 @@ namespace SenseNet.Packaging
             };
         }
 
-        /* =========================================================================================== */
+        /* ======================================================================================= NEW */
         /* ---------------------------------------------------------------------------------- OnBefore */
 
-        public void ExecutePatchesBeforeStart()
+        public void ExecutePatchesOnBeforeStart(bool isSimulation = false)
+        {
+            var candidates = CollectCandidates();
+            var installed = LoadComponents();
+            ExecuteOnBefore(candidates, installed, isSimulation);
+            _context.ExecutablePatchesOnAfter = candidates;
+            _context.CurrentlyInstalledComponents = installed;
+        }
+        internal void ExecuteOnBefore(ISnPatch[] candidates, List<SnComponentDescriptor> installed, bool isSimulation)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ---------------------------------------------------------------------------------- OnAfter */
+
+        public void ExecutePatchesOnAfterStart(bool isSimulation = false)
+        {
+            var candidates = _context.ExecutablePatchesOnAfter.ToArray();
+            var installed = _context.CurrentlyInstalledComponents;
+            ExecuteOnBefore(candidates, installed, isSimulation);
+            _context.ExecutablePatchesOnAfter = candidates;
+            _context.CurrentlyInstalledComponents = installed;
+        }
+        internal void ExecuteOnAfter(ISnPatch[] candidates, List<SnComponentDescriptor> installed, bool isSimulation)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ---------------------------------------------------------------------------------- Common */
+
+        private ISnPatch[] CollectCandidates()
+        {
+            return Providers.Instance
+                .Components
+                .Cast<ISnComponent>()
+                .SelectMany(component =>
+                {
+                    var builder = new PatchBuilder(component);
+                    component.AddPatches(builder);
+                    return builder.GetPatches();
+                })
+                .ToArray();
+        }
+
+        private List<SnComponentDescriptor> LoadComponents()
+        {
+            var installed = PackageManager.Storage?
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var faulty = PackageManager.Storage?
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            return SnComponentDescriptor.CreateComponents(installed, faulty);
+        }
+
+
+
+
+
+
+
+
+        /* ======================================================================================= OLD */
+        /* ---------------------------------------------------------------------------------- OnBefore */
+
+        public void ExecutePatchesBeforeStart_OLD()
         {
             var candidates = Providers.Instance
                 .Components
@@ -236,7 +301,7 @@ namespace SenseNet.Packaging
 
         /* ---------------------------------------------------------------------------------- OnAfter */
 
-        public void ExecutePatchesAfterStart()
+        public void ExecutePatchesAfterStart_OLD()
         {
             ExecuteRelevantPatchesAfter(_context.ExecutablePatchesOnAfter);
         }

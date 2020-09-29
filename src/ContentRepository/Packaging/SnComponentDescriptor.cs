@@ -75,7 +75,7 @@ namespace SenseNet.Packaging
             return Manifest.ParseDependencies(xml).Where(x => x.Id != ComponentId).ToArray();
         }
 
-        internal static SnComponentDescriptor[] CreateComponents(IEnumerable<ComponentInfo> installed, IEnumerable<ComponentInfo> faultyList)
+        internal static List<SnComponentDescriptor> CreateComponents(IEnumerable<ComponentInfo> installed, IEnumerable<ComponentInfo> faultyList)
         {
             var result = installed.Select(x=>new SnComponentDescriptor(x)).ToList();
 
@@ -106,7 +106,7 @@ namespace SenseNet.Packaging
                 }
             }
 
-            return result.ToArray();
+            return result;
         }
     }
 }

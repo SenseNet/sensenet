@@ -66,7 +66,7 @@ namespace SenseNet.ContentRepository
                     .GetAwaiter().GetResult();
 
             var patchManager = new PatchManager(builder, WritePatchingLog);
-            patchManager.ExecutePatchesBeforeStart();
+            patchManager.ExecutePatchesOnBeforeStart();
 
             var repositoryInstance = Start((RepositoryStartSettings) builder);
 
@@ -74,7 +74,7 @@ namespace SenseNet.ContentRepository
             if (permissions != null && permissions.Count > 0)
                 SecurityHandler.SecurityInstaller.InstallDefaultSecurityStructure(initialData);
 
-            patchManager.ExecutePatchesAfterStart();
+            patchManager.ExecutePatchesOnAfterStart();
 
             return repositoryInstance;
         }
