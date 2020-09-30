@@ -240,7 +240,6 @@ namespace SenseNet.Packaging
                 $"Version: {patch.Version}, PackageType: {patch.Type}");
         }
 
-
         private bool ValidInstaller(ComponentInstaller installer)
         {
             //UNDONE:PATCH: ? check self dependency here
@@ -251,7 +250,6 @@ namespace SenseNet.Packaging
             //UNDONE:PATCH: ? check self dependency here
             return true;
         }
-
 
         /* ---------------------------------------------------------------------------------- OnAfter */
 
@@ -359,7 +357,6 @@ namespace SenseNet.Packaging
                 $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
                 $"Version: {patch.Version}, PackageType: {patch.Type}");
         }
-
 
         /* ---------------------------------------------------------------------------------- Common */
 
