@@ -12,7 +12,7 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== SIMPLE INSTALLER TESTS */
 
         [TestMethod]
-        public void Patch_Sim_Install_1New()
+        public void Patching_ExecSim_Install_1New()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -45,7 +45,7 @@ namespace SenseNet.Packaging.Tests
                 string.Join("|", log.Select(x => x.ToString())));
         }
         [TestMethod]
-        public void Patch_Sim_Install_1New1Skip()
+        public void Patching_ExecSim_Install_1New1Skip()
         {
             void Exec(PatchExecutionContext peContext) { }
 
@@ -75,7 +75,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(,) C2v2.3(,)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
-        public void Patch_Sim_Install_Duplicates()
+        public void Patching_ExecSim_Install_Duplicates()
         {
             void Exec(PatchExecutionContext peContext) { }
 
@@ -122,7 +122,7 @@ namespace SenseNet.Packaging.Tests
 
         }
         [TestMethod]
-        public void Patch_Sim_Install_Dependency()
+        public void Patching_ExecSim_Install_Dependency()
         {
             // Test the right installer execution order if there is a dependency among the installers.
 
@@ -162,7 +162,7 @@ namespace SenseNet.Packaging.Tests
                 string.Join("|", log.Select(x => x.ToString())));
         }
         [TestMethod]
-        public void Patch_Sim_Install_Dependency2()
+        public void Patching_ExecSim_Install_Dependency2()
         {
             // Test the right installer execution order if there is a dependency among the installers.
             // One dependency is exist, 2 will be installed.
@@ -211,7 +211,7 @@ namespace SenseNet.Packaging.Tests
                 string.Join("|", log.Select(x => x.ToString())));
         }
         [TestMethod]
-        public void Patch_Sim_Install_Dependencies_Circular()
+        public void Patching_ExecSim_Install_Dependencies_Circular()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -264,7 +264,7 @@ namespace SenseNet.Packaging.Tests
 
         // SIMULATION: Install C1v1.0 and patch it to v3.0 with different pre-installation states 
         [TestMethod]
-        public void Patch_Sim_Patch_C1_a()
+        public void Patching_ExecSim_Patch_C1_a()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -297,7 +297,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_C1_b()
+        public void Patching_ExecSim_Patch_C1_b()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -333,7 +333,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_C1_c()
+        public void Patching_ExecSim_Patch_C1_c()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -369,7 +369,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_C1_d()
+        public void Patching_ExecSim_Patch_C1_d()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -407,7 +407,7 @@ namespace SenseNet.Packaging.Tests
 
         // SIMULATION: Install and patch C2 that depends C1
         [TestMethod]
-        public void Patch_Sim_Patch_C2toC1v2_a()
+        public void Patching_ExecSim_Patch_C2toC1v2_a()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -445,7 +445,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("C1i1.0", PatchesToString(executables));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_C2toC1v2_b()
+        public void Patching_ExecSim_Patch_C2toC1v2_b()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -480,7 +480,7 @@ namespace SenseNet.Packaging.Tests
 
         // SIMULATION: Install and patch C2 that depends C1. Dependency comes with the patch.
         [TestMethod]
-        public void Patch_Sim_Patch_DependencyInPatch()
+        public void Patching_ExecSim_Patch_DependencyInPatch()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -516,7 +516,7 @@ namespace SenseNet.Packaging.Tests
 
         // SIMULATION: Install and patch C1 but there is a missing item in the patch chain.
         [TestMethod]
-        public void Patch_Sim_Patch_MissingItemInTheChain_a()
+        public void Patching_ExecSim_Patch_MissingItemInTheChain_a()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -554,7 +554,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("C1i1.0 C1p2.0", PatchesToString(executables));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_MissingItemInTheChain_b()
+        public void Patching_ExecSim_Patch_MissingItemInTheChain_b()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -595,7 +595,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("C1p2.0", PatchesToString(executables));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_MissingItemInTheChain_c()
+        public void Patching_ExecSim_Patch_MissingItemInTheChain_c()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -636,7 +636,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("", PatchesToString(executables));
         }
         [TestMethod]
-        public void Patch_Sim_Patch_MissingItemInTheChain_d()
+        public void Patching_ExecSim_Patch_MissingItemInTheChain_d()
         {
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -680,7 +680,7 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */
 
         [TestMethod]
-        public void Patch_Exec_InstallOne_Success()
+        public void Patching_Exec_InstallOne_Success()
         {
             var packages = new List<Package[]>();
             var log = new List<PatchExecutionLogRecord>();
@@ -722,7 +722,7 @@ namespace SenseNet.Packaging.Tests
 
         }
         [TestMethod]
-        public void Patch_Exec_InstallOne_FaultyBefore()
+        public void Patching_Exec_InstallOne_FaultyBefore()
         {
             var packages = new List<Package[]>();
             var log = new List<PatchExecutionLogRecord>();
@@ -760,7 +760,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("1, C1: Install FaultyBefore, 1.0", PackagesToString(packages[1]));
         }
         [TestMethod]
-        public void Patch_Exec_PatchOne_Success()
+        public void Patching_Exec_PatchOne_Success()
         {
             var packages = new List<Package[]>();
             var log = new List<PatchExecutionLogRecord>();
@@ -813,7 +813,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Successful, 2.0", PackagesToString(packages[3]));
         }
         [TestMethod]
-        public void Patch_Exec_PatchOne_Faulty()
+        public void Patching_Exec_PatchOne_Faulty()
         {
             var packages = new List<Package[]>();
             var log = new List<PatchExecutionLogRecord>();
@@ -868,7 +868,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("1, C1: Install Successful, 1.0|2, C1: Patch Faulty, 2.0", PackagesToString(packages[4]));
         }
         [TestMethod]
-        public void Patch_Exec_SkipPatch_FaultyInstaller()
+        public void Patching_Exec_SkipPatch_FaultyInstaller()
         {
             // Faulty execution blocks the following patches on the same component.
             var packages = new List<Package[]>();
@@ -923,7 +923,7 @@ namespace SenseNet.Packaging.Tests
             //Assert.AreEqual("1, C1: Install Faulty, 1.0", PackagesToString(packages[3]));
         }
         [TestMethod]
-        public void Patch_Exec_SkipPatch_FaultySnPatch()
+        public void Patching_Exec_SkipPatch_FaultySnPatch()
         {
             // Faulty execution blocks the following patches on the same component.
             var packages = new List<Package[]>();
@@ -985,7 +985,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Patch_Exec_SkipPatch_MoreFaultyChains()
+        public void Patching_Exec_SkipPatch_MoreFaultyChains()
         {
             // Faulty execution blocks the following patches on the same component.
             var packages = new List<Package[]>();
@@ -1080,11 +1080,6 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== Tools */
 
         private void Error(PatchExecutionContext context) => throw new Exception("Err");
-
-        private string ErrorsToString(PatchExecutionContext context)
-        {
-            return string.Join(", ", context.Errors.Select(x => x.ToString()));
-        }
         private string ErrorsToString(IEnumerable<PatchExecutionError> errors)
         {
             return string.Join("|", errors.Select(x => x.ToString()));
