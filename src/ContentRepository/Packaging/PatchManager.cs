@@ -414,11 +414,11 @@ namespace SenseNet.Packaging
 
         private void WriteInitialStateToDb(ISnPatch patch)
         {
-            throw new NotImplementedException();
+            PackageManager.SaveInitialPackage(Manifest.Create(patch));
         }
         private void ModifyStateInDb(ISnPatch patch, ExecutionResult result)
         {
-            throw new NotImplementedException();
+            PackageManager.SavePackage(Manifest.Create(patch), result, null); //UNDONE:PATCH: Write error to db
         }
 
         private void CreateInitialState(ISnPatch patch, List<SnComponentDescriptor> installed)
@@ -539,121 +539,173 @@ namespace SenseNet.Packaging
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         /* ======================================================================================= OLD */
         /* ---------------------------------------------------------------------------------- OnBefore */
 
-        public void ExecutePatchesBeforeStart_OLD()
-        {
-            var candidates = Providers.Instance
-                .Components
-                .Cast<ISnComponent>()
-                .SelectMany(component =>
-                {
-                    var builder = new PatchBuilder(component);
-                    component.AddPatches(builder);
-                    return builder.GetPatches();
-                })
-                .ToArray(); 
+        //public void ExecutePatchesBeforeStart_OLD()
+        //{
+        //    var candidates = Providers.Instance
+        //        .Components
+        //        .Cast<ISnComponent>()
+        //        .SelectMany(component =>
+        //        {
+        //            var builder = new PatchBuilder(component);
+        //            component.AddPatches(builder);
+        //            return builder.GetPatches();
+        //        })
+        //        .ToArray(); 
 
-            var executables = GetExecutablePatches(candidates);
+        //    var executables = GetExecutablePatches(candidates);
 
-            _context.ExecutablePatchesOnAfter = ExecuteRelevantPatchesBefore(executables).ToList();
-        }
-        internal IEnumerable<ISnPatch> ExecuteRelevantPatchesBefore(IEnumerable<ISnPatch> candidates)
-        {
-            var patchesToExec = candidates.ToList();
-            while (true)
-            {
-                var installedComponents = LoadInstalledComponents();
-                var executables = GetExecutablePatches(patchesToExec, installedComponents, out _);
-                if (executables.Length == 0)
-                    break;
+        //    _context.ExecutablePatchesOnAfter = ExecuteRelevantPatchesBefore(executables).ToList();
+        //}
+        //internal IEnumerable<ISnPatch> ExecuteRelevantPatchesBefore(IEnumerable<ISnPatch> candidates)
+        //{
+        //    var patchesToExec = candidates.ToList();
+        //    while (true)
+        //    {
+        //        var installedComponents = LoadInstalledComponents();
+        //        var executables = GetExecutablePatches(patchesToExec, installedComponents, out _);
+        //        if (executables.Length == 0)
+        //            break;
 
-                var faulty = CallOnBeforeActions(executables);
+        //        var faulty = CallOnBeforeActions(executables);
 
-                if (faulty == null)
-                    break;
+        //        if (faulty == null)
+        //            break;
 
-                RemoveNotExecutables(patchesToExec);
-                if (patchesToExec.Count == 0)
-                    break;
-            }
+        //        RemoveNotExecutables(patchesToExec);
+        //        if (patchesToExec.Count == 0)
+        //            break;
+        //    }
 
-            return patchesToExec;
-        }
-        private ISnPatch CallOnBeforeActions(IEnumerable<ISnPatch> patches)
-        {
-            try
-            {
-                foreach (var patch in patches)
-                {
-                    if (patch.ActionBeforeStart == null)
-                        continue;
+        //    return patchesToExec;
+        //}
+        //private ISnPatch CallOnBeforeActions(IEnumerable<ISnPatch> patches)
+        //{
+        //    try
+        //    {
+        //        foreach (var patch in patches)
+        //        {
+        //            if (patch.ActionBeforeStart == null)
+        //                continue;
 
-                    var manifest = Manifest.Create(patch);
+        //            var manifest = Manifest.Create(patch);
 
-                    // Write an "unfinished" record
-                    PackageManager.SaveInitialPackage(manifest); //UNDONE:PATCH: try catch
+        //            // Write an "unfinished" record
+        //            PackageManager.SaveInitialPackage(manifest); //UNDONE:PATCH: try catch
 
-                    // Log after save: the execution is in started state when the callback called
-                    // so the callback can see the real state in the database.
-                    _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.OnBeforeActionStarts, patch));
+        //            // Log after save: the execution is in started state when the callback called
+        //            // so the callback can see the real state in the database.
+        //            _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.OnBeforeActionStarts, patch));
 
-                    // PATCH EXECUTION
-                    _context.CurrentPatch = patch;
-                    var successful = false;
-                    Exception executionError = null;
-                    try
-                    {
-                        patch.ActionBeforeStart?.Invoke(_context);
-                        successful = true;
-                    }
-                    catch (Exception e)
-                    {
-                        executionError = e;
-                        _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.ExecutionErrorOnBefore, patch, e.Message));
-                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionError, patch, e.Message));
-                    }
+        //            // PATCH EXECUTION
+        //            _context.CurrentPatch = patch;
+        //            var successful = false;
+        //            Exception executionError = null;
+        //            try
+        //            {
+        //                patch.ActionBeforeStart?.Invoke(_context);
+        //                successful = true;
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                executionError = e;
+        //                _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.ExecutionErrorOnBefore, patch, e.Message));
+        //                _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.ExecutionError, patch, e.Message));
+        //            }
 
-                    try
-                    {
-                        // Save the execution result but only if faulty. If execution is successful the state
-                        // remains unfinished.
-                        if (!successful)
-                            PackageManager.SavePackage(manifest, null, successful, executionError);
+        //            try
+        //            {
+        //                // Save the execution result but only if faulty. If execution is successful the state
+        //                // remains unfinished.
+        //                if (!successful)
+        //                    PackageManager.SavePackage(manifest, null, successful, executionError);
 
-                        // Log after save: the execution is in completed database state when the callback called.
-                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.OnBeforeActionFinished,
-                            patch,
-                            $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
-                    }
-                    catch (Exception e)
-                    {
-                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.PackageNotSaved,
-                            patch));
-                        throw new PackagingException("Cannot save the package.", e);
-                    }
+        //                // Log after save: the execution is in completed database state when the callback called.
+        //                _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.OnBeforeActionFinished,
+        //                    patch,
+        //                    $"{(successful ? ExecutionResult.Successful : ExecutionResult.Faulty)}"));
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.PackageNotSaved,
+        //                    patch));
+        //                throw new PackagingException("Cannot save the package.", e);
+        //            }
 
-                    // Return the current patch in case of faulty execution.
-                    if (executionError != null)
-                        return patch;
-                }
-            }
-            finally
-            {
-                RepositoryVersionInfo.Reset();//UNDONE:PATCH: Determine final place of the RepositoryVersionInfo.Reset()
-            }
+        //            // Return the current patch in case of faulty execution.
+        //            if (executionError != null)
+        //                return patch;
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        RepositoryVersionInfo.Reset();//UNDONE:PATCH: Determine final place of the RepositoryVersionInfo.Reset()
+        //    }
 
-            // There is no faulty patch.
-            return null;
-        }
+        //    // There is no faulty patch.
+        //    return null;
+        //}
 
         /* ---------------------------------------------------------------------------------- OnAfter */
 
-        public void ExecutePatchesAfterStart_OLD()
-        {
-            ExecuteRelevantPatchesAfter(_context.ExecutablePatchesOnAfter);
-        }
+        //public void ExecutePatchesAfterStart_OLD()
+        //{
+        //    ExecuteRelevantPatchesAfter(_context.ExecutablePatchesOnAfter);
+        //}
         internal void ExecuteRelevantPatchesAfter(IEnumerable<ISnPatch> candidates)
         {
             var patchesToExec = candidates.ToList();
@@ -756,10 +808,10 @@ namespace SenseNet.Packaging
                 patchesToExec.Remove(patch);
         }
 
-        internal IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates)
-        {
-            return GetExecutablePatches(candidates, LoadInstalledComponents(), out _);
-        }
+        //internal IEnumerable<ISnPatch> GetExecutablePatches(IEnumerable<ISnPatch> candidates)
+        //{
+        //    return GetExecutablePatches(candidates, LoadInstalledComponents(), out _);
+        //}
 
         internal ISnPatch[] GetExecutablePatches(IEnumerable<ISnPatch> candidates,
             SnComponentDescriptor[] installedComponents, out SnComponentDescriptor[] componentsAfter)
