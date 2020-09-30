@@ -222,25 +222,33 @@ namespace SenseNet.Packaging
                 if (component.FaultyBeforeVersion > patch.Version) { isIrrelevant = true; return false; }
                 return true;
             }
-            if (patch.Type == PackageType.Patch)
+            if (patch is SnPatch snPatch)
             {
-                throw new NotImplementedException();
-                //# If not Valid(snPatch)                                    Return false, isIrrelevant = true
-                //# If not HaveCorrectDependencies(patch, currentComponents) Return false
-                //# If component is null                                     Return false
-                //# If component's SuccessfulVersion is null                 Return false
-                //# If component's SuccessfulVersion >= patch.Version        Return false, isIrrelevant = true
-                //# If component's FaultyAfterVersion >= patch.Version       Return false, isIrrelevant = true
-                //# If component's FaultyBeforeVersion > patch.Version       Return false, isIrrelevant = true
-                //# Return true
+                if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
+                if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
+                if (component == null)                                   { return false; }
+                if (component.Version == null && component.FaultyAfterVersion == null) { return false; }
+                if (component.Version >= patch.Version)                  { isIrrelevant = true; return false; }
+                if (component.FaultyAfterVersion >= patch.Version)       { isIrrelevant = true; return false; }
+                if (component.FaultyBeforeVersion > patch.Version)       { isIrrelevant = true; return false; }
+                if (!snPatch.Boundary.IsInInterval(component.FaultyAfterVersion ?? component.Version)) 
+                { return false; }
+                return true;
             }
             throw new NotSupportedException(
                 $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
                 $"Version: {patch.Version}, PackageType: {patch.Type}");
         }
 
+
         private bool ValidInstaller(ComponentInstaller installer)
         {
+            //UNDONE:PATCH: ? check self dependency here
+            return true;
+        }
+        private bool ValidSnPatch(SnPatch snPatch)
+        {
+            //UNDONE:PATCH: ? check self dependency here
             return true;
         }
 
@@ -327,30 +335,32 @@ namespace SenseNet.Packaging
             isIrrelevant = false;
             if (patch is ComponentInstaller installer)
             {
-                if (HasDuplicates(installer, candidates)) { return false; }
+                if (HasDuplicates(installer, candidates))                         { return false; }
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
-                if (component == null) { return true; }
-                if (component.Version != null) { isIrrelevant = true; return false; }
-                if (component.FaultyBeforeVersion >= patch.Version) { isIrrelevant = true; return false; }
-                if (component.FaultyAfterVersion > patch.Version) { isIrrelevant = true; return false; }
+                if (component == null)                                            { return true; }
+                if (component.Version == null)                                    { return true; }
+                if (component.Version != null)                                    { isIrrelevant = true; return false; }
+                if (component.FaultyBeforeVersion >= patch.Version)               { isIrrelevant = true; return false; }
+                if (component.FaultyAfterVersion > patch.Version)                 { isIrrelevant = true; return false; }
                 return true;
             }
-            if (patch.Type == PackageType.Patch)
+            if (patch is SnPatch snPatch)
             {
-                throw new NotImplementedException();
-                //# If not HaveCorrectDependencies(patch, currentComponents) Return false
-                //# If component is null                                     Return false
-                //# If component's SuccessfulVersion is null                 Return false
-                //# If component's SuccessfulVersion >= patch.Version        Return false, isIrrelevant = true
-                //# If component's FaultyBeforeVersion >= patch.Version      Return false, isIrrelevant = true
-                //# If component's FaultyAfterVersion > patch.Version        Return false, isIrrelevant = true
-                //# Return true
+                if (!HasCorrectDependencies(snPatch, installed, false)) {                      return false; }
+                if (component == null)                                          {                      return false; }
+                if (component.Version == null)                                  {                      return false; }
+                if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
+                if (component.FaultyBeforeVersion >= patch.Version)             { isIrrelevant = true; return false; }
+                //if (component.FaultyAfterVersion > patch.Version)               { isIrrelevant = true; return false; }
+                if (!snPatch.Boundary.IsInInterval(component.Version))          { return false; }
+                return true;
             }
             throw new NotSupportedException(
                 $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
                 $"Version: {patch.Version}, PackageType: {patch.Type}");
         }
-        
+
+
         /* ---------------------------------------------------------------------------------- Common */
 
         private List<ISnPatch> CollectCandidates()
@@ -410,7 +420,6 @@ namespace SenseNet.Packaging
             return deps.All(dep =>
                 installed.Any(i => i.ComponentId == dep.Id && (dep.Boundary.IsInInterval(i.Version))));
         }
-
 
         private void WriteInitialStateToDb(ISnPatch patch)
         {
