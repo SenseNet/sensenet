@@ -247,11 +247,6 @@ namespace SenseNet.Packaging
                 if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
                 if (HasDuplicates(installer, candidates)) { return false; }
                 if (!HasCorrectDependencies(installer, installed, true)) { return false; }
-//if (component == null) { return true; }
-//if (component.Version != null) { isIrrelevant = true; return false; }
-//if (component.FaultyAfterVersion != null) { isIrrelevant = true; return false; }
-//if (component.FaultyBeforeVersion > patch.Version) { isIrrelevant = true; return false; }
-//return true;
                 if (component == null) { return true; }
                 if (component.State == ExecutionResult.Unfinished) return true;
                 if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
@@ -262,14 +257,6 @@ namespace SenseNet.Packaging
             {
                 if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
-//if (component == null)                                   { return false; }
-//if (component.Version == null && component.FaultyAfterVersion == null) { return false; }
-//if (component.Version >= patch.Version)                  { isIrrelevant = true; return false; }
-//if (component.FaultyAfterVersion >= patch.Version)       { isIrrelevant = true; return false; }
-//if (component.FaultyBeforeVersion > patch.Version)       { isIrrelevant = true; return false; }
-//if (!snPatch.Boundary.IsInInterval(component.FaultyAfterVersion ?? component.Version)) 
-//
-//return true;
                 if (component == null) { return false; }
                 if (component.Version >= patch.Version) { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, true)) { return false; }
@@ -380,12 +367,6 @@ namespace SenseNet.Packaging
             {
                 if (HasDuplicates(installer, candidates))                         { return false; }
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
-//if (component == null)                                            { return true; }
-//if (component.Version == null)                                    { return true; }
-//if (component.Version != null)                                    { isIrrelevant = true; return false; }
-//if (component.FaultyBeforeVersion >= patch.Version)               { isIrrelevant = true; return false; }
-//if (component.FaultyAfterVersion > patch.Version)                 { isIrrelevant = true; return false; }
-//return true;
                 if (component == null)                                            { return true; }
                 if (component.Version != null) { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.Unfinished) return true;
@@ -397,13 +378,6 @@ namespace SenseNet.Packaging
             if (patch is SnPatch snPatch)
             {
                 if (!HasCorrectDependencies(snPatch, installed, false)) {                      return false; }
-//if (component == null)                                          {                      return false; }
-//if (component.Version == null)                                  {                      return false; }
-//if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
-//if (component.FaultyBeforeVersion >= patch.Version)             { isIrrelevant = true; return false; }
-////if (component.FaultyAfterVersion > patch.Version)               { isIrrelevant = true; return false; }
-//if (!snPatch.Boundary.IsInInterval(component.Version))          { return false; }
-//return true;
                 if (component == null)                                          {                      return false; }
                 if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, false)) { return false; }
@@ -471,13 +445,6 @@ namespace SenseNet.Packaging
                 return false;
 
             // Installable if all dependencies exist.
-//UNDONE:PATCH: Delete if the newer version is ok.
-//if(onBefore)
-//    return deps.All(dep =>
-//        installed.Any(i => i.ComponentId == dep.Id && 
-//                           (dep.Boundary.IsInInterval(i.Version) || dep.Boundary.IsInInterval(i.TempVersion))));
-//return deps.All(dep =>
-//    installed.Any(i => i.ComponentId == dep.Id && (dep.Boundary.IsInInterval(i.Version))));
             return deps.All(dep =>
                 installed.Any(c => c.ComponentId == dep.Id && 
                                    dep.Boundary.IsInInterval(GetDependencyTargetVersion(c, onBefore))));
