@@ -619,8 +619,16 @@ namespace SenseNet.Packaging.Tests
             var currentComponents = SnComponentDescriptor.CreateComponents(installed, faulty);
 
             // ASSERT
-            Assert.AreEqual("C01v(1.0,) C02v(1.0,) C03v(,1.0) C04v(,1.0) C05v1.0(,) " +
-                            "C06v1.0(2.0,) C07v1.0(2.0,) C08v1.0(,2.0) C09v1.0(,2.0) C10v2.0(,)",
+            Assert.AreEqual("C01v(1.0,,Unfinished) " +
+                            "C02v(1.0,,FaultyBefore) " +
+                            "C03v(1.0,,SuccessfulBefore) " +
+                            "C04v(,1.0,Faulty) " +
+                            "C05v1.0(,,Successful) " +
+                            "C06v1.0(2.0,,Unfinished) " +
+                            "C07v1.0(2.0,,FaultyBefore) " +
+                            "C08v1.0(2.0,,SuccessfulBefore) " +
+                            "C09v1.0(,2.0,Faulty) " +
+                            "C10v2.0(,,Successful)",
                 ComponentsToStringWithResult(currentComponents));
         }
 

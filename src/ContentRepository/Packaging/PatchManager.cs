@@ -141,6 +141,8 @@ namespace SenseNet.Packaging
         }
         internal void ExecuteOnBefore(List<ISnPatch> candidates, List<SnComponentDescriptor> installed, bool isSimulation)
         {
+            SortCandidates(candidates);
+
             var toExec = candidates.ToList(); // Copy
             var executed = new List<ISnPatch>();
             var isActive = true;
@@ -207,6 +209,35 @@ namespace SenseNet.Packaging
                 RecognizeErrors(toExec, candidates, installed, true);
         }
 
+        private void SortCandidates(List<ISnPatch> candidates)
+        {
+            candidates.Sort((x, y) =>
+            {
+                int q;
+
+                if (0 != (q = x.Type == PackageType.Install ? 0 : 1).CompareTo(y.Type == PackageType.Install ? 0 : 1))
+                    return q;
+                if (0 != (q = string.Compare(x.ComponentId, y.ComponentId, StringComparison.Ordinal)))
+                    return q;
+                if (0 != (q = x.Version.CompareTo(y.Version)))
+                    return q;
+
+                if (!(x is SnPatch xP) || !(y is SnPatch yP))
+                    return 0;
+
+                if (0 != (q = xP.Boundary.MinVersion.CompareTo(yP.Boundary.MinVersion)))
+                    return q;
+                if (0 != (q = xP.Boundary.MinVersionIsExclusive.CompareTo(yP.Boundary.MinVersionIsExclusive)))
+                    return q;
+                if (0 != (q = xP.Boundary.MaxVersion.CompareTo(yP.Boundary.MaxVersion)))
+                    return q;
+                if (0 != (q = xP.Boundary.MaxVersionIsExclusive.CompareTo(yP.Boundary.MaxVersionIsExclusive)))
+                    return q;
+
+                return 0;
+            });
+        }
+
         private bool CheckPrerequisitesBefore(ISnPatch patch, List<ISnPatch> candidates, List<SnComponentDescriptor> installed, out bool isIrrelevant)
         {
             var component = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
@@ -216,24 +247,38 @@ namespace SenseNet.Packaging
                 if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
                 if (HasDuplicates(installer, candidates)) { return false; }
                 if (!HasCorrectDependencies(installer, installed, true)) { return false; }
+//if (component == null) { return true; }
+//if (component.Version != null) { isIrrelevant = true; return false; }
+//if (component.FaultyAfterVersion != null) { isIrrelevant = true; return false; }
+//if (component.FaultyBeforeVersion > patch.Version) { isIrrelevant = true; return false; }
+//return true;
                 if (component == null) { return true; }
-                if (component.Version != null) { isIrrelevant = true; return false; }
-                if (component.FaultyAfterVersion != null) { isIrrelevant = true; return false; }
-                if (component.FaultyBeforeVersion > patch.Version) { isIrrelevant = true; return false; }
-                return true;
+                if (component.State == ExecutionResult.Unfinished) return true;
+                if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
+                isIrrelevant = true;
+                return false;
             }
             if (patch is SnPatch snPatch)
             {
                 if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
-                if (component == null)                                   { return false; }
-                if (component.Version == null && component.FaultyAfterVersion == null) { return false; }
-                if (component.Version >= patch.Version)                  { isIrrelevant = true; return false; }
-                if (component.FaultyAfterVersion >= patch.Version)       { isIrrelevant = true; return false; }
-                if (component.FaultyBeforeVersion > patch.Version)       { isIrrelevant = true; return false; }
-                if (!snPatch.Boundary.IsInInterval(component.FaultyAfterVersion ?? component.Version)) 
-                { return false; }
-                return true;
+//if (component == null)                                   { return false; }
+//if (component.Version == null && component.FaultyAfterVersion == null) { return false; }
+//if (component.Version >= patch.Version)                  { isIrrelevant = true; return false; }
+//if (component.FaultyAfterVersion >= patch.Version)       { isIrrelevant = true; return false; }
+//if (component.FaultyBeforeVersion > patch.Version)       { isIrrelevant = true; return false; }
+//if (!snPatch.Boundary.IsInInterval(component.FaultyAfterVersion ?? component.Version)) 
+//
+//return true;
+                if (component == null) { return false; }
+                if (component.Version >= patch.Version) { isIrrelevant = true; return false; }
+                if (!IsInInterval(snPatch, component, true)) { return false; }
+                if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
+                if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
+                if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionBefore < patch.Version) return true;
+                if (component.State == ExecutionResult.Successful && component.Version < patch.Version) return true;
+                isIrrelevant = true;
+                return false;
             }
             throw new NotSupportedException(
                 $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
@@ -335,23 +380,39 @@ namespace SenseNet.Packaging
             {
                 if (HasDuplicates(installer, candidates))                         { return false; }
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
+//if (component == null)                                            { return true; }
+//if (component.Version == null)                                    { return true; }
+//if (component.Version != null)                                    { isIrrelevant = true; return false; }
+//if (component.FaultyBeforeVersion >= patch.Version)               { isIrrelevant = true; return false; }
+//if (component.FaultyAfterVersion > patch.Version)                 { isIrrelevant = true; return false; }
+//return true;
                 if (component == null)                                            { return true; }
-                if (component.Version == null)                                    { return true; }
-                if (component.Version != null)                                    { isIrrelevant = true; return false; }
-                if (component.FaultyBeforeVersion >= patch.Version)               { isIrrelevant = true; return false; }
-                if (component.FaultyAfterVersion > patch.Version)                 { isIrrelevant = true; return false; }
-                return true;
+                if (component.Version != null) { isIrrelevant = true; return false; }
+                if (component.State == ExecutionResult.Unfinished) return true;
+                if (component.State == ExecutionResult.SuccessfulBefore) return true;
+                if (component.State == ExecutionResult.Faulty && component.Version == patch.Version) return true;
+                isIrrelevant = true;
+                return false;
             }
             if (patch is SnPatch snPatch)
             {
                 if (!HasCorrectDependencies(snPatch, installed, false)) {                      return false; }
+//if (component == null)                                          {                      return false; }
+//if (component.Version == null)                                  {                      return false; }
+//if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
+//if (component.FaultyBeforeVersion >= patch.Version)             { isIrrelevant = true; return false; }
+////if (component.FaultyAfterVersion > patch.Version)               { isIrrelevant = true; return false; }
+//if (!snPatch.Boundary.IsInInterval(component.Version))          { return false; }
+//return true;
                 if (component == null)                                          {                      return false; }
-                if (component.Version == null)                                  {                      return false; }
                 if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
-                if (component.FaultyBeforeVersion >= patch.Version)             { isIrrelevant = true; return false; }
-                //if (component.FaultyAfterVersion > patch.Version)               { isIrrelevant = true; return false; }
-                if (!snPatch.Boundary.IsInInterval(component.Version))          { return false; }
-                return true;
+                if (!IsInInterval(snPatch, component, false)) { return false; }
+                if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
+                if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionAfter < patch.Version) return true;
+                if (component.State == ExecutionResult.Faulty && component.TempVersionAfter == patch.Version) return true;
+                if (component.State == ExecutionResult.Successful && component.Version < patch.Version) return true;
+                isIrrelevant = true;
+                return false;
             }
             throw new NotSupportedException(
                 $"Manage this patch is not supported. ComponentId: {patch.ComponentId}, " +
@@ -410,12 +471,45 @@ namespace SenseNet.Packaging
                 return false;
 
             // Installable if all dependencies exist.
-            if(onBefore)
-                return deps.All(dep =>
-                    installed.Any(i => i.ComponentId == dep.Id && 
-                                       (dep.Boundary.IsInInterval(i.Version) || dep.Boundary.IsInInterval(i.FaultyAfterVersion))));
+//UNDONE:PATCH: Delete if the newer version is ok.
+//if(onBefore)
+//    return deps.All(dep =>
+//        installed.Any(i => i.ComponentId == dep.Id && 
+//                           (dep.Boundary.IsInInterval(i.Version) || dep.Boundary.IsInInterval(i.TempVersion))));
+//return deps.All(dep =>
+//    installed.Any(i => i.ComponentId == dep.Id && (dep.Boundary.IsInInterval(i.Version))));
             return deps.All(dep =>
-                installed.Any(i => i.ComponentId == dep.Id && (dep.Boundary.IsInInterval(i.Version))));
+                installed.Any(c => c.ComponentId == dep.Id && 
+                                   dep.Boundary.IsInInterval(GetDependencyTargetVersion(c, onBefore))));
+        }
+        private Version GetDependencyTargetVersion(SnComponentDescriptor target, bool onBefore)
+        {
+            if (onBefore)
+            {
+                if (target.State == ExecutionResult.SuccessfulBefore)
+                    return target.TempVersionBefore;
+                return target.Version;
+            }
+            return target.Version;
+        }
+        private bool IsInInterval(SnPatch snPatch, SnComponentDescriptor target, bool onBefore)
+        {
+            Version version;
+            if (onBefore)
+            {
+                if (target.State == ExecutionResult.FaultyBefore)
+                    version = target.Version;
+                else
+                    version = target.TempVersionBefore ?? target.Version;
+            }
+            else
+            {
+                if(target.State == ExecutionResult.Faulty)
+                    version = target.Version;
+                else
+                    version = target.TempVersionAfter ?? target.Version;
+            }
+            return snPatch.Boundary.IsInInterval(version);
         }
 
         private void WriteInitialStateToDb(ISnPatch patch)
@@ -432,27 +526,28 @@ namespace SenseNet.Packaging
             var current = installed.FirstOrDefault(x => x.ComponentId == patch.ComponentId);
             if (current == null)
                 installed.Add(new SnComponentDescriptor(patch.ComponentId, null, patch.Description,
-                    patch.Dependencies?.ToArray()));
+                    patch.Dependencies?.ToArray()) { State = ExecutionResult.Unfinished, TempVersionBefore = patch.Version });
         }
         private void ModifyState(ISnPatch patch, List<SnComponentDescriptor> installed, ExecutionResult result)
         {
-            var current = installed.First(x => x.ComponentId == patch.ComponentId);
+            var target = installed.First(x => x.ComponentId == patch.ComponentId);
 
             switch (result)
             {
                 case ExecutionResult.Successful:
-                    current.Version = patch.Version;
-                    current.FaultyBeforeVersion = null;
-                    current.FaultyAfterVersion = null;
+                    target.Version = patch.Version;
+                    target.TempVersionAfter = patch.Version;
+                    target.State = result;
                     break;
-                case ExecutionResult.SuccessfulBefore:
                 case ExecutionResult.Faulty:
-                    current.FaultyBeforeVersion = null;
-                    current.FaultyAfterVersion = patch.Version;
+                    target.TempVersionAfter = patch.Version;
+                    target.State = result;
                     break;
                 case ExecutionResult.Unfinished:
                 case ExecutionResult.FaultyBefore:
-                    current.FaultyBeforeVersion = patch.Version;
+                case ExecutionResult.SuccessfulBefore:
+                    target.TempVersionBefore = patch.Version;
+                    target.State = result;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

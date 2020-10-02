@@ -408,7 +408,8 @@ namespace SenseNet.Packaging.Tests
         protected string ComponentsToStringWithResult(IEnumerable<SnComponentDescriptor> components)
         {
             return string.Join(" ", components.OrderBy(x => x.ComponentId)
-                .Select(x => $"{x.ComponentId}v{x.Version}({x.FaultyBeforeVersion},{x.FaultyAfterVersion})"));
+                .Select(x =>
+                    $"{x.ComponentId}v{x.Version}({x.TempVersionBefore},{x.TempVersionAfter},{x.State})"));
         }
         protected string PatchesToString(ISnPatch[] executables)
         {

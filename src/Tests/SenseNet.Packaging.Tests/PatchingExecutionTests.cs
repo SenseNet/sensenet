@@ -30,14 +30,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(1, candidates.Count);
-            Assert.AreEqual("C1v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
@@ -65,14 +65,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v(,2.3)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful) C2v(2.3,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v2.3(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful) C2v2.3(2.3,2.3,Successful)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_Duplicates()
@@ -103,7 +103,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(1, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful) C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
             var errors = pm.Errors;
             Assert.AreEqual(3, errors.Count);
             Assert.IsTrue(errors[0].Message.Contains("C1"));
@@ -111,15 +111,14 @@ namespace SenseNet.Packaging.Tests
             Assert.IsTrue(errors[2].Message.Contains("C4"));
             Assert.AreEqual("DuplicatedInstaller C1: 1.0; C1: 1.1|" +
                             "DuplicatedInstaller C3: 1.0; C3: 2.3|" +
-                            "DuplicatedInstaller C4: 1.0; C4: 2.3; C4: 1.0", ErrorsToString(errors));
+                            "DuplicatedInstaller C4: 1.0; C4: 1.0; C4: 2.3", ErrorsToString(errors));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v1.0(,)", ComponentsToStringWithResult(installed));
-
+            Assert.AreEqual("C1v1.0(,,Successful) C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_Dependency()
@@ -143,14 +142,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C1v(,1.0) C2v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore) C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful) C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnBeforeActionStarts.|" +
@@ -188,14 +187,16 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v(,1.0) C3v(,1.0) C4v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful) C2v(1.0,,SuccessfulBefore) " +
+                            "C3v(1.0,,SuccessfulBefore) C4v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v1.0(,) C3v1.0(,) C4v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful) C2v1.0(1.0,1.0,Successful) " +
+                            "C3v1.0(1.0,1.0,Successful) C4v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C4: 1.0] OnBeforeActionStarts.|" +
@@ -234,14 +235,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(,,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
                             "[C3: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
                             "[C4: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
@@ -284,14 +285,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v(,3.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -331,14 +332,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v1.0(,3.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionStarts.|" +
@@ -374,14 +375,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v2.0(,3.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionStarts.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
@@ -413,14 +414,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(,,Successful)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(,,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("",
                 string.Join("|", log.Select(x => x.ToString())));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
@@ -447,14 +448,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C2v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C2v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
@@ -486,14 +487,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v(,1.0) C2v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore) C2v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,) C2v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful) C2v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C2: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -533,14 +534,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(4, candidates.Count);
-            Assert.AreEqual("C1v(,2.0) C2v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore) C2v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v2.0(,) C2v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful) C2v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C2: 1.0] OnBeforeActionStarts.|" +
@@ -583,14 +584,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -629,14 +630,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v1.0(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.|" +
@@ -671,14 +672,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(,,Successful)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(,,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.",
                 string.Join("|", log.Select(x => x.ToString())));
@@ -709,14 +710,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v3.0(,4.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v3.0(4.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v4.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v4.0(4.0,4.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 3.0 <= v < 4.0 --> 4.0] OnBeforeActionStarts.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] OnBeforeActionFinished.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] OnAfterActionStarts.|" +
@@ -748,14 +749,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(1, candidates.Count);
-            Assert.AreEqual("C1v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
@@ -791,14 +792,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v(1.0,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,FaultyBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v(1.0,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,,FaultyBefore)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] ExecutionErrorOnBefore.",
                 string.Join("|", log.Select(x => x.ToString())));
@@ -829,14 +830,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C1v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v2.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -879,14 +880,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C1v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v1.0(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(2.0,2.0,Faulty)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -926,7 +927,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(2, candidates.Count);
-            Assert.AreEqual("C1v(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
@@ -934,7 +935,7 @@ namespace SenseNet.Packaging.Tests
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
             //UNDONE:PATCH:?? weird "after" faultyAfter version C1v(,1.0) is less than on "before" version: C1v(,2.0)
-            Assert.AreEqual("C1v(,1.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(2.0,1.0,Faulty)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -975,7 +976,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(3, candidates.Count);
-            Assert.AreEqual("C1v(,3.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
@@ -983,7 +984,7 @@ namespace SenseNet.Packaging.Tests
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
             //UNDONE:PATCH:?? weird "after" faultyAfter version C1v1.0(,2.0) is less than on "before": C1v(,3.0)
-            Assert.AreEqual("C1v1.0(,2.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(3.0,2.0,Faulty)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
@@ -1038,14 +1039,14 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(9, candidates.Count);
-            Assert.AreEqual("C1v(,3.0) C2v(,3.0) C3v(,3.0)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(3.0,,SuccessfulBefore) C2v(3.0,,SuccessfulBefore) C3v(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, false);
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            Assert.AreEqual("C1v(,1.0) C2v1.0(,2.0) C3v3.0(,)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(3.0,1.0,Faulty) C2v1.0(3.0,2.0,Faulty) C3v3.0(3.0,3.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +

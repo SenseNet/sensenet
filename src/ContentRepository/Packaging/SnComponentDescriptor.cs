@@ -25,6 +25,22 @@ namespace SenseNet.Packaging
         public Version Version { get; internal set; }
 
         /// <summary>
+        /// Gets or sets the temporary version when the state is "Before". Used by patching operation.
+        /// </summary>
+        [JsonIgnore]
+        internal Version TempVersionBefore { get; set; }
+        /// <summary>
+        /// Gets or sets the temporary version when the state is "After". Used by patching operation.
+        /// </summary>
+        [JsonIgnore]
+        internal Version TempVersionAfter { get; set; }
+        /// <summary>
+        /// Gets or sets the installation state of the temporary version used by patching operation.
+        /// </summary>
+        [JsonIgnore]
+        internal ExecutionResult State { get; set; }
+
+        /// <summary>
         /// Gets the description after successful execution of the installer.
         /// The descriptions of patches do not appear here.
         /// </summary>
@@ -34,17 +50,6 @@ namespace SenseNet.Packaging
         /// Gets the component's dependencies.
         /// </summary>
         public Dependency[] Dependencies { get; internal set; }
-
-        /// <summary>
-        /// Gets or sets temporary version in execution before repository start.
-        /// </summary>
-        [JsonIgnore]
-        internal Version FaultyBeforeVersion { get; set; }
-        /// <summary>
-        /// Gets or sets temporary version in execution after repository start.
-        /// </summary>
-        [JsonIgnore]
-        internal Version FaultyAfterVersion { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnComponentDescriptor"/> class.
@@ -92,18 +97,19 @@ namespace SenseNet.Packaging
                 switch (faulty.ExecutionResult)
                 {
                     case ExecutionResult.Successful:
-                        break;
-                    case ExecutionResult.SuccessfulBefore:
                     case ExecutionResult.Faulty:
-                        existing.FaultyAfterVersion = faulty.Version;
+                        existing.TempVersionAfter = faulty.Version;
                         break;
                     case ExecutionResult.Unfinished:
                     case ExecutionResult.FaultyBefore:
-                        existing.FaultyBeforeVersion = faulty.Version;
+                    case ExecutionResult.SuccessfulBefore:
+                        existing.TempVersionBefore = faulty.Version;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                existing.State = faulty.ExecutionResult;
             }
 
             return result;
