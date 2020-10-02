@@ -411,7 +411,7 @@ namespace SenseNet.Packaging.Tests
                 .Select(x =>
                     $"{x.ComponentId}v{x.Version}({x.TempVersionBefore},{x.TempVersionAfter},{x.State})"));
         }
-        protected string PatchesToString(ISnPatch[] executables)
+        protected string PatchesToString(IEnumerable<ISnPatch> executables)
         {
             return string.Join(" ", executables.Select(x =>
                 $"{x.ComponentId}{(x.Type == PackageType.Install ? "i" : "p")}{x.Version}"));

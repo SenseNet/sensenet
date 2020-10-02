@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
@@ -632,6 +633,62 @@ namespace SenseNet.Packaging.Tests
                 ComponentsToStringWithResult(currentComponents));
         }
 
+        [TestMethod]
+        public void Patching_System_PatchSorter_InstallerSmallerThanPatch()
+        {
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 < v", "1.1"),
+                Inst("C1", "2.0"),
+                Inst("C2", "2.0"),
+            };
+            // ACTION
+            PatchManager.SortCandidates(candidates);
+            // ASSERT
+            Assert.AreEqual("C1i2.0 C1p1.1 C2i2.0", PatchesToString(candidates.ToArray()));
+        }
+        [TestMethod]
+        public void Patching_System_PatchSorter_NameAndVersion()
+        {
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C2", "1.0 < v", "2.0"),
+                Patch("C1", "2.0 < v", "3.0"),
+                Inst("C2", "1.0"),
+                Inst("C1", "2.0"),
+            };
+            // ACTION
+            PatchManager.SortCandidates(candidates);
+            // ASSERT
+            Assert.AreEqual("C1i2.0 C1p3.0 C2i1.0 C2p2.0", PatchesToString(candidates.ToArray()));
+        }
+        [TestMethod]
+        public void Patching_System_PatchSorter_Boundary()
+        {
+            var p0 = Patch("C1", "5.0 < v", "10.0");
+            var p1 = Patch("C1", "5.0 < v <= 6.0", "10.0");
+            var p2 = Patch("C1", "5.0 < v < 6.0", "10.0");
+            var p3 = Patch("C1", "4.0 < v < 7.0", "10.0");
+            var p4 = Patch("C1", "4.0 < v < 6.0", "10.0");
+            var p5 = Patch("C1", "3.0 < v < 4.0", "10.0");
+            var p6 = Patch("C1", "2.0 < v < 4.0", "10.0");
+            var p7 = Patch("C1", "2.0 <= v < 4.0", "10.0");
+            var p8 = Patch("C1", "v < 4.0", "10.0");
+            
+            var candidates = new List<ISnPatch> { p0, p1, p2, p3, p4, p5, p6, p7, p8 };
+            // ACTION
+            PatchManager.SortCandidates(candidates);
+            // ASSERT
+            Assert.AreEqual(p8, candidates[0]);
+            Assert.AreEqual(p7, candidates[1]);
+            Assert.AreEqual(p6, candidates[2]);
+            Assert.AreEqual(p5, candidates[3]);
+            Assert.AreEqual(p4, candidates[4]);
+            Assert.AreEqual(p3, candidates[5]);
+            Assert.AreEqual(p2, candidates[6]);
+            Assert.AreEqual(p1, candidates[7]);
+            Assert.AreEqual(p0, candidates[8]);
+        }
 
         /* ======================================================================= TOOLS */
 

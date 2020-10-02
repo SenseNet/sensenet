@@ -209,15 +209,16 @@ namespace SenseNet.Packaging
                 RecognizeErrors(toExec, candidates, installed, true);
         }
 
-        private void SortCandidates(List<ISnPatch> candidates)
+        internal static void SortCandidates(List<ISnPatch> candidates)
         {
             candidates.Sort((x, y) =>
             {
                 int q;
 
-                if (0 != (q = x.Type == PackageType.Install ? 0 : 1).CompareTo(y.Type == PackageType.Install ? 0 : 1))
-                    return q;
                 if (0 != (q = string.Compare(x.ComponentId, y.ComponentId, StringComparison.Ordinal)))
+                    return q;
+                // Installer comes before SnPatch
+                if (0 != (q = (x.Type == PackageType.Install ? 0 : 1).CompareTo(y.Type == PackageType.Install ? 0 : 1)))
                     return q;
                 if (0 != (q = x.Version.CompareTo(y.Version)))
                     return q;
@@ -232,7 +233,7 @@ namespace SenseNet.Packaging
                 if (0 != (q = xP.Boundary.MaxVersion.CompareTo(yP.Boundary.MaxVersion)))
                     return q;
                 if (0 != (q = xP.Boundary.MaxVersionIsExclusive.CompareTo(yP.Boundary.MaxVersionIsExclusive)))
-                    return q;
+                    return -q;
 
                 return 0;
             });
