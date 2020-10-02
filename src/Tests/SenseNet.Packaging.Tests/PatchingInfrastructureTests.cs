@@ -12,7 +12,7 @@ namespace SenseNet.Packaging.Tests
     public class PatchingInfrastructureTests : PatchingTestBase
     {
         [TestMethod]
-        public void PatchingSystem_ManifestToXml()
+        public void Patching_System_ManifestToXml()
         {
             var src = @"<?xml version='1.0' encoding='utf-8'?>
 <Package type='Install'>
@@ -40,7 +40,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void PatchingSystem_CreatePackageFromInstaller()
+        public void Patching_System_CreatePackageFromInstaller()
         {
             var installer = new ComponentInstaller
             {
@@ -85,7 +85,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expectedManifest, pkg.Manifest);
         }
         [TestMethod]
-        public void PatchingSystem_CreatePackageFromPatch()
+        public void Patching_System_CreatePackageFromPatch()
         {
             var patch = new SnPatch
             {
@@ -133,7 +133,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void PatchingSystem_CreateInstallerFromPackage()
+        public void Patching_System_CreateInstallerFromPackage()
         {
             var package = new Package
             {
@@ -182,7 +182,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("Very informative error message.", installer.ExecutionError.Message);
         }
         [TestMethod]
-        public void PatchingSystem_CreatePatchFromPackage()
+        public void Patching_System_CreatePatchFromPackage()
         {
             var package = new Package
             {
@@ -234,7 +234,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void PatchingSystem_SaveAndReloadFaultyInstaller()
+        public void Patching_System_SaveAndReloadFaultyInstaller()
         {
             var installer = new ComponentInstaller
             {
@@ -282,7 +282,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(PackagingExceptionType.DependencyNotFound, ((PackagingException)patches[0].ExecutionError).ErrorType);
         }
         [TestMethod]
-        public void PatchingSystem_ReSaveAndReloadInstaller()
+        public void Patching_System_ReSaveAndReloadInstaller()
         {
             var installer = new ComponentInstaller
             {
@@ -332,7 +332,7 @@ namespace SenseNet.Packaging.Tests
             Assert.IsNull(patches[0].ExecutionError);
         }
         [TestMethod]
-        public void PatchingSystem_SaveAndReloadSnPatch()
+        public void Patching_System_SaveAndReloadSnPatch()
         {
             var snPatch = new SnPatch
             {
@@ -383,7 +383,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Patch_Sys_SaveAndReload_Installer_FaultyBefore()
+        public void Patching_System_SaveAndReload_Installer_FaultyBefore()
         {
             var installer = new ComponentInstaller
             {
@@ -412,7 +412,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(ExecutionResult.FaultyBefore, patches[0].ExecutionResult);
         }
         [TestMethod]
-        public void Patch_Sys_SaveAndReload_Installer_SuccessfulBefore()
+        public void Patching_System_SaveAndReload_Installer_SuccessfulBefore()
         {
             var installer = new ComponentInstaller
             {
@@ -441,7 +441,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(ExecutionResult.FaultyBefore, patches[0].ExecutionResult);
         }
         [TestMethod]
-        public void Patch_Sys_SaveAndReload_SnPatch_FaultyBefore()
+        public void Patching_System_SaveAndReload_SnPatch_FaultyBefore()
         {
             var snPatch = new SnPatch
             {
@@ -472,7 +472,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(ExecutionResult.FaultyBefore, patch.ExecutionResult);
         }
         [TestMethod]
-        public void Patch_Sys_SaveAndReload_SnPatch_SuccessfulBefore()
+        public void Patching_System_SaveAndReload_SnPatch_SuccessfulBefore()
         {
             var snPatch = new SnPatch
             {
@@ -504,7 +504,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void PatchingSystem_InstalledComponents()
+        public void Patching_System_InstalledComponents()
         {
             var installer1 = new ComponentInstaller
             {
@@ -547,7 +547,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1: 1.0 <= v <= 1.0", components[1].Dependencies[0].ToString());
         }
         [TestMethod]
-        public void PatchingSystem_InstalledComponents_Descriptions()
+        public void Patching_System_InstalledComponents_Descriptions()
         {
             var installer = new ComponentInstaller
             {
@@ -588,7 +588,7 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Patch_Sys_LoadInstalledComponents()
+        public void Patching_System_LoadInstalledComponents()
         {
             // Installers only
             SavePackage(Inst("C01", "1.0"), ExecutionResult.Unfinished);
@@ -631,6 +631,7 @@ namespace SenseNet.Packaging.Tests
                             "C10v2.0(,,Successful)",
                 ComponentsToStringWithResult(currentComponents));
         }
+
 
         /* ======================================================================= TOOLS */
 
