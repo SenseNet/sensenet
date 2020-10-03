@@ -347,6 +347,45 @@ namespace SenseNet.Packaging.Tests
 
         /* ======================================================== COMPLEX INSTALL & PATCHING SIMULATION TESTS */
 
+        [TestMethod]
+        public void Patching_ExecSim_Patch_WithoutInstaller()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C2", "v1.0", Exec, Exec),
+                Patch("C1", "1.0 <= v <  2.0", "v2.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("MissingVersion C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(pm.Errors));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
+                            "[C2: 1.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.|" +
+                            "[C2: 1.0] OnAfterActionStarts.|[C2: 1.0] OnAfterActionFinished.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("MissingVersion C1: 1.0 <= v < 2.0 --> 2.0|" +
+                            "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(pm.Errors));
+        }
+
         // SIMULATION: Install C1v1.0 and patch it to v3.0 with different pre-installation states 
         [TestMethod]
         public void Patching_ExecSim_Patch_C1_a()

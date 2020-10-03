@@ -253,7 +253,7 @@ namespace SenseNet.Packaging
             {
                 if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
- /*UNDONE:test*/if (component == null) { return false; }
+                if (component == null) { return false; }
                 if (component.Version >= patch.Version) { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionBefore >= patch.Version) { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, true)) { return false; }
@@ -354,7 +354,11 @@ namespace SenseNet.Packaging
                 if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
                 if (HasDuplicates(installer, candidates))                         { return false; }
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
-                if (component == null)                                            { return true; }
+
+                if (component == null)
+                {
+                    return true;
+                }
                 if (component.Version != null) { isIrrelevant = true; return false; }
 /*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) return true;
                 if (component.State == ExecutionResult.SuccessfulBefore) return true;
