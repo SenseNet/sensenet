@@ -121,6 +121,49 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(,,Successful) C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
+        public void Patching_ExecSim_Install_Duplicates_OnlyAfter()
+        {
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>()
+            {
+                Comp("C1", "v1.0")
+            };
+            var candidates = new List<ISnPatch>
+            {
+                // Will be skipped. The same id does not cause any error because this patch is irrelevant.
+                Inst("C1", "v1.0", Exec),
+                Inst("C1", "v1.1", Exec),
+                // Would be executable but the same id causes an error.
+                Inst("C2", "v1.0", Exec),
+                Inst("C3", "v1.0", Exec),
+                Inst("C3", "v2.3", Exec),
+                Inst("C4", "v1.0", Exec),
+                Inst("C4", "v2.3", Exec),
+                Inst("C4", "v1.0", Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, null);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(8, candidates.Count);
+            Assert.AreEqual("C1v1.0(,,Successful)", ComponentsToStringWithResult(installed));
+            var errors = pm.Errors;
+            Assert.AreEqual(0, errors.Count);
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(,,Successful) C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("DuplicatedInstaller C1: 1.0; C1: 1.1|" +
+                            "DuplicatedInstaller C3: 1.0; C3: 2.3|" +
+                            "DuplicatedInstaller C4: 1.0; C4: 1.0; C4: 2.3", ErrorsToString(errors));
+        }
+        [TestMethod]
         public void Patching_ExecSim_Install_Dependency()
         {
             // Test the right installer execution order if there is a dependency among the installers.
@@ -209,6 +252,47 @@ namespace SenseNet.Packaging.Tests
                             "[C4: 1.0] OnAfterActionFinished.|" +
                             "[C3: 1.0] OnAfterActionStarts.|" +
                             "[C3: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+        }
+        [TestMethod]
+        public void Patching_ExecSim_Install_Dependency_Empty()
+        {
+            // Test the right installer execution order if there is a dependency among the installers.
+            // One dependency is exist, 2 will be installed.
+
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", new Dependency[0], Exec, Exec),
+                Patch("C1", "1.0 <= v", "2.0", new Dependency[0], Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0 <= v --> 2.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0 <= v --> 2.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.|" +
+                            "[C1: 1.0 <= v --> 2.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0 <= v --> 2.0] OnAfterActionFinished.",
                 string.Join("|", log.Select(x => x.ToString())));
         }
         [TestMethod]

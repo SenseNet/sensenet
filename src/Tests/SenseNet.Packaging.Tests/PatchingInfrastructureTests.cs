@@ -689,6 +689,28 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(p1, candidates[7]);
             Assert.AreEqual(p0, candidates[8]);
         }
+        [TestMethod]
+        public void Patching_System_PatchSorter_Equality()
+        {
+            var p0 = Patch("C1", "2.0 <= v < 4.0", "10.0");
+            var p1 = Patch("C1", "2.0 <= v < 4.0", "10.0");
+
+            // ACTION-1
+            var candidates = new List<ISnPatch> { p0, p1 };
+            PatchManager.SortCandidates(candidates);
+            // ASSERT-1 order is not changed because the patches are equal
+            Assert.AreNotSame(candidates[0], candidates[1]);
+            Assert.AreEqual(p0, candidates[0]);
+            Assert.AreEqual(p1, candidates[1]);
+
+            // ACTION-2
+            candidates = new List<ISnPatch> { p1, p0 }; // reverse order
+            PatchManager.SortCandidates(candidates);
+            // ASSERT-2 order is not changed because the patches are equal
+            Assert.AreNotSame(candidates[0], candidates[1]);
+            Assert.AreEqual(p1, candidates[0]);
+            Assert.AreEqual(p0, candidates[1]);
+        }
 
         /* ======================================================================= TOOLS */
 

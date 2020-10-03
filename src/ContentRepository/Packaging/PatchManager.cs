@@ -3,31 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml;
-using System.Xml.Schema;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
 {
     public class PatchManager
     {
-        private static Version NullVersion = new Version(0, 0);
+        private readonly PatchExecutionContext _context;
 
         /* =========================================================================================== */
-
-        private PatchExecutionContext _context;
         
         public PatchManager(RepositoryStartSettings settings, Action<PatchExecutionLogRecord> logCallback)
         {
             _context = new PatchExecutionContext(settings, logCallback);
-        }
-
-        internal PatchManager(PatchExecutionContext context)
-        {
-            _context = context;
         }
 
         internal List<PatchExecutionError> Errors => _context.Errors;
@@ -54,7 +45,7 @@ namespace SenseNet.Packaging
                 var selfDependency = new Dependency { Id = snPatch.ComponentId, Boundary = snPatch.Boundary };
                 if (patch.Dependencies == null)
                 {
-                    dependencies = new[] { selfDependency };
+/*UNDONE:test*/     dependencies = new[] { selfDependency };
                 }
                 else
                 {
@@ -253,8 +244,8 @@ namespace SenseNet.Packaging
                 if (HasDuplicates(installer, candidates)) { return false; }
                 if (!HasCorrectDependencies(installer, installed, true)) { return false; }
                 if (component == null) { return true; }
-                if (component.State == ExecutionResult.Unfinished) return true;
-                if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) return true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
                 isIrrelevant = true;
                 return false;
             }
@@ -262,15 +253,15 @@ namespace SenseNet.Packaging
             {
                 if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
-                if (component == null) { return false; }
+ /*UNDONE:test*/if (component == null) { return false; }
                 if (component.Version >= patch.Version) { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionBefore >= patch.Version) { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, true)) { return false; }
-                if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
-                if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
+/*UNDONE:test*/ if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
                 if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionBefore < patch.Version) return true;
                 if (component.State == ExecutionResult.Successful && component.Version < patch.Version) return true;
-                isIrrelevant = true;
+/*UNDONE:test*/ isIrrelevant = true;
                 return false;
             }
             throw new NotSupportedException(
@@ -365,24 +356,24 @@ namespace SenseNet.Packaging
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
                 if (component == null)                                            { return true; }
                 if (component.Version != null) { isIrrelevant = true; return false; }
-                if (component.State == ExecutionResult.Unfinished) return true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) return true;
                 if (component.State == ExecutionResult.SuccessfulBefore) return true;
-                if (component.State == ExecutionResult.Faulty && component.Version == patch.Version) return true;
-                isIrrelevant = true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Faulty && component.Version == patch.Version) return true;
+/*UNDONE:test*/ isIrrelevant = true;
                 return false;
             }
             if (patch is SnPatch snPatch)
             {
                 if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, false)) {                      return false; }
-                if (component == null)                                          {                      return false; }
+/*UNDONE:test*/ if (component == null)                                          {                      return false; }
                 if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, false)) { return false; }
-                if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
+/*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionAfter < patch.Version) return true;
-                if (component.State == ExecutionResult.Faulty && component.TempVersionAfter == patch.Version) return true;
-                if (component.State == ExecutionResult.Successful && component.Version < patch.Version) return true;
-                isIrrelevant = true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Faulty && component.TempVersionAfter == patch.Version) return true;
+/*UNDONE:test*/ if (component.State == ExecutionResult.Successful && component.Version < patch.Version) return true;
+/*UNDONE:test*/ isIrrelevant = true;
                 return false;
             }
             throw new NotSupportedException(
@@ -477,7 +468,7 @@ namespace SenseNet.Packaging
             if (onBefore)
             {
                 if (target.State == ExecutionResult.FaultyBefore)
-                    version = target.Version;
+/*UNDONE:test*/     version = target.Version;
                 else
                     version = target.TempVersionBefore ?? target.Version;
             }
