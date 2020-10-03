@@ -428,7 +428,7 @@ namespace SenseNet.Packaging.Tests
             Assert.IsFalse(packages.Any());
 
             // SAVE
-            PackageManager.SavePackage(Manifest.Create(installer), ExecutionResult.FaultyBefore, null);
+            PackageManager.SavePackage(Manifest.Create(installer), ExecutionResult.SuccessfulBefore, null);
 
             // RELOAD
             packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
@@ -439,7 +439,18 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(1, patches.Length);
             Assert.IsTrue(patches[0].Id > 0);
             Assert.AreEqual("C7: 1.0", patches[0].ToString());
-            Assert.AreEqual(ExecutionResult.FaultyBefore, patches[0].ExecutionResult);
+            Assert.AreEqual(ExecutionResult.SuccessfulBefore, patches[0].ExecutionResult);
+
+            // ACTION-2 Load components
+            var installed = PackageManager.Storage
+                .LoadInstalledComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var incomplete = PackageManager.Storage
+                .LoadIncompleteComponentsAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            var components = SnComponentDescriptor.CreateComponents(installed, incomplete);
+            Assert.AreEqual("C7v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(components));
+
         }
         [TestMethod]
         public void Patching_System_SaveAndReload_SnPatch_FaultyBefore()

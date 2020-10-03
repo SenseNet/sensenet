@@ -75,6 +75,165 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(,,Successful) C2v2.3(2.3,2.3,Successful)", ComponentsToStringWithResult(installed));
         }
         [TestMethod]
+        public void Patching_ExecSim_Install_FixUnfinished()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>()
+            {
+                Comp("C1", "v1.0"),
+            };
+            installed[0].State = ExecutionResult.Unfinished;
+            installed[0].Version = null;
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+        [TestMethod]
+        public void Patching_ExecSim_Install_FixSuccessfulBefore()
+        {
+            // In this text only the OnAfter action will be executed
+
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var comp = Comp("C1", "v1.0");
+            var installed = new List<SnComponentDescriptor> { comp };
+            comp.State = ExecutionResult.SuccessfulBefore;
+            comp.TempVersionBefore = comp.Version;
+            comp.Version = null;
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+        [TestMethod]
+        public void Patching_ExecSim_Install_FixFaultyBefore()
+        {
+            // In this text OnBefore and OnAfter action will be executed
+
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var comp = Comp("C1", "v1.0");
+            var installed = new List<SnComponentDescriptor> { comp };
+            comp.State = ExecutionResult.FaultyBefore;
+            comp.TempVersionBefore = comp.Version;
+            comp.Version = null;
+            Assert.AreEqual("C1v(1.0,,FaultyBefore)", ComponentsToStringWithResult(installed));
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+        //[TestMethod]
+        public void Patching_ExecSim_Install_FixFaulty()
+        {
+            // In this text OnBefore and OnAfter action will be executed
+
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var comp = Comp("C1", "v1.0");
+            var installed = new List<SnComponentDescriptor> { comp };
+            comp.State = ExecutionResult.Faulty;
+            comp.TempVersionBefore = comp.Version;
+            comp.TempVersionAfter = comp.Version;
+            comp.Version = null;
+            Assert.AreEqual("C1v(1.0,1.0,Faulty)", ComponentsToStringWithResult(installed));
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(1, candidates.Count);
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+
+        [TestMethod]
         public void Patching_ExecSim_Install_Duplicates()
         {
             void Exec(PatchExecutionContext peContext) { }
