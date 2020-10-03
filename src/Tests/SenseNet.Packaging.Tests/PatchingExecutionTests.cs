@@ -729,6 +729,88 @@ namespace SenseNet.Packaging.Tests
         /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */
 
         [TestMethod]
+        public void Patching_Exec_NoAction()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
+            var executed = new List<ISnPatch>();
+            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v2.0"),
+                Inst("C1", "v2.0"),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)",
+                ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 2.0] OnAfterActionStarts.|[C1: 2.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual(2, packages.Count);
+            Assert.AreEqual("1, C1: Install Successful, 2.0",
+                PackagesToString(packages[1]));
+        }
+        [TestMethod]
+        public void Patching_Exec_NoAfterAction()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
+            var executed = new List<ISnPatch>();
+            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", Exec, null),
+                Inst("C1", "v2.0", Exec, null),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C1v(2.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v2.0(2.0,2.0,Successful)",
+                ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 2.0] OnBeforeActionStarts.|" +
+                            "[C1: 2.0] OnBeforeActionFinished.|" +
+                            "[C1: 2.0] OnAfterActionStarts.|" +
+                            "[C1: 2.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual(4, packages.Count);
+            Assert.AreEqual("1, C1: Install Successful, 2.0",
+                PackagesToString(packages[3]));
+        }
+
+        [TestMethod]
         public void Patching_Exec_InstallOne_Success()
         {
             var packages = new List<Package[]>();
@@ -1096,6 +1178,171 @@ namespace SenseNet.Packaging.Tests
                             "7, C3: Install Successful, 1.0|" +
                             "8, C3: Patch Successful, 2.0|" +
                             "9, C3: Patch Successful, 3.0", PackagesToString(packages[32]));
+        }
+
+        [TestMethod]
+        public void Patching_Exec_WaitForDependency_WaitingBeforeAndAfter()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
+            var executed = new List<ISnPatch>();
+            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+                Patch("C1", "1.0 <= v < 2.0", "v2.0", 
+                    new[] {Dep("C2", "3.0 <= v")}, Exec, Exec),
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", Exec, Exec),
+
+                Inst("C2", "v1.0", Exec, Exec),
+                Patch("C2", "1.0 <= v < 2.0", "v2.0", Exec, Exec),
+                Patch("C2", "2.0 <= v < 3.0", "v3.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(6, candidates.Count);
+            Assert.AreEqual("C1v(3.0,,SuccessfulBefore) C2v(3.0,,SuccessfulBefore)",
+                ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful) C2v3.0(3.0,3.0,Successful)",
+                ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0] OnBeforeActionFinished.|" +
+                            "[C2: 1.0] OnBeforeActionStarts.|" +
+                            "[C2: 1.0] OnBeforeActionFinished.|" +
+                            "[C2: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
+                            "[C2: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
+                            "[C2: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionStarts.|" +
+                            "[C2: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
+                            "[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionStarts.|" +
+                            "[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.|" +
+                            "[C2: 1.0] OnAfterActionStarts.|" +
+                            "[C2: 1.0] OnAfterActionFinished.|" +
+                            "[C2: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
+                            "[C2: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
+                            "[C2: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
+                            "[C2: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
+                            "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
+                            "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual(24, packages.Count);
+            Assert.AreEqual("1, C1: Install Successful, 1.0|" +
+                            "2, C2: Install Successful, 1.0|" +
+                            "3, C2: Patch Successful, 2.0|" +
+                            "4, C2: Patch Successful, 3.0|" +
+                            "5, C1: Patch Successful, 2.0|" +
+                            "6, C1: Patch Successful, 3.0",
+                PackagesToString(packages[23]));
+        }
+        [TestMethod]
+        public void Patching_Exec_InstallerIsLast()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
+            var executed = new List<ISnPatch>();
+            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v < 2.0", "v3.0", Exec),
+                Patch("C1", "2.0 <= v <= 2.0", "v3.0", Exec),
+                Patch("C1", "2.0 <= v < 3.0", "v3.0", Exec),
+                Inst("C1", "v3.0", Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(4, candidates.Count);
+            Assert.AreEqual("", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful)",
+                ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 3.0] OnAfterActionStarts.|[C1: 3.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual(2, packages.Count);
+            Assert.AreEqual("1, C1: Install Successful, 3.0",
+                PackagesToString(packages[1]));
+        }
+
+        //UNDONE:PATCH: Patching_Exec_SpecialTreatment modify boundary sorting?
+        //[TestMethod]
+        public void Patching_Exec_SpecialTreatment()
+        {
+            // Faulty execution blocks the following patches on the same component.
+            var packages = new List<Package[]>();
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { packages.Add(LoadPackages()); log.Add(record); }
+            var executed = new List<ISnPatch>();
+            void Exec(PatchExecutionContext ctx) { executed.Add(ctx.CurrentPatch); }
+            var exec2Called = false;
+            void Exec2(PatchExecutionContext ctx) { exec2Called = true; }
+
+            var installed = new List<SnComponentDescriptor>
+            {
+                Comp("C1", "2.0")
+            };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v < 3.0", "v3.0", Exec),
+                Patch("C1", "2.0 <= v <= 2.0", "v3.0", Exec2),
+                Inst("C1", "v3.0", Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, false);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(3, candidates.Count);
+            Assert.AreEqual("C1v2.0(,,Successful)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, false);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v3.0(,3.0,Successful)",
+                ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+            Assert.AreEqual(2, packages.Count);
+            Assert.AreEqual("1, C1: Patch Successful, 3.0",
+                PackagesToString(packages[1]));
+            Assert.IsTrue(exec2Called);
         }
 
         /* ======================================================== Tools */

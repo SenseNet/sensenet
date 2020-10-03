@@ -152,7 +152,11 @@ namespace SenseNet.Packaging
                 foreach (var patch in toExec)
                 {
                     if (patch.ActionBeforeStart == null)
+                    {
+                        isActive = true;
+                        executed.Add(patch);
                         continue;
+                    }
 
                     if (CheckPrerequisitesBefore(patch, candidates, installed, out var isIrrelevant))
                     {
@@ -165,6 +169,7 @@ namespace SenseNet.Packaging
                             Log(patch, PatchExecutionEventType.OnBeforeActionStarts);
                             if (!isSimulation)
                             {
+                                _context.CurrentPatch = patch;
                                 patch.ActionBeforeStart(_context);
                                 ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore);
                             }
@@ -260,6 +265,7 @@ namespace SenseNet.Packaging
                 if (!HasCorrectDependencies(snPatch, installed, true)) { return false; }
                 if (component == null) { return false; }
                 if (component.Version >= patch.Version) { isIrrelevant = true; return false; }
+                if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionBefore >= patch.Version) { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, true)) { return false; }
                 if (component.State == ExecutionResult.Unfinished) { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
@@ -318,6 +324,7 @@ namespace SenseNet.Packaging
                             Log(patch, PatchExecutionEventType.OnAfterActionStarts);
                             if (!isSimulation)
                             {
+                                _context.CurrentPatch = patch;
                                 patch.Action?.Invoke(_context);
                                 ModifyStateInDb(patch, ExecutionResult.Successful);
                             }
