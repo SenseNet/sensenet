@@ -244,8 +244,8 @@ namespace SenseNet.Packaging
                 if (HasDuplicates(installer, candidates)) { return false; }
                 if (!HasCorrectDependencies(installer, installed, true)) { return false; }
                 if (component == null) { return true; }
-/*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished) return true;
-/*UNDONE:test*/ if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
+                if (component.State == ExecutionResult.Unfinished) return true;
+                if (component.State == ExecutionResult.FaultyBefore && component.TempVersionBefore == patch.Version) return true;
                 isIrrelevant = true;
                 return false;
             }
@@ -358,7 +358,8 @@ namespace SenseNet.Packaging
                 if (component.Version != null)                                    { isIrrelevant = true; return false; }
 /*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished)                {                       return true; }
                 if (component.State == ExecutionResult.SuccessfulBefore)          {                       return true; }
-/*UNDONE:test*/ if (component.State == ExecutionResult.Faulty && component.Version == patch.Version) {    return true; }
+                if (component.State == ExecutionResult.Faulty &&
+                    component.TempVersionAfter == patch.Version)                  {                       return true; }
 /*UNDONE:test*/ isIrrelevant = true;
                 return false;
             }
@@ -372,7 +373,7 @@ namespace SenseNet.Packaging
 /*UNDONE:test*/ if (component.State == ExecutionResult.Unfinished)                { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.SuccessfulBefore && component.TempVersionAfter < patch.Version) { return true; }
 /*UNDONE:test*/ if (component.State == ExecutionResult.Faulty && component.TempVersionAfter == patch.Version) { return true; }
-/*UNDONE:test*/ if (component.State == ExecutionResult.Successful && component.Version < patch.Version)       { return true; }
+                if (component.State == ExecutionResult.Successful && component.Version < patch.Version)       { return true; }
 /*UNDONE:test*/ isIrrelevant = true;
                 return false;
             }

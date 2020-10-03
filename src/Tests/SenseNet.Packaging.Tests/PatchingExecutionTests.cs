@@ -193,10 +193,10 @@ namespace SenseNet.Packaging.Tests
                 string.Join("|", log.Select(x => x.ToString())));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
-        //[TestMethod]
+        [TestMethod]
         public void Patching_ExecSim_Install_FixFaulty()
         {
-            // In this text OnBefore and OnAfter action will be executed
+            // In this text only the OnAfter action will be executed
 
             var log = new List<PatchExecutionLogRecord>();
             void Log(PatchExecutionLogRecord record) { log.Add(record); }
@@ -220,7 +220,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(1, candidates.Count);
-            Assert.AreEqual("C1v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v(1.0,1.0,Faulty)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);
@@ -228,7 +228,8 @@ namespace SenseNet.Packaging.Tests
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
-            Assert.AreEqual("",
+            Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.",
                 string.Join("|", log.Select(x => x.ToString())));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
