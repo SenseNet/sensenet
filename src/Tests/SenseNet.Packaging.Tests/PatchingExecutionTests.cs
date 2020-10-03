@@ -726,6 +726,87 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
+        [TestMethod]
+        public void Patching_ExecSim_Install_SelfDependency()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", new[] {Dep("C1", "0.9 <= v")}, Exec, Exec),
+                Inst("C2", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
+                            "[C2: 1.0] OnBeforeActionFinished.|" +
+                            "[C2: 1.0] OnAfterActionStarts.|" +
+                            "[C2: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("SelfDependencyForbidden C1: 1.0|" +
+                            "SelfDependencyForbidden C1: 1.0",
+                ErrorsToString(pm.Errors));
+        }
+        [TestMethod]
+        public void Patching_ExecSim_Patch_SelfDependency()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>();
+            var candidates = new List<ISnPatch>
+            {
+                Inst("C1", "v1.0", Exec, Exec),
+                Patch("C1", "1.0 <= v", "2.0",
+                    new[] {Dep("C1", "0.9 <= v")}, Exec, Exec),
+                Inst("C2", "v1.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(3, candidates.Count);
+            Assert.AreEqual("C1v(1.0,,SuccessfulBefore) C2v(1.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v1.0(1.0,1.0,Successful) C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0] OnBeforeActionFinished.|" +
+                            "[C2: 1.0] OnBeforeActionStarts.|" +
+                            "[C2: 1.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0] OnAfterActionFinished.|" +
+                            "[C2: 1.0] OnAfterActionStarts.|" +
+                            "[C2: 1.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("SelfDependencyForbidden C1: 1.0 <= v --> 2.0|" +
+                            "SelfDependencyForbidden C1: 1.0 <= v --> 2.0",
+                ErrorsToString(pm.Errors));
+        }
+
         /* ======================================================== COMPLEX INSTALL & PATCHING EXECUTION TESTS */
 
         [TestMethod]
@@ -1016,7 +1097,6 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            //UNDONE:PATCH:?? weird "after" faultyAfter version C1v(,1.0) is less than on "before" version: C1v(,2.0)
             Assert.AreEqual("C1v(2.0,1.0,Faulty)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +
@@ -1065,7 +1145,6 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
-            //UNDONE:PATCH:?? weird "after" faultyAfter version C1v1.0(,2.0) is less than on "before": C1v(,3.0)
             Assert.AreEqual("C1v1.0(3.0,2.0,Faulty)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] OnBeforeActionFinished.|" +

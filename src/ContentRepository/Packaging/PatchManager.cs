@@ -145,10 +145,9 @@ namespace SenseNet.Packaging
 
             var toExec = candidates.ToList(); // Copy
             var executed = new List<ISnPatch>();
-            var isActive = true;
             while (true)
             {
-                isActive = false;
+                var isActive = false;
                 foreach (var patch in toExec)
                 {
                     if (patch.ActionBeforeStart == null)
@@ -279,17 +278,6 @@ namespace SenseNet.Packaging
                 $"Version: {patch.Version}, PackageType: {patch.Type}");
         }
 
-        private bool ValidInstaller(ComponentInstaller installer)
-        {
-            //UNDONE:PATCH: ? check self dependency here
-            return true;
-        }
-        private bool ValidSnPatch(SnPatch snPatch)
-        {
-            //UNDONE:PATCH: ? check self dependency here
-            return true;
-        }
-
         /* ---------------------------------------------------------------------------------- OnAfter */
 
         public void ExecutePatchesOnAfterStart(bool isSimulation = false)
@@ -304,10 +292,9 @@ namespace SenseNet.Packaging
         {
             var toExec = candidates; //UNDONE:PATCH refactor, remove and rename
             var executed = new List<ISnPatch>();
-            var isActive = true;
             while (true)
             {
-                isActive = false;
+                var isActive = false;
                 foreach (var patch in toExec)
                 {
                     if (CheckPrerequisitesAfter(patch, candidates, installed, out var isIrrelevant))
@@ -373,6 +360,7 @@ namespace SenseNet.Packaging
             isIrrelevant = false;
             if (patch is ComponentInstaller installer)
             {
+                if (!ValidInstaller(installer)) { isIrrelevant = true; return false; }
                 if (HasDuplicates(installer, candidates))                         { return false; }
                 if (!HasCorrectDependencies(installer, installed, false)) { return false; }
                 if (component == null)                                            { return true; }
@@ -385,6 +373,7 @@ namespace SenseNet.Packaging
             }
             if (patch is SnPatch snPatch)
             {
+                if (!ValidSnPatch(snPatch)) { isIrrelevant = true; return false; }
                 if (!HasCorrectDependencies(snPatch, installed, false)) {                      return false; }
                 if (component == null)                                          {                      return false; }
                 if (component.Version >= patch.Version)                         { isIrrelevant = true; return false; }
@@ -428,6 +417,26 @@ namespace SenseNet.Packaging
             return SnComponentDescriptor.CreateComponents(installed, faulty);
         }
 
+        private bool ValidInstaller(ComponentInstaller installer)
+        {
+            if (!CheckSelfDependency(installer))
+                return false;
+            return true;
+        }
+        private bool ValidSnPatch(SnPatch snPatch)
+        {
+            if (!CheckSelfDependency(snPatch))
+                return false;
+            return true;
+        }
+        private bool CheckSelfDependency(ISnPatch patch)
+        {
+            if (patch.Dependencies == null || patch.Dependencies.All(d => d.Id != patch.ComponentId))
+                return true;
+            _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.SelfDependencyForbidden, patch, "Self dependency is forbidden."));
+            return false;
+        }
+
         private bool HasDuplicates(ComponentInstaller installer, List<ISnPatch> candidates)
         {
             return candidates.Count(patch => patch.Type == PackageType.Install &&
@@ -442,11 +451,6 @@ namespace SenseNet.Packaging
             var deps = patch.Dependencies.ToArray();
             if (deps.Length == 0)
                 return true;
-
-            // Self-dependency is forbidden
-            if (deps.Any(dep => dep.Id == patch.ComponentId))
-                //UNDONE:PATCH:LOG: ? Self-dependency ?
-                return false;
 
             // Not installable if there is any dependency but installed nothing.
             if (installed.Count == 0)
