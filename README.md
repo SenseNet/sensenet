@@ -1,4 +1,7 @@
 # Welcome to sensenet
+
+<img src="https://www.sensenet.com/images/svg/sn-logo.svg">
+
 The Open Source Enterprise Content Services Platform written in .NET! 
 
 > [See how you can try it!](https://www.sensenet.com/tryit)
