@@ -1234,7 +1234,7 @@ namespace SenseNet.Packaging.Tests
 
             // ASSERT BEFORE
             Assert.AreEqual(1, candidates.Count);
-            Assert.AreEqual("C1v1.0(2.0,2.0,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("C1v1.0(2.0,2.0,Faulty)", ComponentsToStringWithResult(installed));
 
             // ACTION AFTER
             pm.ExecuteOnAfter(candidates, installed, true);

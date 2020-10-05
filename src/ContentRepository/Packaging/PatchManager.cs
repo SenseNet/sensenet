@@ -259,8 +259,8 @@ namespace SenseNet.Packaging
                 if (component.State == ExecutionResult.SuccessfulBefore &&
                     component.TempVersionBefore >= patch.Version)          { isIrrelevant = true; return false; }
                 if (!IsInInterval(snPatch, component, true))               {                      return false; }
-                if (component.State == ExecutionResult.Faulty && 
-                    component.TempVersionAfter == patch.Version)           {                       return true; }
+                if (component.State == ExecutionResult.Faulty &&
+                    component.TempVersionAfter == patch.Version)           { isIrrelevant = true; return false; }
                 if (component.State == ExecutionResult.Unfinished && 
                     component.TempVersionBefore == patch.Version)          {                       return true; }
                 if (component.State == ExecutionResult.FaultyBefore &&
@@ -269,7 +269,7 @@ namespace SenseNet.Packaging
                     component.TempVersionBefore < patch.Version)           {                       return true; }
                 if (component.State == ExecutionResult.Successful &&
                     component.Version < patch.Version)                     {                       return true; }
-/*UNDONE:test*/ isIrrelevant = true;
+                isIrrelevant = true;
                 return false;
             }
             throw new NotSupportedException(
@@ -381,12 +381,12 @@ namespace SenseNet.Packaging
                 if (!IsInInterval(snPatch, component, false))              {                      return false; }
                 if (component.State == ExecutionResult.Unfinished &&
                     component.TempVersionBefore == patch.Version)          {                       return true; }
+                if (component.State == ExecutionResult.FaultyBefore &&
+                    component.TempVersionBefore == patch.Version)          {                       return true; }
                 if (component.State == ExecutionResult.Faulty && 
                     component.TempVersionAfter == patch.Version)           {                       return true; }
-                if (component.State == ExecutionResult.SuccessfulBefore && 
-                    component.TempVersionAfter < patch.Version)            {                       return true; }
-/*UNDONE:test*/ if (component.State == ExecutionResult.Faulty && 
-                    component.TempVersionAfter == patch.Version)           {                       return true; }
+                if (component.State == ExecutionResult.SuccessfulBefore &&
+                    component.TempVersionAfter <= patch.Version)           {                       return true; }
                 if (component.State == ExecutionResult.Successful && 
                     component.Version < patch.Version)                     {                       return true; }
                 isIrrelevant = true;
@@ -486,7 +486,7 @@ namespace SenseNet.Packaging
                 if (target.State == ExecutionResult.Unfinished ||
                     target.State == ExecutionResult.FaultyBefore ||
                     target.State == ExecutionResult.Faulty)
-/*UNDONE:test*/     version = target.Version;
+                    version = target.Version;
                 else
                     version = target.TempVersionBefore ?? target.Version;
             }

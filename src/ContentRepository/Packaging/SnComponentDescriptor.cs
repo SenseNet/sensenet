@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ namespace SenseNet.Packaging
     /// Represents a software element in the sensenet ecosystem that can be installed and patched automatically.
     /// This is a business logic level class that wraps a <see cref="ComponentInfo"/> instance.
     /// </summary>
+    [DebuggerDisplay("{ToString()}")]
     public class SnComponentDescriptor
     {
         /// <summary>
@@ -113,6 +115,11 @@ namespace SenseNet.Packaging
             }
 
             return result;
+        }
+
+        public override string ToString()
+        {
+            return $"{ComponentId}v{Version}({TempVersionBefore},{TempVersionAfter},{State})";
         }
     }
 }
