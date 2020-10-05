@@ -506,7 +506,7 @@ namespace SenseNet.Packaging
         }
         private void ModifyStateInDb(ISnPatch patch, ExecutionResult result, Exception exception)
         {
-            PackageManager.SavePackage(Manifest.Create(patch), result, null); //UNDONE:PATCH: Write error to db
+            PackageManager.SavePackage(Manifest.Create(patch), result, exception);
         }
 
         private void CreateInitialState(ISnPatch patch, List<SnComponentDescriptor> installed)
