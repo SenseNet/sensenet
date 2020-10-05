@@ -932,6 +932,45 @@ namespace SenseNet.Packaging.Tests
                 ErrorsToString(pm.Errors));
         }
 
+        [TestMethod]
+        public void Patching_ExecSim_Patch_OnlyLowerPatch()
+        {
+            var log = new List<PatchExecutionLogRecord>();
+            void Log(PatchExecutionLogRecord record) { log.Add(record); }
+            void Exec(PatchExecutionContext peContext) { }
+
+            var installed = new List<SnComponentDescriptor>
+            {
+                Comp("C1", "1.0")
+            };
+            var candidates = new List<ISnPatch>
+            {
+                Patch("C1", "1.0 <= v <  3.0", "v3.0", Exec, Exec),
+                Patch("C1", "2.0 <= v <  3.0", "v3.0", Exec, Exec),
+            };
+
+            // ACTION BEFORE
+            var pm = new PatchManager(null, Log);
+            pm.ExecuteOnBefore(candidates, installed, true);
+
+            // ASSERT BEFORE
+            Assert.AreEqual(2, candidates.Count);
+            Assert.AreEqual("C1v1.0(3.0,,SuccessfulBefore)", ComponentsToStringWithResult(installed));
+
+            // ACTION AFTER
+            pm.ExecuteOnAfter(candidates, installed, true);
+
+            // ASSERT AFTER
+            Assert.AreEqual(0, candidates.Count);
+            Assert.AreEqual("C1v3.0(3.0,3.0,Successful)", ComponentsToStringWithResult(installed));
+            Assert.AreEqual("[C1: 1.0 <= v < 3.0 --> 3.0] OnBeforeActionStarts.|" +
+                            "[C1: 1.0 <= v < 3.0 --> 3.0] OnBeforeActionFinished.|" +
+                            "[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
+                            "[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
+                string.Join("|", log.Select(x => x.ToString(false))));
+            Assert.AreEqual("", ErrorsToString(pm.Errors));
+        }
+
         /* ============================================================================= FIX UNFINISHED STATES */
         /* --------------------------------------------------------------------------- Action before and after */
 
