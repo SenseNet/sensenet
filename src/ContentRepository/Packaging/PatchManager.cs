@@ -161,7 +161,7 @@ namespace SenseNet.Packaging
                             {
                                 _context.CurrentPatch = patch;
                                 patch.ActionBeforeStart(_context);
-                                ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore);
+                                ModifyStateInDb(patch, ExecutionResult.SuccessfulBefore, null);
                             }
                             ModifyState(patch, installed, ExecutionResult.SuccessfulBefore);
                             Log(patch, PatchExecutionEventType.OnBeforeActionFinished);
@@ -169,7 +169,7 @@ namespace SenseNet.Packaging
                         catch (Exception e)
                         {
                             if (!isSimulation)
-                                ModifyStateInDb(patch, ExecutionResult.FaultyBefore);
+                                ModifyStateInDb(patch, ExecutionResult.FaultyBefore, e);
                             ModifyState(patch, installed, ExecutionResult.FaultyBefore);
                             Log(patch, PatchExecutionEventType.ExecutionErrorOnBefore);
                             Error(patch, PatchExecutionErrorType.ExecutionErrorOnBefore, e.Message);
@@ -312,7 +312,7 @@ namespace SenseNet.Packaging
                             {
                                 _context.CurrentPatch = patch;
                                 patch.Action?.Invoke(_context);
-                                ModifyStateInDb(patch, ExecutionResult.Successful);
+                                ModifyStateInDb(patch, ExecutionResult.Successful, null);
                             }
                             ModifyState(patch, installed, ExecutionResult.Successful);
                             Log(patch, PatchExecutionEventType.OnAfterActionFinished);
@@ -320,7 +320,7 @@ namespace SenseNet.Packaging
                         catch (Exception e)
                         {
                             if (!isSimulation)
-                                ModifyStateInDb(patch, ExecutionResult.Faulty);
+                                ModifyStateInDb(patch, ExecutionResult.Faulty, e);
                             ModifyState(patch, installed, ExecutionResult.Faulty);
                             Log(patch, PatchExecutionEventType.ExecutionError);
                             Error(patch, PatchExecutionErrorType.ExecutionErrorOnAfter, e.Message);
@@ -504,7 +504,7 @@ namespace SenseNet.Packaging
         {
             PackageManager.SaveInitialPackage(Manifest.Create(patch));
         }
-        private void ModifyStateInDb(ISnPatch patch, ExecutionResult result)
+        private void ModifyStateInDb(ISnPatch patch, ExecutionResult result, Exception exception)
         {
             PackageManager.SavePackage(Manifest.Create(patch), result, null); //UNDONE:PATCH: Write error to db
         }

@@ -315,7 +315,7 @@ namespace SenseNet.Packaging.Tests
             };
 
             var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
             Assert.IsFalse(packages.Any());
 
             // SAVE
@@ -324,7 +324,7 @@ namespace SenseNet.Packaging.Tests
 
             // RELOAD
             packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
 
             // ASSERT
             var patches = packages.Select(PatchManager.CreatePatch).ToArray();
@@ -573,6 +573,27 @@ namespace SenseNet.Packaging.Tests
             Assert.IsTrue(patch.Id > 0);
             Assert.AreEqual("C7: 1.0 <= v < 2.0 --> 2.0", patch.ToString());
             Assert.AreEqual(ExecutionResult.SuccessfulBefore, patch.ExecutionResult);
+        }
+        [TestMethod]
+        public void Patching_System_SaveAndReloadExecutionError()
+        {
+            var installer = Inst("C7", "1.0");
+
+            var packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
+            Assert.IsFalse(packages.Any());
+
+            // SAVE
+            PackageManager.SavePackage(Manifest.Create(installer), null, false,
+                new PackagingException(PackagingExceptionType.DependencyNotFound));
+
+            // RELOAD
+            packages = PackageManager.Storage.LoadInstalledPackagesAsync(CancellationToken.None)
+                .ConfigureAwait(false).GetAwaiter().GetResult().ToArray();
+
+            // ASSERT
+            var e = (PackagingException)packages[0].ExecutionError;
+            Assert.AreEqual(PackagingExceptionType.DependencyNotFound, e.ErrorType);
         }
 
         [TestMethod]
