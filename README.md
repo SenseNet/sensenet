@@ -29,7 +29,7 @@ If you need...
 Let us know which part you're interested in most!
 
 ## License
-New pricing and licensing strategy is in progress. If you're interested [contact sales](https://sensenet.com/contact).
+New pricing and licensing strategy is in progress. If you're interested, [contact sales](https://sensenet.com/contact).
 
 ## Contact and support
 Feel free to visit our communication channels for demo, examples and support:
@@ -46,7 +46,7 @@ You can try out sensenet in many different ways, check its capabilities in the w
 ### sensenet
 A modern Content Services Platform that can be integrated into existing or new web applications. We modularized sensenet so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
-There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
+There are also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
