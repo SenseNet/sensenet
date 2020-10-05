@@ -45,7 +45,7 @@ namespace SenseNet.Packaging
                 var selfDependency = new Dependency { Id = snPatch.ComponentId, Boundary = snPatch.Boundary };
                 if (patch.Dependencies == null)
                 {
-/*UNDONE:test*/     dependencies = new[] { selfDependency };
+                    dependencies = new[] { selfDependency };
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace SenseNet.Packaging
             }
             else
             {
-                dependencies = patch.Dependencies.ToArray();
+                dependencies = patch.Dependencies?.ToArray();
             }
 
             package.Manifest = Manifest.Create(package, dependencies, false).ToXmlString();

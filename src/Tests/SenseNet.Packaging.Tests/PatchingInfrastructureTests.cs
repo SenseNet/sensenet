@@ -41,7 +41,35 @@ namespace SenseNet.Packaging.Tests
         }
 
         [TestMethod]
-        public void Patching_System_CreatePackageFromInstaller()
+        public void Patching_System_CreatePackageFromInstaller_NoDep()
+        {
+            var installer = new ComponentInstaller
+            {
+                ComponentId = "C7",
+                Version = new Version(1, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2345, 07, 31),
+            };
+            var expectedManifest = @"<?xml version='1.0' encoding='utf-8'?>
+<Package type='Install'>
+  <Id>C7</Id>
+  <ReleaseDate>2345-07-31</ReleaseDate>
+  <Version>1.0</Version>
+  <Description>C7 description</Description>
+</Package>".Replace('\'', '"');
+
+            // ACTION
+            var pkg = PatchManager.CreatePackage(installer);
+
+            // ASSERT
+            Assert.AreEqual("C7", pkg.ComponentId);
+            Assert.AreEqual(new Version(1, 0), pkg.ComponentVersion);
+            Assert.AreEqual("C7 description", pkg.Description);
+            Assert.AreEqual(new DateTime(2345, 07, 31), pkg.ReleaseDate);
+            Assert.AreEqual(expectedManifest, pkg.Manifest);
+        }
+        [TestMethod]
+        public void Patching_System_CreatePackageFromInstaller_WithDep()
         {
             var installer = new ComponentInstaller
             {
@@ -86,7 +114,39 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expectedManifest, pkg.Manifest);
         }
         [TestMethod]
-        public void Patching_System_CreatePackageFromPatch()
+        public void Patching_System_CreatePackageFromPatch_NoDep()
+        {
+            var patch = new SnPatch
+            {
+                ComponentId = "C7",
+                Version = new Version(2, 0),
+                Description = "C7 description",
+                ReleaseDate = new DateTime(2345, 07, 31),
+                Boundary = ParseBoundary("1.0 <= v < 2.0"),
+            };
+            var expectedManifest = @"<?xml version='1.0' encoding='utf-8'?>
+<Package type='Patch'>
+  <Id>C7</Id>
+  <ReleaseDate>2345-07-31</ReleaseDate>
+  <Version>2.0</Version>
+  <Description>C7 description</Description>
+  <Dependencies>
+    <Dependency id='C7' minVersion='1.0' maxVersionExclusive='2.0' />
+  </Dependencies>
+</Package>".Replace('\'', '"');
+
+            // ACTION
+            var pkg = PatchManager.CreatePackage(patch);
+
+            // ASSERT
+            Assert.AreEqual("C7", pkg.ComponentId);
+            Assert.AreEqual(new Version(2, 0), pkg.ComponentVersion);
+            Assert.AreEqual("C7 description", pkg.Description);
+            Assert.AreEqual(new DateTime(2345, 07, 31), pkg.ReleaseDate);
+            Assert.AreEqual(expectedManifest, pkg.Manifest);
+        }
+        [TestMethod]
+        public void Patching_System_CreatePackageFromPatch_WithDep()
         {
             var patch = new SnPatch
             {
