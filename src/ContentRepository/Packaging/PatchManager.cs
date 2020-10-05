@@ -596,14 +596,22 @@ namespace SenseNet.Packaging
                                                          comp.Version < patch.Version &&
                                                          snPatch.Boundary.IsInInterval(comp.Version)))
                     {
-                        _context.LogCallback(new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteMissingVersion, patch));
-                        _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.MissingVersion, patch,
-                            "Cannot execute the patch " + patch)); //UNDONE:PATCH: right message
+                        var component = installed.FirstOrDefault(c => c.ComponentId == patch.ComponentId);
+                        var message = component == null
+                            ? $"Cannot execute the patch [{patch}] {(onBefore ? "before" : "after")} " +
+                              "repository start because the component is not yet installed."
+                            : $"Cannot execute the patch [{patch}] {(onBefore ? "before" : "after")} " +
+                              $"repository start because the component's version is small: [{component}].";
+                        _context.LogCallback(
+                            new PatchExecutionLogRecord(PatchExecutionEventType.CannotExecuteMissingVersion,
+                                patch, message));
+                        _context.Errors.Add(new PatchExecutionError(PatchExecutionErrorType.MissingVersion,
+                            patch, message));
                     }
                 }
                 else
                 {
-                    var message = $"Cannot execute the patch {(onBefore ? "before" : "after")} repository start.";
+                    var message = $"Cannot execute the patch [{patch}] {(onBefore ? "before" : "after")} repository start.";
                     _context.LogCallback(new PatchExecutionLogRecord(
                         onBefore
                             ? PatchExecutionEventType.CannotExecuteOnBefore

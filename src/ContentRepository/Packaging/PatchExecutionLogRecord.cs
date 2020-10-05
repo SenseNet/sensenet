@@ -23,9 +23,9 @@ namespace SenseNet.Packaging
             Message = message;
         }
 
-        public override string ToString()
+        public string ToString(bool withMessage = true)
         {
-            return Message == null
+            return Message == null || !withMessage
                 ? $"[{Patch}] {EventType}."
                 : $"[{Patch}] {EventType}. {Message}";
         }

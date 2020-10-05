@@ -42,7 +42,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_1New1Skip()
@@ -202,7 +202,7 @@ namespace SenseNet.Packaging.Tests
                             "[C2: 1.0] OnAfterActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_Dependency2()
@@ -253,7 +253,7 @@ namespace SenseNet.Packaging.Tests
                             "[C4: 1.0] OnAfterActionFinished.|" +
                             "[C3: 1.0] OnAfterActionStarts.|" +
                             "[C3: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_Dependency_Empty()
@@ -294,7 +294,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnAfterActionFinished.|" +
                             "[C1: 1.0 <= v --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
         }
         [TestMethod]
         public void Patching_ExecSim_Install_Dependencies_Circular()
@@ -328,13 +328,13 @@ namespace SenseNet.Packaging.Tests
             // ASSERT AFTER
             Assert.AreEqual(0, candidates.Count);
             Assert.AreEqual("C1v1.0(,,Successful)", ComponentsToStringWithResult(installed));
-            Assert.AreEqual("[C2: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
-                            "[C3: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
-                            "[C4: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
-                            "[C2: 1.0] CannotExecuteOnAfter. Cannot execute the patch after repository start.|" +
-                            "[C3: 1.0] CannotExecuteOnAfter. Cannot execute the patch after repository start.|" +
-                            "[C4: 1.0] CannotExecuteOnAfter. Cannot execute the patch after repository start.",
-                string.Join("|", log.Select(x => x.ToString())));
+            Assert.AreEqual("[C2: 1.0] CannotExecuteOnBefore.|" +
+                            "[C3: 1.0] CannotExecuteOnBefore.|" +
+                            "[C4: 1.0] CannotExecuteOnBefore.|" +
+                            "[C2: 1.0] CannotExecuteOnAfter.|" +
+                            "[C3: 1.0] CannotExecuteOnAfter.|" +
+                            "[C4: 1.0] CannotExecuteOnAfter.",
+                string.Join("|", log.Select(x => x.ToString(false))));
 
             // ASSERT
             // Circular dependency causes error but the reason is not recognized yet.
@@ -380,9 +380,10 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.|" +
-                            "[C2: 1.0] OnAfterActionStarts.|[C2: 1.0] OnAfterActionFinished.|" +
+                            "[C2: 1.0] OnAfterActionStarts.|" +
+                            "[C2: 1.0] OnAfterActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("MissingVersion C1: 1.0 <= v < 2.0 --> 2.0|" +
                             "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(pm.Errors));
         }
@@ -429,7 +430,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -472,7 +473,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -511,7 +512,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnBeforeActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -547,7 +548,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(0, candidates.Count);
             Assert.AreEqual("C1v3.0(,,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -582,11 +583,11 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C2v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C2: 1.0] OnBeforeActionStarts.|" +
                             "[C2: 1.0] OnBeforeActionFinished.|" +
-                            "[C1: 1.0] CannotExecuteOnBefore. Cannot execute the patch before repository start.|" +
+                            "[C1: 1.0] CannotExecuteOnBefore.|" +
                             "[C2: 1.0] OnAfterActionStarts.|" +
                             "[C2: 1.0] OnAfterActionFinished.|" +
-                            "[C1: 1.0] CannotExecuteOnAfter. Cannot execute the patch after repository start.",
-                string.Join("|", log.Select(x => x.ToString())));
+                            "[C1: 1.0] CannotExecuteOnAfter.",
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("CannotExecuteOnBefore C1: 1.0|" +
                             "CannotExecuteOnAfter C1: 1.0", ErrorsToString(pm.Errors));
         }
@@ -631,7 +632,7 @@ namespace SenseNet.Packaging.Tests
                             "[C2: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -682,7 +683,7 @@ namespace SenseNet.Packaging.Tests
                             "[C2: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -726,7 +727,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0|" +
                             "MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(pm.Errors));
         }
@@ -768,7 +769,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0|" +
                             "MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(pm.Errors));
         }
@@ -806,7 +807,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(,,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("MissingVersion C1: 3.0 <= v < 4.0 --> 4.0|" +
                             "MissingVersion C1: 3.0 <= v < 4.0 --> 4.0", ErrorsToString(pm.Errors));
         }
@@ -846,7 +847,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 3.0 <= v < 4.0 --> 4.0] OnBeforeActionFinished.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] OnAfterActionStarts.|" +
                             "[C1: 3.0 <= v < 4.0 --> 4.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -882,7 +883,7 @@ namespace SenseNet.Packaging.Tests
                             "[C2: 1.0] OnBeforeActionFinished.|" +
                             "[C2: 1.0] OnAfterActionStarts.|" +
                             "[C2: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("SelfDependencyForbidden C1: 1.0|" +
                             "SelfDependencyForbidden C1: 1.0",
                 ErrorsToString(pm.Errors));
@@ -925,7 +926,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnAfterActionFinished.|" +
                             "[C2: 1.0] OnAfterActionStarts.|" +
                             "[C2: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("SelfDependencyForbidden C1: 1.0 <= v --> 2.0|" +
                             "SelfDependencyForbidden C1: 1.0 <= v --> 2.0",
                 ErrorsToString(pm.Errors));
@@ -972,7 +973,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1011,7 +1012,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1052,7 +1053,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1092,7 +1093,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -1133,7 +1134,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1169,7 +1170,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1207,7 +1208,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1244,7 +1245,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -1286,7 +1287,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1325,7 +1326,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1364,7 +1365,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1404,7 +1405,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v1.0(1.0,1.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -1443,7 +1444,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1479,7 +1480,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1515,7 +1516,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
         [TestMethod]
@@ -1552,7 +1553,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
         }
 
@@ -1591,7 +1592,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v2.0(2.0,2.0,Successful)",
                 ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 2.0] OnAfterActionStarts.|[C1: 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(2, packages.Count);
             Assert.AreEqual("1, C1: Install Successful, 2.0",
@@ -1633,7 +1634,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 2.0] OnBeforeActionFinished.|" +
                             "[C1: 2.0] OnAfterActionStarts.|" +
                             "[C1: 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(4, packages.Count);
             Assert.AreEqual("1, C1: Install Successful, 2.0",
@@ -1673,7 +1674,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnBeforeActionFinished.|" +
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(4, packages.Count);
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
@@ -1714,7 +1715,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v(1.0,,FaultyBefore)", ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0] OnBeforeActionStarts.|" +
                             "[C1: 1.0] ExecutionErrorOnBefore.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("ExecutionErrorOnBefore C1: 1.0", ErrorsToString(pm.Errors));
             Assert.AreEqual(2, packages.Count);
             Assert.AreEqual("1, C1: Install Unfinished, 1.0", PackagesToString(packages[0]));
@@ -1758,7 +1759,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnAfterActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(8, packages.Count);
             Assert.AreEqual("1, C1: Install SuccessfulBefore, 1.0|" +
@@ -1808,7 +1809,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnAfterActionFinished.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionError.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("ExecutionErrorOnAfter C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(pm.Errors));
             Assert.AreEqual(8, packages.Count);
             Assert.AreEqual("1, C1: Install SuccessfulBefore, 1.0|2, C1: Patch SuccessfulBefore, 2.0", PackagesToString(packages[4]));
@@ -1854,7 +1855,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0] OnAfterActionStarts.|" +
                             "[C1: 1.0] ExecutionError.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("ExecutionErrorOnAfter C1: 1.0|" +
                             "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0", ErrorsToString(pm.Errors));
             Assert.AreEqual(7, packages.Count);
@@ -1906,7 +1907,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 2.0 --> 2.0] ExecutionError.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("ExecutionErrorOnAfter C1: 1.0 <= v < 2.0 --> 2.0|" +
                             "MissingVersion C1: 2.0 <= v < 3.0 --> 3.0", ErrorsToString(pm.Errors));
             Assert.AreEqual(11, packages.Count);
@@ -1990,7 +1991,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] CannotExecuteMissingVersion.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.|" +
                             "[C2: 2.0 <= v < 3.0 --> 3.0] CannotExecuteMissingVersion.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("ExecutionErrorOnAfter C1: 1.0|" +
                             "ExecutionErrorOnAfter C2: 1.0 <= v < 2.0 --> 2.0|" +
                             "MissingVersion C1: 1.0 <= v < 2.0 --> 2.0|" +
@@ -2071,7 +2072,7 @@ namespace SenseNet.Packaging.Tests
                             "[C1: 1.0 <= v < 2.0 --> 2.0] OnAfterActionFinished.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
                             "[C1: 2.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(24, packages.Count);
             Assert.AreEqual("1, C1: Install Successful, 1.0|" +
@@ -2117,7 +2118,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("C1v3.0(3.0,3.0,Successful)",
                 ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 3.0] OnAfterActionStarts.|[C1: 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(2, packages.Count);
             Assert.AreEqual("1, C1: Install Successful, 3.0",
@@ -2165,7 +2166,7 @@ namespace SenseNet.Packaging.Tests
                 ComponentsToStringWithResult(installed));
             Assert.AreEqual("[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionStarts.|" +
                             "[C1: 1.0 <= v < 3.0 --> 3.0] OnAfterActionFinished.",
-                string.Join("|", log.Select(x => x.ToString())));
+                string.Join("|", log.Select(x => x.ToString(false))));
             Assert.AreEqual("", ErrorsToString(pm.Errors));
             Assert.AreEqual(2, packages.Count);
             Assert.AreEqual("1, C1: Patch Successful, 3.0",
