@@ -38,7 +38,7 @@ namespace SenseNet.Packaging
         /// </summary>
         /// <param name="version">The tested version.</param>
         /// <returns></returns>
-        public bool IsInInterval(Version version)
+        public bool ContainsVersion(Version version)
         {
             if (version == null)
                 return false;

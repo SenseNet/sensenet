@@ -14,7 +14,7 @@ namespace SenseNet.Packaging.Tests
         {
             bool IsInInterval(string boundarySrc, string version)
             {
-                return ParseBoundary(boundarySrc).IsInInterval(Version.Parse(version.TrimStart('v')));
+                return ParseBoundary(boundarySrc).ContainsVersion(Version.Parse(version.TrimStart('v')));
             }
 
             Assert.IsFalse(IsInInterval("2.0 <= v <= 2.0", "v1.9"));
@@ -30,22 +30,22 @@ namespace SenseNet.Packaging.Tests
 
             var max = int.MaxValue;
             var boundary = new VersionBoundary {MinVersion = new Version(2, 3)}; // 2.3 <= v
-            Assert.IsFalse(boundary.IsInInterval(new Version(1, 0)));
-            Assert.IsFalse(boundary.IsInInterval(new Version(2, 2, max, max)));
-            Assert.IsTrue(boundary.IsInInterval(new Version(2, 3)));
-            Assert.IsTrue(boundary.IsInInterval(new Version(max, max)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(1, 0)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(2, 2, max, max)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(2, 3)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(max, max)));
             boundary.MinVersionIsExclusive = true; // 2.3 < v
-            Assert.IsFalse(boundary.IsInInterval(new Version(2, 3)));
-            Assert.IsTrue(boundary.IsInInterval(new Version(2, 3,0,1)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(2, 3)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(2, 3,0,1)));
 
             boundary = new VersionBoundary { MaxVersion = new Version(2, 3) }; // v <= 2.3
-            Assert.IsTrue(boundary.IsInInterval(new Version(2, 0)));
-            Assert.IsTrue(boundary.IsInInterval(new Version(2, 3)));
-            Assert.IsFalse(boundary.IsInInterval(new Version(2, 3, 0, 1)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(2, 0)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(2, 3)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(2, 3, 0, 1)));
             boundary.MaxVersionIsExclusive = true; // v < 2.3
-            Assert.IsTrue(boundary.IsInInterval(new Version(2, 2, max, max)));
-            Assert.IsFalse(boundary.IsInInterval(new Version(2, 3)));
-            Assert.IsFalse(boundary.IsInInterval(new Version(max, max)));
+            Assert.IsTrue(boundary.ContainsVersion(new Version(2, 2, max, max)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(2, 3)));
+            Assert.IsFalse(boundary.ContainsVersion(new Version(max, max)));
         }
 
         /* =================================================================== PATCH VALIDITY TESTS */

@@ -466,7 +466,7 @@ namespace SenseNet.Packaging
             // Installable if all dependencies exist.
             return deps.All(dep =>
                 installed.Any(c => c.ComponentId == dep.Id && 
-                                   dep.Boundary.IsInInterval(GetDependencyTargetVersion(c, onBefore))));
+                                   dep.Boundary.ContainsVersion(GetDependencyTargetVersion(c, onBefore))));
         }
         private Version GetDependencyTargetVersion(SnComponentDescriptor target, bool onBefore)
         {
@@ -497,7 +497,7 @@ namespace SenseNet.Packaging
                 else
                     version = target.TempVersionAfter ?? target.Version;
             }
-            return snPatch.Boundary.IsInInterval(version);
+            return snPatch.Boundary.ContainsVersion(version);
         }
 
         private void WriteInitialStateToDb(ISnPatch patch)
@@ -594,7 +594,7 @@ namespace SenseNet.Packaging
                 {
                     if (!installed.Any(comp => comp.ComponentId == snPatch.ComponentId &&
                                                          comp.Version < patch.Version &&
-                                                         snPatch.Boundary.IsInInterval(comp.Version)))
+                                                         snPatch.Boundary.ContainsVersion(comp.Version)))
                     {
                         var component = installed.FirstOrDefault(c => c.ComponentId == patch.ComponentId);
                         var message = component == null

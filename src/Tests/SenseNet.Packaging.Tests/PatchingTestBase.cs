@@ -162,7 +162,7 @@ namespace SenseNet.Packaging.Tests
             var relevantPatches = patches.Where(patch =>
                 lastVersions.Any(pkg => pkg.ComponentId == patch.ComponentId &&
                                         patch.Version > pkg.Version &&
-                                        patch.Boundary.IsInInterval(pkg.Version)));
+                                        patch.Boundary.ContainsVersion(pkg.Version)));
 
             return relevantPatches.ToArray();
         }
