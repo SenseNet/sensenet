@@ -33,6 +33,7 @@ namespace SnWebApplication.Api.InMem.Admin
                 {
                     repositoryBuilder
                         .BuildInMemoryRepository()
+                        .UseLogger(provider)
                         .UseAccessProvider(new UserAccessProvider());
                 })
                 .AddFeature1();

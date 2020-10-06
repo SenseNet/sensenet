@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -29,6 +30,30 @@ namespace SenseNet.Packaging
             return Message == null || !withMessage
                 ? $"[{Patch}] {EventType}."
                 : $"[{Patch}] {EventType}. {Message}";
+        }
+
+        internal void WriteTo(ILogger logger)
+        {
+            if (logger == null)
+                return;
+
+            switch (EventType)
+            {
+                case PatchExecutionEventType.DuplicatedInstaller:
+                case PatchExecutionEventType.CannotExecuteOnBefore:
+                case PatchExecutionEventType.CannotExecuteOnAfter:
+                case PatchExecutionEventType.CannotExecuteMissingVersion:
+                    logger.LogWarning(ToString());
+                    break;
+                case PatchExecutionEventType.PackageNotSaved:
+                case PatchExecutionEventType.ExecutionError:
+                case PatchExecutionEventType.ExecutionErrorOnBefore:
+                    logger.LogError(ToString());
+                    break;
+                default:
+                    logger.LogInformation(ToString());
+                    break;
+            }
         }
     }
 }

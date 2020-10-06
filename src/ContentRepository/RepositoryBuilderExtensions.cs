@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
@@ -241,6 +242,11 @@ namespace SenseNet.Extensions.DependencyInjection
             if (logger != null)
                 repositoryBuilder.UseLogger(logger);
 
+            // stores a logger instance for later use
+            var genericLogger = provider.GetService<ILogger<SnILogger>>();
+            if (genericLogger != null)
+                repositoryBuilder.SetProvider<ILogger<SnILogger>>(genericLogger);
+
             return repositoryBuilder;
         }
         /// <summary>
@@ -443,6 +449,15 @@ namespace SenseNet.Extensions.DependencyInjection
 
                 Configuration.Providers.Instance.NodeObservers = observers.ToArray();
             }
+
+            return repositoryBuilder;
+        }
+
+        public static IRepositoryBuilder SetProvider<T>(this IRepositoryBuilder repositoryBuilder, T provider)
+        {
+            var providerType = typeof(T);
+            Configuration.Providers.Instance.SetProvider(providerType, provider);
+            WriteLog(providerType.Name, provider);
 
             return repositoryBuilder;
         }
