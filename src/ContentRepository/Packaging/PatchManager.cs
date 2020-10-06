@@ -6,6 +6,7 @@ using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging
@@ -312,7 +313,11 @@ namespace SenseNet.Packaging
                             {
                                 _context.CurrentPatch = patch;
                                 _context.RepositoryIsRunning = true;
-                                patch.Action?.Invoke(_context);
+
+                                // execute patch in elevated mode so that developers do not have to elevate every time
+                                using (new SystemAccount())
+                                    patch.Action?.Invoke(_context);
+
                                 ModifyStateInDb(patch, ExecutionResult.Successful, null);
                             }
                             ModifyState(patch, installed, ExecutionResult.Successful);
