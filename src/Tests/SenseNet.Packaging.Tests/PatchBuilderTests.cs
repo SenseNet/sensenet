@@ -136,6 +136,34 @@ namespace SenseNet.Packaging.Tests
             }
         }
 
+        [TestMethod]
+        public void Patching_Builder_Installer_BeforeAfter()
+        {
+            var builder = new PatchBuilder(new TestComponent());
+
+            // ACTION
+            builder.Install("1.0", "2020-10-20", "MyComp desc")
+                .ActionBefore().Action()
+                .Install("1.0", "2020-10-20", "MyComp desc")
+                .ActionBefore().Action()
+                .Install("1.0", "2020-10-20", "MyComp desc")
+                .ActionBefore().Action()
+                .Install("1.0", "2020-10-20", "MyComp desc")
+                .ActionBefore().Action();
+
+            // ASSERT
+            var installers = builder.GetPatches()
+                .Select(x=>(ComponentInstaller)x).ToArray();
+            Assert.IsNull(installers[0].ActionBeforeStart);
+            Assert.IsNull(installers[0].Action);
+            Assert.IsNull(installers[1].ActionBeforeStart);
+            Assert.IsNull(installers[1].Action);
+            Assert.IsNull(installers[2].ActionBeforeStart);
+            Assert.IsNull(installers[2].Action);
+            Assert.IsNull(installers[3].ActionBeforeStart);
+            Assert.IsNull(installers[3].Action);
+        }
+
         /* ================================================================ PATCH TESTS */
 
         [TestMethod]

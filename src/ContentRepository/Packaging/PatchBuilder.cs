@@ -140,6 +140,7 @@ namespace SenseNet.Packaging
         IPatchInstanceBuilder DependsOn(string componentId, string minVersion);
         IPatchInstanceBuilder DependsOn(string componentId, VersionBoundary boundary);
         IPatchInstanceBuilder DependsOn(DependencyBuilder builder);
+        IPatchInstanceBuilder ActionBefore(Action<PatchExecutionContext> executeAction = null);
         PatchBuilder Action(Action<PatchExecutionContext> executeAction = null);
     }
     internal class ItemBuilder : IPatchInstanceBuilder
@@ -182,7 +183,6 @@ namespace SenseNet.Packaging
             deps.Add(dependency);
             _patch.Dependencies = deps;
         }
-
         private void AssertDependencyIsValid(Dependency dependencyToAdd, List<Dependency> dependencies)
         {
             if (dependencyToAdd.Id == this._patch.ComponentId)
@@ -193,6 +193,12 @@ namespace SenseNet.Packaging
                     "Duplicated dependency is forbidden: " + _patch);
         }
 
+        public IPatchInstanceBuilder ActionBefore(Action<PatchExecutionContext> action = null)
+        {
+            if (action != null)
+                _patch.ActionBeforeStart = action;
+            return this;
+        }
         public PatchBuilder Action(Action<PatchExecutionContext> action = null)
         {
             if (action != null)
